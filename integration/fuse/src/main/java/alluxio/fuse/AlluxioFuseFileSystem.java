@@ -30,6 +30,7 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.FuseStubFS;
 import alluxio.jnifuse.struct.FileStat;
@@ -47,14 +48,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import jnr.ffi.types.gid_t;
-import jnr.ffi.types.mode_t;
-import jnr.ffi.types.off_t;
-import jnr.ffi.types.size_t;
-import jnr.ffi.types.uid_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -180,12 +175,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success, a negative value on error
    */
   @Override
-  public int chmod(String path, @mode_t long mode) {
+  public int chmod(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode),
         "chmod", "path=%s,mode=%o", path, mode);
   }
 
-  private int chmodInternal(String path, @mode_t long mode) {
+  private int chmodInternal(String path, long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
@@ -209,12 +204,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success, a negative value on error
    */
   @Override
-  public int chown(String path, @uid_t long uid, @gid_t long gid) {
+  public int chown(String path, long uid, long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
         "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
   }
 
-  private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {
+  private int chownInternal(String path, long uid, long gid) {
     if (!mIsUserGroupTranslation) {
       LOG.info(
           "Cannot change the owner/group of path {}. Please set {} to be true to enable "
@@ -279,12 +274,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success. A negative value on error
    */
   @Override
-  public int create(String path, @mode_t long mode, FuseFileInfo fi) {
+  public int create(String path, long mode, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
         "create", "path=%s,mode=%o", path, mode);
   }
 
-  private int createInternal(String path, @mode_t long mode, FuseFileInfo fi) {
+  private int createInternal(String path, long mode, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to create {}, file name is longer than {} characters", path,
@@ -467,12 +462,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success, a negative value on error
    */
   @Override
-  public int mkdir(String path, @mode_t long mode) {
+  public int mkdir(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode),
         "mkdir", "path=%s,mode=%o,", path, mode);
   }
 
-  private int mkdirInternal(String path, @mode_t long mode) {
+  private int mkdirInternal(String path, long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     if (turi.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to create directory {}, directory name is longer than {} characters",
@@ -580,13 +575,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return the number of bytes read or 0 on EOF. A negative value on error
    */
   @Override
-  public int read(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
+  public int read(String path, ByteBuffer buf, long size, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
         "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
-  private int readInternal(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
+  private int readInternal(String path, ByteBuffer buf, long size, long offset,
       FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
@@ -640,13 +635,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return 0 on success, a negative value on error
    */
   @Override
-  public int readdir(String path, long buff, FuseFillDir filter, @off_t long offset,
+  public int readdir(String path, long buff, FuseFillDir filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "readdir", "path=%s,buf=%s", path, buff);
   }
 
-  private int readdirInternal(String path, long buff, FuseFillDir filter, @off_t long offset,
+  private int readdirInternal(String path, long buff, FuseFillDir filter, long offset,
       FuseFileInfo fi) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     try {
@@ -848,13 +843,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return number of bytes written on success, a negative value on error
    */
   @Override
-  public int write(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
+  public int write(String path, ByteBuffer buf, long size, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
         "write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
-  private int writeInternal(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
+  private int writeInternal(String path, ByteBuffer buf, long size, long offset,
       FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot write more than Integer.MAX_VALUE");

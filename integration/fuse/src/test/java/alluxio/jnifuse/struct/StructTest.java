@@ -30,7 +30,6 @@ import java.nio.ByteBuffer;
 public class StructTest {
 
   static class DummyStruct extends Struct {
-
     public DummyStruct() {
       super(ByteBuffer.allocate(1));
       m_signed32 = new Signed32();

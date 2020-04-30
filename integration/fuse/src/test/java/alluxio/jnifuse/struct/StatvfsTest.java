@@ -23,7 +23,6 @@ public class StatvfsTest {
   @Test
   public void offset() {
     Statvfs jni = new Statvfs(ByteBuffer.allocate(256));
-
     ru.serce.jnrfuse.struct.Statvfs jnr =
         ru.serce.jnrfuse.struct.Statvfs.of(Pointer.wrap(Runtime.getSystemRuntime(), 0x0));
 

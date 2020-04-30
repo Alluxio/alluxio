@@ -44,6 +44,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
@@ -62,7 +63,6 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
