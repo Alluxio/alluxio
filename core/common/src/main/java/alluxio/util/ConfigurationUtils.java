@@ -413,7 +413,12 @@ public final class ConfigurationUtils {
       // property file.
       AlluxioProperties properties = new AlluxioProperties();
       InstancedConfiguration conf = new InstancedConfiguration(properties);
-      properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
+      // Can't directly pass System.getProperties() because it is not thread-safe
+      // This can cause a ConcurrentModificationException when merging.
+      Properties sysProps = new Properties();
+      System.getProperties().stringPropertyNames()
+          .forEach(key -> sysProps.setProperty(key, System.getProperty(key)));
+      properties.merge(sysProps, Source.SYSTEM_PROPERTY);
 
       // Step2: Load site specific properties file if not in test mode. Note that we decide
       // whether in test mode by default properties and system properties (via getBoolean).
