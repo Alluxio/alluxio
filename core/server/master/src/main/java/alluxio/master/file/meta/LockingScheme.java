@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -44,11 +45,14 @@ public final class LockingScheme {
   /**
    * Create a new {@link LockingScheme}.
    *
-   * @param path a
-   * @param desiredPattern a
-   * @param options a
-   * @param pathCache a
-   * @param isGetFileInfo a
+   * Thi constructor computes the value of {@link #mShouldSync} with the extra argument provided.
+   *
+   * @param path the path to lock
+   * @param desiredPattern the desired lock mode
+   * @param options the common options provided in an RPC
+   * @param pathCache the {@link alluxio.master.file.DefaultFileSystemMaster}'s path cache
+   * @param isGetFileInfo whether the caller is
+   * {@link alluxio.master.file.FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
       FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache, boolean isGetFileInfo) {

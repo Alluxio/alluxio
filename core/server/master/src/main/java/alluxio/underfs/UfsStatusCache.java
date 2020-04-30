@@ -48,7 +48,9 @@ public class UfsStatusCache {
   /**
    * Create a new instance of {@link UfsStatusCache}.
    *
-   * @param prefetchExecutor the executor service used to prefetch statuses
+   * @param prefetchExecutor the executor service used to prefetch statuses. If set to null, then
+   *                         calls to {@link #prefetchChildren(AlluxioURI, MountTable)} will not
+   *                         schedule any tasks.
    */
   public UfsStatusCache(@Nullable ExecutorService prefetchExecutor) {
     mStatuses = new ConcurrentHashMap<>();
@@ -66,15 +68,17 @@ public class UfsStatusCache {
    *
    * @param path the Alluxio path to key on
    * @param status the ufs status to store
+   * @return the previous status for the path if it existed, null otherwise
    * @throws IllegalArgumentException if the status name doesn't match the final URI path component
    */
-  public void addStatus(AlluxioURI path, UfsStatus status) {
-    UfsStatus prev = mStatuses.putIfAbsent(path, status);
+  @Nullable
+  public UfsStatus addStatus(AlluxioURI path, UfsStatus status) {
     if (!path.getName().equals(status.getName())) {
       throw new IllegalArgumentException(
           String.format("path name %s does not match ufs status name %s",
               path.getName(), status.getName()));
     }
+    return mStatuses.put(path, status);
   }
 
   /**
@@ -84,20 +88,17 @@ public class UfsStatusCache {
    *
    * @param path the directory inode path which contains the children
    * @param children the children of the {@code path}
-   * @throws IllegalArgumentException when {@code path} already exists or if any child already
-   *                                  exists
+   * @return the previous set of children if the mapping existed, null otherwise
    */
-  public void addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    UfsStatus status = mStatuses.get(path);
-    // If this path doesn't yet exist, we can't keep track of the parent-child relationship
-    // We can still add statuses to the cache regardless
-    if (status != null) {
-      mChildren.computeIfAbsent(path, ufsStatus -> new ConcurrentHashSet<>()).addAll(children);
-    }
+  @Nullable
+  public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
+    ConcurrentHashSet<UfsStatus> set = new ConcurrentHashSet<>();
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
+      set.add(child);
     });
+    return mChildren.put(path, set);
   }
 
   /**
@@ -154,16 +155,18 @@ public class UfsStatusCache {
     if (children != null) {
       return children;
     }
-    Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.remove(path);
+    Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
       try {
         return prefetchJob.get();
       } catch (InterruptedException | ExecutionException e) {
-        LOG.warn("Failed waiting to fetch children at {}", path);
-        if (e instanceof  InterruptedException) {
+        LOG.warn("Failed waiting to prefetch children at {}", path);
+        if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }
         throw new IOException(e);
+      } finally {
+        mActivePrefetchJobs.remove(path);
       }
     }
     if (useFallback) {
@@ -182,7 +185,6 @@ public class UfsStatusCache {
    * @param mountTable the Alluxio mount table
    * @return child UFS statuses of the alluxio path
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
-   * @see {@link #fetchChildrenIfAbsent(AlluxioURI, MountTable, boolean)}
    */
   public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws IOException, InvalidPathException {
@@ -252,9 +254,9 @@ public class UfsStatusCache {
       return;
     }
     try {
-      Future<Collection<UfsStatus>> fute =
+      Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
-      Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, fute);
+      Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
       }

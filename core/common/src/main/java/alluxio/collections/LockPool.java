@@ -94,7 +94,7 @@ public class LockPool<K> implements Closeable {
       mEvictor.awaitTermination(2, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException("Failed to await evictor termination", e);
+      throw new IOException("Failed to await LockPool evictor termination", e);
     }
   }
 
