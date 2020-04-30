@@ -40,11 +40,9 @@ import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.SpaceReserver;
 
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -167,10 +165,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(writeSize, getUsedWorkerSpace());
     fos.close();
     FileSystemUtils.persistAndWait(fs, p1, 0);
-    // Eviction should now occur
-    BlockWorker blkWorker =
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
-    Whitebox.getInternalState(blkWorker, SpaceReserver.class).heartbeat();
     assertThat(getUsedWorkerSpace(), lessThan(writeSize));
   }
 
@@ -263,12 +257,17 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   /**
-   * Executing this will trigger an eviction on the worker, force a sync of storage info to the
-   * master, and then retrieve the updated storage value from the master.
+   * Executing this will trigger an eviction on the worker, force an update of cached storage
+   * info, then retrieve the info from the block worker.
    *
-   * @return the amount of space used in the cluster
+   * @return the amount of space used by the worker
    */
   private long getUsedWorkerSpace() {
+    BlockWorker blkWorker =
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
+    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
+    reserver.heartbeat(); // evicts blocks
+    reserver.updateStorageInfo(); // updates storage info reported from getUsedBytes
     return mLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class).getStoreMeta().getUsedBytes();
   }
