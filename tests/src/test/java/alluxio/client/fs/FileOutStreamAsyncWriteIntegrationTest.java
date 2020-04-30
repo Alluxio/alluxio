@@ -11,7 +11,9 @@
 
 package alluxio.client.fs;
 
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -38,7 +40,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.SpaceReserver;
 
@@ -145,7 +146,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, TINY_BLOCK_SIZE,
-      PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10sec",
       "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
       "alluxio.worker.tieredstore.level0.watermark.low.ratio", "0.25",
       })
@@ -165,7 +165,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(writeSize, getUsedWorkerSpace());
     fos.close();
     FileSystemUtils.persistAndWait(fs, p1, 0);
-    assertTrue(getUsedWorkerSpace() < writeSize);
+    assertThat(getUsedWorkerSpace(), lessThan(writeSize));
   }
 
   @Test
@@ -257,26 +257,19 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   /**
-   * Executing this will trigger an eviction on the worker, force a sync of storage info to the
-   * master, and then retrieve the updated storage value from the master.
+   * Executing this will trigger an eviction on the worker, force an update of cached storage
+   * info, then retrieve the info from the block worker.
    *
-   * @return the amount of space used in the cluster
+   * @return the amount of space used by the worker
    */
-  private long getUsedWorkerSpace() throws UnavailableException {
-    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
-        .getWorker(BlockWorker.class);
-    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
+  private long getUsedWorkerSpace() {
+    BlockWorker blkWorker =
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
     SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
-    // free space, update master storage info and make sure eviction has occurred
-    reserver.heartbeat();
-    reserver.updateStorageInfo();
-    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
-    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(BlockMaster.class)
-        .getWorkerInfoList()
-        .stream()
-        .map(WorkerInfo::getUsedBytes)
-        .mapToLong(Long::new).sum();
+    reserver.heartbeat(); // evicts blocks
+    reserver.updateStorageInfo(); // updates storage info reported from getUsedBytes
+    return mLocalAlluxioClusterResource.get().getWorkerProcess()
+        .getWorker(BlockWorker.class).getStoreMeta().getUsedBytes();
   }
 
   private void createTwoBytesFile(AlluxioURI path, long persistenceWaitTime) throws Exception {
