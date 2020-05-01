@@ -11,9 +11,7 @@
 
 package alluxio.client.fs;
 
-import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -44,7 +42,6 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 
@@ -160,16 +157,22 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Arrays.fill(arr, (byte) 0x7a);
     fos.write(arr);
     assertEquals(writeSize + FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE), getClusterCapacity());
-    // subtract block size since the last block hasn't been committed yet
-    assertEquals(writeSize, getUsedWorkerSpace());
+    // This will succeed.
+    FileSystemTestUtils.createByteFile(fs, "/byte-file1", WritePType.MUST_CACHE,
+        (int) FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE));
+    // This will not until the stream is closed and persisted.
+    try {
+      FileSystemTestUtils.createByteFile(fs, "/byte-file2", WritePType.MUST_CACHE,
+          2 * (int) FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE));
+      Assert.fail("Should have failed due to non-evictable block.");
+    } catch (Exception e) {
+      // expected.
+    }
     fos.close();
     FileSystemUtils.persistAndWait(fs, p1, 0);
-<<<<<<< HEAD
-    // Try to create 1-byte file on top. Expect to succeed.
-    FileSystemTestUtils.createByteFile(fs, "/byte-file1", WritePType.MUST_CACHE, 1);
-=======
-    assertThat(getUsedWorkerSpace(), lessThan(writeSize));
->>>>>>> upstream/master
+    // Now this should succeed.
+    FileSystemTestUtils.createByteFile(fs, "/byte-file3", WritePType.MUST_CACHE,
+        2 * (int) FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE));
   }
 
   @Test
@@ -270,28 +273,11 @@ public final class FileOutStreamAsyncWriteIntegrationTest
    *
    * @return the amount of space used by the worker
    */
-<<<<<<< HEAD
-  private long getUsedWorkerSpace() throws UnavailableException {
-    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
-        .getWorker(BlockWorker.class);
-    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
-    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
-    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(BlockMaster.class)
-        .getWorkerInfoList()
-        .stream()
-        .map(WorkerInfo::getUsedBytes)
-        .mapToLong(Long::new).sum();
-=======
   private long getUsedWorkerSpace() {
     BlockWorker blkWorker =
         mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
-    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
-    reserver.heartbeat(); // evicts blocks
-    reserver.updateStorageInfo(); // updates storage info reported from getUsedBytes
     return mLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class).getStoreMeta().getUsedBytes();
->>>>>>> upstream/master
   }
 
   private void createTwoBytesFile(AlluxioURI path, long persistenceWaitTime) throws Exception {
