@@ -87,6 +87,9 @@ public final class StorageTier {
         "Tier medium type configuration should not be blank");
     String[] dirMedium = rawDirMedium.split(",");
 
+    long reservedSpaceBytes =
+        ServerConfiguration.getBytes(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES);
+
     mDirs = new HashMap<>(dirPaths.length);
     mLostStorage = new ArrayList<>();
 
@@ -96,8 +99,8 @@ public final class StorageTier {
       int mediumTypeindex = i >= dirMedium.length ? dirMedium.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i],
-            dirMedium[mediumTypeindex]);
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, reservedSpaceBytes,
+            dirPaths[i], dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.put(i, dir);
       } catch (IOException | InvalidPathException e) {

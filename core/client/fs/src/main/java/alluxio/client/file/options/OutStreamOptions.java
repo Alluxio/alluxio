@@ -144,6 +144,9 @@ public final class OutStreamOptions {
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMediumType = "";
+    if (alluxioConf.isSet(PropertyKey.USER_FILE_TARGET_MEDIA)) {
+      mMediumType = alluxioConf.get(PropertyKey.USER_FILE_TARGET_MEDIA);
+    }
   }
 
   /**

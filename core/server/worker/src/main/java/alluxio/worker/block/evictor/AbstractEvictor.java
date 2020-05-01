@@ -35,8 +35,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides the basic implementation for every evictor.
+ *
+ * @deprecated use block annotator instead
  */
 @NotThreadSafe
+@Deprecated
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
@@ -161,7 +164,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
+          plan.toMove().add(BlockTransferInfo.createMove(block.getBlockLocation(), blockId,
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());

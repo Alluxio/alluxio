@@ -69,11 +69,15 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
-    BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    long bytesToReserve = FILE_BUFFER_SIZE;
+    if (msg.getCommand().hasSpaceToReserve()) {
+      bytesToReserve = msg.getCommand().getSpaceToReserve();
+    }
+    BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlockRemote(request.getSessionId(), request.getId(),
         mStorageTierAssoc.getAlias(request.getTier()),
-        request.getMediumType(), FILE_BUFFER_SIZE);
+        request.getMediumType(), bytesToReserve);
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
       context.setMeter(MetricsSystem.meter(
@@ -106,8 +110,10 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
 
   @Override
   protected void cleanupRequest(BlockWriteRequestContext context) throws Exception {
-    WriteRequest request = context.getRequest();
-    mWorker.cleanupSession(request.getSessionId());
+    if (context.getBlockWriter() != null) {
+      context.getBlockWriter().close();
+    }
+    mWorker.cleanupSession(context.getRequest().getSessionId());
   }
 
   @Override

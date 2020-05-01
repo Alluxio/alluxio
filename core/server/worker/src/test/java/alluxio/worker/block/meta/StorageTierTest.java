@@ -109,12 +109,12 @@ public class StorageTierTest {
    */
   @Test
   public void getAvailableBytes() throws Exception {
-    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
-
+    // When reserved space that is configured is less than capacity %5 of the capacity is reserved.
+    long capacityBytesWithoutReserved = (long) ((TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY) * 0.95);
+    Assert.assertEquals(capacityBytesWithoutReserved, mTier.getAvailableBytes());
     // Capacity should subtract block size after adding block to a dir.
     mDir1.addTempBlockMeta(mTempBlockMeta);
-    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY - TEST_BLOCK_SIZE,
-        mTier.getAvailableBytes());
+    Assert.assertEquals(capacityBytesWithoutReserved - TEST_BLOCK_SIZE, mTier.getAvailableBytes());
   }
 
   /**
