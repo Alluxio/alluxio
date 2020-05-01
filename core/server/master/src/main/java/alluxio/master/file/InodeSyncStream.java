@@ -63,6 +63,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -233,7 +234,12 @@ public class InodeSyncStream {
     // 4. If not deleted, load metadata from the UFS
     // 5. If a recursive sync, add children inodes to sync queue
     int syncPathCount = 0;
+    int failedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+    long start = Long.MAX_VALUE;
+    if (LOG.isDebugEnabled()) {
+      start = System.currentTimeMillis();
+    }
 
     try {
       syncInodeMetadata(mRootPath);
@@ -254,7 +260,7 @@ public class InodeSyncStream {
         | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
         | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
-          mRootPath.getUri(), e);
+          toString(), e);
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
       mStatusCache.remove(mRootPath.getUri());
@@ -266,7 +272,7 @@ public class InodeSyncStream {
     // Process any children after the root.
     while (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
       if (Thread.currentThread().isInterrupted()) {
-        LOG.warn("Metadata syncing was interrupted before completion");
+        LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
         break;
       }
       // There are still paths to process
@@ -286,12 +292,15 @@ public class InodeSyncStream {
           // This shouldn't block because we checked job.isDone() earlier
           if (job.get()) {
             syncPathCount++;
+          } else {
+            failedSyncPathCount++;
           }
         } catch (InterruptedException | ExecutionException e) {
-          LogUtils
-              .warnWithException(LOG, "metadata sync failed while polling for finished paths when"
-                  + " syncing root path; {}", mRootPath, e);
-          if (e instanceof  InterruptedException) {
+          failedSyncPathCount++;
+          LogUtils.warnWithException(
+              LOG, "metadata sync failed while polling for finished paths; {}",
+              toString(), e);
+          if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
             break;
           }
@@ -299,7 +308,7 @@ public class InodeSyncStream {
       }
 
       // When using descendant type of ONE, we need to stop prematurely.
-      if (stopNum != -1 && syncPathCount > stopNum) {
+      if (stopNum != -1 && (syncPathCount + failedSyncPathCount) > stopNum) {
         break;
       }
 
@@ -322,15 +331,20 @@ public class InodeSyncStream {
       try {
         oldestJob.get(); // block until the oldest job finished.
       } catch (InterruptedException | ExecutionException e) {
-        LogUtils
-            .warnWithException(LOG, "Exception while waiting for oldest metadata sync job to "
-                + "finish for sync on root path {}", mRootPath, e);
+        LogUtils.warnWithException(
+                LOG, "Exception while waiting for oldest metadata sync job to finish: {}",
+                toString(), e);
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }
       }
     }
-    LOG.debug("TRACING - Synced {} paths", syncPathCount);
+    if (LOG.isDebugEnabled()) {
+      long end = System.currentTimeMillis();
+      LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
+          syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount, end - start,
+          mRootPath);
+    }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
     return syncPathCount > 0;
@@ -406,7 +420,7 @@ public class InodeSyncStream {
     // whether we need to load metadata for the current path
     boolean loadMetadata = mLoadOnly;
     boolean syncChildren = true;
-    LOG.debug("Syncing inode metadata {}", inodePath.getUri());
+    LOG.trace("Syncing inode metadata {}", inodePath.getUri());
 
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
@@ -814,5 +828,16 @@ public class InodeSyncStream {
     }
     // Re-traverse the path to pick up any newly created inodes.
     inodePath.traverse();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("rootPath", mRootPath)
+        .add("descendantType", mDescendantType)
+        .add("commonOptions", mSyncOptions)
+        .add("forceSync", mForceSync)
+        .add("isGetFileInfo", mIsGetFileInfo)
+        .toString();
   }
 }

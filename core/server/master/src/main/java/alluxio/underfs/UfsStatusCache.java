@@ -16,6 +16,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
+import alluxio.util.LogUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +161,8 @@ public class UfsStatusCache {
       try {
         return prefetchJob.get();
       } catch (InterruptedException | ExecutionException e) {
-        LOG.warn("Failed waiting to prefetch children at {}", path);
+        LogUtils.warnWithException(LOG, "Failed to get result for prefetch job on alluxio path {}",
+            path, e);
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }

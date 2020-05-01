@@ -139,6 +139,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -3106,8 +3107,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           // This shouldn never happen because the permission check function is passed as null.
           LOG.error("Active sync full scan failed on {}", path, e);
         }
-        long end = System.currentTimeMillis();
-        LOG.info("TRACING - full sync: {}", end - start);
+
         LOG.info("Ended an active full sync of {}", path.toString());
         return;
       } else {
@@ -3121,7 +3121,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
             try {
               syncMetadata(rpcContext, changedFile, options, DescendantType.ONE, null, null, null);
             } catch (InvalidPathException | AccessControlException e) {
-              LOG.info("forceSyncMetadata processed an invalid path {}", changedFile.getPath());
+              LogUtils.warnWithException(LOG,
+                  "incremental active sync processed an invalid path {}", changedFile.getPath(), e);
             }
             return null;
           });
@@ -3195,7 +3196,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       @Nullable PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo) throws InvalidPathException, AccessControlException {
-
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
 
     if (!syncScheme.shouldSync()) {
