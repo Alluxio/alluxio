@@ -37,10 +37,7 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
 
   @Override
   public BlockSortedField updateSortedField(long blockId, LRUSortedField oldValue) {
-    long clockValue = 0;
-    if (oldValue != null) {
-      clockValue = mLRUClock.incrementAndGet();
-    }
+    long clockValue = mLRUClock.incrementAndGet();
     if (LOG.isDebugEnabled()) {
       LOG.debug("LRU update for Block: {}. Clock: {}", blockId, clockValue);
     }
