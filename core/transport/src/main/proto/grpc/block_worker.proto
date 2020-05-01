@@ -75,7 +75,7 @@ message ReadResponse {
 }
 
 // The write request command.
-// next available id: 10
+// next available id: 11
 message WriteRequestCommand {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
@@ -89,6 +89,7 @@ message WriteRequestCommand {
   optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
   optional string medium_type = 8;
   optional bool pin_on_create = 9;
+  optional int64 space_to_reserve = 10;
 }
 
 // The write request.

@@ -13,10 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.collections.Pair;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -24,23 +20,21 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.TimeoutRetry;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.evictor.BlockTransferInfo;
-import alluxio.worker.block.evictor.EvictionPlan;
-import alluxio.worker.block.evictor.Evictor;
-import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.io.LocalFileBlockReader;
-import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.io.StoreBlockReader;
+import alluxio.worker.block.io.StoreBlockWriter;
+import alluxio.worker.block.management.ManagementTaskCoordinator;
+import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.BlockOrder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -52,10 +46,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -92,15 +85,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
-  private static final long FREE_SPACE_TIMEOUT_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
-  private static final int EVICTION_INTERVAL_MS =
-      (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
-
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
-  private final Evictor mEvictor;
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners = new ArrayList<>();
 
@@ -116,8 +103,11 @@ public class TieredBlockStore implements BlockStore {
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
-  /** Association between storage tier aliases and ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc;
+  /** Used to get iterators per locations. */
+  private BlockIterator mBlockIterator;
+
+  /** Management task coordinator. */
+  private ManagementTaskCoordinator mTaskCoordinator;
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -126,6 +116,12 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
+    mBlockIterator = mMetaManager.getBlockIterator();
+    // Register listeners required by the block iterator.
+    for (BlockStoreEventListener listener : mBlockIterator.getListeners()) {
+      registerBlockStoreEventListener(listener);
+    }
+
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.create(initManagerView);
@@ -133,14 +129,10 @@ public class TieredBlockStore implements BlockStore {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView = new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
-        Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.create(initManagerView, mAllocator);
-    if (mEvictor instanceof BlockStoreEventListener) {
-      registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
-    }
-
-    mStorageTierAssoc = new WorkerStorageTierAssoc();
+    // Initialize and start coordinator.
+    mTaskCoordinator = new ManagementTaskCoordinator(this, mMetaManager,
+        new DefaultStoreLoadTracker(), () -> getUpdatedView());
+    mTaskCoordinator.start();
   }
 
   @Override
@@ -198,7 +190,7 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      return new LocalFileBlockWriter(tempBlockMeta.getPath());
+      return new StoreBlockWriter(tempBlockMeta);
     }
   }
 
@@ -209,29 +201,23 @@ public class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new LocalFileBlockReader(blockMeta.getPath());
+      return new StoreBlockReader(sessionId, blockMeta);
     }
   }
 
   @Override
-  public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      IOException {
-    LOG.debug("createBlock: sessionId={}, blockId={}, location={}, initialBlockSize={}", sessionId,
-        blockId, location, initialBlockSize);
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attempt()) {
-      TempBlockMeta tempBlockMeta =
-          createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
-      if (tempBlockMeta != null) {
-        createBlockFile(tempBlockMeta.getPath());
-        return tempBlockMeta;
-      }
+  public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
+    TempBlockMeta tempBlockMeta = createBlockMetaInternal(sessionId, blockId, true, options);
+    if (tempBlockMeta != null) {
+      createBlockFile(tempBlockMeta.getPath());
+      return tempBlockMeta;
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
     // other types of exception to indicate this case.
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
-        initialBlockSize, location, FREE_SPACE_TIMEOUT_MS, blockId);
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION,
+        options.getSize(), options.getLocation(), blockId);
   }
 
   // TODO(bin): Make this method to return a snapshot.
@@ -265,13 +251,41 @@ public class TieredBlockStore implements BlockStore {
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
-    LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
-    BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-    synchronized (mBlockStoreEventListeners) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onCommitBlock(sessionId, blockId, loc);
+    LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
+        sessionId, blockId, pinOnCreate);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    try {
+      BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onCommitBlock(sessionId, blockId, loc);
+        }
       }
+    } finally {
+      mLockManager.unlockBlock(lockId);
     }
+  }
+
+  @Override
+  public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
+      IOException {
+    LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
+        sessionId, blockId, pinOnCreate);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    try {
+      BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onCommitBlock(sessionId, blockId, loc);
+        }
+      }
+    } catch (Exception e) {
+      // Unlock if exception is thrown.
+      mLockManager.unlockBlock(lockId);
+      throw e;
+    }
+    return lockId;
   }
 
   @Override
@@ -291,51 +305,64 @@ public class TieredBlockStore implements BlockStore {
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attempt()) {
-      Pair<Boolean, BlockStoreLocation> requestResult =
-          requestSpaceInternal(blockId, additionalBytes);
-      if (requestResult.getFirst()) {
-        return;
+
+    // NOTE: a temp block is only visible to its own writer, unnecessary to acquire
+    // block lock here since no sharing
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+
+      StorageDirView allocationDir = allocateSpace(sessionId,
+          AllocateOptions.forRequestSpace(additionalBytes, tempBlockMeta.getBlockLocation()));
+      if (allocationDir == null) {
+        throw new WorkerOutOfSpaceException(String.format(
+            "Can't reserve more space for block: %d under session: %d.", blockId, sessionId));
+      }
+
+      if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
+        // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
+        throw new IllegalStateException(
+            String.format("Allocation error: location enforcement failed for location: %s",
+                allocationDir.toBlockStoreLocation()));
+      }
+
+      // Increase the size of this temp block
+      try {
+        mMetaManager.resizeTempBlockMeta(
+            tempBlockMeta, tempBlockMeta.getBlockSize() + additionalBytes);
+      } catch (InvalidWorkerStateException e) {
+        throw Throwables.propagate(e); // we shall never reach here
       }
     }
-    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-    // other types of exception to indicate this case.
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT,
-        additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
+  public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
-    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), newLocation);
+    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), moveOptions);
   }
 
   @Override
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation)
+      AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, newLocation={}", sessionId,
-        blockId, oldLocation, newLocation);
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attempt()) {
-      MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-      if (result.getSuccess()) {
-        synchronized (mBlockStoreEventListeners) {
-          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
-                result.getDstLocation());
-          }
+    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, options={}", sessionId,
+        blockId, oldLocation, moveOptions);
+    MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
+    if (result.getSuccess()) {
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+              result.getDstLocation());
         }
-        return;
       }
+      return;
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
     // other types of exception to indicate this case.
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT,
-        newLocation, blockId, FREE_SPACE_TIMEOUT_MS);
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
+        moveOptions.getLocation(), blockId);
   }
 
   @Override
@@ -348,10 +375,35 @@ public class TieredBlockStore implements BlockStore {
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
-    removeBlockInternal(sessionId, blockId, location);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+
+    BlockMeta blockMeta;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      if (mMetaManager.hasTempBlockMeta(blockId)) {
+        throw new InvalidWorkerStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
+      }
+
+      blockMeta = mMetaManager.getBlockMeta(blockId);
+
+      if (!blockMeta.getBlockLocation().belongsTo(location)) {
+        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
+            location);
+      }
+    } catch (Exception e) {
+      mLockManager.unlockBlock(lockId);
+      throw e;
+    }
+
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      removeBlockInternal(blockMeta);
+    } finally {
+      mLockManager.unlockBlock(lockId);
+    }
+
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlock(sessionId, blockId, blockMeta.getBlockLocation());
       }
     }
   }
@@ -359,26 +411,41 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     LOG.debug("accessBlock: sessionId={}, blockId={}", sessionId, blockId);
-    boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (!hasBlock) {
-      throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
-    }
-    synchronized (mBlockStoreEventListeners) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onAccessBlock(sessionId, blockId);
+      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onAccessBlock(sessionId, blockId);
+          listener.onAccessBlock(sessionId, blockId, blockMeta.getBlockLocation());
+        }
       }
     }
   }
 
+  /**
+   * Free space is the entry for immediate block deletion in order to open up space for
+   * new or ongoing blocks.
+   *
+   * - New blocks creations will not try to free space until all tiers are out of space.
+   * - Ongoing blocks could end up freeing space oftenly, when the file's origin location is
+   * low on space.
+   *
+   * This method is synchronized in order to prevent race in its only client, allocations.
+   * If not synchronized, new allocations could steal space reserved by ongoing ones.
+   * Removing synchronized requires implementing retries to this call along with an optimal
+   * locking strategy for fairness.
+   *
+   * TODO(ggezer): Remove synchronized.
+   * TODO(ggezer): Make it a private API.
+   */
   @Override
-  public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
+  public synchronized void freeSpace(long sessionId, long minContiguousBytes,
+      long minAvailableBytes, BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("freeSpace: sessionId={}, availableBytes={}, location={}",
-        sessionId, availableBytes, location);
-    freeSpaceInternal(sessionId, availableBytes, location, Mode.BEST_EFFORT);
+    LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
+        sessionId, minAvailableBytes, minAvailableBytes, location);
+    freeSpaceInternal(sessionId, minContiguousBytes, minAvailableBytes, location);
   }
 
   @Override
@@ -526,42 +593,94 @@ public class TieredBlockStore implements BlockStore {
   private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
-      // When committing TempBlockMeta, the final BlockMeta calculates the block size according to
-      // the actual file size of this TempBlockMeta. Therefore, commitTempBlockMeta must happen
-      // after moving actual block file to its committed path.
-      BlockStoreLocation loc;
-      String srcPath;
-      String dstPath;
-      TempBlockMeta tempBlockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
-        checkTempBlockOwnedBySession(sessionId, blockId);
-        tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-        srcPath = tempBlockMeta.getPath();
-        dstPath = tempBlockMeta.getCommitPath();
-        loc = tempBlockMeta.getBlockLocation();
-      }
-
-      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.move(srcPath, dstPath);
-
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
-        mMetaManager.commitTempBlockMeta(tempBlockMeta);
-      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
-          | WorkerOutOfSpaceException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
-
-      // Check if block is pinned on commit
-      if (pinOnCreate) {
-        addToPinnedInodes(BlockId.getFileId(blockId));
-      }
-
-      return loc;
-    } finally {
-      mLockManager.unlockBlock(lockId);
+    // When committing TempBlockMeta, the final BlockMeta calculates the block size according to
+    // the actual file size of this TempBlockMeta. Therefore, commitTempBlockMeta must happen
+    // after moving actual block file to its committed path.
+    BlockStoreLocation loc;
+    String srcPath;
+    String dstPath;
+    TempBlockMeta tempBlockMeta;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
+      tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      srcPath = tempBlockMeta.getPath();
+      dstPath = tempBlockMeta.getCommitPath();
+      loc = tempBlockMeta.getBlockLocation();
     }
+
+    // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
+    FileUtils.move(srcPath, dstPath);
+
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      mMetaManager.commitTempBlockMeta(tempBlockMeta);
+    } catch (BlockAlreadyExistsException | BlockDoesNotExistException
+        | WorkerOutOfSpaceException e) {
+      throw Throwables.propagate(e); // we shall never reach here
+    }
+
+    // Check if block is pinned on commit
+    if (pinOnCreate) {
+      addToPinnedInodes(BlockId.getFileId(blockId));
+    }
+
+    return loc;
+  }
+
+  private StorageDirView allocateSpace(long sessionId, AllocateOptions options) {
+    StorageDirView dirView = null;
+    BlockMetadataView allocatorView =
+        new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
+    try {
+      // Allocate from given location.
+      dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          options.getLocation(), allocatorView);
+
+      if (dirView != null) {
+        return dirView;
+      }
+
+      if (options.isForceLocation()) {
+        if (options.isEvictionAllowed()) {
+          freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
+          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+              options.getLocation(), allocatorView.refreshView());
+
+          if (dirView == null) {
+            LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
+                options.getLocation(), options.getSize(), sessionId);
+            return null;
+          }
+        } else {
+          LOG.error("Target tier: {} has no available space to store {} bytes for session: {}",
+              options.getLocation(), options.getSize(), sessionId);
+          return null;
+        }
+      } else {
+        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+            BlockStoreLocation.anyTier(), allocatorView);
+
+        if (dirView != null) {
+          return dirView;
+        }
+
+        if (options.isEvictionAllowed()) {
+          // There is no space left on worker.
+          // Free more than requested by configured free-ahead size.
+          long freeAheadBytes =
+              ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+          freeSpace(sessionId, options.getSize(), options.getSize() + freeAheadBytes,
+              BlockStoreLocation.anyTier());
+
+          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+              BlockStoreLocation.anyTier(), allocatorView.refreshView());
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Allocation failure. Options: {}. Error: {}", options, e);
+      return null;
+    }
+
+    return dirView;
   }
 
   /**
@@ -570,31 +689,31 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param sessionId session id
    * @param blockId block id
-   * @param location location to create the block
-   * @param initialBlockSize initial block size in bytes
    * @param newBlock true if this temp block is created for a new block
+   * @param options block allocation options
    * @return a temp block created if successful, or null if allocation failed (instead of throwing
    *         {@link WorkerOutOfSpaceException} because allocation failure could be an expected case)
    * @throws BlockAlreadyExistsException if there is already a block with the same block id
    */
-  private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId,
-      BlockStoreLocation location, long initialBlockSize, boolean newBlock)
-          throws BlockAlreadyExistsException {
-    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
-    // block lock here since no sharing
+  private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
+      AllocateOptions options) throws BlockAlreadyExistsException {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      // NOTE: a temp block is supposed to be visible for its own writer,
+      // unnecessary to acquire block lock here since no sharing.
       if (newBlock) {
         checkTempBlockIdAvailable(blockId);
       }
-      StorageDirView dirView = mAllocator.allocateBlockWithView(sessionId,
-          initialBlockSize, location, new BlockMetadataAllocatorView(mMetaManager));
+
+      // Allocate space.
+      StorageDirView dirView = allocateSpace(sessionId, options);
+
       if (dirView == null) {
-        // Allocator fails to find a proper place for this new block.
         return null;
       }
+
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
-      TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, initialBlockSize);
+      TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, options.getSize());
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.
@@ -602,7 +721,7 @@ public class TieredBlockStore implements BlockStore {
       } catch (WorkerOutOfSpaceException | BlockAlreadyExistsException e) {
         // If we reach here, allocator is not working properly
         LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
-            + "but addTempBlockMeta failed", initialBlockSize, location);
+            + "but addTempBlockMeta failed", options.getSize(), options.getLocation());
         throw Throwables.propagate(e);
       }
       return tempBlock;
@@ -610,121 +729,88 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Increases the temp block size only if this temp block's parent dir has enough available space.
-   *
-   * @param blockId block id
-   * @param additionalBytes additional bytes to request for this block
-   * @return a pair of boolean and {@link BlockStoreLocation}. The boolean indicates if the
-   *         operation succeeds and the {@link BlockStoreLocation} denotes where to free more space
-   *         if it fails.
-   * @throws BlockDoesNotExistException if this block is not found
-   */
-  private Pair<Boolean, BlockStoreLocation> requestSpaceInternal(long blockId, long additionalBytes)
-      throws BlockDoesNotExistException {
-    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
-    // block lock here since no sharing
-    try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      if (tempBlockMeta.getParentDir().getAvailableBytes() < additionalBytes) {
-        return new Pair<>(false, tempBlockMeta.getBlockLocation());
-      }
-      // Increase the size of this temp block
-      try {
-        mMetaManager.resizeTempBlockMeta(tempBlockMeta,
-            tempBlockMeta.getBlockSize() + additionalBytes);
-      } catch (InvalidWorkerStateException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
-      return new Pair<>(true, null);
-    }
-  }
-
-  /**
-   * Tries to get an eviction plan to free a certain amount of space in the given location, and
-   * carries out this plan with the best effort.
+   * Tries to free a certain amount of space in the given location.
    *
    * @param sessionId the session id
-   * @param availableBytes amount of space in bytes to free
+   * @param minContiguousBytes the minimum amount of contiguous space in bytes to set available
+   * @param minAvailableBytes the minimum amount of space in bytes to set available
    * @param location location of space
-   * @param mode the eviction mode
-   * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
+   * @throws WorkerOutOfSpaceException if it is impossible to achieve minimum space requirement
    */
-  private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location,
-      Evictor.Mode mode) throws WorkerOutOfSpaceException, IOException {
-    EvictionPlan plan;
-    // NOTE:change the read lock to the write lock due to the endless-loop issue [ALLUXIO-3089]
-    try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView(), mode);
-      // Absent plan means failed to evict enough space.
-      if (plan == null) {
-        throw new WorkerOutOfSpaceException(
-            ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE, availableBytes, location.tierAlias());
-      }
-    }
+  private void freeSpaceInternal(long sessionId, long minContiguousBytes, long minAvailableBytes,
+      BlockStoreLocation location) throws WorkerOutOfSpaceException, IOException {
+    // TODO(ggezer): Too much memory pressure when pinned-inodes list is large.
+    BlockMetadataEvictorView evictorView = getUpdatedView();
+    LOG.debug(
+        "freeSpaceInternal - locAvailableBytes: {}, minContiguousBytes: {}, minAvailableBytes: {}",
+        evictorView.getAvailableBytes(location), minContiguousBytes, minAvailableBytes);
+    boolean contiguousSpaceFound = false;
+    boolean availableBytesFound = false;
 
-    // 1. remove blocks to make room.
-    for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
-      try {
-        removeBlockInternal(Sessions.createInternalSessionId(),
-            blockInfo.getFirst(), blockInfo.getSecond());
-      } catch (InvalidWorkerStateException e) {
-        // Evictor is not working properly
-        LOG.error("Failed to evict blockId {}, this is temp block", blockInfo.getFirst());
-        continue;
-      } catch (BlockDoesNotExistException e) {
-        LOG.info("Failed to evict blockId {}, it could be already deleted", blockInfo.getFirst());
-        continue;
-      }
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onRemoveBlockByWorker(sessionId, blockInfo.getFirst());
-        }
-      }
-    }
-    // 2. transfer blocks among tiers.
-    // 2.1. group blocks move plan by the destination tier.
-    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier = new HashMap<>();
-    for (BlockTransferInfo entry : plan.toMove()) {
-      String alias = entry.getDstLocation().tierAlias();
-      if (!blocksGroupedByDestTier.containsKey(alias)) {
-        blocksGroupedByDestTier.put(alias, new HashSet());
-      }
-      blocksGroupedByDestTier.get(alias).add(entry);
-    }
-    // 2.2. move blocks in the order of their dst tiers, from bottom to top
-    for (int tierOrdinal = mStorageTierAssoc.size() - 1; tierOrdinal >= 0; --tierOrdinal) {
-      Set<BlockTransferInfo> toMove =
-          blocksGroupedByDestTier.get(mStorageTierAssoc.getAlias(tierOrdinal));
-      if (toMove == null) {
-        toMove = new HashSet<>();
-      }
-      for (BlockTransferInfo entry : toMove) {
-        long blockId = entry.getBlockId();
-        BlockStoreLocation oldLocation = entry.getSrcLocation();
-        BlockStoreLocation newLocation = entry.getDstLocation();
-        MoveBlockResult moveResult;
-        try {
-          moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
-              blockId, oldLocation, newLocation);
-        } catch (InvalidWorkerStateException e) {
-          // Evictor is not working properly
-          LOG.error("Failed to demote blockId {}, this is temp block", blockId);
-          continue;
-        } catch (BlockAlreadyExistsException e) {
-          continue;
-        } catch (BlockDoesNotExistException e) {
-          LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
-          continue;
-        }
-        if (moveResult.getSuccess()) {
-          synchronized (mBlockStoreEventListeners) {
-            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
-                  newLocation);
-            }
+    int blocksIterated = 0;
+    int blocksRemoved = 0;
+    int spaceFreed = 0;
+
+    // List of all dirs that belong to the given location.
+    List<StorageDirView> dirViews = evictorView.getDirs(location);
+
+    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.Natural);
+    while (true) {
+      // Check if minContiguousBytes is satisfied.
+      if (!contiguousSpaceFound) {
+        for (StorageDirView dirView : dirViews) {
+          if (dirView.getAvailableBytes() >= minContiguousBytes) {
+            contiguousSpaceFound = true;
+            break;
           }
         }
       }
+
+      // Check minAvailableBytes is satisfied.
+      if (!availableBytesFound) {
+        if (evictorView.getAvailableBytes(location) >= minAvailableBytes) {
+          availableBytesFound = true;
+        }
+      }
+
+      if (contiguousSpaceFound && availableBytesFound) {
+        break;
+      }
+
+      if (!evictionCandidates.hasNext()) {
+        break;
+      }
+
+      long blockToDelete = evictionCandidates.next();
+      blocksIterated++;
+      if (evictorView.isBlockEvictable(blockToDelete)) {
+        try {
+          BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
+          removeBlockInternal(blockMeta);
+          blocksRemoved++;
+          synchronized (mBlockStoreEventListeners) {
+            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+              listener.onRemoveBlockByClient(sessionId, blockMeta.getBlockId());
+              listener.onRemoveBlock(sessionId, blockMeta.getBlockId(),
+                  blockMeta.getBlockLocation());
+            }
+          }
+          spaceFreed += blockMeta.getBlockSize();
+        } catch (BlockDoesNotExistException e) {
+          LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
+          continue;
+        }
+      }
+    }
+
+    if (!contiguousSpaceFound || !availableBytesFound) {
+      LOG.error(
+          "Failed to free space. Min contiguous requested: {}, Min available requested: {}, "
+              + "Blocks iterated: {}, Blocks removed: {}, " + "Space freed: {}",
+          minContiguousBytes, minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed);
+
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
+          .getMessage(minAvailableBytes, location.tierAlias()));
     }
   }
 
@@ -749,14 +835,14 @@ public class TieredBlockStore implements BlockStore {
    * @param sessionId session id
    * @param blockId block id
    * @param oldLocation the source location of the block
-   * @param newLocation new location to move this block
+   * @param moveOptions the allocate options for the move
    * @return the resulting information about the move operation
    * @throws BlockDoesNotExistException if block is not found
    * @throws BlockAlreadyExistsException if a block with same id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
+      BlockStoreLocation oldLocation, AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -776,14 +862,19 @@ public class TieredBlockStore implements BlockStore {
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
         blockSize = srcBlockMeta.getBlockSize();
+        // Update moveOptions with the block size.
+        moveOptions.setSize(blockSize);
       }
 
       if (!srcLocation.belongsTo(oldLocation)) {
         throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
             oldLocation);
       }
-      TempBlockMeta dstTempBlock =
-          createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
+      if (srcLocation.belongsTo(moveOptions.getLocation())) {
+        return new MoveBlockResult(true, blockSize, srcLocation, srcLocation);
+      }
+
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(sessionId, blockId, false, moveOptions);
       if (dstTempBlock == null) {
         return new MoveBlockResult(false, blockSize, null, null);
       }
@@ -822,43 +913,18 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Removes a block.
+   * Removes a block physically and from metadata.
    *
-   * @param sessionId session id
-   * @param blockId block id
-   * @param location the source location of the block
+   * @param blockMeta block metadata
+   *
    * @throws InvalidWorkerStateException if the block to remove is a temp block
    * @throws BlockDoesNotExistException if this block can not be found
    */
-  private void removeBlockInternal(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-    try {
-      String filePath;
-      BlockMeta blockMeta;
-      try (LockResource r = new LockResource(mMetadataReadLock)) {
-        if (mMetaManager.hasTempBlockMeta(blockId)) {
-          throw new InvalidWorkerStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
-        }
-        blockMeta = mMetaManager.getBlockMeta(blockId);
-        filePath = blockMeta.getPath();
-      }
-
-      if (!blockMeta.getBlockLocation().belongsTo(location)) {
-        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
-            location);
-      }
-      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      Files.delete(Paths.get(filePath));
-
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
-        mMetaManager.removeBlockMeta(blockMeta);
-      } catch (BlockDoesNotExistException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
-    } finally {
-      mLockManager.unlockBlock(lockId);
-    }
+  private void removeBlockInternal(BlockMeta blockMeta)
+      throws BlockDoesNotExistException, IOException {
+    String filePath = blockMeta.getPath();
+    Files.delete(Paths.get(filePath));
+    mMetaManager.removeBlockMeta(blockMeta);
   }
 
   /**
@@ -936,9 +1002,15 @@ public class TieredBlockStore implements BlockStore {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
           dir.getBlockIds().forEach(listener::onBlockLost);
           listener.onStorageLost(tierAlias, dir.getDirPath());
+          listener.onStorageLost(dir.toBlockStoreLocation());
         }
       }
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    mTaskCoordinator.close();
   }
 
   /**

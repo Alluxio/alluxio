@@ -12,11 +12,11 @@
 package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -59,6 +59,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The Block Worker. */
   private final BlockWorker mWorker;
 
@@ -71,8 +72,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   public final class BlockDataReader extends DataReader {
     /** The Block Worker. */
     private final BlockWorker mWorker;
-    /** An object storing the mapping of tier aliases to ordinals. */
-    private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
     BlockDataReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
         BlockWorker blockWorker) {

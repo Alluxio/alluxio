@@ -44,6 +44,13 @@ public abstract class StorageDirView {
   public abstract long getAvailableBytes();
 
   /**
+   * @return the amount of bytes reserved for internal management
+   */
+  public long getReservedBytes() {
+    return mDir.getReservedBytes();
+  }
+
+  /**
    * Gets the index of this Dir.
    *
    * @return index of the dir

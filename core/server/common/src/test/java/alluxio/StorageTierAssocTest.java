@@ -11,8 +11,10 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -89,6 +91,18 @@ public final class StorageTierAssocTest {
 
     Assert.assertEquals(orderedAliases, masterAssoc.getOrderedStorageAliases());
     Assert.assertEquals(orderedAliases, workerAssoc.getOrderedStorageAliases());
+
+    // Validate intersections.
+    List<Pair<BlockStoreLocation, BlockStoreLocation>> intersections =
+        workerAssoc.intersectionList();
+    Assert.assertEquals(intersections.get(0).getFirst(), BlockStoreLocation.anyDirInTier("MEM"));
+    Assert.assertEquals(intersections.get(0).getSecond(), BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertEquals(intersections.get(1).getFirst(), BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertEquals(intersections.get(1).getSecond(),
+        BlockStoreLocation.anyDirInTier("SOMETHINGELSE"));
+    Assert.assertEquals(intersections.get(2).getFirst(),
+        BlockStoreLocation.anyDirInTier("SOMETHINGELSE"));
+    Assert.assertEquals(intersections.get(2).getSecond(), BlockStoreLocation.anyDirInTier("SSD"));
   }
 
   @Test

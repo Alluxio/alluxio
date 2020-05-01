@@ -26,12 +26,17 @@ public class BlockMetadataAllocatorView extends BlockMetadataView {
    * Creates a new instance of {@link BlockMetadataAllocatorView}.
    *
    * @param manager which the view should be constructed from
+   * @param useReservedSpace include reserved space in available bytes
    */
-  public BlockMetadataAllocatorView(BlockMetadataManager manager) {
-    super(manager);
+  public BlockMetadataAllocatorView(BlockMetadataManager manager, boolean useReservedSpace) {
+    super(manager, useReservedSpace);
+  }
+
+  @Override
+  public void initializeView() {
     // iteratively create all StorageTierViews and StorageDirViews
-    for (StorageTier tier : manager.getTiers()) {
-      StorageTierAllocatorView tierView = new StorageTierAllocatorView(tier);
+    for (StorageTier tier : mMetadataManager.getTiers()) {
+      StorageTierAllocatorView tierView = new StorageTierAllocatorView(tier, mUseReservedSpace);
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }

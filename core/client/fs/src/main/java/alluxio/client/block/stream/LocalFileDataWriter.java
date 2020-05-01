@@ -81,10 +81,11 @@ public final class LocalFileDataWriter implements DataWriter {
           conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       long dataTimeout = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+      long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
 
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
-              .setSpaceToReserve(fileBufferBytes).setMediumType(options.getMediumType())
+              .setSpaceToReserve(reservedBytes).setMediumType(options.getMediumType())
               .setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
@@ -173,7 +174,7 @@ public final class LocalFileDataWriter implements DataWriter {
     mWriter = writer;
     mCreateRequest = createRequest;
     mStream = stream;
-    mPosReserved += mFileBufferBytes;
+    mPosReserved = createRequest.getSpaceToReserve();
     mChunkSize = packetSize;
   }
 
@@ -187,8 +188,8 @@ public final class LocalFileDataWriter implements DataWriter {
       return;
     }
     long toReserve = Math.max(pos - mPosReserved, mFileBufferBytes);
-    CreateLocalBlockRequest request = mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
-        .setOnlyReserveSpace(true).build();
+    CreateLocalBlockRequest request =
+        mCreateRequest.toBuilder().setSpaceToReserve(toReserve).setOnlyReserveSpace(true).build();
     mStream.send(request, mDataTimeoutMs);
     CreateLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
     Preconditions.checkState(response != null,
@@ -198,4 +199,3 @@ public final class LocalFileDataWriter implements DataWriter {
     mPosReserved += toReserve;
   }
 }
-

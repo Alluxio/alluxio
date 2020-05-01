@@ -189,8 +189,7 @@ public final class UnderFileSystemBlockReaderTest {
   public void readFullBlockRequestCreateBlockError() throws Exception {
     BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
     doThrow(new WorkerOutOfSpaceException("Ignored")).when(errorThrowingBlockStore)
-        .createBlock(anyLong(), anyLong(), any(BlockStoreLocation.class),
-            anyLong());
+        .createBlock(anyLong(), anyLong(), any(AllocateOptions.class));
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         errorThrowingBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
