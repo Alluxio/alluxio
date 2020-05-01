@@ -11,7 +11,7 @@
 
 package alluxio.jnifuse;
 
-import jnr.constants.platform.Errno;
+import alluxio.jnifuse.constants.Errno;
 
 public class ErrorCodes {
   /**
@@ -21,14 +21,12 @@ public class ErrorCodes {
     return Errno.E2BIG.intValue();
   }
 
-
   /**
    * Permission denied
    */
   public static int EACCES() {
     return Errno.EACCES.intValue();
   }
-
 
   /**
    * Address already in use
@@ -37,14 +35,12 @@ public class ErrorCodes {
     return Errno.EADDRINUSE.intValue();
   }
 
-
   /**
    * Cannot assign requested address
    */
   public static int EADDRNOTAVAIL() {
     return Errno.EADDRNOTAVAIL.intValue();
   }
-
 
   /**
    * Advertise error
@@ -53,14 +49,12 @@ public class ErrorCodes {
     return 68;
   }
 
-
   /**
    * Address family not supported by protocol
    */
   public static int EAFNOSUPPORT() {
     return Errno.EAFNOSUPPORT.intValue();
   }
-
 
   /**
    * Try again
@@ -69,14 +63,12 @@ public class ErrorCodes {
     return Errno.EAGAIN.intValue();
   }
 
-
   /**
    * Operation already in progress
    */
   public static int EALREADY() {
     return Errno.EALREADY.intValue();
   }
-
 
   /**
    * Invalid exchange
@@ -85,14 +77,12 @@ public class ErrorCodes {
     return 52;
   }
 
-
   /**
    * Bad file number
    */
   public static int EBADF() {
     return Errno.EBADF.intValue();
   }
-
 
   /**
    * File descriptor in bad state
@@ -101,14 +91,12 @@ public class ErrorCodes {
     return 77;
   }
 
-
   /**
    * Not a data message
    */
   public static int EBADMSG() {
     return Errno.EBADMSG.intValue();
   }
-
 
   /**
    * Invalid request descriptor
@@ -117,14 +105,12 @@ public class ErrorCodes {
     return 53;
   }
 
-
   /**
    * Invalid request code
    */
   public static int EBADRQC() {
     return 56;
   }
-
 
   /**
    * Invalid slot
@@ -133,14 +119,12 @@ public class ErrorCodes {
     return 57;
   }
 
-
   /**
    * Bad font file format
    */
   public static int EBFONT() {
     return 59;
   }
-
 
   /**
    * Device or resource busy
@@ -149,14 +133,12 @@ public class ErrorCodes {
     return Errno.EBUSY.intValue();
   }
 
-
   /**
    * Operation Canceled
    */
   public static int ECANCELED() {
     return 125;
   }
-
 
   /**
    * No child processes
@@ -165,14 +147,12 @@ public class ErrorCodes {
     return Errno.ECHILD.intValue();
   }
 
-
   /**
    * Channel number out of range
    */
   public static int ECHRNG() {
     return 44;
   }
-
 
   /**
    * Communication error on send
@@ -181,14 +161,12 @@ public class ErrorCodes {
     return 70;
   }
 
-
   /**
    * Software caused connection abort
    */
   public static int ECONNABORTED() {
     return Errno.ECONNABORTED.intValue();
   }
-
 
   /**
    * Connection refused
@@ -197,14 +175,12 @@ public class ErrorCodes {
     return Errno.ECONNREFUSED.intValue();
   }
 
-
   /**
    * Connection reset by peer
    */
   public static int ECONNRESET() {
     return Errno.ECONNRESET.intValue();
   }
-
 
   /**
    * Resource deadlock would occur
@@ -213,11 +189,9 @@ public class ErrorCodes {
     return Errno.EDEADLK.intValue();
   }
 
-
   public static int EDEADLOCK() {
     return EDEADLK();
   }
-
 
   /**
    * Destination address required
@@ -226,14 +200,12 @@ public class ErrorCodes {
     return Errno.EDESTADDRREQ.intValue();
   }
 
-
   /**
    * Math argument out of domain of func
    */
   public static int EDOM() {
     return Errno.EDOM.intValue();
   }
-
 
   /**
    * RFS specific error
@@ -242,14 +214,12 @@ public class ErrorCodes {
     return 73;
   }
 
-
   /**
    * Quota exceeded
    */
   public static int EDQUOT() {
     return Errno.EDQUOT.intValue();
   }
-
 
   /**
    * File exists
@@ -258,14 +228,12 @@ public class ErrorCodes {
     return Errno.EEXIST.intValue();
   }
 
-
   /**
    * Bad address
    */
   public static int EFAULT() {
     return Errno.EFAULT.intValue();
   }
-
 
   /**
    * File too large
@@ -274,14 +242,12 @@ public class ErrorCodes {
     return Errno.EFBIG.intValue();
   }
 
-
   /**
    * Host is down
    */
   public static int EHOSTDOWN() {
     return Errno.EHOSTDOWN.intValue();
   }
-
 
   /**
    * No route to host
@@ -290,14 +256,12 @@ public class ErrorCodes {
     return Errno.EHOSTUNREACH.intValue();
   }
 
-
   /**
    * Identifier removed
    */
   public static int EIDRM() {
     return Errno.EIDRM.intValue();
   }
-
 
   /**
    * Illegal byte sequence
@@ -306,14 +270,12 @@ public class ErrorCodes {
     return Errno.EILSEQ.intValue();
   }
 
-
   /**
    * Operation now in progress
    */
   public static int EINPROGRESS() {
     return Errno.EINPROGRESS.intValue();
   }
-
 
   /**
    * Interrupted system call
@@ -322,14 +284,12 @@ public class ErrorCodes {
     return Errno.EINTR.intValue();
   }
 
-
   /**
    * Invalid argument
    */
   public static int EINVAL() {
     return Errno.EINVAL.intValue();
   }
-
 
   /**
    * I/O error
@@ -338,14 +298,12 @@ public class ErrorCodes {
     return Errno.EIO.intValue();
   }
 
-
   /**
    * Transport endpoint is already connected
    */
   public static int EISCONN() {
     return Errno.EISCONN.intValue();
   }
-
 
   /**
    * Is a directory
@@ -354,14 +312,12 @@ public class ErrorCodes {
     return Errno.EISDIR.intValue();
   }
 
-
   /**
    * Is a named type file
    */
   public static int EISNAM() {
     return 120;
   }
-
 
   /**
    * Key has expired
@@ -370,14 +326,12 @@ public class ErrorCodes {
     return 127;
   }
 
-
   /**
    * Key was rejected by service
    */
   public static int EKEYREJECTED() {
     return 129;
   }
-
 
   /**
    * Key has been revoked
@@ -386,14 +340,12 @@ public class ErrorCodes {
     return 128;
   }
 
-
   /**
    * Level 2 halted
    */
   public static int EL2HLT() {
     return 51;
   }
-
 
   /**
    * Level 2 not synchronized
@@ -402,14 +354,12 @@ public class ErrorCodes {
     return 45;
   }
 
-
   /**
    * Level 3 halted
    */
   public static int EL3HLT() {
     return 46;
   }
-
 
   /**
    * Level 3 reset
@@ -418,14 +368,12 @@ public class ErrorCodes {
     return 47;
   }
 
-
   /**
    * Can not access a needed shared library
    */
   public static int ELIBACC() {
     return 79;
   }
-
 
   /**
    * Accessing a corrupted shared library
@@ -434,14 +382,12 @@ public class ErrorCodes {
     return 80;
   }
 
-
   /**
    * Cannot exec a shared library directly
    */
   public static int ELIBEXEC() {
     return 83;
   }
-
 
   /**
    * Attempting to link in too many shared libraries
@@ -450,14 +396,12 @@ public class ErrorCodes {
     return 82;
   }
 
-
   /**
    * .lib section in a.out corrupted
    */
   public static int ELIBSCN() {
     return 81;
   }
-
 
   /**
    * Link number out of range
@@ -466,14 +410,12 @@ public class ErrorCodes {
     return 48;
   }
 
-
   /**
    * Too many symbolic links encountered
    */
   public static int ELOOP() {
     return Errno.ELOOP.intValue();
   }
-
 
   /**
    * Wrong medium type
@@ -482,14 +424,12 @@ public class ErrorCodes {
     return 124;
   }
 
-
   /**
    * Too many open files
    */
   public static int EMFILE() {
     return Errno.EMFILE.intValue();
   }
-
 
   /**
    * Too many links
@@ -498,14 +438,12 @@ public class ErrorCodes {
     return Errno.EMLINK.intValue();
   }
 
-
   /**
    * Message too long
    */
   public static int EMSGSIZE() {
     return Errno.EMSGSIZE.intValue();
   }
-
 
   /**
    * Multihop attempted
@@ -514,14 +452,12 @@ public class ErrorCodes {
     return Errno.EMULTIHOP.intValue();
   }
 
-
   /**
    * File name too long
    */
   public static int ENAMETOOLONG() {
     return Errno.ENAMETOOLONG.intValue();
   }
-
 
   /**
    * No XENIX semaphores available
@@ -530,14 +466,12 @@ public class ErrorCodes {
     return 119;
   }
 
-
   /**
    * Network is down
    */
   public static int ENETDOWN() {
     return Errno.ENETDOWN.intValue();
   }
-
 
   /**
    * Network dropped connection because of reset
@@ -546,14 +480,12 @@ public class ErrorCodes {
     return Errno.ENETRESET.intValue();
   }
 
-
   /**
    * Network is unreachable
    */
   public static int ENETUNREACH() {
     return Errno.ENETUNREACH.intValue();
   }
-
 
   /**
    * File table overflow
@@ -562,14 +494,12 @@ public class ErrorCodes {
     return Errno.ENFILE.intValue();
   }
 
-
   /**
    * No anode
    */
   public static int ENOANO() {
     return 55;
   }
-
 
   /**
    * No buffer space available
@@ -578,14 +508,12 @@ public class ErrorCodes {
     return Errno.ENOBUFS.intValue();
   }
 
-
   /**
    * No CSI structure available
    */
   public static int ENOCSI() {
     return 50;
   }
-
 
   /**
    * No data available
@@ -594,14 +522,12 @@ public class ErrorCodes {
     return Errno.ENODATA.intValue();
   }
 
-
   /**
    * No such device
    */
   public static int ENODEV() {
     return Errno.ENODEV.intValue();
   }
-
 
   /**
    * No such file or directory
@@ -610,14 +536,12 @@ public class ErrorCodes {
     return Errno.ENOENT.intValue();
   }
 
-
   /**
    * Exec format error
    */
   public static int ENOEXEC() {
     return Errno.ENOEXEC.intValue();
   }
-
 
   /**
    * Required key not available
@@ -626,14 +550,12 @@ public class ErrorCodes {
     return 126;
   }
 
-
   /**
    * No record locks available
    */
   public static int ENOLCK() {
     return Errno.ENOLCK.intValue();
   }
-
 
   /**
    * Link has been severed
@@ -642,14 +564,12 @@ public class ErrorCodes {
     return Errno.ENOLINK.intValue();
   }
 
-
   /**
    * No medium found
    */
   public static int ENOMEDIUM() {
     return 123;
   }
-
 
   /**
    * Out of memory
@@ -658,14 +578,12 @@ public class ErrorCodes {
     return Errno.ENOMEM.intValue();
   }
 
-
   /**
    * No message of desired type
    */
   public static int ENOMSG() {
     return Errno.ENOMSG.intValue();
   }
-
 
   /**
    * Machine is not on the network
@@ -674,14 +592,12 @@ public class ErrorCodes {
     return 64;
   }
 
-
   /**
    * Package not installed
    */
   public static int ENOPKG() {
     return 65;
   }
-
 
   /**
    * Protocol not available
@@ -690,14 +606,12 @@ public class ErrorCodes {
     return Errno.ENOPROTOOPT.intValue();
   }
 
-
   /**
    * No space left on device
    */
   public static int ENOSPC() {
     return Errno.ENOSPC.intValue();
   }
-
 
   /**
    * Out of streams resources
@@ -706,14 +620,12 @@ public class ErrorCodes {
     return Errno.ENOSR.intValue();
   }
 
-
   /**
    * Device not a stream
    */
   public static int ENOSTR() {
     return Errno.ENOSTR.intValue();
   }
-
 
   /**
    * Function not implemented
@@ -722,14 +634,12 @@ public class ErrorCodes {
     return Errno.ENOSYS.intValue();
   }
 
-
   /**
    * Block device required
    */
   public static int ENOTBLK() {
     return Errno.ENOTBLK.intValue();
   }
-
 
   /**
    * Transport endpoint is not connected
@@ -738,14 +648,12 @@ public class ErrorCodes {
     return Errno.ENOTCONN.intValue();
   }
 
-
   /**
    * Not a directory
    */
   public static int ENOTDIR() {
     return Errno.ENOTDIR.intValue();
   }
-
 
   /**
    * Directory not empty
@@ -754,14 +662,12 @@ public class ErrorCodes {
     return Errno.ENOTEMPTY.intValue();
   }
 
-
   /**
    * Not a XENIX named type file
    */
   public static int ENOTNAM() {
     return 118;
   }
-
 
   /**
    * State not recoverable
@@ -770,14 +676,12 @@ public class ErrorCodes {
     return 131;
   }
 
-
   /**
    * Socket operation on non-socket
    */
   public static int ENOTSOCK() {
     return Errno.ENOTSOCK.intValue();
   }
-
 
   /**
    * Not a typewriter
@@ -786,14 +690,12 @@ public class ErrorCodes {
     return Errno.ENOTTY.intValue();
   }
 
-
   /**
    * Name not unique on network
    */
   public static int ENOTUNIQ() {
     return 76;
   }
-
 
   /**
    * No such device or address
@@ -802,7 +704,6 @@ public class ErrorCodes {
     return Errno.ENXIO.intValue();
   }
 
-
   /**
    * Operation not supported on transport endpoint
    */
@@ -810,14 +711,12 @@ public class ErrorCodes {
     return Errno.EOPNOTSUPP.intValue();
   }
 
-
   /**
    * Value too large for defined data type
    */
   public static int EOVERFLOW() {
     return Errno.EOVERFLOW.intValue();
   }
-
 
   /**
    * Owner died
@@ -836,14 +735,12 @@ public class ErrorCodes {
     return Errno.EPERM.intValue();
   }
 
-
   /**
    * Protocol family not supported
    */
   public static int EPFNOSUPPORT() {
     return Errno.EPFNOSUPPORT.intValue();
   }
-
 
   /**
    * Broken pipe
@@ -852,14 +749,12 @@ public class ErrorCodes {
     return Errno.EPIPE.intValue();
   }
 
-
   /**
    * Protocol error
    */
   public static int EPROTO() {
     return Errno.EPROTO.intValue();
   }
-
 
   /**
    * Protocol not supported
@@ -868,14 +763,12 @@ public class ErrorCodes {
     return Errno.EPROTONOSUPPORT.intValue();
   }
 
-
   /**
    * Protocol wrong type for socket
    */
   public static int EPROTOTYPE() {
     return Errno.EPROTOTYPE.intValue();
   }
-
 
   /**
    * Math result not representable
@@ -884,14 +777,12 @@ public class ErrorCodes {
     return Errno.ERANGE.intValue();
   }
 
-
   /**
    * Remote address changed
    */
   public static int EREMCHG() {
     return 78;
   }
-
 
   /**
    * Object is remote
@@ -900,14 +791,12 @@ public class ErrorCodes {
     return Errno.EREMOTE.intValue();
   }
 
-
   /**
    * Remote I/O error
    */
   public static int EREMOTEIO() {
     return 121;
   }
-
 
   /**
    * Interrupted system call should be restarted
@@ -916,14 +805,12 @@ public class ErrorCodes {
     return 85;
   }
 
-
   /**
    * Read-only file system
    */
   public static int EROFS() {
     return Errno.EROFS.intValue();
   }
-
 
   /**
    * Cannot send after transport endpoint shutdown
@@ -932,14 +819,12 @@ public class ErrorCodes {
     return Errno.ESHUTDOWN.intValue();
   }
 
-
   /**
    * Socket type not supported
    */
   public static int ESOCKTNOSUPPORT() {
     return Errno.ESOCKTNOSUPPORT.intValue();
   }
-
 
   /**
    * Illegal seek
@@ -948,14 +833,12 @@ public class ErrorCodes {
     return Errno.ESPIPE.intValue();
   }
 
-
   /**
    * No such process
    */
   public static int ESRCH() {
     return Errno.ESRCH.intValue();
   }
-
 
   /**
    * Srmount error
@@ -964,14 +847,12 @@ public class ErrorCodes {
     return 69;
   }
 
-
   /**
    * Stale file handle
    */
   public static int ESTALE() {
     return Errno.ESTALE.intValue();
   }
-
 
   /**
    * Streams pipe error
@@ -980,14 +861,12 @@ public class ErrorCodes {
     return 86;
   }
 
-
   /**
    * Timer expired
    */
   public static int ETIME() {
     return Errno.ETIME.intValue();
   }
-
 
   /**
    * Connection timed out
@@ -996,14 +875,12 @@ public class ErrorCodes {
     return Errno.ETIMEDOUT.intValue();
   }
 
-
   /**
    * Too many references: cannot splice
    */
   public static int ETOOMANYREFS() {
     return Errno.ETOOMANYREFS.intValue();
   }
-
 
   /**
    * Text file busy
@@ -1012,14 +889,12 @@ public class ErrorCodes {
     return Errno.ETXTBSY.intValue();
   }
 
-
   /**
    * Structure needs cleaning
    */
   public static int EUCLEAN() {
     return 117;
   }
-
 
   /**
    * Protocol driver not attached
@@ -1028,14 +903,12 @@ public class ErrorCodes {
     return 49;
   }
 
-
   /**
    * Too many users
    */
   public static int EUSERS() {
     return Errno.EUSERS.intValue();
   }
-
 
   /**
    * Operation would block
@@ -1044,14 +917,12 @@ public class ErrorCodes {
     return Errno.EWOULDBLOCK.intValue();
   }
 
-
   /**
    * Cross-device link
    */
   public static int EXDEV() {
     return Errno.EXDEV.intValue();
   }
-
 
   /**
    * Exchange full

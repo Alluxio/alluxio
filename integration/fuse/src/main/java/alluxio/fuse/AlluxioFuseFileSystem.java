@@ -603,6 +603,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     try {
       oe.getIn().seek(offset);
+      // TODO(binfan): remove following extra copy
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
         rd = oe.getIn().read(dest, nread, sz - nread);
@@ -875,6 +876,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     try {
+      // TODO(binfan): remove this extra data copy
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
       oe.getOut().write(dest);
