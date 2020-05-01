@@ -1,8 +1,18 @@
-CC := gcc
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+CXX := g++
 UNAME := $(shell uname)
-INCDIR = -I /usr/include -I $(JAVA_HOME)/include
+INCDIR = -I /usr/include -I $(JAVA_HOME)/include -I ./
 FUSE_LIBS = $(shell pkg-config fuse --libs)
-FUSE_CFLAGS = $(shell pkg-config fuse --cflags)
+FUSE_CXXFLAGS = $(shell pkg-config fuse --cflags)
 
 # Linux
 ifeq ($(UNAME), Linux)
@@ -15,12 +25,12 @@ ifeq ($(UNAME), Darwin)
 	TARGET_LIB := libjnifuse.dylib
 endif
 
-CFLAGS = -Wall -fPIC ${INCDIR} ${FUSE_CFLAGS}
+CXXFLAGS = -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
 LDFLAGS = -shared ${FUSE_LIBS}
-OBJS = JniFuseHelper.o
+OBJS = JniFuseHelper.o JniFuseFileSystem.o
 
 ${TARGET_LIB}: ${OBJS}
-	${CC} ${LDFLAGS} -o $@ $<
+	${CXX} ${CXXFLAGS} ${LDFLAGS} -o ${TARGET_LIB} ${OBJS}
 
 install: ${TARGET_LIB}
 	sudo mv ${TARGET_LIB} /usr/lib/
@@ -28,5 +38,5 @@ install: ${TARGET_LIB}
 clean:
 	rm -rf ${OBJS} ${TARGET_LIB}
 
-%.o: %.c
-	${CC} ${CFLAGS} -o $@ -c $<
+%.o: %.cc
+	${CXX} ${CXXFLAGS} -o $@ -c $<

@@ -22,13 +22,13 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.ErrorCodes;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
 
@@ -175,7 +175,7 @@ public final class AlluxioFuseUtils {
    */
   public static int getErrorCode(Throwable t) {
     // Error codes and their explanations are described in
-    // the Errno.java in jnr-constants
+    // the Errno.java in jni-constants
     if (t instanceof AlluxioException) {
       return getAlluxioErrorCode((AlluxioException) t);
     } else if (t instanceof IOException) {

@@ -9,22 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <stdio.h>
+package alluxio.jnifuse;
 
-#define DEBUG
+public class LibFuse {
 
-#ifdef DEBUG
-#define LOGD(format, ...) \
-do { \
-    fprintf(stdout, "DEBUG %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
-#else
-#define LOGD(format, ...)
-#endif
-
-#define LOGE(format, ...) \
-do { \
-    fprintf(stderr, "ERROR %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
+  public native int fuse_main_real(AbstractFuseFileSystem fs, int argc, String[] argv);
+}

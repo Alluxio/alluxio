@@ -9,22 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <stdio.h>
+package alluxio.jnifuse.struct;
 
-#define DEBUG
+import java.nio.ByteBuffer;
 
-#ifdef DEBUG
-#define LOGD(format, ...) \
-do { \
-    fprintf(stdout, "DEBUG %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
-#else
-#define LOGD(format, ...)
-#endif
+// TODO(iluoeli): Add more fields
+public class FuseContext extends Struct {
 
-#define LOGE(format, ...) \
-do { \
-    fprintf(stderr, "ERROR %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
+  public final Unsigned32 uid = new Unsigned32();
+  public final Unsigned32 gid = new Unsigned32();
+
+  public FuseContext(ByteBuffer buffer) {
+    super(buffer);
+  }
+
+
+}

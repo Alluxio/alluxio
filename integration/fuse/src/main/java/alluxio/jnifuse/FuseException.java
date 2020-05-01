@@ -9,22 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <stdio.h>
+package alluxio.jnifuse;
 
-#define DEBUG
+/**
+ * Exception indicating Fuse errors.
+ */
+public class FuseException extends RuntimeException {
 
-#ifdef DEBUG
-#define LOGD(format, ...) \
-do { \
-    fprintf(stdout, "DEBUG %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
-#else
-#define LOGD(format, ...)
-#endif
+  /**
+   * @param message error message
+   */
+  public FuseException(String message) {
+    super(message);
+  }
 
-#define LOGE(format, ...) \
-do { \
-    fprintf(stderr, "ERROR %s:%d " format "\n", \
-        __FILE__, __LINE__, ##__VA_ARGS__); \
-} while (0)
+  /**
+   * @param message error message
+   * @param cause exception cause
+   */
+  public FuseException(String message, Throwable cause) {
+    super(message, cause);
+  }
+}
+

@@ -7,32 +7,23 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
-package alluxio.jnifuse;
+package alluxio.jnifuse.utils;
 
-import java.nio.ByteBuffer;
-
-public class FuseFiller {
-  long address;
-
-  FuseFiller(long address) {
-    this.address = address;
-  }
-
-  public native int doFill(long bufaddr, String name, ByteBuffer stbuf, long off);
-
-  public int fill(long bufaddr, String name, FileStat stbuf, long off) {
-    if (stbuf != null) {
-      return doFill(bufaddr, name, stbuf.bb, off);
-    } else {
-      return doFill(bufaddr, name, null, off);
+public final class SecurityUtils {
+  public static boolean canHandleShutdownHooks() {
+    SecurityManager security = System.getSecurityManager();
+    if (security == null) {
+      return true;
+    }
+    try {
+      security.checkPermission(new RuntimePermission("shutdownHooks"));
+      return true;
+    } catch (final SecurityException e) {
+      return false;
     }
   }
 
-  static {
-    System.loadLibrary("jnifuse");
-  }
-
+  private SecurityUtils() {} // prevent instantiation
 }
