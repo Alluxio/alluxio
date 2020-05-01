@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Random;
 
-public class TierSwapTaskTest extends BaseTierManagementTest {
+public class AlignTaskTest extends BaseTierManagementTaskTest {
 
   /**
    * Sets up all dependencies before a test runs.
@@ -37,8 +37,8 @@ public class TierSwapTaskTest extends BaseTierManagementTest {
     ServerConfiguration.reset();
     // Current tier layout could end up swapping 2 blocks concurrently.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 2 * BLOCK_SIZE);
-    // Disable move task to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, false);
+    // Disable promotions to avoid interference.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Initialize the tier layout.
     init();
   }
@@ -75,10 +75,10 @@ public class TierSwapTaskTest extends BaseTierManagementTest {
     Assert.assertTrue(!mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
         BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false));
 
-    // Stop the load for swap task to continue.
+    // Stop the load for align task to continue.
     stopSimulateLoad();
 
-    CommonUtils.waitFor("Tiers to be aligned by background swap task.",
+    CommonUtils.waitFor("Tiers to be aligned by a background task.",
         () -> mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
             BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false),
         WaitForOptions.defaults().setTimeoutMs(60000));

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Random;
 
-public class SwapRestoreTaskTest extends BaseTierManagementTest {
+public class SwapRestoreTaskTest extends BaseTierManagementTaskTest {
 
   /**
    * Sets up all dependencies before a test runs.
@@ -36,7 +36,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTest {
   public void before() throws Exception {
     ServerConfiguration.reset();
     // Disable move task to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, false);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Current tier layout could end up swapping 1 big block.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE);
     // Initialize the tier layout.
@@ -67,7 +67,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTest {
       }
     }
 
-    // Access big blocks blocks randomly.
+    // Access big blocks randomly.
     //
     // This will cause swaps from below to the top tier.
     // This, in turn, is expected to exhaust swap space at the top tier
@@ -88,6 +88,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTest {
     // Stop the load for swap task to continue.
     stopSimulateLoad();
 
+    // TODO(ggezer): Validate swap-restore task was activated.
     CommonUtils.waitFor("Tiers to be aligned by background swap task.",
         () -> mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
             BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false),

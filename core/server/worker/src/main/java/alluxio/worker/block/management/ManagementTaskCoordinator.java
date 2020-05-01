@@ -18,6 +18,7 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.management.tier.TierManagementTaskProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +123,7 @@ public class ManagementTaskCoordinator implements Closeable {
     if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn("Tier management tasks will be disabled under eviction emulation mode.");
     } else {
+      // TODO(ggezer): Improve on views per task type.
       mTaskProviders.add(new TierManagementTaskProvider(mBlockStore, mMetadataManager,
           mEvictionViewSupplier, mLoadTracker, mTaskExecutor));
     }

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -18,6 +18,9 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.management.BlockManagementTask;
+import alluxio.worker.block.management.ManagementTaskProvider;
+import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.annotator.BlockOrder;
 
@@ -32,9 +35,9 @@ import java.util.function.Supplier;
  * {@link ManagementTaskProvider} implementation for tier management tasks.
  *
  * It currently creates three types of tasks:
- *  1- TierSwap task for swapping blocks between tiers in order to promote/demote blocks.
- *  2- SwapRestore task for when tier-swap task can't progress due to exhausted swap space.
- *  3- TierMove task for utilizing speed of higher tiers by moving blocks from below.
+ *  1- {@link AlignTask} for aligning tiers based on user access pattern.
+ *  2- {@link SwapRestoreTask} for when swap task can't run due to reserved space exhaustion.
+ *  3- {@link PromoteTask} for utilizing speed of higher tiers by moving blocks from below.
  */
 public class TierManagementTaskProvider implements ManagementTaskProvider {
   private static final Logger LOG = LoggerFactory.getLogger(TierManagementTaskProvider.class);
@@ -45,12 +48,12 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
   private final StoreLoadTracker mLoadTracker;
   private final ExecutorService mExecutor;
 
-  /** Used to set whether swap-space restoration is required. */
+  /** Used to set whether swap-restore task is required. */
   private static boolean sSwapRestoreRequired = false;
 
   /**
-   * Used to set whether swap-spaces needs restoring.
-   * It's used by TierSwap task when a swap is failed due to insufficient space.
+   * Used to set whether swap-restore task is required.
+   * It's used by {@link AlignTask} when a swap fails due to insufficient reserved space.
    *
    * @param swapRestoreRequired whether swap-restore task needs to run
    */
@@ -82,11 +85,11 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
     switch (findNextTask()) {
       case NONE:
         return null;
-      case TIER_SWAP:
-        return new TierSwapTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
+      case ALIGN:
+        return new AlignTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
             mLoadTracker, mExecutor);
-      case TIER_MOVE:
-        return new TierMoveTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
+      case PROMOTE:
+        return new PromoteTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
             mLoadTracker, mExecutor);
       case SWAP_RESTORE:
         return new SwapRestoreTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
@@ -101,75 +104,70 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
    */
   private TierManagementTaskType findNextTask() {
     // Fetch the configuration for supported tasks types.
-    boolean tierSwapEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_ENABLED);
-    boolean tierSwapRestoreEnabled =
+    boolean alignEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED);
+    boolean swapRestoreEnabled =
         ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED);
-    boolean tierMoveEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED);
+    boolean promotionEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED);
 
     // Return swap-restore task if marked.
-    if (tierSwapRestoreEnabled && sSwapRestoreRequired) {
+    if (swapRestoreEnabled && sSwapRestoreRequired) {
       setSwapRestoreRequired(false);
       return TierManagementTaskType.SWAP_RESTORE;
     }
 
     // Acquire a recent evictor view.
     BlockMetadataEvictorView evictorView = mEvictorViewSupplier.get();
-    // Iterate all tier intersections for deciding whether to run a merge.
+
+    // Iterate all tier intersections and decide which task to run.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
-      // Check if needs swapping due to alignment.
-      if (tierSwapEnabled && !mMetadataManager.getBlockIterator().aligned(intersection.getFirst(),
+      // Check if the intersection needs alignment.
+      if (alignEnabled && !mMetadataManager.getBlockIterator().aligned(intersection.getFirst(),
           intersection.getSecond(), BlockOrder.Natural,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
-        LOG.debug("Needs block swapping due to an overlap between: {} - {}",
+        LOG.debug("Need alignment between: {} - {}",
             intersection.getFirst(), intersection.getSecond());
-        // Ignore task if load detected.
-        if (mLoadTracker.loadDetected(intersection.getFirst(), intersection.getSecond())) {
-          LOG.debug("Ignoring overlap between: {} - {} due to user activity.",
-              intersection.getFirst(), intersection.getSecond());
-        } else {
-          return TierManagementTaskType.TIER_SWAP;
-        }
+        return TierManagementTaskType.ALIGN;
       }
 
-      // Check if needs moving blocks from below.
-      if (tierMoveEnabled) {
+      // Check if the intersection allows for promotions.
+      if (promotionEnabled) {
         StorageTier highTier = mMetadataManager.getTier(intersection.getFirst().tierAlias());
-        double currentFreeSpace =
-            (double) highTier.getAvailableBytes() / highTier.getCapacityBytes();
-        if (currentFreeSpace > ServerConfiguration
-            .getDouble(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)) {
+        // Current used percent on the high tier of intersection.
+        double currentUsedRatio =
+            1.0 - (double) highTier.getAvailableBytes() / highTier.getCapacityBytes();
+        // Configured promotion quota percent for tiers.
+        double quotaRatio = (double) ServerConfiguration
+            .getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT) / 100;
+        // Check if the high tier allows for promotions.
+        if (currentUsedRatio < quotaRatio) {
           // Check if there is anything to move from lower tier.
           Iterator<Long> lowBlocks = mMetadataManager.getBlockIterator()
               .getIterator(intersection.getSecond(), BlockOrder.Reverse);
           while (lowBlocks.hasNext()) {
             if (evictorView.isBlockEvictable(lowBlocks.next())) {
-              LOG.debug("Needs merging due to allowed move from {} - {}", intersection.getSecond(),
+              LOG.debug("Promotions allowed between {} - {}", intersection.getSecond(),
                   intersection.getFirst());
-              // Ignore task if load detected.
-              if (mLoadTracker.loadDetected(intersection.getFirst(), intersection.getSecond())) {
-                LOG.debug("Ignoring moves from: {} - {} due to user activity.",
-                    intersection.getSecond(), intersection.getFirst());
-              } else {
-                return TierManagementTaskType.TIER_MOVE;
-              }
+              return TierManagementTaskType.PROMOTE;
             }
           }
         }
       }
     }
+
+    // No tier management task is required/allowed.
     return TierManagementTaskType.NONE;
   }
 
   /**
-   * Enum for supported tier management tasks.
+   * Supported tier management tasks.
    */
   enum TierManagementTaskType {
     NONE,
-    TIER_SWAP,
-    TIER_MOVE,
+    ALIGN,
+    PROMOTE,
     SWAP_RESTORE
   }
 }

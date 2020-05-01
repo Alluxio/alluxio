@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -20,10 +20,14 @@ import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.evictor.BlockTransferInfo;
+import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.ManagementTaskCoordinator;
+import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.annotator.BlockOrder;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,16 +38,16 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * A BlockStore management task that is to move blocks to higher tiers.
- * This is to ensure faster tiers utilized to increase overall performance.
+ * This is to ensure higher tiers are utilized to increase overall performance.
  *
- * A single task may not be enough to complete the move, so {@link ManagementTaskCoordinator}
- * will keep instantiating new move tasks until no longer needed.
+ * A single task may not be enough to complete promotion, so {@link ManagementTaskCoordinator}
+ * will keep instantiating new promote tasks until no longer needed.
  */
-public class TierMoveTask extends AbstractBlockManagementTask {
-  private static final Logger LOG = LoggerFactory.getLogger(TierMoveTask.class);
+public class PromoteTask extends AbstractBlockManagementTask {
+  private static final Logger LOG = LoggerFactory.getLogger(PromoteTask.class);
 
   /**
-   * Creates a new move task.
+   * Creates a new promote task.
    *
    * @param blockStore the block store
    * @param metadataManager the meta manager
@@ -51,7 +55,7 @@ public class TierMoveTask extends AbstractBlockManagementTask {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public TierMoveTask(BlockStore blockStore, BlockMetadataManager metadataManager,
+  public PromoteTask(BlockStore blockStore, BlockMetadataManager metadataManager,
       BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
       ExecutorService executor) {
     super(blockStore, metadataManager, evictorView, loadTracker, executor);
@@ -59,20 +63,20 @@ public class TierMoveTask extends AbstractBlockManagementTask {
 
   @Override
   public void run() {
-    LOG.debug("Running tier-move task.");
+    LOG.debug("Running promote task.");
     // Iterate each tier intersection and move to upper tier whenever required.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
-      BlockStoreLocation tierUpLocation = intersection.getFirst();
-      BlockStoreLocation tierDownLocation = intersection.getSecond();
+      BlockStoreLocation tierUpLoc = intersection.getFirst();
+      BlockStoreLocation tierDownLoc = intersection.getSecond();
 
       // Acquire iterator for the tier below.
       Iterator<Long> tierDownIterator =
-          mMetadataManager.getBlockIterator().getIterator(tierDownLocation, BlockOrder.Reverse);
+          mMetadataManager.getBlockIterator().getIterator(tierDownLoc, BlockOrder.Reverse);
 
-      // Acquire and execute transfers.
+      // Acquire and execute promotion transfers.
       mTransferExecutor.executeTransferList(
-          getTransferInfos(tierDownIterator, tierUpLocation, tierDownLocation));
+          getTransferInfos(tierDownIterator, tierUpLoc, tierDownLoc));
     }
   }
 
@@ -81,26 +85,30 @@ public class TierMoveTask extends AbstractBlockManagementTask {
    */
   private List<BlockTransferInfo> getTransferInfos(Iterator<Long> iterator,
       BlockStoreLocation tierUpLocation, BlockStoreLocation tierDownLocation) {
-    // Acquire move range from the configuration.
-    // This will limit move operations in single task run.
-    final int moveRange = ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_RANGE);
+    // Acquire promotion range from the configuration.
+    // This will limit promotions in single task run.
+    final int promoteRange =
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE);
 
-    // Tier for where moves/promotions are targeted.
+    // Tier for where promotions are going to.
     StorageTier tierUp = mMetadataManager.getTier(tierUpLocation.tierAlias());
-    // Free space limit configured for tier moves.
-    double freeSpaceLimit =
-        ServerConfiguration.getDouble(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_LIMIT);
+    // Get quota for promotions.
+    int promotionQuota =
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT);
+    Preconditions.checkArgument(promotionQuota >= 0 && promotionQuota <= 100,
+        "Invalid promotion quota percent");
+    double quotaRatio = (double) promotionQuota / 100;
 
     // List to store transfer infos for selected blocks.
     List<BlockTransferInfo> transferInfos = new LinkedList<>();
     // Projected allocation for selected blocks.
     long bytesToAllocate = 0;
     // Gather blocks from iterator upto configured free space limit.
-    while (iterator.hasNext() && transferInfos.size() < moveRange) {
-      // Stop moving if reached maximum allowed space on higher tier.
-      double currentFreeSpace =
-          (double) (tierUp.getAvailableBytes() - bytesToAllocate) / tierUp.getCapacityBytes();
-      if (currentFreeSpace <= freeSpaceLimit) {
+    while (iterator.hasNext() && transferInfos.size() < promoteRange) {
+      // Stop moving if reached promotion quota on higher tier.
+      double projectedUsedRatio = 1.0
+          - ((double) (tierUp.getAvailableBytes() - bytesToAllocate) / tierUp.getCapacityBytes());
+      if (projectedUsedRatio >= quotaRatio) {
         break;
       }
 
@@ -116,8 +124,8 @@ public class TierMoveTask extends AbstractBlockManagementTask {
         continue;
       }
     }
-    LOG.debug("Generated {} transfer to promote blocks from {} to {}",
-        transferInfos.size(), tierUpLocation, tierDownLocation);
+    LOG.debug("Generated {} transfer to promote blocks from {} to {}", transferInfos.size(),
+        tierUpLocation, tierDownLocation);
     return transferInfos;
   }
 }

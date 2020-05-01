@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -33,7 +33,7 @@ import java.lang.reflect.Field;
 /**
  * Provides base functionality for tier-management tests.
  */
-public abstract class BaseTierManagementTest {
+public abstract class BaseTierManagementTaskTest {
   protected static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
   protected static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
   protected static final long SIMULATE_LOAD_SESSION_ID = 1;

@@ -79,7 +79,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
-        .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
@@ -147,8 +147,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   // No reserved-space for precise capacity planning.
   @LocalAlluxioClusterResource.Config(
       confParams = {
-          PropertyKey.Name.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false",
-          PropertyKey.Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED, "false",
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false",
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false",
           PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE",
           PropertyKey.Name.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0"})
   @Test

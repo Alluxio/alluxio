@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
@@ -20,6 +20,8 @@ import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.evictor.BlockTransferInfo;
+import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
@@ -35,11 +37,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Block management task that is used to free up space on dedicated swap spaces of each directory.
- * It's required to guarantee termination to {@link TierSwapTask} under variable block size.
+ * Block management task that is used to free up space on reserved spaces of each directory.
+ * It's required to guarantee termination of {@link AlignTask}s under variable block size.
  *
- * It essentially does a full cascading evict followed by
- * balancing size of directories within each tier.
+ * It essentially does a full cascading evict followed by balancing of each directory.
  */
 public class SwapRestoreTask extends AbstractBlockManagementTask {
   private static final Logger LOG = LoggerFactory.getLogger(SwapRestoreTask.class);

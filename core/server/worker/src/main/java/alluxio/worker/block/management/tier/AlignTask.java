@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -22,6 +22,9 @@ import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
+import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.ManagementTaskCoordinator;
+import alluxio.worker.block.management.StoreLoadTracker;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -37,18 +40,18 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * A BlockStore management task that is to swap blocks between tiers in order to eliminate overlaps
- * according to eviction order scheme.
+ * A BlockStore management task that swaps blocks between tiers in order to align
+ * tiers based on block annotation policy.
  *
- * A single task may not be enough to completely eliminate the overlap, so
- * {@link ManagementTaskCoordinator} will keep instantiating new swap tasks
+ * A single task may not be enough to completely align tiers, so
+ * {@link ManagementTaskCoordinator} will keep instantiating new tasks
  * until no longer needed.
  */
-public class TierSwapTask extends AbstractBlockManagementTask {
-  private static final Logger LOG = LoggerFactory.getLogger(TierSwapTask.class);
+public class AlignTask extends AbstractBlockManagementTask {
+  private static final Logger LOG = LoggerFactory.getLogger(AlignTask.class);
 
   /**
-   * Creates a new swap task.
+   * Creates a new align task.
    *
    * @param blockStore the block store
    * @param metadataManager the meta manager
@@ -56,34 +59,37 @@ public class TierSwapTask extends AbstractBlockManagementTask {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public TierSwapTask(BlockStore blockStore, BlockMetadataManager metadataManager,
-      BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
-      ExecutorService executor) {
+  public AlignTask(BlockStore blockStore, BlockMetadataManager metadataManager,
+                   BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
+                   ExecutorService executor) {
     super(blockStore, metadataManager, evictorView, loadTracker, executor);
   }
 
   @Override
   public void run() {
-    LOG.debug("Running tier-swap task.");
-    // Acquire swap range from the configuration.
+    LOG.debug("Running align task.");
+    // Acquire align range from the configuration.
     // This will limit swap operations in a single run.
-    final int swapRange = ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RANGE);
+    final int alignRange =
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RANGE);
 
-    // Iterate each tier intersection and avoid overlaps by swapping blocks.
+    // Align each tier intersection by swapping blocks.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
-      BlockStoreLocation tierUpLocation = intersection.getFirst();
-      BlockStoreLocation tierDownLocation = intersection.getSecond();
+      BlockStoreLocation tierUpLoc = intersection.getFirst();
+      BlockStoreLocation tierDownLoc = intersection.getSecond();
 
-      // Get blocks lists for swapping that will be swapped to eliminate overlap.
+      // Get list per tier that will be swapped for aligning the intersection.
       Pair<List<Long>, List<Long>> swapLists = mMetadataManager.getBlockIterator().getSwaps(
-          tierUpLocation, BlockOrder.Natural, tierDownLocation, BlockOrder.Reverse, swapRange,
+          tierUpLoc, BlockOrder.Natural, tierDownLoc, BlockOrder.Reverse, alignRange,
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
+
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
       LOG.debug("Acquired {} swaps to align tiers {} - {}", swapLists.getFirst().size(),
-          tierUpLocation.tierAlias(), tierDownLocation.tierAlias());
+          tierUpLoc.tierAlias(), tierDownLoc.tierAlias());
 
-      // Create exception handler to trigger swap-restore task when swap fails due to space.
+      // Create exception handler to trigger swap-restore task when swap fails
+      // due to insufficient reserved space.
       Consumer<Exception> excHandler = (e) -> {
         if (e instanceof WorkerOutOfSpaceException) {
           // Mark the need for running swap-space restoration task.
@@ -91,7 +97,7 @@ public class TierSwapTask extends AbstractBlockManagementTask {
         }
       };
 
-      // Execute transfers.
+      // Execute swap transfers.
       mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
     }
   }
@@ -129,7 +135,7 @@ public class TierSwapTask extends AbstractBlockManagementTask {
     Collections.sort(blockLocPairListSrc, comparator);
     Collections.sort(blockLocPairListDst, comparator);
 
-    // Build transfer infos off sorted locations.
+    // Build transfer infos using the sorted locations.
     List<BlockTransferInfo> transferInfos = new ArrayList<>(blockLocPairListSrc.size());
     for (int i = 0; i < blockLocPairListSrc.size(); i++) {
       transferInfos.add(BlockTransferInfo.createSwap(blockLocPairListSrc.get(i).getSecond(),

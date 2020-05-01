@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -21,8 +21,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TierMoveTaskTest extends BaseTierManagementTest {
-  private static final double MOVE_LIMIT = 0.2;
+public class PromoteTaskTest extends BaseTierManagementTaskTest {
+  private static final int MOVE_QUOTA_PERCENT = 80;
 
   /**
    * Sets up all dependencies before a test runs.
@@ -30,12 +30,13 @@ public class TierMoveTaskTest extends BaseTierManagementTest {
   @Before
   public void before() throws Exception {
     ServerConfiguration.reset();
-    // Disable swap task to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_ENABLED, false);
+    // Disable tier alignment to avoid interference.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
     // Disable reserved space for easy measurement.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 0);
-    // Set move limit.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_LIMIT, MOVE_LIMIT);
+    // Set promotion quota percentage.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT,
+        MOVE_QUOTA_PERCENT);
     // Initialize the tier layout.
     init();
   }
@@ -60,12 +61,12 @@ public class TierMoveTaskTest extends BaseTierManagementTest {
     // Stop the load for move task to continue.
     stopSimulateLoad();
 
-    // Calculate the expected available bytes on tier after move task finished.
-    long availableBytesLimit =
-        (long) (mMetaManager.getTier(FIRST_TIER_ALIAS).getCapacityBytes() * MOVE_LIMIT);
+    // Calculate the expected available bytes on tier after promotions finished.
+    long usedBytesLimit = (long) (mMetaManager.getTier(FIRST_TIER_ALIAS).getCapacityBytes()
+        * (double) MOVE_QUOTA_PERCENT / 100);
 
     CommonUtils.waitFor("Higher tier to be filled with blocs from lower tier.",
-        () -> mTestDir1.getAvailableBytes() + mTestDir2.getAvailableBytes() == availableBytesLimit,
+        () -> mTestDir1.getCommittedBytes() + mTestDir2.getCommittedBytes() == usedBytesLimit,
         WaitForOptions.defaults().setTimeoutMs(60000));
   }
 }

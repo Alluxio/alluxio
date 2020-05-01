@@ -2385,53 +2385,55 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
       new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
           .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
-          .setDescription("Controls number of disks that are used at single time "
-              + "by tier management tasks.")
+          .setDescription(
+              "Controls how many disk pairs are spinned during tier management tasks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED)
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to run management tier-swap task.")
+          .setDescription("Whether to align tiers based on access pattern.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_ENABLED)
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to run management tier-move task.")
+          .setDescription("Whether to promote blocks to higher tiers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
       new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to run management swap-restore task when swaps are stuck.")
+          .setDescription("Whether to run management swap-restore task when "
+              + "tier alignment cannot make progress.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RANGE =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RANGE)
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RANGE =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RANGE)
           .setDefaultValue(100)
           .setDescription(
-              "Maximum number of blocks to consider from one tier when doing tier swap task.")
+              "Maximum number of blocks to consider from one tier for a single alignment task.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_RANGE =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_RANGE)
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_RANGE =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE)
           .setDefaultValue(100)
           .setDescription(
-              "Maximum number of blocks to consider from one tier when doing tier move task.")
+              "Maximum number of blocks to consider from one tier for a single promote task.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)
-          .setDefaultValue(0.1)
-          .setDescription("Ratio of free space per-tier for moving blocks from below."
-              + " When under this value moving to that tier will be stopped.")
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT)
+          .setDefaultValue(90)
+          .setDescription("Max percentage of each tier that could be used for promotions. "
+              + "Promotions will be stopped to a tier once its used space go over this value. "
+              + "(0 means never promote, and, 100 means always promote.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4985,26 +4987,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.reserved.space.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
         "alluxio.worker.management.backoff.strategy";
-    public static final String WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
-        "alluxio.worker.management.global.load.detection.enabled";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
     public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
         "alluxio.worker.management.tier.task.disk.parallelism";
-    public static final String WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
-        "alluxio.worker.management.tier.swap.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
+        "alluxio.worker.management.tier.align.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
+        "alluxio.worker.management.tier.promote.enabled";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
         "alluxio.worker.management.tier.swap.restore.enabled";
-    public static final String WORKER_MANAGEMENT_TIER_SWAP_RANGE =
-        "alluxio.worker.management.tier.swap.range";
-    public static final String WORKER_MANAGEMENT_TIER_MOVE_ENABLED =
-        "alluxio.worker.management.tier.move.enabled";
-    public static final String WORKER_MANAGEMENT_TIER_MOVE_RANGE =
-        "alluxio.worker.management.tier.move.range";
-    public static final String WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
-        "alluxio.worker.management.tier.move.limit";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_RANGE =
+        "alluxio.worker.management.tier.align.range";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_RANGE =
+        "alluxio.worker.management.tier.promote.range";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
+        "alluxio.worker.management.tier.promote.quota.percent";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
