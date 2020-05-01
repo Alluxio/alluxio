@@ -11,7 +11,9 @@
 
 package alluxio.client.fs;
 
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -38,7 +40,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
@@ -144,7 +145,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, TINY_BLOCK_SIZE,
-      PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10sec",
       "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
       "alluxio.worker.tieredstore.level0.watermark.low.ratio", "0.25",
       })
@@ -164,8 +164,12 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(writeSize, getUsedWorkerSpace());
     fos.close();
     FileSystemUtils.persistAndWait(fs, p1, 0);
+<<<<<<< HEAD
     // Try to create 1-byte file on top. Expect to succeed.
     FileSystemTestUtils.createByteFile(fs, "/byte-file1", WritePType.MUST_CACHE, 1);
+=======
+    assertThat(getUsedWorkerSpace(), lessThan(writeSize));
+>>>>>>> upstream/master
   }
 
   @Test
@@ -261,11 +265,12 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   /**
-   * Executing this will trigger an eviction on the worker, force a sync of storage info to the
-   * master, and then retrieve the updated storage value from the master.
+   * Executing this will trigger an eviction on the worker, force an update of cached storage
+   * info, then retrieve the info from the block worker.
    *
-   * @return the amount of space used in the cluster
+   * @return the amount of space used by the worker
    */
+<<<<<<< HEAD
   private long getUsedWorkerSpace() throws UnavailableException {
     BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class);
@@ -277,6 +282,16 @@ public final class FileOutStreamAsyncWriteIntegrationTest
         .stream()
         .map(WorkerInfo::getUsedBytes)
         .mapToLong(Long::new).sum();
+=======
+  private long getUsedWorkerSpace() {
+    BlockWorker blkWorker =
+        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
+    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
+    reserver.heartbeat(); // evicts blocks
+    reserver.updateStorageInfo(); // updates storage info reported from getUsedBytes
+    return mLocalAlluxioClusterResource.get().getWorkerProcess()
+        .getWorker(BlockWorker.class).getStoreMeta().getUsedBytes();
+>>>>>>> upstream/master
   }
 
   private void createTwoBytesFile(AlluxioURI path, long persistenceWaitTime) throws Exception {

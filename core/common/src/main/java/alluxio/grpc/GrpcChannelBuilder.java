@@ -105,7 +105,7 @@ public final class GrpcChannelBuilder {
    * @param group the networking group
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public GrpcChannelBuilder setNetworkGroup(GrpcChannelKey.NetworkGroup group) {
+  public GrpcChannelBuilder setNetworkGroup(GrpcNetworkGroup group) {
     mChannelKey.setNetworkGroup(group);
     return this;
   }

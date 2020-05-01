@@ -53,10 +53,10 @@ public class GrpcConnectionPool {
   private ConcurrentMap<GrpcConnectionKey, CountingReference<ManagedChannel>> mChannels;
 
   /** Event loops. */
-  private ConcurrentMap<GrpcChannelKey, CountingReference<EventLoopGroup>> mEventLoops;
+  private ConcurrentMap<GrpcNetworkGroup, CountingReference<EventLoopGroup>> mEventLoops;
 
   /** Used to assign order within a network group. */
-  private ConcurrentMap<GrpcChannelKey.NetworkGroup, AtomicLong> mNetworkGroupCounters;
+  private ConcurrentMap<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters;
 
   /**
    * Creates a new {@link GrpcConnectionPool}.
@@ -66,7 +66,7 @@ public class GrpcConnectionPool {
     mEventLoops = new ConcurrentHashMap<>();
     // Initialize counters for known network-groups.
     mNetworkGroupCounters = new ConcurrentHashMap<>();
-    for (GrpcChannelKey.NetworkGroup group : GrpcChannelKey.NetworkGroup.values()) {
+    for (GrpcNetworkGroup group : GrpcNetworkGroup.values()) {
       mNetworkGroupCounters.put(group, new AtomicLong());
     }
   }
@@ -146,18 +146,11 @@ public class GrpcConnectionPool {
   private GrpcConnectionKey getConnectionKey(GrpcChannelKey channelKey, AlluxioConfiguration conf) {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
-    switch (channelKey.getNetworkGroup()) {
-      case RPC:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_RPC_MAX_CONNECTIONS);
-        break;
-      case STREAMING:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
-        break;
-      default:
-        throw new IllegalStateException(
-            String.format("Unrecognized network group: %s", channelKey.getNetworkGroup()));
-    }
-
+    // Find the next slot index within the group.
+    long maxConnectionsForGroup = conf.getLong(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
+        .format(channelKey.getNetworkGroup().getPropertyCode()));
+    groupIndex %= maxConnectionsForGroup;
+    // Create the connection key for the chosen slot.
     return new GrpcConnectionKey(channelKey, (int) groupIndex);
   }
 
@@ -207,7 +200,7 @@ public class GrpcConnectionPool {
     // Update the builder.
     channelBuilder.keepAliveTime(keepAliveTimeMs, TimeUnit.MILLISECONDS);
     channelBuilder.keepAliveTimeout(keepAliveTimeoutMs, TimeUnit.MILLISECONDS);
-    channelBuilder.maxInboundMetadataSize((int) inboundMessageSizeBytes);
+    channelBuilder.maxInboundMessageSize((int) inboundMessageSizeBytes);
     channelBuilder.flowControlWindow((int) flowControlWindow);
     channelBuilder.channelType(channelType);
     channelBuilder.eventLoopGroup(eventLoopGroup);
@@ -283,11 +276,11 @@ public class GrpcConnectionPool {
 
   private EventLoopGroup acquireNetworkEventLoop(GrpcChannelKey channelKey,
       AlluxioConfiguration conf) {
-    return mEventLoops.compute(channelKey, (k, v) -> {
+    return mEventLoops.compute(channelKey.getNetworkGroup(), (key, v) -> {
       // Increment and return if event-loop found.
       if (v != null) {
-        LOG.debug("Acquiring an existing event-loop. ChannelKey: {}. Ref-Count:{}", channelKey,
-            v.getRefCount());
+        LOG.debug("Acquiring an existing event-loop for {}. Ref-Count:{}",
+            channelKey, v.getRefCount());
         v.reference();
         return v;
       }
@@ -295,28 +288,29 @@ public class GrpcConnectionPool {
       // Create a new event-loop.
       ChannelType nettyChannelType =
           NettyUtils.getChannelType(PropertyKey.Template.USER_NETWORK_NETTY_CHANNEL
-              .format(channelKey.getNetworkGroup().getPropertyCode()), conf);
+              .format(key.getPropertyCode()), conf);
       int nettyWorkerThreadCount =
           conf.getInt(PropertyKey.Template.USER_NETWORK_NETTY_WORKER_THREADS
-              .format(channelKey.getNetworkGroup().getPropertyCode()));
+              .format(key.getPropertyCode()));
 
       v = new CountingReference<>(
           NettyUtils.createEventLoop(nettyChannelType, nettyWorkerThreadCount, String.format(
-              "alluxio-client-netty-event-loop-%s-%%d", channelKey.getNetworkGroup().name()), true),
+              "alluxio-client-netty-event-loop-%s-%%d", key.name()), true),
           1);
-      LOG.debug("Created a new event loop. ChannelKey: {}. ChannelType: {} ThreadCount: {}",
-          channelKey, nettyChannelType, nettyWorkerThreadCount);
+      LOG.debug(
+          "Created a new event loop. NetworkGroup: {}. NettyChannelType: {}, NettyThreadCount: {}",
+          key, nettyChannelType, nettyWorkerThreadCount);
 
       return v;
     }).get();
   }
 
-  private void releaseNetworkEventLoop(GrpcChannelKey key) {
-    mEventLoops.compute(key, (k, ref) -> {
+  private void releaseNetworkEventLoop(GrpcChannelKey channelKey) {
+    mEventLoops.compute(channelKey.getNetworkGroup(), (key, ref) -> {
       Preconditions.checkNotNull(ref, "Cannot release nonexistent event-loop");
-      LOG.debug("Releasing event-loop for: {}. Ref-count: {}", key, ref.getRefCount());
+      LOG.debug("Releasing event-loop for: {}. Ref-count: {}", channelKey, ref.getRefCount());
       if (ref.dereference() == 0) {
-        LOG.debug("Shutting down event-loop after: {}", key);
+        LOG.debug("Shutting down event-loop: {}", ref.get());
         // Shutdown the event-loop gracefully.
         ref.get().shutdownGracefully();
         // No need to wait for event-loop shutdown.

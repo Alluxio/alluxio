@@ -48,12 +48,14 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    *
    * @param userState the parent userState
    * @param address address of the worker
+   * @param minCapacity the minimum capacity of the pool
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
    */
-  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int maxCapacity,
-      AlluxioConfiguration alluxioConf) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
+  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int minCapacity,
+      int maxCapacity, AlluxioConfiguration alluxioConf) {
+    super(Options.defaultOptions().setMinCapacity(minCapacity).setMaxCapacity(maxCapacity)
+        .setGcExecutor(GC_EXECUTOR));
     mUserState = userState;
     mAddress = address;
     mConf = alluxioConf;

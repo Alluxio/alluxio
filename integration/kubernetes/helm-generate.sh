@@ -27,12 +27,26 @@ function printUsage {
 
 function generateTemplates {
   echo "Generating templates into $dir"
+  # Prepare target directories
+  if [[ ! -d "${dir}/master" ]]; then
+    mkdir -p ${dir}/master
+  fi
+  if [[ ! -d "${dir}/worker" ]]; then
+    mkdir -p ${dir}/worker
+  fi
+
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
     echo "A config file $config is needed in $dir!"
     echo "See https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#example-hdfs-as-the-under-store"
     echo "for the format of config.yaml."
-    exit 1
+
+    touch $config
+    echo "Using default config"
+    echo "${defaultConfig}"
+    cat << EOF >> $config
+${defaultConfig}
+EOF
   fi
 
   generateConfigTemplates
@@ -43,29 +57,29 @@ function generateTemplates {
 
 function generateConfigTemplates {
   echo "Generating configmap templates into $dir"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
 }
 
 function generateMasterTemplates {
   echo "Generating master templates into $dir"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
 }
 
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
 }
 
 function generateFuseTemplates {
   echo "Generating fuse templates"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.enabled=true -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.clientEnabled=true -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
 }
 
 function generateMasterServiceTemplates {
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
 }
 
 function generateSingleUfsTemplates {
@@ -75,11 +89,43 @@ function generateSingleUfsTemplates {
     "local")
       echo "Using local journal"
       dir="singleMaster-localJournal"
+      read -r -d '' defaultConfig << 'EOM'
+master:
+  count: 1 # For multiMaster mode increase this to >1
+
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"
+
+EOM
       generateTemplates
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
       dir="singleMaster-hdfsJournal"
+
+      read -r -d '' defaultConfig << 'EOM'
+master:
+  count: 1
+
+journal:
+  type: "UFS"
+  ufsType: "HDFS"
+  folder: "hdfs://{$hostname}:{$hostport}/journal"
+
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/{$underFSStorage}"
+  alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+
+EOM
+
       generateTemplates
       ;;
     *)
@@ -91,6 +137,18 @@ function generateSingleUfsTemplates {
 
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
+
+  read -r -d '' defaultConfig << 'EOM'
+master:
+  count: 3
+
+journal:
+  type: "EMBEDDED"
+  ufsType: "local" # This field will not be looked at
+  folder: "/journal"
+
+EOM
+
   generateTemplates
 }
 

@@ -21,9 +21,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ReadResponse;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -81,27 +81,31 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
     @Override
     protected void completeRequest(BlockReadRequestContext context) throws Exception {
-      BlockReader reader = context.getBlockReader();
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest().getId(), e.getMessage());
-        }
-      }
-      if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
+      BlockReader reader = null;
+      try {
+        reader = context.getBlockReader();
         if (reader != null) {
-          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
-          context.setBlockReader(null);
+          reader.close();
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to close block reader for block {} with error {}.",
+            context.getRequest().getId(), e.getMessage());
+      } finally {
+        if (!mWorker.unlockBlock(context.getRequest().getSessionId(),
+            context.getRequest().getId())) {
+          if (reader != null) {
+            mWorker.closeUfsBlock(context.getRequest().getSessionId(),
+                context.getRequest().getId());
+            context.setBlockReader(null);
+          }
         }
       }
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context,
-        StreamObserver<ReadResponse> response, long offset, int len) throws Exception {
-      openBlock(context, response);
+    protected DataBuffer getDataBuffer(BlockReadRequestContext context, long offset, int len)
+        throws Exception {
+      openBlock(context);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
@@ -118,10 +122,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     /**
      * Opens the block if it is not open.
      *
-     * @param response the read response stream
      * @throws Exception if it fails to open the block
      */
-    private void openBlock(BlockReadRequestContext context, StreamObserver<ReadResponse> response)
+    private void openBlock(BlockReadRequestContext context)
         throws Exception {
       if (context.getBlockReader() != null) {
         return;

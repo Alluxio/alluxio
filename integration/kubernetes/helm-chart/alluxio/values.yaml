@@ -33,7 +33,10 @@ properties:
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
 # These JVM options are common to all Alluxio services
-# jvmOptions: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 "
+# jvmOptions:
+#   - "-XX:+UnlockExperimentalVMOptions"
+#   - "-XX:+UseCGroupMemoryLimitForHeap"
+#   - "-XX:MaxRAMFraction=2"
 
 # Mount Persistent Volumes to all components
 # mounts:
@@ -68,7 +71,7 @@ master:
     rpc: 19998
     web: 19999
   # JVM options specific to the master container
-  jvmOptions: ""
+  jvmOptions:
   nodeSelector: {}
   hostNetwork: false
   dnsPolicy: ClusterFirst
@@ -97,7 +100,7 @@ jobMaster:
     rpc: 20001
     web: 20002
   # JVM options specific to the jobMaster container
-  jvmOptions: ""
+  jvmOptions:
 
 # Alluxio supports journal type of UFS and EMBEDDED
 # UFS journal with HDFS example
@@ -150,7 +153,7 @@ worker:
     rpc: 29999
     web: 30000
   # JVM options specific to the worker container
-  jvmOptions: ""
+  jvmOptions:
   nodeSelector: {}
   hostNetwork: false
   dnsPolicy: ClusterFirst
@@ -172,7 +175,7 @@ jobWorker:
     data: 30002
     web: 30003
   # JVM options specific to the jobWorker container
-  jvmOptions: ""
+  jvmOptions:
 
 # Tiered Storage
 # emptyDir example
@@ -240,7 +243,8 @@ fuse:
   properties:
   # Customize the MaxDirectMemorySize
   # These options are specific to the FUSE daemon
-  jvmOptions: " -XX:MaxDirectMemorySize=2g "
+  jvmOptions:
+    - "-XX:MaxDirectMemorySize=2g"
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   user: 0
