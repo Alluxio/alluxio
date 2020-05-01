@@ -175,7 +175,7 @@ public final class AlluxioFuseUtils {
    */
   public static int getErrorCode(Throwable t) {
     // Error codes and their explanations are described in
-    // the Errno.java in jnr-constants
+    // the Errno.java in jni-constants
     if (t instanceof AlluxioException) {
       return getAlluxioErrorCode((AlluxioException) t);
     } else if (t instanceof IOException) {

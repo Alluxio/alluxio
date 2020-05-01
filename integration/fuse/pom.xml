@@ -30,10 +30,6 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.github.serceman</groupId>
-      <artifactId>jnr-fuse</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -52,6 +48,13 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>com.github.serceman</groupId>
+      <artifactId>jnr-fuse</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- Internal test dependencies -->

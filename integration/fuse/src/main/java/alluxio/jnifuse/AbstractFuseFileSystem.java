@@ -12,28 +12,23 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.jnifuse.struct.Statvfs;
-import alluxio.jnifuse.utils.MountUtils;
 import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
 
-import org.apache.commons.lang.NotImplementedException;
-
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Abstract class for Fuse FS Stub.
+ * Abstract class for other File System to extend and integrate with Fuse.
  */
-public class FuseStubFS {
+public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   private static final int TIMEOUT = 2000; // ms
 
@@ -41,13 +36,13 @@ public class FuseStubFS {
   protected final AtomicBoolean mounted = new AtomicBoolean();
   protected Path mountPoint;
 
-  public FuseStubFS() {
+  public AbstractFuseFileSystem() {
     this.libFuse = new LibFuse();
   }
 
   public void mount(Path mountPoint, boolean blocking, boolean debug, String[] fuseOpts) {
     if (!mounted.compareAndSet(false, true)) {
-      throw new FuseException("Fuse fs already mounted!");
+      throw new FuseException("Fuse File System already mounted!");
     }
     this.mountPoint = mountPoint;
     String[] arg;
@@ -56,9 +51,9 @@ public class FuseStubFS {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
     if (!debug) {
-      arg = new String[] {getFSName(), "-f", mountPointStr};
+      arg = new String[] {getFileSystemName(), "-f", mountPointStr};
     } else {
-      arg = new String[] {getFSName(), "-f", "-d", mountPointStr};
+      arg = new String[] {getFileSystemName(), "-f", "-d", mountPointStr};
     }
     if (fuseOpts.length != 0) {
       int argLen = arg.length;
@@ -69,7 +64,7 @@ public class FuseStubFS {
     final String[] args = arg;
     try {
       if (SecurityUtils.canHandleShutdownHooks()) {
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(this::umount));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::umount));
       }
       int res;
       if (blocking) {
@@ -106,89 +101,22 @@ public class FuseStubFS {
       // libFuse.fuse_exit(fusePointer);
       // }
     } else {
-      MountUtils.umount(mountPoint);
+      String mountPath = mountPoint.toAbsolutePath().toString();
+      try {
+        new ProcessBuilder("fusermount", "-u", "-z", mountPath).start();
+      } catch (IOException e) {
+        try {
+          new ProcessBuilder("umount", mountPath).start().waitFor();
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw new FuseException("Unable to umount FS", e);
+        } catch (IOException ioe) {
+          ioe.addSuppressed(e);
+          throw new FuseException("Unable to umount FS", ioe);
+        }
+      }
     }
     mounted.set(false);
-  }
-
-  public int getattr(String path, FileStat stat) {
-    throw new NotImplementedException("getattr");
-  }
-
-  public int mkdir(String path, long mode) {
-    throw new NotImplementedException("mkdir");
-  }
-
-  public int unlink(String path) {
-    throw new NotImplementedException("unlink");
-  }
-
-  public int rmdir(String path) {
-    throw new NotImplementedException("rmdir");
-  }
-
-  public int symlink(String oldpath, String newpath) {
-    throw new NotImplementedException("symlink");
-  }
-
-  public int rename(String oldpath, String newpath) {
-    throw new NotImplementedException("rename");
-  }
-
-  public int link(String oldpath, String newpath) {
-    throw new NotImplementedException("link");
-  }
-
-  public int chmod(String path, long mode) {
-    throw new NotImplementedException("chmod");
-  }
-
-  public int chown(String path, long uid, long gid) {
-    throw new NotImplementedException("chown");
-  }
-
-  public int truncate(String path, long size) {
-    throw new NotImplementedException("truncate");
-  }
-
-  public int open(String path, FuseFileInfo fi) {
-    throw new NotImplementedException("open");
-  }
-
-  public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    throw new NotImplementedException("read");
-  }
-
-  public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    throw new NotImplementedException("write");
-  }
-
-  public int statfs(String path, Statvfs stbuf) {
-    throw new NotImplementedException("statfs");
-  }
-
-  public int flush(String path, FuseFileInfo fi) {
-    throw new NotImplementedException("flush");
-  }
-
-  public int release(String path, FuseFileInfo fi) {
-    throw new NotImplementedException("release");
-  }
-
-  public int opendir(String path, FuseFileInfo fi) {
-    throw new NotImplementedException("opendir");
-  }
-
-  public int readdir(String path, long bufaddr, FuseFillDir filter, long offset, FuseFileInfo fi) {
-    throw new NotImplementedException("readdir");
-  }
-
-  public int releasedir(String path, FuseFileInfo fi) {
-    throw new NotImplementedException("releasedir");
-  }
-
-  public int create(String path, long mode, FuseFileInfo fi) {
-    throw new NotImplementedException("create");
   }
 
   public int openCallback(String path, ByteBuffer buf) {
@@ -209,15 +137,6 @@ public class FuseStubFS {
   public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
       ByteBuffer fi) {
     return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
-  }
-
-  public FuseContext getContext() {
-    // TODO: get real context
-    return new FuseContext(ByteBuffer.allocate(32));
-  }
-
-  protected String getFSName() {
-    return "fusefs" + ThreadLocalRandom.current().nextInt();
   }
 
   static {

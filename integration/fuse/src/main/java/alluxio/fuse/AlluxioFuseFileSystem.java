@@ -32,7 +32,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
-import alluxio.jnifuse.FuseStubFS;
+import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
@@ -72,7 +72,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioFuseFileSystem extends FuseStubFS {
+public final class AlluxioFuseFileSystem extends AbstractFuseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
@@ -162,6 +162,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public FuseContext getContext() {
     FuseContext context = new FuseContext(ByteBuffer.allocate(32));
+    // TODO(iluoeli): Placeholder for now
     context.uid.set(UID);
     context.gid.set(GID);
     return context;
@@ -450,7 +451,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return Name of the file system
    */
   @Override
-  public String getFSName() {
+  public String getFileSystemName() {
     return mFsName;
   }
 

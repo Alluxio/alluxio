@@ -13,6 +13,7 @@ package alluxio.jnifuse.struct;
 
 import java.nio.ByteBuffer;
 
+// TODO(iluoeli): Add more fields
 public class FuseContext extends Struct {
 
   public final Unsigned32 uid = new Unsigned32();
