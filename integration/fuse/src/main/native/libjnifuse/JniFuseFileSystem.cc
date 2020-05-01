@@ -20,7 +20,6 @@
 #include <string.h>
 
 #include "debug.h"
-#include "fuse.h"
 
 using namespace jnifuse;
 
@@ -32,6 +31,9 @@ JniFuseFileSystem::JniFuseFileSystem() {
   this->openOper = nullptr;
   this->readOper = nullptr;
   this->readdirOper = nullptr;
+  this->unlinkOper = nullptr;
+  this->flushOper = nullptr;
+  this->releaseOper = nullptr;
 }
 
 JniFuseFileSystem::~JniFuseFileSystem() {
@@ -39,6 +41,9 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->openOper;
   delete this->readOper;
   delete this->readOper;
+  delete this->unlinkOper;
+  delete this->flushOper;
+  delete this->releaseOper;
 }
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
@@ -49,6 +54,9 @@ void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   this->openOper = new OpenOperation(this);
   this->readOper = new ReadOperation(this);
   this->readdirOper = new ReaddirOperation(this);
+  this->unlinkOper = new UnlinkOperation(this);
+  this->flushOper = new FlushOperation(this);
+  this->releaseOper = new ReleaseOperation(this);
 }
 
 JniFuseFileSystem *JniFuseFileSystem::getInstance() {
@@ -179,6 +187,72 @@ int ReaddirOperation::call(const char *path, void *buf, fuse_fill_dir_t filler,
                                fillerobj, offset, fibuf);
 
   env->DeleteLocalRef(fillerobj);
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(fibuf);
+
+  return ret;
+}
+
+UnlinkOperation::UnlinkOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;)I";
+  this->methodID = env->GetMethodID(this->clazz, "unlinkCallback", signature);
+}
+
+int UnlinkOperation::call(const char *path) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath);
+
+  env->DeleteLocalRef(jspath);
+
+  return ret;
+}
+
+FlushOperation::FlushOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "flushCallback", signature);
+}
+
+int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jobject fibuf =
+      env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(fibuf);
+
+  return ret;
+}
+
+ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "releaseCallback", signature);
+}
+
+int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jobject fibuf =
+      env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
+
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);
 

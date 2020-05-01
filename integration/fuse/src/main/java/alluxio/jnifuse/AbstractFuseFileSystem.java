@@ -12,6 +12,7 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
@@ -137,6 +138,23 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
       ByteBuffer fi) {
     return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+  }
+
+  public int unlinkCallback(String path) {
+    return unlink(path);
+  }
+
+  public int flushCallback(String path, ByteBuffer fi) {
+    return flush(path, FuseFileInfo.wrap(fi));
+  }
+
+  public int releaseCallback(String path, ByteBuffer fi) {
+    return release(path, FuseFileInfo.wrap(fi));
+  }
+
+  public FuseContext getContext() {
+    // TODO: get real context
+    return new FuseContext(ByteBuffer.allocate(32));
   }
 
   static {

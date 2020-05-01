@@ -67,6 +67,18 @@ static int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
   return ret;
 }
 
+static int unlink_wrapper(const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
+}
+
+static int flush_wrapper(const char *path, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
+}
+
+static int release_wrapper(const char *path, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
+}
+
 // TODO: Add more operations
 static struct fuse_operations jnifuse_oper;
 
@@ -93,6 +105,9 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.open = open_wrapper;
   jnifuse_oper.read = read_wrapper;
   jnifuse_oper.readdir = readdir_wrapper;
+  jnifuse_oper.unlink = unlink_wrapper;
+  jnifuse_oper.flush = flush_wrapper;
+  jnifuse_oper.release = release_wrapper;
 
   return fuse_main_real(argc, argv, &jnifuse_oper,
                         sizeof(struct fuse_operations), NULL);

@@ -12,7 +12,8 @@
 #ifndef _JNI_FUSE_FILE_SYSTEM_H
 #define _JNI_FUSE_FILE_SYSTEM_H
 
-#include "fuse.h"
+#include <fuse.h>
+
 #include "jni.h"
 
 namespace jnifuse {
@@ -22,6 +23,9 @@ class OpenOperation;
 class Operation;
 class ReaddirOperation;
 class ReadOperation;
+class UnlinkOperation;
+class FlushOperation;
+class ReleaseOperation;
 
 class JniFuseFileSystem {
  private:
@@ -43,6 +47,9 @@ class JniFuseFileSystem {
   OpenOperation *openOper;
   ReadOperation *readOper;
   ReaddirOperation *readdirOper;
+  UnlinkOperation *unlinkOper;
+  FlushOperation *flushOper;
+  ReleaseOperation *releaseOper;
 };
 
 class Operation {
@@ -86,6 +93,24 @@ class ReaddirOperation : public Operation {
  private:
   jclass fillerclazz;
   jmethodID fillerconstructor;
+};
+
+class UnlinkOperation : public Operation {
+ public:
+  UnlinkOperation(JniFuseFileSystem *fs);
+  int call(const char *path);
+};
+
+class FlushOperation : public Operation {
+ public:
+  FlushOperation(JniFuseFileSystem *fs);
+  int call(const char *path, struct fuse_file_info *fi);
+};
+
+class ReleaseOperation : public Operation {
+ public:
+  ReleaseOperation(JniFuseFileSystem *fs);
+  int call(const char *path, struct fuse_file_info *fi);
 };
 
 }  // namespace jnifuse
