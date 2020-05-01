@@ -152,11 +152,6 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     return release(path, FuseFileInfo.wrap(fi));
   }
 
-  public FuseContext getContext() {
-    // TODO: get real context
-    return new FuseContext(ByteBuffer.allocate(32));
-  }
-
   static {
     System.loadLibrary("jnifuse");
   }
