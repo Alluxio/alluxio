@@ -25,7 +25,7 @@ ifeq ($(UNAME), Darwin)
 	TARGET_LIB := libjnifuse.dylib
 endif
 
-CXXFLAGS = -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
+CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
 LDFLAGS = -shared ${FUSE_LIBS}
 OBJS = JniFuseHelper.o JniFuseFileSystem.o
 

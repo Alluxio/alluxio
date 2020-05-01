@@ -121,7 +121,10 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jobject obj,
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
 
-  return filler((void *)bufaddr, fn, NULL, 0);
+  int ret = filler((void *)bufaddr, fn, NULL, 0);
+  env->ReleaseStringUTFChars(name, fn);
+
+  return ret;
 }
 
 #ifdef __cplusplus

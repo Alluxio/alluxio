@@ -12,7 +12,6 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
