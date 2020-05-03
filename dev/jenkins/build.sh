@@ -13,7 +13,7 @@
 #
 # This script is run from inside the Docker container
 #
-set -e
+set -ex
 
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then

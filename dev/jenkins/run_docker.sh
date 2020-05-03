@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-set -e
+set -ex
 
 function main {
   if [ -z "${ALLUXIO_DOCKER_ID}" ]
