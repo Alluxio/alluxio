@@ -27,6 +27,12 @@ class UnlinkOperation;
 class FlushOperation;
 class ReleaseOperation;
 
+struct  ThreadData {
+  JavaVM *attachedJVM;
+  JNIEnv *attachedEnv;
+};
+
+
 class JniFuseFileSystem {
  private:
   JniFuseFileSystem();
@@ -36,6 +42,7 @@ class JniFuseFileSystem {
   static JniFuseFileSystem *getInstance();
   void init(JNIEnv *env, jobject obj);
   JNIEnv *getEnv();
+  JavaVM *getJVM();
   jobject getFSObj();
 
  private:

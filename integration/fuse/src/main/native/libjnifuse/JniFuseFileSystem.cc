@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <fuse.h>
 #include <jni.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +23,16 @@
 #include "debug.h"
 
 using namespace jnifuse;
+
+static pthread_key_t jffs_threadKey;
+
+static void thread_data_free(void *ptr) {
+  ThreadData* td = (ThreadData *)ptr;
+  if (td->attachedJVM != nullptr) {
+    td->attachedJVM->DetachCurrentThread();
+  }
+  delete td;
+}
 
 JniFuseFileSystem::JniFuseFileSystem() {
   this->fs = nullptr;
@@ -57,6 +68,8 @@ void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   this->unlinkOper = new UnlinkOperation(this);
   this->flushOper = new FlushOperation(this);
   this->releaseOper = new ReleaseOperation(this);
+
+  pthread_key_create(&jffs_threadKey, thread_data_free);
 }
 
 JniFuseFileSystem *JniFuseFileSystem::getInstance() {
@@ -68,9 +81,20 @@ JniFuseFileSystem *JniFuseFileSystem::getInstance() {
 }
 
 JNIEnv *JniFuseFileSystem::getEnv() {
-  JNIEnv *env;
-  this->jvm->AttachCurrentThreadAsDaemon((void **)&env, NULL);
-  return env;
+  ThreadData *td = (ThreadData *)pthread_getspecific(jffs_threadKey);
+  if (td == nullptr) {
+    td = new ThreadData();
+    td->attachedJVM = this->jvm;
+    this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, NULL);
+    pthread_setspecific(jffs_threadKey, td);
+    return td->attachedEnv;
+  }
+  td = (ThreadData *)pthread_getspecific(jffs_threadKey);
+  return td->attachedEnv;
+}
+
+JavaVM *JniFuseFileSystem::getJVM() {
+  return this->jvm;
 }
 
 jobject JniFuseFileSystem::getFSObj() { return this->fs; }
@@ -175,10 +199,8 @@ ReaddirOperation::ReaddirOperation(JniFuseFileSystem *fs) {
 int ReaddirOperation::call(const char *path, void *buf, fuse_fill_dir_t filler,
                            off_t offset, struct fuse_file_info *fi) {
   JNIEnv *env = this->fs->getEnv();
-
   jobject fillerobj = env->NewObject(this->fillerclazz, this->fillerconstructor,
                                      (void *)filler);
-
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
