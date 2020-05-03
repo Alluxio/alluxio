@@ -69,6 +69,16 @@ function main {
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
+  # If target branch or remote exists, set to run relevant checks given the diff of the PR
+  if [ -n "${TARGET_BRANCH}" ]
+  then
+    run_args+=" -e TARGET_BRANCH=${TARGET_BRANCH}"
+  fi
+  if [ -n "${TARGET_REMOTE}" ]
+  then
+    run_args+=" -e TARGET_REMOTE=${TARGET_REMOTE}"
+  fi
+
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
   run_args+=" --entrypoint=dev/jenkins/build.sh"
 
