@@ -35,6 +35,9 @@ else
     if [[ ${filepath} =~ ^docs/.* ]]; then
       # if any file starts with "docs/", run doc check
       RUN_DOC_CHECK="true"
+    elif [[ ${filepath} =~ ^integration/(dataproc|docker|emr|kubernetes|vagrant)/.* ]]; then
+      # do nothing for files in integration/ that don't contain java code
+      :
     else
       # if any other files are in the diff, run maven
       RUN_MAVEN="true"
