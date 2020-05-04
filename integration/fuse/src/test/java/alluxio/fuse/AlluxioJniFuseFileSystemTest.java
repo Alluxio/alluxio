@@ -44,14 +44,16 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.jnifuse.struct.Statvfs;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import jnr.ffi.Pointer;
-import jnr.ffi.Runtime;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,25 +63,22 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import ru.serce.jnrfuse.ErrorCodes;
-import ru.serce.jnrfuse.struct.FileStat;
-import ru.serce.jnrfuse.struct.FuseFileInfo;
-import ru.serce.jnrfuse.struct.Statvfs;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Isolation tests for {@link AlluxioFuseFileSystem}.
+ * Isolation tests for {@link AlluxioJniFuseFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
-public class AlluxioFuseFileSystemTest {
+public class AlluxioJniFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
 
-  private AlluxioFuseFileSystem mFuseFs;
+  private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -97,7 +96,7 @@ public class AlluxioFuseFileSystemTest {
 
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts, mConf);
+      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystem, opts, mConf);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -131,7 +130,7 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void chownWithoutValidGid() throws Exception {
     long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    long gid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE;
+    long gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
     mFuseFs.chown("/foo/bar", uid, gid);
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -140,7 +139,7 @@ public class AlluxioFuseFileSystemTest {
         SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
-    gid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
@@ -148,7 +147,7 @@ public class AlluxioFuseFileSystemTest {
   @Test
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
-    long uid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE;
+    long uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
     long gid = AlluxioFuseUtils.getGid(userName);
     mFuseFs.chown("/foo/bar", uid, gid);
 
@@ -157,20 +156,20 @@ public class AlluxioFuseFileSystemTest {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
-    uid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
   @Test
   public void chownWithoutValidUidAndGid() throws Exception {
-    long uid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE;
-    long gid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE;
+    long uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
+    long gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, never()).setAttribute(any());
 
-    uid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
-    gid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, never()).setAttribute(any());
   }
@@ -226,7 +225,7 @@ public class AlluxioFuseFileSystemTest {
     // mock fs
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
     assertEquals(0, mFuseFs.getattr("/foo", stat));
     assertEquals(status.getLength(), stat.st_size.longValue());
     assertEquals(9, stat.st_blocks.intValue());
@@ -255,7 +254,7 @@ public class AlluxioFuseFileSystemTest {
     // mock fs
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
 
     // Use another thread to open file so that
     // we could change the file status when opening it
@@ -295,7 +294,7 @@ public class AlluxioFuseFileSystemTest {
     when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
 
     // getattr() will not be blocked when writing
     mFuseFs.getattr(path, stat);
@@ -401,15 +400,15 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it
-    Runtime r = Runtime.getSystemRuntime();
-    Pointer ptr = r.getMemoryManager().allocateTemporary(4, true);
+    ByteBuffer ptr = ByteBuffer.allocateDirect(4);
+    ptr.clear();
 
     // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
 
     mFuseFs.read("/foo/bar", ptr, 4, 0, mFileInfo);
     final byte[] dst = new byte[4];
-    ptr.get(0, dst, 0, 4);
+    ptr.get(dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
@@ -472,10 +471,10 @@ public class AlluxioFuseFileSystemTest {
     mFuseFs.create("/foo/bar", 0, mFileInfo);
 
     // prepare something to write into it
-    Runtime r = Runtime.getSystemRuntime();
-    Pointer ptr = r.getMemoryManager().allocateTemporary(4, true);
+    ByteBuffer ptr = ByteBuffer.allocateDirect(4);
+    ptr.clear();
     byte[] expected = {42, -128, 1, 3};
-    ptr.put(0, expected, 0, 4);
+    ptr.put(expected, 0, 4);
 
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
     verify(fos).write(expected);
@@ -508,9 +507,9 @@ public class AlluxioFuseFileSystemTest {
 
   // Allocate native memory for a FuseFileInfo data struct and return its pointer
   private FuseFileInfo allocateNativeFileInfo() {
-    final Runtime runtime = Runtime.getSystemRuntime();
-    final Pointer pt = runtime.getMemoryManager().allocateTemporary(36, true);
-    return FuseFileInfo.of(pt);
+    ByteBuffer buffer = ByteBuffer.allocateDirect(36);
+    buffer.clear();
+    return FuseFileInfo.wrap(buffer);
   }
 
   /**
@@ -531,9 +530,9 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void statfs() throws Exception {
-    Runtime runtime = Runtime.getSystemRuntime();
-    Pointer pointer = runtime.getMemoryManager().allocateTemporary(4 * Constants.KB, true);
-    Statvfs stbuf = Statvfs.of(pointer);
+    ByteBuffer buffer = ByteBuffer.allocateDirect(4 * Constants.KB);
+    buffer.clear();
+    Statvfs stbuf = Statvfs.wrap(buffer);
 
     int blockSize = 4 * Constants.KB;
     int totalBlocks = 4;
@@ -556,9 +555,9 @@ public class AlluxioFuseFileSystemTest {
     assertEquals(freeBlocks, stbuf.f_bfree.longValue());
     assertEquals(freeBlocks, stbuf.f_bavail.longValue());
 
-    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
-    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
-    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
-    assertEquals(AlluxioFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
+    assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
+    assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
+    assertEquals(AlluxioJniFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
+    assertEquals(AlluxioJniFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }

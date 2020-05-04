@@ -23,7 +23,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.AlluxioFuseOptions;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.DeletePOptions;
@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Integration tests for {@link AlluxioFuseFileSystem}.
+ * Integration tests for {@link AlluxioJniFuseFileSystem}.
  */
 public class FuseFileSystemIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
@@ -71,7 +71,7 @@ public class FuseFileSystemIntegrationTest {
   private static String sAlluxioRoot;
   private static boolean sFuseInstalled;
   private static FileSystem sFileSystem;
-  private static AlluxioFuseFileSystem sFuseFileSystem;
+  private static AlluxioJniFuseFileSystem sFuseFileSystem;
   private static Thread sFuseThread;
   private static String sMountPoint;
 
@@ -89,7 +89,7 @@ public class FuseFileSystemIntegrationTest {
 
     AlluxioFuseOptions options = new AlluxioFuseOptions(sMountPoint,
         sAlluxioRoot, false, new ArrayList<>());
-    sFuseFileSystem = new AlluxioFuseFileSystem(sFileSystem, options,
+    sFuseFileSystem = new AlluxioJniFuseFileSystem(sFileSystem, options,
         ServerConfiguration.global());
     sFuseThread = new Thread(() -> sFuseFileSystem.mount(Paths.get(sMountPoint),
         true, false, new String[]{"-odirect_io"}));

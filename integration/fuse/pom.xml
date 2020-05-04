@@ -30,6 +30,10 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>com.github.serceman</groupId>
+      <artifactId>jnr-fuse</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -51,11 +55,11 @@
     </dependency>
 
     <!-- External test dependencies -->
-    <dependency>
+    <!-- <dependency>
       <groupId>com.github.serceman</groupId>
       <artifactId>jnr-fuse</artifactId>
       <scope>test</scope>
-    </dependency>
+    </dependency>-->
 
     <!-- Internal test dependencies -->
     <dependency>

@@ -225,6 +225,11 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.github.serceman</groupId>
+        <artifactId>jnr-fuse</artifactId>
+        <version>0.5.3</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
