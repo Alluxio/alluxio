@@ -36,6 +36,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+/**
+ * The definition for the stress bench job, which runs distributed benchmarks.
+ */
 public final class StressBenchDefinition
     implements PlanDefinition<StressBenchConfig, ArrayList<String>, String> {
   private static final Logger LOG = LoggerFactory.getLogger(StressBenchDefinition.class);
@@ -97,16 +100,17 @@ public final class StressBenchDefinition
 
     AtomicReference<IOException> error = new AtomicReference<>(null);
 
-    List<TaskResult> results = taskResults.entrySet().stream().map(entry -> {
-      try {
-        return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
-      } catch (IOException | ClassNotFoundException e) {
-        error.set(new IOException(String
-            .format("Failed to parse task output from %s into result class",
-                entry.getKey().getAddress().getHost()), e));
-      }
-      return null;
-    }).collect(Collectors.toList());
+    List<TaskResult> results = taskResults.entrySet().stream().map(
+        entry -> {
+          try {
+            return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
+          } catch (IOException | ClassNotFoundException e) {
+            error.set(new IOException(String
+                .format("Failed to parse task output from %s into result class",
+                    entry.getKey().getAddress().getHost()), e));
+          }
+          return null;
+        }).collect(Collectors.toList());
 
     if (error.get() != null) {
       throw error.get();
