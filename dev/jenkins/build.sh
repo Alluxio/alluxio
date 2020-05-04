@@ -32,6 +32,10 @@ else
   cat prFiles.diff
 
   while IFS="" read -r filepath || [ -n "$filepath" ]; do
+    if [[ ${filepath} =~ ^dev/* ]]; then
+      # run all checks if modifying any part of the build process
+      RUN_MAVEN="true"
+      RUN_DOC_CHECK="true"
     if [[ ${filepath} =~ ^docs/.* ]]; then
       # if any file starts with "docs/", run doc check
       RUN_DOC_CHECK="true"
