@@ -70,13 +70,11 @@ function main {
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
   # If target branch or remote exists, set to run relevant checks given the diff of the PR
-  if [ -n "${TARGET_BRANCH}" ]
+  if [ -n "${ghprbTargetBranch}" ]
   then
-    run_args+=" -e TARGET_BRANCH=${TARGET_BRANCH}"
-  fi
-  if [ -n "${TARGET_REMOTE}" ]
-  then
-    run_args+=" -e TARGET_REMOTE=${TARGET_REMOTE}"
+    # this env var is defined by the github pull request builder jenkins plugin
+    # see https://plugins.jenkins.io/ghprb/
+    run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
   fi
 
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C

@@ -27,10 +27,7 @@ if [ -z "${TARGET_BRANCH}" ]; then
   RUN_MAVEN="true"
   RUN_DOC_CHECK="true"
 else
-  if [ -z "${TARGET_REMOTE}" ]; then
-    TARGET_REMOTE="origin"
-  fi
-  git --no-pager diff "${TARGET_REMOTE}/${TARGET_BRANCH}" --name-only > prFiles.diff
+  git --no-pager diff "refs/remotes/origin/${TARGET_BRANCH}" --name-only > prFiles.diff
   echo "PR diff is:"
   cat prFiles.diff
 
