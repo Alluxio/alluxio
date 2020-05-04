@@ -27,12 +27,10 @@ if [ -z "${TARGET_BRANCH}" ]; then
   RUN_MAVEN="true"
   RUN_DOC_CHECK="true"
 else
-  git --no-pager diff "refs/remotes/origin/${TARGET_BRANCH}" --name-only || true # debug, see if there's any output
-  git --no-pager diff "refs/remotes/origin/${TARGET_BRANCH}" --name-only > prFiles.diff || true
+  git --no-pager diff "refs/remotes/origin/${TARGET_BRANCH}" --name-only > prFiles.diff
   echo "PR diff is:"
   cat prFiles.diff
 
-  exit 1 # debug
   while IFS="" read -r filepath || [ -n "$filepath" ]; do
     if [[ ${filepath} =~ ^docs/.* ]]; then
       # if any file starts with "docs/", run doc check
