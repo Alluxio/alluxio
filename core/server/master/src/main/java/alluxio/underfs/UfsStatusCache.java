@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import java.util.concurrent.RejectedExecutionException;
  * It also allows associating a path with child inodes, so that the statuses for a specific path can
  * be searched for later.
  */
+@ThreadSafe
 public class UfsStatusCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsStatusCache.class);
 
@@ -152,10 +154,6 @@ public class UfsStatusCache {
   public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable,
       boolean useFallback)
       throws IOException, InvalidPathException {
-    Collection<UfsStatus> children = getChildren(path);
-    if (children != null) {
-      return children;
-    }
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
       try {
@@ -171,6 +169,11 @@ public class UfsStatusCache {
         mActivePrefetchJobs.remove(path);
       }
     }
+    Collection<UfsStatus> children = getChildren(path);
+    if (children != null) {
+      return children;
+    }
+
     if (useFallback) {
       return getChildrenIfAbsent(path, mountTable);
     }
@@ -223,7 +226,7 @@ public class UfsStatusCache {
       children = Arrays.asList(statuses);
       addChildren(path, children);
     } catch (IllegalArgumentException | IOException e) {
-      LOG.debug("Failed to add status to cache", e);
+      LOG.debug("Failed to add status to cache {}", path, e);
     }
     return children;
   }
@@ -263,7 +266,7 @@ public class UfsStatusCache {
         prev.cancel(true);
       }
     } catch (RejectedExecutionException e) {
-      LOG.debug("Failed to submit prefetch job", e);
+      LOG.debug("Failed to submit prefetch job for path {}", path, e);
     }
   }
 
@@ -272,7 +275,7 @@ public class UfsStatusCache {
    */
   public void cancelAllPrefetch() {
     for (Future<?> f : mActivePrefetchJobs.values()) {
-      f.cancel(true);
+      f.cancel(false);
     }
     mActivePrefetchJobs.clear();
   }
