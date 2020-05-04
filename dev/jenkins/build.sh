@@ -36,7 +36,7 @@ else
       # run all checks if modifying any part of the build process
       RUN_MAVEN="true"
       RUN_DOC_CHECK="true"
-    if [[ ${filepath} =~ ^docs/.* ]]; then
+    elif [[ ${filepath} =~ ^docs/.* ]]; then
       # if any file starts with "docs/", run doc check
       RUN_DOC_CHECK="true"
     elif [[ ${filepath} =~ ^integration/(dataproc|docker|emr|kubernetes|vagrant)/.* ]]; then
