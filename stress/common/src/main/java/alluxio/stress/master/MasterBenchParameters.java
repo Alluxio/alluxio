@@ -69,7 +69,14 @@ public final class MasterBenchParameters extends Parameters {
   public String mWarmup = "30s";
 
   @Parameter(names = {"--fixed-count"},
-      description = "The number of paths in the fixed portion. Must be greater than 0.")
+      description = "The number of paths in the fixed portion. Must be greater than 0. The first "
+          + "'fixed-count' paths are in the fixed portion of the namespace. This means all tasks "
+          + "are guaranteed to have the same number of paths in the fixed portion. This is "
+          + "primarily useful for ensuring different tasks/threads perform a similarly sized "
+          + "operation. For example, if fixed-count is set to 1000, and CreateFile is run, each "
+          + "task will create files with exactly 1000 paths in the fixed portion. A subsequent "
+          + "ListDir task will list that portion, knowing every task/thread will always read a "
+          + "directory with exactly 1000 paths.")
   public int mFixedCount = 100;
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")

@@ -100,7 +100,7 @@ public abstract class Benchmark<T extends TaskResult> {
       commandArgs.addAll(mBaseParameters.mJavaOpts);
 
       JobInfo jobInfo =
-          JobGrpcClientUtils.run(new StressBenchConfig(className, commandArgs), 0, conf);
+          JobGrpcClientUtils.run(new StressBenchConfig(className, commandArgs, 5000), 0, conf);
       return jobInfo.getResult().toString();
     }
 

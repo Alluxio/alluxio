@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
+ *
+ * {@link StressBenchConfig} is the configuration class, each task takes a List<String> as a list of
+ * command-line arguments to the benchmark command, and each task returns the string output.
  */
 public final class StressBenchDefinition
     implements PlanDefinition<StressBenchConfig, ArrayList<String>, String> {
@@ -60,7 +63,9 @@ public final class StressBenchDefinition
     Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
     for (WorkerInfo worker : jobWorkerInfoList) {
       ArrayList<String> args = new ArrayList<>(2);
-      args.add("--id");
+      // Add the worker hostname + worker id as the unique task id for each distributed task.
+      // The worker id is used since there may be multiple workers on a single host.
+      args.add(BaseParameters.ID_FLAG);
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
       result.add(new Pair<>(worker, args));
     }
@@ -79,8 +84,8 @@ public final class StressBenchDefinition
     command.add(BaseParameters.DISTRIBUTED_FLAG);
     command.add(BaseParameters.IN_PROCESS_FLAG);
 
-    if (config.getArgs().stream().noneMatch((s) -> s.equals("--start-ms"))) {
-      command.add("--start-ms");
+    if (config.getArgs().stream().noneMatch((s) -> s.equals(BaseParameters.START_MS_FLAG))) {
+      command.add(BaseParameters.START_MS_FLAG);
       command.add(Long.toString((System.currentTimeMillis() + 5000)));
     }
 

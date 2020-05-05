@@ -23,31 +23,37 @@ import java.util.List;
 public final class BaseParameters {
   public static final String CLUSTER_FLAG = "--cluster";
   public static final String DISTRIBUTED_FLAG = "--distributed";
+  public static final String ID_FLAG = "--id";
   public static final String IN_PROCESS_FLAG = "--in-process";
+  public static final String JAVA_OPT_FLAG = "--java-opt";
+  public static final String START_MS_FLAG = "--start-ms";
+
   public static final long UNDEFINED_START_MS = -1;
 
+  // Public flags
   @Parameter(names = {CLUSTER_FLAG},
       description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "
           + "locally.")
   public boolean mCluster = false;
 
-  @Parameter(names = {"--id"},
+  @Parameter(names = {ID_FLAG},
       description = "Any string to uniquely identify this invocation", hidden = true)
   public String mId = "local-task-0";
 
-  @Parameter(names = {"--java-opt"},
+  @Parameter(names = {JAVA_OPT_FLAG},
       description = "The java options to add to the command line to for the task. This can be "
           + "repeated. The options must be quoted and prefixed with a space, to avoid getting "
           + "passed to the JVM. For example: --java-opt \" -Xmx4g\" --java-opt \" -Xms2g\"")
   public List<String> mJavaOpts = new ArrayList<>();
 
+  // Hidden flags
   @Parameter(names = {DISTRIBUTED_FLAG},
       description = "If true, this is a distributed task, not a local task. This is "
           + "automatically added for a cluster job.",
       hidden = true)
   public boolean mDistributed = false;
 
-  @Parameter(names = {"--start-ms"},
+  @Parameter(names = {START_MS_FLAG},
       description = "The time (ms since epoch) in the future to start the test. -1 means start "
           + "immediately.", hidden = true)
   public long mStartMs = UNDEFINED_START_MS;

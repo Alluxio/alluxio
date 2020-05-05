@@ -40,7 +40,6 @@ public class GenerateReport {
   @ParametersDelegate
   private Parameters mParameters = new Parameters();
 
-  @com.beust.jcommander.Parameters(separators = "=")
   private static class Parameters {
     @Parameter(names = "--input",
         description = "The input json files of the results. Can be repeated", required = true)

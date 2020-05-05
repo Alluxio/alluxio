@@ -28,14 +28,19 @@ import java.util.stream.Collectors;
  * Abstract class for parameters of stress tests.
  */
 public abstract class Parameters {
+  /**
+   * The shared mapper, which is thread-safe as long as all configuration is complete before any
+   * reading and writing.
+   */
+  private static final ObjectMapper MAPPER =
+      new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
   protected Map<String, Object> toMap() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     try {
-      String json = mapper.writeValueAsString(this);
+      String json = MAPPER.writeValueAsString(this);
       final MapType type =
-          mapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
-      return mapper.readValue(json, type);
+          MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
+      return MAPPER.readValue(json, type);
     } catch (Exception e) {
       throw new RuntimeException("Failed to convert " + this.getClass().getName() + " to map.", e);
     }

@@ -25,6 +25,13 @@ import java.util.Map;
  * A representation of a graph.
  */
 public abstract class Graph {
+  /**
+   * The shared mapper, which is thread-safe as long as all configuration is complete before any
+   * reading and writing.
+   */
+  private static final ObjectMapper MAPPER =
+      new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
   protected final Map<String, Object> mGraph = new HashMap<>();
   protected final List<Map<String, Object>> mData = new ArrayList<>();
   protected final List<String> mTitle = new ArrayList<>();
@@ -55,8 +62,7 @@ public abstract class Graph {
    * @return the json string representation
    */
   public String toJson() throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(toMap());
+    MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(toMap());
   }
 }

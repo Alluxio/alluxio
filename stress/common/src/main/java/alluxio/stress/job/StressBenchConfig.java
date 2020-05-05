@@ -32,15 +32,19 @@ public final class StressBenchConfig implements PlanConfig {
 
   private final String mClassName;
   private final List<String> mArgs;
+  private final long mStartDelayMs;
 
   /**
    * @param className the class name of the benchmark to run
    * @param args the args for the benchmark
+   * @param startDelayMs the start delay for the distributed tasks, in ms
    */
   public StressBenchConfig(@JsonProperty("className") String className,
-      @JsonProperty("args") List<String> args) {
+      @JsonProperty("args") List<String> args,
+      @JsonProperty("startDelayMs") long startDelayMs) {
     mClassName = Preconditions.checkNotNull(className, "className");
     mArgs = Preconditions.checkNotNull(args, "args");
+    mStartDelayMs = startDelayMs;
   }
 
   @Override
@@ -62,6 +66,13 @@ public final class StressBenchConfig implements PlanConfig {
     return mArgs;
   }
 
+  /**
+   * @return the start delay in ms
+   */
+  public long getStartDelayMs() {
+    return mStartDelayMs;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -75,19 +86,21 @@ public final class StressBenchConfig implements PlanConfig {
     }
     StressBenchConfig that = (StressBenchConfig) obj;
     return Objects.equal(mClassName, that.mClassName)
-        && Objects.equal(mArgs, that.mArgs);
+        && Objects.equal(mArgs, that.mArgs)
+        && Objects.equal(mStartDelayMs, that.mStartDelayMs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mClassName);
+    return Objects.hashCode(mClassName, mArgs, mStartDelayMs);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("command", mClassName)
+        .add("className", mClassName)
         .add("args", mArgs)
+        .add("startDelayMs", mStartDelayMs)
         .toString();
   }
 }

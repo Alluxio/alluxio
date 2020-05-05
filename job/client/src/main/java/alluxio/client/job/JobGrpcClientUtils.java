@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -79,6 +80,7 @@ public final class JobGrpcClientUtils {
    * @param jobId the ID of the job to wait for
    * @return the verbose JobInfo once it finishes or null if the status cannot be fetched
    */
+  @Nullable
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     try (final JobMasterClient client =

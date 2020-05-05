@@ -11,7 +11,6 @@
 
 package alluxio.stress.cli;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
@@ -19,7 +18,6 @@ import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -35,11 +33,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -145,18 +145,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
     long endMs = startMs + warmupMs + durationMs;
     BenchContext context = new BenchContext(rateLimiter, startMs, endMs);
-    for (int i = 0; i < mParameters.mThreads; i++) {
-      service.submit(new BenchThread(context, mCachedFs[i % mCachedFs.length]));
-    }
 
-    WaitForOptions waitOptions = WaitForOptions.defaults().setInterval(5000)
-        .setTimeoutMs((int) (endMs - CommonUtils.getCurrentMs()) + 60000);
-    if (mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID) {
-      waitOptions =
-          WaitForOptions.defaults().setInterval(5000).setTimeoutMs(10 * Constants.MINUTE_MS);
+    List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
+    for (int i = 0; i < mParameters.mThreads; i++) {
+      callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length]));
     }
-    CommonUtils.waitFor("Threads to terminate",
-        () -> context.getTerminated().get() == mParameters.mThreads, waitOptions);
+    service.invokeAll(callables, 10, TimeUnit.MINUTES);
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
@@ -168,7 +162,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     private final RateLimiter mRateLimiter;
     private final long mStartMs;
     private final long mEndMs;
-    private final AtomicInteger mTerminated;
     private final AtomicLong mCounter;
 
     /** The results. Access must be synchronized for thread safety. */
@@ -178,7 +171,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mRateLimiter = rateLimiter;
       mStartMs = startMs;
       mEndMs = endMs;
-      mTerminated = new AtomicInteger();
       mCounter = new AtomicLong();
     }
 
@@ -192,10 +184,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     public long getEndMs() {
       return mEndMs;
-    }
-
-    public AtomicInteger getTerminated() {
-      return mTerminated;
     }
 
     public AtomicLong getCounter() {
@@ -219,7 +207,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
   }
 
-  private final class BenchThread extends Thread {
+  private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final Histogram mResponseTimeNs;
     private final Path mBasePath;
@@ -244,13 +232,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
 
     @Override
-    public void run() {
+    public Void call() {
       try {
         runInternal();
       } catch (Exception e) {
         mResult.addErrorMessage(e.getMessage());
-      } finally {
-        mContext.getTerminated().incrementAndGet();
       }
 
       // Update local thread result
@@ -261,6 +247,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // merge local thread result with full result
       mContext.mergeThreadResult(mResult);
+
+      return null;
     }
 
     private void runInternal() throws Exception {
