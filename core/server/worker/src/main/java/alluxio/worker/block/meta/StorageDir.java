@@ -72,10 +72,6 @@ public final class StorageDir {
     mTier = Preconditions.checkNotNull(tier, "tier");
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
-    if (capacityBytes < reservedBytes) {
-      /** Reserve %5 of the capacity at the least. */
-      reservedBytes = capacityBytes / 20;
-    }
     mReservedBytes = new AtomicLong(reservedBytes);
     mAvailableBytes = new AtomicLong(capacityBytes - reservedBytes);
     mCommittedBytes = new AtomicLong(0);
