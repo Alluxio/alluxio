@@ -6,7 +6,8 @@ group: Alluxio in the Cloud
 priority: 4
 ---
 
-This guide describes how to configure Alluxio to run on [Google Cloud Dataproc](https://cloud.google.com/dataproc).
+This guide describes how to configure Alluxio to run on
+[Google Cloud Dataproc](https://cloud.google.com/dataproc).
 
 * Table of Contents
 {:toc}
@@ -14,46 +15,82 @@ This guide describes how to configure Alluxio to run on [Google Cloud Dataproc](
 ## Overview
 
 [Google Cloud Dataproc](https://cloud.google.com/dataproc) is a managed on-demand service to run
-Spark and Hadoop compute workloads.
+Presto, Spark and Hadoop compute workloads.
 It manages the deployment of various Hadoop Services and allows for hooks into these services for
 customizations.
 Aside from the added performance benefits of caching, Alluxio also enables users to run compute 
-workloads against on-premise storage or even a different cloud provider's storage i.e. AWS, Azure
-Blob Store.
+workloads against on-premise storage, or even a different cloud provider's storage such as AWS S3
+and Azure Blob Store.
 
 ## Prerequisites
 
-* Account with Cloud Dataproc API enabled
-* A GCS Bucket
-* gcloud CLI: Make sure that the CLI is set up with necessary GCS interoperable storage access keys.
+* A project with Cloud Dataproc API and Compute Engine API enabled.
+* A GCS Bucket.
+* Make sure that the gcloud CLI is set up with necessary GCS interoperable storage access keys.
 > Note: GCS interoperability should be enabled in the Interoperability tab in
 > [GCS setting](https://console.cloud.google.com/storage/settings).
 
-A GCS is bucket required as Alluxio's Root Under File System and to serve as the location for the
-bootstrap script.
-If required, the root UFS can be reconfigured to be HDFS or any other supported under store.
+A GCS bucket is required if mounted to the root of the Alluxio namespace.
+Alternatively, the root UFS can be reconfigured to HDFS or any other supported under store.
 
 ## Basic Setup
 
 When creating a Dataproc cluster, Alluxio can be installed using an
-[initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions)
+[initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions).
 
-The Alluxio initialization action is hosted in a publicly readable
-GCS location at **gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh**.
-* A required argument is the root UFS URI using **alluxio_root_ufs_uri**.
-* Additional properties can be specified using the metadata key **alluxio_site_properties** delimited
-using `;`
+### Create a cluster
+
+There are several properties set as metadata labels which control the Alluxio Deployment. 
+* A required argument is the root UFS address configured using **alluxio_root_ufs_uri**.
+* Properties must be specified using the metadata key **alluxio_site_properties** delimited using
+a semicolon (`;`).
+
 ```console
 $ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
---metadata alluxio_root_ufs_uri=<gs://my_bucket>,alluxio_site_properties="alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<gcs_access_key_id>;alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<gcs_secret_access_key>"
+--metadata \
+alluxio_root_ufs_uri=gs://<my_bucket>,\
+alluxio_site_properties="fs.gcs.accessKeyId=<my_access_key>;fs.gcs.secretAccessKey=<my_secret_key>"
 ```
-* Additional files can be downloaded into `/opt/alluxio/conf` using the metadata key `alluxio_download_files_list` by specifying `http(s)` or `gs` uris delimited using `;`
+
+### Customization
+
+The Alluxio deployment on Google Dataproc can customized for more complex scenarios by passing
+additional metadata labels to the `gcloud clusters create` command.
+{% accordion download %}
+  {% collapsible Download Additional Files %}
+Additional files can be downloaded into the Alluxio installation directory at `/opt/alluxio/conf`
+using the metadata key `alluxio_download_files_list`.
+Specify `http(s)` or `gs` uris delimited using `;.`
 ```console
-$ gcloud dataproc clusters create <cluster_name> \
---initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
---metadata alluxio_root_ufs_uri=<under_storage_address>,alluxio_download_files_list="gs://$my_bucket/$my_file;https://$server/$file"
+...
+--metadata \
+alluxio_download_files_list="gs://<my_bucket>/<my_file>;https://<server>/<file>",\
+...
 ```
+  {% endcollapsible %}
+
+  {% collapsible Tiered Storage %}
+The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
+If a specific value is desired, set `alluxio.worker.memory.size` in the provided
+`alluxio-site.properties`.
+
+Alternatively, when volumes such as
+[Dataproc Local SSDs](https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-local-ssds)
+are mounted, specify the metadata label `alluxio_ssd_capacity_usage` to configure the percentage
+of all available SSDs on the virtual machine provisioned as Alluxio worker storage.
+Memory is not configured as the primary Alluxio storage tier in this case.
+
+Pass additional arguments to the `gcloud clusters create` command.
+```console
+...
+--num-worker-local-ssds=1 \
+--metadata \
+alluxio_ssd_capacity_usage="60",\
+...
+``` 
+  {% endcollapsible %}
+{% endaccordion %}
 
 ## Next steps
 The status of the cluster deployment can be monitored using the CLI.
@@ -70,40 +107,50 @@ $ alluxio runTests
 ```
 
 Alluxio is installed in `/opt/alluxio/` by default.
-Spark, Hive and Presto are already configured to connect to Alluxio.
 
-> Note: The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
-> If a specific value is desired, set `alluxio.worker.memory.size` in the provided
-> `alluxio-site.properties` or in the additional options argument.
+## Compute Applications
 
-## Spark on Alluxio in Dataproc
+Spark, Hive and Presto on Dataproc are pre-configured to connect to Alluxio.
 
-The Alluxio initialization script configures Spark for Alluxio.
+{% navtabs compute %}
+{% navtab Spark %}
 To run a Spark application accessing data from Alluxio, simply refer to the path as
-`alluxio://<cluster_name>-m:19998/<path_to_file>`.
-Follow the steps in our Alluxio on Spark
-[documentation]({{ '/en/compute/Spark.html#examples-use-alluxio-as-input-and-output' | relativize_url }})
-to get started.
+`alluxio:///<path_to_file>`.
 
-To test Spark on Alluxio, simply run:
+Open a shell.
 ```console
-spark-shell
-scala> sc.textFile("alluxio://<cluster_name>-m:19998/default_tests_files/BASIC_NO_CACHE_MUST_CACHE").count
+$ spark-shell
 ```
 
-## Hive  on Alluxio in Dataproc
-
-The Alluxio initialization script configures Hive for Alluxio.
-
-To test Hive on Alluxio, simply create a table and run a query:
+Run a sample job.
 ```console
-wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
-unzip ml-100k.zip
+scala> sc.textFile("alluxio:///default_tests_files/BASIC_NO_CACHE_MUST_CACHE").count
+```
 
-alluxio fs mkdir /ml-100k
-alluxio fs copyFromLocal ~/ml-100k/u.user /ml-100k/
+For further information, visit our Spark on Alluxio
+[documentation]({{ '/en/compute/Spark.html#examples-use-alluxio-as-input-and-output' | relativize_url }}).
 
-hive
+{% endnavtab %}
+{% navtab Hive %}
+Download a sample dataset.
+```console
+$ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
+$ unzip ml-100k.zip
+```
+
+Copy the data to Alluxio
+```console
+$ alluxio fs mkdir /ml-100k
+$ alluxio fs copyFromLocal ~/ml-100k/u.user /ml-100k/
+```
+
+Open the Hive CLI.
+```console
+$ hive
+```
+
+Create a table.
+```console
 hive> CREATE EXTERNAL TABLE u_user (
     userid INT,
     age INT,
@@ -112,21 +159,30 @@ hive> CREATE EXTERNAL TABLE u_user (
     zipcode STRING)
     ROW FORMAT DELIMITED
     FIELDS TERMINATED BY '|'
-    LOCATION 'alluxio://<cluster_name>-m:19998/ml-100k';
+    LOCATION 'alluxio:///ml-100k';
+```
+Run a query.
+```console
 hive> select * from u_user limit 10;
 ```
 
-## Presto on Alluxio in Dataproc
+For further information, visit our Hive on Alluxio 
+[documentation]({{ '/en/compute/Hive.html' | relativize_url }}).
 
-The Alluxio initialization script configures Presto for Alluxio.
-If installing the optional Presto component, Presto must be installed before Alluxio.
-Initialization action are executed sequentially and the Presto action must precede the Alluxio action.
-For instance, the sequence should be
-`--initialization-actions gs://dataproc-initialization-actions/presto/presto.sh,gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh`
-> Note: The Presto initialization action should install in the home directory `/opt/presto-server`
-> for Alluxio to be configured correctly.
+{% endnavtab %}
+{% navtab Presto %}
+
+Note: 
+* Initialization actions are executed sequentially and Presto installation must precede Alluxio.
+* The Presto initialization action should install in the home directory `/opt/presto-server`.
 
 To test Presto on Alluxio, simply run a query on the table created in the Hive section above:
 ```console
 presto --execute "select * from u_user limit 10;" --catalog hive --schema default
 ```
+
+For further information, visit our Presto on Alluxio 
+[documentation]({{ '/en/compute/Presto.html' | relativize_url }}).
+
+{% endnavtab %}
+{% endnavtabs %}
