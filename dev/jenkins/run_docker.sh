@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-set -e
+set -ex
 
 function main {
   if [ -z "${ALLUXIO_DOCKER_ID}" ]
@@ -68,6 +68,14 @@ function main {
 
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
+
+  # If target branch or remote exists, set to run relevant checks given the diff of the PR
+  if [ -n "${ghprbTargetBranch}" ]
+  then
+    # this env var is defined by the github pull request builder jenkins plugin
+    # see https://plugins.jenkins.io/ghprb/
+    run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
+  fi
 
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
   run_args+=" --entrypoint=dev/jenkins/build.sh"
