@@ -35,8 +35,8 @@ Kubernetes resource specifications.
 > See how to migrate from helm 2 to 3 [here](https://helm.sh/docs/topics/v2_v3_migration/).
 
 
-### (Optional) Extract Kubernetes Specifications
-
+{% accordion setup %}
+  {% collapsible (Optional) Extract Kubernetes Specifications %}
 If hosting a private `helm` repository or using native Kubernetes specifications,
 extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
 
@@ -47,9 +47,8 @@ $ docker rm -v $id 1>/dev/null
 $ tar -xvf kubernetes.tar
 $ cd kubernetes
 ```
-
-### (Optional) Provision a Persistent Volume
-
+  {% endcollapsible %}
+  {% collapsible (Optional) Provision a Persistent Volume %}
 Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism for
 Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
@@ -87,6 +86,8 @@ $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
 
 There are other ways to create Persistent Volumes as documented [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+  {% endcollapsible %}
+{% endaccordion %}
 
 ### Deploy
 
@@ -123,8 +124,8 @@ $ helm inspect values alluxio-charts/alluxio
 
 The remainder of this section describes various configuration options with examples.
 
-***Example: Amazon S3 as the under store***
-
+{% accordion helmConfig %}
+  {% collapsible Example: Amazon S3 as the under store %}
 To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point) at the root of Alluxio
 namespace specify all required properties as a key-value pair under `properties`.
 
@@ -134,9 +135,9 @@ properties:
   alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
   alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
 ```
+  {% endcollapsible %}
 
-***Example: Single Master and Journal in a Persistent Volume***
-
+  {% collapsible Example: Single Master and Journal in a Persistent Volume %}
 The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 with a persistent volume claim `alluxio-pv-claim` mounted locally to the master Pod at location
 `/journal`.
@@ -153,9 +154,9 @@ journal:
   storageClass: "standard"
   size: 1Gi
 ```
+  {% endcollapsible %}
 
-***Example: HDFS as Journal***
-
+  {% collapsible Example: HDFS as Journal %}
 First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
@@ -177,9 +178,9 @@ secrets:
   worker:
     alluxio-hdfs-config: hdfsConfig
 ```
+  {% endcollapsible %}
 
-***Example: Multi-master with Embedded Journal***
-
+  {% collapsible Example: Multi-master with Embedded Journal %}
 ```properties
 master:
   count: 3
@@ -188,9 +189,9 @@ journal:
   type: "EMBEDDED"
   folder: "/journal"
 ```
+  {% endcollapsible %}
 
-***Example: HDFS as the under store***
-
+  {% collapsible Example: HDFS as the under store %}
 First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
@@ -206,9 +207,9 @@ secrets:
   worker:
     alluxio-hdfs-config: hdfsConfig
 ```
+  {% endcollapsible %}
 
-***Example: Off-heap Metastore Management***
-
+  {% collapsible Example: Off-heap Metastore Management %}
 The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the specified 
 configuration and configures the Pod to use the volume for an on-disk RocksDB-based metastore.
 ```properties
@@ -224,9 +225,9 @@ master:
     accessModes:
       - ReadWriteOnce
 ```
+  {% endcollapsible %}
 
-***Example: Multiple Secrets***
-
+  {%collapsible Example: Multiple Secrets %}
 Multiple secrets can be mounted to both master and worker Pods.
 The format for the section for each Pod is `<secretName>: <mountPath>`
 ```properties
@@ -238,9 +239,9 @@ secrets:
     alluxio-hdfs-config: hdfsConfig
     alluxio-ceph-config: cephConfig
 ```
+  {% endcollapsible %}
 
-***Examples: Alluxio Storage Management***
-
+  {% collapsible Examples: Alluxio Storage Management %}
 Alluxio manages local storage, including memory, on the worker Pods.
 [Multiple-Tier Storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }})
 can be configured using the following reference configurations.
@@ -336,6 +337,8 @@ tieredstore:
     high: 0.95
     low: 0.7
 ```
+  {% endcollapsible %}
+{% endaccordion %}
 
 #### Install
 
