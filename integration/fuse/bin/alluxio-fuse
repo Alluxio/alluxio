@@ -109,8 +109,8 @@ fuse_stat() {
   fi
   local fuse_info=$("${jps}" | grep AlluxioFuse)
   if [[ -z ${fuse_info} ]]; then
-    echo "AlluxioFuse process is not running."
-    echo -e "${USAGE_USAGE}"
+    echo "No mount point found. AlluxioFuse process is not running."
+    echo -e "${MOUNT_USAGE}"
     return 1
   else
     echo -e "pid\tmount_point\talluxio_path"
@@ -123,15 +123,17 @@ USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]
 
 mount \tmount an Alluxio path to local file system
 umount \tunmount an Alluxio path from local file system
-stat \tshow status of Alluxio mount points
-"
+stat \tshow status of Alluxio mount points"
 
-MOUNT_USAGE="Usage:\n\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
-\talluxio_path defaults to the root of the namespace("/")
+MOUNT_USAGE="
+Mounts a path in Alluxio namespace (defaults to "/") to mount point on local file system.
+When no argument is given, list the current mount point
+
+Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
+\talluxio-fuse mount
 
 -o \tmount options for the fuse daemon
--n \tno-daemon. This launches the process in the foreground and logs to stdout
-"
+-n \tno-daemon. This launches the process in the foreground and logs to stdout"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
