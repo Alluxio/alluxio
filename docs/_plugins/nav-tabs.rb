@@ -1,28 +1,35 @@
 require "erb"
-require "securerandom"
 
 module Jekyll
   module NavTabs
     class NavTabsBlock < Liquid::Block
+      def initialize(tag_name, markup, tokens)
+        super
+        # allow spaces in the NavTabs identifier
+        id = markup.strip.sub(' ', '__')
+        @navID = "nav-#{id}"
+      end
       def render(context)
         environment = context.environments.first
         environment['navtabs'] = {} # reset each time
         super
 
-        uuid = SecureRandom.uuid
+        # key.sub(' ', '__') in the template string allows for spaces in the NavTab name
+        # this could cause a conflict in the unlikely scenario where someone has the two tabs: "some thing" and "some__thing"
         template = ERB.new <<-EOF
-<ul class="nav nav-tabs nav-tab-margin" id="<%= uuid %>" role="tablist">
+<ul class="nav nav-tabs nav-tab-margin" id="<%= @navID %>" role="tablist">
 <% environment['navtabs'].each_with_index do |(key, _), index| %>
   <li class="nav-item">
-    <a <%= index == 0 ? 'class="nav-link active"' : 'class="nav-link"'%> id="<%= key %>-tab" data-toggle="tab" href="#<%= key %>" role="tab" aria-controls="<%= key %>" <%= index == 0 ? 'aria-selected="true"' : 'aria-selected="false"'%>><%= key %></a>
+    <a <%= index == 0 ? 'class="nav-link active"' : 'class="nav-link"'%> id="<%= key.sub(' ', '__') %>-tab-<%= @navID %>" data-toggle="tab" href="#<%= key.sub(' ', '__') %>-<%= @navID %>" role="tab" aria-controls="<%= key.sub(' ', '__') %>-<%= @navID %>" <%= index == 0 ? 'aria-selected="true"' : 'aria-selected="false"'%>><%= key %></a>
   </li>
 <% end %>
 </ul>
-<div class="tab-content" id="<%= uuid %>-content">
+<div class="tab-content" id="<%= @navID %>-content">
 <% environment['navtabs'].each_with_index do |(key, value), index| %>
-  <div <%= index == 0 ? 'class="tab-pane fade show active"' : 'class="tab-pane fade"'%> id="<%= key %>" role="tabpanel" aria-labelledby="<%= key %>-tab"><%= value %></div>
+  <div <%= index == 0 ? 'class="tab-pane fade show active"' : 'class="tab-pane fade"'%> id="<%= key.sub(' ', '__') %>-<%= @navID %>" role="tabpanel" aria-labelledby="<%= key.sub(' ', '__') %>-tab-<%= @navID %>"><%= value %></div>
 <% end %>
 </div>
+<hr/>
         EOF
         template.result(binding)
       end
