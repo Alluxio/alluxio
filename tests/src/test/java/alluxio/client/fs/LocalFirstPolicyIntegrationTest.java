@@ -58,7 +58,6 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
         AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath());
     map.put(PropertyKey.WORKER_RPC_PORT, "0");
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
-    map.put(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0");
 
     return map;
   }
