@@ -421,10 +421,9 @@ $ kubectl create -f alluxio-configmap.yaml
 
 #### Install
 
-***Prepare the Specification***
-
-Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
-location of the **Docker image**, and CPU and memory requirements for Pods.
+***Prepare the Specification.*** Prepare the Alluxio deployment specs from the templates.
+Modify any parameters required, such as location of the **Docker image**, and CPU and memory
+requirements for Pods.
 
 For the master(s), create the `Service` and `StatefulSet`:
 ```console
@@ -442,8 +441,8 @@ $ mv worker/alluxio-worker-daemonset.yaml.template worker/alluxio-worker-daemons
 Note: Please make sure that the version of the Kubernetes specification matches the version of the
 Alluxio Docker image being used.
 
-***(Optional) Remote Storage Access***
-
+{% accordion remoteAccess %}
+  {% collapsible (Optional) Remote Storage Access %}
 Additional steps may be required when Alluxio is connecting to storage hosts outside the
 Kubernetes cluster it is deployed on. The remainder of this section explains how to configure the
 connection to a remote HDFS accessible but not managed by Kubernetes.
@@ -500,6 +499,8 @@ the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 **Step 3: Modify `alluxio-configmap.yaml.template`.** Now that your Pods know how to talk to your
 HDFS service, update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to
 point to the desired HDFS destination.
+  {% endcollapsible %}
+{% endaccordion %}
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```console
@@ -542,6 +543,8 @@ You should make sure the journal is formatted using the same user that the Allux
 #### Upgrade
 
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
+{% accordion kubectlUpgrade %}
+  {% collapsible Upgrading Alluxio %}
 
 **Step 1: Upgrade the docker image version tag**
 
@@ -616,6 +619,8 @@ $ kubectl get pods
 ```
 
 You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
+  {% endcollapsible %}
+{% endaccordion %}
 
 {% endnavtab %}
 {% endnavtabs %}
