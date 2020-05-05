@@ -88,7 +88,10 @@ $ kubectl create -f alluxio-master-journal-pv.yaml
 
 There are other ways to create Persistent Volumes as documented [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
-### Deploy Using `helm`
+### Deploy
+
+{% navtabs deploy %}
+{% navtab helm %}
 
 #### Prerequisites
 
@@ -367,7 +370,8 @@ Or you can trigger the journal formatting at deployment.
 $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
-### Deploy Using `kubectl`
+{% endnavtab %}
+{% navtab kubectl %}
 
 #### Choose the Sample YAML Template
 
@@ -386,7 +390,6 @@ Each Alluxio master writes journal to its own journal volume requested by `volum
 - *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
-
 
 #### Configuration
 
@@ -611,6 +614,9 @@ $ kubectl get pods
 
 You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
 
+{% endnavtab %}
+{% endnavtabs %}
+
 ### Access the Web UI
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
@@ -649,7 +655,26 @@ application containers can simply mount the Alluxio FileSystem.
 
 In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
 
-***Using `kubectl`***
+{% navtabs posix %}
+{% navtab helm2 %}
+
+You can deploy the FUSE daemon by configuring the following properties:
+```properties
+fuse:
+  enabled: true
+  clientEnabled: true
+```
+
+Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
+
+If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
+```console
+$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
+```
+
+{% endnavtab %}
+{% navtab kubectl2 %}
+
 ```console
 $ cp alluxio-fuse.yaml.template alluxio-fuse.yaml
 $ kubectl create -f alluxio-fuse.yaml
@@ -672,20 +697,8 @@ $ kubectl create -f alluxio-fuse-client.yaml
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
 
-***Using `helm`***
-You can deploy the FUSE daemon by configuring the following properties:
-```properties
-fuse:
-  enabled: true
-  clientEnabled: true
-```
-
-Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
-
-If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
-```console
-$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
-```
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Short-circuit Access
 
@@ -695,19 +708,20 @@ For performance-critical applications it is recommended to enable short-circuit 
 against Alluxio because it can increase a client's read and write throughput when co-located with
 an Alluxio worker.
 
-#### Properties to Enable Short-Circuit Operations
-
+***Properties to Enable Short-Circuit Operations.***
 This feature is enabled by default, however requires extra configuration to work properly in
 Kubernetes environments.
 See sections below for how to configure short-circuit access.
 
-#### Disable Short-Circuit Operations
+***Disable Short-Circuit Operations.***
 To disable short-circuit operations, the operation depends on how you deploy Alluxio.
 
 > Note: As mentioned, disabling short-circuit access for Alluxio workers will result in 
-worse I/O throughput 
+worse I/O throughput
 
-***Using `helm`***
+{% navtabs shortCircuit %}
+{% navtab helm3 %}
+
 You can disable short circuit by setting the properties as below:
 
 ```properties
@@ -715,7 +729,9 @@ shortCircuit:
   enabled: false
 ```
 
-***Using `kubectl`***
+{% endnavtab %}
+{% navtab kubectl3 %}
+
 You should set the property `alluxio.user.short.circuit.enabled` to `false` in your `ALLUXIO_WORKER_JAVA_OPTS`.
 ```properties
 -Dalluxio.user.short.circuit.enabled=false
@@ -724,16 +740,22 @@ You should set the property `alluxio.user.short.circuit.enabled` to `false` in y
 You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition 
 and `volumeMounts` of each container if existing.
 
-#### Short-Circuit Modes
+{% endnavtab %}
+{% endnavtabs %}
+
+
+***Short-Circuit Modes.***
 There are 2 modes for using short-circuit.
 
-##### `local`
+A. `local`
 In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname 
 matches the worker hostname.
 This is called *Hostname Introspection*.
 In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
 
-***Using `helm`***
+{% navtabs modes %}
+{% navtab helm4 %}
+
 You can use `local` policy by setting the properties as below:
 
 ```properties
@@ -742,7 +764,9 @@ shortCircuit:
   policy: local
 ```
 
-***Using `kubectl`***
+{% endnavtab %}
+{% navtab kubectl4 %}
+
 In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
 
 ```properties
@@ -751,7 +775,10 @@ In your `alluxio-configmap.yaml` you should add the following properties to `ALL
 
 Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
 
-##### `uuid`
+{% endnavtab %}
+{% endnavtabs %}
+
+B. `uuid`
 This is the **default** policy used for short-circuit in Kubernetes.
 
 If the client or worker container is using virtual networking, their hostnames may not match.
@@ -760,7 +787,7 @@ operations and **make sure the client container mounts the directory specified a
 path**.
 Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
 
-***Domain Socket Path***
+***Domain Socket Path.***
 The domain socket is a volume which should be mounted on:
 
 - All Alluxio workers
@@ -770,7 +797,9 @@ This domain socket volume is a `PersistentVolumeClaim`.
 You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
 And this `PersistentVolume` should be either `local` or `hostPath`.
 
-***Using `helm`***
+{% navtabs domainSocket %}
+{% navtab helm5 %}
+
 You can use `uuid` policy by setting the properties as below:
 
 ```properties
@@ -788,7 +817,9 @@ shortCircuit:
 The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
 This PVC will be created as part of `helm install`.
 
-***Using `kubectl`***
+{% endnavtab %}
+{% navtab kubectl5 %}
+
 You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
 Actually they are set to these values by default:
 ```properties
@@ -810,8 +841,10 @@ volumes:
 
 The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
 
-#### Verify
+{% endnavtab %}
+{% endnavtabs %}
 
+***Verify.***
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
 1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
