@@ -17,8 +17,9 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 - A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio 
 workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
 parameter. This is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
-- An Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/). If using a
-private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+- An Alluxio Docker image[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
+If using a private Docker registry, refer to the Kubernetes
+[documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 - Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
 ports.
@@ -470,15 +471,15 @@ For the case of a StatefulSet or DaemonSet as used in `alluxio-master-statefulse
 ```yaml
 kind: StatefulSet
 metadata:
-  name: alluxio-master-0
+  name: alluxio-master
 spec:
   ...
-  serviceName: "alluxio-master-0"
+  serviceName: "alluxio-master"
   replicas: 1
   template:
     metadata:
       labels:
-        app: alluxio-master-0
+        app: alluxio-master
     spec:
       hostAliases:
       - ip: "ip for hdfs-host"
@@ -629,7 +630,7 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
 ```console
-$ kubectl port-forward alluxio-master-$i-0 19999:19999
+$ kubectl port-forward alluxio-master-$i 19999:19999
 ```
 Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
@@ -638,7 +639,7 @@ master. Only the primary master serves the Web UI.
 
 Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master-0-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master Pod, execute the following:
@@ -895,7 +896,7 @@ follows:
 
 Access the Alluxio CLI from the master Pod.
 ```console
-$ kubectl exec -ti alluxio-master-0-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master Pod, execute the following:
@@ -911,7 +912,7 @@ the individual containers as follows.
 
 Master:
 ```console
-$ kubectl logs -f alluxio-master-0-0 -c alluxio-master
+$ kubectl logs -f alluxio-master-0 -c alluxio-master
 ```
 
 Worker:
