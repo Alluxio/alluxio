@@ -16,8 +16,9 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 
 - A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio 
 workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
-parameter. This is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
-- An Alluxio Docker image[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
+parameter. This is an alpha feature in Kubernetes 1.8.
+Please ensure the feature is enabled.
+- An Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
 If using a private Docker registry, refer to the Kubernetes
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 - Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
@@ -28,9 +29,9 @@ ports.
 
 This tutorial walks through a basic Alluxio setup on Kubernetes. Alluxio supports two methods of
 installation on Kubernetes: either using [helm](https://helm.sh/docs/) charts or using `kubectl`.
-When available, `helm` is the preferred way to install Alluxio. If `helm` is not available or if
-additional deployment customization is desired, `kubectl` can be used directly using native
-Kubernetes resource specifications.
+When available, `helm` is the preferred way to install Alluxio.
+If `helm` is not available or if additional deployment customization is desired, `kubectl` can be
+used directly using native Kubernetes resource specifications.
 
 > Note: From Alluxio 2.3 on, Alluxio only supports helm 3.
 > See how to migrate from helm 2 to 3 [here](https://helm.sh/docs/topics/v2_v3_migration/).
@@ -51,15 +52,18 @@ $ cd kubernetes
   {% endcollapsible %}
   {% collapsible (Optional) Provision a Persistent Volume %}
 Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
-requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism for
-Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
+requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism
+for Alluxio on Kubernetes.
+The volume, once claimed, is persisted across restarts of the master process.
 
 When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 an Alluxio master can also be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
-for storing the journal. If you are using UFS journal and use an external journal location like HDFS,
-the rest of this section can be skipped.
+for storing the journal.
+If you are using UFS journal and use an external journal location like HDFS, the rest of this
+section can be skipped.
 
-There are multiple ways to create a PersistentVolume. This is an example which defines one with `hostPath`: 
+There are multiple ways to create a PersistentVolume.
+This is an example which defines one with `hostPath`: 
 ```yaml
 # Name the file alluxio-master-journal-pv.yaml
 kind: PersistentVolume
@@ -158,7 +162,8 @@ journal:
   {% endcollapsible %}
 
   {% collapsible Example: HDFS as Journal %}
-First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
+First create secrets for any configuration required by an HDFS client.
+These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
@@ -193,7 +198,8 @@ journal:
   {% endcollapsible %}
 
   {% collapsible Example: HDFS as the under store %}
-First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
+First create secrets for any configuration required by an HDFS client.
+These are mounted under `/secrets`.
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
@@ -211,8 +217,9 @@ secrets:
   {% endcollapsible %}
 
   {% collapsible Example: Off-heap Metastore Management %}
-The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the specified 
-configuration and configures the Pod to use the volume for an on-disk RocksDB-based metastore.
+The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the
+specified configuration and configures the Pod to use the volume for an on-disk RocksDB-based
+metastore.
 ```properties
 properties:
   alluxio.master.metastore: ROCKS
@@ -291,8 +298,8 @@ You can find more details [here](https://kubernetes.io/docs/concepts/storage/vol
 **Memory and SSD Storage in Multiple-Tiers, using PVC**
 
 You can also use PVCs for each tier and provision [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
-For worker tiered storage please use either `hostPath` or `local` volume so that the worker will read and write 
-locally to achieve the best performance.
+For worker tiered storage please use either `hostPath` or `local` volume so that the worker will
+read and write locally to achieve the best performance.
  
 ```properties
 tieredstore:
@@ -316,9 +323,10 @@ tieredstore:
 ```
 
 > Note: There is one PVC per tier. 
-When the PVC is bound to a PV of type `hostPath` or `local`, each worker Pod will resolve to the local path on the Node.
-Please also note that a `local` volumes requires `nodeAffinity` and Pods using this volume can only run on the Nodes 
-specified in the `nodeAffinity` rule of this volume.
+When the PVC is bound to a PV of type `hostPath` or `local`, each worker Pod will resolve to the
+local path on the Node.
+Please also note that a `local` volumes requires `nodeAffinity` and Pods using this volume can only
+run on the Nodes specified in the `nodeAffinity` rule of this volume.
 You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#local).
 
 **Memory and SSD Storage in a Single-Tier**
@@ -361,7 +369,8 @@ The master Pods in the StatefulSet use a `initContainer` to format the journal o
 This `initContainer` is switched on by `journal.format.runFormat=true`. 
 By default, the journal is not formatted when the master starts.
 
-You can trigger the journal formatting by upgrading the existing helm deployment with `journal.format.runFormat=true`.
+You can trigger the journal formatting by upgrading the existing helm deployment with
+`journal.format.runFormat=true`.
 ```console
 # Use the same config.yaml and switch on journal formatting
 $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
@@ -383,7 +392,8 @@ The specification directory contains a set of YAML templates for common deployme
 the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
 *multiMaster-embeddedJournal*.
 > *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
-*embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }}) that Alluxio supports.
+*embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }})
+that Alluxio supports.
 
 - *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio
 master process and a set of Alluxio workers.
@@ -549,12 +559,14 @@ This section will go over how to upgrade Alluxio in your Kubernetes cluster with
 
 **Step 1: Upgrade the docker image version tag**
 
-Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}).
+Each released Alluxio version will have the corresponding docker image released on
+[dockerhub](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}).
 
-You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
-It is recommended that Alluxio masters and workers are running on the same version for the best compatibility.
+You should update the `image` field of all the Alluxio containers to use the target version tag.
+Tag `latest` will point to the latest stable version.
 
-For example, if you want to upgrade Alluxio to the latest stable version, update the containers as below:
+For example, if you want to upgrade Alluxio to the latest stable version, update the containers as
+below:
 
 ```yaml
 containers:
@@ -576,7 +588,8 @@ Kill all running Alluxio worker Pods by deleting its DaemonSet.
 $ kubectl delete daemonset -l app=alluxio
 ```
 
-Then kill all running Alluxio master Pods by killing each StatefulSet and each Service with label `app=alluxio`.
+Then kill all running Alluxio master Pods by killing each StatefulSet and each Service with label
+`app=alluxio`.
 
 ```console
 $ kubectl delete service -l app=alluxio
@@ -588,7 +601,8 @@ Make sure all the Pods have been terminated before you move on to the next step.
 **Step 3: Format journal and Alluxio storage if necessary**
 
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
-If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
+If no format is needed, you are ready to skip the rest of this section and move on to restart all
+Alluxio master and worker Pods.
 
 You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
 to format the Alluxio journals. 
@@ -597,11 +611,13 @@ If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/C
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
 You should delete and recreate the Persistent Volumes.
 
-Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio master and worker Pods.
+Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio
+master and worker Pods.
 
 **Step 4: Restart Alluxio master and worker Pods**
 
-Now that Alluxio masters and worker containers all use your desired version. Restart them to let it take effect.
+Now that Alluxio masters and worker containers all use your desired version. Restart them to let it
+take effect.
 
 Now restart the Alluxio master and worker Pods from the YAML files.
 
@@ -619,7 +635,7 @@ You should verify the Alluxio Pods are back up in Running status.
 $ kubectl get pods
 ```
 
-You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
+You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }}).
   {% endcollapsible %}
 {% endaccordion %}
 
@@ -647,8 +663,9 @@ From the master Pod, execute the following:
 $ alluxio runTests
 ```
 
-(Optional) If using persistent volumes for Alluxio master, the status of the volume(s) should change to
-`CLAIMED`, and the status of the volume claims should be `BOUNDED`. You can validate the status as below:
+(Optional) If using persistent volumes for Alluxio master, the status of the volume(s) should change
+to `CLAIMED`, and the status of the volume claims should be `BOUNDED`.
+You can validate the status as below:
 ```console
 $ kubectl get pv
 $ kubectl get pvc
@@ -676,7 +693,8 @@ fuse:
 
 Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
 
-If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
+If Alluxio has already been deployed with helm and now you want to enable FUSE, you use
+`helm upgrade` to add the FUSE daemons.
 ```console
 $ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
 ```
@@ -692,9 +710,10 @@ Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
 `SYS_ADMIN` capabilities.
 Application containers that require Alluxio access do not need this privilege.
-- A different Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) based
-on `ubuntu` instead of `alpine` is needed to run the FUSE daemon. Application containers can run on
-any Docker image.
+- A different Docker image
+[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+based on `ubuntu` instead of `alpine` is needed to run the FUSE daemon.
+Application containers can run on any Docker image.
 
 Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
 capabilities using a `hostPath` mount of location `/alluxio-fuse`:
@@ -741,7 +760,8 @@ shortCircuit:
 {% endnavtab %}
 {% navtab kubectl3 %}
 
-You should set the property `alluxio.user.short.circuit.enabled` to `false` in your `ALLUXIO_WORKER_JAVA_OPTS`.
+You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
+`ALLUXIO_WORKER_JAVA_OPTS`.
 ```properties
 -Dalluxio.user.short.circuit.enabled=false
 ```
@@ -885,7 +905,8 @@ $ nc -zv <IP> 29999
 
 ### Permission Denied
 
-From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with UID 1000 and GID 1000 by default.
+From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with
+UID 1000 and GID 1000 by default.
 Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
 are only writable by root so you need to update the permission accordingly. 
 
@@ -937,9 +958,9 @@ must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` 
 launching an Alluxio FUSE daemon on each node of the cluster.
 
 If there are issues accessing Alluxio using the POSIX API:
-1. First identify which node the application container ran on using the command
+1. Identify the node the application container ran on using the command
 `kubectl describe pods` or the dashboard.
-1. After the node is identified, the command `kubectl describe nodes <node>` can be used to identify
-the `alluxio-fuse` Pod running on that node.
-1. Then tail the logs for the identified Pod to see if there were any errors encountered using
+1. Use the command `kubectl describe nodes <node>` to identify the `alluxio-fuse` Pod running on
+that node.
+1. Tail logs for the identified Pod to view any errors encountered:
 `kubectl logs -f alluxio-fuse-<id>`.
