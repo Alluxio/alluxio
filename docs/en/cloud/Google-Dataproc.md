@@ -24,8 +24,8 @@ and Azure Blob Store.
 
 ## Prerequisites
 
-* Account with Cloud Dataproc API enabled
-* A GCS Bucket
+* A project with Cloud Dataproc API and Compute Engine API enabled.
+* A GCS Bucket.
 * Make sure that the gcloud CLI is set up with necessary GCS interoperable storage access keys.
 > Note: GCS interoperability should be enabled in the Interoperability tab in
 > [GCS setting](https://console.cloud.google.com/storage/settings).
