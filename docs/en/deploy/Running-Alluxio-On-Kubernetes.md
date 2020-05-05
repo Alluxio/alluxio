@@ -17,7 +17,7 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 - A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio 
 workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
 parameter. This is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
-- An Alluxio Docker image [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/). If using a
+- An Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/). If using a
 private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 - Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
@@ -41,7 +41,7 @@ If hosting a private `helm` repository or using native Kubernetes specifications
 extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
 
 ```console
-$ id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
+$ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
 $ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
 $ docker rm -v $id 1>/dev/null
 $ tar -xvf kubernetes.tar
@@ -526,7 +526,7 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
 
 ```yaml
 - name: journal-format
-  image: alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}}
+  image: alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}}
   imagePullPolicy: IfNotPresent
   securityContext:
     runAsUser: 1000
@@ -548,7 +548,7 @@ This section will go over how to upgrade Alluxio in your Kubernetes cluster with
 
 **Step 1: Upgrade the docker image version tag**
 
-Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/alluxio).
+Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}).
 
 You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
 It is recommended that Alluxio masters and workers are running on the same version for the best compatibility.
@@ -558,11 +558,11 @@ For example, if you want to upgrade Alluxio to the latest stable version, update
 ```yaml
 containers:
 - name: alluxio-master
-  image: alluxio/alluxio:latest
+  image: alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:latest
   imagePullPolicy: IfNotPresent
   ...
 - name: alluxio-job-master
-  image: alluxio/alluxio:latest
+  image: alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:latest
   imagePullPolicy: IfNotPresent
   ...
 ```
@@ -691,7 +691,7 @@ Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
 `SYS_ADMIN` capabilities.
 Application containers that require Alluxio access do not need this privilege.
-- A different Docker image [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/) based
+- A different Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) based
 on `ubuntu` instead of `alpine` is needed to run the FUSE daemon. Application containers can run on
 any Docker image.
 
