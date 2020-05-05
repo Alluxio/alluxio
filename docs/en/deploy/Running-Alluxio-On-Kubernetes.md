@@ -682,7 +682,7 @@ application containers can simply mount the Alluxio FileSystem.
 In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
 
 {% navtabs posix %}
-{% navtab helm2 %}
+{% navtab helm %}
 
 You can deploy the FUSE daemon by configuring the following properties:
 ```properties
@@ -700,7 +700,7 @@ $ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientE
 ```
 
 {% endnavtab %}
-{% navtab kubectl2 %}
+{% navtab kubectl %}
 
 ```console
 $ cp alluxio-fuse.yaml.template alluxio-fuse.yaml
@@ -748,7 +748,7 @@ To disable short-circuit operations, the operation depends on how you deploy All
 worse I/O throughput
 
 {% navtabs shortCircuit %}
-{% navtab helm3 %}
+{% navtab helm %}
 
 You can disable short circuit by setting the properties as below:
 
@@ -758,7 +758,7 @@ shortCircuit:
 ```
 
 {% endnavtab %}
-{% navtab kubectl3 %}
+{% navtab kubectl %}
 
 You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
 `ALLUXIO_WORKER_JAVA_OPTS`.
@@ -783,7 +783,7 @@ This is called *Hostname Introspection*.
 In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
 
 {% navtabs modes %}
-{% navtab helm4 %}
+{% navtab helm %}
 
 You can use `local` policy by setting the properties as below:
 
@@ -794,7 +794,7 @@ shortCircuit:
 ```
 
 {% endnavtab %}
-{% navtab kubectl4 %}
+{% navtab kubectl %}
 
 In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
 
@@ -827,7 +827,7 @@ You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
 And this `PersistentVolume` should be either `local` or `hostPath`.
 
 {% navtabs domainSocket %}
-{% navtab helm5 %}
+{% navtab helm %}
 
 You can use `uuid` policy by setting the properties as below:
 
@@ -847,7 +847,7 @@ The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim`
 This PVC will be created as part of `helm install`.
 
 {% endnavtab %}
-{% navtab kubectl5 %}
+{% navtab kubectl %}
 
 You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
 Actually they are set to these values by default:
