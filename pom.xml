@@ -653,14 +653,13 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-
-      <!-- Test scope -->
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
         <version>0.5.3</version>
-        <scope>test</scope>
       </dependency>
+
+      <!-- Test scope -->
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava-testlib</artifactId>

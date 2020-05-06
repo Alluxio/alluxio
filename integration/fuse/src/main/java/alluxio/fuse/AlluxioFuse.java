@@ -95,25 +95,40 @@ public final class AlluxioFuse {
     }
 
     try (final FileSystem fs = FileSystem.Factory.create(conf)) {
-      final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, opts, conf);
       final List<String> fuseOpts = opts.getFuseOpts();
       // Force direct_io in FUSE: writes and reads bypass the kernel page
       // cache and go directly to alluxio. This avoids extra memory copies
       // in the write path.
       // TODO(binfan): support kernel_cache (issues#10840)
       fuseOpts.add("-odirect_io");
-
-      try {
-        fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
-            fuseOpts.toArray(new String[0]));
-        LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
-            opts.getMountPoint(), fuseOpts.toArray(new String[0]));
-      } catch (FuseException e) {
-        LOG.error("Failed to mount {}", opts.getMountPoint(), e);
-        // only try to umount file system when exception occurred.
-        // jni-fuse registers JVM shutdown hook to ensure fs.umount()
-        // will be executed when this process is exiting.
-        fuseFs.umount();
+      if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
+        final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
+        try {
+          fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
+              fuseOpts.toArray(new String[0]));
+          LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
+              opts.getMountPoint(), fuseOpts.toArray(new String[0]));
+        } catch (FuseException e) {
+          LOG.error("Failed to mount {}", opts.getMountPoint(), e);
+          // only try to umount file system when exception occurred.
+          // jni-fuse registers JVM shutdown hook to ensure fs.umount()
+          // will be executed when this process is exiting.
+          fuseFs.umount();
+        }
+      } else {
+        final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, opts, conf);
+        try {
+          fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
+              fuseOpts.toArray(new String[0]));
+          LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
+              opts.getMountPoint(), fuseOpts.toArray(new String[0]));
+        } catch (ru.serce.jnrfuse.FuseException e) {
+          LOG.error("Failed to mount {}", opts.getMountPoint(), e);
+          // only try to umount file system when exception occurred.
+          // jni-fuse registers JVM shutdown hook to ensure fs.umount()
+          // will be executed when this process is exiting.
+          fuseFs.umount();
+        }
       }
     } catch (IOException e) {
       LOG.error("Failed to mount Alluxio file system", e);

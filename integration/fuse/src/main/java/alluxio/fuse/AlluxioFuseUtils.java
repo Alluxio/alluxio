@@ -22,10 +22,10 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.jnifuse.ErrorCodes;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
+import ru.serce.jnrfuse.ErrorCodes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +77,8 @@ public final class AlluxioFuseUtils {
       String script = "getent group " + groupName + " | cut -d: -f3";
       result = ShellUtils.execCommand("bash", "-c", script).trim();
     } else if (OSUtils.isMacOS()) {
-      String script = "dscl . -read /Groups/" + groupName
-          + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
+      String script =
+          "dscl . -read /Groups/" + groupName + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
       result = ShellUtils.execCommand("bash", "-c", script).trim();
     }
     try {
@@ -120,16 +120,15 @@ public final class AlluxioFuseUtils {
       String script = "getent group " + gid + " | cut -d: -f1";
       return ShellUtils.execCommand("bash", "-c", script).trim();
     } else if (OSUtils.isMacOS()) {
-      String script = "dscl . list /Groups PrimaryGroupID | awk '($2 == \""
-          + gid + "\") { print $1 }'";
+      String script =
+          "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
       return ShellUtils.execCommand("bash", "-c", script).trim();
     }
     return "";
   }
 
   /**
-   * Checks whether fuse is installed in local file system.
-   * Alluxio-Fuse only support mac and linux.
+   * Checks whether fuse is installed in local file system. Alluxio-Fuse only support mac and linux.
    *
    * @return true if fuse is installed, false otherwise
    */
@@ -246,8 +245,8 @@ public final class AlluxioFuseUtils {
     long durationMs = System.currentTimeMillis() - startMs;
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)",
-          methodName, String.format(description, args), ret, durationMs, THRESHOLD);
+      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+          String.format(description, args), ret, durationMs, THRESHOLD);
     }
     return ret;
   }
