@@ -553,19 +553,27 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     throw te;
   }
 
-  private boolean isReadLocal(FileSystem fs, Path filePath, OpenOptions options)
-      throws IOException {
+  private boolean isReadLocal(FileSystem fs, Path filePath, OpenOptions options) {
     String localHost = NetworkAddressUtils.getLocalHostName((int) mUfsConf
         .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     // Heuristic to determine whether to use positionedRead on hdfs ufs
     // If any block is not found on the same host, we use pread api
-    BlockLocation[] blockLocations = fs.getFileBlockLocations(filePath,
-        options.getOffset(), options.getLength());
-    for (BlockLocation loc : blockLocations) {
-      if (Arrays.stream(loc.getHosts()).noneMatch(localHost::equals)) {
-        // Some blocks are remote only, use pread api to HDFS
-        return false;
+    BlockLocation[] blockLocations;
+    try {
+      blockLocations = fs.getFileBlockLocations(filePath,
+          options.getOffset(), options.getLength());
+      if (blockLocations == null) {
+        // no blocks exist
+        return true;
       }
+      for (BlockLocation loc : blockLocations) {
+        if (Arrays.stream(loc.getHosts()).noneMatch(localHost::equals)) {
+          // Some blocks are remote only, use pread api to HDFS
+          return false;
+        }
+      }
+    } catch (IOException e) {
+      return true;
     }
     return true;
   }
