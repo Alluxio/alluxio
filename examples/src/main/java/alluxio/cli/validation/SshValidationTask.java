@@ -21,12 +21,6 @@ import java.util.Set;
  * Task for validating SSH reachability.
  */
 public final class SshValidationTask extends AbstractValidationTask {
-  /**
-   * Creates a new instance of {@link SshValidationTask}.
-   */
-  public SshValidationTask() {
-  }
-
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
     Set<String> nodes = ConfigurationUtils.getServerHostnames();
