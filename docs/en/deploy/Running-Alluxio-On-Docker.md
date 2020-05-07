@@ -146,17 +146,17 @@ $ docker run -d --rm \
 Notes:
 
   1. The argument `--net=host ` tells Docker to use the host network.
-    Under this setup, the containers are directly using the host's network adapter.  
-    All containers will have the same hostname and IP address as the Docker host,
-    and all the host's ports are directly mapped to containers. Therefore, all the required container
-    ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
-    You can find more details about this setting [here](https://docs.docker.com/network/host/).
+     Under this setup, the containers are directly using the host's network adapter.  
+     All containers will have the same hostname and IP address as the Docker host,
+     and all the host's ports are directly mapped to containers. Therefore, all the required container
+     ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
+     You can find more details about this setting [here](https://docs.docker.com/network/host/).
   1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
-    allocates the worker's memory capacity and bind the master address. In host network,
-	the master can't be referenced to by the master container name `alluxio-master` or
-    it will throw `"No Alluxio worker available" ` error.
-    Instead, it should be referenced to by the host IP address.
-    The substitution `$(hostname -i)` does the trick.
+     allocates the worker's memory capacity and bind the master address. In host network,
+	 the master can't be referenced to by the master container name `alluxio-master` or
+     it will throw `"No Alluxio worker available" ` error.
+     Instead, it should be referenced to by the host IP address.
+     The substitution `$(hostname -i)` does the trick.
   1. The argument  `--shm-size=1G` will allocate a `1G` tmpfs for the worker to store Alluxio data.
   1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
    and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, as explained above in the Docker volume section.
