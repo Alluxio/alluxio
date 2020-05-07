@@ -58,8 +58,8 @@ public class HdfsValidationTask extends AbstractValidationTask {
   }
 
   protected boolean shouldSkip() {
-    String scheme = new AlluxioURI(InstancedConfiguration.defaults().get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
-        .getScheme();
+    String scheme = new AlluxioURI(InstancedConfiguration.defaults()
+                      .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
       System.out.format("Root underFS is not HDFS. Skipping validation for HDFS properties.%n");
       return true;

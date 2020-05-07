@@ -14,8 +14,8 @@ package alluxio.cli.validation;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
-
 import alluxio.util.ShellUtils;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;

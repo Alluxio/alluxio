@@ -13,9 +13,9 @@ package alluxio.cli.validation;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-
 import alluxio.shell.CommandReturn;
 import alluxio.util.ShellUtils;
+
 import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
@@ -39,7 +39,6 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+))?");
 
   private static final String PRINCIPAL_MAP_MASTER_KEY = "master";
-
   private static final String PRINCIPAL_MAP_WORKER_KEY = "worker";
 
   private static final Map<String, PropertyKey> PRINCIPAL_MAP = ImmutableMap.of(

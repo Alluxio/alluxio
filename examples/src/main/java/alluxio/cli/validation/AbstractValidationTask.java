@@ -20,6 +20,9 @@ import java.util.List;
  * Abstract class for validation environment.
  */
 public abstract class AbstractValidationTask implements ValidationTask {
+  /**
+   * @return List of {@link Option} required by this task
+   * */
   public List<Option> getOptionList() {
     return new ArrayList<>();
   }

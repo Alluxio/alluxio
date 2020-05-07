@@ -15,14 +15,19 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.Properties;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
