@@ -1,0 +1,26 @@
+<configuration>
+    <property>
+        <name>system:java.io.tmpdir</name>
+        <value>/tmp/hive/java</value>
+    </property>
+    <property>
+        <name>system:user.name</name>
+        <value>${user.name}</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:mysql://localhost/metastore?createDatabaseIfNotExist=true</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>com.mysql.jdbc.Driver</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>hive</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>hive</value>
+    </property>
+</configuration>

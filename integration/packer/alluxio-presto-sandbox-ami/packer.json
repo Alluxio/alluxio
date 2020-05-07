@@ -1,0 +1,300 @@
+{
+  "variables": {
+    "alluxio_download_url": "",
+    "alluxio_edition_flavor": "",
+    "alluxio_s3_mount_access_key": "",
+    "alluxio_s3_mount_secret_key": "",
+    "alluxio_version": "",
+    "ami_suffix": "",
+    "aws_access_key": "",
+    "aws_region": "",
+    "aws_secret_key": "",
+    "ec2_keypair_name": "",
+    "ec2_keypair_pem_file": ""
+  },
+  "sensitive-variables": [
+    "alluxio_s3_mount_access_key",
+    "alluxio_s3_mount_secret_key",
+    "aws_access_key",
+    "aws_secret_key"
+  ],
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "name": "alluxio-presto-sandbox-ami",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "ami_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/xvda",
+          "volume_size": 16,
+          "volume_type": "gp2"
+        }
+      ],
+      "ami_description": "The Alluxio-Presto sandbox is single instance big data stack to explore Alluxio, run queries with Presto, and see the performance benefits of using Alluxio. Alluxio version: {{user `alluxio_version`}}",
+      "ami_name": "alluxio-presto-sandbox {{user `alluxio_version`}} AMI{{user `ami_suffix`}}",
+      "ami_regions": "{{user `ami_dst_regions`}}",
+      "ami_users": "{{user `ami_users`}}",
+      "force_delete_snapshot": "{{user `ami_ovewrite_existing`}}",
+      "force_deregister": "{{user `ami_ovewrite_existing`}}",
+      "instance_type": "r4.4xlarge",
+      "source_ami_filter": {
+        "filters": {
+          "name": "amzn2-ami-hvm-2.0.*-x86_64-gp2",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "most_recent": true,
+        "owners": [
+          "137112412989"
+        ]
+      },
+      "ssh_keypair_name": "{{user `ec2_keypair_name`}}",
+      "ssh_private_key_file": "{{user `ec2_keypair_pem_file`}}",
+      "ssh_username": "ec2-user",
+      "tags": {
+        "Origin": "Nightly",
+        "build_id": "2gpfxp77"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum remove -q -y java-1.7.0-openjdk"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -q -y java-1.8.0-openjdk-devel.x86_64 less wget which",
+        "sudo touch /etc/profile.d/java.sh",
+        "echo \"export JAVA_HOME=/usr/lib/jvm/java\" | sudo tee -a /etc/profile.d/java.sh",
+        "echo \"exclude=java-*\" | sudo tee -a /etc/yum.conf"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -y -q less python-setuptools wget which mariadb-server-5.5.64-1.amzn2 mysql-connector-java-5.1.25-3.amzn2"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "inline": [
+        "cd ~/",
+        "wget -q https://files.pythonhosted.org/packages/97/48/f38bf70bd9282d1a18d591616557cc1a77a1c627d57dff66ead65c891dc8/supervisor-4.0.3.tar.gz",
+        "tar -xzf supervisor-4.0.3.tar.gz",
+        "cd supervisor-4.0.3",
+        "sudo python setup.py -q install",
+        "sudo mkdir -p /var/log/supervisor/",
+        "sudo mkdir -p /etc/supervisor/",
+        "sudo rm -rf ~/supervisor-4.0.3*"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "inline": [
+        "mkdir ~/supervisorConf"
+      ]
+    },
+    {
+      "type": "file",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "source": "./supervisor/",
+      "destination": "~/supervisorConf/"
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "inline": [
+        "sudo cp ~/supervisorConf/supervisord.conf /etc/supervisor/supervisord.conf"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "inline": [
+        "sudo cp ~/supervisorConf/supervisord.service /etc/systemd/system/",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable supervisord"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-ami"
+      ],
+      "inline": [
+        "rm -r ~/supervisorConf"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "aws s3 cp ${ALLUXIO_DL_URL} /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "wget -q -nc -P /tmp/tarballs https://archive.apache.org/dist/hadoop/core/hadoop-2.8.5/hadoop-2.8.5.tar.gz",
+        "wget -q -nc -P /tmp/tarballs https://archive.apache.org/dist/hive/hive-2.3.5/apache-hive-2.3.5-bin.tar.gz",
+        "wget -q -nc -P /tmp/tarballs https://repo1.maven.org/maven2/io/prestosql/presto-server/302/presto-server-302.tar.gz",
+        "wget -q -nc -P /tmp/tarballs https://repo1.maven.org/maven2/io/prestosql/presto-cli/302/presto-cli-302-executable.jar"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cd /tmp/tarballs && tar xzpf hadoop-*.tar.gz",
+        "rm /tmp/tarballs/hadoop-*.tar.gz",
+        "sudo mv hadoop-* /opt/hadoop",
+        "sudo touch /etc/profile.d/hadoop.sh",
+        "echo \"export HADOOP_HOME=/opt/hadoop\" | sudo tee -a /etc/profile.d/hadoop.sh",
+        "echo \"export PATH=\\$PATH:\\$HADOOP_HOME/bin\" | sudo tee -a /etc/profile.d/hadoop.sh",
+        "cd /tmp/tarballs && tar xzpf apache-hive-*.tar.gz",
+        "rm /tmp/tarballs/apache-hive-*.tar.gz",
+        "sudo mv apache-hive-* /opt/hive",
+        "sudo touch /etc/profile.d/hive.sh",
+        "echo \"export HIVE_HOME=/opt/hive\" | sudo tee -a /etc/profile.d/hive.sh",
+        "echo \"export PATH=\\$PATH:\\$HIVE_HOME/bin\" | sudo tee -a /etc/profile.d/hive.sh",
+        "cd /tmp/tarballs && tar xzpf presto-server-*.tar.gz",
+        "rm /tmp/tarballs/presto-server-*.tar.gz",
+        "sudo mv presto-server-* /opt/presto",
+        "sudo touch /etc/profile.d/presto.sh",
+        "echo \"export PRESTO_HOME=/opt/presto\" | sudo tee -a /etc/profile.d/presto.sh",
+        "echo \"export PATH=\\$PATH:\\$PRESTO_HOME/bin\" | sudo tee -a /etc/profile.d/presto.sh",
+        "sudo mv presto-cli-*.jar /opt/presto/bin/presto",
+        "sudo chmod +x /opt/presto/bin/presto"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "cd /tmp/tarballs && tar xzpf alluxio-*.tar.gz",
+        "rm /tmp/tarballs/alluxio-*.tar.gz",
+        "sudo mv alluxio-* /opt/alluxio",
+        "sudo touch /etc/profile.d/alluxio.sh",
+        "echo \"export ALLUXIO_HOME=/opt/alluxio\" | sudo tee -a /etc/profile.d/alluxio.sh",
+        "echo \"export PATH=\\$PATH:\\$ALLUXIO_HOME/bin\" | sudo tee -a /etc/profile.d/alluxio.sh"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm -rf /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /home/ec2-user/rootTmp"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "./resources/",
+      "destination": "/home/ec2-user/rootTmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo chown -R ec2-user:ec2-user /home/ec2-user/rootTmp",
+        "sudo find /home/ec2-user/rootTmp -type f -exec chmod 644 {} \\;",
+        "sudo find /home/ec2-user/rootTmp -type f -name '*.sh' -exec chmod 755 {} \\;",
+        "sudo find /home/ec2-user/rootTmp -mindepth 1 -maxdepth 1 -exec cp -avt / {} \\;",
+        "sudo rm -rf /home/ec2-user/rootTmp"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_VERSION={{user `alluxio_version`}}"
+      ],
+      "script": "./scripts/configure.sh"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo supervisord",
+        "sleep 10"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "source /etc/profile  # pick up environment settings defined by scripts in /etc/profile.d/",
+        "mysql -uroot -e \"create user 'hive'@localhost identified by 'hive'\"",
+        "mysql -uroot -e \"grant all on metastore.* to 'hive'@localhost identified by 'hive'\"",
+        "mysql -uroot -e \"flush privileges\"",
+        "/opt/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord hive",
+        "mkdir -p /opt/hive/hcatalog/sbin/../var/log/  # accommodate wonky startup script"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "AWS_ACCESS_KEY_ID={{user `alluxio_s3_mount_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `alluxio_s3_mount_secret_key`}}"
+      ],
+      "inline": [
+        "/opt/alluxio/bin/alluxio-monitor.sh master",
+        "alluxio fs mount --readonly /s3 s3a://alluxio-public-http-ufs/tpcds/scale100-parquet/ --option aws.accessKeyId=${AWS_ACCESS_KEY_ID} --option aws.secretKey=${AWS_SECRET_ACCESS_KEY}",
+        "alluxio fs mkdir /promotion",
+        "alluxio fs copyFromLocal /usr/share/tpcdsData/part-00000-799bb353-4be8-4189-b02e-8ccb71463cbf-c000.snappy.parquet /promotion/ -Dalluxio.user.file.writetype.default=THROUGH",
+        "hive -f /usr/share/tpcdsData/createAlluxioTpcdsTables.sql > /dev/null 2>&1",
+        "hive -f /usr/share/tpcdsData/createAlluxioPromotionTable.sql > /dev/null 2>&1",
+        "alluxio fs ls -Rf /"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "supervisorctl stop all",
+        "sudo yum clean all"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin without-password/' /etc/ssh/sshd_config",
+        "sudo passwd -l root",
+        "sudo sed -i 's/#UseDNS yes/UseDNS no/' /etc/ssh/sshd_config",
+        "rm ~/.ssh/authorized_keys",
+        "sudo rm /root/.ssh/authorized_keys"
+      ]
+    }
+  ]
+}

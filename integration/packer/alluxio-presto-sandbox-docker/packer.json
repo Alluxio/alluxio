@@ -1,0 +1,247 @@
+{
+  "variables": {
+    "alluxio_download_url": "",
+    "alluxio_edition_flavor": "",
+    "alluxio_s3_mount_access_key": "",
+    "alluxio_s3_mount_secret_key": "",
+    "alluxio_version": "",
+    "ami_suffix": "",
+    "aws_access_key": "",
+    "aws_region": "",
+    "aws_secret_key": ""
+  },
+  "sensitive-variables": [
+    "alluxio_s3_mount_access_key",
+    "alluxio_s3_mount_secret_key"
+  ],
+  "builders": [
+    {
+      "type": "docker",
+      "name": "alluxio-presto-sandbox-docker",
+      "commit": true,
+      "image": "centos:centos7",
+      "message": "",
+      "changes": [
+        "WORKDIR /root",
+        "ENTRYPOINT [\"supervisord\", \"-n\"]"
+      ],
+      "run_command": [
+        "-dit",
+        "--entrypoint=/bin/sh",
+        "--shm-size=1G",
+        "--",
+        "{{.Image}}"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-docker"
+      ],
+      "inline": [
+        "yum install -q -y sudo"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-docker"
+      ],
+      "inline": [
+        "sudo yum install -q -y java-1.8.0-openjdk-devel.x86_64 less wget which",
+        "sudo touch /etc/profile.d/java.sh",
+        "echo \"export JAVA_HOME=/usr/lib/jvm/java\" | sudo tee -a /etc/profile.d/java.sh",
+        "echo \"exclude=java-*\" | sudo tee -a /etc/yum.conf"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -y -q less python-setuptools wget which mariadb-server-5.5.* mysql-connector-java-5.1.25-3.el7"
+      ]
+    },
+    {
+      "type": "shell",
+      "only": [
+        "alluxio-presto-sandbox-docker"
+      ],
+      "inline": [
+        "cd ~/",
+        "wget -q https://files.pythonhosted.org/packages/97/48/f38bf70bd9282d1a18d591616557cc1a77a1c627d57dff66ead65c891dc8/supervisor-4.0.3.tar.gz",
+        "tar -xzf supervisor-4.0.3.tar.gz",
+        "cd supervisor-4.0.3",
+        "sudo python setup.py -q install",
+        "sudo mkdir -p /var/log/supervisor/",
+        "sudo mkdir -p /etc/supervisor/",
+        "sudo rm -rf ~/supervisor-4.0.3*"
+      ]
+    },
+    {
+      "type": "file",
+      "only": [
+        "alluxio-presto-sandbox-docker"
+      ],
+      "source": "./supervisor/supervisord.conf",
+      "destination": "/etc/supervisor/supervisord.conf"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell-local",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "if [ ! -f \"resources/tarballs/$(basename ${ALLUXIO_DL_URL})\" ]; then aws s3 cp ${ALLUXIO_DL_URL} resources/tarballs/; fi"
+      ]
+    },
+    {
+      "type": "shell-local",
+      "inline": [
+        "wget -q -nc -P resources/tarballs https://archive.apache.org/dist/hadoop/core/hadoop-2.8.5/hadoop-2.8.5.tar.gz",
+        "wget -q -nc -P resources/tarballs https://archive.apache.org/dist/hive/hive-2.3.5/apache-hive-2.3.5-bin.tar.gz",
+        "wget -q -nc -P resources/tarballs https://repo1.maven.org/maven2/io/prestosql/presto-server/302/presto-server-302.tar.gz",
+        "wget -q -nc -P resources/tarballs https://repo1.maven.org/maven2/io/prestosql/presto-cli/302/presto-cli-302-executable.jar"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "resources/tarballs/",
+      "destination": "/tmp/tarballs/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cd /tmp/tarballs && tar xzpf hadoop-*.tar.gz",
+        "rm /tmp/tarballs/hadoop-*.tar.gz",
+        "sudo mv hadoop-* /opt/hadoop",
+        "sudo touch /etc/profile.d/hadoop.sh",
+        "echo \"export HADOOP_HOME=/opt/hadoop\" | sudo tee -a /etc/profile.d/hadoop.sh",
+        "echo \"export PATH=\\$PATH:\\$HADOOP_HOME/bin\" | sudo tee -a /etc/profile.d/hadoop.sh",
+        "cd /tmp/tarballs && tar xzpf apache-hive-*.tar.gz",
+        "rm /tmp/tarballs/apache-hive-*.tar.gz",
+        "sudo mv apache-hive-* /opt/hive",
+        "sudo touch /etc/profile.d/hive.sh",
+        "echo \"export HIVE_HOME=/opt/hive\" | sudo tee -a /etc/profile.d/hive.sh",
+        "echo \"export PATH=\\$PATH:\\$HIVE_HOME/bin\" | sudo tee -a /etc/profile.d/hive.sh",
+        "cd /tmp/tarballs && tar xzpf presto-server-*.tar.gz",
+        "rm /tmp/tarballs/presto-server-*.tar.gz",
+        "sudo mv presto-server-* /opt/presto",
+        "sudo touch /etc/profile.d/presto.sh",
+        "echo \"export PRESTO_HOME=/opt/presto\" | sudo tee -a /etc/profile.d/presto.sh",
+        "echo \"export PATH=\\$PATH:\\$PRESTO_HOME/bin\" | sudo tee -a /etc/profile.d/presto.sh",
+        "sudo mv presto-cli-*.jar /opt/presto/bin/presto",
+        "sudo chmod +x /opt/presto/bin/presto"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "cd /tmp/tarballs && tar xzpf alluxio-*.tar.gz",
+        "rm /tmp/tarballs/alluxio-*.tar.gz",
+        "sudo mv alluxio-* /opt/alluxio",
+        "sudo touch /etc/profile.d/alluxio.sh",
+        "echo \"export ALLUXIO_HOME=/opt/alluxio\" | sudo tee -a /etc/profile.d/alluxio.sh",
+        "echo \"export PATH=\\$PATH:\\$ALLUXIO_HOME/bin\" | sudo tee -a /etc/profile.d/alluxio.sh"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm -rf /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /root/rootTmp"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "./resources/",
+      "destination": "/root/rootTmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo chown -R root:root /root/rootTmp",
+        "sudo find /root/rootTmp -type f -exec chmod 644 {} \\;",
+        "sudo find /root/rootTmp -type f -name '*.sh' -exec chmod 755 {} \\;",
+        "sudo find /root/rootTmp -mindepth 1 -maxdepth 1 -exec cp -avt / {} \\;",
+        "sudo rm -rf /root/rootTmp"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_VERSION={{user `alluxio_version`}}"
+      ],
+      "script": "./scripts/configure.sh"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo supervisord",
+        "sleep 10"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "source /etc/profile  # pick up environment settings defined by scripts in /etc/profile.d/",
+        "mysql -uroot -e \"create user 'hive'@localhost identified by 'hive'\"",
+        "mysql -uroot -e \"grant all on metastore.* to 'hive'@localhost identified by 'hive'\"",
+        "mysql -uroot -e \"flush privileges\"",
+        "/opt/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord hive",
+        "mkdir -p /opt/hive/hcatalog/sbin/../var/log/  # accommodate wonky startup script"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "AWS_ACCESS_KEY_ID={{user `alluxio_s3_mount_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `alluxio_s3_mount_secret_key`}}"
+      ],
+      "inline": [
+        "source /etc/profile",
+        "/opt/alluxio/bin/alluxio-monitor.sh master",
+        "alluxio fs mount --readonly /scale1 s3://alluxio-public-http-ufs/tpcds/scale1-parquet/ --option aws.accessKeyId=${AWS_ACCESS_KEY_ID} --option aws.secretKey=${AWS_SECRET_ACCESS_KEY}",
+        "hive -f /usr/share/tpcdsData/createAlluxioTpcdsTables.sql",
+        "alluxio fs ls -Rf /"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "supervisorctl stop all",
+        "sudo yum clean all"
+      ]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "only": [
+          "alluxio-presto-sandbox-docker"
+        ],
+        "repository": "alluxio-presto-sandbox-docker",
+        "tag": "latest"
+      }
+    ]
+  ]
+}
