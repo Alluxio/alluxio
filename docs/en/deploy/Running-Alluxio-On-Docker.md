@@ -93,6 +93,18 @@ both of the following services:
 + Master RPC on port 19998
 + Worker RPC on port 29999
 
+Within the Alluxio cluster, please also make sure the master and worker containers can reach
+each other on the following ports.
+You can find all the ports used by Alluxio components in [Alluxio configurations]({{ '/en/reference/Properties-List.html?q=port' | relativize_url }})
+
++ Master RPC on port 19998
++ Master embedded journal on port 19200 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
++ Job master RPC on port 20001
++ Job master embedded journal on port 20003 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
++ Worker RPC on port 29999
++ Job worker RPC on port 30001
++ Job worker data on port 30001
+
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
 In order to make sure this works for either local or remote clients, we have to set up the
 Docker network and expose the required ports correctly.
@@ -133,10 +145,12 @@ $ docker run -d --rm \
 
 Notes:
 
-  1. The argument `--net=host ` tells Docker to use the host network.  All containers
-    will have the same hostname and IP address as the Docker host,
+  1. The argument `--net=host ` tells Docker to use the host network.
+    Under this setup, the containers are directly using the host's network adapter.  
+    All containers will have the same hostname and IP address as the Docker host,
     and all the host's ports are directly mapped to containers. Therefore, all the required container
     ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
+    You can find more details about this setting [here](https://docs.docker.com/network/host/).
   1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
     allocates the worker's memory capacity and bind the master address. In host network,
 	the master can't be referenced to by the master container name `alluxio-master` or
@@ -193,17 +207,22 @@ Notes:
 
   1. The argument `--net=alluxio_network` tells Docker to use the user-defined bridge network ```alluxio_network```.
      All containers will use their own container IDs as their hostname, and each of them has a different IP
-     address within the network's subnet. Only the specified ports (-p option) are exposed to the Docker host.
-  1. You must explicitly expose the two ports 19999 and 19998 for the Master container and the port 29999 and 30000 for the
-     Worker container. Otherwise, the clients can't communicate with the the master and worker.
+     address within the network's subnet.
+     Containers connected to the same user-defined bridge network effectively expose all ports to each other,
+     unless firewall policies are defined specifically. 
+     You can find more details about bridge network [here](https://docs.docker.com/network/bridge/).
+  1. Only the specified ports (-p option) are exposed to the outside network, where the client may be run.
+     Therefore, you must explicitly expose the two ports 19999 and 19998 for the Master container and the port
+     29999 and 30000 for the Worker container.
+     Otherwise, the clients can't communicate with the the master and worker.
   1. You can refer to the master either by the container name
      (`alluxio-master` for master container and `alluxio-worker` for worker container)  or
      by the Docker host's IP address `$(hostname -i)`, if all the communication is within the
      docker network (e.g., no external client outside the docker network). Otherwise, you must
      specify the master and worker's docker host IP that client can reach out (e.g., by `-Dalluxio.worker.hostname=$(hostname -i)`).
      This is required for the external communication between master/worker and
-     clients outside the docker network. Otherwise, clients but can't connect to worker, since
-     clients do not recognize the worker's container Id. It will throw error like below:
+     clients outside the docker network. Otherwise, clients can't connect to worker, since
+     they do not recognize the worker's container Id. It will throw error like below:
      ```
      Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
