@@ -11,34 +11,33 @@
 
 package alluxio.cli.validation;
 
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Task for validating SSH reachability.
  */
 public final class SshValidationTask extends AbstractValidationTask {
-  private final String mFileName;
-
   /**
    * Creates a new instance of {@link SshValidationTask}.
-   *
-   * @param fileName file name for a node list file (e.g. conf/workers, conf/masters)
    */
-  public SshValidationTask(String fileName) {
-    mFileName = fileName;
+  public SshValidationTask() {
   }
 
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
-    List<String> nodes = Utils.readNodeList(mFileName);
+    Set<String> nodes = ConfigurationUtils.getServerHostnames();
     if (nodes == null) {
       return TaskResult.FAILED;
     }
 
     boolean hasUnreachableNodes = false;
     for (String nodeName : nodes) {
-      if (!Utils.isAddressReachable(nodeName, 22)) {
+      if (!CommonUtils.isAddressReachable(nodeName, 22)) {
         System.err.format("Unable to reach ssh port 22 on node %s.%n", nodeName);
         hasUnreachableNodes = true;
       }

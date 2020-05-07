@@ -11,22 +11,18 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
 
+import alluxio.util.ConfigurationUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -37,8 +33,8 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
 
   @Override
   public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
-    Set<String> masters = new HashSet<>(Utils.readNodeList("masters"));
-    Set<String> workers = new HashSet<>(Utils.readNodeList("workers"));
+    Set<String> masters = ConfigurationUtils.getMasterHostnames();
+    Set<String> workers = ConfigurationUtils.getWorkerHostnames();
     Set<String> nodes = Sets.union(masters, workers);
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
@@ -128,7 +124,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   @Nullable
   private Properties getNodeConf(String node) {
     try {
-      String homeDir = ServerConfiguration.get(PropertyKey.HOME);
+      String homeDir = InstancedConfiguration.defaults().get(PropertyKey.HOME);
       String remoteCommand = String.format(
           "%s/bin/alluxio getConf", homeDir);
       String localCommand = String.format(

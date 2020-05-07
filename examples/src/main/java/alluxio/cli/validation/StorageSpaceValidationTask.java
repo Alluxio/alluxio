@@ -11,10 +11,11 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
 
+import alluxio.util.ShellUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -39,21 +40,22 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
-    int numLevel = ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    InstancedConfiguration conf = InstancedConfiguration.defaults();
+    int numLevel = conf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
-      String alias = ServerConfiguration.get(tierAliasConf);
+      String alias = conf.get(tierAliasConf);
 
       PropertyKey tierDirPathConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = ServerConfiguration.get(tierDirPathConf).split(",");
+      String[] dirPaths = conf.get(tierDirPathConf).split(",");
 
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
-      String rawDirQuota = ServerConfiguration.get(tierDirCapacityConf);
+      String rawDirQuota = conf.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
         return TaskResult.FAILED;
@@ -72,7 +74,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         boolean hasRamfsLocation = false;
         for (int i = 0; i < dirPaths.length; i++) {
           int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
-          if (Utils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
+          if (ShellUtils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
             System.out.format("ramfs mounted at %s does not report space information,"
                 + " skip validation.%n", dirPaths[i]);
             hasRamfsLocation = true;

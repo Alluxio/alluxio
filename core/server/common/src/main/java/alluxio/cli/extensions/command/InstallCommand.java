@@ -16,9 +16,9 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.extensions.ExtensionsShellUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -69,7 +69,7 @@ public final class InstallCommand implements Command {
       return -1;
     }
     List<String> failedHosts = new ArrayList<>();
-    for (String host : ExtensionsShellUtils.getServerHostnames()) {
+    for (String host : ConfigurationUtils.getServerHostnames()) {
       try {
         LOG.info("Attempting to install extension on host {}", host);
         // Parent folder on target host

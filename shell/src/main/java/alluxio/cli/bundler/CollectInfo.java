@@ -122,9 +122,7 @@ public class CollectInfo extends AbstractShell {
   public Set<String> getHosts() {
     String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
     System.out.format("Looking for masters and workers in %s%n", confDirPath);
-    Set<String> hosts = new HashSet<>();
-    hosts.addAll(CommandUtils.readNodeList(confDirPath, "masters"));
-    hosts.addAll(CommandUtils.readNodeList(confDirPath, "workers"));
+    Set<String> hosts = ConfigurationUtils.getServerHostnames();
     System.out.format("Found %s hosts%n", hosts.size());
     return hosts;
   }

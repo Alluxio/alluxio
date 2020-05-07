@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
@@ -42,6 +43,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -74,6 +71,8 @@ public final class ConfigurationUtils {
   private static String sSourcePropertyFile = null;
 
   private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
+  private static final String MASTERS = "masters";
+  private static final String WORKERS = "workers";
 
   private ConfigurationUtils() {} // prevent instantiation
 
@@ -629,5 +628,45 @@ public final class ConfigurationUtils {
   public static List<String> parseAsList(String value, String delimiter) {
     return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
         .split(value));
+  }
+
+  /**
+   * Reads a list of nodes from given file name ignoring comments and empty lines.
+   * Can be used to read conf/workers or conf/masters.
+   * @param fileName name of a file that contains the list of the nodes
+   * @return list of the node names, null when file fails to read
+   */
+  @Nullable
+  private static Set<String> readNodeList(String fileName) {
+    InstancedConfiguration conf = InstancedConfiguration.defaults();
+    String confDir = conf.get(PropertyKey.CONF_DIR);
+    return CommandUtils.readNodeList(confDir, fileName);
+  }
+
+  /**
+   * Gets list of masters in conf directory.
+   *
+   * @return master hostnames
+   */
+  public static Set<String> getMasterHostnames() {
+    return readNodeList(MASTERS);
+  }
+
+  /**
+   * Gets list of workers in conf directory.
+   *
+   * @return workers hostnames
+   */
+  public static Set<String> getWorkerHostnames() {
+    return readNodeList(WORKERS);
+  }
+
+  /**
+   * Gets list of masters/workers in conf directory.
+   *
+   * @return server hostnames
+   */
+  public static Set<String> getServerHostnames() {
+    return Sets.union(getMasterHostnames(), getWorkerHostnames());
   }
 }

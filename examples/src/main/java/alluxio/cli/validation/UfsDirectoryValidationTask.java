@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -31,8 +31,9 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    * for validating root under file system.
    */
   public UfsDirectoryValidationTask() {
-    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    mPath = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    InstancedConfiguration conf = InstancedConfiguration.defaults();
+    mUfs = UnderFileSystem.Factory.createForRoot(conf);
+    mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }
 
   @Override

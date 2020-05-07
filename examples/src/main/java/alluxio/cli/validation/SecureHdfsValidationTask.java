@@ -11,11 +11,15 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
+import alluxio.shell.CommandReturn;
+import alluxio.util.ShellUtils;
 import com.google.common.collect.ImmutableMap;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,8 +84,9 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       return true;
     }
     String principal = null;
-    if (ServerConfiguration.isSet(mPrincipalProperty)) {
-      principal = ServerConfiguration.get(mPrincipalProperty);
+    InstancedConfiguration conf = InstancedConfiguration.defaults();
+    if (conf.isSet(mPrincipalProperty)) {
+      principal = conf.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
       System.out.format("Skip validation for secure HDFS. %s is not specified.%n",
@@ -93,7 +98,8 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
-    String principal = ServerConfiguration.get(mPrincipalProperty);
+    InstancedConfiguration conf = InstancedConfiguration.defaults();
+    String principal = conf.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
@@ -104,15 +110,20 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
     String realm = matchPrincipal.group("realm");
 
     // Login with principal and keytab
-    String keytab = ServerConfiguration.get(mKeytabProperty);
-    int exitVal =
-        Utils.getResultFromProcess(new String[] {"kinit", "-kt", keytab, principal}).getExitValue();
-    if (exitVal != 0) {
-      System.err.format("Kerberos login failed for %s with keytab %s with exit value %d.%n",
-          principal, keytab, exitVal);
-      System.err.format("Primary is %s, instance is %s and realm is %s.%n",
-          primary, instance, realm);
-      return false;
+    String keytab = conf.get(mKeytabProperty);
+    CommandReturn cr;
+    String[] command = new String[] {"kinit", "-kt", keytab, principal};
+    try {
+      cr = ShellUtils.execCommandWithOutput(command);
+      if (cr.getExitCode() != 0) {
+        System.err.format("Kerberos login failed for %s with keytab %s with exit value %d.%n",
+                principal, keytab, cr.getExitCode());
+        System.err.format("Primary is %s, instance is %s and realm is %s.%n",
+                primary, instance, realm);
+        return false;
+      }
+    } catch (IOException e) {
+      System.err.format("Failed to execute %s with exception: %s%n", Arrays.toString(command), e);
     }
     return true;
   }

@@ -23,10 +23,7 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -120,16 +117,16 @@ public final class CommandUtils {
    * @return list of the node names, null when file fails to read
    */
   @Nullable
-  public static List<String> readNodeList(String confDir, String fileName) {
+  public static Set<String> readNodeList(String confDir, String fileName) {
     List<String> lines;
     try {
       lines = Files.readAllLines(Paths.get(confDir, fileName), StandardCharsets.UTF_8);
     } catch (IOException e) {
       System.err.format("Failed to read file %s/%s. Ignored.", confDir, fileName);
-      return new ArrayList<>();
+      return new HashSet<>();
     }
 
-    List<String> nodes = new ArrayList<>();
+    Set<String> nodes = new HashSet<>();
     for (String line : lines) {
       String node = line.trim();
       if (node.startsWith("#") || node.length() == 0) {

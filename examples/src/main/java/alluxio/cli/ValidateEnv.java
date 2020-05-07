@@ -11,22 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
+import alluxio.cli.validation.*;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
-import alluxio.cli.validation.HdfsValidationTask;
-import alluxio.cli.validation.PortAvailabilityValidationTask;
-import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
-import alluxio.cli.validation.SecureHdfsValidationTask;
-import alluxio.cli.validation.StorageSpaceValidationTask;
-import alluxio.cli.validation.SshValidationTask;
-import alluxio.cli.validation.UfsDirectoryValidationTask;
-import alluxio.cli.validation.UfsSuperUserValidationTask;
-import alluxio.cli.validation.UserLimitValidationTask;
-import alluxio.cli.validation.Utils;
-import alluxio.cli.validation.ValidationTask;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.apache.commons.cli.CommandLine;
@@ -122,12 +113,9 @@ public final class ValidateEnv {
         new SecureHdfsValidationTask("worker"), WORKER_TASKS);
 
     // ssh validations
-    registerTask("ssh.masters.reachable",
-        "validate SSH port on masters are reachable",
-        new SshValidationTask("masters"), COMMON_TASKS);
-    registerTask("ssh.workers.reachable",
-        "validate SSH port on workers are reachable",
-        new SshValidationTask("workers"), COMMON_TASKS);
+    registerTask("ssh.nodes.reachable",
+        "validate SSH port on all Alluxio nodes are reachable",
+        new SshValidationTask(), COMMON_TASKS);
 
     // UFS validations
     registerTask("ufs.root.accessible",
@@ -188,7 +176,7 @@ public final class ValidateEnv {
     return task;
   }
 
-  private static boolean validateRemote(List<String> nodes, String target, String name,
+  private static boolean validateRemote(Collection<String> nodes, String target, String name,
       CommandLine cmd) throws InterruptedException {
     if (nodes == null) {
       return false;
@@ -206,14 +194,14 @@ public final class ValidateEnv {
   private static boolean validateRemote(String node, String target, String name, CommandLine cmd)
       throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
-    if (!Utils.isAddressReachable(node, 22)) {
+    if (!CommonUtils.isAddressReachable(node, 22)) {
       System.err.format("Unable to reach ssh port 22 on node %s.%n", node);
       return false;
     }
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = ServerConfiguration.get(PropertyKey.HOME);
+    String homeDir = InstancedConfiguration.defaults().get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
@@ -296,11 +284,11 @@ public final class ValidateEnv {
   }
 
   private static boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("workers"), "worker", name, cmd);
+    return validateRemote(ConfigurationUtils.getWorkerHostnames(), "worker", name, cmd);
   }
 
   private static boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("masters"), "master", name, cmd);
+    return validateRemote(ConfigurationUtils.getMasterHostnames(), "master", name, cmd);
   }
 
   private static void printTasks(String target) {
