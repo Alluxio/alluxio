@@ -71,3 +71,9 @@
 - Changed hostNetwork to false
 - Added alluxio.worker.container.hostname property to use podIP
 - Added selector labels to worker domain socket PVC
+
+0.5.9
+
+- Refactored configmap to generate config properties in a list
+- Changed JVM options from one string to a list
+- Supported Helm version upgraded to 3.X
