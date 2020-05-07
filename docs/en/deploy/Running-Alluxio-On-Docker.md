@@ -212,9 +212,10 @@ Notes:
      unless firewall policies are defined specifically. 
      You can find more details about bridge network [here](https://docs.docker.com/network/bridge/).
   1. Only the specified ports (-p option) are exposed to the outside network, where the client may be run.
-     Therefore, you must explicitly expose the two ports 19999 and 19998 for the Master container and the port
-     29999 and 30000 for the Worker container.
-     Otherwise, the clients can't communicate with the the master and worker.
+     The command `-p <host-port>:<container-port>` maps the container port to a host port. 
+     Therefore, you must explicitly expose the two ports 19999 and 19998 for the master container and the port
+     29999 and 30000 for the worker container.
+     Otherwise, the clients can't communicate with the master and worker.
   1. You can refer to the master either by the container name
      (`alluxio-master` for master container and `alluxio-worker` for worker container)  or
      by the Docker host's IP address `$(hostname -i)`, if all the communication is within the
