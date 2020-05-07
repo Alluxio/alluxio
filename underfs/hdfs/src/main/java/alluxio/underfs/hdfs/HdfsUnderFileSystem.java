@@ -554,6 +554,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   private boolean isReadLocal(FileSystem fs, Path filePath, OpenOptions options) {
+    LOG.info("test1");
     String localHost = NetworkAddressUtils.getLocalHostName((int) mUfsConf
         .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     // Heuristic to determine whether to use positionedRead on hdfs ufs
@@ -562,16 +563,20 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     try {
       blockLocations = fs.getFileBlockLocations(filePath,
           options.getOffset(), options.getLength());
+      LOG.info("returned");
       if (blockLocations == null) {
         // no blocks exist
         return true;
       }
+
+      LOG.info("test2" + blockLocations.length);
       for (BlockLocation loc : blockLocations) {
         if (Arrays.stream(loc.getHosts()).noneMatch(localHost::equals)) {
           // Some blocks are remote only, use pread api to HDFS
           return false;
         }
       }
+      LOG.info("test3");
     } catch (IOException e) {
       return true;
     }
@@ -587,16 +592,14 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     if (hdfs instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) hdfs;
     }
+    Path filePath = new Path(path);
+    LOG.info("one");
     boolean remote = options.getPositionShort()
-        || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE);
-    boolean readLocalCheck = true;
+        || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)
+        || isReadLocal(hdfs, filePath, options);
+    LOG.info("two " + remote);
     while (retryPolicy.attempt()) {
       try {
-        Path filePath = new Path(path);
-        if (readLocalCheck && (!remote)) {
-          remote = !isReadLocal(hdfs, filePath, options);
-          readLocalCheck = false;
-        }
         FSDataInputStream inputStream = hdfs.open(filePath);
         if (remote) {
           LOG.debug("Using pread API to HDFS");
