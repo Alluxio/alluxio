@@ -596,7 +596,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     LOG.info("one");
     boolean remote = options.getPositionShort()
         || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)
-        || isReadLocal(hdfs, filePath, options);
+        || !isReadLocal(hdfs, filePath, options);
     LOG.info("two " + remote);
     while (retryPolicy.attempt()) {
       try {
