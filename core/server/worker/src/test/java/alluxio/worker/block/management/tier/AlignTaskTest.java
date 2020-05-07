@@ -36,7 +36,8 @@ public class AlignTaskTest extends BaseTierManagementTaskTest {
   public void before() throws Exception {
     ServerConfiguration.reset();
     // Current tier layout could end up swapping 2 blocks concurrently.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 2 * BLOCK_SIZE);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES,
+        2 * BLOCK_SIZE);
     // Disable promotions to avoid interference.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Initialize the tier layout.

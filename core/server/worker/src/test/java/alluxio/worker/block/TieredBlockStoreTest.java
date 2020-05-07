@@ -94,7 +94,7 @@ public final class TieredBlockStoreTest {
 
   private void init(long reservedBytes) throws Exception {
     // No reserved space for tests that are not swap related.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, reservedBytes);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());

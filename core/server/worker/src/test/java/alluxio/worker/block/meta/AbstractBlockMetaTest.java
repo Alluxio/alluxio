@@ -65,7 +65,7 @@ public class AbstractBlockMetaTest {
         TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES,
         TEST_TIER_MEDIUM_TYPES, null);
 
-    mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
+    mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS, false);
     mDir = mTier.getDir(0);
     mBlockMeta = new AbstractBlockMetaForTest(TEST_BLOCK_ID, mDir);
   }

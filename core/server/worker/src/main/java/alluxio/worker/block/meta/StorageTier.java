@@ -63,7 +63,7 @@ public final class StorageTier {
     mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
   }
 
-  private void initStorageTier()
+  private void initStorageTier(boolean isMultiTier)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     String tmpDir = ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
@@ -87,8 +87,13 @@ public final class StorageTier {
         "Tier medium type configuration should not be blank");
     String[] dirMedium = rawDirMedium.split(",");
 
-    long reservedSpaceBytes =
-        ServerConfiguration.getBytes(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES);
+    // Set reserved bytes on directories if tier aligning is enabled.
+    long reservedBytes = 0;
+    if (isMultiTier
+        && ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)) {
+      reservedBytes =
+          ServerConfiguration.getBytes(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES);
+    }
 
     mDirs = new HashMap<>(dirPaths.length);
     mLostStorage = new ArrayList<>();
@@ -99,7 +104,7 @@ public final class StorageTier {
       int mediumTypeindex = i >= dirMedium.length ? dirMedium.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, reservedSpaceBytes,
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths[i], dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.put(i, dir);
@@ -184,14 +189,15 @@ public final class StorageTier {
    * Factory method to create {@link StorageTier}.
    *
    * @param tierAlias the tier alias
+   * @param isMultiTier whether this tier is part of a multi-tier setup
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
-  public static StorageTier newStorageTier(String tierAlias)
+  public static StorageTier newStorageTier(String tierAlias, boolean isMultiTier)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     StorageTier ret = new StorageTier(tierAlias);
-    ret.initStorageTier();
+    ret.initStorageTier(isMultiTier);
     return ret;
   }
 

@@ -38,7 +38,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTaskTest {
     // Disable move task to avoid interference.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Current tier layout could end up swapping 1 big block.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, BLOCK_SIZE);
     // Initialize the tier layout.
     init();
   }
