@@ -143,7 +143,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioJniFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+  public AlluxioJniFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts,
+      AlluxioConfiguration conf) {
     super();
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;

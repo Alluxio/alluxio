@@ -32,7 +32,6 @@ struct  ThreadData {
   JNIEnv *attachedEnv;
 };
 
-
 class JniFuseFileSystem {
  private:
   JniFuseFileSystem();

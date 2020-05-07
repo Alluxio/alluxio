@@ -401,12 +401,13 @@ public class AlluxioJniFuseFileSystemTest {
 
     // prepare something to read to it
     ByteBuffer ptr = ByteBuffer.allocateDirect(4);
-    ptr.clear();
+    assertEquals(4, ptr.limit());
 
     // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
 
     mFuseFs.read("/foo/bar", ptr, 4, 0, mFileInfo);
+    ptr.flip();
     final byte[] dst = new byte[4];
     ptr.get(dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
@@ -472,9 +473,9 @@ public class AlluxioJniFuseFileSystemTest {
 
     // prepare something to write into it
     ByteBuffer ptr = ByteBuffer.allocateDirect(4);
-    ptr.clear();
     byte[] expected = {42, -128, 1, 3};
     ptr.put(expected, 0, 4);
+    ptr.flip();
 
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
     verify(fos).write(expected);
