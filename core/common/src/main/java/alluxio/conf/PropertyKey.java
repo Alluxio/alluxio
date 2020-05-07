@@ -2375,8 +2375,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
-      new Builder(Name.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES)
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES)
           .setDefaultValue("1GB")
           .setDescription("The amount of space that is reserved from each storage directory "
               + "for internal management tasks.")
@@ -4988,8 +4988,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
-    public static final String WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
-        "alluxio.worker.management.reserved.space.bytes";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
+        "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
         "alluxio.worker.management.backoff.strategy";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =

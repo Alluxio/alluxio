@@ -56,7 +56,7 @@ public class BlockMetaTest {
         TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DIR);
 
     mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DIR);
-    StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
+    StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS, false);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }

@@ -60,7 +60,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
-          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, String.valueOf(0))
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
           .build();
 
   @Before

@@ -32,8 +32,6 @@ public class PromoteTaskTest extends BaseTierManagementTaskTest {
     ServerConfiguration.reset();
     // Disable tier alignment to avoid interference.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    // Disable reserved space for easy measurement.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 0);
     // Set promotion quota percentage.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT,
         MOVE_QUOTA_PERCENT);
