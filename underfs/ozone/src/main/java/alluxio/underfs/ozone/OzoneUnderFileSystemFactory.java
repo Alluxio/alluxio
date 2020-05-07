@@ -11,6 +11,14 @@ import com.google.common.base.Throwables;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * Factory for creating {@link OzoneUnderFileSystem}.
+ *
+ * It caches created {@link OzoneUnderFileSystem}s, using the scheme and authority pair as the key.
+ */
+@ThreadSafe
 public class OzoneUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
