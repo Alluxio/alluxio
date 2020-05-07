@@ -169,7 +169,7 @@ public final class ShellUtils {
    */
   public static boolean isAlluxioRunning(String className) {
     String[] command = {"bash", "-c",
-            "ps -Aww -o command | grep -i \"[j]ava\" | grep " + className};
+        "ps -Aww -o command | grep -i \"[j]ava\" | grep " + className};
     try {
       Process p = Runtime.getRuntime().exec(command);
       try (InputStreamReader input = new InputStreamReader(p.getInputStream())) {
