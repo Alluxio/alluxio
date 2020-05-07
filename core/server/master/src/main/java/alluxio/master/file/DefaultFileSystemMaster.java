@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.SyncInfo;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
@@ -194,6 +195,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -384,11 +386,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
 
-  final ThreadPoolExecutor mMetadataSyncExecutor = new ThreadPoolExecutor(
+  final ThreadPoolExecutor mSyncMetadataExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-%d", false));
+
+  final ThreadPoolExecutor mActiveSyncMetadataExecutor = new ThreadPoolExecutor(
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+      1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+      ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -440,10 +448,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     mAccessTimeUpdater = new AccessTimeUpdater(this, mInodeTree, masterContext.getJournalSystem());
-
     // Sync executors should allow core threads to time out
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
-    mMetadataSyncExecutor.allowCoreThreadTimeOut(true);
+    mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
+    mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -674,8 +682,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mInodeTree.close();
     mInodeLockManager.close();
     try {
-      mMetadataSyncExecutor.shutdownNow();
-      mMetadataSyncExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      mSyncMetadataExecutor.shutdownNow();
+      mSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for metadata sync executor to shut down.");
@@ -2492,7 +2500,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       FileSystemMasterCommonPOptions commonOptions =
           context.getOptions().getCommonOptions();
       // load metadata only and force sync
-      InodeSyncStream sync = new InodeSyncStream(inodePath, mMetadataSyncExecutor,
+      InodeSyncStream sync = new InodeSyncStream(inodePath, mSyncMetadataExecutor,
           this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
           syncDescendantType, mUfsSyncPathCache, commonOptions, isGetFileInfo, true, true);
       if (!sync.sync()) {
@@ -3095,6 +3103,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } else {
       LOG.info("Start an active incremental sync of {} files", changedFiles.size());
     }
+    long start = System.currentTimeMillis();
 
     if (changedFiles != null && changedFiles.isEmpty()) {
       return;
@@ -3103,19 +3112,18 @@ public final class DefaultFileSystemMaster extends CoreMaster
     try (RpcContext rpcContext = createRpcContext()) {
       if (changedFiles == null) {
         // full sync
-        long start = System.currentTimeMillis();
-
         // Set sync interval to 0 to force a sync.
         FileSystemMasterCommonPOptions options =
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-        try {
-          syncMetadata(rpcContext, path, options, DescendantType.ALL, null, null, null);
-        } catch (AccessControlException e) {
-          // This shouldn never happen because the permission check function is passed as null.
-          LOG.error("Active sync full scan failed on {}", path, e);
+        LockingScheme scheme = createSyncLockingScheme(path, options);
+        try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)){
+          InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor, this,
+              mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext, DescendantType.ALL,
+              mUfsSyncPathCache, options, false, false, false);
+          sync.sync();
         }
-
-        LOG.info("Ended an active full sync of {}", path.toString());
+        long end = System.currentTimeMillis();
+        LOG.info("Ended an active full sync of {} in {}ms", path.toString(), end - start);
         return;
       } else {
         // incremental sync
@@ -3125,9 +3133,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
             // Set sync interval to 0 to force a sync.
             FileSystemMasterCommonPOptions options =
                 FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-            try {
-              syncMetadata(rpcContext, changedFile, options, DescendantType.ONE, null, null, null);
-            } catch (InvalidPathException | AccessControlException e) {
+            LockingScheme scheme = createSyncLockingScheme(changedFile, options);
+            try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)){
+              InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor,
+                  this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
+                  DescendantType.NONE, mUfsSyncPathCache, options, false, false, false);
+              sync.sync();
+            } catch (InvalidPathException e) {
               LogUtils.warnWithException(LOG,
                   "incremental active sync processed an invalid path {}", changedFile.getPath(), e);
             }
@@ -3144,10 +3156,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       return;
     }
     if (changedFiles != null) {
-      LOG.info("Ended an active incremental sync of {} files", changedFiles.size());
+      long end = System.currentTimeMillis();
+      LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
+          end - start);
     }
   }
-
   @Override
   public boolean recordActiveSyncTxid(long txId, long mountId) {
     MountInfo mountInfo = mMountTable.getMountInfo(mountId);
@@ -3167,7 +3180,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
           mountPath, e);
       return false;
     }
-
     return true;
   }
 
@@ -3223,7 +3235,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
         throw e;
       }
-      InodeSyncStream sync = new InodeSyncStream(inodePath, mMetadataSyncExecutor, this, mInodeTree,
+      InodeSyncStream sync = new InodeSyncStream(inodePath, mSyncMetadataExecutor, this, mInodeTree,
           mInodeStore, mInodeLockManager, mMountTable, rpcContext, syncDescendantType,
           mUfsSyncPathCache, options, isGetFileInfo, false, false);
       return sync.sync();

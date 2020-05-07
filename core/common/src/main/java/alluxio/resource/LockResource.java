@@ -11,11 +11,17 @@
 
 package alluxio.resource;
 
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 
@@ -31,6 +37,13 @@ import java.util.concurrent.locks.LockSupport;
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
+
+  private static final ExponentialTimeBoundedRetry.Builder sRetryBuilder =
+      ExponentialTimeBoundedRetry.builder()
+      .withInitialSleep(Duration.ofMillis(1))
+      .withMaxDuration(Duration.ofSeconds(10))
+      .withMaxSleep(Duration.ofMillis(256));
+
   private final Lock mLock;
 
   /**
@@ -58,11 +71,22 @@ public class LockResource implements Closeable {
     mLock = lock;
     if (acquireLock) {
       if (useTryLock) {
-        while (!mLock.tryLock()) { // returns immediately
-          // The reason we don't use #tryLock(int, TimeUnit) here is because we found there is a bug
-          // somewhere in the internal accounting of the ReentrantRWLock that, even though all
-          // threads had released the lock, that a final thread would never be able to acquire it.
-          LockSupport.parkNanos(10000);
+        RetryPolicy policy = sRetryBuilder.build();
+        // The reason we don't use #tryLock(int, TimeUnit) here is because we found there is a bug
+        // somewhere in the internal accounting of the ReentrantRWLock that, even though all
+        // threads had released the lock, that a final thread would never be able to acquire it.
+        boolean locked = false;
+        while(policy.attempt()) {
+          if (mLock.tryLock()) { // returns immediately
+            locked = true;
+            break;
+          }
+          if (Thread.currentThread().isInterrupted()) {
+            break;
+          }
+        }
+        if (!locked) {
+          throw new IllegalStateException("Failed to acquire lock");
         }
       } else {
         mLock.lock();

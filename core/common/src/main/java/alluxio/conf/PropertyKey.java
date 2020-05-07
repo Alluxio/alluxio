@@ -2002,6 +2002,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
+          .setDefaultValue("1024")
+          .setDescription("The number of event batches that should be submitted together to a "
+              + "single thread for processing.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
           .setDefaultValue(1000000)
@@ -4947,6 +4956,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
         "alluxio.master.ufs.active.sync.retry.timeout";
+    public static final String MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+        "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =

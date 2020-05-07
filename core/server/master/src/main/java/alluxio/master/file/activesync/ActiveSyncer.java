@@ -23,15 +23,21 @@ import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 
+import alluxio.util.LogUtils;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,6 +52,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
   private final ActiveSyncManager mSyncManager;
   private final MountTable mMountTable;
   private final long mMountId;
+  private final Queue<CompletableFuture<?>> mSyncTasks;
 
   /**
    * Constructs a new {@link ActiveSyncer}.
@@ -61,10 +68,14 @@ public class ActiveSyncer implements HeartbeatExecutor {
     mSyncManager = syncManager;
     mMountId = mountId;
     mMountTable = mountTable;
+    mSyncTasks = new LinkedBlockingQueue<>(32);
   }
 
   @Override
   public void heartbeat() {
+    while(mSyncTasks.peek() != null && mSyncTasks.peek().isDone()) {
+      mSyncTasks.poll();
+    }
     LOG.debug("start Active Syncer heartbeat");
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
@@ -74,7 +85,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
     }
 
     try {
-      UfsManager.UfsClient ufsclient = mMountTable.getUfsClient(mMountId);
+      UfsManager.UfsClient ufsclient = Objects.requireNonNull(mMountTable.getUfsClient(mMountId));
       try (CloseableResource<UnderFileSystem> ufsResource = ufsclient.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufs.supportsActiveSync()) {
@@ -82,21 +93,40 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
           // Parallelize across sync points
-          List<Callable<Void>> tasksPerSyncPoint = new ArrayList<>(ufsSyncPoints.size());
+          List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-            tasksPerSyncPoint.add(() -> {
+            tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
               processSyncPoint(ufsUri, syncInfo);
-              return null;
-            });
+              return syncInfo.getTxId();
+              }, mSyncManager.getExecutor()));
+
           }
-          mSyncManager.getExecutor().invokeAll(tasksPerSyncPoint);
           // Journal the latest processed txId
-          mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
+          CompletableFuture<Void> syncTask =
+              CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
+              .thenRunAsync(() -> mFileSystemMaster
+                      .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
+                  mSyncManager.getExecutor());
+          while(!mSyncTasks.offer(syncTask)) {
+            try {
+              CompletableFuture<?> task = mSyncTasks.poll();
+              if (task == null) {
+                // If the task can't be tracked, then we shouldn't let it run.
+                syncTask.cancel(true);
+                throw new IllegalStateException("Failed to add sync task to queue, but queue head "
+                    + "returned null");
+              } else {
+                task.get();
+              }
+            } catch (InterruptedException | ExecutionException e) {
+              LogUtils.warnWithException(LOG, "Failed while waiting on task to add new task to "
+                  + "head of queue", e);
+              if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+              }
+            }
+          }
         }
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted while submitting active sync change job to master", e);
-        Thread.currentThread().interrupt();
-        return;
       }
     } catch (IOException e) {
       LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
@@ -131,8 +161,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
         LOG.debug("incremental sync {}", ufsUri.toString());
         RetryUtils.retry("Incremental Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri,
-              syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                  .map((uri) -> mMountTable.reverseResolve(uri).getUri())
+              syncInfo.getChangedFiles(ufsUri).stream()
+                  .map((uri) -> Objects.requireNonNull(mMountTable.reverseResolve(uri)).getUri())
                   .collect(Collectors.toSet()),
               mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
