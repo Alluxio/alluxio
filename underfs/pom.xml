@@ -33,7 +33,6 @@
     <module>swift</module>
     <module>wasb</module>
     <module>web</module>
-    <module>ozone</module>
   </modules>
 
   <properties>
