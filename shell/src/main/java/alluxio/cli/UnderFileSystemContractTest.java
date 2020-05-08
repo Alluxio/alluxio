@@ -77,12 +77,12 @@ public final class UnderFileSystemContractTest {
 
     mUfs = UnderFileSystem.Factory.create(mUfsPath, ufsConf);
 
-    runCommonOperations();
+    int failedCnt = runCommonOperations();
 
     if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
-      runS3Operations();
+      failedCnt += runS3Operations();
     }
-    System.out.println("All tests passed!");
+    System.out.printf("Tests completed with %d failed.%n", failedCnt);
   }
 
   private UnderFileSystemConfiguration getUfsConf() {
@@ -93,13 +93,13 @@ public final class UnderFileSystemContractTest {
             .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
-  private void runCommonOperations() throws Exception {
+  private int runCommonOperations() throws Exception {
     String testDir = createTestDirectory();
-    loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
+    return loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
         testDir);
   }
 
-  private void runS3Operations() throws Exception {
+  private int runS3Operations() throws Exception {
     mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
@@ -108,7 +108,7 @@ public final class UnderFileSystemContractTest {
     mUfs = UnderFileSystem.Factory.create(mUfsPath, getUfsConf());
 
     String testDir = createTestDirectory();
-    loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
+    return loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
   }
 
   /**
@@ -116,10 +116,13 @@ public final class UnderFileSystemContractTest {
    *
    * @param operations the class that contains the tests to run
    * @param testDir the test directory to run tests against
+   * @return the number of failed tests
    */
-  private void loadAndRunTests(Object operations, String testDir) throws Exception {
+  private int loadAndRunTests(Object operations, String testDir) throws Exception {
+    int failedTestCnt = 0;
     try {
       Class classToRun = operations.getClass();
+      // TODO(jiacheng): dont think we need this?
       Field[] fields = classToRun.getDeclaredFields();
       for (Field field : fields) {
         field.setAccessible(true);
@@ -129,21 +132,29 @@ public final class UnderFileSystemContractTest {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
           System.out.printf("Running test: %s...", testName);
+          boolean passed = false;
           try {
             test.invoke(operations);
-          } catch (InvocationTargetException e) {
+            passed = true;
+            cleanupUfs(testDir);
+          } catch (Exception e) {
+            // TODO(jiacheng): do we need this?
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
               logRelatedS3Operations(test);
             }
-            throw new IOException(e.getTargetException());
+            System.err.format("Test %s.%s aborted%n%s", test.getClass(), test.getName(), e);
+          } finally {
+            RunTestUtils.printPassInfo(passed);
+            if (!passed) {
+              failedTestCnt++;
+            }
           }
-          System.out.println("Test Passed!");
-          cleanupUfs(testDir);
         }
       }
     } finally {
       mUfs.deleteDirectory(testDir, DeleteOptions.defaults().setRecursive(true));
       mUfs.close();
+      return failedTestCnt;
     }
   }
 
