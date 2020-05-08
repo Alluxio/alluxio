@@ -172,9 +172,14 @@ For further information, visit our Hive on Alluxio
 {% endnavtab %}
 {% navtab Presto %}
 
-Note: 
-* Initialization actions are executed sequentially and Presto installation must precede Alluxio.
-* The Presto initialization action should install in the home directory `/opt/presto-server`.
+Note: There are two ways to install Presto on Dataproc.
+* [Optional Component for Presto](https://cloud.google.com/dataproc/docs/concepts/components/presto)
+is the default Presto configuration with the install home as `/usr/lib/presto`.
+To use this mechanism, no additional configuration is needed for the Alluxio initialization action.
+* If using an initialization action to install an alternate distribution of Presto, override the
+default home directory as it differs from the install home for the optional component.
+Set the metadata label `alluxio_presto_home=/opt/presto-server` with the `gcloud clusters create`
+command to ensure Presto is configured to use Alluxio.
 
 To test Presto on Alluxio, simply run a query on the table created in the Hive section above:
 ```console
