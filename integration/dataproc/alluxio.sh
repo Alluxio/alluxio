@@ -22,7 +22,7 @@ readonly ALLUXIO_LICENSE_BASE64="$(/usr/share/google/get_metadata_value attribut
 readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
-readonly PRESTO_HOME="${PRESTO_HOME:-"/opt/presto-server"}"
+readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
 readonly ALLUXIO_VERSION="2.3.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
@@ -216,11 +216,9 @@ EOF
   if [[ "${ROLE}" == "Master" ]]; then
     systemctl restart hive-metastore hive-server2
   fi
-  if [[ -d ${PRESTO_HOME} ]]; then
-    mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
-    ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
-    systemctl restart presto
-  fi
+  mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
+  ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
+  systemctl restart presto || echo "Presto service cannot be restarted"
 
   # Add ${ALLUXIO_HOME}/bin to PATH for all users
   echo "export PATH=$PATH:${ALLUXIO_HOME}/bin" | sudo tee /etc/profile.d/alluxio.sh
