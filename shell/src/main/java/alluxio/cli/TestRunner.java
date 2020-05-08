@@ -24,11 +24,9 @@ import alluxio.util.io.PathUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Lists;
-import sun.rmi.runtime.Log;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -157,12 +155,12 @@ public final class TestRunner {
     boolean result = true;
     switch (opType) {
       case BASIC:
-        result = RunTestUtils.runExample(new BasicOperations(filePath, readType, writeType, fsContext));
+        result = RunTestUtils.runExample(
+          new BasicOperations(filePath, readType, writeType, fsContext));
         break;
       case BASIC_NON_BYTE_BUFFER:
-        result = RunTestUtils
-            .runExample(new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20,
-             fsContext));
+        result = RunTestUtils.runExample(
+          new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20, fsContext));
         break;
       default:
         System.out.println("Unrecognized operation type " + opType);
