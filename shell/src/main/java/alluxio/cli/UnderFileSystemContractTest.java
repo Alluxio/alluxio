@@ -122,11 +122,6 @@ public final class UnderFileSystemContractTest {
     int failedTestCnt = 0;
     try {
       Class classToRun = operations.getClass();
-      // TODO(jiacheng): dont think we need this?
-      Field[] fields = classToRun.getDeclaredFields();
-      for (Field field : fields) {
-        field.setAccessible(true);
-      }
       Method[] tests = classToRun.getDeclaredMethods();
       for (Method test : tests) {
         String testName = test.getName();
@@ -138,7 +133,6 @@ public final class UnderFileSystemContractTest {
             passed = true;
             cleanupUfs(testDir);
           } catch (Exception e) {
-            // TODO(jiacheng): do we need this?
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
               logRelatedS3Operations(test);
             }
