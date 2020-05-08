@@ -59,7 +59,7 @@ The Alluxio deployment on Google Dataproc can customized for more complex scenar
 additional metadata labels to the `gcloud clusters create` command.
 {% accordion download %}
   {% collapsible Enable Active Sync on HDFS Paths %}
-[Active Sync]({{ '/en/core-services/Unified-Namespace.html?q=active%20sync#metadata-active-sync-for-hdfs' | relativize_url}}) 
+[Active Sync]({{ '/en/core-services/Unified-Namespace.html#metadata-active-sync-for-hdfs' | relativize_url}})
 can be enabled on paths in Alluxio for a root HDFS mount point using the metadata key
 `alluxio_sync_list`.
 Specify a list of paths in Alluxio delimited using `;`.
