@@ -19,80 +19,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "JniFuseFileSystem.h"
 #include "debug.h"
+#include "jnifuse_fs.h"
+#include "jnifuse_impls.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static int getattr_wrapper(const char *path, struct stat *stbuf) {
-  LOGD("getattr %s", path);
-
-  int ret =
-      jnifuse::JniFuseFileSystem::getInstance()->getattrOper->call(path, stbuf);
-
-  LOGD("file %s: size=%ld, mod=%d", path, stbuf->st_size, stbuf->st_mode);
-
-  return ret;
-}
-
-static int open_wrapper(const char *path, struct fuse_file_info *fi) {
-  LOGD("open %s", path);
-
-  int ret = jnifuse::JniFuseFileSystem::getInstance()->openOper->call(path, fi);
-
-  return ret;
-}
-
-static int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
-                        struct fuse_file_info *fi) {
-  LOGD("read: %s", path);
-
-  int ret = jnifuse::JniFuseFileSystem::getInstance()->readOper->call(
-      path, buf, size, offset, fi);
-
-  LOGD("nread=%d", ret);
-
-  return ret;
-}
-
-static int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
-                           off_t offset, struct fuse_file_info *fi) {
-  LOGD("readdir: %s", path);
-
-  int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(
-      path, buf, filler, offset, fi);
-
-  return ret;
-}
-
-static int unlink_wrapper(const char *path) {
-  return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
-}
-
-static int flush_wrapper(const char *path, struct fuse_file_info *fi) {
-  return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
-}
-
-static int release_wrapper(const char *path, struct fuse_file_info *fi) {
-  return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
-}
-
-// TODO: Add more operations
 static struct fuse_operations jnifuse_oper;
 
 JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     JNIEnv *env, jobject libfuseobj, jobject obj, jint jargc,
     jobjectArray jargv) {
   LOGD("enter fuse_main_real");
-
-  jnifuse::JniFuseFileSystem *fs = jnifuse::JniFuseFileSystem::getInstance();
-  fs->init(env, obj);
+  jnifuse::JniFuseFileSystem::init(env, obj);
 
   int argc = jargc;
   LOGD("argc=%d", argc);
-
   char **argv = (char **)malloc(sizeof(char *) * argc);
   int i;
   for (i = 0; i < argc; i++) {
@@ -108,9 +52,15 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.unlink = unlink_wrapper;
   jnifuse_oper.flush = flush_wrapper;
   jnifuse_oper.release = release_wrapper;
+  jnifuse_oper.create = create_wrapper;
+  jnifuse_oper.mkdir = mkdir_wrapper;
+  jnifuse_oper.rmdir = rmdir_wrapper;
+  jnifuse_oper.write = write_wrapper;
 
-  return fuse_main_real(argc, argv, &jnifuse_oper,
-                        sizeof(struct fuse_operations), NULL);
+  int ret = fuse_main_real(argc, argv, &jnifuse_oper,
+                           sizeof(struct fuse_operations), NULL);
+  free(argv);
+  return ret;
 }
 
 jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jobject obj,

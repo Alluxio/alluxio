@@ -27,7 +27,7 @@ endif
 
 CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
 LDFLAGS = -shared ${FUSE_LIBS}
-OBJS = JniFuseHelper.o JniFuseFileSystem.o
+OBJS = jnifuse_helper.o jnifuse_fs.o jnifuse_impls.o operation.o
 
 ${TARGET_LIB}: ${OBJS}
 	${CXX} ${CXXFLAGS} ${LDFLAGS} -o ${TARGET_LIB} ${OBJS}

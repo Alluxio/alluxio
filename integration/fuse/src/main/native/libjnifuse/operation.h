@@ -9,54 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef _JNI_FUSE_FILE_SYSTEM_H
-#define _JNI_FUSE_FILE_SYSTEM_H
-
-#include <fuse.h>
+#ifndef _OPERATION_H
+#define _OPERATION_H
 
 #include "jni.h"
+#include "jnifuse_fs.h"
 
 namespace jnifuse {
 
-class GetattrOperation;
-class OpenOperation;
-class Operation;
-class ReaddirOperation;
-class ReadOperation;
-class UnlinkOperation;
-class FlushOperation;
-class ReleaseOperation;
-
-struct  ThreadData {
-  JavaVM *attachedJVM;
-  JNIEnv *attachedEnv;
-};
-
-class JniFuseFileSystem {
- private:
-  JniFuseFileSystem();
-  ~JniFuseFileSystem();
-
- public:
-  static JniFuseFileSystem *getInstance();
-  void init(JNIEnv *env, jobject obj);
-  JNIEnv *getEnv();
-  JavaVM *getJVM();
-  jobject getFSObj();
-
- private:
-  JavaVM *jvm;
-  jobject fs;
-
- public:
-  GetattrOperation *getattrOper;
-  OpenOperation *openOper;
-  ReadOperation *readOper;
-  ReaddirOperation *readdirOper;
-  UnlinkOperation *unlinkOper;
-  FlushOperation *flushOper;
-  ReleaseOperation *releaseOper;
-};
+class JniFuseFileSystem;
 
 class Operation {
  protected:
@@ -117,6 +78,61 @@ class ReleaseOperation : public Operation {
  public:
   ReleaseOperation(JniFuseFileSystem *fs);
   int call(const char *path, struct fuse_file_info *fi);
+};
+
+class ChmodOperation : public Operation {
+ public:
+  ChmodOperation(JniFuseFileSystem *fs);
+  int call(const char *path, mode_t mode);
+};
+
+class ChownOperation : public Operation {
+ public:
+  ChownOperation(JniFuseFileSystem *fs);
+  int call(const char *path, uid_t uid, gid_t gid);
+};
+
+class CreateOperation : public Operation {
+ public:
+  CreateOperation(JniFuseFileSystem *fs);
+  int call(const char *path, mode_t mode, struct fuse_file_info *fi);
+};
+
+class MkdirOperation : public Operation {
+ public:
+  MkdirOperation(JniFuseFileSystem *fs);
+  int call(const char *path, mode_t mode);
+};
+
+class RenameOperation : public Operation {
+ public:
+  RenameOperation(JniFuseFileSystem *fs);
+  int call(const char *oldPath, const char *newPath);
+};
+
+class RmdirOperation : public Operation {
+ public:
+  RmdirOperation(JniFuseFileSystem *fs);
+  int call(const char *path);
+};
+
+class StatfsOperation : public Operation {
+ public:
+  StatfsOperation(JniFuseFileSystem *fs);
+  int call(const char *path, struct statvfs *st);
+};
+
+class TruncateOperation : public Operation {
+ public:
+  TruncateOperation(JniFuseFileSystem *fs);
+  int call(const char *path, off_t off);
+};
+
+class WriteOperation : public Operation {
+ public:
+  WriteOperation(JniFuseFileSystem *fs);
+  int call(const char *path, const char *buf, size_t size, off_t off,
+           struct fuse_file_info *fi);
 };
 
 }  // namespace jnifuse
