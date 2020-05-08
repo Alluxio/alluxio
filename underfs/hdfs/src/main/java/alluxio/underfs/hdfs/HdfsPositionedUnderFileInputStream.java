@@ -90,32 +90,29 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     }
     if (bytesRead > 0) {
       mPos += bytesRead;
+      mSequentialReadCount++;
     }
-    mSequentialReadCount++;
     return bytesRead;
   }
 
   @Override
   public void seek(long position) throws IOException {
-    if (Math.abs(position - mPos) > MOVEMENT_LIMIT) {
+    if (position < mPos || position - mPos > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
-    } else {
-      ((FSDataInputStream) in).seek(position);
     }
     mPos = position;
   }
 
   @Override
   public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
     if (n > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
-      mPos += n;
-      return n;
-    } else {
-      long skipped = ((FSDataInputStream) in).skip(n);
-      mPos += skipped;
-      return skipped;
     }
+    mPos += n;
+    return n;
   }
 
   @Override
