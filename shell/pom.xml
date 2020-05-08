@@ -51,14 +51,18 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
-   <dependency>
-     <groupId>org.apache.httpcomponents</groupId>
-     <artifactId>httpclient</artifactId>
-   </dependency>
-   <dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
+    <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
-   </dependency>
+    </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
@@ -82,8 +86,8 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
     </dependency>
 
       <!-- Test dependencies -->

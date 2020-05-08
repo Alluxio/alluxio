@@ -21,10 +21,10 @@ import java.util.concurrent.Callable;
 /**
  * Utilities to run the examples.
  */
-public final class CliUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(CliUtils.class);
+public final class RunTestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(RunTestUtils.class);
 
-  private CliUtils() {} // prevent instantiation
+  private RunTestUtils() {} // prevent instantiation
 
   /**
    * Prints information of the test result.
@@ -53,7 +53,7 @@ public final class CliUtils {
       LOG.error("Exception running test: " + example, e);
       result = false;
     }
-    CliUtils.printPassInfo(result);
+    RunTestUtils.printPassInfo(result);
     return result;
   }
 }
