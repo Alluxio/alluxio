@@ -42,7 +42,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -170,10 +169,10 @@ public class UfsStatusCacheTest {
         try {
           mCache.fetchChildrenIfAbsent(new AlluxioURI("/"), mMountTable);
           fail("Should not have been able to fetch children");
-        } catch (IOException | InvalidPathException e) {
+        } catch (InterruptedException | InvalidPathException e) {
           // Assert interrupted flag was set properly.
           assertTrue(Thread.currentThread().isInterrupted());
-          assertTrue(e instanceof IOException);
+          assertTrue(e instanceof InterruptedException);
         }
       } catch (AssertionError err) {
         ref.set(err);
@@ -209,12 +208,12 @@ public class UfsStatusCacheTest {
     Thread t = new Thread(() -> {
       try {
         try {
-          mCache.fetchChildrenIfAbsent(new AlluxioURI("/"), mMountTable, false);
-          fail("Should not have been able to fetch children");
-        } catch (IOException | InvalidPathException e) {
+          assertNull("Should return null when fetching children",
+              mCache.fetchChildrenIfAbsent(new AlluxioURI("/"), mMountTable, false));
+        } catch (InterruptedException | InvalidPathException e) {
           // Thread should not be interrupted if interrupt not called
           assertFalse(Thread.currentThread().isInterrupted());
-          assertTrue(e instanceof IOException);
+          assertTrue(e instanceof InterruptedException);
         }
       } catch (AssertionError err) {
         ref.set(err);

@@ -153,7 +153,7 @@ public class UfsStatusCache {
   @Nullable
   public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable,
       boolean useFallback)
-      throws IOException, InvalidPathException {
+      throws InterruptedException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
       try {
@@ -163,8 +163,8 @@ public class UfsStatusCache {
             path, e);
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
+          throw (InterruptedException) e;
         }
-        throw new IOException(e);
       } finally {
         mActivePrefetchJobs.remove(path);
       }
@@ -192,7 +192,7 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws IOException, InvalidPathException {
+      throws InterruptedException, InvalidPathException {
     return fetchChildrenIfAbsent(path, mountTable, true);
   }
 

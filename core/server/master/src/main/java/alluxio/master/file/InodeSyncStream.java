@@ -257,8 +257,8 @@ public class InodeSyncStream {
         throw new RuntimeException(e);
       }
     } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
-        | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
-        | IOException e) {
+        | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
+        | InvalidPathException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);
     } finally {
@@ -382,8 +382,8 @@ public class InodeSyncStream {
       syncInodeMetadata(inodePath);
       return true;
     } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
-        | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
-        | IOException e) {
+        | FileDoesNotExistException | InterruptedException | InvalidFileSizeException
+        | InvalidPathException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to process sync path: {}", path, e);
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
@@ -394,7 +394,8 @@ public class InodeSyncStream {
 
   private void syncInodeMetadata(LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
-      FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
+      FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException,
+      InterruptedException {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
     }
@@ -408,7 +409,8 @@ public class InodeSyncStream {
    */
   private void syncExistingInodeMetadata(LockedInodePath inodePath)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
-      FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
+      FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException,
+      InterruptedException {
     if (inodePath.getLockPattern() != LockPattern.WRITE_EDGE && !mLoadOnly) {
       throw new RuntimeException(String.format(
           "syncExistingInodeMetadata was called on %s when only locked with %s. Load metadata"
@@ -654,10 +656,10 @@ public class InodeSyncStream {
           mInodeTree.setDirectChildrenLoaded(mRpcContext, inodePath.getInode().asDirectory());
         }
       }
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       LOG.debug("Failed to loadMetadata: inodePath={}, context={}.", inodePath.getUri(), context,
           e);
-      throw e;
+      throw new IOException(e);
     }
   }
 
