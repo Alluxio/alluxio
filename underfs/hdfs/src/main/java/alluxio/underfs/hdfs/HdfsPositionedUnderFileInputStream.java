@@ -16,10 +16,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.hdfs.client.HdfsDataInputStream;
-import org.slf4j.Logger;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 
 /**
@@ -29,15 +26,19 @@ import java.io.IOException;
 public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
   private static final int SEQUENTIAL_READ_LIMIT = 3;
   private static final int MOVEMENT_LIMIT = 512;
+
   private long mPos;
+  // The heuristic is that if there are certain number of sequential reads in a row,
+  // we switch to buffered read mode. In this mode, preads are serviced via pread calls,
+  // and read calls are services by read calls. A sequential read is defined as a read that
+  // is within a movement limit of the previous read. This is to guard against workloads
+  // such as read, skip(2), read, skip(3) etc.
   private int mSequentialReadCount;
-  private long mLastRead;
 
   HdfsPositionedUnderFileInputStream(FSDataInputStream in, long pos) {
     super(in);
     mPos = pos;
     mSequentialReadCount = 0;
-    mLastRead = pos;
   }
 
   @Override
@@ -102,7 +103,6 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
       ((FSDataInputStream) in).seek(position);
     }
     mPos = position;
-
   }
 
   @Override
