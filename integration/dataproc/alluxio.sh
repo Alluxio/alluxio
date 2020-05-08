@@ -105,6 +105,15 @@ start_alluxio() {
   if [[ "${ROLE}" == "Master" ]]; then
     ${ALLUXIO_HOME}/bin/alluxio formatMaster
     systemctl restart alluxio-master alluxio-job-master
+
+    local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
+    local path_delimiter=";"
+    if [[ "${sync_list}" ]]; then
+      IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
+      for path in "${paths[@]}"; do
+        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
+      done
+    fi
   else
     if [[ $(get_alluxio_property alluxio.worker.tieredstore.level0.alias) == "MEM" ]]; then
       ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
@@ -312,7 +321,8 @@ configure_alluxio() {
   append_alluxio_property alluxio.master.security.impersonation.client.users "*"
   append_alluxio_property alluxio.master.security.impersonation.client.groups "*"
   append_alluxio_property alluxio.security.login.impersonation.username "_NONE_"
-  append_alluxio_property alluxio.security.authorization.permission.enabled "false"
+  append_alluxio_property alluxio.security.authorization.permission.enabled "true"
+  append_alluxio_property alluxio.user.rpc.retry.max.duration "10min"
   local -r site_properties=$(/usr/share/google/get_metadata_value attributes/alluxio_site_properties || true)
   local property_delimiter=";"
   if [[ "${site_properties}" ]]; then
