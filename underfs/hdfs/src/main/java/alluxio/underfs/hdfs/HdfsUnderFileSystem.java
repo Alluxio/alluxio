@@ -570,7 +570,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
 
       LOG.info("test2" + blockLocations.length);
+
       for (BlockLocation loc : blockLocations) {
+        LOG.info("localHost: " + localHost + " block hosts" + Arrays.toString(loc.getHosts()));
         if (Arrays.stream(loc.getHosts()).noneMatch(localHost::equals)) {
           // Some blocks are remote only, use pread api to HDFS
           return false;

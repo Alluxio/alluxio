@@ -16,7 +16,10 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.hdfs.client.HdfsDataInputStream;
+import org.slf4j.Logger;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 
 /**
@@ -24,11 +27,17 @@ import java.io.IOException;
  * uses the positionedRead {@link FSDataInputStream} API. This stream can be cached for reuse.
  */
 public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
+  private static final int SEQUENTIAL_READ_LIMIT = 3;
+  private static final int MOVEMENT_LIMIT = 512;
   private long mPos;
+  private int mSequentialReadCount;
+  private long mLastRead;
 
   HdfsPositionedUnderFileInputStream(FSDataInputStream in, long pos) {
     super(in);
     mPos = pos;
+    mSequentialReadCount = 0;
+    mLastRead = pos;
   }
 
   @Override
@@ -61,24 +70,52 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     return read(b, 0, b.length);
   }
 
+  /**
+   * If there has been a number of sequential reads in a row,
+   * we move to regular buffered reads.
+   */
   @Override
   public int read(byte[] buffer, int offset, int length) throws IOException {
-    int bytesRead = ((FSDataInputStream) in).read(mPos, buffer, offset, length);
+    int bytesRead;
+    if (mSequentialReadCount >= SEQUENTIAL_READ_LIMIT) {
+      ((FSDataInputStream) in).seek(mPos);
+      mSequentialReadCount = 0;
+    }
+    if (mPos == ((FSDataInputStream) in).getPos()) {
+      // same position, use buffered reads as default
+      bytesRead = in.read(buffer, offset, length);
+    } else {
+      bytesRead = ((FSDataInputStream) in).read(mPos, buffer, offset, length);
+    }
     if (bytesRead > 0) {
       mPos += bytesRead;
     }
+    mSequentialReadCount++;
     return bytesRead;
   }
 
   @Override
   public void seek(long position) throws IOException {
+    if (Math.abs(position - mPos) > MOVEMENT_LIMIT) {
+      mSequentialReadCount = 0;
+    } else {
+      ((FSDataInputStream) in).seek(position);
+    }
     mPos = position;
+
   }
 
   @Override
   public long skip(long n) throws IOException {
-    mPos += n;
-    return n;
+    if (n > MOVEMENT_LIMIT) {
+      mSequentialReadCount = 0;
+      mPos += n;
+      return n;
+    } else {
+      long skipped = ((FSDataInputStream) in).skip(n);
+      mPos += skipped;
+      return skipped;
+    }
   }
 
   @Override
