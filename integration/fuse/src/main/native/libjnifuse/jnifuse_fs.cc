@@ -58,7 +58,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->getattrOper;
   delete this->openOper;
   delete this->readOper;
-  delete this->readOper;
+  delete this->readdirOper;
   delete this->unlinkOper;
   delete this->flushOper;
   delete this->releaseOper;
@@ -70,7 +70,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   if (instance != nullptr) {
-    LOGE("you cant initilize more than one time");
+    LOGE("you cant initilize more than once");
   }
   pthread_key_create(&jffs_threadKey, thread_data_free);
   instance = new JniFuseFileSystem(env, obj);
@@ -90,9 +90,6 @@ JNIEnv *JniFuseFileSystem::getEnv() {
     td = new ThreadData();
     td->attachedJVM = this->jvm;
     this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
-    if (td->attachedEnv->ExceptionCheck()) {
-      LOGE("getEnv");
-    }
     pthread_setspecific(jffs_threadKey, td);
     return td->attachedEnv;
   }

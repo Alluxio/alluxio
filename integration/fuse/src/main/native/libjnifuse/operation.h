@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef _OPERATION_H
-#define _OPERATION_H
+#ifndef FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_
+#define FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_
 
 #include "jni.h"
 #include "jnifuse_fs.h"
@@ -137,4 +137,4 @@ class WriteOperation : public Operation {
 
 }  // namespace jnifuse
 
-#endif
+#endif  // FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_

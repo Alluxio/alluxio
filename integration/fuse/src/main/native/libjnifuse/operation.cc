@@ -28,11 +28,7 @@ Operation::~Operation() {}
 GetattrOperation::GetattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = this->fs->getEnv();
-  if (env->ExceptionCheck()) {
-    LOGE("exception");
-  }
   this->obj = this->fs->getFSObj();
-  LOGD("Getattr, obj=0x%lx", this->obj);
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
   this->methodID = env->GetMethodID(this->clazz, "getattrCallback", signature);
@@ -94,7 +90,6 @@ int ReadOperation::call(const char *path, char *buf, size_t size, off_t offset,
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size,
                                offset, fibuf);
-
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(buffer);
   env->DeleteLocalRef(fibuf);
@@ -111,7 +106,6 @@ ReaddirOperation::ReaddirOperation(JniFuseFileSystem *fs) {
       "(Ljava/lang/String;JLalluxio/jnifuse/FuseFillDir;JLjava/nio/"
       "ByteBuffer;)I";
   this->methodID = env->GetMethodID(this->clazz, "readdirCallback", signature);
-
   this->fillerclazz = env->FindClass("alluxio/jnifuse/FuseFillDir");
   this->fillerconstructor = env->GetMethodID(fillerclazz, "<init>", "(J)V");
 }
@@ -127,7 +121,6 @@ int ReaddirOperation::call(const char *path, void *buf, fuse_fill_dir_t filler,
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buf,
                                fillerobj, offset, fibuf);
-
   env->DeleteLocalRef(fillerobj);
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);

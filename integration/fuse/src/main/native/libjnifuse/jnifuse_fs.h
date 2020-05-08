@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef _JNI_FUSE_FILE_SYSTEM_H
-#define _JNI_FUSE_FILE_SYSTEM_H
+#ifndef FUSE_NATIVE_LIBJNIFUSE_FS_H_
+#define FUSE_NATIVE_LIBJNIFUSE_FS_H_
 
 #include <fuse.h>
 
@@ -19,17 +19,17 @@
 
 namespace jnifuse {
 
+class CreateOperation;
+class FlushOperation;
 class GetattrOperation;
+class MkdirOperation;
 class OpenOperation;
 class Operation;
 class ReaddirOperation;
 class ReadOperation;
-class UnlinkOperation;
-class FlushOperation;
 class ReleaseOperation;
-class CreateOperation;
-class MkdirOperation;
 class RmdirOperation;
+class UnlinkOperation;
 class WriteOperation;
 
 struct ThreadData {
@@ -70,4 +70,4 @@ class JniFuseFileSystem {
 
 }  // namespace jnifuse
 
-#endif
+#endif  // FUSE_NATIVE_LIBJNIFUSE_FS_H_

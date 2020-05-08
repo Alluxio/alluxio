@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef _JNIFUSE_IMPLES_H
-#define _JNIFUSE_IMPLES_H
+#ifndef FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
+#define FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
 
 #include <fuse.h>
 
@@ -29,4 +29,4 @@ int rmdir_wrapper(const char *path);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
 
-#endif
+#endif  // FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
