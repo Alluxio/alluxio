@@ -58,10 +58,23 @@ alluxio_site_properties="fs.gcs.accessKeyId=<my_access_key>;fs.gcs.secretAccessK
 The Alluxio deployment on Google Dataproc can customized for more complex scenarios by passing
 additional metadata labels to the `gcloud clusters create` command.
 {% accordion download %}
+  {% collapsible Enable Active Sync on HDFS Paths %}
+[Active Sync]({{ '/en/core-services/Unified-Namespace.html#metadata-active-sync-for-hdfs' | relativize_url}})
+can be enabled on paths in Alluxio for a root HDFS mount point using the metadata key
+`alluxio_sync_list`.
+Specify a list of paths in Alluxio delimited using `;`.
+```console
+...
+--metadata \
+alluxio_sync_list="/tmp;/user/hadoop",\
+...
+```
+  {% endcollapsible %}
+
   {% collapsible Download Additional Files %}
 Additional files can be downloaded into the Alluxio installation directory at `/opt/alluxio/conf`
 using the metadata key `alluxio_download_files_list`.
-Specify `http(s)` or `gs` uris delimited using `;.`
+Specify `http(s)` or `gs` uris delimited using `;`.
 ```console
 ...
 --metadata \
