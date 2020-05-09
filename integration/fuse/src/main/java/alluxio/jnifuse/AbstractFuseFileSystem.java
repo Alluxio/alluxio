@@ -12,8 +12,8 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
 
@@ -150,6 +150,42 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int releaseCallback(String path, ByteBuffer fi) {
     return release(path, FuseFileInfo.wrap(fi));
+  }
+
+  public int chmodCallback(String path, long mode) {
+    return chmod(path, mode);
+  }
+
+  public int chownCallback(String path, long uid, long gid) {
+    return chown(path, uid, gid);
+  }
+
+  public int createCallback(String path, long mode, ByteBuffer fi) {
+    return create(path, mode, FuseFileInfo.wrap(fi));
+  }
+
+  public int mkdirCallback(String path, long mode) {
+    return mkdir(path, mode);
+  }
+
+  public int renameCallback(String oldPath, String newPath) {
+    return rename(oldPath, newPath);
+  }
+
+  public int rmdirCallback(String path) {
+    return rmdir(path);
+  }
+
+  public int statfsCallback(String path, ByteBuffer stbuf) {
+    return statfs(path, Statvfs.wrap(stbuf));
+  }
+
+  public int truncateCallback(String path, long size) {
+    return truncate(path, size);
+  }
+
+  public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
+    return write(path, buf, size, offset, FuseFileInfo.wrap(fi));
   }
 
   static {

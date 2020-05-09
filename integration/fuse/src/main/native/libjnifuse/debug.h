@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define LOGD(format, ...) \

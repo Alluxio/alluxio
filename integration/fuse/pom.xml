@@ -54,13 +54,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- External test dependencies -->
-    <!-- <dependency>
-      <groupId>com.github.serceman</groupId>
-      <artifactId>jnr-fuse</artifactId>
-      <scope>test</scope>
-    </dependency>-->
-
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
