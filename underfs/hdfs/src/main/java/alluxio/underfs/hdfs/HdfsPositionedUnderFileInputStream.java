@@ -28,6 +28,7 @@ import java.io.IOException;
  * This stream can be cached for reuse.
  */
 public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
+  // TODO(david): make these parameters configurations and add diagnostic metrics.
   // After this many number of sequential reads (reads without large skips), it
   // will switch to sequential read mode.
   private static final int SEQUENTIAL_READ_LIMIT = 3;
