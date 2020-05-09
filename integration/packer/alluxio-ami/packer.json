@@ -1,0 +1,168 @@
+{
+  "variables": {
+    "alluxio_download_url": "",
+    "alluxio_edition_flavor": "",
+    "alluxio_version": "",
+    "ami_suffix": "",
+    "aws_access_key": "",
+    "aws_region": "",
+    "aws_secret_key": "",
+    "ec2_keypair_name": "",
+    "ec2_keypair_pem_file": ""
+  },
+  "sensitive-variables": [
+    "aws_access_key",
+    "aws_secret_key"
+  ],
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "name": "alluxio-only-ami",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "ami_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/xvda",
+          "volume_size": 16,
+          "volume_type": "gp2"
+        }
+      ],
+      "ami_description": "Alluxio {{user `alluxio_edition_flavor`}} {{user `alluxio_version`}} AMI",
+      "ami_name": "Alluxio {{user `alluxio_edition_flavor`}} {{user `alluxio_version`}} AMI{{user `ami_suffix`}}",
+      "ami_regions": "{{user `ami_dst_regions`}}",
+      "ami_users": "{{user `ami_users`}}",
+      "force_delete_snapshot": "{{user `ami_ovewrite_existing`}}",
+      "force_deregister": "{{user `ami_ovewrite_existing`}}",
+      "instance_type": "t3.medium",
+      "source_ami_filter": {
+        "filters": {
+          "name": "amzn-ami-hvm-*-x86_64-gp2",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "most_recent": true,
+        "owners": [
+          "137112412989"
+        ]
+      },
+      "ssh_keypair_name": "{{user `ec2_keypair_name`}}",
+      "ssh_private_key_file": "{{user `ec2_keypair_pem_file`}}",
+      "ssh_username": "ec2-user",
+      "tags": {
+        "Origin": "Nightly",
+        "build_id": "t2sdm23s"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "set -xeuo pipefail",
+        "echo \"Waiting for cloud init to finish\"",
+        "instance_id=\"$(curl --silent --fail --show-error \"http://169.254.169.254/latest/meta-data/instance-id\")\"",
+        "test -d \"/var/lib/cloud/instances/${instance_id}\"",
+        "while ! test -f \"/var/lib/cloud/instances/${instance_id}/boot-finished\"; do",
+        "\tsleep 1",
+        "done"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /home/ec2-user/rootTmp"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "./resources/",
+      "destination": "/home/ec2-user/rootTmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo chown -R ec2-user:ec2-user /home/ec2-user/rootTmp",
+        "sudo find /home/ec2-user/rootTmp -type f -exec chmod 644 {} \\;",
+        "sudo find /home/ec2-user/rootTmp -type f -name '*.sh' -exec chmod 755 {} \\;",
+        "sudo find /home/ec2-user/rootTmp -mindepth 1 -maxdepth 1 -exec cp -avt / {} \\;",
+        "sudo rm -rf /home/ec2-user/rootTmp"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo chmod +x /opt/bootstrap/alluxio-ami-bootstrap"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum remove -q -y java-1.7.0-openjdk"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum install -q -y java-1.8.0-openjdk-devel.x86_64 less wget which",
+        "sudo touch /etc/profile.d/java.sh",
+        "echo \"export JAVA_HOME=/usr/lib/jvm/java\" | sudo tee -a /etc/profile.d/java.sh",
+        "echo \"exclude=java-*\" | sudo tee -a /etc/yum.conf"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "aws s3 cp ${ALLUXIO_DL_URL} /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALLUXIO_DL_URL={{user `alluxio_download_url`}}",
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_key`}}"
+      ],
+      "inline": [
+        "cd /tmp/tarballs && tar xzpf alluxio-*.tar.gz",
+        "rm /tmp/tarballs/alluxio-*.tar.gz",
+        "sudo mv alluxio-* /opt/alluxio",
+        "sudo touch /etc/profile.d/alluxio.sh",
+        "echo \"export ALLUXIO_HOME=/opt/alluxio\" | sudo tee -a /etc/profile.d/alluxio.sh",
+        "echo \"export PATH=\\$PATH:\\$ALLUXIO_HOME/bin\" | sudo tee -a /etc/profile.d/alluxio.sh",
+        "sudo groupadd alluxio -g 600",
+        "sudo useradd alluxio -u 600 -g 600",
+        "sudo chown -R alluxio:alluxio /opt/alluxio",
+        "sudo tee -a \"/etc/security/limits.conf\" <<\"EOF\"\n\t\t\talluxio soft nofile 65535\n\t\t\talluxio hard nofile 65535\n\t\t\talluxio soft nproc 65535\n\t\t\talluxio hard nproc 65535\n\t\t\tEOF"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm -rf /tmp/tarballs"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin without-password/' /etc/ssh/sshd_config",
+        "sudo passwd -l root",
+        "sudo sed -i 's/#UseDNS yes/UseDNS no/' /etc/ssh/sshd_config",
+        "rm ~/.ssh/authorized_keys",
+        "sudo rm /root/.ssh/authorized_keys"
+      ]
+    }
+  ]
+}
