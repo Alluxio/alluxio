@@ -22,11 +22,17 @@ import org.apache.hadoop.fs.Seekable;
 import java.io.IOException;
 
 /**
- * The input stream of HDFS as under filesystem. This input stream supports seeking but internally
- * uses the positionedRead {@link FSDataInputStream} API. This stream can be cached for reuse.
+ * The input stream of HDFS as under filesystem. This input stream has two mode of operations.
+ * Under sequential mode, it uses the read api and can take advantage of underlying stream's
+ * buffering. Under random read mode, it uses the positionedRead {@link FSDataInputStream} API.
+ * This stream can be cached for reuse.
  */
 public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
+  // After this many number of sequential reads (reads without large skips), it
+  // will switch to sequential read mode.
   private static final int SEQUENTIAL_READ_LIMIT = 3;
+  // This describes the number of bytes that we can move forward in a stream without
+  // switching to random read mode.
   private static final int MOVEMENT_LIMIT = 512;
 
   private long mPos;
