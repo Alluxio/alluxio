@@ -16,6 +16,8 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.PositionedReadable;
+import org.apache.hadoop.fs.Seekable;
 
 import java.io.IOException;
 
@@ -79,14 +81,14 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   public int read(byte[] buffer, int offset, int length) throws IOException {
     int bytesRead;
     if (mSequentialReadCount >= SEQUENTIAL_READ_LIMIT) {
-      ((FSDataInputStream) in).seek(mPos);
+      ((Seekable) in).seek(mPos);
       mSequentialReadCount = 0;
     }
-    if (mPos == ((FSDataInputStream) in).getPos()) {
+    if (mPos == ((Seekable) in).getPos()) {
       // same position, use buffered reads as default
       bytesRead = in.read(buffer, offset, length);
     } else {
-      bytesRead = ((FSDataInputStream) in).read(mPos, buffer, offset, length);
+      bytesRead = ((PositionedReadable) in).read(mPos, buffer, offset, length);
     }
     if (bytesRead > 0) {
       mPos += bytesRead;
@@ -99,6 +101,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   public void seek(long position) throws IOException {
     if (position < mPos || position - mPos > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
+    } else {
+      ((Seekable) in).seek(position);
     }
     mPos = position;
   }
@@ -110,6 +114,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     }
     if (n > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
+    } else {
+      ((Seekable) in).seek(mPos + n);
     }
     mPos += n;
     return n;
