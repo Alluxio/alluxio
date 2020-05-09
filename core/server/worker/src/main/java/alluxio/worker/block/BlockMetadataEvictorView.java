@@ -21,8 +21,12 @@ import alluxio.worker.block.meta.StorageTierEvictorView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -38,9 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockMetadataEvictorView extends BlockMetadataView {
-
-  /** The {@link BlockMetadataManager} this view is derived from. */
-  private final BlockMetadataManager mMetadataManager;
+  private static final Logger LOG = LoggerFactory.getLogger(BlockMetadataEvictorView.class);
 
   /** A list of pinned inodes, including inodes which are scheduled for async persist. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
@@ -60,17 +62,37 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
   public BlockMetadataEvictorView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
     super(manager);
-    mMetadataManager = manager;
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));
     Preconditions.checkNotNull(lockedBlocks, "lockedBlocks");
     mInUseBlocks.addAll(lockedBlocks);
+  }
 
+  @Override
+  protected void initializeView() {
     // iteratively create all StorageTierViews and StorageDirViews
-    for (StorageTier tier : manager.getTiers()) {
+    for (StorageTier tier : mMetadataManager.getTiers()) {
       StorageTierEvictorView tierView = new StorageTierEvictorView(tier, this);
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
+  }
+
+  /**
+   * Gets all dir views that belongs to a given location.
+   *
+   * @param location the location
+   * @return the list of dir views
+   */
+  public List<StorageDirView> getDirs(BlockStoreLocation location) {
+    List<StorageDirView> dirs = new LinkedList<>();
+    for (StorageTierView tier : mTierViews) {
+      for (StorageDirView dir : tier.getDirViews()) {
+        if (dir.toBlockStoreLocation().belongsTo(location)) {
+          dirs.add(dir);
+        }
+      }
+    }
+    return dirs;
   }
 
   /**
@@ -111,7 +133,16 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
    * @return boolean, true if the block can be evicted
    */
   public boolean isBlockEvictable(long blockId) {
-    return (!isBlockPinned(blockId) && !isBlockLocked(blockId) && !isBlockMarked(blockId));
+    boolean pinned = isBlockPinned(blockId);
+    boolean locked = isBlockLocked(blockId);
+    boolean marked = isBlockMarked(blockId);
+    boolean isEvictable = !pinned && !locked && !marked;
+    if (!isEvictable) {
+      LOG.debug("Block not evictable: {}. Pinned: {}, Locked: {}, Marked: {}", blockId, pinned,
+          locked, marked);
+    }
+
+    return isEvictable;
   }
 
   /**

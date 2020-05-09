@@ -17,6 +17,8 @@ ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.3.0-SNAPSHOT-client
 # e.g. Javadoc:      https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
 # e.g. REST API doc: https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
 ALLUXIO_MAJOR_VERSION: edge
+# The Alluxio docker image name.
+ALLUXIO_DOCKER_IMAGE: alluxio
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:

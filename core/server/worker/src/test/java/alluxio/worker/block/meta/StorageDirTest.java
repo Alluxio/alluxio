@@ -80,8 +80,9 @@ public final class StorageDirTest {
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
         testDirPaths, testDirCapacity, testDirMediumType, null);
 
-    mTier = StorageTier.newStorageTier("MEM");
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath, "MEM");
+    mTier = StorageTier.newStorageTier("MEM", false);
+    mDir = StorageDir.newStorageDir(
+        mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0, mTestDirPath, "MEM");
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -95,8 +96,8 @@ public final class StorageDirTest {
    * @throws Exception
    */
   private StorageDir newStorageDir(File testDir) throws Exception {
-    return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
-         testDir.getAbsolutePath(), "MEM");
+    return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
+        testDir.getAbsolutePath(), "MEM");
   }
 
   /**

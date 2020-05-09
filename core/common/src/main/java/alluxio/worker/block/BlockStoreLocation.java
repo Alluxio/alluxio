@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.grpc.BlockStoreLocationProto;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -192,7 +192,7 @@ public final class BlockStoreLocation {
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new Object[] {mTierAlias, mDirIndex, mMediumType});
+    return Objects.hash(mTierAlias, mDirIndex, mMediumType);
   }
 
   /**

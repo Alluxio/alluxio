@@ -107,3 +107,7 @@ body {
         display: block;
     }
 }
+
+div.accordion {
+    margin-bottom: 1rem;
+}

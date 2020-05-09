@@ -23,9 +23,10 @@ public class StorageTierAllocatorView extends StorageTierView {
    * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
    *
    * @param tier which the tierView is constructed from
+   * @param useReservedSpace whether to include reserved space in dir's available bytes
    */
-  public StorageTierAllocatorView(StorageTier tier) {
-    super(tier);
+  public StorageTierAllocatorView(StorageTier tier, boolean useReservedSpace) {
+    super(tier, useReservedSpace);
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirAllocatorView dirView = new StorageDirAllocatorView(dir, this);
       mDirViews.put(dirView.getDirViewIndex(), dirView);

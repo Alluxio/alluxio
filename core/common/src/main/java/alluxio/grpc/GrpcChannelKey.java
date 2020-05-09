@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 public class GrpcChannelKey {
   @IdentityField
-  NetworkGroup mNetworkGroup = NetworkGroup.RPC;
+  GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
   @IdentityField
   private GrpcServerAddress mServerAddress;
 
@@ -92,7 +92,7 @@ public class GrpcChannelKey {
    * @param group the networking group membership
    * @return the modified {@link GrpcChannelKey}
    */
-  public GrpcChannelKey setNetworkGroup(NetworkGroup group) {
+  public GrpcChannelKey setNetworkGroup(GrpcNetworkGroup group) {
     mNetworkGroup = group;
     return this;
   }
@@ -100,7 +100,7 @@ public class GrpcChannelKey {
   /**
    * @return the network group
    */
-  public NetworkGroup getNetworkGroup() {
+  public GrpcNetworkGroup getNetworkGroup() {
     return mNetworkGroup;
   }
 
@@ -111,36 +111,6 @@ public class GrpcChannelKey {
   public GrpcChannelKey setClientType(String clientType) {
     mClientType = clientType;
     return this;
-  }
-
-  /**
-   * Used to define connection level multiplexing groups.
-   */
-  public enum NetworkGroup {
-    /**
-     * Networking group for RPC traffic.
-     */
-    RPC,
-    /**
-     * Networking group for Streaming traffic.
-     */
-    STREAMING,
-    ;
-
-    /**
-     * @return the code used to refer to this group in property key templates
-     */
-    public String getPropertyCode() {
-      switch (this) {
-        case RPC:
-          return "rpc";
-        case STREAMING:
-          return "streaming";
-        default:
-          throw new IllegalArgumentException(
-              String.format("Unrecognized network group: %s", this.toString()));
-      }
-    }
   }
 
   @Override

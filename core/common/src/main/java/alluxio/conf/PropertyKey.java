@@ -2310,9 +2310,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use block annotators instead
+   */
+  @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
           .setDescription("The strategy that a worker uses to evict block files when a "
               + "storage layer runs out of space. Valid options include "
               + "`alluxio.worker.block.evictor.LRFUEvictor`, "
@@ -2322,18 +2325,124 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR)
-          .setDefaultValue(2.0)
-          .setDescription("A attenuation factor in [2, INF) to control the behavior of LRFU.")
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_CLASS =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_CLASS)
+          .setDefaultValue("alluxio.worker.block.annotator.LRUAnnotator")
+          .setDescription("The strategy that a worker uses to annotate blocks "
+              + "in order to have an ordered view of them during internal"
+              + "management tasks such as eviction and promotion/demotion. "
+              + " Valid options include: "
+              + "`alluxio.worker.block.annotator.LRFUAnnotator`, "
+              + "`alluxio.worker.block.annotator.LRUAnnotator`, ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_STEP_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR)
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
+          .setDefaultValue(2.0)
+          .setDescription(
+              "A attenuation factor in [2, INF) to control the behavior of LRFU annotator.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
               + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
+      new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
+          .setDefaultValue("ANY")
+          .setDescription("Defines the backoff strategy used by background tasks. "
+              + "Supported values are ANY / DIRECTORY. "
+              + "ANY: Background tasks will backoff when there is any load on worker, "
+              + "regardless of which tier/dir/medium the load is in. "
+              + "DIRECTORY: Background tasks will backoff only on directories with load.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+      new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("Management tasks will not run for this long after load detected. "
+              + "Any user I/O will still register as a load for this period of time after "
+              + "it is finished. Short durations might cause interference between user I/O "
+              + "and background tier management tasks. Long durations might cause "
+              + "starvation for background tasks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES)
+          .setDefaultValue("1GB")
+          .setDescription("The amount of space that is reserved from each storage directory "
+              + "for internal management tasks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
+      new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} threads for all management tasks")
+          .setDescription("The number of threads for management task executor")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
+          .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
+          .setDescription(
+              "Controls how many disk pairs are spinned during tier management tasks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to align tiers based on access pattern.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to promote blocks to higher tiers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to run management swap-restore task when "
+              + "tier alignment cannot make progress.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RANGE =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RANGE)
+          .setDefaultValue(100)
+          .setDescription(
+              "Maximum number of blocks to consider from one tier for a single alignment task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_RANGE =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE)
+          .setDefaultValue(100)
+          .setDescription(
+              "Maximum number of blocks to consider from one tier for a single promote task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT)
+          .setDefaultValue(90)
+          .setDescription("Max percentage of each tier that could be used for promotions. "
+              + "Promotions will be stopped to a tier once its used space go over this value. "
+              + "(0 means never promote, and, 100 means always promote.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2578,6 +2687,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1000)
           .setDescription("Total number of block locks for an Alluxio block worker. Larger "
               + "value leads to finer locking granularity, but uses more space.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+      new Builder(Name.WORKER_TIERED_STORE_FREE_AHEAD_BYTES)
+          .setDefaultValue(0)
+          .setDescription("Amount to free ahead when worker storage is full. "
+              + "Higher values will help decrease CPU utilization under peak storage. "
+              + "Lower values will increase storage utilization.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2979,13 +3097,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE)
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MIN =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of block worker clients cached in the block "
+              + "worker client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MAX =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of block worker clients cached in the block "
               + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.block.worker.client.pool.size"})
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
@@ -3042,6 +3170,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_TARGET_MEDIA =
+      new Builder(Name.USER_FILE_TARGET_MEDIA)
+          .setDescription("Preferred media type while storing file's blocks.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
@@ -3082,6 +3215,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to use for file system reads/writes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_RESERVED_BYTES =
+      new Builder(Name.USER_FILE_RESERVED_BYTES)
+          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDescription("The size to reserve on workers for file system writes."
+              + "Using smaller value will improve concurrency for writes smaller than block size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3168,7 +3309,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
-          .setDefaultValue("CACHE_PROMOTE")
+          .setDefaultValue("CACHE")
           .setDescription("Default read type when creating Alluxio files. Valid options are "
               + "`CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, "
               + "write data into highest tier of local Alluxio if data needs to be read from "
@@ -3503,7 +3644,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms")
-          .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "(e.g. block reads and block writes) from Alluxio worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3515,7 +3655,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
-          .setDefaultValue(16)
           .setDescription("When a client reads from a remote worker, the maximum number of "
               + "messages to buffer by the client. A message can be either a command response, "
               + "a data chunk, or a gRPC stream event such as complete or error.")
@@ -3528,7 +3667,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3539,7 +3677,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
-          .setDefaultValue(16)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
               + "to buffer by the client. A message can be either a command response, a data "
               + "chunk, or a gRPC stream event such as complete or error.")
@@ -3552,7 +3689,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3564,7 +3700,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT)
           .setAlias("alluxio.user.network.writer.close.timeout.ms")
-          .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3575,7 +3710,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_FLUSH_TIMEOUT =
       new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
-          .setDefaultValue("30min")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3586,7 +3720,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
       new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
-          .setDefaultValue(true)
           .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3597,7 +3730,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3609,7 +3741,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIME)
-          .setDefaultValue(Long.MAX_VALUE)
           .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3621,7 +3752,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIMEOUT)
-          .setDefaultValue("30sec")
           .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3633,7 +3763,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3648,7 +3777,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultValue("EPOLL")
           .build();
   /**
    * @deprecated use {@link #USER_NETWORK_STREAMING_NETTY_WORKER_THREADS} instead
@@ -3656,7 +3784,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
-          .setDefaultValue(0)
           .setDescription("How many threads to use for remote block worker client to read "
               + "from remote block workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4862,10 +4989,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
-    public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-        "alluxio.worker.evictor.lrfu.attenuation.factor";
-    public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
-        "alluxio.worker.evictor.lrfu.step.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_CLASS =
+        "alluxio.worker.block.annotator.class";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.attenuation.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
+        "alluxio.worker.management.tier.align.reserved.bytes";
+    public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
+        "alluxio.worker.management.backoff.strategy";
+    public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+        "alluxio.worker.management.load.detection.cool.down.time";
+    public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
+        "alluxio.worker.management.task.thread.count";
+    public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
+        "alluxio.worker.management.tier.task.disk.parallelism";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
+        "alluxio.worker.management.tier.align.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
+        "alluxio.worker.management.tier.promote.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
+        "alluxio.worker.management.tier.swap.restore.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_ALIGN_RANGE =
+        "alluxio.worker.management.tier.align.range";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_RANGE =
+        "alluxio.worker.management.tier.promote.range";
+    public static final String WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
+        "alluxio.worker.management.tier.promote.quota.percent";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
@@ -4920,6 +5071,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
+    public static final String WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+        "alluxio.worker.tieredstore.free.ahead.bytes";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";
@@ -4989,6 +5142,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.read.retry.max.duration";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_MIN =
+        "alluxio.user.block.worker.client.pool.min";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
+        "alluxio.user.block.worker.client.pool.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
         "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
@@ -5020,6 +5177,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
+    public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
@@ -5044,6 +5202,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.persistence.initial.wait.time";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
+    public static final String USER_FILE_TARGET_MEDIA = "alluxio.user.file.target.media";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =

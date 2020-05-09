@@ -514,7 +514,8 @@ public class FileSystemContext implements Closeable {
         mBlockWorkerClientPoolMap;
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
         k -> new BlockWorkerClientPool(context.getUserState(), serverAddress,
-            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
             context.getClusterConf()))
         .acquire()) {
       // Save the reference to the original pool map.

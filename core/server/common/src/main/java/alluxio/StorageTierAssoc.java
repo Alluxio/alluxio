@@ -11,8 +11,10 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableBiMap;
 
@@ -118,5 +120,18 @@ public abstract class StorageTierAssoc {
       ret.add(getAlias(i));
     }
     return ret;
+  }
+
+  /**
+   * @return list of intersections between tier levels
+   */
+  public List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionList() {
+    List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionLocations =
+        new ArrayList<>(size() - 1);
+    for (int tierUp = 0, tierDown = tierUp + 1; tierDown < size(); tierUp++, tierDown++) {
+      intersectionLocations.add(new Pair<>(BlockStoreLocation.anyDirInTier(getAlias(tierUp)),
+          BlockStoreLocation.anyDirInTier(getAlias(tierDown))));
+    }
+    return intersectionLocations;
   }
 }

@@ -43,7 +43,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   // TODO(binfan): Run tests with local writes enabled and disabled.
 
   @Parameters
-  public static Object[] data() {
+  public static Object[] dataFileInStreamIntegrationTest() {
     return new Object[] {
         WriteType.ASYNC_THROUGH,
         WriteType.CACHE_THROUGH,

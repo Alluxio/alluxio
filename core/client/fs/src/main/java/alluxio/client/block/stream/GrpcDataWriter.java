@@ -127,6 +127,7 @@ public final class GrpcDataWriter implements DataWriter {
     mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);
+    long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
 
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
@@ -157,6 +158,7 @@ public final class GrpcDataWriter implements DataWriter {
     }
     // check if we need to pin block on create
     builder.setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
+    builder.setSpaceToReserve(reservedBytes);
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
