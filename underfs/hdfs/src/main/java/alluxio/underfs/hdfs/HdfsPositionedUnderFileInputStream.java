@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.PositionedReadable;
@@ -31,10 +32,12 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   // TODO(david): make these parameters configurations and add diagnostic metrics.
   // After this many number of sequential reads (reads without large skips), it
   // will switch to sequential read mode.
-  private static final int SEQUENTIAL_READ_LIMIT = 3;
+  @VisibleForTesting
+  static final int SEQUENTIAL_READ_LIMIT = 3;
   // This describes the number of bytes that we can move forward in a stream without
   // switching to random read mode.
-  private static final int MOVEMENT_LIMIT = 512;
+  @VisibleForTesting
+  static final int MOVEMENT_LIMIT = 512;
 
   private long mPos;
   // The heuristic is that if there are certain number of sequential reads in a row,
@@ -87,9 +90,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   @Override
   public int read(byte[] buffer, int offset, int length) throws IOException {
     int bytesRead;
-    if (mSequentialReadCount >= SEQUENTIAL_READ_LIMIT) {
+    if (isSequentialReadMode() && mPos != ((Seekable) in).getPos()) {
       ((Seekable) in).seek(mPos);
-      mSequentialReadCount = 0;
     }
     if (mPos == ((Seekable) in).getPos()) {
       // same position, use buffered reads as default
@@ -104,12 +106,14 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     return bytesRead;
   }
 
+  private boolean isSequentialReadMode() {
+    return mSequentialReadCount >= SEQUENTIAL_READ_LIMIT;
+  }
+
   @Override
   public void seek(long position) throws IOException {
     if (position < mPos || position - mPos > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
-    } else {
-      ((Seekable) in).seek(position);
     }
     mPos = position;
   }
@@ -121,8 +125,6 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     }
     if (n > MOVEMENT_LIMIT) {
       mSequentialReadCount = 0;
-    } else {
-      ((Seekable) in).seek(mPos + n);
     }
     mPos += n;
     return n;

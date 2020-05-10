@@ -11,6 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
+import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.MOVEMENT_LIMIT;
+import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.SEQUENTIAL_READ_LIMIT;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -22,15 +24,13 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.PositionedReadable;
-import org.apache.hadoop.fs.Seekable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,9 +39,6 @@ import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Tests {@link HdfsUnderFileSystem}.
@@ -88,83 +85,65 @@ public final class HdfsUnderFileSystemTest {
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
   }
 
-  class PreadSeekableStream extends FilterInputStream implements Seekable, PositionedReadable {
-
-    /**
-     * Creates a <code>FilterInputStream</code>
-     * by assigning the  argument <code>in</code>
-     * to the field <code>this.in</code> so as
-     * to remember it for later use.
-     *
-     * @param in the underlying input stream, or <code>null</code> if
-     *           this instance is to be created without an underlying stream.
-     */
-    protected PreadSeekableStream(InputStream in) {
-      super(in);
-    }
-
-    @Override
-    public int read(long l, byte[] bytes, int i, int i1) throws IOException {
-      return ((FSDataInputStream) in).read(l, bytes, i, i1);
-    }
-
-    @Override
-    public void readFully(long l, byte[] bytes, int i, int i1) throws IOException {
-      ((FSDataInputStream) in).readFully(l, bytes, i, i1);
-    }
-
-    @Override
-    public void readFully(long l, byte[] bytes) throws IOException {
-      ((FSDataInputStream) in).readFully(l, bytes);
-    }
-
-    @Override
-    public void seek(long l) throws IOException {
-      ((FSDataInputStream) in).seek(l);
-    }
-
-    @Override
-    public long getPos() throws IOException {
-      return ((FSDataInputStream) in).getPos();
-    }
-
-    @Override
-    public boolean seekToNewSource(long l) throws IOException {
-      return ((FSDataInputStream) in).seekToNewSource(l);
-    }
+  private void checkDataValid(int data, int index) {
+    // index is larger than Byte.MAX_VALUE, convert to byte to compare
+    Assert.assertEquals((byte) index, (byte) data);
   }
+
   /**
    * Tests the dynamic switching between pread and read calls to underlying stream.
    */
   @Test
   public void verifyPread() throws Exception {
     File file = mTemporaryFolder.newFile("test.txt");
-    FileUtils.writeByteArrayToFile(file, CommonUtils.randomBytes(4096));
-    FilterInputStream in = (FilterInputStream) mHdfsUnderFileSystem.open(file.getAbsolutePath(),
-        OpenOptions.defaults().setPositionShort(true));
+    byte[] data = new byte[4 * MOVEMENT_LIMIT];
+    for (int i = 0; i < 4 * MOVEMENT_LIMIT; i++) {
+      data[i] = (byte) i;
+    }
+    FileUtils.writeByteArrayToFile(file, data);
+    SeekableUnderFileInputStream in = (SeekableUnderFileInputStream) mHdfsUnderFileSystem.open(
+        file.getAbsolutePath(), OpenOptions.defaults().setPositionShort(true));
     FSDataInputStream dataInput = Whitebox.getInternalState(in, "in");
     PreadSeekableStream stream = new PreadSeekableStream(dataInput);
     PreadSeekableStream spyStream = spy(stream);
     Whitebox.setInternalState(in, "in", spyStream);
-    in.read();
-    in.read();
-    in.read();
-    in.read();
+    int readPos = 0;
+    checkDataValid(in.read(), readPos++);
+    checkDataValid(in.read(), readPos++);
+    checkDataValid(in.read(), readPos++);
+    checkDataValid(in.read(), readPos++);
     in.skip(2);
     in.skip(2);
-    in.read();
+    readPos += 4;
+    checkDataValid(in.read(), readPos++);
     in.skip(2);
-    in.read();
+    readPos += 2;
+    checkDataValid(in.read(), readPos++);
+    // we are in sequential read mode, therefore all reads are normal reads and never preads
     verify(spyStream, never()).read(anyInt(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(6)).read(any(byte[].class), anyInt(), anyInt());
-    in.skip(1000);
-    in.read();
-    in.read();
-    in.read();
-    verify(spyStream, times(3)).read(anyInt(), any(byte[].class), anyInt(), anyInt());
+    in.skip(MOVEMENT_LIMIT + 1);
+    readPos += MOVEMENT_LIMIT + 1;
+    for (int i = 0; i < SEQUENTIAL_READ_LIMIT; i++) {
+      checkDataValid(in.read(), readPos++);
+    }
+    // because we skipped over more than MOVEMENT_LIMIT, we switched to pread mode, the next
+    // three reads are preads
+    verify(spyStream, times(SEQUENTIAL_READ_LIMIT)).read(
+        anyInt(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(6)).read(any(byte[].class), anyInt(), anyInt());
-    in.read();
-    verify(spyStream, times(3)).read(anyInt(), any(byte[].class), anyInt(), anyInt());
+    // we performed more than SEQUENTIAL_READ_LIMIT reads without seeking beyond movement limit,
+    // thus we switch back to sequential read mode
+    checkDataValid(in.read(), readPos++);
+    verify(spyStream, times(SEQUENTIAL_READ_LIMIT)).read(
+        anyInt(), any(byte[].class), anyInt(), anyInt());
+    verify(spyStream, times(7)).read(any(byte[].class), anyInt(), anyInt());
+    in.seek(MOVEMENT_LIMIT * 3);
+    readPos = MOVEMENT_LIMIT * 3;
+    checkDataValid(in.read(), readPos++);
+    // we performed seek to a far location, we should switch back to pread mode
+    verify(spyStream, times(SEQUENTIAL_READ_LIMIT + 1)).read(
+        anyInt(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(7)).read(any(byte[].class), anyInt(), anyInt());
     in.close();
   }
