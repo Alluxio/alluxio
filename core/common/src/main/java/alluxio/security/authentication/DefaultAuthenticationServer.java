@@ -62,6 +62,8 @@ public class DefaultAuthenticationServer
   /** Alluxio client configuration. */
   protected final AlluxioConfiguration mConfiguration;
 
+  private final ImpersonationAuthenticator mImpersonationAuthenticator;
+
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
    * @param hostName host name of the server
@@ -78,6 +80,7 @@ public class DefaultAuthenticationServer
         Executors.newScheduledThreadPool(1, ThreadFactoryUtils.build("auth-cleanup", true));
     mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs,
         mCleanupIntervalMs, TimeUnit.MILLISECONDS);
+    mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
   }
 
   @Override
@@ -126,7 +129,7 @@ public class DefaultAuthenticationServer
     switch (authScheme) {
       case SIMPLE:
       case CUSTOM:
-        return new SaslServerHandlerPlain(mHostName, mConfiguration);
+        return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
       default:
         throw new StatusRuntimeException(Status.UNAUTHENTICATED.augmentDescription(
             String.format("Authentication scheme:%s is not supported", authScheme)));

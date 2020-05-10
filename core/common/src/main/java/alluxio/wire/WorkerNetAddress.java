@@ -34,6 +34,7 @@ public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 0L;
 
   private String mHost = "";
+  private String mContainerHost = "";
   private int mRpcPort;
   private int mDataPort;
   private int mWebPort;
@@ -51,6 +52,15 @@ public final class WorkerNetAddress implements Serializable {
   @ApiModelProperty(value = "Host name of the worker")
   public String getHost() {
     return mHost;
+  }
+
+  /**
+   * @return the container host of the worker, default to empty string if the worker
+   * is not in a container
+   */
+  @ApiModelProperty(value = "Host name of the physical node if running in a container")
+  public String getContainerHost() {
+    return mContainerHost;
   }
 
   /**
@@ -103,6 +113,16 @@ public final class WorkerNetAddress implements Serializable {
   public WorkerNetAddress setHost(String host) {
     Preconditions.checkNotNull(host, "host");
     mHost = host;
+    return this;
+  }
+
+  /**
+   * @param containerHost the host of node, if running in a container
+   * @return the worker net address
+   */
+  public WorkerNetAddress setContainerHost(String containerHost) {
+    Preconditions.checkNotNull(containerHost, "containerHost");
+    mContainerHost = containerHost;
     return this;
   }
 
@@ -161,6 +181,7 @@ public final class WorkerNetAddress implements Serializable {
     }
     WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost)
+        && mContainerHost.equals(that.mContainerHost)
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
@@ -170,14 +191,15 @@ public final class WorkerNetAddress implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath,
-        mTieredIdentity);
+    return Objects.hashCode(mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
+        mDomainSocketPath, mTieredIdentity);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("host", mHost)
+        .add("containerHost", mContainerHost)
         .add("rpcPort", mRpcPort)
         .add("dataPort", mDataPort)
         .add("webPort", mWebPort)

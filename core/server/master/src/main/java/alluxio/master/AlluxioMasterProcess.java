@@ -51,7 +51,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -63,12 +62,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
-
-  /**
-   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
-   * guarantee that no other threads will modify master state.
-   */
-  private final Lock mPauseStateLock;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
@@ -123,7 +116,6 @@ public class AlluxioMasterProcess extends MasterProcess {
               .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
           .setUfsManager(mUfsManager)
           .build();
-      mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -328,7 +320,8 @@ public class AlluxioMasterProcess extends MasterProcess {
       serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
           new GrpcService(new JournalMasterClientServiceHandler(
               new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem))));
-
+      serverBuilder.maxInboundMessageSize(
+          (int) ServerConfiguration.getBytes(PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);

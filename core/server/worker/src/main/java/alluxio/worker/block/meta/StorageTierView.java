@@ -28,6 +28,8 @@ public abstract class StorageTierView {
   final StorageTier mTier;
   /** A list of {@link StorageDirView} under this StorageTierView. */
   final Map<Integer, StorageDirView> mDirViews = new HashMap<>();
+  /** Whether to include reserved space into availability calculations. */
+  final boolean mUseReservedSpace;
 
   /**
    * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
@@ -35,7 +37,18 @@ public abstract class StorageTierView {
    * @param tier which the tierView is constructed from
    */
   public StorageTierView(StorageTier tier) {
+    this(tier, false);
+  }
+
+  /**
+   * Creates a {@link StorageTierView} using the actual {@link StorageTier}.
+   *
+   * @param tier which the tierView is constructed from
+   * @param useReservedSpace whether to include reserved space in available bytes
+   */
+  public StorageTierView(StorageTier tier, boolean useReservedSpace) {
     mTier = Preconditions.checkNotNull(tier, "tier");
+    mUseReservedSpace = useReservedSpace;
   }
 
   /**

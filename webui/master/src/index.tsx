@@ -37,7 +37,8 @@ history.listen((loc: Location, action: Action) => {
   }
 
   // Allow the client to control scroll-to-top using location.state
-  if (loc.state && loc.state.scroll !== undefined && !loc.state.scroll) {
+  const l = (loc as unknown) as { state: { scroll: boolean } };
+  if (l.state && l.state.scroll !== undefined && !l.state.scroll) {
     return;
   }
 

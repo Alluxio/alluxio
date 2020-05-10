@@ -302,6 +302,7 @@ public final class AlluxioBlockStore {
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
       }
+      // TODO(ggezer): Retry on another worker if this has no storage.
       return getOutStream(blockId, blockSize, address, options);
     }
 

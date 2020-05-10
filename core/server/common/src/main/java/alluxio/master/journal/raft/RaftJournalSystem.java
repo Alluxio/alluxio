@@ -23,8 +23,8 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
-import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.transport.GrpcMessagingProxy;
 import alluxio.master.transport.GrpcMessagingTransport;
@@ -68,8 +68,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -137,12 +135,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   /// Lifecycle: constant from when the journal system is constructed.
 
   private final RaftJournalConfiguration mConf;
-  /**
-   * Whenever in-memory state may be inconsistent with the state represented by all flushed journal
-   * entries, a read lock on this lock must be held.
-   * We take a write lock when we want to perform a snapshot.
-   */
-  private final ReadWriteLock mJournalStateLock;
   /** Controls whether Copycat will attempt to take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
   /**
@@ -190,7 +182,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
-    mJournalStateLock = new ReentrantReadWriteLock(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
   }
@@ -211,7 +202,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     // if election timeout is not set explicitly.
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
@@ -315,8 +306,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Journal createJournal(Master master) {
-    RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter,
-        mJournalStateLock.readLock());
+    RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter);
     mJournals.put(master.getName(), journal);
     return journal;
   }

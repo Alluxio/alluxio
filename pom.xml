@@ -127,10 +127,10 @@
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <copycat.version>1.2.14</copycat.version>
+    <copycat.version>1.2.15</copycat.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <grpc.version>1.27.0</grpc.version>
-    <netty.version>4.1.42.Final</netty.version>
+    <grpc.version>1.28.1</grpc.version>
+    <netty.version>4.1.45.Final</netty.version>
     <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>2.7.3</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
@@ -141,6 +141,7 @@
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
+    <orc.version>1.6.2</orc.version>
     <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
@@ -507,6 +508,11 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.orc</groupId>
+        <artifactId>orc-core</artifactId>
+        <version>${orc.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.parquet</groupId>

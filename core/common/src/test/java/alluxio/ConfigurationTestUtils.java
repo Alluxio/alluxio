@@ -82,13 +82,13 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
-    conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
+    conf.put(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
     // This cannot be too short, since sometimes there are grpc channel startup delays, which
     // affect authentication
     conf.put(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT, "5sec");
-    conf.put(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT, "3sec");
+    conf.put(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT, "3sec");
     conf.put(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "10sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
@@ -143,6 +143,11 @@ public final class ConfigurationTestUtils {
 
     // faster refresh
     conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
+
+    // faster I/O retries.
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
     return conf;
   }

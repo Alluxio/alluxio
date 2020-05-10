@@ -63,3 +63,17 @@
 - Moved journal formatting from job/format-journal-job.yaml to initContainer in master/statefulset.yaml
 - Changed the master RocksDB metastore volume from emptyDir to PVC
 - Added support for using PVC for tiered storage
+
+0.5.8
+
+- Added option to disable worker short-circuit
+- Changed worker domain socket volume from hostPath to PVC
+- Changed hostNetwork to false
+- Added alluxio.worker.container.hostname property to use podIP
+- Added selector labels to worker domain socket PVC
+
+0.5.9
+
+- Refactored configmap to generate config properties in a list
+- Changed JVM options from one string to a list
+- Supported Helm version upgraded to 3.X

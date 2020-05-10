@@ -56,7 +56,8 @@ func Release(args []string) error {
 
 func generateTarballs() error {
 	fmt.Printf("Generating tarball %v\n", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker))
-	if err := generateTarball(strings.Split(hadoopDistributionsFlag, ",")); err != nil {
+	// Do not skip UI and Helm
+	if err := generateTarball(strings.Split(hadoopDistributionsFlag, ","), false, false); err != nil {
 		return err
 	}
 	return nil

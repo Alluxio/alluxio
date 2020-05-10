@@ -87,7 +87,7 @@ Usage: alluxio table [generic options]
 	 [transformStatus [<job ID>]]
 ```
 
-To attach a database use the `attachdb` command. Currently, only `hive` is supported as the
+To attach a database use the `attachdb` command. Currently, `hive` and `glue` are supported as the
 `<udb type>`.
 See the [attachdb command documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#attachdb)
 for more details.

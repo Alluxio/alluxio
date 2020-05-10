@@ -243,6 +243,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC,
             ServerConfiguration.global()))
+        .setContainerHost(ServerConfiguration.global()
+            .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
         .setRpcPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
         .setDataPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
         .setWebPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));

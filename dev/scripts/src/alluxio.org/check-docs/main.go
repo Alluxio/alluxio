@@ -172,7 +172,7 @@ func parseCategoryNames(configPath string) (StringSet, error) {
 
 var (
 	// general format of a relative link, where the link will be computed by a jekyll function encapsulated in {{ }}
-	relativeLinkRe = regexp.MustCompile(`\[.+\]\({{.*}}\)`)
+	relativeLinkRe = regexp.MustCompile(`\[.+\]\({{.*}}(#.+)?\)`)
 	// path encapsulated in ' ' could have an optional search query "?q=queryStr" and/or an optional anchor reference "#anchor"
 	relativeLinkPagePathRe = regexp.MustCompile(`\[.+\]\({{ '(?P<path>[\w-./]+)(\?q=\w+)?(#.+)?' | relativize_url }}\)`)
 )
@@ -201,8 +201,8 @@ func checkFile(mdFile string, ctx *checkContext) error {
 		}
 		if relativeLinkRe.MatchString(l) {
 			for _, lineMatches := range relativeLinkRe.FindAllStringSubmatch(l, -1) {
-				if len(lineMatches) != 1 {
-					return fmt.Errorf("expected to find exactly one string submatch but found %d in line %v", len(lineMatches), l)
+				if len(lineMatches) < 1 {
+					return fmt.Errorf("expected to find at least one string submatch but found %d in line %v in file %v", len(lineMatches), l, mdFile)
 				}
 				relativeLinkStr := lineMatches[0]
 				if !relativeLinkPagePathRe.MatchString(relativeLinkStr) {

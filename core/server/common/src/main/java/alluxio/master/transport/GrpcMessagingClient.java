@@ -26,10 +26,6 @@ import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -46,9 +42,6 @@ public class GrpcMessagingClient implements Client {
   private final AlluxioConfiguration mConf;
   /** Authentication user. */
   private final UserState mUserState;
-
-  /** Created connections. */
-  private final List<Connection> mConnections;
 
   /** Executor for building client connections. */
   private final ExecutorService mExecutor;
@@ -70,7 +63,6 @@ public class GrpcMessagingClient implements Client {
     mUserState = userState;
     mExecutor = executor;
     mClientType = clientType;
-    mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
   @Override
@@ -86,8 +78,6 @@ public class GrpcMessagingClient implements Client {
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
             .setClientType(mClientType).setSubject(mUserState.getSubject())
-            .setMaxInboundMessageSize((int) mConf
-                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
             .build();
 
         // Create stub for receiving stream from server.
@@ -101,7 +91,6 @@ public class GrpcMessagingClient implements Client {
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
         LOG.debug("Created a messaging client connection: {}", clientConnection);
-        mConnections.add(clientConnection);
         return clientConnection;
       } catch (Throwable e) {
         throw new RuntimeException(e);
@@ -123,13 +112,8 @@ public class GrpcMessagingClient implements Client {
 
   @Override
   public CompletableFuture<Void> close() {
-    LOG.debug("Closing messaging client with {} connections.", mConnections.size());
-    // Close created connections.
-    List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
-    for (Connection connection : mConnections) {
-      connectionCloseFutures.add(connection.close());
-    }
-    mConnections.clear();
-    return CompletableFuture.allOf(connectionCloseFutures.toArray(new CompletableFuture[0]));
+    LOG.debug("Closing messaging client; {}", this);
+    // Nothing to clean up
+    return CompletableFuture.completedFuture(null);
   }
 }

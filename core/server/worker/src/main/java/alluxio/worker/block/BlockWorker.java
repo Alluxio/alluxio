@@ -130,6 +130,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
+   * @deprecated to be removed at Alluxio 3.0
+   *
    * Frees space to make a specific amount of bytes available in a best-effort way in the tier. The
    * implementation should try to free at least 1 byte from the worker, otherwise a
    * {@link WorkerOutOfSpaceException} should be thrown if no space is available.
@@ -142,6 +144,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockAlreadyExistsException if blocks to move already exists in destination location
    * @throws InvalidWorkerStateException if blocks to move/evict is uncommitted
    */
+  @Deprecated()
   void freeSpace(long sessionId, long availableBytes, String tierAlias)
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
       BlockAlreadyExistsException, InvalidWorkerStateException;

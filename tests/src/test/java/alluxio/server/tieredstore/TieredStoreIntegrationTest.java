@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;
@@ -58,6 +59,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
           .build();
 
   @Before
@@ -158,15 +161,24 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Confirm the unpin
     Assert.assertFalse(mFileSystem.getStatus(file1).isPinned());
 
+    // Wait until worker receives the new pin-list.
+    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
     AlluxioURI file2 = new AlluxioURI("/test2");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file2, WritePType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
-    // File 2 should be in memory and File 1 should be evicted
-    Assert.assertEquals(0, mFileSystem.getStatus(file1).getInAlluxioPercentage());
-    Assert.assertEquals(100, mFileSystem.getStatus(file2).getInAlluxioPercentage());
+    // Wait for validation.
+    CommonUtils.waitFor("file2 should be in memory and file1 should be evicted", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(file1).getInAlluxioPercentage()
+            && 100 == mFileSystem.getStatus(file2).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
   }
 
   /**

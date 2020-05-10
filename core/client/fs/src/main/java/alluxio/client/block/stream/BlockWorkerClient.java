@@ -32,7 +32,6 @@ import alluxio.security.user.UserState;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
-import io.netty.channel.EventLoopGroup;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -54,9 +53,9 @@ public interface BlockWorkerClient extends Closeable {
      * @return a new {@link BlockWorkerClient}
      */
     public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
-        AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup)
+        AlluxioConfiguration alluxioConf)
         throws IOException {
-      return new DefaultBlockWorkerClient(userState, address, alluxioConf, workerGroup);
+      return new DefaultBlockWorkerClient(userState, address, alluxioConf);
     }
   }
 

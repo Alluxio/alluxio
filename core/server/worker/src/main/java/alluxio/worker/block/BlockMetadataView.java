@@ -30,6 +30,10 @@ import javax.annotation.Nullable;
  * limited access to block metadata.
  */
 public abstract class BlockMetadataView {
+  /** The {@link BlockMetadataManager} this view is derived from. */
+  protected final BlockMetadataManager mMetadataManager;
+  protected final boolean mUseReservedSpace;
+
   /**
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
@@ -45,7 +49,19 @@ public abstract class BlockMetadataView {
    * @param manager which the view should be constructed from
    */
   public BlockMetadataView(BlockMetadataManager manager) {
-    Preconditions.checkNotNull(manager, "manager");
+    this(manager, false);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockMetadataView}.
+   *
+   * @param manager which the view should be constructed from
+   * @param useReservedSpace whether to include reserved space in available bytes
+   */
+  public BlockMetadataView(BlockMetadataManager manager, boolean useReservedSpace) {
+    mMetadataManager = Preconditions.checkNotNull(manager, "manager");
+    mUseReservedSpace = useReservedSpace;
+    initializeView();
   }
 
   /**
@@ -99,5 +115,24 @@ public abstract class BlockMetadataView {
   public List<StorageTierView> getTierViewsBelow(String tierAlias) {
     int ordinal = getTierView(tierAlias).getTierViewOrdinal();
     return mTierViews.subList(ordinal + 1, mTierViews.size());
+  }
+
+  /**
+   * Used to initialize the view based on the current metadata status.
+   */
+  protected abstract void initializeView();
+
+  /**
+   * Used to refresh the view based on current metadata status.
+   *
+   * @return the refreshed view instance
+   */
+  public BlockMetadataView refreshView() {
+    // Clear previous views.
+    mTierViews.clear();
+    mAliasToTierViews.clear();
+    // Re-initialize the view.
+    initializeView();
+    return this;
   }
 }

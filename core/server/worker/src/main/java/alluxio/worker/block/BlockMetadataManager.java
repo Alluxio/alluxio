@@ -13,18 +13,24 @@ package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.DefaultBlockIterator;
+import alluxio.worker.block.annotator.BlockAnnotator;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -32,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,19 +66,43 @@ public final class BlockMetadataManager {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /** Used to get iterators per locations. */
+  private BlockIterator mBlockIterator;
+
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal));
+        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
+            mStorageTierAssoc.size() > 1);
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
+      }
+      // Create the block iterator.
+      if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+        LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
+            PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
+        // Create emulating block iterator.
+        BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
+            Collections.<Long>emptySet(), Collections.<Long>emptySet());
+        mBlockIterator = new EmulatingBlockIterator(this,
+            Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
+      } else {
+        // Create default block iterator.
+        mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @return the configured iteration provider
+   */
+  public BlockIterator getBlockIterator() {
+    return mBlockIterator;
   }
 
   /**
@@ -127,6 +158,30 @@ public final class BlockMetadataManager {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
+  }
+
+  /**
+   * Swaps location of two blocks in metadata.
+   *
+   * @param blockMeta1 the first block meta
+   * @param blockMeta2 the second block meta
+   * @throws BlockDoesNotExistException
+   * @throws BlockAlreadyExistsException
+   * @throws WorkerOutOfSpaceException
+   */
+  public void swapBlocks(BlockMeta blockMeta1, BlockMeta blockMeta2)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
+    StorageDir blockDir1 = blockMeta1.getParentDir();
+    StorageDir blockDir2 = blockMeta2.getParentDir();
+    // Remove existing metas from dirs.
+    blockDir1.removeBlockMeta(blockMeta1);
+    blockDir2.removeBlockMeta(blockMeta2);
+
+    // Add new block metas with new block id and sizes.
+    blockDir1
+        .addBlockMeta(new BlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
+    blockDir2
+        .addBlockMeta(new BlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**
