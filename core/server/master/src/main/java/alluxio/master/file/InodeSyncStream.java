@@ -626,6 +626,10 @@ public class InodeSyncStream {
         if (type != LoadDescendantPType.NONE) {
           Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(inodePath.getUri(),
               mMountTable);
+          if (children == null) {
+            LOG.debug("fetching children for {} returned null", inodePath.getUri());
+            return;
+          }
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;

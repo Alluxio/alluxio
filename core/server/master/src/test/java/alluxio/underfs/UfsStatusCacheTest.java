@@ -46,8 +46,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class UfsStatusCacheTest {
 
@@ -291,6 +296,75 @@ public class UfsStatusCacheTest {
     statuses = mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("dir0", s.getName()));
+  }
+
+  @Test
+  public void testDoublePrefetch() throws Exception {
+    createUfsFile("dir0/dir0/file");
+    createUfsDirs("dir0/dir0");
+    createUfsFile("dir0/dir0/file");
+    mCache = Mockito.spy(mCache);
+    Lock l = new ReentrantLock();
+    doAnswer((invocation) -> {
+      try {
+        l.lock();
+        return invocation.callRealMethod();
+      } finally {
+        l.unlock();
+      }
+    }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
+    l.lock();
+    Future<?> f1 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
+    Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
+    assertNotNull(f1);
+    assertTrue("first future is cancelled", f1.isCancelled());
+    Collection<UfsStatus> statuses =
+        mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0/dir0"), mMountTable, true);
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("file", s.getName()));
+    l.unlock();
+    statuses = mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
+    assertNotNull(f2);
+    assertTrue("second future should be finished", f2.isDone());
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("dir0", s.getName()));
+  }
+
+  @Test
+  public void testNullExecutor() throws Exception {
+    createUfsDirs("dir0/dir0");
+    mCache = new UfsStatusCache(null);
+    mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
+    assertNull(mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false));
+  }
+
+  @Test
+  public void testRejectedExecution() throws Exception {
+    createUfsDirs("dir0/dir1");
+    ExecutorService executor =
+        new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new SynchronousQueue<>());
+    mCache = new UfsStatusCache(executor);
+    mCache = Mockito.spy(mCache);
+    Lock l = new ReentrantLock();
+    l.lock();
+    doAnswer((invocation) -> {
+      try {
+        l.lock();
+        return invocation.callRealMethod();
+      } finally {
+        l.unlock();
+      }
+    }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
+    assertNotNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable));
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
+    l.unlock();
+    Collection<UfsStatus> statuses =
+        mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("dir1", s.getName()));
   }
 
   public void createUfsFile(String relPath) throws Exception {

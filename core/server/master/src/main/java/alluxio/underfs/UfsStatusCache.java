@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
 import alluxio.util.LogUtils;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,17 +108,15 @@ public class UfsStatusCache {
   /**
    * Remove a status from the cache.
    *
-   *  Any children added to this status will remain in the cache.
+   * This will remove any references to child {@link UfsStatus}.
    *
    * @param path the path corresponding to the {@link UfsStatus} to remove
    * @return the removed UfsStatus
    */
+  @Nullable
   public UfsStatus remove(AlluxioURI path) {
+    Preconditions.checkNotNull(path, "can't remove null status cache path");
     UfsStatus removed = mStatuses.remove(path);
-    if (removed == null) {
-      return null;
-    }
-
     mChildren.remove(path); // ok if there aren't any children
     return removed;
   }
@@ -128,6 +127,7 @@ public class UfsStatusCache {
    * @param path the path the retrieve
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
+  @Nullable
   public UfsStatus getStatus(AlluxioURI path) {
     return mStatuses.get(path);
   }
@@ -191,6 +191,7 @@ public class UfsStatusCache {
    * @return child UFS statuses of the alluxio path
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
+  @Nullable
   public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InterruptedException, InvalidPathException {
     return fetchChildrenIfAbsent(path, mountTable, true);
@@ -209,7 +210,7 @@ public class UfsStatusCache {
    * @throws InvalidPathException when the table can't resolve the mount for the given URI
    */
   @Nullable
-  private Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+  Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InvalidPathException {
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
@@ -253,10 +254,12 @@ public class UfsStatusCache {
    *
    * @param path the path to prefetch
    * @param mountTable the Alluxio mount table
+   * @return the future corresponding to the fetch task
    */
-  public void prefetchChildren(AlluxioURI path, MountTable mountTable) {
+  @Nullable
+  public Future<Collection<UfsStatus>> prefetchChildren(AlluxioURI path, MountTable mountTable) {
     if (mPrefetchExecutor == null) {
-      return;
+      return null;
     }
     try {
       Future<Collection<UfsStatus>> job =
@@ -265,8 +268,10 @@ public class UfsStatusCache {
       if (prev != null) {
         prev.cancel(true);
       }
+      return job;
     } catch (RejectedExecutionException e) {
       LOG.debug("Failed to submit prefetch job for path {}", path, e);
+      return null;
     }
   }
 
