@@ -651,6 +651,7 @@ public final class ConfigurationUtils {
   /**
    * Gets list of masters in conf directory.
    *
+   * @param conf configuration
    * @return master hostnames
    */
   public static Set<String> getMasterHostnames(AlluxioConfiguration conf) {
@@ -660,6 +661,7 @@ public final class ConfigurationUtils {
   /**
    * Gets list of workers in conf directory.
    *
+   * @param conf configuration
    * @return workers hostnames
    */
   public static Set<String> getWorkerHostnames(AlluxioConfiguration conf) {
@@ -669,6 +671,7 @@ public final class ConfigurationUtils {
   /**
    * Gets list of masters/workers in conf directory.
    *
+   * @param conf configuration
    * @return server hostnames
    */
   public static Set<String> getServerHostnames(AlluxioConfiguration conf) {
