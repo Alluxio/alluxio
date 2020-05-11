@@ -2353,14 +2353,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
-      new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
-          .setDefaultValue("ANY")
-          .setDescription("Defines the backoff strategy used by background tasks. "
-              + "Supported values are ANY / DIRECTORY. "
-              + "ANY: Background tasks will backoff when there is any load on worker, "
-              + "regardless of which tier/dir/medium the load is in. "
-              + "DIRECTORY: Background tasks will backoff only on directories with load.")
+  public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_SCOPE =
+      new Builder(Name.WORKER_MANAGEMENT_BACKOFF_SCOPE)
+          .setDefaultValue("WORKER")
+          .setDescription("Defines the backoff scope respected by background tasks. "
+              + "Supported values are WORKER / DIRECTORY. "
+              + "WORKER: Management tasks will backoff from worker when there is a user I/O."
+              + "This mode will ensure low management task overhead in order to favor "
+              + "immediate user I/O performance. However, making progress on management tasks "
+              + "will require quite periods on the worker."
+              + "DIRECTORY: Management tasks will backoff from directories with ongoing user I/O."
+              + "This mode will give better chance of making progress on management tasks."
+              + "However, immediate user I/O throughput might be reduced due to "
+              + "increased management task activity. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4990,8 +4995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.step.factor";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
-    public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
-        "alluxio.worker.management.backoff.strategy";
+    public static final String WORKER_MANAGEMENT_BACKOFF_SCOPE =
+        "alluxio.worker.management.backoff.scope";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =

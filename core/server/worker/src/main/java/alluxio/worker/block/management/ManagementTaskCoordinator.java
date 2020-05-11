@@ -38,8 +38,8 @@ public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
   /** Duration to sleep when a) load detected on worker. b) no work to do. */
   private final long mLoadDetectionCoolDownMs;
-  /** How to back-off when there is user activity. */
-  private BackoffStrategy mBackoffStrategy;
+  /** From where to back-off when there is user activity. */
+  private BackoffScope mBackoffScope;
 
   /** Runner thread for launching management tasks. */
   private final Thread mRunnerThread;
@@ -77,8 +77,8 @@ public class ManagementTaskCoordinator implements Closeable {
     // Read configs.
     mLoadDetectionCoolDownMs =
         ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
-    mBackoffStrategy = ServerConfiguration.getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_STRATEGY,
-        BackoffStrategy.class);
+    mBackoffScope = ServerConfiguration.getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_SCOPE,
+        BackoffScope.class);
 
     mTaskExecutor = Executors.newFixedThreadPool(
         ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
@@ -160,11 +160,10 @@ public class ManagementTaskCoordinator implements Closeable {
 
       BlockManagementTask currentTask;
       try {
-        // Back off if any load detected.
-        if (mBackoffStrategy == BackoffStrategy.ANY
+        // Back off from worker scope if configured so.
+        if (mBackoffScope == BackoffScope.WORKER
             && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
-          LOG.debug("Load detected. Sleeping {}ms.",
-              mLoadDetectionCoolDownMs);
+          LOG.debug("Load detected. Sleeping {}ms.", mLoadDetectionCoolDownMs);
           Thread.sleep(mLoadDetectionCoolDownMs);
           continue;
         }
@@ -199,9 +198,9 @@ public class ManagementTaskCoordinator implements Closeable {
   }
 
   /**
-   * Used to specify how to back-off.
+   * Used to specify from where to back-off.
    */
-  enum BackoffStrategy {
-    ANY, DIRECTORY
+  enum BackoffScope {
+    WORKER, DIRECTORY
   }
 }
