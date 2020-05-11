@@ -38,8 +38,8 @@ public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
   /** Duration to sleep when a) load detected on worker. b) no work to do. */
   private final long mLoadDetectionCoolDownMs;
-  /** From where to back-off when there is user activity. */
-  private BackoffScope mBackoffScope;
+  /** The back-off strategy. */
+  private BackoffStrategy mBackoffStrategy;
 
   /** Runner thread for launching management tasks. */
   private final Thread mRunnerThread;
@@ -77,8 +77,8 @@ public class ManagementTaskCoordinator implements Closeable {
     // Read configs.
     mLoadDetectionCoolDownMs =
         ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
-    mBackoffScope = ServerConfiguration.getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_SCOPE,
-        BackoffScope.class);
+    mBackoffStrategy = ServerConfiguration.getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_STRATEGY,
+        BackoffStrategy.class);
 
     mTaskExecutor = Executors.newFixedThreadPool(
         ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
@@ -160,8 +160,8 @@ public class ManagementTaskCoordinator implements Closeable {
 
       BlockManagementTask currentTask;
       try {
-        // Back off from worker scope if configured so.
-        if (mBackoffScope == BackoffScope.WORKER
+        // Back off from worker if configured so.
+        if (mBackoffStrategy == BackoffStrategy.ANY
             && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
           LOG.debug("Load detected. Sleeping {}ms.", mLoadDetectionCoolDownMs);
           Thread.sleep(mLoadDetectionCoolDownMs);
@@ -200,7 +200,7 @@ public class ManagementTaskCoordinator implements Closeable {
   /**
    * Used to specify from where to back-off.
    */
-  enum BackoffScope {
-    WORKER, DIRECTORY
+  enum BackoffStrategy {
+    ANY, DIRECTORY
   }
 }
