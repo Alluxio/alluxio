@@ -2858,15 +2858,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-      new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
-          .setAlias("alluxio.worker.tieredstore.reserver.interval.ms")
-          .setDefaultValue("1sec")
-          .setDescription("The time period of space reserver service, which "
-              + "keeps certain portion of available space on each layer.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_WEB_BIND_HOST =
       new Builder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -5072,8 +5063,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
         "alluxio.worker.tieredstore.free.ahead.bytes";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
-    public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-        "alluxio.worker.tieredstore.reserver.interval";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
