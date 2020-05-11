@@ -28,6 +28,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.UUID;
@@ -120,6 +121,10 @@ public final class UnderFileSystemContractTest {
     int failedTestCnt = 0;
     try {
       Class classToRun = operations.getClass();
+      Field[] fields = classToRun.getDeclaredFields();
+      for (Field field : fields) {
+        field.setAccessible(true);
+      }
       Method[] tests = classToRun.getDeclaredMethods();
       for (Method test : tests) {
         String testName = test.getName();
@@ -129,13 +134,13 @@ public final class UnderFileSystemContractTest {
           try {
             test.invoke(operations);
             passed = true;
-            cleanupUfs(testDir);
           } catch (Exception e) {
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
               logRelatedS3Operations(test);
             }
             System.err.format("Test %s.%s aborted%n%s", test.getClass(), test.getName(), e);
           } finally {
+            cleanupUfs(testDir);
             RunTestUtils.printPassInfo(passed);
             if (!passed) {
               failedTestCnt++;
