@@ -43,13 +43,32 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
+<<<<<<< HEAD
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+    mUfs = Mockito
+        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+=======
+    mUfs = Mockito
+        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+    mJournal.start();
+    mJournal.gainPrimacy();
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
   }
 
   @After
   public void after() throws Exception {
+<<<<<<< HEAD
     ConfigurationTestUtils.resetConfiguration();
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+    ServerConfiguration.reset();
+=======
+    mJournal.close();
+    ServerConfiguration.reset();
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
   }
 
   /**

@@ -110,6 +110,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
+    checkIsWritable();
     try {
       maybeRecoverFromUfsFailures();
       maybeRotateLog();
@@ -121,8 +122,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       JournalEntry entryToWrite =
           entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build();
       entryToWrite.writeDelimitedTo(mJournalOutputStream);
-      LOG.debug("Adding journal entry (seq={}) to retryList with {} entries.",
-          entryToWrite.getSequenceNumber(), mEntriesToFlush.size());
+      LOG.debug("Adding journal entry (seq={}) to retryList with {} entries. currentLog: {}",
+          entryToWrite.getSequenceNumber(), mEntriesToFlush.size(), currentLogName());
       mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
     } catch (IOJournalClosedException e) {
@@ -154,15 +155,34 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    writing it to UFS by calling the {@code UfsJournalLogWriter#write} method.
    */
   private void maybeRecoverFromUfsFailures() throws IOException, JournalClosedException {
+    checkIsWritable();
     if (!mNeedsRecovery) {
       return;
     }
 
+<<<<<<< HEAD
     long lastPersistSeq = recoverLastPersistedJournalEntry();
     if (lastPersistSeq == -1) {
       throw new RuntimeException("Cannot find any journal entry to recover from.");
     }
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER.getName()).time()) {
+      long lastPersistSeq = recoverLastPersistedJournalEntry();
+      if (lastPersistSeq == -1) {
+        throw new RuntimeException("Cannot find any journal entry to recover from.");
+      }
+=======
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER.getName()).time()) {
+      long lastPersistSeq = recoverLastPersistedJournalEntry();
+      if (lastPersistSeq == -1) {
+        throw new RuntimeException(
+            "Cannot find any journal entry to recover. location: " + mJournal.getLocation());
+      }
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
 
+<<<<<<< HEAD
     createNewLogFile(lastPersistSeq + 1);
     if (!mEntriesToFlush.isEmpty()) {
       JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
@@ -184,14 +204,79 @@ final class UfsJournalLogWriter implements JournalWriter {
             throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
                 .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
                     mJournalOutputStream.currentLog(), e.getMessage()), e);
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+      createNewLogFile(lastPersistSeq + 1);
+      if (!mEntriesToFlush.isEmpty()) {
+        JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+        if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+          throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+              lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+        }
+        long retryEndSeq = lastPersistSeq;
+        LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
+        for (JournalEntry entry : mEntriesToFlush) {
+          if (entry.getSequenceNumber() > lastPersistSeq) {
+            try {
+              entry.toBuilder().build().writeDelimitedTo(mJournalOutputStream);
+              retryEndSeq = entry.getSequenceNumber();
+            } catch (IOJournalClosedException e) {
+              throw e.toJournalClosedException();
+            } catch (IOException e) {
+              throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+                  .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                      mJournalOutputStream.currentLog(), e.getMessage()), e);
+            }
+=======
+      createNewLogFile(lastPersistSeq + 1);
+      if (!mEntriesToFlush.isEmpty()) {
+        JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+        if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+          throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+              lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+        }
+        long retryEndSeq = lastPersistSeq;
+        LOG.info("Retry writing unwritten journal entries from seq {} to currentLog {}",
+            lastPersistSeq + 1, currentLogName());
+        for (JournalEntry entry : mEntriesToFlush) {
+          if (entry.getSequenceNumber() > lastPersistSeq) {
+            try {
+              entry.toBuilder().build().writeDelimitedTo(mJournalOutputStream);
+              retryEndSeq = entry.getSequenceNumber();
+            } catch (IOJournalClosedException e) {
+              throw e.toJournalClosedException();
+            } catch (IOException e) {
+              throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+                  .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                      mJournalOutputStream.currentLog(), e.getMessage()), e);
+            }
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
           }
         }
+<<<<<<< HEAD
       }
       LOG.info("Finished writing unwritten journal entries from {} to {}.",
           lastPersistSeq + 1, retryEndSeq);
       if (retryEndSeq != mNextSequenceNumber - 1) {
         throw new RuntimeException("Failed to recover all entries to flush, expecting "
             + (mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq);
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+        LOG.info("Finished writing unwritten journal entries from {} to {}.",
+            lastPersistSeq + 1, retryEndSeq);
+        if (retryEndSeq != mNextSequenceNumber - 1) {
+          throw new RuntimeException("Failed to recover all entries to flush, expecting "
+              + (mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq);
+        }
+=======
+        LOG.info("Finished writing unwritten journal entries from {} to {}. currentLog: {}",
+            lastPersistSeq + 1, retryEndSeq, currentLogName());
+        if (retryEndSeq != mNextSequenceNumber - 1) {
+          throw new RuntimeException("Failed to recover all entries to flush, expecting " + (
+              mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq + " currentLog: "
+              + currentLogName());
+        }
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
       }
     }
     mNeedsRecovery = false;
@@ -219,8 +304,20 @@ final class UfsJournalLogWriter implements JournalWriter {
     if (currentLog != null) {
       long startSeq = currentLog.getStart();
       LOG.info("Recovering from previous UFS journal write failure."
+<<<<<<< HEAD
           + " Scanning for the last persisted journal entry.");
       try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+          + " Scanning for the last persisted journal entry.");
+      try (JournalEntryStreamReader reader =
+          new JournalEntryStreamReader(mUfs.open(currentLog.getLocation().toString(),
+              OpenOptions.defaults().setRecoverFailedOpen(true)))) {
+=======
+          + " Scanning for the last persisted journal entry. currentLog: " + currentLog.toString());
+      try (JournalEntryStreamReader reader =
+          new JournalEntryStreamReader(mUfs.open(currentLog.getLocation().toString(),
+              OpenOptions.defaults().setRecoverFailedOpen(true)))) {
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
         JournalEntry entry;
         while ((entry = reader.read()) != null) {
           if (entry.getSequenceNumber() > lastPersistSeq) {
@@ -263,7 +360,8 @@ final class UfsJournalLogWriter implements JournalWriter {
    * Closes the current journal output stream and creates a new one.
    * The implementation must be idempotent so that it can work when retrying during failures.
    */
-  private void maybeRotateLog() throws IOException {
+  private void maybeRotateLog() throws IOException, JournalClosedException {
+    checkIsWritable();
     if (!mRotateLogForNextWrite) {
       return;
     }
@@ -276,11 +374,19 @@ final class UfsJournalLogWriter implements JournalWriter {
     mRotateLogForNextWrite = false;
   }
 
+<<<<<<< HEAD
   private void createNewLogFile() throws IOException {
     createNewLogFile(mNextSequenceNumber);
   }
 
   private void createNewLogFile(long startSequenceNumber) throws IOException {
+||||||| parent of b358b1a6a3... Prevent secondary UFS journal from modifying journal files
+  private void createNewLogFile(long startSequenceNumber) throws IOException {
+=======
+  private void createNewLogFile(long startSequenceNumber)
+      throws IOException, JournalClosedException {
+    checkIsWritable();
+>>>>>>> b358b1a6a3... Prevent secondary UFS journal from modifying journal files
     URI newLog = UfsJournalFile
         .encodeLogFileLocation(mJournal, startSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, startSequenceNumber,
@@ -304,6 +410,13 @@ final class UfsJournalLogWriter implements JournalWriter {
    * @param nextSequenceNumber the next sequence number for the log to complete
    */
   private void completeLog(UfsJournalFile currentLog, long nextSequenceNumber) throws IOException {
+    try {
+      checkIsWritable();
+    } catch (JournalClosedException e) {
+      // Do not throw error, just ignore if the journal is not writable
+      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.getMessage());
+      return;
+    }
     String current = currentLog.getLocation().toString();
     if (nextSequenceNumber <= currentLog.getStart()) {
       LOG.info("No journal entry found in current journal file {}. Deleting it", current);
@@ -312,10 +425,19 @@ final class UfsJournalLogWriter implements JournalWriter {
       }
       return;
     }
-    LOG.info("Completing log {} with next sequence number {}", current, nextSequenceNumber);
     String completed = UfsJournalFile
         .encodeLogFileLocation(mJournal, currentLog.getStart(), nextSequenceNumber).toString();
 
+    try {
+      // Check again before the rename
+      checkIsWritable();
+    } catch (JournalClosedException e) {
+      // Do not throw error, just ignore if the journal is not writable
+      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.getMessage());
+      return;
+    }
+    LOG.info(String
+        .format("Completing log %s with next sequence number %d", current, nextSequenceNumber));
     if (!mUfs.renameFile(current, completed)) {
       // Completes could happen concurrently, check whether another master already did the rename.
       if (!mUfs.exists(completed)) {
@@ -333,6 +455,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   public synchronized void flush() throws IOException, JournalClosedException {
+    checkIsWritable();
     maybeRecoverFromUfsFailures();
 
     if (mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {
@@ -360,8 +483,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
       // local temporary file, call close and complete the log to sync the journal entry to S3/OSS.
       if (overSize) {
-        LOG.info("Rotating log file. size: {} maxSize: {}", mJournalOutputStream.bytesWritten(),
-            mMaxLogSize);
+        LOG.info("Rotating log file {}. size: {} maxSize: {}", currentLogName(),
+            mJournalOutputStream.bytesWritten(), mMaxLogSize);
       }
       mRotateLogForNextWrite = true;
     }
@@ -454,7 +577,8 @@ final class UfsJournalLogWriter implements JournalWriter {
 
     private void checkJournalWriterOpen() throws IOJournalClosedException {
       if (mClosed) {
-        throw new JournalClosedException("Journal writer is closed").toIOException();
+        throw new JournalClosedException("Journal writer is closed. currentLog: " + mCurrentLog)
+            .toIOException();
       }
     }
   }
@@ -477,5 +601,23 @@ final class UfsJournalLogWriter implements JournalWriter {
   @VisibleForTesting
   synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
+  }
+
+  /**
+   * @throws JournalClosedException if the journal is no longer writable
+   */
+  private void checkIsWritable() throws JournalClosedException {
+    if (!mJournal.isWritable()) {
+      throw new JournalClosedException(String
+          .format("writer not allowed to write (no longer primary). location: %s currentLog: %s",
+              mJournal.getLocation(), currentLogName()));
+    }
+  }
+
+  private String currentLogName() {
+    if (mJournalOutputStream != null) {
+      return mJournalOutputStream.currentLog().toString();
+    }
+    return "(null output stream)";
   }
 }
