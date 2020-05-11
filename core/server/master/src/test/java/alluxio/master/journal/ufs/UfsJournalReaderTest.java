@@ -55,10 +55,13 @@ public final class UfsJournalReaderTest {
     mUfs = Mockito
         .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+    mJournal.start();
+    mJournal.gainPrimacy();
   }
 
   @After
   public void after() throws Exception {
+    mJournal.close();
     ServerConfiguration.reset();
   }
 

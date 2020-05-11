@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MockMaster;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
@@ -52,10 +52,13 @@ public final class UfsJournalCheckpointThreadTest {
     mUfs = Mockito
         .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+    mJournal.start();
+    mJournal.gainPrimacy();
   }
 
   @After
   public void after() throws Exception {
+    mJournal.close();
     ServerConfiguration.reset();
   }
 

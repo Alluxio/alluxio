@@ -95,9 +95,15 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
+    // Make all journals secondary as soon as possible
+    for (UfsJournal journal : mJournals.values()) {
+      journal.signalLosePrimacy();
+    }
+
+    // Wait for all journals to transition to secondary
     try {
       for (UfsJournal journal : mJournals.values()) {
-        journal.losePrimacy();
+        journal.awaitLosePrimacy();
       }
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
