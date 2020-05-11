@@ -52,14 +52,19 @@ public final class UnderFileSystemContractTest {
   @Parameter(names = {"--help"}, help = true)
   private boolean mHelp = false;
 
-  private InstancedConfiguration mConf
-      = new InstancedConfiguration(ConfigurationUtils.defaults());
-
+  private InstancedConfiguration mConf;
   private UnderFileSystem mUfs;
 
-  private UnderFileSystemContractTest() {}
+  public UnderFileSystemContractTest() {
+    mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+  }
 
-  private void run() throws Exception {
+  public UnderFileSystemContractTest(String path, InstancedConfiguration conf) {
+    mUfsPath = path;
+    mConf = conf;
+  }
+
+  public void run() throws Exception {
     UnderFileSystemConfiguration ufsConf = getUfsConf();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, ufsConf);
     // Check if the ufs path is valid
