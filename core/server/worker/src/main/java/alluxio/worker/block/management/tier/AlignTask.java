@@ -60,8 +60,8 @@ public class AlignTask extends AbstractBlockManagementTask {
    * @param executor the executor
    */
   public AlignTask(BlockStore blockStore, BlockMetadataManager metadataManager,
-                   BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
-                   ExecutorService executor) {
+      BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
+      ExecutorService executor) {
     super(blockStore, metadataManager, evictorView, loadTracker, executor);
   }
 
