@@ -19,8 +19,8 @@
   </parent>
 
   <artifactId>alluxio-underfs-ozone</artifactId>
-  <name>Alluxio Under File System - Apache ozone</name>
-  <description>Apache ozone Under File System implementation</description>
+  <name>Alluxio Under File System - Apache Ozone</name>
+  <description>Apache Ozone Under File System implementation</description>
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
