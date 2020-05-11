@@ -51,8 +51,8 @@
       "ssh_private_key_file": "{{user `ec2_keypair_pem_file`}}",
       "ssh_username": "ec2-user",
       "tags": {
-        "Origin": "Nightly",
-        "build_id": "t2sdm23s"
+        "Origin": "",
+        "build_id": ""
       }
     }
   ],
