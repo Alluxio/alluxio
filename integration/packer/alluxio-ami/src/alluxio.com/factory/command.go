@@ -23,7 +23,6 @@ func Exec(app string, args []string) (string, error) {
 	log.Println(fmt.Sprintf("%v %v", app, strings.Join(args, " ")))
 	cmd := exec.Command(app, args...)
 	stdout, err := cmd.Output()
-
 	if err != nil {
 		return "", err
 	}

@@ -36,6 +36,13 @@ EOF
 # Arguments:
 #  $1: old version
 #  $2: new version
+function update_ami_packer_json() {
+    perl -pi -e "s/${1}/${2}/g" integration/packer/alluxio-ami/packer.json
+}
+
+# Arguments:
+#  $1: old version
+#  $2: new version
 function update_dataproc() {
     perl -pi -e "s/${1}/${2}/g" integration/dataproc/alluxio.sh
 }
@@ -129,6 +136,7 @@ function main() {
         update_poms "$_old" "$_new"
     fi
 
+    update_ami_packer_json "$_old" "$_new"
     update_dataproc "$_old" "$_new"
     update_emr "$_old" "$_new"
     update_libexec "$_old" "$_new"
