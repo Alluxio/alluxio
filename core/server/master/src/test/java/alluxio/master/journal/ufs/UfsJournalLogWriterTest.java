@@ -13,9 +13,9 @@ package alluxio.master.journal.ufs;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
@@ -25,6 +25,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
+import org.hamcrest.core.StringStartsWith;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,10 +66,13 @@ public final class UfsJournalLogWriterTest {
     mUfs = Mockito
         .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+    mJournal.start();
+    mJournal.gainPrimacy();
   }
 
   @After
   public void after() throws Exception {
+    mJournal.close();
     ServerConfiguration.reset();
   }
 
@@ -369,7 +373,8 @@ public final class UfsJournalLogWriterTest {
 
     // Recover should fail since we deleted the file
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("Cannot find any journal entry to recover from.");
+    mThrown.expectMessage(
+        StringStartsWith.startsWith("Cannot find any journal entry to recover."));
     writer.write(newEntry(nextSN));
     writer.close();
   }
