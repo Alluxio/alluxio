@@ -19,7 +19,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class PreadSeekableStream extends FilterInputStream implements Seekable, PositionedReadable {
+public class PreadSeekableStream extends FilterInputStream implements Seekable, PositionedReadable {
   protected PreadSeekableStream(InputStream in) {
     super(in);
   }
