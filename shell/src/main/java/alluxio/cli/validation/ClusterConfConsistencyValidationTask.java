@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
@@ -35,11 +35,21 @@ import javax.annotation.Nullable;
  * Task for validating system limit for current user.
  */
 public final class ClusterConfConsistencyValidationTask extends AbstractValidationTask {
+  private final AlluxioConfiguration mConf;
+
+  /**
+   * Creates a new instance of {@link ClusterConfConsistencyValidationTask}
+   * for validating Alluxio configuration consistency in the cluster.
+   * @param conf configuration
+   */
+  public ClusterConfConsistencyValidationTask(AlluxioConfiguration conf) {
+    mConf = conf;
+  }
 
   @Override
   public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
-    Set<String> masters = ConfigurationUtils.getMasterHostnames();
-    Set<String> workers = ConfigurationUtils.getWorkerHostnames();
+    Set<String> masters = ConfigurationUtils.getMasterHostnames(mConf);
+    Set<String> workers = ConfigurationUtils.getWorkerHostnames(mConf);
     Set<String> nodes = Sets.union(masters, workers);
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
@@ -129,7 +139,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   @Nullable
   private Properties getNodeConf(String node) {
     try {
-      String homeDir = InstancedConfiguration.defaults().get(PropertyKey.HOME);
+      String homeDir = mConf.get(PropertyKey.HOME);
       String remoteCommand = String.format(
           "%s/bin/alluxio getConf", homeDir);
       String localCommand = String.format(

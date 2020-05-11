@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
 import alluxio.util.ShellUtils;
@@ -30,32 +30,34 @@ import java.util.Map;
  * Task for validating whether worker tiered storage has enough space.
  */
 public final class StorageSpaceValidationTask extends AbstractValidationTask {
+  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a new instance of {@link StorageSpaceValidationTask}
    * for validating tiered storage space.
+   * @param conf configuration
    */
-  public StorageSpaceValidationTask() {
+  public StorageSpaceValidationTask(AlluxioConfiguration conf) {
+    mConf = conf;
   }
 
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
-    int numLevel = conf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = mConf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
-      String alias = conf.get(tierAliasConf);
+      String alias = mConf.get(tierAliasConf);
 
       PropertyKey tierDirPathConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = conf.get(tierDirPathConf).split(",");
+      String[] dirPaths = mConf.get(tierDirPathConf).split(",");
 
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
-      String rawDirQuota = conf.get(tierDirCapacityConf);
+      String rawDirQuota = mConf.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
         return TaskResult.FAILED;

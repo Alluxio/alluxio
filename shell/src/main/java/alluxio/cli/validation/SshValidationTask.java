@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
@@ -21,9 +22,20 @@ import java.util.Set;
  * Task for validating SSH reachability.
  */
 public final class SshValidationTask extends AbstractValidationTask {
+  private final AlluxioConfiguration mConf;
+
+    /**
+     * Creates a new instance of {@link SshValidationTask}
+     * for validating ssh accessibility.
+     * @param conf configuration
+     */
+  public SshValidationTask(AlluxioConfiguration conf) {
+    mConf = conf;
+  }
+
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
-    Set<String> nodes = ConfigurationUtils.getServerHostnames();
+    Set<String> nodes = ConfigurationUtils.getServerHostnames(mConf);
     if (nodes == null) {
       return TaskResult.FAILED;
     }

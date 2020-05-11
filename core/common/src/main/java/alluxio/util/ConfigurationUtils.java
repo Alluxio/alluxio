@@ -643,8 +643,7 @@ public final class ConfigurationUtils {
    * @return list of the node names, null when file fails to read
    */
   @Nullable
-  private static Set<String> readNodeList(String fileName) {
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
+  private static Set<String> readNodeList(String fileName, AlluxioConfiguration conf) {
     String confDir = conf.get(PropertyKey.CONF_DIR);
     return CommandUtils.readNodeList(confDir, fileName);
   }
@@ -654,8 +653,8 @@ public final class ConfigurationUtils {
    *
    * @return master hostnames
    */
-  public static Set<String> getMasterHostnames() {
-    return readNodeList(MASTERS);
+  public static Set<String> getMasterHostnames(AlluxioConfiguration conf) {
+    return readNodeList(MASTERS, conf);
   }
 
   /**
@@ -663,8 +662,8 @@ public final class ConfigurationUtils {
    *
    * @return workers hostnames
    */
-  public static Set<String> getWorkerHostnames() {
-    return readNodeList(WORKERS);
+  public static Set<String> getWorkerHostnames(AlluxioConfiguration conf) {
+    return readNodeList(WORKERS, conf);
   }
 
   /**
@@ -672,7 +671,7 @@ public final class ConfigurationUtils {
    *
    * @return server hostnames
    */
-  public static Set<String> getServerHostnames() {
-    return Sets.union(getMasterHostnames(), getWorkerHostnames());
+  public static Set<String> getServerHostnames(AlluxioConfiguration conf) {
+    return Sets.union(getMasterHostnames(conf), getWorkerHostnames(conf));
   }
 }

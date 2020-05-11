@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -32,9 +32,10 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   /**
    * Creates a new instance of {@link UfsSuperUserValidationTask}
    * for validating root under file system.
+   *
+   * @param conf configuration
    */
-  public UfsSuperUserValidationTask() {
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
+  public UfsSuperUserValidationTask(AlluxioConfiguration conf) {
     mUfs = UnderFileSystem.Factory.createForRoot(conf);
     mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }

@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.shell.CommandReturn;
 import alluxio.util.ShellUtils;
@@ -51,13 +51,18 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
   private final String mProcess;
   private PropertyKey mPrincipalProperty;
   private PropertyKey mKeytabProperty;
+  private final AlluxioConfiguration mConf;
 
   /**
-   * Constructor of {@link SecureHdfsValidationTask}.
+   * Constructor of {@link SecureHdfsValidationTask}
+   * for validating Kerberos login ability.
    *
    * @param process type of the process on behalf of which this validation task is run
+   * @param conf configuration
    */
-  public SecureHdfsValidationTask(String process) {
+  public SecureHdfsValidationTask(String process, AlluxioConfiguration conf) {
+    super(conf);
+    mConf = conf;
     mProcess = process.toLowerCase();
     mPrincipalProperty = PRINCIPAL_MAP.get(mProcess);
     mKeytabProperty = KEYTAB_MAP.get(mProcess);
@@ -83,9 +88,8 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       return true;
     }
     String principal = null;
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
-    if (conf.isSet(mPrincipalProperty)) {
-      principal = conf.get(mPrincipalProperty);
+    if (mConf.isSet(mPrincipalProperty)) {
+      principal = mConf.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
       System.out.format("Skip validation for secure HDFS. %s is not specified.%n",
@@ -97,8 +101,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
-    String principal = conf.get(mPrincipalProperty);
+    String principal = mConf.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
@@ -109,7 +112,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
     String realm = matchPrincipal.group("realm");
 
     // Login with principal and keytab
-    String keytab = conf.get(mKeytabProperty);
+    String keytab = mConf.get(mKeytabProperty);
     CommandReturn cr;
     String[] command = new String[] {"kinit", "-kt", keytab, principal};
     try {

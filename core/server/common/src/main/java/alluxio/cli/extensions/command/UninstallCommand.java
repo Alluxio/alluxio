@@ -11,6 +11,7 @@
 
 package alluxio.cli.extensions.command;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -62,9 +63,10 @@ public final class UninstallCommand implements Command {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);
+    AlluxioConfiguration conf = ServerConfiguration.global();
+    String extensionsDir = conf.get(PropertyKey.EXTENSIONS_DIR);
     List<String> failedHosts = new ArrayList<>();
-    for (String host : ConfigurationUtils.getServerHostnames()) {
+    for (String host : ConfigurationUtils.getServerHostnames(conf)) {
       try {
         LOG.info("Attempting to uninstall extension on host {}", host);
         String rmCmd = String.format("ssh %s %s rm %s", ShellUtils.COMMON_SSH_OPTS, host,

@@ -23,6 +23,7 @@ import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
@@ -86,59 +87,63 @@ public final class ValidateEnv {
   private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
+  private static final AlluxioConfiguration CONF;
+
   static {
+    CONF = InstancedConfiguration.defaults();
+
     // HDFS configuration validations
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
-        new HdfsValidationTask(), COMMON_TASKS);
+        new HdfsValidationTask(CONF), COMMON_TASKS);
 
     // port availability validations
     registerTask("master.rpc.port.available",
         "validate master RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS),
+        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS, CONF),
         MASTER_TASKS);
     registerTask("master.web.port.available",
         "validate master web port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS),
+        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS, CONF),
         MASTER_TASKS);
     registerTask("worker.rpc.port.available",
         "validate worker RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS),
+        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS, CONF),
         WORKER_TASKS);
     registerTask("worker.web.port.available",
         "validate worker web port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS),
+        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS, CONF),
         WORKER_TASKS);
     registerTask("proxy.web.port.available",
         "validate proxy web port is available",
-        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS),
+        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS, CONF),
         COMMON_TASKS);
 
     // security configuration validations
     registerTask("master.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for masters",
-        new SecureHdfsValidationTask("master"), MASTER_TASKS);
+        new SecureHdfsValidationTask("master", CONF), MASTER_TASKS);
     registerTask("worker.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for workers",
-        new SecureHdfsValidationTask("worker"), WORKER_TASKS);
+        new SecureHdfsValidationTask("worker", CONF), WORKER_TASKS);
 
     // ssh validations
     registerTask("ssh.nodes.reachable",
         "validate SSH port on all Alluxio nodes are reachable",
-        new SshValidationTask(), COMMON_TASKS);
+        new SshValidationTask(CONF), COMMON_TASKS);
 
     // UFS validations
     registerTask("ufs.root.accessible",
         "validate root under file system location is accessible",
-        new UfsDirectoryValidationTask(), COMMON_TASKS);
+        new UfsDirectoryValidationTask(CONF), COMMON_TASKS);
     registerTask("ufs.root.superuser",
         "validate Alluxio has super user privilege on root under file system",
-        new UfsSuperUserValidationTask(), COMMON_TASKS);
+        new UfsSuperUserValidationTask(CONF), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
         "validate user has the correct privilege to mount ramdisk",
-        new RamDiskMountPrivilegeValidationTask(), WORKER_TASKS);
+        new RamDiskMountPrivilegeValidationTask(CONF), WORKER_TASKS);
 
     // User limit validations
     registerTask("ulimit.nofile",
@@ -152,10 +157,10 @@ public final class ValidateEnv {
     // space validations
     registerTask("worker.storage.space",
         "validate tiered storage locations have enough space",
-        new StorageSpaceValidationTask(), WORKER_TASKS);
+        new StorageSpaceValidationTask(CONF), WORKER_TASKS);
     registerTask("cluster.conf.consistent",
         "validate configuration consistency across the cluster",
-        new ClusterConfConsistencyValidationTask(), CLUSTER_TASKS);
+        new ClusterConfConsistencyValidationTask(CONF), CLUSTER_TASKS);
   }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
@@ -211,7 +216,7 @@ public final class ValidateEnv {
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = InstancedConfiguration.defaults().get(PropertyKey.HOME);
+    String homeDir = CONF.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
@@ -294,11 +299,11 @@ public final class ValidateEnv {
   }
 
   private static boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(ConfigurationUtils.getWorkerHostnames(), "worker", name, cmd);
+    return validateRemote(ConfigurationUtils.getWorkerHostnames(CONF), "worker", name, cmd);
   }
 
   private static boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(ConfigurationUtils.getMasterHostnames(), "master", name, cmd);
+    return validateRemote(ConfigurationUtils.getMasterHostnames(CONF), "master", name, cmd);
   }
 
   private static void printTasks(String target) {
