@@ -375,7 +375,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     if (mUfsConf.isSet(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1) && mUfsConf
-        .get(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1).equals(Boolean.toString(true))) {
+        .getBoolean(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1)) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
               .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));

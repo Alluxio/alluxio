@@ -16,6 +16,7 @@ import alluxio.concurrent.LockMode;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,11 +43,12 @@ public class CompositeInodeLockList implements InodeLockList {
    * Constructs a new lock list, using an existing lock list as the base list.
    *
    * @param baseLockList the base {@link InodeLockList} to use
+   * @param useTryLock whether or not use {@link Lock#tryLock()} or {@link Lock#lock()}
    */
-  public CompositeInodeLockList(InodeLockList baseLockList) {
+  public CompositeInodeLockList(InodeLockList baseLockList, boolean useTryLock) {
     mBaseLockList = baseLockList;
     mBaseListSize = baseLockList.numInodes();
-    mSubLockList = new SimpleInodeLockList(baseLockList.getInodeLockManager());
+    mSubLockList = new SimpleInodeLockList(baseLockList.getInodeLockManager(), useTryLock);
   }
 
   @Override

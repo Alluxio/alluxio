@@ -117,7 +117,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(4 * TTL_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
 
-    Assert.assertEquals("There're remaining file existing with expired TTLs",
+    Assert.assertEquals("There are remaining file existing with expired TTLs",
         0, mFileSystem.listStatus(new AlluxioURI("/")).size());
   }
 

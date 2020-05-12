@@ -18,10 +18,13 @@ import alluxio.resource.RefCountLockResource;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -29,6 +32,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -47,7 +51,7 @@ import java.util.function.Function;
  *
  * @param <K> key for the locks
  */
-public class LockPool<K> {
+public class LockPool<K> implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockPool.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final String EVICTOR_THREAD_NAME = "LockPool Evictor";
@@ -60,6 +64,7 @@ public class LockPool<K> {
   private final Lock mEvictLock = new ReentrantLock();
   private final Condition mOverHighWatermark = mEvictLock.newCondition();
   private final ExecutorService mEvictor;
+  private final Future<?> mEvictorTask;
 
   /**
    * Constructor for a lock pool.
@@ -77,8 +82,20 @@ public class LockPool<K> {
     mHighWatermark = highWatermark;
     mPool = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mEvictor = Executors.newSingleThreadExecutor(
-        ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
-    mEvictor.submit(new Evictor());
+        ThreadFactoryUtils.build(String.format("%s-%s", EVICTOR_THREAD_NAME, toString()), true));
+    mEvictorTask = mEvictor.submit(new Evictor());
+  }
+
+  @Override
+  public void close() throws IOException {
+    mEvictorTask.cancel(true);
+    mEvictor.shutdownNow(); // immediately halt the evictor thread.
+    try {
+      mEvictor.awaitTermination(2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Failed to await LockPool evictor termination", e);
+    }
   }
 
   private final class Evictor implements Runnable {
@@ -173,13 +190,30 @@ public class LockPool<K> {
    * @return a lock resource which must be closed to unlock the key
    */
   public LockResource get(K key, LockMode mode) {
+    return get(key, mode, false);
+  }
+
+  /**
+   * Locks the specified key in the specified mode.
+   *
+   * @param key the key to lock
+   * @param mode the mode to lock in
+   * @param useTryLock Determines whether or not to use {@link Lock#tryLock()} or
+   *                   {@link Lock#lock()} to acquire the lock. Differs from
+   *                   {@link #tryGet(Object, LockMode)} in that it will block until the lock has
+   *                   been acquired.
+   * @return a lock resource which must be closed to unlock the key
+   */
+  public LockResource get(K key, LockMode mode, boolean useTryLock) {
     Resource resource = getResource(key);
     ReentrantReadWriteLock lock = resource.mLock;
     switch (mode) {
       case READ:
-        return new RefCountLockResource(lock.readLock(), true, resource.mRefCount);
+        return new RefCountLockResource(
+            lock.readLock(), true, resource.mRefCount, useTryLock);
       case WRITE:
-        return new RefCountLockResource(lock.writeLock(), true, resource.mRefCount);
+        return new RefCountLockResource(
+            lock.writeLock(), true, resource.mRefCount, useTryLock);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
@@ -209,7 +243,7 @@ public class LockPool<K> {
     if (!innerLock.tryLock()) {
       return Optional.empty();
     }
-    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount));
+    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount, false));
   }
 
   /**
@@ -245,6 +279,15 @@ public class LockPool<K> {
     return resource;
   }
 
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("lowWatermark", mLowWatermark)
+        .add("highWatermark", mHighWatermark)
+        .add("size", mPool.size())
+        .toString();
+  }
+
   /**
    * Returns whether the pool contains a particular key.
    *
@@ -270,9 +313,7 @@ public class LockPool<K> {
   @VisibleForTesting
   public Map<K, ReentrantReadWriteLock> getEntryMap() {
     Map<K, ReentrantReadWriteLock> entries = new HashMap<>();
-    mPool.entrySet().forEach(entry -> {
-      entries.put(entry.getKey(), entry.getValue().mLock);
-    });
+    mPool.forEach((key, value) -> entries.put(key, value.mLock));
     return entries;
   }
 
