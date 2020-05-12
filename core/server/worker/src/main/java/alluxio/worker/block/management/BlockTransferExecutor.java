@@ -225,7 +225,7 @@ public class BlockTransferExecutor {
       try {
         if (mLoadTracker.loadDetected(transferInfo.getSrcLocation(),
             transferInfo.getDstLocation())) {
-          LOG.warn("Skipping transfer-order: {} due to user activity.", transferInfo);
+          LOG.debug("Skipping transfer-order: {} due to user activity.", transferInfo);
           continue;
         }
 
