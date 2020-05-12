@@ -17,6 +17,8 @@ import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -24,10 +26,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -37,6 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CommandUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(CommandUtils.class);
 
   private CommandUtils() {} // prevent instantiation
 
@@ -123,10 +126,11 @@ public final class CommandUtils {
   @Nullable
   public static Set<String> readNodeList(String confDir, String fileName) {
     List<String> lines;
+    String path = Paths.get(confDir, fileName).normalize().toString();
     try {
       lines = Files.readAllLines(Paths.get(confDir, fileName), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      System.err.format("Failed to read file %s/%s. Ignored.", confDir, fileName);
+      System.err.format("Failed to read file %s/%s. Ignored.%n", confDir, fileName);
       return new HashSet<>();
     }
 
@@ -136,7 +140,9 @@ public final class CommandUtils {
       if (node.startsWith("#") || node.length() == 0) {
         continue;
       }
-      nodes.add(node);
+      if (nodes.add(node)) {
+        System.out.format("Duplicate node hostname %s found in %s%n", node, path);
+      }
     }
 
     return nodes;

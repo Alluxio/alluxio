@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.validation.ValidationTask;
 import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
 import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
@@ -23,6 +22,7 @@ import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
+import alluxio.cli.validation.ValidationTask;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
