@@ -88,8 +88,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
       "alluxio.client.block.policy.RoundRobinPolicy",
-      // don't let the reserver run, because the test writes 100% of the capacity.
-      PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "1h"
       })
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;

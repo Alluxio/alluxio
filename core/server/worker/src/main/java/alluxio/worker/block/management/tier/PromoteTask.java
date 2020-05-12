@@ -124,8 +124,8 @@ public class PromoteTask extends AbstractBlockManagementTask {
         continue;
       }
     }
-    LOG.debug("Generated {} transfer to promote blocks from {} to {}", transferInfos.size(),
-        tierUpLocation, tierDownLocation);
+    LOG.debug("Generated {} promotions from {} to {}", transferInfos.size(),
+        tierUpLocation.tierAlias(), tierDownLocation.tierAlias());
     return transferInfos;
   }
 }
