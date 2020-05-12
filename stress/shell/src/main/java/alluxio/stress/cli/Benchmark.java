@@ -99,6 +99,7 @@ public abstract class Benchmark<T extends TaskResult> {
 
       commandArgs.addAll(mBaseParameters.mJavaOpts);
 
+      // TODO(jiacheng): make this use my PlanConfig
       long jobId =
           JobGrpcClientUtils.run(new StressBenchConfig(className, commandArgs, 5000), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
