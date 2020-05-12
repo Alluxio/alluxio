@@ -10,17 +10,16 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# Running this script will create edited versions of the files in the .generated directory
+set -e
+
 ALLUXIO_DOWNLOAD_URL=${1}
 
-if [[ -z ${ALLUXIO_DOWNLOAD_URL} ]]; then
-  echo "Alluxio tarball URL cannot be empty"
-  exit 1
-fi
-
-# replace ALLUXIO_DOWNLOAD_URL in emr files
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/*
-else
-  sed -i -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/*
+mkdir -p ${DIR}/.generated
+cp ${DIR}/alluxio-emr.* ${DIR}/.generated
+
+# replace ALLUXIO_DOWNLOAD_URL in emr bootstrap script (alluxio-emr.sh)
+if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
+  perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio-emr.sh > ${DIR}/.generated/alluxio-emr.sh
 fi
