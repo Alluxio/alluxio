@@ -25,13 +25,13 @@ public interface TaskResult extends JsonSerializable {
   /**
    * The interface that aggregates multiple task results into a summary.
    */
-  interface Aggregator {
+  interface Aggregator<T extends TaskResult> {
     /**
      * Aggregates multiple instances of a {@link TaskResult} to a summary.
      *
      * @param results list of {@link TaskResult}
      * @return the aggregated summary
      */
-    Summary aggregate(Iterable<TaskResult> results) throws Exception;
+    Summary aggregate(Iterable<T> results) throws Exception;
   }
 }

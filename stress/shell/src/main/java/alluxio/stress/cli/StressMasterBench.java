@@ -12,7 +12,9 @@
 package alluxio.stress.cli;
 
 import alluxio.conf.PropertyKey;
+import alluxio.job.plan.PlanConfig;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.Operation;
@@ -41,6 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Single node stress test.
@@ -125,6 +128,18 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (int i = 0; i < mCachedFs.length; i++) {
       mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
     }
+  }
+
+  @Override
+  public PlanConfig generateJobConfig(String[] args) {
+    // remove the cluster flag
+    List<String> commandArgs =
+            Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
+                    .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
+
+    commandArgs.addAll(mBaseParameters.mJavaOpts);
+    String className = this.getClass().getCanonicalName();
+    return new StressBenchConfig(className, commandArgs, 5000);
   }
 
   @Override

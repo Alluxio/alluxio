@@ -256,9 +256,9 @@ public final class MasterBenchTaskResult implements TaskResult {
     return new Aggregator();
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator {
+  private static final class Aggregator implements TaskResult.Aggregator<MasterBenchTaskResult> {
     @Override
-    public MasterBenchSummary aggregate(Iterable<TaskResult> results) throws Exception {
+    public MasterBenchSummary aggregate(Iterable<MasterBenchTaskResult> results) throws Exception {
       long durationMs = 0;
       long numSuccess = 0;
       long endTimeMs = 0;
@@ -270,13 +270,7 @@ public final class MasterBenchTaskResult implements TaskResult {
 
       Histogram responseTime = new Histogram(RESPONSE_TIME_HISTOGRAM_MAX,
           RESPONSE_TIME_HISTOGRAM_PRECISION);
-      for (TaskResult taskResult : results) {
-        if (!(taskResult instanceof MasterBenchTaskResult)) {
-          throw new IOException(
-              "TaskResult is not of type MasterBenchTaskResult. class: " + taskResult.getClass()
-                  .getName());
-        }
-        MasterBenchTaskResult result = (MasterBenchTaskResult) taskResult;
+      for (MasterBenchTaskResult result : results) {
         durationMs = Math.max(result.getEndMs() - result.getRecordStartMs(), durationMs);
         numSuccess += result.getNumSuccess();
         parameters = result.getParameters();

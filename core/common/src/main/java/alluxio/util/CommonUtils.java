@@ -192,6 +192,16 @@ public final class CommonUtils {
   }
 
   /**
+   * Generates a random integer with the given bound.
+   *
+   * @param bound the upper bound
+   * @return a random int
+   */
+  public static int randomInt(int bound) {
+    return RANDOM.nextInt(bound);
+  }
+
+  /**
    * Generates a random alphanumeric string of the given length.
    *
    * @param length the length

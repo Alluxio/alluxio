@@ -15,6 +15,7 @@ import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
@@ -67,6 +68,8 @@ public abstract class Benchmark<T extends TaskResult> {
     }
   }
 
+  public abstract PlanConfig generateJobConfig(String[] args);
+
   /**
    * Runs the test and returns the string output.
    *
@@ -91,17 +94,8 @@ public abstract class Benchmark<T extends TaskResult> {
 
     if (mBaseParameters.mCluster) {
       // run on job service
-
-      // remove the cluster flag
-      List<String> commandArgs =
-          Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
-              .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
-
-      commandArgs.addAll(mBaseParameters.mJavaOpts);
-
-      // TODO(jiacheng): make this use my PlanConfig
       long jobId =
-          JobGrpcClientUtils.run(new StressBenchConfig(className, commandArgs, 5000), 0, conf);
+          JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
       return jobInfo.getResult().toString();
     }
