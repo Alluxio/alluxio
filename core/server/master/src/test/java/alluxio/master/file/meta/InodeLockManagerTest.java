@@ -47,12 +47,12 @@ public class InodeLockManagerTest {
     InodeLockManager lockManager = new InodeLockManager();
     AtomicBoolean threadFinished = new AtomicBoolean(false);
     MutableInodeFile inode = MutableInodeFile.create(0, 0, "name", 0, CreateFileContext.defaults());
-    LockResource lock = lockManager.lockInode(inode, take);
+    LockResource lock = lockManager.lockInode(inode, take, false);
     Thread t = new Thread(() -> {
       // Copy the inode to make sure we aren't comparing inodes by reference.
       MutableInodeFile inodeCopy =
           MutableInodeFile.fromJournalEntry(inode.toJournalEntry().getInodeFile());
-      try (LockResource lr = lockManager.lockInode(inodeCopy, tryToTake)) {
+      try (LockResource lr = lockManager.lockInode(inodeCopy, tryToTake, false)) {
         threadFinished.set(true);
       }
     });
@@ -69,10 +69,10 @@ public class InodeLockManagerTest {
       throws Exception {
     InodeLockManager lockManager = new InodeLockManager();
     AtomicBoolean threadFinished = new AtomicBoolean(false);
-    LockResource lock = lockManager.lockEdge(new Edge(10, "name"), take);
+    LockResource lock = lockManager.lockEdge(new Edge(10, "name"), take, false);
     Thread t = new Thread(() -> {
       // Use a new Edge each time to make sure we aren't comparing edges by reference.
-      try (LockResource lr = lockManager.lockEdge(new Edge(10, "name"), tryToTake)) {
+      try (LockResource lr = lockManager.lockEdge(new Edge(10, "name"), tryToTake, false)) {
         threadFinished.set(true);
       }
     });
