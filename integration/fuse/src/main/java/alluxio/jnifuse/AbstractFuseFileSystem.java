@@ -31,21 +31,32 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
-  private static final int TIMEOUT = 2000; // ms
-
-  protected final LibFuse libFuse;
-  protected final AtomicBoolean mounted = new AtomicBoolean();
-  protected Path mountPoint;
-
-  public AbstractFuseFileSystem() {
-    this.libFuse = new LibFuse();
+  static {
+    System.loadLibrary("jnifuse");
   }
 
-  public void mount(Path mountPoint, boolean blocking, boolean debug, String[] fuseOpts) {
+  private static final int TIMEOUT = 2000; // ms
+
+  private final LibFuse libFuse;
+  private final AtomicBoolean mounted = new AtomicBoolean();
+  private final Path mountPoint;
+
+  public AbstractFuseFileSystem(Path mountPoint) {
+    this.libFuse = new LibFuse();
+    this.mountPoint = mountPoint;
+  }
+
+  /**
+   * Executes mount command.
+   *
+   * @param blocking whether this command is blocking
+   * @param debug whether to show debug information
+   * @param fuseOpts
+   */
+  public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
     if (!mounted.compareAndSet(false, true)) {
       throw new FuseException("Fuse File System already mounted!");
     }
-    this.mountPoint = mountPoint;
     String[] arg;
     String mountPointStr = mountPoint.toAbsolutePath().toString();
     if (mountPointStr.endsWith("\\")) {
@@ -186,9 +197,5 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
     return write(path, buf, size, offset, FuseFileInfo.wrap(fi));
-  }
-
-  static {
-    System.loadLibrary("jnifuse");
   }
 }

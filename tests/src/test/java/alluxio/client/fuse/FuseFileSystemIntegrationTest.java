@@ -91,8 +91,7 @@ public class FuseFileSystemIntegrationTest {
         sAlluxioRoot, false, new ArrayList<>());
     sFuseFileSystem = new AlluxioJniFuseFileSystem(sFileSystem, options,
         ServerConfiguration.global());
-    sFuseThread = new Thread(() -> sFuseFileSystem.mount(Paths.get(sMountPoint),
-        true, false, new String[]{"-odirect_io"}));
+    sFuseThread = new Thread(() -> sFuseFileSystem.mount(true, false, new String[]{"-odirect_io"}));
     sFuseThread.start();
 
     if (!waitForFuseMounted()) {

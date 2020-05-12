@@ -12,7 +12,12 @@
 #ifndef FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_
 #define FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_
 
-#include "jni.h"
+#ifndef FUSE_USE_VERSION
+#define FUSE_USE_VERSION 26
+#endif
+#include <fuse.h>
+#include <jni.h>
+
 #include "jnifuse_fs.h"
 
 namespace jnifuse {

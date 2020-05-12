@@ -9,7 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+#ifndef FUSE_USE_VERSION
 #define FUSE_USE_VERSION 26
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -38,8 +40,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   int argc = jargc;
   LOGD("argc=%d", argc);
   char **argv = (char **)malloc(sizeof(char *) * argc);
-  int i;
-  for (i = 0; i < argc; i++) {
+  for (int i = 0; i < argc; i++) {
     jstring str = (jstring)env->GetObjectArrayElement(jargv, i);
     argv[i] = (char *)env->GetStringUTFChars(str, 0);
     LOGD("argv[%d]=%s", i, argv[i]);

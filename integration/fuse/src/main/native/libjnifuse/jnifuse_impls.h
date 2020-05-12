@@ -12,6 +12,9 @@
 #ifndef FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
 #define FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
 
+#ifndef FUSE_USE_VERSION
+#define FUSE_USE_VERSION 26
+#endif
 #include <fuse.h>
 
 int getattr_wrapper(const char *path, struct stat *stbuf);

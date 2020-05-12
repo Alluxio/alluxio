@@ -25,6 +25,11 @@
 
 namespace jnifuse {
 
+struct ThreadData {
+  JavaVM *attachedJVM;
+  JNIEnv *attachedEnv;
+};
+
 static pthread_key_t jffs_threadKey;
 
 static void thread_data_free(void *ptr) {
@@ -70,7 +75,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   if (instance != nullptr) {
-    LOGE("you cant initilize more than once");
+    LOGE("you cant initialize more than once");
   }
   pthread_key_create(&jffs_threadKey, thread_data_free);
   instance = new JniFuseFileSystem(env, obj);

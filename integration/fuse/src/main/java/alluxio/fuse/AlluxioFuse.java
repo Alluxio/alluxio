@@ -60,7 +60,7 @@ public final class AlluxioFuse {
 
   private static final Option HELP_OPTION = Option.builder("h")
       .required(false)
-      .desc("Print this HELP_OPTION")
+      .desc("Print this help message")
       .build();
 
   private static final Option FUSE_MOUNT_OPTION = Option.builder("o")
@@ -88,7 +88,7 @@ public final class AlluxioFuse {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = InstancedConfiguration.defaults();
     final AlluxioFuseOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);
@@ -104,8 +104,7 @@ public final class AlluxioFuse {
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
         try {
-          fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
-              fuseOpts.toArray(new String[0]));
+          fuseFs.mount(true, opts.isDebug(), fuseOpts.toArray(new String[0]));
           LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
               opts.getMountPoint(), fuseOpts.toArray(new String[0]));
         } catch (FuseException e) {

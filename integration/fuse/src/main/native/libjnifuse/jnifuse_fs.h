@@ -12,9 +12,8 @@
 #ifndef FUSE_NATIVE_LIBJNIFUSE_FS_H_
 #define FUSE_NATIVE_LIBJNIFUSE_FS_H_
 
-#include <fuse.h>
+#include <jni.h>
 
-#include "jni.h"
 #include "operation.h"
 
 namespace jnifuse {
@@ -31,11 +30,6 @@ class ReleaseOperation;
 class RmdirOperation;
 class UnlinkOperation;
 class WriteOperation;
-
-struct ThreadData {
-  JavaVM *attachedJVM;
-  JNIEnv *attachedEnv;
-};
 
 class JniFuseFileSystem {
  private:
