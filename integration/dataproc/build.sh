@@ -19,11 +19,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/.generated
 cp ${DIR}/alluxio.sh ${DIR}/.generated
 
-# replace ALLUXIO_DOWNLOAD_URL in dataproc init script (alluxio.sh)
+# replace ALLUXIO_DOWNLOAD_URL in dataproc init script
 if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
-    if [[ -n $(grep "readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"" "${DIR}/alluxio.sh") ]]; then
-    echo "ERROR: ${ALLUXIO_DOWNLOAD_URL} is already set. No change was made to alluxio-emr.sh"
-    exit 1
-  fi
+    if [[ -z $(grep "readonly ALLUXIO_DOWNLOAD_URL=" "${DIR}/alluxio.sh") ]]; then
+      echo "ERROR: unable to replace 'readonly ALLUXIO_DOWNLOAD_URL=' - pattern could not be found"
+      exit 1
+    fi
   perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio.sh > ${DIR}/.generated/alluxio.sh
 fi
