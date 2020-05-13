@@ -13,17 +13,18 @@
 # Running this script will create edited versions of the files in the .generated directory
 set -e
 
-ALLUXIO_DOWNLOAD_URL=${1}
+readonly ALLUXIO_DOWNLOAD_URL=${1}
+readonly DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+readonly SCRIPT="alluxio-emr.sh"
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 mkdir -p ${DIR}/.generated
 cp ${DIR}/alluxio-emr.* ${DIR}/.generated
 
 # replace ALLUXIO_DOWNLOAD_URL in emr bootstrap script
 if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
-    if [[ -z $(grep "readonly ALLUXIO_DOWNLOAD_URL=" "${DIR}/alluxio-emr.sh") ]]; then
+    if [[ -z $(grep "readonly ALLUXIO_DOWNLOAD_URL=" ${DIR}/${SCRIPT}) ]]; then
       echo "ERROR: unable to replace 'readonly ALLUXIO_DOWNLOAD_URL=' - pattern could not be found"
       exit 1
     fi
-  perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio-emr.sh > ${DIR}/.generated/alluxio-emr.sh
+  perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/${SCRIPT} > ${DIR}/.generated/${SCRIPT}
 fi
