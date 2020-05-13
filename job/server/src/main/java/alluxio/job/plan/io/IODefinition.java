@@ -7,15 +7,21 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.JsonSerializable;
+import alluxio.stress.TaskResult;
 import alluxio.stress.job.IOConfig;
+import alluxio.stress.worker.IOTaskResult;
 import alluxio.util.ShellUtils;
 import alluxio.wire.WorkerInfo;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 // TODO(jiacheng): return benchmark result?
 public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>, String> {
@@ -27,10 +33,31 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     }
 
     @Override
-    public String join(IOConfig config, Map taskResults) throws Exception {
+    public String join(IOConfig config, Map<WorkerInfo, String> taskResults) throws Exception {
+        if (taskResults.isEmpty()) {
+            throw new IOException("No results from any workers.");
+        }
 
-        // TODO(jiacheng): what should this be?
-        return null;
+        AtomicReference<IOException> error = new AtomicReference<>(null);
+
+        // TODO(jiacheng): check this join operation, use IOTaskResult instead of String?
+        List<IOTaskResult> results = taskResults.entrySet().stream().map(
+                entry -> {
+                    try {
+                        return JsonSerializable.fromJson(entry.getValue().trim(), new IOTaskResult[0]);
+                    } catch (IOException | ClassNotFoundException e) {
+                        error.set(new IOException(String
+                                .format("Failed to parse task output from %s into result class",
+                                        entry.getKey().getAddress().getHost()), e));
+                    }
+                    return null;
+                }).collect(Collectors.toList());
+
+        if (error.get() != null) {
+            throw error.get();
+        }
+
+        return results.get(0).aggregator().aggregate(results).toJson();
     }
 
     @Override
@@ -77,6 +104,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
         command.addAll(args);
 
         LOG.info("running command: " + String.join(" ", command));
+        // TODO(jiacheng): execWithOutput?
         String output = ShellUtils.execCommand(command.toArray(new String[0]));
         return output;
     }

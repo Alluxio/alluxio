@@ -13,6 +13,7 @@ import java.util.List;
 public class IOTaskResult implements TaskResult {
     private long mReadDurationMs;
     private long mReadDataSize;
+    // TODO(jiacheng): How should this be serialized?
     private List<Exception> mReadErrors;
     private long mWriteDurationMs;
     private long mWriteDataSize;
