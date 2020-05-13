@@ -140,7 +140,7 @@ public final class CommandUtils {
       if (node.startsWith("#") || node.length() == 0) {
         continue;
       }
-      if (nodes.add(node)) {
+      if (!nodes.add(node)) {
         System.out.format("Duplicate node hostname %s found in %s%n", node, path);
       }
     }
