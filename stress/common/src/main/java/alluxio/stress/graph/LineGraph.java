@@ -32,7 +32,7 @@ public class LineGraph extends Graph {
    * This represents the data for a line graph.
    */
   public static final class Data {
-    private final List<Map<String, Object>> mData;
+    private final List<Map<Object, Object>> mData;
 
     /**
      * Creates an instance.
@@ -45,7 +45,7 @@ public class LineGraph extends Graph {
      * @param x the x value
      * @param y the y value
      */
-    public void addData(String x, Object y) {
+    public void addData(Object x, Object y) {
       mData.add(ImmutableMap.of(LineGraph.X_FIELD, x, LineGraph.Y_FIELD, y));
     }
   }
@@ -92,6 +92,9 @@ public class LineGraph extends Graph {
             "mark", ImmutableMap.of("type", "line", "point", ImmutableMap
                 .of("filled", false, "fill", "white", "size", 32))));
     mGraph.put("layer", layer);
+
+    mGraph.put("config", ImmutableMap.of("legend",
+        ImmutableMap.of("orient", "bottom", "direction", "vertical", "labelLimit", 700)));
   }
 
   /**
@@ -99,9 +102,9 @@ public class LineGraph extends Graph {
    * @param data the series data to add
    */
   public void addDataSeries(String series, LineGraph.Data data) {
-    List<Map<String, Object>> newSeries =
+    List<Map<Object, Object>> newSeries =
         data.mData.stream().map(m -> {
-          Map<String, Object> newMap = new HashMap<>(m);
+          Map<Object, Object> newMap = new HashMap<>(m);
           newMap.put(LineGraph.SERIES_FIELD, series);
           return newMap;
         }).collect(Collectors.toList());

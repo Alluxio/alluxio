@@ -31,7 +31,7 @@ public class BarGraph extends Graph {
    * Class representing data for a bar graph.
    */
   public static class Data {
-    private final List<Map<String, Object>> mData;
+    private final List<Map<Object, Object>> mData;
 
     /**
      * Creates an instance.
@@ -83,9 +83,9 @@ public class BarGraph extends Graph {
    * @param data the series data to add
    */
   public void addDataSeries(String series, Data data) {
-    List<Map<String, Object>> newSeries =
+    List<Map<Object, Object>> newSeries =
         data.mData.stream().map(m -> {
-          Map<String, Object> newMap = new HashMap<>(m);
+          Map<Object, Object> newMap = new HashMap<>(m);
           newMap.put(BarGraph.SERIES_FIELD, series);
           return newMap;
         }).collect(Collectors.toList());

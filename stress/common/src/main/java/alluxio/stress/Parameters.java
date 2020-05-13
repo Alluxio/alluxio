@@ -11,6 +11,7 @@
 
 package alluxio.stress;
 
+import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,26 @@ public abstract class Parameters {
    */
   public String getDescription(List<String> fields) {
     final Map<String, Object> map = toMap();
-    return fields.stream().map(f -> f + ": " + map.get(f)).collect(Collectors.joining(", "));
+    return fields.stream()
+        .map(fieldName -> prettyPrintDescriptionField(fieldName, map.get(fieldName)))
+        .collect(Collectors.joining(", "));
+  }
+
+  /**
+   * @param fieldName the field name
+   * @param value the value of the field
+   * @return the string representation of this field/value
+   */
+  protected String prettyPrintDescriptionField(String fieldName, Object value) {
+    if ("mBasePath".equals(fieldName)) {
+      AlluxioURI uri = new AlluxioURI(value.toString());
+      return String.format("%s-%s", uri.getScheme(), uri.getAuthority());
+    }
+    // default description line
+    if (fieldName.startsWith("m")) {
+      fieldName = fieldName.substring(1);
+    }
+    return String.format("%s: %s", fieldName, value);
   }
 
   /**
