@@ -22,4 +22,8 @@ cp ${DIR}/alluxio-emr.* ${DIR}/.generated
 # replace ALLUXIO_DOWNLOAD_URL in emr bootstrap script (alluxio-emr.sh)
 if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
   perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio-emr.sh > ${DIR}/.generated/alluxio-emr.sh
+  if [[ $(diff ${DIR}/alluxio-emr.sh ${DIR}/.generated/alluxio-emr.sh) == "" ]]; then
+    echo "Error - expected changes to alluxio-emr.sh ALLUXIO_DOWNLOAD_URL, but no changes found"
+    exit 1
+  fi
 fi

@@ -22,4 +22,8 @@ cp ${DIR}/alluxio.sh ${DIR}/.generated
 # replace ALLUXIO_DOWNLOAD_URL in dataproc init script (alluxio.sh)
 if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
   perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio.sh > ${DIR}/.generated/alluxio.sh
+  if [[ $(diff ${DIR}/alluxio.sh ${DIR}/.generated/alluxio.sh) == "" ]]; then
+    echo "Error - expected changes to alluxio.sh ALLUXIO_DOWNLOAD_URL, but no changes found"
+    exit 1
+  fi
 fi
