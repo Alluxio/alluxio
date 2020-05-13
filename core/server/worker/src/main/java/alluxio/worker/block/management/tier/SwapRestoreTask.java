@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * Block management task that is used to free up space on reserved spaces of each directory.
@@ -138,6 +139,15 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
         }
       }
     }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Generated swap-restore plan with {} deletions and {} transfers.\n"
+              + "Block deletions:\n ->{}\nBlock transfers:\n ->{}",
+          blocksToRemove.size(), blocksToTransfer.size(),
+          blocksToRemove.stream().map(Object::toString).collect(Collectors.joining(",\n ->")),
+          blocksToTransfer.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
+    }
     return new Pair<>(blocksToRemove, blocksToTransfer);
   }
 
@@ -190,6 +200,11 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
           }
         }
       }
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} balance transfers:\n ->{}", transferInfos.size(),
+          transferInfos.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
     }
     return transferInfos;
   }

@@ -116,7 +116,8 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} updated at location:{}. Size:{}", blockId, location, sortedSet.size());
+      LOG.debug("Block:{} updated at {} with {} blocks.",
+          blockId, location, sortedSet.size());
     }
   }
 
@@ -130,7 +131,8 @@ public class DefaultBlockIterator implements BlockIterator {
     sortedSet.remove(blockId);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} removed from location:{}. Size:{}", blockId, location, sortedSet.size());
+      LOG.debug("Block:{} removed from {} with {} blocks.",
+          blockId, location, sortedSet.size());
     }
   }
 
@@ -139,7 +141,7 @@ public class DefaultBlockIterator implements BlockIterator {
    */
   private void blockMoved(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    // TODO(ggezer): Fix callback logic to not called with the same locations.
+    // TODO(ggezer): Fix callback logic to not called for the same locations.
     if (!oldLocation.equals(newLocation)) {
       // Acquire the sorted-set for the block's current location.
       SortedBlockSet oldSortedSet = mPerDirOrderedSets.get(oldLocation);
@@ -156,8 +158,8 @@ public class DefaultBlockIterator implements BlockIterator {
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Block:{} moved from {} - {}. Src size:{}, Dst size: {}", blockId, oldLocation,
-            newLocation, oldSortedSet.size(), newSortedSet.size());
+        LOG.debug("Block: {} moved from {} with {} blocks to {} with {} blocks.",
+            blockId, oldLocation, oldSortedSet.size(), newLocation, newSortedSet.size());
       }
     }
   }
@@ -268,7 +270,7 @@ public class DefaultBlockIterator implements BlockIterator {
 
   @Override
   public boolean aligned(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
-                         BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
+      BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
     // Get source iterator with given source order.
     Iterator<Pair<Long, BlockSortedField>> srcIterator =
         getIteratorInternal(srcLocation, order);
@@ -314,7 +316,7 @@ public class DefaultBlockIterator implements BlockIterator {
     if (!mBlockAnnotator.isOnlineSorter()) {
       if (mUnorderedLocations.stream()
           .anyMatch((dirtyLocation) -> dirtyLocation.belongsTo(location))) {
-        LOG.debug("Updating total order for directories that belong to: {}", location);
+        LOG.debug("Updating total order for directories that belong to {}", location);
         updateTotalOrder(locations);
       }
     }
@@ -331,7 +333,8 @@ public class DefaultBlockIterator implements BlockIterator {
           iteratorList.add(mPerDirOrderedSets.get(dirLocation).getDescendingIterator());
           break;
         default:
-          throw new IllegalArgumentException(String.format("Unsupported order: %s", order.name()));
+          throw new IllegalArgumentException(
+              String.format("Unsupported sort order: %s", order.name()));
       }
     }
 
@@ -367,8 +370,10 @@ public class DefaultBlockIterator implements BlockIterator {
         updatedEntries.add(locationIter.next());
       }
 
-      LOG.debug("Updating total order for location:{} with {} blocks.", location,
-          updatedEntries.size());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Updating total order for {} with {} blocks.",
+            location, updatedEntries.size());
+      }
 
       // Invoke order provider to update fields all together.
       mBlockAnnotator.updateSortedFields(updatedEntries);

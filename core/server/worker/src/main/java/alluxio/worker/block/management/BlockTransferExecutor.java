@@ -76,7 +76,7 @@ public class BlockTransferExecutor {
    */
   public void executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
-    LOG.debug("Executing transfer list of size:{}", transferInfos.size());
+    LOG.debug("Executing transfer list of size: {}", transferInfos.size());
     // Return immediately for an empty transfer list.
     if (transferInfos.isEmpty()) {
       return;
@@ -159,10 +159,8 @@ public class BlockTransferExecutor {
       return partitions;
     }
 
+    // TODO(ggezer): Support partitioning that considers block sizes.
     // Greedily build a balanced partitions by transfer count.
-
-    // TODO(ggezer): Capacity based partitioning possible if BlockTransferInfo contains the block
-    // size.
     Collections.sort(partitions, Comparator.comparingInt(List::size));
 
     // Initialize balanced partitions.
