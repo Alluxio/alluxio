@@ -2142,7 +2142,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setDefaultValue(32)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "The total number of threads which can concurrently execute metadata sync "
+                  + "operations.")
           .setDescription("The number of threads used to execute all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
@@ -2150,7 +2152,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultValue(32)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "The number of threads which can concurrently fetch metadata from UFSes during a "
+                  + "metadata sync operations")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
@@ -4852,7 +4856,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
-        "alluxio.master.metadata.sync.ufs.prefetch.parallelism";
+        "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
