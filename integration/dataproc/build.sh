@@ -21,9 +21,9 @@ cp ${DIR}/alluxio.sh ${DIR}/.generated
 
 # replace ALLUXIO_DOWNLOAD_URL in dataproc init script (alluxio.sh)
 if [[ -n ${ALLUXIO_DOWNLOAD_URL} ]]; then
-  perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio.sh > ${DIR}/.generated/alluxio.sh
-  if [[ $(diff ${DIR}/alluxio.sh ${DIR}/.generated/alluxio.sh) == "" ]]; then
-    echo "Error - expected changes to alluxio.sh ALLUXIO_DOWNLOAD_URL, but no changes found"
+    if [[ -n $(grep "readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"" "${DIR}/alluxio.sh") ]]; then
+    echo "ERROR: ${ALLUXIO_DOWNLOAD_URL} is already set. No change was made to alluxio-emr.sh"
     exit 1
   fi
+  perl -p -e "s|^readonly ALLUXIO_DOWNLOAD_URL.*\$|readonly ALLUXIO_DOWNLOAD_URL=\"${ALLUXIO_DOWNLOAD_URL}\"|" ${DIR}/alluxio.sh > ${DIR}/.generated/alluxio.sh
 fi
