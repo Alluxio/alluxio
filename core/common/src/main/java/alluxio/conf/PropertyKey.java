@@ -2142,7 +2142,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setDefaultValue(32)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "The total number of threads which can concurrently execute metadata sync "
+                  + "operations.")
           .setDescription("The number of threads used to execute all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
@@ -2150,7 +2152,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultValue(32)
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "The number of threads which can concurrently fetch metadata from UFSes during a "
+                  + "metadata sync operations")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
