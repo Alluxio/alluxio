@@ -15,6 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +123,14 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
     @Override
     public int hashCode() {
       return mCrfValue.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("Clock",  mClockValue)
+          .add("CRF", mCrfValue)
+          .toString();
     }
   }
 }

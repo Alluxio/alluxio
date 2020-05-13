@@ -85,7 +85,7 @@ public class AlignTask extends AbstractBlockManagementTask {
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
 
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
-      LOG.debug("Acquired {} swaps to align tiers {} - {}", swapLists.getFirst().size(),
+      LOG.debug("Acquired {} block pairs to align tiers {} - {}", swapLists.getFirst().size(),
           tierUpLoc.tierAlias(), tierDownLoc.tierAlias());
 
       // Create exception handler to trigger swap-restore task when swap fails
@@ -104,6 +104,16 @@ public class AlignTask extends AbstractBlockManagementTask {
 
   private List<BlockTransferInfo> generateSwapTransferInfos(
       Pair<List<Long>, List<Long>> swapLists) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Generating transfer infos from swap lists.\n"
+              + "Source list of size:{} : {}\nDestination list of size:{} : {}",
+          swapLists.getFirst().size(),
+          swapLists.getFirst().stream().map(Object::toString).collect(Collectors.joining(",")),
+          swapLists.getSecond().size(),
+          swapLists.getSecond().stream().map(Object::toString).collect(Collectors.joining(",")));
+    }
+
     // Function that is used to map blockId to <blockId,location> pair.
     Function<Long, Pair<Long, BlockStoreLocation>> blockToPairFunc = (blockId) -> {
       try {
@@ -135,6 +145,16 @@ public class AlignTask extends AbstractBlockManagementTask {
     Collections.sort(blockLocPairListSrc, comparator);
     Collections.sort(blockLocPairListDst, comparator);
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Generated and sorted augmented swap lists.\n"
+              + "Source list of size:{} :\n ->{}\nDestination list of size:{} :\n ->{}",
+          blockLocPairListSrc.size(),
+          blockLocPairListSrc.stream().map(Object::toString).collect(Collectors.joining("\n ->")),
+          blockLocPairListDst.size(),
+          blockLocPairListDst.stream().map(Object::toString).collect(Collectors.joining("\n ->")));
+    }
+
     // Build transfer infos using the sorted locations.
     List<BlockTransferInfo> transferInfos = new ArrayList<>(blockLocPairListSrc.size());
     for (int i = 0; i < blockLocPairListSrc.size(); i++) {
@@ -143,6 +163,8 @@ public class AlignTask extends AbstractBlockManagementTask {
           blockLocPairListDst.get(i).getFirst()));
     }
 
+    LOG.debug("Generated {} swap transfers: \n ->{}", transferInfos.size(),
+        transferInfos.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
     return transferInfos;
   }
 }

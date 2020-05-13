@@ -13,6 +13,7 @@ package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +90,13 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
     @Override
     public int hashCode() {
       return mClockValue.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("Clock", mClockValue)
+          .toString();
     }
   }
 }
