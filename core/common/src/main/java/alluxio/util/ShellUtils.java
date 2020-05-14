@@ -16,11 +16,13 @@ import alluxio.shell.ScpCommand;
 import alluxio.shell.ShellCommand;
 import alluxio.shell.SshCommand;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -132,6 +134,54 @@ public final class ShellUtils {
       }
     }
     return builder.build();
+  }
+
+  /**
+   * Checks whether a path is the mounting point of a RAM disk volume.
+   *
+   * @param path  a string represents the path to be checked
+   * @param fsTypes an array of strings represents expected file system type
+   * @return true if the path is the mounting point of volume with one of the given fsTypes,
+   *         false otherwise
+   * @throws IOException if the function fails to get the mount information of the system
+   */
+  public static boolean isMountingPoint(String path, String[] fsTypes) throws IOException {
+    List<UnixMountInfo> infoList = getUnixMountInfo();
+    for (UnixMountInfo info : infoList) {
+      Optional<String> mountPoint = info.getMountPoint();
+      Optional<String> fsType = info.getFsType();
+      if (mountPoint.isPresent() && mountPoint.get().equals(path) && fsType.isPresent()) {
+        for (String expectedType : fsTypes) {
+          if (fsType.get().equalsIgnoreCase(expectedType)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks whether an Alluxio service is running.
+   *
+   * @param className class name of the Alluxio service
+   * @return whether the Alluxio service is running
+   */
+  public static boolean isAlluxioRunning(String className) {
+    String[] command = {"bash", "-c",
+        "ps -Aww -o command | grep -i \"[j]ava\" | grep " + className};
+    try {
+      Process p = Runtime.getRuntime().exec(command);
+      try (InputStreamReader input = new InputStreamReader(p.getInputStream())) {
+        if (input.read() >= 0) {
+          return true;
+        }
+      }
+      return false;
+    } catch (IOException e) {
+      System.err.format("Unable to check Alluxio status: %s.%n", e.getMessage());
+      return false;
+    }
   }
 
   /**
