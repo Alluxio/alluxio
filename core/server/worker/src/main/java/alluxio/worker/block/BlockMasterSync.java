@@ -74,6 +74,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  private volatile boolean mClosed = false;
+  private final AtomicReference<Thread> mThread = new AtomicReference<>(null);
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -117,6 +120,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() {
+    if (mClosed) {
+      return;
+    }
+    mThread.set(Thread.currentThread());
     // Prepare metadata for the next heartbeat
     BlockHeartbeatReport blockReport = mBlockWorker.getReport();
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
@@ -151,10 +158,18 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         }
       }
     }
+    mThread.set(null);
   }
 
   @Override
   public void close() {
+    mClosed = true;
+    mThread.getAndUpdate(val -> {
+      if (val != null) {
+        val.interrupt();
+      }
+      return val;
+    });
     mAsyncBlockRemover.shutDown();
     mMasterClientPool.release(mMasterClient);
   }
