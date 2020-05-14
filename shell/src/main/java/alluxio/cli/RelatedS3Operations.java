@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

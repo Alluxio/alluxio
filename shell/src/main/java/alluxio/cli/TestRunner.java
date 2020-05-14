@@ -17,8 +17,6 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.examples.BasicNonByteBufferOperations;
-import alluxio.examples.BasicOperations;
 import alluxio.grpc.DeletePOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
@@ -157,12 +155,12 @@ public final class TestRunner {
     boolean result = true;
     switch (opType) {
       case BASIC:
-        result = CliUtils.runExample(new BasicOperations(filePath, readType, writeType, fsContext));
+        result = RunTestUtils.runExample(
+          new BasicOperations(filePath, readType, writeType, fsContext));
         break;
       case BASIC_NON_BYTE_BUFFER:
-        result = CliUtils
-            .runExample(new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20,
-             fsContext));
+        result = RunTestUtils.runExample(
+          new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20, fsContext));
         break;
       default:
         System.out.println("Unrecognized operation type " + opType);
