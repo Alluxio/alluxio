@@ -1,14 +1,18 @@
 package alluxio.stress.job;
 
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.plan.replicate.EvictConfig;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.util.FormatUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import java.util.List;
 
+@JsonTypeName(IOConfig.NAME)
 public class IOConfig extends StressBenchConfig {
-    private static final String NAME = "IO";
+    public static final String NAME = "IO";
 
     // READ or WRITE mode
     private WorkerBenchParameters.IOMode mMode;
@@ -18,12 +22,29 @@ public class IOConfig extends StressBenchConfig {
 
     // Size of data to write in total
     // They will be read in the read performance test
-    private long mDataSize;
+    private int mDataSize;
 
     // Temp dir to generate test files in
     private String mUfsTempDirPath;
 
     private int mWorkerNum;
+
+    @JsonCreator
+    public IOConfig(@JsonProperty("className") String className,
+                    @JsonProperty("args") List<String> args,
+                    @JsonProperty("startDelayMs") long startDelayMs,
+                    @JsonProperty("mode") WorkerBenchParameters.IOMode mode,
+                    @JsonProperty("threadNum") int threadNum,
+                    @JsonProperty("dataSize") int dataSize,
+                    @JsonProperty("workerNum") int workerNum,
+                    @JsonProperty("ufsTempDirPath") String ufsTempDirPath) {
+        super(className, args, startDelayMs);
+        mMode = mode;
+        mThreadNum = threadNum;
+        mDataSize = dataSize;
+        mUfsTempDirPath = ufsTempDirPath;
+        mWorkerNum = workerNum;
+    }
 
     public IOConfig(@JsonProperty("className") String className,
                     @JsonProperty("args") List<String> args,
@@ -33,7 +54,7 @@ public class IOConfig extends StressBenchConfig {
         super(className, args, startDelayMs);
         mMode = params.mMode;
         mThreadNum = params.mThreads;
-        mDataSize = FormatUtils.parseSpaceSize(params.mDataSize);
+        mDataSize = params.mDataSize;
         mUfsTempDirPath = params.mUfsTempDirPath;
         mWorkerNum = params.mWorkerNum;
     }
@@ -62,4 +83,6 @@ public class IOConfig extends StressBenchConfig {
     public int getWorkerNum() {
         return mWorkerNum;
     }
+
+    // TODO(jiacheng): toString and equals
 }

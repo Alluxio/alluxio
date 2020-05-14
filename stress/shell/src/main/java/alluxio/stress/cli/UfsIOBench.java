@@ -104,7 +104,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     public List<IOTaskResult> read(ExecutorService pool) throws Exception {
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
-        final long toReadLength = FormatUtils.parseSpaceSize(mParameters.mDataSize);
+        final int toReadLength = mParameters.mDataSize;
         // TODO(jiacheng): need hdfs conf?
         Configuration hdfsConf = new Configuration();
         FileSystem fs = FileSystem.get(new URI(mParameters.mUfsTempDirPath), hdfsConf);
@@ -117,13 +117,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 Path filePath = getFilePath(idx);
-                long readLength = 0;
+                int readMB = 0;
                 try {
                     FSDataInputStream inStream = fs.open(filePath);
                     ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
                     int len;
                     while ((len = inStream.read(buffer)) != 0) {
-                        readLength += len;
+                        readMB += 1; // 1 MB
                         // Discard the data read
                         buffer.clear();
                     }
@@ -135,7 +135,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 // are not ignored.
                 long endTime = CommonUtils.getCurrentMs();
                 result.setReadDurationMs(endTime - startTime);
-                result.setReadDataSize(readLength);
+                result.setReadDataSize(readMB);
 
                 return result;
             }, pool);
@@ -156,7 +156,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     public List<IOTaskResult> write(ExecutorService pool) throws Exception {
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
-        final long toWriteLength = FormatUtils.parseSpaceSize(mParameters.mDataSize);
+        final int toWriteLength = mParameters.mDataSize;
         // TODO(jiacheng): need hdfs conf?
         Configuration hdfsConf = new Configuration();
         FileSystem fs = FileSystem.get(new URI(mParameters.mUfsTempDirPath), hdfsConf);
@@ -171,17 +171,12 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 Path filePath = getFilePath(idx);
-                long readLength = 0;
+                int wroteMB = 0;
                 try {
                     FSDataOutputStream outStream = fs.create(filePath);
-
-                    long len = 0L;
-                    while (len + BUFFER_SIZE <= fileSize) {
+                    while (wroteMB < fileSize) {
                         outStream.write(randomData);
-                        len += BUFFER_SIZE;
-                    }
-                    if (len < fileSize) {
-                        outStream.write(randomData, 0, (int)(fileSize - len));
+                        wroteMB += 1; // 1 MB
                     }
                 } catch (IOException e) {
                     result.addWriteError(e);
@@ -190,7 +185,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 // If there are errors, the metrics will mean nothing
                 long endTime = CommonUtils.getCurrentMs();
                 result.setWriteDurationMs(endTime - startTime);
-                result.setWriteDataSize(readLength);
+                result.setWriteDataSize(wroteMB);
 
                 return result;
 

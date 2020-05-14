@@ -29,7 +29,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
 
     @Override
     public Class<IOConfig> getJobConfigClass() {
-        return null;
+        return IOConfig.class;
     }
 
     @Override
@@ -61,7 +61,9 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     }
 
     @Override
-    public Set<Pair<WorkerInfo, ArrayList<String>>> selectExecutors(IOConfig config, List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext) throws Exception {
+    public Set<Pair<WorkerInfo, ArrayList<String>>> selectExecutors(
+            IOConfig config, List<WorkerInfo> jobWorkerInfoList,
+            SelectExecutorsContext selectExecutorsContext) throws Exception {
         Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
 
         // Randomly select N workers
@@ -76,7 +78,9 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
             // The worker id is used since there may be multiple workers on a single host.
             args.add(BaseParameters.ID_FLAG);
             args.add(worker.getAddress().getHost() + "-" + worker.getId());
+            // TODO(jiacheng): args here?
             result.add(new Pair<>(worker, args));
+            cnt--;
         }
         return result;
     }

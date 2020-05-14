@@ -13,8 +13,8 @@ public class WorkerBenchParameters extends Parameters {
     public int mThreads = 16;
 
     @Parameter(names = {"--io-size"},
-            description = "size of data to write or read in total")
-    public String mDataSize = "4G";
+            description = "size of data to write or read in total, in MB")
+    public int mDataSize = 4096;
 
     @Parameter(names = {"--ufs-path"},
             description = "the directory to write temporary data in",

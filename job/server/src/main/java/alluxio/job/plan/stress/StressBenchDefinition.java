@@ -75,6 +75,8 @@ public final class StressBenchDefinition
   @Override
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
+    LOG.info("Args: {}", args);
+
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
