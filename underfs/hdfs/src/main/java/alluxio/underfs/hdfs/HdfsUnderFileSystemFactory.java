@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
-public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
+public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
    * Constructs a new {@link HdfsUnderFileSystemFactory}.
