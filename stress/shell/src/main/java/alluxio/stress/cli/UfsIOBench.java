@@ -111,7 +111,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     }
 
     private String getFilePathStr(int idx) {
-        return Paths.get(mParameters.mUfsTempDirPath, String.format("io-benchmark-%d", idx))
+        return Paths.get("/io-benchmark/", String.format("io-benchmark-%d", idx))
                 .normalize().toString();
     }
 
@@ -177,7 +177,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         // TODO(jiacheng): use UFS API?
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
                 .createMountSpecificConf(hdfsConf);
-        UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mUfsTempDirPath, ufsConf);
+        UnderFileSystem ufs = UnderFileSystem.Factory.create("/io-benchmark/", ufsConf);
+        // TODO(jiacheng): test creation here
 
 //        FileSystem fs = FileSystem.get(new URI(mParameters.mUfsTempDirPath), hdfsConf);
 
