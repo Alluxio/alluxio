@@ -210,11 +210,6 @@ public abstract class AbstractClient implements Client {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
-
-      if (Thread.currentThread().isInterrupted()) {
-        break;
-      }
-
       // Re-query the address in each loop iteration in case it has changed (e.g. master
       // failover).
       try {
@@ -269,7 +264,7 @@ public abstract class AbstractClient implements Client {
               retryPolicy.getAttemptCount()));
     }
 
-    /*
+    /**
      * Throw as-is if {@link UnauthenticatedException} occurred.
      */
     if (lastConnectFailure instanceof UnauthenticatedException) {

@@ -621,33 +621,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @NotThreadSafe
   public final class StorageChecker implements HeartbeatExecutor {
 
-    private volatile boolean mClosed = false;
-    private final AtomicReference<Thread> mThread = new AtomicReference<>(null);
-
     @Override
     public void heartbeat() {
-      if (mClosed) {
-        return;
-      }
-      mThread.set(Thread.currentThread());
       try {
         mBlockStore.checkStorage();
       } catch (Exception e) {
         LOG.warn("Failed to check storage: {}", e.toString());
         LOG.debug("Exception: ", e);
       }
-      mThread.set(null);
     }
 
     @Override
     public void close() {
-      mClosed = true;
-      mThread.getAndUpdate(val -> {
-        if (val != null) {
-          val.interrupt();
-        }
-        return val;
-      });
+      // Nothing to clean up
     }
   }
 }

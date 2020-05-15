@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -37,9 +36,6 @@ public final class PinListSync implements HeartbeatExecutor {
   /** Client for all master communication. */
   private FileSystemMasterClient mMasterClient;
 
-  private volatile boolean mClosed = false;
-  private final AtomicReference<Thread> mThread = new AtomicReference<>(null);
-
   /**
    * Creates a new instance of {@link PinListSync}.
    *
@@ -53,10 +49,6 @@ public final class PinListSync implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    if (mClosed) {
-      return;
-    }
-    mThread.set(Thread.currentThread());
     // Send the sync
     try {
       Set<Long> pinList = mMasterClient.getPinList();
@@ -68,17 +60,10 @@ public final class PinListSync implements HeartbeatExecutor {
       // TODO(gene): Add this method to AbstractMasterClient.
       // mMasterClient.resetConnection();
     }
-    mThread.set(null);
   }
 
   @Override
   public void close() {
-    mClosed = true;
-    mThread.getAndUpdate(val -> {
-      if (val != null) {
-        val.interrupt();
-      }
-      return val;
-    });
+    // Nothing to clean up
   }
 }
