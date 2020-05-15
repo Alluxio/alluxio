@@ -98,12 +98,12 @@ each other on the following ports.
 You can find all the ports used by Alluxio components in [Alluxio configurations]({{ '/en/reference/Properties-List.html?q=port' | relativize_url }})
 
 + Master RPC on port 19998
-+ Master embedded journal on port 19200 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
++ Master internal leader election on port 19200 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
 + Job master RPC on port 20001
-+ Job master embedded journal on port 20003 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
++ Job master Internal leader election on port 20003 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
 + Worker RPC on port 29999
 + Job worker RPC on port 30001
-+ Job worker data on port 30001
++ Job worker data on port 30002
 
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
 In order to make sure this works for either local or remote clients, we have to set up the
@@ -153,10 +153,10 @@ Notes:
      You can find more details about this setting [here](https://docs.docker.com/network/host/).
   1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
      allocates the worker's memory capacity and bind the master address. 
-     In host network, the master can't be referenced to by the master container name `alluxio-master` or
+     When using the `host` network driver, the master can't be referenced to by the master container name `alluxio-master` or
      it will throw `"No Alluxio worker available" ` error.
      Instead, it should be referenced to by the host IP address.
-     The substitution `$(hostname -i)` does the trick.
+     The substitution `$(hostname -i)` uses the docker host's name instead.
   1. The argument  `--shm-size=1G` will allocate a `1G` tmpfs for the worker to store Alluxio data.
   1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
      and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, 
@@ -210,9 +210,9 @@ Notes:
      All containers will use their own container IDs as their hostname, and each of them has a different IP
      address within the network's subnet.
      Containers connected to the same user-defined bridge network effectively expose all ports to each other,
-     unless firewall policies are defined specifically. 
-     You can find more details about bridge network [here](https://docs.docker.com/network/bridge/).
-  1. Only the specified ports (-p option) are exposed to the outside network, where the client may be run.
+     unless firewall policies are defined. 
+     You can find more details about the bridge network driver [here](https://docs.docker.com/network/bridge/).
+  1. Only the specified ports (`-p` option) are exposed to the outside network, where the client may be run.
      The command `-p <host-port>:<container-port>` maps the container port to a host port. 
      Therefore, you must explicitly expose the two ports 19999 and 19998 for the master container and the port
      29999 and 30000 for the worker container.
