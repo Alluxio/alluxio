@@ -23,7 +23,7 @@ public class WorkerBenchParameters extends Parameters {
 
     @Parameter(names = {"--workers"},
             description = "the number of workers to use")
-    public int mWorkerNum;
+    public int mWorkerNum=1;
 
     public enum IOMode {
         READ,

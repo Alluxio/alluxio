@@ -96,6 +96,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     }
 
+    /**
+     * @param args command-line arguments
+     */
+    public static void main(String[] args) {
+        mainInternal(args, new UfsIOBench());
+    }
+
     private Path getFilePath(int idx) {
         return new Path(Paths.get(mParameters.mUfsTempDirPath, String.format("io-benchmark-%d", idx))
                 .normalize().toString());

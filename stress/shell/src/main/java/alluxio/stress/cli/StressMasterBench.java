@@ -138,6 +138,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
                     .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
 
     commandArgs.addAll(mBaseParameters.mJavaOpts);
+    LOG.info("generateJobConfig() args={}", commandArgs);
     String className = this.getClass().getCanonicalName();
     return new StressBenchConfig(className, commandArgs, 5000);
   }
