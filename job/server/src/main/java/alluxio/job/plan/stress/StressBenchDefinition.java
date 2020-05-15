@@ -76,6 +76,7 @@ public final class StressBenchDefinition
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
     LOG.info("Args: {}", args);
+    System.out.println("Running here "+ args);
 
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
@@ -94,6 +95,7 @@ public final class StressBenchDefinition
     command.addAll(args);
 
     LOG.info("running command: " + String.join(" ", command));
+    System.out.println("Commands here "+ command);
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;
   }
