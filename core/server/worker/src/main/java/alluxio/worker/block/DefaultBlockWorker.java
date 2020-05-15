@@ -251,10 +251,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
-    // Stop heart-beat executors and clients.
-    mResourceCloser.close();
     // Stop the base. (closes executors.)
     super.stop();
+    // Stop heart-beat executors and clients.
+    mResourceCloser.close();
   }
 
   @Override
