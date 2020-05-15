@@ -68,6 +68,7 @@ public final class StressBenchDefinition
       args.add(BaseParameters.ID_FLAG);
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
       result.add(new Pair<>(worker, args));
+      LOG.info("selectExecutors() args={}", args);
     }
     return result;
   }
