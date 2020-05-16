@@ -200,6 +200,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                         wroteMB += 1; // 1 MB
                     }
                 } catch (IOException e) {
+                    LOG.error("Failed to write to UFS: ",e);
                     result.addWriteError(e);
                 }
 
