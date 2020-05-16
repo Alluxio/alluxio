@@ -94,16 +94,7 @@ both of the following services:
 + Worker RPC on port 29999
 
 Within the Alluxio cluster, please also make sure the master and worker containers can reach
-each other on the following ports.
-You can find all the ports used by Alluxio components in [Alluxio configurations]({{ '/en/reference/Properties-List.html?q=port' | relativize_url }})
-
-+ Master RPC on port 19998
-+ Master internal leader election on port 19200 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
-+ Job master RPC on port 20001
-+ Job master Internal leader election on port 20003 if you are using [Internal leader selection]({{ '/en/deploy/Running-Alluxio-On-Docker.html#option-a-internal-leader-election' | relativize_url }})
-+ Worker RPC on port 29999
-+ Job worker RPC on port 30001
-+ Job worker data on port 30002
+each other on the ports defined in [General requirements]({{ '/en/deploy/Requirements.html#general-requirements' | relativize_url }}).
 
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
 In order to make sure this works for either local or remote clients, we have to set up the
