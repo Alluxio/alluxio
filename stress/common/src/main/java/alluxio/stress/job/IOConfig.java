@@ -25,7 +25,7 @@ public class IOConfig extends StressBenchConfig {
     private int mDataSize;
 
     // Temp dir to generate test files in
-    private String mUfsTempDirPath;
+    private String mPath;
 
     private int mWorkerNum;
 
@@ -37,12 +37,12 @@ public class IOConfig extends StressBenchConfig {
                     @JsonProperty("threadNum") int threadNum,
                     @JsonProperty("dataSize") int dataSize,
                     @JsonProperty("workerNum") int workerNum,
-                    @JsonProperty("ufsTempDirPath") String ufsTempDirPath) {
+                    @JsonProperty("path") String path) {
         super(className, args, startDelayMs);
         mMode = mode;
         mThreadNum = threadNum;
         mDataSize = dataSize;
-        mUfsTempDirPath = ufsTempDirPath;
+        mPath = path;
         mWorkerNum = workerNum;
     }
 
@@ -55,7 +55,7 @@ public class IOConfig extends StressBenchConfig {
         mMode = params.mMode;
         mThreadNum = params.mThreads;
         mDataSize = params.mDataSize;
-        mUfsTempDirPath = params.mUfsTempDirPath;
+        mPath = params.mPath;
         mWorkerNum = params.mWorkerNum;
     }
 
@@ -64,8 +64,8 @@ public class IOConfig extends StressBenchConfig {
         return NAME;
     }
 
-    public String getUfsTempDirPath() {
-        return mUfsTempDirPath;
+    public String getPath() {
+        return mPath;
     }
 
     public long getDataSize() {
