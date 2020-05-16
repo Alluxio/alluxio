@@ -101,4 +101,10 @@ public class IOTaskResult implements TaskResult {
             return new IOTaskSummary(reduceList(results));
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("mReadDurationMs=%s,mReadDataSize=%s,mWriteDurationMs=%s,mWriteDataSize=%s",
+                mReadDurationMs, mReadDataSize, mWriteDurationMs, mWriteDataSize);
+    }
 }

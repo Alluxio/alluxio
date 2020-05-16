@@ -88,6 +88,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     @Override
     public String runTask(IOConfig config, ArrayList<String> args, RunTaskContext runTaskContext)
             throws Exception {
+        LOG.info("args={}", args);
 
         // TODO(jiacheng): how are the command args generated??
         List<String> command = new ArrayList<>(3 + config.getArgs().size());

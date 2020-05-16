@@ -15,6 +15,7 @@ import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.WorkerBenchParameters;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
@@ -105,13 +106,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         mainInternal(args, new UfsIOBench());
     }
 
-    private Path getFilePath(int idx) {
-        return new Path(Paths.get(mParameters.mUfsTempDirPath, String.format("io-benchmark-%d", idx))
-                .normalize().toString());
-    }
-
     private String getFilePathStr(int idx) {
-        return Paths.get("/io-benchmark/", String.format("io-benchmark-%d", idx))
+        return Paths.get(mParameters.mPath, String.format("io-benchmark-%d", idx))
                 .normalize().toString();
     }
 
@@ -121,7 +117,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         final int toReadLength = mParameters.mDataSize;
         // TODO(jiacheng): need hdfs conf?
         Configuration hdfsConf = new Configuration();
-        FileSystem fs = FileSystem.get(new URI(mParameters.mUfsTempDirPath), hdfsConf);
+        FileSystem fs = FileSystem.get(new URI(mParameters.mPath), hdfsConf);
 
         List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
@@ -130,26 +126,26 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 IOTaskResult result = new IOTaskResult();
                 long startTime = CommonUtils.getCurrentMs();
 
-                Path filePath = getFilePath(idx);
-                int readMB = 0;
-                try {
-                    FSDataInputStream inStream = fs.open(filePath);
-                    ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
-                    int len;
-                    while ((len = inStream.read(buffer)) != 0) {
-                        readMB += 1; // 1 MB
-                        // Discard the data read
-                        buffer.clear();
-                    }
-                } catch (IOException e) {
-                    result.addReadError(e);
-                }
+//                Path filePath = getFilePath(idx);
+//                int readMB = 0;
+//                try {
+//                    FSDataInputStream inStream = fs.open(filePath);
+//                    ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
+//                    int len;
+//                    while ((len = inStream.read(buffer)) != 0) {
+//                        readMB += 1; // 1 MB
+//                        // Discard the data read
+//                        buffer.clear();
+//                    }
+//                } catch (IOException e) {
+//                    result.addReadError(e);
+//                }
 
                 // If there are errors, the time spent in unsuccessful operations
                 // are not ignored.
                 long endTime = CommonUtils.getCurrentMs();
                 result.setReadDurationMs(endTime - startTime);
-                result.setReadDataSize(readMB);
+//                result.setReadDataSize(readMB);
 
                 return result;
             }, pool);
@@ -168,19 +164,21 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     }
 
     public List<IOTaskResult> write(ExecutorService pool) throws Exception {
+        LOG.info("write()");
+
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
         final int toWriteLength = mParameters.mDataSize;
         // TODO(jiacheng): need hdfs conf?
         Map<String, String> hdfsConf = new HashMap<>();
 
-        // TODO(jiacheng): use UFS API?
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
                 .createMountSpecificConf(hdfsConf);
-        UnderFileSystem ufs = UnderFileSystem.Factory.create("/io-benchmark/", ufsConf);
-        // TODO(jiacheng): test creation here
-
-//        FileSystem fs = FileSystem.get(new URI(mParameters.mUfsTempDirPath), hdfsConf);
+        UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
+        if (!ufs.exists(mParameters.mPath)) {
+            LOG.info("mkdirs {}", mParameters.mPath);
+            ufs.mkdirs(mParameters.mPath);
+        }
 
         List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
         final byte[] randomData = CommonUtils.randomBytes(1024 * 1024);
@@ -192,6 +190,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);
+                LOG.info("filePath={}", filePath);
+
                 int wroteMB = 0;
                 try {
                     OutputStream outStream = ufs.create(filePath);
@@ -207,6 +207,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long endTime = CommonUtils.getCurrentMs();
                 result.setWriteDurationMs(endTime - startTime);
                 result.setWriteDataSize(wroteMB);
+
+                LOG.info("Thread {} file={}, IOBench result={}", Thread.currentThread().getName(),
+                        filePath, result);
 
                 return result;
 

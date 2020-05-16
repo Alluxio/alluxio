@@ -16,10 +16,10 @@ public class WorkerBenchParameters extends Parameters {
             description = "size of data to write or read in total, in MB")
     public int mDataSize = 4096;
 
-    @Parameter(names = {"--ufs-path"},
-            description = "the directory to write temporary data in",
+    @Parameter(names = {"--path"},
+            description = "the Alluxio directory to write temporary data in",
             required = true)
-    public String mUfsTempDirPath;
+    public String mPath;
 
     @Parameter(names = {"--workers"},
             description = "the number of workers to use")

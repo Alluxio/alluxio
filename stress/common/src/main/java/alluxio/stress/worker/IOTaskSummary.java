@@ -29,4 +29,10 @@ public class IOTaskSummary implements Summary {
     }
 
     // TODO(jiacheng): standard deviation?
+
+    @Override
+    public String toString() {
+        return String.format("IOTaskSummary: {mReadDurationMs=%s,mReadDataSize=%s,mWriteDurationMs=%s,mWriteDataSize=%s}",
+                mReadDurationMs, mReadDataSize, mWriteDurationMs, mWriteDataSize);
+    }
 }
