@@ -28,7 +28,7 @@ public interface CacheManager extends AutoCloseable  {
    */
   static CacheManager create(AlluxioConfiguration conf) throws IOException {
     // TODO(feng): make cache manager type configurable when we introduce more implementations.
-    return LocalCacheManager.create(conf);
+    return new NoExceptionCacheManager(LocalCacheManager.create(conf));
   }
 
   /**

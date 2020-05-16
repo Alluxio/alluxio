@@ -76,8 +76,14 @@ public class LocalPageStore implements PageStore {
       Files.createDirectories(parent);
       Files.createFile(p);
     }
-    try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
-      fos.write(page);
+    try {
+      // extra try to ensure output stream is closed
+      try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
+        fos.write(page);
+      }
+    } catch (Exception e) {
+      Files.deleteIfExists(p);
+      throw new IOException("Failed to write file " + p + " for page " + pageId);
     }
   }
 
