@@ -107,8 +107,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     }
 
     private String getFilePathStr(int idx) {
-        return Paths.get(mParameters.mPath, String.format("io-benchmark-%d", idx))
-                .normalize().toString();
+        return mParameters.mPath + String.format("io-benchmark-%d", idx));
     }
 
     public List<IOTaskResult> read(ExecutorService pool) throws Exception {
