@@ -181,7 +181,6 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
         List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
         final byte[] randomData = CommonUtils.randomBytes(1024 * 1024);
-        long fileSize = toWriteLength / numThreads;
         for (int i = 0; i < numThreads; i++) {
             final int idx = i;
             CompletableFuture<IOTaskResult> future = CompletableFuture.supplyAsync(() -> {
@@ -189,15 +188,19 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);
-                LOG.info("filePath={}", filePath);
+                LOG.info("filePath={}, data to write={}MB", filePath, mParameters.mDataSize);
 
                 int wroteMB = 0;
                 try {
                     OutputStream outStream = ufs.create(filePath);
-                    while (wroteMB < fileSize) {
+                    LOG.info("OutputStream class {}", outStream.getClass().getCanonicalName());
+                    while (wroteMB < mParameters.mDataSize) {
                         outStream.write(randomData);
+                        LOG.info("Progress {}MB", wroteMB);
                         wroteMB += 1; // 1 MB
                     }
+                    LOG.info("Progress {}MB", wroteMB);
+                    outStream.flush();
                 } catch (IOException e) {
                     LOG.error("Failed to write to UFS: ",e);
                     result.addWriteError(e);
