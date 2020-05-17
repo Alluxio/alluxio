@@ -105,6 +105,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
       UnderFileSystemConfiguration conf) {
     Configuration hdfsConf = createConfiguration(conf);
+    LOG.info("createInstance() with conf {}", hdfsConf);
+    System.out.format("createInstance() with conf %s%n", hdfsConf);
     return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
   }
 
