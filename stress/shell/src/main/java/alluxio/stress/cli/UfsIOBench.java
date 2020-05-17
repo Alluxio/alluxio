@@ -140,10 +140,12 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 try {
                     InputStream inStream = ufs.open(filePath);
                     byte[] buf = new byte[1024 * 1024];
-                    while (inStream.read(buf) != 0) {
+                    while (readMB < mParameters.mDataSize && inStream.read(buf) != 0) {
+                        LOG.info("readMB={}", readMB);
                         readMB += 1; // 1 MB
                     }
                 } catch (IOException e) {
+                    LOG.error("Failed to read {}", filePath, e);
                     result.addReadError(e);
                 }
 
