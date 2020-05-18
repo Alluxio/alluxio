@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -808,6 +809,21 @@ public final class CommonUtils {
     }
 
     return result;
+  }
+
+  /**
+   * Validates whether a network address is reachable.
+   *
+   * @param hostname host name of the network address
+   * @param port port of the network address
+   * @return whether the network address is reachable
+   */
+  public static boolean isAddressReachable(String hostname, int port) {
+    try (Socket socket = new Socket(hostname, port)) {
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   private CommonUtils() {} // prevent instantiation

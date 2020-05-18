@@ -12,9 +12,10 @@
 package alluxio.cli.validation;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.OSUtils;
+import alluxio.util.ShellUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,19 +25,22 @@ import java.util.Map;
  * Task for validating whether worker has enough privilege to mount RAM disk.
  */
 public final class RamDiskMountPrivilegeValidationTask extends AbstractValidationTask {
+  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a new instance of {@link RamDiskMountPrivilegeValidationTask}
    * for validating mount privilege.
+   * @param conf configuration
    */
-  public RamDiskMountPrivilegeValidationTask() {
+  public RamDiskMountPrivilegeValidationTask(AlluxioConfiguration conf) {
+    mConf = conf;
   }
 
   @Override
   public TaskResult validate(Map<String, String> optionsMap)
       throws InterruptedException {
-    String path = ServerConfiguration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
-    String alias = ServerConfiguration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
+    String path = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
+    String alias = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals("MEM")) {
       System.out.println("Top tier storage is not memory, skip validation.");
       return TaskResult.SKIPPED;
@@ -66,7 +70,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
           return TaskResult.FAILED;
         }
 
-        if (Utils.isMountingPoint(path, new String[]{"ramfs", "tmpfs"})) {
+        if (ShellUtils.isMountingPoint(path, new String[]{"ramfs", "tmpfs"})) {
           // If the RAM disk is already mounted, it must be writable for Alluxio worker
           // to be able to use it.
           if (!file.canWrite()) {

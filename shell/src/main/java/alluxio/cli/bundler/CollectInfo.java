@@ -46,7 +46,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,9 +121,7 @@ public class CollectInfo extends AbstractShell {
   public Set<String> getHosts() {
     String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
     System.out.format("Looking for masters and workers in %s%n", confDirPath);
-    Set<String> hosts = new HashSet<>();
-    hosts.addAll(CommandUtils.readNodeList(confDirPath, "masters"));
-    hosts.addAll(CommandUtils.readNodeList(confDirPath, "workers"));
+    Set<String> hosts = ConfigurationUtils.getServerHostnames(mConfiguration);
     System.out.format("Found %s hosts%n", hosts.size());
     return hosts;
   }

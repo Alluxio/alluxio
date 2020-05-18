@@ -4215,13 +4215,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   private LockingScheme createSyncLockingScheme(AlluxioURI path,
-      FileSystemMasterCommonPOptions options) {
-    return new LockingScheme(path, LockPattern.READ, options, mUfsSyncPathCache, false);
-  }
-
-  private LockingScheme createSyncLockingScheme(AlluxioURI path,
       FileSystemMasterCommonPOptions options, boolean isGetFileInfo) {
-    return new LockingScheme(path, LockPattern.READ, options, mUfsSyncPathCache, true);
+    return new LockingScheme(path, LockPattern.READ, options, mUfsSyncPathCache, isGetFileInfo);
   }
 
   boolean isAclEnabled() {

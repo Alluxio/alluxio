@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.client.AlluxioStorageType;
@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
 /**
  * Basic example of using the {@link FileSystem} for writing to and reading from files.
  * <p>
- * This class is different from {@link alluxio.examples.BasicOperations} in the way writes happen.
+ * This class is different from {@link BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
  * input/output streams.
  * </p>

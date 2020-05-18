@@ -9,11 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
-import alluxio.cli.CliUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -97,19 +96,19 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   /**
    * Example program for using checkpoints.
-   * Usage: {@code java -cp <ALLUXIO-VERSION> alluxio.examples.BasicCheckpoint <FileFolder> <Files>}
+   * Usage: {@code java -cp <ALLUXIO-VERSION> alluxio.cli.BasicCheckpoint <FileFolder> <Files>}
    *
    * @param args the folder for the files and the files to use
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
       System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
-          + " alluxio.examples.BasicCheckpoint <FileFolder> <Files>");
+          + " alluxio.cli.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }
     FileSystemContext fsContext =
         FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    boolean result = CliUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1]),
+    boolean result = RunTestUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1]),
         fsContext));
     System.exit(result ? 0 : 1);
   }
