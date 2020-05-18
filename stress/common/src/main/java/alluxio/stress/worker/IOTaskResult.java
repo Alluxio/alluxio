@@ -7,6 +7,7 @@ import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MasterBenchTaskResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
@@ -30,6 +31,27 @@ public class IOTaskResult implements TaskResult {
             mMode = mode;
             mDurationMs = duration;
             mDataSizeMB = dataSize;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("{mode=%s, duration=%s, dataSize=%s}",
+                    mMode, mDurationMs, mDataSizeMB);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (! (other instanceof Point)) {
+                return false;
+            }
+            Point b = (Point) other;
+            return this.mMode == b.mMode && this.mDataSizeMB == b.mDataSizeMB
+                    && this.mDurationMs == b.mDurationMs;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(mMode, mDataSizeMB, mDurationMs);
         }
     }
 
