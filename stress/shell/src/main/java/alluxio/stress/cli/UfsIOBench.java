@@ -147,7 +147,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                     }
 
                     long endTime = CommonUtils.getCurrentMs();
-                    IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.READ, endTime - startTime, readMB);
+                    double duration = (endTime - startTime) / 1000.0; // convert to second
+                    IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.READ, duration, readMB);
                     result.addPoint(p);
                     LOG.info("Read task finished {}", p);
                 } catch (IOException e) {
@@ -212,8 +213,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                     }
 
                     long endTime = CommonUtils.getCurrentMs();
+                    double duration = (endTime - startTime) / 1000.0; // convert to second
                     IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.WRITE,
-                            endTime - startTime, wroteMB);
+                            duration, wroteMB);
                     result.addPoint(p);
                     LOG.info("Write task finished {}", p);
                 } catch (IOException e) {

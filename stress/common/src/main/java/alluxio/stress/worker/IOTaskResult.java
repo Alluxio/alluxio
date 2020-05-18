@@ -21,12 +21,12 @@ public class IOTaskResult implements TaskResult {
     public static class Point implements JsonSerializable {
         // TODO(jiacheng): getter and setter
         public IOConfig.IOMode mMode;
-        public long mDurationMs;
+        public double mDurationMs;
         public int mDataSizeMB;
 
         @JsonCreator
         public Point(@JsonProperty("mode") IOConfig.IOMode mode,
-                     @JsonProperty("durationMs") long duration,
+                     @JsonProperty("durationMs") double duration,
                      @JsonProperty("dataSizeMB") int dataSize) {
             mMode = mode;
             mDurationMs = duration;

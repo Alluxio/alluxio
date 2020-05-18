@@ -35,6 +35,10 @@ public class IOSummaryTest {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(stat);
         System.out.println("Object mapper converted: " +json);
+
+        IOTaskSummary.SpeedStat other = mapper.readValue(json, IOTaskSummary.SpeedStat.class);
+        System.out.println("Parsed back from json");
+        System.out.println(other);
     }
 
     public void checkEquality(IOTaskSummary a, IOTaskSummary b) {
