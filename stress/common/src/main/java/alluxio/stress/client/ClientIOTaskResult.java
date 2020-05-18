@@ -26,6 +26,7 @@ import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -169,36 +170,39 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
 
       // Iterate over all operations
       for (ClientIOOperation operation : ClientIOOperation.values()) {
-        List<ClientIOTaskResult> opSummaries =
-            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                .collect(Collectors.toList());
+        for (Boolean readRandom : Arrays.asList(false, true)) {
+          List<ClientIOTaskResult> opSummaries =
+              summaries.stream().filter(x -> x.mParameters.mOperation == operation)
+                  .filter(x -> x.mParameters.mReadRandom == readRandom)
+                  .collect(Collectors.toList());
 
-        if (!opSummaries.isEmpty()) {
-          // first() is the list of common field names, second() is the list of unique field names
-          Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-              opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+          if (!opSummaries.isEmpty()) {
+            // first() is the list of common field names, second() is the list of unique field names
+            Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+                opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-          // Split up common description into 100 character chunks, for the sub title
-          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+            // Split up common description into 100 character chunks, for the sub title
+            List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+                opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
-          for (ClientIOTaskResult summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
-                .format(summary.computeLastEndMs()));
+            for (ClientIOTaskResult summary : opSummaries) {
+              String series = summary.mParameters.getDescription(fieldNames.getSecond());
+              subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
+                  .format(summary.computeLastEndMs()));
+            }
+
+            LineGraph responseTimeGraph = new LineGraph(
+                operation + (readRandom ? " - Random" : " - Sequential") + " - Throughput",
+                subTitle, "# Threads", "Throughput (MB/s)");
+
+            for (ClientIOTaskResult summary : opSummaries) {
+              String series = summary.mParameters.getDescription(fieldNames.getSecond());
+              responseTimeGraph.addDataSeries(series, summary.getThroughputData());
+              responseTimeGraph.setErrors(series, summary.collectErrors());
+            }
+
+            graphs.add(responseTimeGraph);
           }
-
-          LineGraph responseTimeGraph =
-              new LineGraph(operation + " - Throughput", subTitle, "# Threads",
-                  "Throughput (MB/s)");
-
-          for (ClientIOTaskResult summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            responseTimeGraph.addDataSeries(series, summary.getThroughputData());
-            responseTimeGraph.setErrors(series, summary.collectErrors());
-          }
-
-          graphs.add(responseTimeGraph);
         }
       }
 
