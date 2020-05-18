@@ -116,8 +116,7 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} updated at {} with {} blocks.",
-          blockId, location, sortedSet.size());
+      LOG.debug("Block:{} updated at {} with {} blocks.", blockId, location, sortedSet.size());
     }
   }
 
@@ -131,8 +130,7 @@ public class DefaultBlockIterator implements BlockIterator {
     sortedSet.remove(blockId);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} removed from {} with {} blocks.",
-          blockId, location, sortedSet.size());
+      LOG.debug("Block:{} removed from {} with {} blocks.", blockId, location, sortedSet.size());
     }
   }
 
