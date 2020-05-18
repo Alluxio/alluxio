@@ -4,5 +4,6 @@ alluxio.job.plan.persist.PersistDefinition
 alluxio.job.plan.replicate.EvictDefinition
 alluxio.job.plan.replicate.MoveDefinition
 alluxio.job.plan.replicate.ReplicateDefinition
+alluxio.job.plan.io.IODefinition
 alluxio.job.plan.stress.StressBenchDefinition
 alluxio.job.plan.transform.CompactDefinition
