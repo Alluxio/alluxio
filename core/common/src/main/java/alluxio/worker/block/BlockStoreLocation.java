@@ -152,17 +152,11 @@ public final class BlockStoreLocation {
    */
   @Override
   public String toString() {
-    MoreObjects.ToStringHelper strHelper = MoreObjects.toStringHelper(this);
-    if (!mTierAlias.equals(ANY_TIER)) {
-      strHelper.add("TierAlias", mTierAlias);
-    }
-    if (mDirIndex != ANY_DIR) {
-      strHelper.add("DirIndex", mDirIndex);
-    }
-    if (!mMediumType.equals(ANY_MEDIUM)) {
-      strHelper.add("MediumType", mMediumType);
-    }
-    return strHelper.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("TierAlias", (!mTierAlias.equals(ANY_TIER)) ? mTierAlias : "<Any>")
+        .add("DirIndex", (mDirIndex != ANY_DIR) ? mDirIndex : "<Any>")
+        .add("MediumType", (!mMediumType.equals(ANY_MEDIUM)) ? mMediumType : "<Any>")
+        .toString();
   }
 
   /**

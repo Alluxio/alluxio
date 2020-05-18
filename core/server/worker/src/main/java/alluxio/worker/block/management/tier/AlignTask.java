@@ -163,8 +163,10 @@ public class AlignTask extends AbstractBlockManagementTask {
           blockLocPairListDst.get(i).getFirst()));
     }
 
-    LOG.debug("Generated {} swap transfers: \n ->{}", transferInfos.size(),
-        transferInfos.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} swap transfers: \n ->{}", transferInfos.size(),
+          transferInfos.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
+    }
     return transferInfos;
   }
 }
