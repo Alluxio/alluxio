@@ -12,6 +12,7 @@ import java.util.List;
 
 @JsonTypeName(IOConfig.NAME)
 public class IOConfig extends StressBenchConfig {
+    private static final long serialVersionUID = 7883915266950426998L;
     public static final String NAME = "IO";
 
     // How many streams to write to HDFS concurrently

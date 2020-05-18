@@ -241,6 +241,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
     try {
+      LOG.info("jobConfig class {}", jobConfig.getClass().getCanonicalName());
       if (jobConfig instanceof PlanConfig) {
         mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
             getWorkerInfoList(), jobId);
