@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
+import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -22,6 +23,8 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.core.io.JsonEOFException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
@@ -31,10 +34,13 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -155,6 +161,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
+    context.addAdditionalResult("test.txt");
+
     return context.getResult();
   }
 
@@ -202,6 +210,46 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
+    public synchronized void addAdditionalResult(String filePath) throws IOException {
+      final BufferedReader reader;
+      reader = new BufferedReader(new FileReader(filePath));
+      String line;
+
+      Map<String, Histogram> methodNameToHistogram = new HashMap<>();
+
+      final ObjectMapper objectMapper = new ObjectMapper();
+      while ((line = reader.readLine()) != null) {
+        final Map<String, Object> lineMap;
+        try {
+          lineMap = objectMapper.readValue(line, Map.class);
+        } catch (JsonEOFException e) {
+          // skip the last line of a not completed file
+          break;
+        }
+
+        final String type = (String) lineMap.get("type");
+        final String methodName = (String) lineMap.get("methodName");
+        final Long timestamp = (Long) lineMap.get("timestamp");
+        final Integer duration = (Integer) lineMap.get("duration");
+
+        if (type != null && methodName != null && duration != null) {
+          if (!methodNameToHistogram.containsKey(methodName)) {
+            methodNameToHistogram.put(methodName, new Histogram(
+                MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
+                MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION));
+          }
+
+          methodNameToHistogram.get(methodName).recordValue(duration);
+        }
+      }
+
+      for (Map.Entry<String, Histogram> entry : methodNameToHistogram.entrySet()) {
+        final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
+        stats.encodeResponseTimeNsRaw(entry.getValue());
+        mResult.putStatisticsForMethod(entry.getKey(), stats);
+      }
+    }
+
     public synchronized MasterBenchTaskResult getResult() {
       return mResult;
     }
@@ -218,8 +266,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
-      mResponseTimeNs = new Histogram(MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_MAX,
-          MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      mResponseTimeNs = new Histogram(MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION);
       if (mParameters.mOperation == Operation.CreateDir) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
@@ -259,7 +307,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
 
       long bucketSize =
-          (mContext.getEndMs() - recordMs) / MasterBenchTaskResult.MAX_RESPONSE_TIME_COUNT;
+          (mContext.getEndMs() - recordMs) / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
