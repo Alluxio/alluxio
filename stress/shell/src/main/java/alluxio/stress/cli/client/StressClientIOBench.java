@@ -16,7 +16,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.stress.client.Operation;
+import alluxio.stress.client.ClientIOOperation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -46,8 +46,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node client IO stress test.
  */
-public class StressClientIO extends Benchmark<ClientIOTaskResult> {
-  private static final Logger LOG = LoggerFactory.getLogger(StressClientIO.class);
+public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
+  private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
 
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
@@ -57,14 +57,14 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
   /**
    * Creates instance.
    */
-  public StressClientIO() {
+  public StressClientIOBench() {
   }
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    mainInternal(args, new StressClientIO());
+    mainInternal(args, new StressClientIOBench());
   }
 
   @Override
@@ -79,8 +79,8 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
           .format("File size (%s) must be larger than buffer size (%s)", mParameters.mFileSize,
               mParameters.mBufferSize));
     }
-    if (mParameters.mOperation == Operation.Write) {
-      // Cannot write repeatedly, so warmup is not possible
+    if (mParameters.mOperation == ClientIOOperation.Write) {
+      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
     }
     if (!mBaseParameters.mDistributed) {
@@ -93,7 +93,7 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
       // initialize the base, for only the non-distributed task (the cluster launching task)
       Path path = new Path(mParameters.mBasePath);
 
-      if (!Operation.isRead(mParameters.mOperation)) {
+      if (!ClientIOOperation.isRead(mParameters.mOperation)) {
         prepareFs.delete(path, true);
         prepareFs.mkdirs(path);
       }
@@ -192,8 +192,6 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
           mThreadCountResult.addErrorMessage(e.getMessage());
         }
       }
-
-      mThreadCountResult.update();
     }
 
     public synchronized ClientIOTaskResult.ThreadCountResult getResult() {
@@ -265,7 +263,7 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mThreadCountResult.setRecordStartMs(recordMs);
-      boolean isRead = Operation.isRead(mParameters.mOperation);
+      boolean isRead = ClientIOOperation.isRead(mParameters.mOperation);
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
@@ -285,7 +283,7 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
           if (ioBytes > 0) {
             mThreadCountResult.incrementIOBytes(ioBytes);
           }
-          if (mParameters.mOperation == Operation.Write && ioBytes < 0) {
+          if (mParameters.mOperation == ClientIOOperation.Write && ioBytes < 0) {
             // done writing. done with the thread.
             break;
           }
@@ -294,13 +292,13 @@ public class StressClientIO extends Benchmark<ClientIOTaskResult> {
     }
 
     private int applyOperation() throws IOException {
-      if (Operation.isRead(mParameters.mOperation)) {
+      if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {
           mInStream = mFs.open(mFilePath);
         }
         if (mParameters.mReadRandom) {
           mCurrentOffset = mRandom.nextInt(mMaxOffset);
-          if (!Operation.isPosRead(mParameters.mOperation)) {
+          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
             // must seek if not a positioned read
             mInStream.seek(mCurrentOffset);
           }

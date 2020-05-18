@@ -26,11 +26,14 @@ import java.util.Map;
  * getters and setters.
  */
 public final class ClientIOParameters extends Parameters {
+  private static final String FIELD_READ_RANDOM = "mReadRandom";
+  private static final String FIELD_READ_SAME_FILE = "mReadSameFile";
+
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [ReadArray, ReadByteBuffer, ReadFully,"
           + " PosRead, PosReadFully]",
       required = true)
-  public Operation mOperation;
+  public ClientIOOperation mOperation;
 
   @Parameter(names = {"--clients"}, description = "the number of fs clients to use")
   public int mClients = 1;
@@ -84,13 +87,13 @@ public final class ClientIOParameters extends Parameters {
 
   @Override
   public String prettyPrintDescriptionField(String fieldName, Object value) {
-    if ("mReadRandom".equals(fieldName)) {
+    if (FIELD_READ_RANDOM.equals(fieldName)) {
       if ((Boolean) value) {
         return "Random";
       }
       return "Sequential";
     }
-    if ("mReadSameFile".equals(fieldName)) {
+    if (FIELD_READ_SAME_FILE.equals(fieldName)) {
       if ((Boolean) value) {
         return "SameFile";
       }

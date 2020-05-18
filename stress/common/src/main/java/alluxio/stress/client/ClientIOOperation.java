@@ -12,9 +12,9 @@
 package alluxio.stress.client;
 
 /**
- * The operations for the master stress tests.
+ * The operations for the client io stress tests.
  */
-public enum Operation {
+public enum ClientIOOperation {
   Write,  // write the files for the read operations
 
   ReadArray,       // random reads must call seek()
@@ -28,7 +28,7 @@ public enum Operation {
    * @param operation the operation
    * @return true if the operation is a read
    */
-  public static boolean isRead(Operation operation) {
+  public static boolean isRead(ClientIOOperation operation) {
     switch (operation) {
       case ReadArray:
       case ReadByteBuffer:
@@ -45,7 +45,7 @@ public enum Operation {
    * @param operation the operation
    * @return true if the operation is a positioned read
    */
-  public static boolean isPosRead(Operation operation) {
+  public static boolean isPosRead(ClientIOOperation operation) {
     switch (operation) {
       case PosRead:
       case PosReadFully:

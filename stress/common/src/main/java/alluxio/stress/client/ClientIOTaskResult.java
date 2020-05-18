@@ -20,6 +20,7 @@ import alluxio.stress.TaskResult;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
 
 import java.io.IOException;
@@ -108,7 +109,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private LineGraph.Data getThroughputData() {
     LineGraph.Data data = new LineGraph.Data();
     for (Map.Entry<Integer, ThreadCountResult> entry : mThreadCountResults.entrySet()) {
-      data.addData(entry.getKey(), entry.getValue().mIOMBps);
+      data.addData(entry.getKey(), entry.getValue().getIOMBps());
     }
     return data;
   }
@@ -135,6 +136,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       Iterator<TaskResult> it = results.iterator();
       if (it.hasNext()) {
         TaskResult taskResult = it.next();
+        if (it.hasNext()) {
+          throw new IOException(
+              "ClientIO is a single node test, so multiple task results cannot be aggregated.");
+        }
         if (!(taskResult instanceof ClientIOTaskResult)) {
           throw new IOException(
               "TaskResult is not of type ClientIOTaskResult. class: " + taskResult.getClass()
@@ -163,7 +168,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
           results.stream().map(x -> (ClientIOTaskResult) x).collect(Collectors.toList());
 
       // Iterate over all operations
-      for (Operation operation : Operation.values()) {
+      for (ClientIOOperation operation : ClientIOOperation.values()) {
         List<ClientIOTaskResult> opSummaries =
             summaries.stream().filter(x -> x.mParameters.mOperation == operation)
                 .collect(Collectors.toList());
@@ -207,9 +212,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   public static final class ThreadCountResult {
     private long mRecordStartMs;
     private long mEndMs;
-    private long mDurationMs;
     private long mIOBytes;
-    private float mIOMBps;
     private List<String> mErrors;
 
     /**
@@ -226,7 +229,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
      * @param result  the result to merge
      */
     public void merge(ClientIOTaskResult.ThreadCountResult result) {
-      mRecordStartMs = result.mRecordStartMs;
+      mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
       mEndMs = Math.max(mEndMs, result.mEndMs);
       mIOBytes += result.mIOBytes;
       mErrors.addAll(result.mErrors);
@@ -237,22 +240,21 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
      * Update various measurements given the existing measurements.
      */
     public void update() {
-      mDurationMs = mEndMs - mRecordStartMs;
-      mIOMBps = ((float) mIOBytes / mDurationMs) * 1000.0f / Constants.MB;
     }
 
     /**
      * @return the duration (in ms)
      */
     public long getDurationMs() {
-      return mDurationMs;
+      return mEndMs - mRecordStartMs;
     }
 
     /**
      * @param durationMs the duration (in ms)
      */
+    @JsonIgnore
     public void setDurationMs(long durationMs) {
-      mDurationMs = durationMs;
+      // ignore
     }
 
     /**
@@ -331,14 +333,15 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
      * @return the throughput (MB/s)
      */
     public float getIOMBps() {
-      return mIOMBps;
+      return ((float) mIOBytes / getDurationMs()) * 1000.0f / Constants.MB;
     }
 
     /**
      * @param ioMBps the throughput (MB / s)
      */
+    @JsonIgnore
     public void setIOMBps(float ioMBps) {
-      mIOMBps = ioMBps;
+      // ignore
     }
   }
 }

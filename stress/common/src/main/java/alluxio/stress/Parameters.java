@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  * Abstract class for parameters of stress tests.
  */
 public abstract class Parameters {
+  private static final String FIELD_BASE_PATH = "mBasePath";
   /**
    * The shared mapper, which is thread-safe as long as all configuration is complete before any
    * reading and writing.
@@ -66,7 +67,7 @@ public abstract class Parameters {
    * @return the string representation of this field/value
    */
   protected String prettyPrintDescriptionField(String fieldName, Object value) {
-    if ("mBasePath".equals(fieldName)) {
+    if (FIELD_BASE_PATH.equals(fieldName)) {
       AlluxioURI uri = new AlluxioURI(value.toString());
       return String.format("%s-%s", uri.getScheme(), uri.getAuthority());
     }
