@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -40,12 +41,14 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.file.FileSystemMasterWorkerClientPool;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -104,11 +107,13 @@ public class BlockWorkerTest {
     mBlockStoreMeta = mock(BlockStoreMeta.class);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(mBlockStoreMeta);
     when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(new WorkerStorageTierAssoc());
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterWorkerClientPool pool = Mockito.mock(FileSystemMasterWorkerClientPool.class);
+    doReturn(mFileSystemMasterClient).when(pool).acquire();
     mSessions = PowerMockito.mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, pool,
         mSessions, mBlockStore, mUfsManager);
   }
 

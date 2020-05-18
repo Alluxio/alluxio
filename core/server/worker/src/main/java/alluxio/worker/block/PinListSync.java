@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.file.FileSystemMasterWorkerClientPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,24 +35,24 @@ public final class PinListSync implements HeartbeatExecutor {
   private final BlockWorker mBlockWorker;
 
   /** Client for all master communication. */
-  private FileSystemMasterClient mMasterClient;
+  private FileSystemMasterWorkerClientPool mMasterClientPool;
 
   /**
    * Creates a new instance of {@link PinListSync}.
    *
    * @param blockWorker the block worker handle
-   * @param masterClient the Alluxio master client
+   * @param clientPool the Alluxio master client pool
    */
-  public PinListSync(BlockWorker blockWorker, FileSystemMasterClient masterClient) {
+  public PinListSync(BlockWorker blockWorker, FileSystemMasterWorkerClientPool clientPool) {
     mBlockWorker = blockWorker;
-    mMasterClient = masterClient;
+    mMasterClientPool = clientPool;
   }
 
   @Override
   public void heartbeat() {
     // Send the sync
-    try {
-      Set<Long> pinList = mMasterClient.getPinList();
+    try (FileSystemMasterClient client = mMasterClientPool.acquire()) {
+      Set<Long> pinList = client.getPinList();
       mBlockWorker.updatePinList(pinList);
     } catch (Exception e) {
       // An error occurred, retry after 1 second or error if sync timeout is reached
