@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.SyncInfo;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
@@ -195,7 +194,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -3115,11 +3113,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
         // Set sync interval to 0 to force a sync.
         FileSystemMasterCommonPOptions options =
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-        LockingScheme scheme = createSyncLockingScheme(path, options);
-        try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)){
+        LockingScheme scheme = createSyncLockingScheme(path, options, false);
+        try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
           InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor, this,
-              mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext, DescendantType.ALL,
-              mUfsSyncPathCache, options, false, false, false);
+              mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
+              DescendantType.ALL, mUfsSyncPathCache, options, false, false, false);
           sync.sync();
         }
         long end = System.currentTimeMillis();
@@ -3133,8 +3131,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
             // Set sync interval to 0 to force a sync.
             FileSystemMasterCommonPOptions options =
                 FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-            LockingScheme scheme = createSyncLockingScheme(changedFile, options);
-            try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)){
+            LockingScheme scheme = createSyncLockingScheme(changedFile, options, false);
+            try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
               InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor,
                   this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
                   DescendantType.NONE, mUfsSyncPathCache, options, false, false, false);
@@ -3161,6 +3159,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           end - start);
     }
   }
+
   @Override
   public boolean recordActiveSyncTxid(long txId, long mountId) {
     MountInfo mountInfo = mMountTable.getMountInfo(mountId);

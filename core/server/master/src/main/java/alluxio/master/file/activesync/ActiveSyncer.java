@@ -22,15 +22,14 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
-
 import alluxio.util.LogUtils;
+
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -73,7 +72,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    while(mSyncTasks.peek() != null && mSyncTasks.peek().isDone()) {
+    while (mSyncTasks.peek() != null && mSyncTasks.peek().isDone()) {
       mSyncTasks.poll();
     }
     LOG.debug("start Active Syncer heartbeat");
@@ -98,8 +97,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
             tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
               processSyncPoint(ufsUri, syncInfo);
               return syncInfo.getTxId();
-              }, mSyncManager.getExecutor()));
-
+            }, mSyncManager.getExecutor()));
           }
           // Journal the latest processed txId
           CompletableFuture<Void> syncTask =
@@ -107,7 +105,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
               .thenRunAsync(() -> mFileSystemMaster
                       .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
                   mSyncManager.getExecutor());
-          while(!mSyncTasks.offer(syncTask)) {
+          while (!mSyncTasks.offer(syncTask)) {
             try {
               CompletableFuture<?> task = mSyncTasks.poll();
               if (task == null) {

@@ -136,6 +136,7 @@ public class UfsStatusCache {
    * Attempts to return a status from the cache. If it doesn't exist, reaches to the UFS for it.
    *
    * @param path the path the retrieve
+   * @param mountTable the Alluxio mount table
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
   @Nullable
