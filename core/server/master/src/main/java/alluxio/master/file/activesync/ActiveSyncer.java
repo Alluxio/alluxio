@@ -36,6 +36,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -72,10 +73,11 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    while (mSyncTasks.peek() != null && mSyncTasks.peek().isDone()) {
-      mSyncTasks.poll();
-    }
     LOG.debug("start Active Syncer heartbeat");
+    // Remove any previously completed sync tasks
+    while (mSyncTasks.peek() != null && !mSyncTasks.peek().isDone()) {
+      Future<?> ignored = mSyncTasks.poll();
+    }
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
 
@@ -133,7 +135,9 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    // Nothing to clean up
+    for (CompletableFuture<?> syncTask : mSyncTasks) {
+      syncTask.cancel(true);
+    }
   }
 
   /**

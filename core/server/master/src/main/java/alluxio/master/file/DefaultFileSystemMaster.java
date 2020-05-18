@@ -692,7 +692,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
       mSyncPrefetchExecutor.awaitTermination(5, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOG.warn("Failed to wait for metadata sync executor to shut down.");
+      LOG.warn("Failed to wait for ufs prefetch executor to shut down.");
+    }
+
+    try {
+      mActiveSyncMetadataExecutor.shutdownNow();
+      mSyncPrefetchExecutor.awaitTermination(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.warn("Failed to wait for active sync executor to shut down.");
     }
   }
 
