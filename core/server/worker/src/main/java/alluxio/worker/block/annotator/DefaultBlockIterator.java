@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -237,33 +236,25 @@ public class DefaultBlockIterator implements BlockIterator {
       }
     }
 
-    int swapCount = Math.min(srcList.size(), dstList.size());
-    Pair<List<Long>, List<Long>> swapLists =
-        new Pair(new ArrayList<>(swapCount), new ArrayList<>(swapCount));
-    // Find blocks to swap in order to eliminate overlap.
-    while (swapCount-- > 0) {
-      if (intersectionOrder.comparator().compare(srcList.get(0).getSecond(),
-          dstList.get(0).getSecond()) < 0) {
+    // Simulate swapping until both ends of the list are aligned.
+    int swapLimit = Math.min(srcList.size(), dstList.size());
+    int swapCount = 0;
+    while (swapCount < swapLimit) {
+      Pair<Long, BlockSortedField> srcItem = srcList.get(swapCount);
+      Pair<Long, BlockSortedField> dstItem = dstList.get(swapCount);
+
+      if (intersectionOrder.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) <= 0) {
         break;
       }
 
-      Pair<Long, BlockSortedField> srcItem = srcList.get(0);
-      Pair<Long, BlockSortedField> dstItem = dstList.get(0);
-      swapLists.getFirst().add(srcItem.getFirst());
-      swapLists.getSecond().add(dstItem.getFirst());
-
-      srcList.remove(0);
-      dstList.remove(0);
-      srcList.add(dstItem);
-      dstList.add(srcItem);
-
-      Collections.sort(srcList,
-          (o1, o2) -> srcOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
-      Collections.sort(dstList,
-          (o1, o2) -> dstOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
+      swapCount++;
     }
 
-    return swapLists;
+    return new Pair<>(
+        srcList.subList(0, swapCount).stream().map((kv) -> kv.getFirst())
+            .collect(Collectors.toList()),
+        dstList.subList(0, swapCount).stream().map((kv) -> kv.getFirst())
+            .collect(Collectors.toList()));
   }
 
   @Override
@@ -346,7 +337,7 @@ public class DefaultBlockIterator implements BlockIterator {
    *
    * This will invoke order provider with the full list in order to satisfy this requirement.
    *
-   * TODO(ggezer): Consider adding new Sorter API to extract logical time.
+   * TODO(ggezer): Consider adding a new {@link BlockAnnotator} API to extract logical time.
    */
   private synchronized void updateTotalOrder(List<BlockStoreLocation> locations) {
     // No need if there is no unordered locations.

@@ -111,7 +111,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
   }
 
   /**
-   * An entry that is stored in an internal set that does its sorting/equality
+   * An entry that is stored in an internal set that enforces sorting/equality
    * based on the given sorted-field.
    *
    * @param <T> type of the sorted field
@@ -129,6 +129,14 @@ public class SortedBlockSet<T extends BlockSortedField> {
 
     @Override
     public int compareTo(SortedBlockSetEntry o) {
+      /**
+       * Comparison should be consistent with {@link Object#equals} for {@link SortedSet} to
+       * maintain set semantics.
+       *
+       * This means {@link Comparable#compareTo} should never return 0 for non-equal objects.
+       * This is achieved by using a sequentially increasing change-index field which helps to
+       * differentiate between unique fields with identical sort-field.
+       */
       int sortRes = mSortedField.compareTo(o.mSortedField);
       if (sortRes == 0) {
         return Long.compare(mChangeIndex, o.mChangeIndex);
@@ -150,7 +158,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
 
     @Override
     public int hashCode() {
-      return Objects.hash(mBlockId, mSortedField);
+      return Objects.hash(mBlockId, mSortedField, mChangeIndex);
     }
   }
 }
