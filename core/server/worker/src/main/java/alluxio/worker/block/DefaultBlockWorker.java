@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -28,6 +29,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -35,7 +37,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -46,7 +47,6 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
-import alluxio.worker.file.FileSystemMasterWorkerClientPool;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -59,8 +59,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -78,10 +76,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
-
-  private static final ScheduledExecutorService CLIENT_POOL_GC_EXECUTOR =
-      Executors.newSingleThreadScheduledExecutor(
-          ThreadFactoryUtils.build("fs-master-client-gc-%d", true));
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
@@ -102,7 +96,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
-  private final FileSystemMasterWorkerClientPool mFileSystemMasterClientPool;
+  private final FileSystemMasterClient mFileSystemMasterClient;
 
   /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
@@ -134,7 +128,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClientPool(),
-        new FileSystemMasterWorkerClientPool(CLIENT_POOL_GC_EXECUTOR),
+        new FileSystemMasterClient(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
@@ -142,19 +137,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * Constructs a default block worker.
    *
    * @param blockMasterClientPool a client pool for talking to the block master
-   * @param fileSystemMasterClientPool a client for talking to the file system master
+   * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
-      FileSystemMasterWorkerClientPool fileSystemMasterClientPool, Sessions sessions,
-      BlockStore blockStore,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mResourceCloser = Closer.create();
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
-    mFileSystemMasterClientPool = mResourceCloser.register(fileSystemMasterClientPool);
+    mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
@@ -229,7 +223,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             ServerConfiguration.global(), ServerUserState.global()));
 
     // Setup PinListSyncer
-    mPinListSync = mResourceCloser.register(new PinListSync(this, mFileSystemMasterClientPool));
+    mPinListSync = mResourceCloser.register(new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
@@ -257,10 +251,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
-    // Stop heart-beat executors and clients.
-    mResourceCloser.close();
     // Stop the base. (closes executors.)
     super.stop();
+    // Stop heart-beat executors and clients.
+    mResourceCloser.close();
   }
 
   @Override
@@ -510,9 +504,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public FileInfo getFileInfo(long fileId) throws IOException {
-    try (FileSystemMasterClient client = mFileSystemMasterClientPool.acquire()) {
-      return client.getFileInfo(fileId);
-    }
+    return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
   @Override
