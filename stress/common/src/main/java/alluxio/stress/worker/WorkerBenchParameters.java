@@ -4,11 +4,6 @@ import alluxio.stress.Parameters;
 import com.beust.jcommander.Parameter;
 
 public class WorkerBenchParameters extends Parameters {
-    @Parameter(names = {"--mode"},
-            description = "WRITE, READ or ALL",
-            required = true)
-    public IOMode mMode;
-
     @Parameter(names = {"--threads"}, description = "the number of threads to use")
     public int mThreads = 16;
 
@@ -24,10 +19,4 @@ public class WorkerBenchParameters extends Parameters {
     @Parameter(names = {"--workers"},
             description = "the number of workers to use")
     public int mWorkerNum=1;
-
-    public enum IOMode {
-        READ,
-        WRITE,
-        ALL
-    }
 }

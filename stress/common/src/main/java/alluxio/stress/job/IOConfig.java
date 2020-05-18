@@ -14,9 +14,6 @@ import java.util.List;
 public class IOConfig extends StressBenchConfig {
     public static final String NAME = "IO";
 
-    // READ or WRITE mode
-    private WorkerBenchParameters.IOMode mMode;
-
     // How many streams to write to HDFS concurrently
     private int mThreadNum;
 
@@ -33,13 +30,11 @@ public class IOConfig extends StressBenchConfig {
     public IOConfig(@JsonProperty("className") String className,
                     @JsonProperty("args") List<String> args,
                     @JsonProperty("startDelayMs") long startDelayMs,
-                    @JsonProperty("mode") WorkerBenchParameters.IOMode mode,
                     @JsonProperty("threadNum") int threadNum,
                     @JsonProperty("dataSize") int dataSize,
                     @JsonProperty("workerNum") int workerNum,
                     @JsonProperty("path") String path) {
         super(className, args, startDelayMs);
-        mMode = mode;
         mThreadNum = threadNum;
         mDataSize = dataSize;
         mPath = path;
@@ -52,7 +47,6 @@ public class IOConfig extends StressBenchConfig {
                     // TODO(jiacheng): how to make this json?
                     WorkerBenchParameters params) {
         super(className, args, startDelayMs);
-        mMode = params.mMode;
         mThreadNum = params.mThreads;
         mDataSize = params.mDataSize;
         mPath = params.mPath;
@@ -72,10 +66,6 @@ public class IOConfig extends StressBenchConfig {
         return mDataSize;
     }
 
-    public WorkerBenchParameters.IOMode getMode() {
-        return mMode;
-    }
-
     public int getThreadNum() {
         return mThreadNum;
     }
@@ -85,4 +75,10 @@ public class IOConfig extends StressBenchConfig {
     }
 
     // TODO(jiacheng): toString and equals
+
+    public enum IOMode {
+        READ,
+        WRITE,
+        ALL
+    }
 }

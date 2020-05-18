@@ -3,23 +3,16 @@ package alluxio.stress.worker;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class IOTaskSummary implements Summary {
-    private long mReadDurationMs;
-    private long mReadDataSize;
-    private List<Exception> mReadErrors;
-    private long mWriteDurationMs;
-    private long mWriteDataSize;
-    private List<Exception> mWriteErrors;
+    private List<IOTaskResult.Point> mPoints;
+    private List<String> mErrors;
 
     public IOTaskSummary(IOTaskResult result) {
-        mReadDataSize = result.getReadDataSize();
-        mReadDurationMs = result.getReadDurationMs();
-        mReadErrors = result.getReadErrors();
-        mWriteDataSize = result.getWriteDataSize();
-        mWriteDurationMs = result.getWriteDurationMs();
-        mWriteErrors = result.getWriteErrors();
+        mPoints = new ArrayList<>(result.getPoints());
+        mErrors = new ArrayList<>(result.getErrors());
     }
 
     @Override
@@ -32,7 +25,7 @@ public class IOTaskSummary implements Summary {
 
     @Override
     public String toString() {
-        return String.format("IOTaskSummary: {mReadDurationMs=%s,mReadDataSize=%s,mWriteDurationMs=%s,mWriteDataSize=%s}",
-                mReadDurationMs, mReadDataSize, mWriteDurationMs, mWriteDataSize);
+        return String.format("IOTaskSummary: {Points={}, Errors={}}",
+                mPoints, mErrors);
     }
 }

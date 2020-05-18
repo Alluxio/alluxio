@@ -13,7 +13,6 @@ public class IOConfigTest {
         IOConfig config = new IOConfig(IOConfig.class.getCanonicalName(),
                 ImmutableList.of(),
         0,
-        WorkerBenchParameters.IOMode.WRITE,
         16,
         1024,
         1,

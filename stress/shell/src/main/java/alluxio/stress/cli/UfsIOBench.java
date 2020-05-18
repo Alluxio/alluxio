@@ -47,12 +47,13 @@ import java.util.stream.Collectors;
 
 public class UfsIOBench extends Benchmark<IOTaskResult> {
     private static final Logger LOG = LoggerFactory.getLogger(UfsIOBench.class);
-    private static final long BUFFER_SIZE = 1024 * 1024;
+    private static final int BUFFER_SIZE = 1024 * 1024;
 
     @ParametersDelegate
     private WorkerBenchParameters mParameters = new WorkerBenchParameters();
 
-    private InstancedConfiguration mConf = InstancedConfiguration.defaults();
+    private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
+    private final HashMap<String, String> mHdfsConf = new HashMap<>();
 
     @Override
     public PlanConfig generateJobConfig(String[] args) {
@@ -71,34 +72,18 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         ExecutorService pool =
                 ExecutorServiceFactories.fixedThreadPool("bench-io-thread", mParameters.mThreads).create();
 
-        List<IOTaskResult> tr = new ArrayList<>();
-        // TODO(jiacheng): better organize here
-        switch (mParameters.mMode) {
-            case READ:
-                tr.addAll(read(pool));
-                break;
-            case WRITE:
-                tr.addAll(write(pool));
-                break;
-            case ALL:
-                // TODO(jiacheng): read and write must be separated!
-                tr.addAll(write(pool));
-                tr.addAll(read(pool));
-            default:
-                throw new IllegalArgumentException(
-                        String.format("Unknown mode %s", mParameters.mMode));
-        }
+        IOTaskResult result = runIOBench(pool);
 
         pool.shutdownNow();
         pool.awaitTermination(30, TimeUnit.SECONDS);
 
         // Aggregate the task results
-        return IOTaskResult.reduceList(tr);
+        return result;
     }
 
     @Override
     public void prepare() throws Exception {
-
+        // TODO(jiacheng): what to set for hdfs conf?
     }
 
     /**
@@ -112,14 +97,30 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         return mParameters.mPath + String.format("io-benchmark-%d", idx);
     }
 
-    public List<IOTaskResult> read(ExecutorService pool) throws Exception {
+    public IOTaskResult runIOBench(ExecutorService pool) throws Exception {
+        IOTaskResult writeTaskResult = write(pool);
+        IOTaskResult readTaskResult = read(pool);
+        cleanUp();
+        return writeTaskResult.merge(readTaskResult);
+    }
+
+    public void cleanUp() throws IOException {
+        UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
+                .createMountSpecificConf(mHdfsConf);
+        UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
+
+        for (int i = 0; i < mParameters.mThreads; i++) {
+            ufs.deleteFile(getFilePathStr(i));
+        }
+    }
+
+    public IOTaskResult read(ExecutorService pool)
+            throws IOException, InterruptedException, ExecutionException {
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
-        // TODO(jiacheng): need hdfs conf?
-        Map<String, String> hdfsConf = new HashMap<>();
 
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-                .createMountSpecificConf(hdfsConf);
+                .createMountSpecificConf(mHdfsConf);
         UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
         if (!ufs.exists(mParameters.mPath)) {
             LOG.info("mkdirs {}", mParameters.mPath);
@@ -139,21 +140,20 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 int readMB = 0;
                 try {
                     InputStream inStream = ufs.open(filePath);
-                    byte[] buf = new byte[1024 * 1024];
-                    while (readMB < mParameters.mDataSize && inStream.read(buf) != 0) {
+                    byte[] buf = new byte[BUFFER_SIZE];
+                    while (readMB < mParameters.mDataSize && inStream.read(buf) > 0) {
                         LOG.info("readMB={}", readMB);
                         readMB += 1; // 1 MB
                     }
+
+                    long endTime = CommonUtils.getCurrentMs();
+                    IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.READ, endTime - startTime, readMB);
+                    result.addPoint(p);
+                    LOG.info("Read task finished {}", p);
                 } catch (IOException e) {
                     LOG.error("Failed to read {}", filePath, e);
-                    result.addReadError(e);
+                    result.addError(e.getMessage());
                 }
-
-                // If there are errors, the time spent in unsuccessful operations
-                // are not ignored.
-                long endTime = CommonUtils.getCurrentMs();
-                result.setReadDurationMs(endTime - startTime);
-                result.setReadDataSize(readMB);
 
                 return result;
             }, pool);
@@ -162,16 +162,17 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
         // Collect the result
         CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
-        List<IOTaskResult> result = CompletableFuture.allOf(cfs)
+        List<IOTaskResult> results = CompletableFuture.allOf(cfs)
                 .thenApply(f -> futures.stream()
                         .map(CompletableFuture::join)
                         .collect(Collectors.toList())
                 ).get();
 
-        return result;
+        return IOTaskResult.reduceList(results);
     }
 
-    public List<IOTaskResult> write(ExecutorService pool) throws Exception {
+    public IOTaskResult write(ExecutorService pool)
+            throws IOException, InterruptedException, ExecutionException {
         LOG.info("write()");
 
         // Use multiple threads to saturate the bandwidth of this worker
@@ -188,7 +189,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         }
 
         List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
-        final byte[] randomData = CommonUtils.randomBytes(1024 * 1024);
+        final byte[] randomData = CommonUtils.randomBytes(BUFFER_SIZE);
         for (int i = 0; i < numThreads; i++) {
             final int idx = i;
             CompletableFuture<IOTaskResult> future = CompletableFuture.supplyAsync(() -> {
@@ -206,18 +207,19 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                         outStream.write(randomData);
                         LOG.info("Progress {}MB", wroteMB);
                         wroteMB += 1; // 1 MB
+                        // TODO(jiacheng): when do i flush?
+                        outStream.flush();
                     }
-                    LOG.info("Progress {}MB", wroteMB);
-                    outStream.flush();
+
+                    long endTime = CommonUtils.getCurrentMs();
+                    IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.WRITE,
+                            endTime - startTime, wroteMB);
+                    result.addPoint(p);
+                    LOG.info("Write task finished {}", p);
                 } catch (IOException e) {
                     LOG.error("Failed to write to UFS: ",e);
-                    result.addWriteError(e);
+                    result.addError(e.getMessage());
                 }
-
-                // If there are errors, the metrics will mean nothing
-                long endTime = CommonUtils.getCurrentMs();
-                result.setWriteDurationMs(endTime - startTime);
-                result.setWriteDataSize(wroteMB);
 
                 LOG.info("Thread {} file={}, IOBench result={}", Thread.currentThread().getName(),
                         filePath, result);
@@ -230,12 +232,12 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
         // Collect the result
         CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
-        List<IOTaskResult> result = CompletableFuture.allOf(cfs)
+        List<IOTaskResult> results = CompletableFuture.allOf(cfs)
                 .thenApply(f -> futures.stream()
                         .map(CompletableFuture::join)
                         .collect(Collectors.toList())
                 ).get();
 
-        return result;
+        return IOTaskResult.reduceList(results);
     }
 }
