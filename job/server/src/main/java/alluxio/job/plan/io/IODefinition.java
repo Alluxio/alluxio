@@ -37,6 +37,11 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
         if (taskResults.isEmpty()) {
             throw new IOException("No results from any workers.");
         }
+        LOG.info("join()");
+        for(Map.Entry<WorkerInfo, String> entry : taskResults.entrySet()) {
+            LOG.info("worker={}", entry.getKey());
+            LOG.info("{}", entry.getValue());
+        }
 
         AtomicReference<IOException> error = new AtomicReference<>(null);
 
@@ -111,6 +116,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
         LOG.info("running command: " + String.join(" ", command));
         // TODO(jiacheng): execWithOutput?
         String output = ShellUtils.execCommand(command.toArray(new String[0]));
+        LOG.info("Command output: {}", output);
         return output;
     }
 }

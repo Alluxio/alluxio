@@ -106,7 +106,6 @@ public abstract class Benchmark<T extends TaskResult> {
 
       // run in process
       T result = runLocal();
-      System.out.format("Result=%s%n", result);
       if (mBaseParameters.mDistributed) {
         return result.toJson();
       }
