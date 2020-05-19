@@ -6,6 +6,7 @@ import alluxio.stress.JsonSerializable;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.job.IOConfig;
+import alluxio.stress.master.MaxThroughputSummary;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -256,23 +258,43 @@ public class IOTaskSummary implements Summary {
             // first() is the list of common field names, second() is the list of unique field names
             Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
                     summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+            System.out.format("FieldNames: %s%n", fieldNames);
 
             // Split up common description into 100 character chunks, for the sub title
             List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
                     summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
-
-            BarGraph maxGraph = new BarGraph("Read", subTitle, "Avg speed");
+            System.out.format("subtitle: %s%n", subTitle);
 
             for (IOTaskSummary summary : summaries) {
                 String series = summary.mParameters.getDescription(fieldNames.getSecond());
-                // read stat
-                BarGraph.Data data = new BarGraph.Data();
-                SpeedStat readStat = summary.getReadSpeedStat();
-                data.addData(readStat.mAvgSpeed);
-                maxGraph.addDataSeries(series, data);
-                // TODO(jiacheng): add other data
+                subTitle.add(series);
             }
-            graphs.add(maxGraph);
+
+            BarGraph speedGraph = new BarGraph("Read/Write speed",
+                    subTitle, "Avg speed in MB/s");
+            BarGraph stdDevGraph = new BarGraph("Read/Write speed standard deviation",
+                    subTitle, "Standard deviation in speed");
+            for (IOTaskSummary summary : summaries) {
+                String series = summary.mParameters.getDescription(fieldNames.getSecond());
+                // read stat
+                BarGraph.Data readSpeed = new BarGraph.Data();
+                BarGraph.Data readStdDev = new BarGraph.Data();
+                SpeedStat readStat = summary.getReadSpeedStat();
+                readSpeed.addData(readStat.mAvgSpeed);
+                readStdDev.addData(readStat.mStdDev);
+                speedGraph.addDataSeries(series, readSpeed);
+                stdDevGraph.addDataSeries(series, readStdDev);
+
+                // write stat
+                BarGraph.Data writeSpeed = new BarGraph.Data();
+                BarGraph.Data writeStdDev = new BarGraph.Data();
+                SpeedStat writeStat = summary.getWriteSpeedStat();
+                writeSpeed.addData(writeStat.mAvgSpeed);
+                writeStdDev.addData(writeStat.mStdDev);
+                speedGraph.addDataSeries(series, writeSpeed);
+                stdDevGraph.addDataSeries(series, writeStdDev);
+            }
+            graphs.add(speedGraph);
 
             return graphs;
         }
