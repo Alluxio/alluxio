@@ -12,7 +12,6 @@ public class IOConfigTest {
     public void json() throws Exception {
         IOConfig config = new IOConfig(IOConfig.class.getCanonicalName(),
                 ImmutableList.of(),
-        0,
         16,
         1024,
         1,

@@ -64,7 +64,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
         commandArgs.addAll(mBaseParameters.mJavaOpts);
         String className = this.getClass().getCanonicalName();
-        return new IOConfig(className, commandArgs, 0, mParameters);
+        return new IOConfig(className, commandArgs, mParameters);
     }
 
     @Override

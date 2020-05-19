@@ -73,7 +73,6 @@ public class IODefinitionTest {
         Set<WorkerInfo> workerSet = new HashSet<>(JOB_WORKERS);
         IOConfig jobConfig = new IOConfig(IOConfig.class.getCanonicalName(),
                 ImmutableList.of(),
-                0,
                 16,
                 1024,
                 1,
@@ -98,7 +97,6 @@ public class IODefinitionTest {
         Set<WorkerInfo> workerSet = new HashSet<>(JOB_WORKERS);
         IOConfig jobConfig = new IOConfig(IOConfig.class.getCanonicalName(),
                 ImmutableList.of(),
-                0,
                 16,
                 1024,
                 1,
