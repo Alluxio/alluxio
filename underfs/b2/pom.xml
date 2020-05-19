@@ -1,0 +1,82 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alluxio</groupId>
+        <artifactId>alluxio-underfs</artifactId>
+        <version>2.4.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>alluxio-underfs-b2</artifactId>
+    <name>Alluxio Under File System - Backblaze B2</name>
+    <description>Under File System implementation for Backblaze B2</description>
+
+    <properties>
+        <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+        <!-- run properly from sub-project directories -->
+        <build.path>${project.parent.parent.basedir}/build</build.path>
+    </properties>
+
+    <dependencies>
+        <!-- External dependencies -->
+        <dependency>
+            <groupId>com.backblaze.b2</groupId>
+            <artifactId>b2-sdk-core</artifactId>
+            <version>${b2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.backblaze.b2</groupId>
+            <artifactId>b2-sdk-httpclient</artifactId>
+            <version>${b2.version}</version>
+        </dependency>
+
+        <!-- Core Alluxio dependencies -->
+        <dependency>
+            <groupId>org.alluxio</groupId>
+            <artifactId>alluxio-core-common</artifactId>
+            <scope>provided</scope>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Core Alluxio test dependencies -->
+        <dependency>
+            <groupId>org.alluxio</groupId>
+            <artifactId>alluxio-core-common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- External test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.coderplus.maven.plugins</groupId>
+                <artifactId>copy-rename-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

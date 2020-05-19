@@ -23,17 +23,18 @@
   <description>Parent POM for different implementations of Alluxio under file system</description>
 
   <modules>
+    <module>b2</module>
     <module>cos</module>
     <module>gcs</module>
     <module>hdfs</module>
     <module>kodo</module>
     <module>local</module>
     <module>oss</module>
+    <module>ozone</module>
     <module>s3a</module>
     <module>swift</module>
     <module>wasb</module>
     <module>web</module>
-    <module>ozone</module>
   </modules>
 
   <properties>

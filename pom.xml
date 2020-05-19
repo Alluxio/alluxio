@@ -162,6 +162,7 @@
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
+    <b2.version>4.0.0</b2.version>
   </properties>
 
   <modules>
