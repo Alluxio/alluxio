@@ -100,22 +100,22 @@ public class IOTaskResult implements TaskResult {
     public static class Point implements JsonSerializable {
         // TODO(jiacheng): getter and setter
         public IOConfig.IOMode mMode;
-        public double mDurationMs;
+        public double mDuration;
         public int mDataSizeMB;
 
         @JsonCreator
         public Point(@JsonProperty("mode") IOConfig.IOMode mode,
-                     @JsonProperty("durationMs") double duration,
+                     @JsonProperty("duration") double duration,
                      @JsonProperty("dataSizeMB") int dataSize) {
             mMode = mode;
-            mDurationMs = duration;
+            mDuration = duration;
             mDataSizeMB = dataSize;
         }
 
         @Override
         public String toString() {
-            return String.format("{mode=%s, duration=%s, dataSize=%s}",
-                    mMode, mDurationMs, mDataSizeMB);
+            return String.format("{mode=%s, duration=%ss, dataSize=%sMB}",
+                    mMode, mDuration, mDataSizeMB);
         }
 
         @Override
@@ -125,12 +125,12 @@ public class IOTaskResult implements TaskResult {
             }
             Point b = (Point) other;
             return this.mMode == b.mMode && this.mDataSizeMB == b.mDataSizeMB
-                    && this.mDurationMs == b.mDurationMs;
+                    && this.mDuration == b.mDuration;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(mMode, mDataSizeMB, mDurationMs);
+            return Objects.hashCode(mMode, mDataSizeMB, mDuration);
         }
     }
 

@@ -6,10 +6,6 @@ import alluxio.stress.JsonSerializable;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.job.IOConfig;
-import alluxio.stress.master.MasterBenchParameters;
-import alluxio.stress.master.MasterBenchSummary;
-import alluxio.stress.master.MaxThroughputSummary;
-import alluxio.stress.master.Operation;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,19 +13,14 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.base.Splitter;
-import org.checkerframework.checker.units.qual.Speed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Parameter;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class IOTaskSummary implements Summary {
@@ -100,8 +91,8 @@ public class IOTaskSummary implements Summary {
 
         @Override
         public String toString() {
-            return String.format("{totalDuration=%s, totalSize=%s, maxSpeed=%s, minSpeed=%s, " +
-                    "avgSpeed=%s, stdDev=%s}", mTotalDuration, mTotalSize, mMaxSpeed,
+            return String.format("{totalDuration=%ss, totalSize=%sMB, maxSpeed=%sMB/s, minSpeed=%sMB/s, " +
+                    "avgSpeed=%sMB/s, stdDev=%s}", mTotalDuration, mTotalSize, mMaxSpeed,
                     mMinSpeed, mAvgSpeed, mStdDev);
         }
     }
@@ -161,7 +152,7 @@ public class IOTaskSummary implements Summary {
     /**
      * The points must be valid (duration not equal to 0).
      */
-    public static SpeedStat calculateStdDev(List<IOTaskResult.Point> points) {
+    public static SpeedStat calculateStat(List<IOTaskResult.Point> points) {
         SpeedStat result = new SpeedStat();
         if (points.size() == 0) {
             return result;
@@ -174,12 +165,12 @@ public class IOTaskSummary implements Summary {
         double minSpeed = Double.MAX_VALUE;
         int i = 0;
         for (IOTaskResult.Point p : points) {
-            totalDuration += p.mDurationMs;
+            totalDuration += p.mDuration;
             totalSize += p.mDataSizeMB;
-            double speed = 1000 * p.mDataSizeMB / (double) p.mDurationMs; // Convert from MB/ms to MB/s
+            double speed = p.mDataSizeMB / p.mDuration;
             maxSpeed = Math.max(maxSpeed, speed);
             minSpeed = Math.min(minSpeed, speed);
-            speeds[i++] = p.mDataSizeMB / (double) p.mDurationMs;
+            speeds[i++] = p.mDataSizeMB / p.mDuration;
         }
         double avgSpeed = totalSize / (double) totalDuration;
         double var=0;
@@ -187,7 +178,7 @@ public class IOTaskSummary implements Summary {
             var += (speeds[j] - avgSpeed) * (speeds[j] - avgSpeed);
         }
 
-        result.mTotalDuration = totalDuration / 1000.0; // Convert from ms to s
+        result.mTotalDuration = totalDuration;
         result.mTotalSize = totalSize;
         result.mMaxSpeed = maxSpeed;
         result.mMinSpeed = Double.compare(minSpeed, Double.MAX_VALUE) == 0 ? 0.0 : minSpeed; // Convert from MB/ms to MB/s
@@ -199,14 +190,14 @@ public class IOTaskSummary implements Summary {
 
     private void calculateStats() {
         List<IOTaskResult.Point> readPoints = mPoints.stream().filter((p) ->
-                p.mMode == IOConfig.IOMode.READ && p.mDurationMs > 0)
+                p.mMode == IOConfig.IOMode.READ && p.mDuration > 0)
                 .collect(Collectors.toList());
-        mReadSpeedStat = calculateStdDev(readPoints);
+        mReadSpeedStat = calculateStat(readPoints);
 
         List<IOTaskResult.Point> writePoints = mPoints.stream().filter((p) ->
-                p.mMode == IOConfig.IOMode.WRITE && p.mDurationMs > 0)
+                p.mMode == IOConfig.IOMode.WRITE && p.mDuration > 0)
                 .collect(Collectors.toList());
-        mWriteSpeedStat = calculateStdDev(writePoints);
+        mWriteSpeedStat = calculateStat(writePoints);
     }
 
     public List<IOTaskResult.Point> getPoints() {
@@ -227,7 +218,6 @@ public class IOTaskSummary implements Summary {
 
     @Override
     public GraphGenerator graphGenerator() {
-        // TODO(jiacheng): what is a graph???
         return new GraphGenerator();
     }
 
