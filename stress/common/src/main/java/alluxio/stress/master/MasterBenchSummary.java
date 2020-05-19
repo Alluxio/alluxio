@@ -226,21 +226,29 @@ public final class MasterBenchSummary implements Summary {
 
   private LineGraph.Data getResponseTimeData() {
     LineGraph.Data data = new LineGraph.Data();
-    data.addData("50", mResponseTimePercentileMs[50]);
-    data.addData("75", mResponseTimePercentileMs[75]);
-    data.addData("90", mResponseTimePercentileMs[90]);
-    data.addData("95", mResponseTimePercentileMs[95]);
+    data.addData(50, mResponseTimePercentileMs[50]);
+    data.addData(75, mResponseTimePercentileMs[75]);
+    data.addData(90, mResponseTimePercentileMs[90]);
+    data.addData(95, mResponseTimePercentileMs[95]);
 
-    String percentile = "99";
+    int counter = 0;
     for (float ms : mResponseTime99PercentileMs) {
+      float percentile = (float) (100.0 - 1.0 / (Math.pow(10.0, counter)));
       data.addData(percentile, ms);
-      if (percentile.equals("99")) {
-        percentile += ".";
-      }
-      percentile += "9";
+      counter++;
     }
 
     return data;
+  }
+
+  private List<String> collectErrors() {
+    List<String> errors = new ArrayList<>();
+    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
+      // add all the errors for this node, with the node appended to prefix
+      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
+          .collect(Collectors.toList()));
+    }
+    return errors;
   }
 
   @Override
@@ -287,6 +295,7 @@ public final class MasterBenchSummary implements Summary {
           for (MasterBenchSummary summary : opSummaries) {
             String series = summary.mParameters.getDescription(fieldNames.getSecond());
             responseTimeGraph.addDataSeries(series, summary.getResponseTimeData());
+            responseTimeGraph.setErrors(series, summary.collectErrors());
           }
 
           graphs.add(responseTimeGraph);
