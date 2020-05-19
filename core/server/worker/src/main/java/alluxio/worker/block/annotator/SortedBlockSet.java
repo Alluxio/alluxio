@@ -13,7 +13,10 @@ package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -27,6 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @param <T> Field type used for sorting block Ids
  */
 public class SortedBlockSet<T extends BlockSortedField> {
+  private static final Logger LOG = LoggerFactory.getLogger(SortedBlockSet.class);
+
   /** Used for ordering among block Ids with equal sort values. */
   private final AtomicLong mChangeIndex = new AtomicLong(0);
 
@@ -63,12 +68,21 @@ public class SortedBlockSet<T extends BlockSortedField> {
   public void put(long blockId, T sortedField) {
     mLastSortId.compute(blockId, (k, v) -> {
       if (v != null) {
-        mSortedSet.remove(new SortedBlockSetEntry<>(blockId, v.getFirst(), v.getSecond()));
+        SortedBlockSetEntry<T> oldEntry =
+            new SortedBlockSetEntry<>(blockId, v.getFirst(), v.getSecond());
+        boolean wasPresent = mSortedSet.remove(oldEntry);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("#put(): Removed the old entry: {}. WasPresent: {}", oldEntry, wasPresent);
+        }
       }
 
       Pair<Long, T> newSortId = new Pair<>(mChangeIndex.incrementAndGet(), sortedField);
-      mSortedSet
-          .add(new SortedBlockSetEntry<>(blockId, newSortId.getFirst(), newSortId.getSecond()));
+      SortedBlockSetEntry<T> newEntry =
+          new SortedBlockSetEntry<>(blockId, newSortId.getFirst(), newSortId.getSecond());
+      boolean wasNew = mSortedSet.add(newEntry);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("#put(): Added a new entry: {}. WasNew: {}", newEntry, wasNew);
+      }
       return newSortId;
     });
   }
@@ -81,7 +95,14 @@ public class SortedBlockSet<T extends BlockSortedField> {
   public void remove(long blockId) {
     mLastSortId.compute(blockId, (k, v) -> {
       if (v != null) {
-        mSortedSet.remove(new SortedBlockSetEntry<>(blockId, v.getFirst(), v.getSecond()));
+        SortedBlockSetEntry<?> oldEntry =
+            new SortedBlockSetEntry<>(blockId, v.getFirst(), v.getSecond());
+        boolean wasPresent = mSortedSet.remove(oldEntry);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("#remove(): Removed the old entry: {}. WasPresent: {}", oldEntry, wasPresent);
+        }
+      } else {
+        LOG.warn("#remove(): No old entry found for blockId:{}", blockId);
       }
       return null;
     });
@@ -159,6 +180,15 @@ public class SortedBlockSet<T extends BlockSortedField> {
     @Override
     public int hashCode() {
       return Objects.hash(mBlockId, mSortedField, mChangeIndex);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("BlockId", mBlockId)
+          .add("SortedField", mSortedField)
+          .add("ChangeIndex", mChangeIndex)
+          .toString();
     }
   }
 }

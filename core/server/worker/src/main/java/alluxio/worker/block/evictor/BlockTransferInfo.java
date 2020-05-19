@@ -101,10 +101,18 @@ public class BlockTransferInfo {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("srcBlockId", mSrcBlockId)
-        .add("dstBlockId", mDstBlockId)
-        .add("srcLocation", mSrcLocation)
-        .add("dstLocation", mDstLocation).toString();
+    MoreObjects.ToStringHelper strHelper = MoreObjects.toStringHelper(this);
+    if (isSwap()) {
+      strHelper.add("TransferType", "SWAP");
+      strHelper.add("SrcBlockId", mSrcBlockId);
+      strHelper.add("DstBlockId", mDstBlockId);
+    } else {
+      strHelper.add("TransferType", "MOVE");
+      strHelper.add("BlockId", mSrcBlockId);
+    }
+
+    strHelper.add("SrcLocation", mSrcLocation);
+    strHelper.add("DstLocation", mDstLocation);
+    return strHelper.toString();
   }
 }

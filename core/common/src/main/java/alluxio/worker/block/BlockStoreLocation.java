@@ -13,6 +13,8 @@ package alluxio.worker.block;
 
 import alluxio.grpc.BlockStoreLocationProto;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -150,25 +152,11 @@ public final class BlockStoreLocation {
    */
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder();
-    if (mDirIndex == ANY_DIR) {
-      result.append("any dir");
-    } else {
-      result.append("dir ").append(mDirIndex);
-    }
-
-    if (mTierAlias.equals(ANY_TIER)) {
-      result.append(", any tier");
-    } else {
-      result.append(", tierAlias ").append(mTierAlias);
-    }
-
-    if (mMediumType.equals(ANY_MEDIUM)) {
-      result.append(", any medium type");
-    } else {
-      result.append(", mediumType ").append(mMediumType);
-    }
-    return result.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("TierAlias", (!mTierAlias.equals(ANY_TIER)) ? mTierAlias : "<Any>")
+        .add("DirIndex", (mDirIndex != ANY_DIR) ? mDirIndex : "<Any>")
+        .add("MediumType", (!mMediumType.equals(ANY_MEDIUM)) ? mMediumType : "<Any>")
+        .toString();
   }
 
   /**
