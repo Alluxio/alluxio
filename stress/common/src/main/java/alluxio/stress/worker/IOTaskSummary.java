@@ -196,7 +196,7 @@ public class IOTaskSummary implements Summary {
   /**
    * The deserializer for {@link SpeedStat}.
    * */
-  public class StatDeserializer extends StdDeserializer<SpeedStat> {
+  public static class StatDeserializer extends StdDeserializer<SpeedStat> {
     /**
      * An empty constructor.
      * */
