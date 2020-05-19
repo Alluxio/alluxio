@@ -13,15 +13,27 @@ package alluxio.stress.client;
 
 /**
  * The operations for the client io stress tests.
+ *
+ * There are 2 main types of reads: streaming and positioned.
+ * The streaming reads do not take file offsets as part of the api, so a random, streaming read
+ * is implemented with a seek() call before the read call. For positioned reads, the file offset
+ * is an explicit parameter in the api, so no seek() calls are necessary to read from any file
+ * offset.
  */
 public enum ClientIOOperation {
-  Write,  // write the files for the read operations
+  /** The write operation, for writing data for the read operations. */
+  Write,
 
-  ReadArray,       // random reads must call seek()
-  ReadByteBuffer,  // random reads must call seek()
-  ReadFully,       // random reads must call seek()
-  PosRead,         // random reads uses random offsets to api
-  PosReadFully,    // random reads uses random offsets to api
+  /** Streaming read api, using arrays. */
+  ReadArray,
+  /** Streaming read api, using byte buffers. */
+  ReadByteBuffer,
+  /** Streaming read fully api. */
+  ReadFully,
+  /** Positioned read api. */
+  PosRead,
+  /** Positioned read fully api. */
+  PosReadFully,
   ;
 
   /**

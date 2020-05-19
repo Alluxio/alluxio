@@ -26,8 +26,8 @@ import java.util.Map;
  * getters and setters.
  */
 public final class ClientIOParameters extends Parameters {
-  private static final String FIELD_READ_RANDOM = "mReadRandom";
-  private static final String FIELD_READ_SAME_FILE = "mReadSameFile";
+  /** This must match the member name. */
+  public static final String FIELD_READ_RANDOM = "mReadRandom";
 
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [ReadArray, ReadByteBuffer, ReadFully,"
@@ -45,6 +45,7 @@ public final class ClientIOParameters extends Parameters {
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
+  @Parameters.PathDescription
   public String mBasePath = "alluxio://localhost:19998/stress-client-io-base";
 
   @Parameter(names = {"--file-size"},
@@ -70,11 +71,13 @@ public final class ClientIOParameters extends Parameters {
 
   @Parameter(names = {"--read-same-file"},
       description = "If true, read the same file.")
+  @Parameters.BooleanDescription(trueDescription = "SameFile", falseDescription = "OwnFile")
   public boolean mReadSameFile = false;
 
   @Parameter(names = {"--read-random"},
       description = "If true, read the file from random offsets. For stream operations, seek() is"
           + " called to read random offsets.")
+  @Parameters.BooleanDescription(trueDescription = "Random", falseDescription = "Sequential")
   public boolean mReadRandom = false;
 
   @Parameter(names = {"--write-num-workers"},
@@ -84,21 +87,4 @@ public final class ClientIOParameters extends Parameters {
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
-
-  @Override
-  public String prettyPrintDescriptionField(String fieldName, Object value) {
-    if (FIELD_READ_RANDOM.equals(fieldName)) {
-      if ((Boolean) value) {
-        return "Random";
-      }
-      return "Sequential";
-    }
-    if (FIELD_READ_SAME_FILE.equals(fieldName)) {
-      if ((Boolean) value) {
-        return "SameFile";
-      }
-      return "OwnFile";
-    }
-    return super.prettyPrintDescriptionField(fieldName, value);
-  }
 }

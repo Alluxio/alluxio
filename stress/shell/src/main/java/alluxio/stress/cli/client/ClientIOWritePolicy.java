@@ -31,7 +31,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A write type for restricting the writes to a set number of workers.
+ * A write type for restricting the writes to a set number of workers. This should only be used for
+ * testing and benchmarking.
  */
 @NotThreadSafe
 public final class ClientIOWritePolicy implements BlockLocationPolicy {

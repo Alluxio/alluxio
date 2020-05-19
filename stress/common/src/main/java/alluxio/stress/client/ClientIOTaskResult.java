@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -164,7 +165,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     @Override
     public List<Graph> generate(List<? extends Summary> results) {
       List<Graph> graphs = new ArrayList<>();
-      // only examine ClientIOSummary
+      // expecting ClientIOTaskResult, or will throw ClassCastException
       List<ClientIOTaskResult> summaries =
           results.stream().map(x -> (ClientIOTaskResult) x).collect(Collectors.toList());
 
@@ -191,8 +192,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
                   .format(summary.computeLastEndMs()));
             }
 
-            LineGraph responseTimeGraph = new LineGraph(
-                operation + (readRandom ? " - Random" : " - Sequential") + " - Throughput",
+            LineGraph responseTimeGraph = new LineGraph(String
+                .format("%s - %s - Throughput", operation,
+                    opSummaries.get(0).mParameters.getDescription(
+                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
                 subTitle, "# Threads", "Throughput (MB/s)");
 
             for (ClientIOTaskResult summary : opSummaries) {
@@ -237,13 +240,6 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       mEndMs = Math.max(mEndMs, result.mEndMs);
       mIOBytes += result.mIOBytes;
       mErrors.addAll(result.mErrors);
-      update();
-    }
-
-    /**
-     * Update various measurements given the existing measurements.
-     */
-    public void update() {
     }
 
     /**

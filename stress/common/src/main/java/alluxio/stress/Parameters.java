@@ -17,7 +17,14 @@ import alluxio.collections.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.MapType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +36,8 @@ import java.util.stream.Collectors;
  * Abstract class for parameters of stress tests.
  */
 public abstract class Parameters {
-  private static final String FIELD_BASE_PATH = "mBasePath";
+  private static final Logger LOG = LoggerFactory.getLogger(Parameters.class);
+
   /**
    * The shared mapper, which is thread-safe as long as all configuration is complete before any
    * reading and writing.
@@ -37,7 +45,7 @@ public abstract class Parameters {
   private static final ObjectMapper MAPPER =
       new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-  protected Map<String, Object> toMap() {
+  private Map<String, Object> toMap() {
     try {
       String json = MAPPER.writeValueAsString(this);
       final MapType type =
@@ -55,27 +63,61 @@ public abstract class Parameters {
    * @return the string representation
    */
   public String getDescription(List<String> fields) {
+    Set<String> includedFields = new HashSet<>();
+    if (fields != null) {
+      includedFields.addAll(fields);
+    }
     final Map<String, Object> map = toMap();
-    return fields.stream()
-        .map(fieldName -> prettyPrintDescriptionField(fieldName, map.get(fieldName)))
-        .collect(Collectors.joining(", "));
-  }
+    List<String> descriptions = new ArrayList<>();
 
-  /**
-   * @param fieldName the field name
-   * @param value the value of the field
-   * @return the string representation of this field/value
-   */
-  protected String prettyPrintDescriptionField(String fieldName, Object value) {
-    if (FIELD_BASE_PATH.equals(fieldName)) {
-      AlluxioURI uri = new AlluxioURI(value.toString());
-      return String.format("%s-%s", uri.getScheme(), uri.getAuthority());
+    for (Field field : this.getClass().getFields()) {
+      String fieldName = field.getName();
+      Object fieldValue = map.get(fieldName);
+
+      if (fields == null || includedFields.contains(fieldName)) {
+        // This field description should be added
+        if (fieldValue == null) {
+          throw new IllegalStateException(String
+              .format("Field value is null. fieldName: %s class: %s", fieldName,
+                  getClass().getName()));
+        }
+        String description = null;
+
+        BooleanDescription boolAnnotation = field.getAnnotation(BooleanDescription.class);
+        if (boolAnnotation != null) {
+          if (!(fieldValue instanceof Boolean)) {
+            throw new IllegalStateException(String
+                .format("%s must annotate a boolean, but %s is %s", boolAnnotation, field.getName(),
+                    field.getType().getName()));
+          }
+          if ((Boolean) fieldValue) {
+            description = boolAnnotation.trueDescription();
+          } else {
+            description = boolAnnotation.falseDescription();
+          }
+        }
+
+        PathDescription pathAnnotation = field.getAnnotation(PathDescription.class);
+        if (pathAnnotation != null) {
+          AlluxioURI uri = new AlluxioURI(fieldValue.toString());
+          description = uri.getScheme();
+          if (pathAnnotation.includeAuthority()) {
+            description += "-" + uri.getAuthority();
+          }
+        }
+
+        if (description == null) {
+          // default description line
+          if (fieldName.startsWith("m")) {
+            fieldName = fieldName.substring(1);
+          }
+          description = String.format("%s: %s", fieldName, fieldValue.toString());
+        }
+        descriptions.add(description);
+      }
     }
-    // default description line
-    if (fieldName.startsWith("m")) {
-      fieldName = fieldName.substring(1);
-    }
-    return String.format("%s: %s", fieldName, value);
+
+    return String.join(", ", descriptions);
   }
 
   /**
@@ -110,5 +152,34 @@ public abstract class Parameters {
     // TODO(gpang): special handling for map values
 
     return new Pair<>(new ArrayList<>(commonFields), new ArrayList<>(uniqueFields));
+  }
+
+  /**
+   * This annotation defines readable descriptions boolean parameters.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.FIELD})
+  public @interface BooleanDescription {
+    /**
+     * @return the description when the boolean value is true
+     */
+    String trueDescription();
+
+    /**
+     * @return the description when the boolean value is false
+     */
+    String falseDescription();
+  }
+
+  /**
+   * This annotation defines readable descriptions for paths.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.FIELD})
+  public @interface PathDescription {
+    /**
+     * @return true if the authority should be included in the path description
+     */
+    boolean includeAuthority() default true;
   }
 }
