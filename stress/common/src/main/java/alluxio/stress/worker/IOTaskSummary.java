@@ -169,7 +169,8 @@ public class IOTaskSummary implements Summary {
   }
 
   /**
-   * The serializer for {@link SpeedStat}.
+   * A customized serializer for {@link SpeedStat}.
+   * All the fields are attached with the unit.
    * */
   public static class StatSerializer extends StdSerializer<SpeedStat> {
     /**
@@ -194,7 +195,7 @@ public class IOTaskSummary implements Summary {
   }
 
   /**
-   * The deserializer for {@link SpeedStat}.
+   * A customized deserializer for {@link SpeedStat}.
    * */
   public static class StatDeserializer extends StdDeserializer<SpeedStat> {
     /**
@@ -338,8 +339,8 @@ public class IOTaskSummary implements Summary {
         SpeedStat readStat = summary.getReadSpeedStat();
         readSpeed.addData(readStat.mAvgSpeed);
         readStdDev.addData(readStat.mStdDev);
-        speedGraph.addDataSeries(series, readSpeed);
-        stdDevGraph.addDataSeries(series, readStdDev);
+        speedGraph.addDataSeries("Read " + series, readSpeed);
+        stdDevGraph.addDataSeries("Read " + series, readStdDev);
 
         // write stat
         BarGraph.Data writeSpeed = new BarGraph.Data();
@@ -347,10 +348,11 @@ public class IOTaskSummary implements Summary {
         SpeedStat writeStat = summary.getWriteSpeedStat();
         writeSpeed.addData(writeStat.mAvgSpeed);
         writeStdDev.addData(writeStat.mStdDev);
-        speedGraph.addDataSeries(series, writeSpeed);
-        stdDevGraph.addDataSeries(series, writeStdDev);
+        speedGraph.addDataSeries("Write " + series, writeSpeed);
+        stdDevGraph.addDataSeries("Write " + series, writeStdDev);
       }
       graphs.add(speedGraph);
+      graphs.add(stdDevGraph);
 
       return graphs;
     }
