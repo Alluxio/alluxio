@@ -1,5 +1,6 @@
 package alluxio.stress.worker;
 
+import alluxio.stress.BaseParameters;
 import alluxio.stress.job.IOConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -18,6 +19,19 @@ public class IOSummaryTest {
         result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.READ, 100L, 20));
         result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.WRITE, 100L, 5));
         IOTaskSummary summary = new IOTaskSummary(result);
+
+        // params
+        BaseParameters baseParams = new BaseParameters();
+        baseParams.mCluster = true;
+        baseParams.mDistributed = true;
+        baseParams.mId = "mock-id";
+        baseParams.mStartMs = 0L;
+        baseParams.mInProcess = false;
+        summary.setBaseParameters(baseParams);
+
+        WorkerBenchParameters workerParams = new WorkerBenchParameters();
+        workerParams.mPath = "hdfs://path";
+        summary.setParameters(workerParams);
 
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(summary);

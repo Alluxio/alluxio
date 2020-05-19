@@ -132,6 +132,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
             final int idx = i;
             CompletableFuture<IOTaskResult> future = CompletableFuture.supplyAsync(() -> {
                 IOTaskResult result = new IOTaskResult();
+                result.setBaseParameters(mBaseParameters);
+                result.setParameters(mParameters);
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);
@@ -195,6 +197,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
             final int idx = i;
             CompletableFuture<IOTaskResult> future = CompletableFuture.supplyAsync(() -> {
                 IOTaskResult result = new IOTaskResult();
+                result.setParameters(mParameters);
+                result.setBaseParameters(mBaseParameters);
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);

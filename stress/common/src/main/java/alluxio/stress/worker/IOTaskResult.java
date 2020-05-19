@@ -1,8 +1,10 @@
 package alluxio.stress.worker;
 
+import alluxio.stress.BaseParameters;
 import alluxio.stress.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.IOConfig;
+import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MasterBenchTaskResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -17,6 +19,83 @@ import java.util.List;
 
 @NotThreadSafe
 public class IOTaskResult implements TaskResult {
+    private List<Point> mPoints;
+    private List<String> mErrors;
+    private BaseParameters mBaseParameters;
+    private WorkerBenchParameters mParameters;
+
+    public IOTaskResult() {
+        mPoints = new ArrayList<>();
+        mErrors = new ArrayList<>();
+    }
+
+    @JsonCreator
+    public IOTaskResult(@JsonProperty("points") List<Point> points,
+                        @JsonProperty("errors") List<String> errors) {
+        mPoints = points;
+        mErrors = errors;
+    }
+
+    public void addPoint(Point p) {
+        mPoints.add(p);
+    }
+
+    public List<Point> getPoints() {
+        return mPoints;
+    }
+
+    public void addError(String errorMsg) {
+        mErrors.add(errorMsg);
+    }
+
+    public List<String> getErrors() {
+        return mErrors;
+    }
+
+    public void setErrors(List<String> errors) {
+        mErrors = errors;
+    }
+
+    public void setPoints(List<Point> points) {
+        mPoints = points;
+    }
+
+    public BaseParameters getBaseParameters() {
+        return mBaseParameters;
+    }
+
+    public void setBaseParameters(BaseParameters baseParameters) {
+        this.mBaseParameters = baseParameters;
+    }
+
+    public WorkerBenchParameters getParameters() {
+        return mParameters;
+    }
+
+    public void setParameters(WorkerBenchParameters parameters) {
+        this.mParameters = parameters;
+    }
+
+    public IOTaskResult merge(IOTaskResult anotherResult) {
+        mPoints.addAll(anotherResult.getPoints());
+        mErrors.addAll(anotherResult.getErrors());
+        mBaseParameters = anotherResult.getBaseParameters();
+        mParameters = anotherResult.getParameters();
+        return this;
+    }
+    public static IOTaskResult reduceList(Iterable<IOTaskResult> results) {
+        IOTaskResult aggreResult = new IOTaskResult();
+        for (IOTaskResult r : results) {
+            aggreResult.merge(r);
+        }
+        return aggreResult;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Points=%s, Errors=%s",
+                mPoints, mErrors);
+    }
 
     public static class Point implements JsonSerializable {
         // TODO(jiacheng): getter and setter
@@ -55,60 +134,6 @@ public class IOTaskResult implements TaskResult {
         }
     }
 
-    private List<Point> mPoints;
-    private List<String> mErrors;
-
-    public void addPoint(Point p) {
-        mPoints.add(p);
-    }
-
-    public List<Point> getPoints() {
-        return mPoints;
-    }
-
-    public void addError(String errorMsg) {
-        mErrors.add(errorMsg);
-    }
-
-    public List<String> getErrors() {
-        return mErrors;
-    }
-
-    public void setErrors(List<String> errors) {
-        mErrors = errors;
-    }
-
-    public void setPoints(List<Point> points) {
-        mPoints = points;
-    }
-
-    public IOTaskResult() {
-        mPoints = new ArrayList<>();
-        mErrors = new ArrayList<>();
-    }
-
-    @JsonCreator
-    public IOTaskResult(@JsonProperty("points") List<Point> points,
-                    @JsonProperty("errors") List<String> errors) {
-        mPoints = points;
-        mErrors = errors;
-    }
-
-    // TODO(jiacheng)
-    public IOTaskResult merge(IOTaskResult anotherResult) {
-        mPoints.addAll(anotherResult.getPoints());
-        mErrors.addAll(anotherResult.getErrors());
-        return this;
-    }
-
-    public static IOTaskResult reduceList(Iterable<IOTaskResult> results) {
-        IOTaskResult aggreResult = new IOTaskResult();
-        for (IOTaskResult r : results) {
-            aggreResult.merge(r);
-        }
-        return aggreResult;
-    }
-
     @Override
     public TaskResult.Aggregator aggregator() {
         return new IOTaskResult.Aggregator();
@@ -119,11 +144,5 @@ public class IOTaskResult implements TaskResult {
         public IOTaskSummary aggregate(Iterable<IOTaskResult> results) throws Exception {
             return new IOTaskSummary(reduceList(results));
         }
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Points=%s, Errors=%s",
-                mPoints, mErrors);
     }
 }

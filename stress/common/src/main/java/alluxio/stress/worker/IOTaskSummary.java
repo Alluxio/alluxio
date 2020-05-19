@@ -1,10 +1,15 @@
 package alluxio.stress.worker;
 
-import alluxio.stress.GraphGenerator;
+import alluxio.collections.Pair;
+import alluxio.stress.*;
 import alluxio.stress.JsonSerializable;
-import alluxio.stress.Summary;
+import alluxio.stress.graph.BarGraph;
+import alluxio.stress.graph.Graph;
 import alluxio.stress.job.IOConfig;
 import alluxio.stress.master.MasterBenchParameters;
+import alluxio.stress.master.MasterBenchSummary;
+import alluxio.stress.master.MaxThroughputSummary;
+import alluxio.stress.master.Operation;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,22 +19,46 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.common.base.Splitter;
+import org.checkerframework.checker.units.qual.Speed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Parameter;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class IOTaskSummary implements Summary {
+    private static final Logger LOG = LoggerFactory.getLogger(IOTaskSummary.class);
     private List<IOTaskResult.Point> mPoints;
     private List<String> mErrors;
-
-    // TODO(jiacheng)
+    private BaseParameters mBaseParameters;
     private WorkerBenchParameters mParameters;
+
+    // TODO(jiacheng):
     private List<String> mNodes;
 
     private SpeedStat mReadSpeedStat;
+
+    public BaseParameters getBaseParameters() {
+        return mBaseParameters;
+    }
+
+    public void setBaseParameters(BaseParameters baseParameters) {
+        this.mBaseParameters = baseParameters;
+    }
+
+    public WorkerBenchParameters getParameters() {
+        return mParameters;
+    }
+
+    public void setParameters(WorkerBenchParameters parameters) {
+        this.mParameters = parameters;
+    }
 
     public SpeedStat getReadSpeedStat() {
         return mReadSpeedStat;
@@ -44,6 +73,8 @@ public class IOTaskSummary implements Summary {
     public IOTaskSummary(IOTaskResult result) {
         mPoints = new ArrayList<>(result.getPoints());
         mErrors = new ArrayList<>(result.getErrors());
+        mBaseParameters = result.getBaseParameters();
+        mParameters = result.getParameters();
 
         calculateStats();
     }
@@ -197,12 +228,51 @@ public class IOTaskSummary implements Summary {
     @Override
     public GraphGenerator graphGenerator() {
         // TODO(jiacheng): what is a graph???
-        return null;
+        return new GraphGenerator();
     }
 
     @Override
     public String toString() {
         return String.format("IOTaskSummary: {Points={}, Errors={}}",
                 mPoints, mErrors);
+    }
+
+    public static final class GraphGenerator extends alluxio.stress.GraphGenerator {
+        @Override
+        public List<Graph> generate(List<? extends Summary> results) {
+            List<Graph> graphs = new ArrayList<>();
+            // only examine MaxThroughputSummary
+            List<IOTaskSummary> summaries =
+                    results.stream().map(x -> (IOTaskSummary) x).collect(Collectors.toList());
+
+            if (summaries.isEmpty()) {
+                LOG.info("No summaries");
+                return graphs;
+            }
+
+            // TODO(jiacheng): how to include params in this?
+            // first() is the list of common field names, second() is the list of unique field names
+            Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+                    summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+
+            // Split up common description into 100 character chunks, for the sub title
+            List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+                    summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+
+            BarGraph maxGraph = new BarGraph("Read", subTitle, "Avg speed");
+
+            for (IOTaskSummary summary : summaries) {
+                String series = summary.mParameters.getDescription(fieldNames.getSecond());
+                // read stat
+                BarGraph.Data data = new BarGraph.Data();
+                SpeedStat readStat = summary.getReadSpeedStat();
+                data.addData(readStat.mAvgSpeed);
+                maxGraph.addDataSeries(series, data);
+                // TODO(jiacheng): add other data
+            }
+            graphs.add(maxGraph);
+
+            return graphs;
+        }
     }
 }
