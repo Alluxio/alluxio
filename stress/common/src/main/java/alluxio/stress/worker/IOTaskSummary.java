@@ -6,6 +6,8 @@ import alluxio.stress.JsonSerializable;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.job.IOConfig;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,8 +34,8 @@ public class IOTaskSummary implements Summary {
 
     // TODO(jiacheng):
     private List<String> mNodes;
-
     private SpeedStat mReadSpeedStat;
+    private SpeedStat mWriteSpeedStat;
 
     public BaseParameters getBaseParameters() {
         return mBaseParameters;
@@ -55,11 +57,17 @@ public class IOTaskSummary implements Summary {
         return mReadSpeedStat;
     }
 
+    public void setReadSpeedStat(SpeedStat stat) {
+        mReadSpeedStat = stat;
+    }
+
+    public void setWriteSpeedStat(SpeedStat stat) {
+        mWriteSpeedStat = stat;
+    }
+
     public SpeedStat getWriteSpeedStat() {
         return mWriteSpeedStat;
     }
-
-    private SpeedStat mWriteSpeedStat;
 
     public IOTaskSummary(IOTaskResult result) {
         mPoints = new ArrayList<>(result.getPoints());
@@ -68,6 +76,10 @@ public class IOTaskSummary implements Summary {
         mParameters = result.getParameters();
 
         calculateStats();
+    }
+
+    @JsonCreator
+    public IOTaskSummary() {
     }
 
     @JsonSerialize(using = StatSerializer.class)
@@ -158,7 +170,7 @@ public class IOTaskSummary implements Summary {
             return result;
         }
 
-        long totalDuration = 0L;
+        double totalDuration = 0.0;
         int totalSize = 0;
         double[] speeds = new double[points.size()];
         double maxSpeed = 0.0;

@@ -37,6 +37,9 @@ public class IOSummaryTest {
         String json = mapper.writeValueAsString(summary);
         System.out.println("Object mapper converted: " +json);
         System.out.println(summary.toJson());
+
+        IOTaskSummary other = mapper.readValue(json, IOTaskSummary.class);
+        System.out.println(other.toJson());
     }
 
     @Test
