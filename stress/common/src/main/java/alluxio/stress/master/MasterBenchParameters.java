@@ -45,6 +45,7 @@ public final class MasterBenchParameters extends Parameters {
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
+  @Parameters.PathDescription
   public String mBasePath = "alluxio://localhost:19998/stress-master-base";
 
   @Parameter(names = {"--create-file-size"},
@@ -55,6 +56,11 @@ public final class MasterBenchParameters extends Parameters {
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
 
+  @Parameter(names = {"--warmup"},
+      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
+          + "10000ms, etc.)")
+  public String mWarmup = "30s";
+
   @Parameter(names = {"--stop-count"},
       description = "The benchmark will stop after this number of paths. If -1, it is not used and "
           + "the benchmark will stop after the duration. If this is used, duration will be "
@@ -62,11 +68,6 @@ public final class MasterBenchParameters extends Parameters {
           + "benchmark, since the results may not be reliable with a non-duration-based "
           + "termination condition.")
   public int mStopCount = STOP_COUNT_INVALID;
-
-  @Parameter(names = {"--warmup"},
-      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
-          + "10000ms, etc.)")
-  public String mWarmup = "30s";
 
   @Parameter(names = {"--fixed-count"},
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
