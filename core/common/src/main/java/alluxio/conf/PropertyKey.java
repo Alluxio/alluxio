@@ -2424,11 +2424,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
-          .setDescription(
-              "Controls how many disk pairs are spinned during tier management tasks.")
+  public static final PropertyKey WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+      new Builder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use {CPU core count}/2 threads block transfer")
+          .setDescription("Puts a limit to how many block transfers are "
+              + "executed concurrently during management.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5026,8 +5027,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
-    public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-        "alluxio.worker.management.tier.task.disk.parallelism";
+    public static final String WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+        "alluxio.worker.management.block.transfer.concurrency.limit";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
         "alluxio.worker.management.tier.align.enabled";
     public static final String WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =

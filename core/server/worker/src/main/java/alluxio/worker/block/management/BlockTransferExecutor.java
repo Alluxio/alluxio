@@ -44,7 +44,7 @@ public class BlockTransferExecutor {
   private final ExecutorService mExecutor;
   private final BlockStore mBlockStore;
   private final StoreLoadTracker mLoadTracker;
-  private final int mParallelism;
+  private final int mConcurrencyLimit;
 
   /**
    * Creates a new instance for executing block transfers.
@@ -52,14 +52,14 @@ public class BlockTransferExecutor {
    * @param executor the executor to use
    * @param blockStore the block store
    * @param loadTracker the load tracker
-   * @param parallelism the max concurrent transfers
+   * @param concurrencyLimit the max concurrent transfers
    */
   public BlockTransferExecutor(ExecutorService executor, BlockStore blockStore,
-      StoreLoadTracker loadTracker, int parallelism) {
+      StoreLoadTracker loadTracker, int concurrencyLimit) {
     mExecutor = executor;
     mBlockStore = blockStore;
     mLoadTracker = loadTracker;
-    mParallelism = parallelism;
+    mConcurrencyLimit = concurrencyLimit;
   }
 
   /**
@@ -79,15 +79,15 @@ public class BlockTransferExecutor {
    */
   public void executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
-    LOG.debug("Executing transfer list of size: {}. Parallelism: {}",
-        transferInfos.size(), mParallelism);
+    LOG.debug("Executing transfer list of size: {}. Concurrency limit: {}",
+        transferInfos.size(), mConcurrencyLimit);
     // Return immediately for an empty transfer list.
     if (transferInfos.isEmpty()) {
       return;
     }
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
-        partitionTransfers(transferInfos, mParallelism);
+        partitionTransfers(transferInfos, mConcurrencyLimit);
     // Execute to-be-transferred blocks from the plan.
     Collection<Callable<Void>> executionTasks = new LinkedList<>();
     for (List<BlockTransferInfo> executionPartition : executionPartitions) {
@@ -250,6 +250,7 @@ public class BlockTransferExecutor {
    */
   private void executeTransferPartition(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
+    LOG.debug("Executing transfer partition of size {}", transferInfos.size());
     for (BlockTransferInfo transferInfo : transferInfos) {
       try {
         if (mLoadTracker.loadDetected(transferInfo.getSrcLocation(),
