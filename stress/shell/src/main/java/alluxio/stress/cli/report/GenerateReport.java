@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +46,8 @@ public class GenerateReport {
         description = "The input json files of the results. Can be repeated", required = true)
     private List<String> mInputs;
 
-    @Parameter(names = "--output-dir", description = "The output directory", required = true)
-    private String mOutputDir;
+    @Parameter(names = "--output", description = "The output html file", required = true)
+    private String mOutput;
   }
 
   /**
@@ -89,15 +90,13 @@ public class GenerateReport {
       }
     }
 
-    File outputDir = new File(mParameters.mOutputDir);
-    outputDir.mkdirs();
+    File outputFile = new File(mParameters.mOutput);
 
     GraphGenerator graphGenerator = inputs.get(0).graphGenerator();
 
     List<Graph> graphs = graphGenerator.generate(inputs);
 
-    try (PrintWriter writer = new PrintWriter(
-        new FileWriter(Paths.get(outputDir.getAbsolutePath(), "index.html").toString()))) {
+    try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile.getAbsolutePath()))) {
 
       writer.println("<!DOCTYPE html>");
       writer.println("<head>");
@@ -108,7 +107,20 @@ public class GenerateReport {
       writer.println("<body>");
 
       for (int i = 0; i < graphs.size(); i++) {
-        writer.println("<div id=\"graph" + i + "\"></div>");
+        writer.println(String.format("<div id=\"graph%d\"></div>", i));
+        for (Map.Entry<String, List<String>> entry : graphs.get(i).getErrors().entrySet()) {
+          List<String> errorList = entry.getValue();
+
+          writer.println("<details>");
+          writer.println(String
+              .format("<summary>ERRORS[%d]: %s</summary>", errorList.size(), entry.getKey()));
+          writer.println("<ul>");
+          for (String error : errorList) {
+            writer.println(String.format("<li>%s</li>", error));
+          }
+          writer.println("</ul>");
+          writer.println("</details>");
+        }
       }
       writer.println("<script>");
 

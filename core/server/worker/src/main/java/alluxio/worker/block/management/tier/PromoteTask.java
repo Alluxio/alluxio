@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * A BlockStore management task that is to move blocks to higher tiers.
@@ -124,8 +126,11 @@ public class PromoteTask extends AbstractBlockManagementTask {
         continue;
       }
     }
-    LOG.debug("Generated {} promotions from {} to {}", transferInfos.size(),
-        tierUpLocation.tierAlias(), tierDownLocation.tierAlias());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",
+          transferInfos.size(), tierUpLocation.tierAlias(), tierDownLocation.tierAlias(),
+          transferInfos.stream().map(Objects::toString).collect(Collectors.joining("\n ->")));
+    }
     return transferInfos;
   }
 }

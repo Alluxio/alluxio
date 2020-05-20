@@ -33,9 +33,10 @@ public abstract class Graph {
       new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
   protected final Map<String, Object> mGraph = new HashMap<>();
-  protected final List<Map<String, Object>> mData = new ArrayList<>();
+  protected final List<Map<Object, Object>> mData = new ArrayList<>();
   protected final List<String> mTitle = new ArrayList<>();
   protected final List<String> mSubTitle = new ArrayList<>();
+  protected final Map<String, List<String>> mErrors = new HashMap<>();
 
   private Map<String, Object> toMap() {
     mGraph.put("data", ImmutableMap.of("values", mData));
@@ -64,5 +65,25 @@ public abstract class Graph {
   public String toJson() throws JsonProcessingException {
     MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(toMap());
+  }
+
+  /**
+   * @return map of series name to list of errors
+   */
+  public Map<String, List<String>> getErrors() {
+    return mErrors;
+  }
+
+  /**
+   * Sets the list of errors for the series.
+   *
+   * @param series the series name
+   * @param errors the list of errors
+   */
+  public void setErrors(String series, List<String> errors) {
+    if (errors.isEmpty()) {
+      return;
+    }
+    mErrors.put(series, errors);
   }
 }
