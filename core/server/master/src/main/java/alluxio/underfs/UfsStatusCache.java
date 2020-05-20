@@ -158,7 +158,7 @@ public class UfsStatusCache {
       addStatus(path, ufsStatus);
       return ufsStatus;
     } catch (IllegalArgumentException | IOException e) {
-      LOG.debug("Failed to add status to cache {}", path, e);
+      LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
     }
     return null;
   }

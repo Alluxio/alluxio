@@ -1973,7 +1973,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
-          .setDefaultValue("3")
+          .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+              "The number of threads used by the active sync provider process active sync events")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

@@ -100,10 +100,12 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
-    mExecutorService = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
-        Runtime.getRuntime().availableProcessors(),
-    1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-    ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", false));
+    mExecutorService = new ThreadPoolExecutor(
+        ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
+        ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
+        1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+        ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", false),
+        new ThreadPoolExecutor.CallerRunsPolicy());
     mExecutorService.allowCoreThreadTimeOut(true);
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();

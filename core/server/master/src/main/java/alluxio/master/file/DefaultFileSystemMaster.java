@@ -697,7 +697,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     try {
       mActiveSyncMetadataExecutor.shutdownNow();
-      mSyncPrefetchExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      mActiveSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
