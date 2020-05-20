@@ -836,6 +836,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
         throw new FileDoesNotExistException(e.getMessage(), e);
       }
     }
+    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()) {
+      List<Long> missingBlockIds = fileInfo.getBlockIds().stream()
+          .filter((bId) -> fileInfo.getFileBlockInfo(bId) != null).collect(Collectors.toList());
+
+      LOG.warn("BlockInfo missing for file: {}. BlockIdsWithMissingInfos: {}", inodePath.getUri(),
+          missingBlockIds.stream().map(Object::toString).collect(Collectors.joining(",")));
+      // Remove old block metadata from block-master before re-committing.
+      mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
+      // Commit all the file blocks (without locations) so the metadata for the block exists.
+      commitBlockInfosForFile(
+          fileInfo.getBlockIds(),        // ordered block id list
+          fileInfo.getLength(),          // file length
+          fileInfo.getBlockSizeBytes()); // block size
+      // Reset file-block-info list with the new list.
+      try {
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(
+            String.format("Hydration failed for file: %s", inodePath.getUri()), e);
+      }
+    }
     fileInfo.setXAttr(inode.getXAttr());
     MountTable.Resolution resolution;
     try {
@@ -1306,12 +1327,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     if (inode.isPersisted()) {
       // Commit all the file blocks (without locations) so the metadata for the block exists.
-      long currLength = length;
-      for (long blockId : entry.getSetBlocksList()) {
-        long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
-        mBlockMaster.commitBlockInUFS(blockId, blockSize);
-        currLength -= blockSize;
-      }
+      commitBlockInfosForFile(entry.getSetBlocksList(), length, inode.getBlockSizeBytes());
       // The path exists in UFS, so it is no longer absent
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
@@ -1328,6 +1344,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
     Metrics.FILES_COMPLETED.inc();
+  }
+
+  /**
+   * Commits blocks to BlockMaster for given block list.
+   *
+   * @param blockIds the list of block ids
+   * @param fileLength length of the file in bytes
+   * @param blockSize the block size in bytes
+   */
+  private void commitBlockInfosForFile(List<Long> blockIds, long fileLength, long blockSize)
+      throws UnavailableException {
+    long currLength = fileLength;
+    for (long blockId : blockIds) {
+      long currentBlockSize = Math.min(currLength, blockSize);
+      mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      currLength -= currentBlockSize;
+    }
   }
 
   @Override
