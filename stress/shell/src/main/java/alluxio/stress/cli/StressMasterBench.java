@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
@@ -23,6 +24,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.io.JsonEOFException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
@@ -215,14 +217,17 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       reader = new BufferedReader(new FileReader(filePath));
       String line;
 
-      Map<String, Histogram> methodNameToHistogram = new HashMap<>();
+      Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+
+      long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs()) /
+          MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       final ObjectMapper objectMapper = new ObjectMapper();
       while ((line = reader.readLine()) != null) {
         final Map<String, Object> lineMap;
         try {
           lineMap = objectMapper.readValue(line, Map.class);
-        } catch (JsonEOFException e) {
+        } catch (JsonParseException e) {
           // skip the last line of a not completed file
           break;
         }
@@ -232,26 +237,54 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         final Long timestamp = (Long) lineMap.get("timestamp");
         final Integer duration = (Integer) lineMap.get("duration");
 
+        if (timestamp <= mResult.getRecordStartMs()) {
+          continue;
+        }
+
         if (type != null && methodName != null && duration != null) {
           if (!methodNameToHistogram.containsKey(methodName)) {
-            methodNameToHistogram.put(methodName, new Histogram(
-                MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
-                MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION));
+            methodNameToHistogram.put(methodName, new PartialResultStatistic());
           }
 
-          methodNameToHistogram.get(methodName).recordValue(duration);
+          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+          statistic.mResponseTimeNs.recordValue(duration);
+          statistic.mNumSuccess += 1;
+
+          int bucket =
+              Math.min(statistic.mMaxResponseTimeNs.length - 1,
+                  (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
+          if (duration > statistic.mMaxResponseTimeNs[bucket]) {
+            statistic.mMaxResponseTimeNs[bucket] = duration;
+          }
         }
       }
 
-      for (Map.Entry<String, Histogram> entry : methodNameToHistogram.entrySet()) {
+      for (Map.Entry<String, PartialResultStatistic> entry : methodNameToHistogram.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
-        stats.encodeResponseTimeNsRaw(entry.getValue());
+        stats.encodeResponseTimeNsRaw(entry.getValue().mResponseTimeNs);
+        stats.mNumSuccess = entry.getValue().mNumSuccess;
+        stats.mMaxResponseTimeNs = entry.getValue().mMaxResponseTimeNs;
         mResult.putStatisticsForMethod(entry.getKey(), stats);
       }
     }
 
     public synchronized MasterBenchTaskResult getResult() {
       return mResult;
+    }
+  }
+
+  private final class PartialResultStatistic {
+    private Histogram mResponseTimeNs;
+    private int mNumSuccess;
+    private long[] mMaxResponseTimeNs;
+
+    public PartialResultStatistic() {
+      mNumSuccess = 0;
+      mResponseTimeNs = new Histogram(
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      mMaxResponseTimeNs = new long[MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT];
+      Arrays.fill(mMaxResponseTimeNs, -1);
     }
   }
 

@@ -114,7 +114,8 @@ public abstract class Benchmark<T extends TaskResult> {
       }
 
       // aggregate the results
-      return result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      return s;
     } else {
       // Spawn a new process
       List<String> command = new ArrayList<>();

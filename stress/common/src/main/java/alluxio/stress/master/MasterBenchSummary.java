@@ -22,31 +22,25 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
 
 /**
  * The summary for the master stress tests.
  */
 public final class MasterBenchSummary implements Summary {
   private long mDurationMs;
-  private long mNumSuccess;
-  private float mThroughput;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
 
-  /** response times for all percentiles from 0 -> 100 (101 values). */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mResponseTimePercentileMs;
-  /** percentiles of just 99.x%. first entry is 99%, second is 99.9%, etc. */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mResponseTime99PercentileMs;
-  /** max response time over time, over the duration of the test. */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mMaxResponseTimeMs;
+  private MasterBenchSummaryStatistics mStatistics;
+
+  private Map<String, MasterBenchSummaryStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
@@ -58,30 +52,35 @@ public final class MasterBenchSummary implements Summary {
   /**
    * Creates an instance.
    *
-   * @param durationMs the duration (in ms)
-   * @param numSuccess the number of success
-   * @param endTimeMs the end time (in ms)
-   * @param responseTimePercentileMs the response times (in ms), for all percentiles
-   * @param responseTime99PercentileMs the response times (in ms), for the 99.x percentiles
-   * @param maxResponseTimeMs the max response times (in ms) over time
-   * @param parameters the parameters
+   * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
    * @param errors the list of errors
    */
-  public MasterBenchSummary(long durationMs, long numSuccess, long endTimeMs,
-      float[] responseTimePercentileMs, float[] responseTime99PercentileMs,
-      float[] maxResponseTimeMs, MasterBenchParameters parameters, List<String> nodes,
-      Map<String, List<String>> errors) {
-    mDurationMs = durationMs;
-    mNumSuccess = numSuccess;
-    mEndTimeMs = endTimeMs;
-    mResponseTimePercentileMs = responseTimePercentileMs;
-    mResponseTime99PercentileMs = responseTime99PercentileMs;
-    mThroughput = ((float) mNumSuccess / mDurationMs) * 1000.0f;
-    mMaxResponseTimeMs = maxResponseTimeMs;
-    mParameters = parameters;
+  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
+      Map<String, List<String>> errors) throws DataFormatException {
+    mStatistics = mergedTaskResults.getResultStatistics().toMasterBenchSummaryStatistics();
+
+    mStatisticsPerMethod = new HashMap<>();
+    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+        mergedTaskResults.getStatisticsPerMethod().entrySet()) {
+      final String key = entry.getKey();
+      final MasterBenchTaskResultStatistics value = entry.getValue();
+
+      mStatisticsPerMethod.put(key, value.toMasterBenchSummaryStatistics());
+    }
+
+    mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
+    mEndTimeMs = mergedTaskResults.getEndMs();
+    mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
     mErrors = errors;
+  }
+
+  /**
+   * @return the throughput
+   */
+  public float computeThroughput() {
+    return ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
   }
 
   /**
@@ -92,80 +91,10 @@ public final class MasterBenchSummary implements Summary {
   }
 
   /**
-   * @return the number of successes
-   */
-  public long getNumSuccess() {
-    return mNumSuccess;
-  }
-
-  /**
-   * @return the throughput
-   */
-  public float getThroughput() {
-    return mThroughput;
-  }
-
-  /**
-   * @return the response times (in ms) for all percentiles
-   */
-  public float[] getResponseTimePercentileMs() {
-    return mResponseTimePercentileMs;
-  }
-
-  /**
-   * @return the response times (in ms) for 99.x%. first entry is 99%, second is 99.9%, etc
-   */
-  public float[] getResponseTime99PercentileMs() {
-    return mResponseTime99PercentileMs;
-  }
-
-  /**
-   * @return the list of max response times throughout the duration of the run
-   */
-  public float[] getMaxResponseTimeMs() {
-    return mMaxResponseTimeMs;
-  }
-
-  /**
    * @param durationMs the duration (in ms)
    */
   public void setDurationMs(long durationMs) {
     mDurationMs = durationMs;
-  }
-
-  /**
-   * @param numSuccess the number of successes
-   */
-  public void setNumSuccess(long numSuccess) {
-    mNumSuccess = numSuccess;
-  }
-
-  /**
-   * @param throughput the throughput
-   */
-  public void setThroughput(float throughput) {
-    mThroughput = throughput;
-  }
-
-  /**
-   * @param responseTimePercentileMs the response times (in ms) for all percentiles
-   */
-  public void setResponseTimePercentileMs(float[] responseTimePercentileMs) {
-    mResponseTimePercentileMs = responseTimePercentileMs;
-  }
-
-  /**
-   * @param responseTime99PercentileMs the response times (in ms) for 99.x%
-   */
-  public void setResponseTime99PercentileMs(float[] responseTime99PercentileMs) {
-    mResponseTime99PercentileMs = responseTime99PercentileMs;
-  }
-
-  /**
-   * @param maxResponseTimeMs the list of max response times throughout the duration of the run
-   */
-  public void setMaxResponseTimeMs(float[] maxResponseTimeMs) {
-    mMaxResponseTimeMs = maxResponseTimeMs;
   }
 
   /**
@@ -224,15 +153,31 @@ public final class MasterBenchSummary implements Summary {
     mEndTimeMs = endTimeMs;
   }
 
+  public MasterBenchSummaryStatistics getStatistics() {
+    return mStatistics;
+  }
+
+  public void setStatistics(MasterBenchSummaryStatistics statistics) {
+    mStatistics = statistics;
+  }
+
+  public Map<String, MasterBenchSummaryStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  public void setStatisticsPerMethod(Map<String, MasterBenchSummaryStatistics> statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
+  }
+
   private LineGraph.Data getResponseTimeData() {
     LineGraph.Data data = new LineGraph.Data();
-    data.addData("50", mResponseTimePercentileMs[50]);
-    data.addData("75", mResponseTimePercentileMs[75]);
-    data.addData("90", mResponseTimePercentileMs[90]);
-    data.addData("95", mResponseTimePercentileMs[95]);
+    data.addData("50", mStatistics.mResponseTimePercentileMs[50]);
+    data.addData("75", mStatistics.mResponseTimePercentileMs[75]);
+    data.addData("90", mStatistics.mResponseTimePercentileMs[90]);
+    data.addData("95", mStatistics.mResponseTimePercentileMs[95]);
 
     String percentile = "99";
-    for (float ms : mResponseTime99PercentileMs) {
+    for (float ms : mStatistics.mResponseTime99PercentileMs) {
       data.addData(percentile, ms);
       if (percentile.equals("99")) {
         percentile += ".";

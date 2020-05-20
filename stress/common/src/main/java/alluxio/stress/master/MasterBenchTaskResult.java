@@ -67,6 +67,18 @@ public final class MasterBenchTaskResult implements TaskResult {
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
     mErrors.addAll(result.mErrors);
+
+    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+        result.mStatisticsPerMethod.entrySet()) {
+      final String key = entry.getKey();
+      final MasterBenchTaskResultStatistics value = entry.getValue();
+
+      if (!mStatisticsPerMethod.containsKey(key)) {
+        mStatisticsPerMethod.put(key, value);
+      } else {
+        mStatisticsPerMethod.get(key).merge(value);
+      }
+    }
   }
 
   /**
@@ -215,6 +227,22 @@ public final class MasterBenchTaskResult implements TaskResult {
     mErrors.add(errMesssage);
   }
 
+  public MasterBenchTaskResultStatistics getResultStatistics() {
+    return mResultStatistics;
+  }
+
+  public void setResultStatistics(MasterBenchTaskResultStatistics resultStatistics) {
+    this.mResultStatistics = mResultStatistics;
+  }
+
+  public Map<String, MasterBenchTaskResultStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  public void setStatisticsPerMethod(Map<String, MasterBenchTaskResultStatistics> statisticsPerMethod) {
+    this.mStatisticsPerMethod = statisticsPerMethod;
+  }
+
   public void putStatisticsForMethod(String method, MasterBenchTaskResultStatistics statistics) {
     mStatisticsPerMethod.put(method, statistics);
   }
@@ -227,17 +255,11 @@ public final class MasterBenchTaskResult implements TaskResult {
   private static final class Aggregator implements TaskResult.Aggregator {
     @Override
     public MasterBenchSummary aggregate(Iterable<TaskResult> results) throws Exception {
-      long durationMs = 0;
-      long numSuccess = 0;
-      long endTimeMs = 0;
-      float[] maxResponseTimesMs = new float[MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT];
-      Arrays.fill(maxResponseTimesMs, -1);
-      MasterBenchParameters parameters = new MasterBenchParameters();
       List<String> nodes = new ArrayList<>();
       Map<String, List<String>> errors = new HashMap<>();
 
-      Histogram responseTime = new Histogram(MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
-          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      MasterBenchTaskResult mergingTaskResult = null;
+
       for (TaskResult taskResult : results) {
         if (!(taskResult instanceof MasterBenchTaskResult)) {
           throw new IOException(
@@ -245,49 +267,20 @@ public final class MasterBenchTaskResult implements TaskResult {
                   .getName());
         }
         MasterBenchTaskResult result = (MasterBenchTaskResult) taskResult;
-        durationMs = Math.max(result.getEndMs() - result.getRecordStartMs(), durationMs);
-        numSuccess += result.getNumSuccess();
-        parameters = result.getParameters();
-        if (result.getEndMs() > endTimeMs) {
-          endTimeMs = result.getEndMs();
-        }
         nodes.add(result.getBaseParameters().mId);
         if (!result.getErrors().isEmpty()) {
           List<String> errorList = new ArrayList<>(result.getErrors());
           errors.put(result.getBaseParameters().mId, errorList);
         }
 
-        try {
-          responseTime.add(Histogram
-              .decodeFromCompressedByteBuffer(ByteBuffer.wrap(result.mResultStatistics.mResponseTimeNsRaw),
-                  MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX));
-        } catch (DataFormatException e) {
-          throw new IOException(String.format("Failed to decode response time bytes from %s",
-              result.getBaseParameters().mId), e);
+        if (mergingTaskResult == null) {
+          mergingTaskResult = result;
+          continue;
         }
-
-        for (int i = 0; i < result.getMaxResponseTimeNs().length; i++) {
-          float ms = (float) result.getMaxResponseTimeNs()[i] / Constants.MS_NANO;
-          if (ms > maxResponseTimesMs[i]) {
-            maxResponseTimesMs[i] = ms;
-          }
-        }
+        mergingTaskResult.merge(result);
       }
 
-      float[] responseTimePercentile = new float[101];
-      for (int i = 0; i <= 100; i++) {
-        responseTimePercentile[i] =
-            (float) responseTime.getValueAtPercentile(i) / Constants.MS_NANO;
-      }
-
-      float[] responseTime99Percentile = new float[MasterBenchTaskResultStatistics.RESPONSE_TIME_99_COUNT];
-      for (int i = 0; i < responseTime99Percentile.length; i++) {
-        responseTime99Percentile[i] =
-            (float) responseTime.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
-                / Constants.MS_NANO;
-      }
-      return new MasterBenchSummary(durationMs, numSuccess, endTimeMs, responseTimePercentile,
-          responseTime99Percentile, maxResponseTimesMs, parameters, nodes, errors);
+      return new MasterBenchSummary(mergingTaskResult, nodes, errors);
     }
   }
 }
