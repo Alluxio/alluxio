@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -151,11 +153,11 @@ public class BlockTransferExecutor {
     if (LOG.isDebugEnabled()) {
       StringBuilder partitionDbgStr = new StringBuilder();
       partitionDbgStr
-          .append(String.format("Partitioned %d transfers into %d buckets using key:%s.%n",
+          .append(String.format("Bucketed %d transfers into %d partitions using key:%s.%n",
               transferInfos.size(), balancedPartitions.size(), key.name()));
       // List each partition content.
       for (int i = 0; i < balancedPartitions.size(); i++) {
-        partitionDbgStr.append(String.format("Partition-%d:%n ->%s", i, balancedPartitions.get(i)
+        partitionDbgStr.append(String.format("Partition-%d:%n ->%s%n", i, balancedPartitions.get(i)
             .stream().map(Objects::toString).collect(Collectors.joining("\n ->"))));
       }
       LOG.debug(partitionDbgStr.toString());
@@ -167,34 +169,34 @@ public class BlockTransferExecutor {
    * Used to balance partitions into given bucket count.
    * It greedily tries to achieve each bucket having close count of tasks.
    */
-  private List<List<BlockTransferInfo>> balancePartitions(List<List<BlockTransferInfo>> partitions,
-      int partitionCount) {
+  private List<List<BlockTransferInfo>> balancePartitions(
+      List<List<BlockTransferInfo>> transferPartitions, int partitionLimit) {
     // Return as is if less than requested bucket count.
-    if (partitions.size() <= partitionCount) {
-      return partitions;
+    if (transferPartitions.size() <= partitionLimit) {
+      return transferPartitions;
     }
 
     // TODO(ggezer): Support partitioning that considers block sizes.
     // Greedily build a balanced partitions by transfer count.
-    Collections.sort(partitions, Comparator.comparingInt(List::size));
+    Collections.sort(transferPartitions, Comparator.comparingInt(List::size));
 
     // Initialize balanced partitions.
-    List<List<BlockTransferInfo>> balancedPartitions = new ArrayList<>(partitionCount);
-    for (int i = 0; i < partitionCount; i++) {
+    List<List<BlockTransferInfo>> balancedPartitions = new ArrayList<>(partitionLimit);
+    for (int i = 0; i < partitionLimit; i++) {
       balancedPartitions.add(new LinkedList<>());
     }
-    // Place partitions into balanced partitions.
-    for (List<BlockTransferInfo> partition : partitions) {
+    // Greedily place transfer partitions into balanced partitions.
+    for (List<BlockTransferInfo> transferPartition : transferPartitions) {
       // Find the balanced partition with the least element size.
-      int selectedPartitionIdx = -1;
-      int selectedPartitionCount = -1;
-      for (int i = 0; i < partitionCount; i++) {
-        if (balancedPartitions.get(i).size() > selectedPartitionCount) {
+      int selectedPartitionIdx = Integer.MAX_VALUE;
+      int selectedPartitionCount = Integer.MAX_VALUE;
+      for (int i = 0; i < partitionLimit; i++) {
+        if (balancedPartitions.get(i).size() < selectedPartitionCount) {
           selectedPartitionIdx = i;
           selectedPartitionCount = balancedPartitions.get(i).size();
         }
       }
-      balancedPartitions.get(selectedPartitionIdx).addAll(partition);
+      balancedPartitions.get(selectedPartitionIdx).addAll(transferPartition);
     }
 
     return balancedPartitions;
@@ -204,8 +206,13 @@ public class BlockTransferExecutor {
    * Used to determine right partitioning key by inspecting list of transfers.
    */
   private TransferPartitionKey findTransferBucketKey(List<BlockTransferInfo> transferInfos) {
+    // How many src/dst locations are fully identified.
     int srcAllocatedCount = 0;
     int dstAllocatedCount = 0;
+    // How many unique src/dst locations are seen.
+    Set<BlockStoreLocation> srcLocations = new HashSet<>();
+    Set<BlockStoreLocation> dstLocations = new HashSet<>();
+    // Iterate and process all transfers.
     for (BlockTransferInfo transferInfo : transferInfos) {
       if (transferInfo.getSrcLocation().dir() != BlockStoreLocation.ANY_DIR) {
         srcAllocatedCount++;
@@ -213,18 +220,27 @@ public class BlockTransferExecutor {
       if (transferInfo.getDstLocation().dir() != BlockStoreLocation.ANY_DIR) {
         dstAllocatedCount++;
       }
+      srcLocations.add(transferInfo.getSrcLocation());
+      dstLocations.add(transferInfo.getDstLocation());
     }
 
-    if (srcAllocatedCount == dstAllocatedCount) {
+    // Find the desired partitioning key.
+    if (srcAllocatedCount == dstAllocatedCount) { // All locations are fully identified.
       if (srcAllocatedCount == 0) {
+        // Partitioning not possible. (This is not expected).
         return TransferPartitionKey.NONE;
       } else {
-        // Fall-back to SRC partitioning if all are allocated.
-        return TransferPartitionKey.SRC;
+        // Partition based on the location that has more distinct sub-locations.
+        // This will later be capped by configured parallelism.
+        if (srcLocations.size() >= dstLocations.size()) {
+          return TransferPartitionKey.SRC;
+        } else {
+          return TransferPartitionKey.DST;
+        }
       }
-    } else if (srcAllocatedCount > dstAllocatedCount) {
+    } else if (srcAllocatedCount > dstAllocatedCount) { // Src locations are identified.
       return TransferPartitionKey.SRC;
-    } else {
+    } else { // Dst locations are identified.
       return TransferPartitionKey.DST;
     }
   }

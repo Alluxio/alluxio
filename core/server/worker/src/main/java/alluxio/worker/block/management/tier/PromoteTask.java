@@ -128,7 +128,7 @@ public class PromoteTask extends AbstractBlockManagementTask {
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",
-          transferInfos.size(), tierUpLocation.tierAlias(), tierDownLocation.tierAlias(),
+          transferInfos.size(), tierDownLocation.tierAlias(), tierUpLocation.tierAlias(),
           transferInfos.stream().map(Objects::toString).collect(Collectors.joining("\n ->")));
     }
     return transferInfos;

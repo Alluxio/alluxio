@@ -187,6 +187,7 @@ public class ManagementTaskCoordinator implements Closeable {
               e);
         }
         LOG.debug("Management task finished: {}", currentTask.getClass().getSimpleName());
+        Thread.sleep(mLoadDetectionCoolDownMs);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
