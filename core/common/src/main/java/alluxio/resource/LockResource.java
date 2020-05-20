@@ -59,7 +59,10 @@ public class LockResource implements Closeable {
     mLock = lock;
     if (acquireLock) {
       if (useTryLock) {
-        while (!mLock.tryLock()) {
+        while (!mLock.tryLock()) { // returns immediately
+          // The reason we don't use #tryLock(int, TimeUnit) here is because we found there is a bug
+          // somewhere in the internal accounting of the ReentrantRWLock that, even though all
+          // threads had released the lock, that a final thread would never be able to acquire it.
           LockSupport.parkNanos(10000);
         }
       } else {
