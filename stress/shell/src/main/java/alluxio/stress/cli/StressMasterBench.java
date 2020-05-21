@@ -169,7 +169,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     service.awaitTermination(30, TimeUnit.SECONDS);
 
     if (!mParameters.mProfileAgent.isEmpty()) {
-      context.addAdditionalResult(AGENT_OUTPUT_PATH);
+      context.addAdditionalResult();
     }
 
     return context.getResult();
@@ -219,49 +219,53 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
-    public synchronized void addAdditionalResult(String filePath) throws IOException {
-      final BufferedReader reader;
-      reader = new BufferedReader(new FileReader(filePath));
-      String line;
+    public synchronized void addAdditionalResult() throws IOException {
+      if (mResult == null) {
+        return;
+      }
 
-      Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+      try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
+        String line;
 
-      long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
-          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
+        Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
 
-      final ObjectMapper objectMapper = new ObjectMapper();
-      while ((line = reader.readLine()) != null) {
-        final Map<String, Object> lineMap;
-        try {
-          lineMap = objectMapper.readValue(line, Map.class);
-        } catch (JsonParseException e) {
-          // skip the last line of a not completed file
-          break;
-        }
+        long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
+            / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
-        final String type = (String) lineMap.get("type");
-        final String methodName = (String) lineMap.get("methodName");
-        final Long timestamp = (Long) lineMap.get("timestamp");
-        final Integer duration = (Integer) lineMap.get("duration");
-
-        if (timestamp <= mResult.getRecordStartMs()) {
-          continue;
-        }
-
-        if (type != null && methodName != null && duration != null) {
-          if (!methodNameToHistogram.containsKey(methodName)) {
-            methodNameToHistogram.put(methodName, new PartialResultStatistic());
+        final ObjectMapper objectMapper = new ObjectMapper();
+        while ((line = reader.readLine()) != null) {
+          final Map<String, Object> lineMap;
+          try {
+            lineMap = objectMapper.readValue(line, Map.class);
+          } catch (JsonParseException e) {
+            // skip the last line of a not completed file
+            break;
           }
 
-          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
-          statistic.mResponseTimeNs.recordValue(duration);
-          statistic.mNumSuccess += 1;
+          final String type = (String) lineMap.get("type");
+          final String methodName = (String) lineMap.get("methodName");
+          final Long timestamp = (Long) lineMap.get("timestamp");
+          final Integer duration = (Integer) lineMap.get("duration");
 
-          int bucket =
-              Math.min(statistic.mMaxResponseTimeNs.length - 1,
-                  (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
-          if (duration > statistic.mMaxResponseTimeNs[bucket]) {
-            statistic.mMaxResponseTimeNs[bucket] = duration;
+          if (timestamp <= mResult.getRecordStartMs()) {
+            continue;
+          }
+
+          if (type != null && methodName != null && duration != null) {
+            if (!methodNameToHistogram.containsKey(methodName)) {
+              methodNameToHistogram.put(methodName, new PartialResultStatistic());
+            }
+
+            final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+            statistic.mResponseTimeNs.recordValue(duration);
+            statistic.mNumSuccess += 1;
+
+            int bucket =
+                Math.min(statistic.mMaxResponseTimeNs.length - 1,
+                    (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
+            if (duration > statistic.mMaxResponseTimeNs[bucket]) {
+              statistic.mMaxResponseTimeNs[bucket] = duration;
+            }
           }
         }
       }
