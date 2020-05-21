@@ -25,13 +25,13 @@ import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
 
+import org.hamcrest.core.StringStartsWith;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
@@ -64,10 +64,13 @@ public final class UfsJournalLogWriterTest {
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+    mJournal.start();
+    mJournal.gainPrimacy();
   }
 
   @After
   public void after() throws Exception {
+    mJournal.close();
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -368,7 +371,8 @@ public final class UfsJournalLogWriterTest {
 
     // Recover should fail since we deleted the file
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("Cannot find any journal entry to recover from.");
+    mThrown.expectMessage(
+        StringStartsWith.startsWith("Cannot find any journal entry to recover."));
     writer.write(newEntry(nextSN));
     writer.close();
   }

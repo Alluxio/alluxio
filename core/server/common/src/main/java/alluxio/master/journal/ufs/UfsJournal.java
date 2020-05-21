@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -104,7 +105,7 @@ public class UfsJournal implements Journal {
     SECONDARY, PRIMARY, CLOSED;
   }
 
-  private State mState;
+  private AtomicReference<State> mState = new AtomicReference<>(State.SECONDARY);
 
   /**
    * @return the ufs configuration to use for the journal operations
@@ -147,7 +148,7 @@ public class UfsJournal implements Journal {
     mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
-    mState = State.SECONDARY;
+    mState.set(State.SECONDARY);
   }
 
   @Override
@@ -174,16 +175,17 @@ public class UfsJournal implements Journal {
   @Override
   public synchronized JournalContext createJournalContext()
       throws UnavailableException {
-    if (mState != State.PRIMARY) {
+    if (mState.get() != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
-      throw new UnavailableException("Failed to write to journal: journal is in state " + mState);
+      throw new UnavailableException(
+          mMaster.getName() + ": Not allowed to write to journal in state: " + mState.get());
     }
     return new MasterJournalContext(mAsyncWriter);
   }
 
   private synchronized UfsJournalLogWriter writer() {
-    Preconditions.checkState(mState == State.PRIMARY,
-        "Cannot write to the journal in state " + mState);
+    Preconditions.checkState(mState.get() == State.PRIMARY,
+        "Cannot write to the journal in state " + mState.get());
     return mWriter;
   }
 
@@ -210,15 +212,34 @@ public class UfsJournal implements Journal {
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter);
-    mState = State.PRIMARY;
+    mState.set(State.PRIMARY);
+    LOG.info("{}: journal switched to primary mode. location: {}", mMaster.getName(), mLocation);
+  }
+
+  /**
+   * Notifies this journal that it is no longer primary. After this returns, the journal will not
+   * allow any writes.
+   *
+   * The method {@link #awaitLosePrimacy()} must be called afterwards to complete the transition
+   * from primary.
+   */
+  public synchronized void signalLosePrimacy() {
+    Preconditions
+        .checkState(mState.get() == State.PRIMARY, "unexpected journal state " + mState.get());
+    mState.set(State.SECONDARY);
+    LOG.info("{}: journal switched to secondary mode, starting transition. location: {}",
+        mMaster.getName(), mLocation);
   }
 
   /**
    * Transitions the journal from primary to secondary mode. The journal will no longer allow
    * writes, and the state machine is rebuilt from the journal and kept up to date.
+   *
+   * This must be called after {@link #signalLosePrimacy()} to finish the transition from primary.
    */
-  public synchronized void losePrimacy() throws IOException {
-    Preconditions.checkState(mState == State.PRIMARY, "unexpected state " + mState);
+  public synchronized void awaitLosePrimacy() throws IOException {
+    Preconditions.checkState(mState.get() == State.SECONDARY,
+        "Should already be set to SECONDARY state. unexpected state: " + mState.get());
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
     mWriter.close();
@@ -227,7 +248,6 @@ public class UfsJournal implements Journal {
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this);
     mTailerThread.start();
-    mState = State.SECONDARY;
   }
 
   /**
@@ -284,6 +304,13 @@ public class UfsJournal implements Journal {
       }
     }
     return false;
+  }
+
+  /**
+   * @return true if the journal is allowed to be written to
+   */
+  public boolean isWritable() {
+    return mState.get() == State.PRIMARY;
   }
 
   /**
@@ -375,7 +402,8 @@ public class UfsJournal implements Journal {
         if (retry.attempt()) {
           continue;
         }
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            String.format("%s: failed to catch up journal", mMaster.getName()), e);
       } catch (InvalidJournalEntryException e) {
         LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
         // We found an invalid journal entry, nothing we can do but crash.
@@ -390,7 +418,8 @@ public class UfsJournal implements Journal {
       try {
         mMaster.processJournalEntry(entry);
       } catch (IOException e) {
-        throw new RuntimeException(String.format("Failed to process journal entry %s", entry), e);
+        throw new RuntimeException(
+            String.format("%s: Failed to process journal entry %s", mMaster.getName(), entry), e);
       }
     }
   }
@@ -411,6 +440,6 @@ public class UfsJournal implements Journal {
       mTailerThread.awaitTermination(false);
       mTailerThread = null;
     }
-    mState = State.CLOSED;
+    mState.set(State.CLOSED);
   }
 }

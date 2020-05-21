@@ -45,10 +45,13 @@ public final class UfsJournalReaderTest {
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+    mJournal.start();
+    mJournal.gainPrimacy();
   }
 
   @After
   public void after() throws Exception {
+    mJournal.close();
     ConfigurationTestUtils.resetConfiguration();
   }
 
