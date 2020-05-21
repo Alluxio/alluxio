@@ -224,10 +224,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         return;
       }
 
+      Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+
       try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
         String line;
-
-        Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
 
         long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
             / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
