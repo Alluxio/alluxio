@@ -277,6 +277,14 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
+        if (!ret) {
+          // something is wrong to add this page, let's remove it from meta store
+          try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+            mMetaStore.removePage(pageId);
+          } catch (PageNotFoundException e) {
+            // best effort to remove this page from meta store and ignore the exception
+          }
+        }
         LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ret);
         return ret;
       }
@@ -312,6 +320,14 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
+        if (!ret) {
+          // something is wrong to add this page, let's remove it from meta store
+          try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
+            mMetaStore.removePage(pageId);
+          } catch (PageNotFoundException e) {
+            // best effort to remove this page from meta store and ignore the exception
+          }
+        }
         LOG.debug("Add page ({},{} bytes) after evicting ({}), success: {}", pageId, page.length,
             victimPageInfo, ret);
         return ret;
@@ -343,6 +359,14 @@ public class LocalCacheManager implements CacheManager {
         return null;
       }
       ReadableByteChannel ret = getPage(pageId, pageOffset);
+      if (ret == null) {
+        // something is wrong to read this page, let's remove it from meta store
+        try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+          mMetaStore.removePage(pageId);
+        } catch (PageNotFoundException e) {
+          // best effort to remove this page from meta store and ignore the exception
+        }
+      }
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return ret;
     }
