@@ -343,10 +343,51 @@ public final class LocalCacheManagerTest {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
   }
 
+  @Test
+  public void recoverCacheFromFailedPut() throws Exception {
+    FaultyPageStore pageStore = new FaultyPageStore();
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
+    pageStore.setFaulty(true);
+    // a failed put
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
+    // no state left after previous failed put
+    assertNull(mCacheManager.get(PAGE_ID1));
+    // can ask to put same page again without exception
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
+    // still no state left
+    assertNull(mCacheManager.get(PAGE_ID1));
+    pageStore.setFaulty(false);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    assertArrayEquals(PAGE1, byteArrayFromChannel(mCacheManager.get(PAGE_ID1)));
+  }
+
+  /**
+   * A PageStore where put can throw IOException on put.
+   */
+  private class FaultyPageStore extends LocalPageStore {
+    public FaultyPageStore() {
+      super(PageStoreOptions.create(mConf).toOptions());
+    }
+
+    private AtomicBoolean mFaulty = new AtomicBoolean(false);
+
+    @Override
+    public void put(PageId pageId, byte[] page) throws IOException {
+      if (mFaulty.get()) {
+        throw new IOException("Not found");
+      }
+      super.put(pageId, page);
+    }
+
+    void setFaulty(boolean faulty) {
+      mFaulty.set(faulty);
+    }
+  }
+
   /**
    * A PageStore where put will always hang.
    */
-  public class PutDelayedPageStore extends LocalPageStore {
+  private class PutDelayedPageStore extends LocalPageStore {
     private AtomicBoolean mHanging = new AtomicBoolean(true);
     private AtomicInteger mPut = new AtomicInteger(0);
 
