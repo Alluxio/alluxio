@@ -26,6 +26,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -219,6 +220,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
+    @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
     public synchronized void addAdditionalResult() throws IOException {
       if (mResult == null) {
         return;
