@@ -11,20 +11,14 @@
 
 package alluxio.stress.master;
 
-import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import org.HdrHistogram.Histogram;
-
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.DataFormatException;
 
 /**
  * The task result for the master stress tests.
@@ -38,7 +32,7 @@ public final class MasterBenchTaskResult implements TaskResult {
   private MasterBenchParameters mParameters;
   private List<String> mErrors;
 
-  private MasterBenchTaskResultStatistics mResultStatistics;
+  private MasterBenchTaskResultStatistics mStatistics;
 
   private Map<String, MasterBenchTaskResultStatistics> mStatisticsPerMethod;
 
@@ -48,7 +42,7 @@ public final class MasterBenchTaskResult implements TaskResult {
   public MasterBenchTaskResult() {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
-    mResultStatistics = new MasterBenchTaskResultStatistics();
+    mStatistics = new MasterBenchTaskResultStatistics();
     mStatisticsPerMethod = new HashMap<>();
   }
 
@@ -58,7 +52,7 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(MasterBenchTaskResult result) throws Exception {
-    mResultStatistics.merge(result.mResultStatistics);
+    mStatistics.merge(result.mStatistics);
 
     mRecordStartMs = result.mRecordStartMs;
     if (result.mEndMs > mEndMs) {
@@ -99,7 +93,7 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @return number of successes
    */
   public long getNumSuccess() {
-    return mResultStatistics.mNumSuccess;
+    return mStatistics.mNumSuccess;
   }
 
   /**
@@ -108,32 +102,28 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(long numSuccess) {
-    mResultStatistics.mNumSuccess += numSuccess;
+    mStatistics.mNumSuccess += numSuccess;
   }
 
   /**
    * @param numSuccess number of successes
    */
   public void setNumSuccess(long numSuccess) {
-    mResultStatistics.mNumSuccess = numSuccess;
+    mStatistics.mNumSuccess = numSuccess;
   }
 
   /**
    * @return the raw response time data
    */
   public byte[] getResponseTimeNsRaw() {
-    return mResultStatistics.mResponseTimeNsRaw;
-  }
-
-  public void encodeResponseTimeNsRaw(Histogram responseTimeNs) {
-    mResultStatistics.encodeResponseTimeNsRaw(responseTimeNs);
+    return mStatistics.mResponseTimeNsRaw;
   }
 
   /**
    * @param responseTimeNsRaw the raw response time data
    */
   public void setResponseTimeNsRaw(byte[] responseTimeNsRaw) {
-    mResultStatistics.mResponseTimeNsRaw = responseTimeNsRaw;
+    mStatistics.mResponseTimeNsRaw = responseTimeNsRaw;
   }
 
   /**
@@ -168,14 +158,14 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @return the array of max response times (in ns)
    */
   public long[] getMaxResponseTimeNs() {
-    return mResultStatistics.mMaxResponseTimeNs;
+    return mStatistics.mMaxResponseTimeNs;
   }
 
   /**
    * @param maxResponseTimeNs the array of max response times (in ns)
    */
   public void setMaxResponseTimeNs(long[] maxResponseTimeNs) {
-    mResultStatistics.mMaxResponseTimeNs = maxResponseTimeNs;
+    mStatistics.mMaxResponseTimeNs = maxResponseTimeNs;
   }
 
   /**
@@ -227,22 +217,39 @@ public final class MasterBenchTaskResult implements TaskResult {
     mErrors.add(errMesssage);
   }
 
-  public MasterBenchTaskResultStatistics getResultStatistics() {
-    return mResultStatistics;
+  /**
+   * @return the statistics
+   */
+  public MasterBenchTaskResultStatistics getStatistics() {
+    return mStatistics;
   }
 
-  public void setResultStatistics(MasterBenchTaskResultStatistics resultStatistics) {
-    this.mResultStatistics = mResultStatistics;
+  /**
+   * @param statistics the statistics
+   */
+  public void setStatistics(MasterBenchTaskResultStatistics statistics) {
+    mStatistics = statistics;
   }
 
+  /**
+   * @return the statistics per method
+   */
   public Map<String, MasterBenchTaskResultStatistics> getStatisticsPerMethod() {
     return mStatisticsPerMethod;
   }
 
-  public void setStatisticsPerMethod(Map<String, MasterBenchTaskResultStatistics> statisticsPerMethod) {
-    this.mStatisticsPerMethod = statisticsPerMethod;
+  /**
+   * @param statisticsPerMethod the statistics per method
+   */
+  public void setStatisticsPerMethod(Map<String, MasterBenchTaskResultStatistics>
+                                         statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
   }
 
+  /**
+   * @param method the name of the method to insert statistics for
+   * @param statistics the statistics for the method
+   */
   public void putStatisticsForMethod(String method, MasterBenchTaskResultStatistics statistics) {
     mStatisticsPerMethod.put(method, statistics);
   }

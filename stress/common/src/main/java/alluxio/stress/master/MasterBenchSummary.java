@@ -18,7 +18,6 @@ import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
 import com.google.common.base.Splitter;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public final class MasterBenchSummary implements Summary {
    */
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
       Map<String, List<String>> errors) throws DataFormatException {
-    mStatistics = mergedTaskResults.getResultStatistics().toMasterBenchSummaryStatistics();
+    mStatistics = mergedTaskResults.getStatistics().toMasterBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
@@ -153,38 +152,37 @@ public final class MasterBenchSummary implements Summary {
     mEndTimeMs = endTimeMs;
   }
 
+  /**
+   * @return the statistics
+   */
   public MasterBenchSummaryStatistics getStatistics() {
     return mStatistics;
   }
 
+  /**
+   * @param statistics the statistics
+   */
   public void setStatistics(MasterBenchSummaryStatistics statistics) {
     mStatistics = statistics;
   }
 
+  /**
+   * @return statistics per method map
+   */
   public Map<String, MasterBenchSummaryStatistics> getStatisticsPerMethod() {
     return mStatisticsPerMethod;
   }
 
-  public void setStatisticsPerMethod(Map<String, MasterBenchSummaryStatistics> statisticsPerMethod) {
+  /**
+   * @param statisticsPerMethod the statistics per method map
+   */
+  public void setStatisticsPerMethod(Map<String, MasterBenchSummaryStatistics>
+                                         statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
-  private LineGraph.Data getResponseTimeData() {
-    LineGraph.Data data = new LineGraph.Data();
-
-    data.addData(50, mStatistics.mResponseTimePercentileMs[50]);
-    data.addData(75, mStatistics.mResponseTimePercentileMs[75]);
-    data.addData(90, mStatistics.mResponseTimePercentileMs[90]);
-    data.addData(95, mStatistics.mResponseTimePercentileMs[95]);
-
-    int counter = 0;
-    for (float ms : mStatistics.mResponseTime99PercentileMs) {
-      float percentile = (float) (100.0 - 1.0 / (Math.pow(10.0, counter)));
-      data.addData(percentile, ms);
-      counter++;
-    }
-
-    return data;
+  private LineGraph.Data computeResponseTimeData() {
+    return mStatistics.computeResponseTimeData();
   }
 
   private List<String> collectErrors() {
@@ -238,13 +236,31 @@ public final class MasterBenchSummary implements Summary {
               new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
                   "Response Time (ms)");
 
+          Map<String, LineGraph> responseTimeGraphPerMethod = new HashMap<>();
+
           for (MasterBenchSummary summary : opSummaries) {
             String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            responseTimeGraph.addDataSeries(series, summary.getResponseTimeData());
+            responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
             responseTimeGraph.setErrors(series, summary.collectErrors());
+
+            for (Map.Entry<String, MasterBenchSummaryStatistics> entry :
+                summary.getStatisticsPerMethod().entrySet()) {
+              final String method = entry.getKey();
+              final LineGraph.Data responseTimeData = entry.getValue().computeResponseTimeData();
+
+              if (!responseTimeGraphPerMethod.containsKey(method)) {
+                responseTimeGraphPerMethod.put(method,
+                    new LineGraph(operation + " - Response Time (ms) " + method, subTitle,
+                        "Percentile", "Response Time (ms)"));
+              }
+              responseTimeGraphPerMethod.get(method).addDataSeries(series, responseTimeData);
+            }
           }
 
           graphs.add(responseTimeGraph);
+          for (LineGraph graph : responseTimeGraphPerMethod.values()) {
+            graphs.add(graph);
+          }
         }
       }
 

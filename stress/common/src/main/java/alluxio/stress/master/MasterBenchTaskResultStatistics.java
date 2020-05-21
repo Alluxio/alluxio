@@ -1,6 +1,7 @@
 package alluxio.stress.master;
 
 import alluxio.Constants;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 
@@ -8,6 +9,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 
+/**
+ * Statistics class that is used in {@link MasterBenchTaskResult}.
+ */
 public class MasterBenchTaskResultStatistics {
   public static final int MAX_RESPONSE_TIME_COUNT = 20;
 
@@ -75,6 +79,12 @@ public class MasterBenchTaskResultStatistics {
     bb.get(mResponseTimeNsRaw);
   }
 
+  /**
+   * Converts this class to {@link MasterBenchSummaryStatistics}.
+   *
+   * @return new MasterBenchSummaryStatistics
+   * @throws DataFormatException if histogram decoding from compressed byte buffer fails
+   */
   public MasterBenchSummaryStatistics toMasterBenchSummaryStatistics() throws DataFormatException {
     Histogram responseTime = new Histogram(RESPONSE_TIME_HISTOGRAM_MAX,
         RESPONSE_TIME_HISTOGRAM_PRECISION);
@@ -89,21 +99,20 @@ public class MasterBenchTaskResultStatistics {
           (float) responseTime.getValueAtPercentile(i) / Constants.MS_NANO;
     }
 
-    float[] responseTime99Percentile = new float[MasterBenchTaskResultStatistics.RESPONSE_TIME_99_COUNT];
+    float[] responseTime99Percentile = new float[RESPONSE_TIME_99_COUNT];
     for (int i = 0; i < responseTime99Percentile.length; i++) {
       responseTime99Percentile[i] =
           (float) responseTime.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
               / Constants.MS_NANO;
     }
 
-    float[] maxResponseTimesMs = new float[MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT];
+    float[] maxResponseTimesMs = new float[MAX_RESPONSE_TIME_COUNT];
     Arrays.fill(maxResponseTimesMs, -1);
     for (int i = 0; i < mMaxResponseTimeNs.length; i++) {
-      maxResponseTimesMs[i] = (float) mMaxResponseTimeNs[i] / Constants.MS_NANO;;
+      maxResponseTimesMs[i] = (float) mMaxResponseTimeNs[i] / Constants.MS_NANO;
     }
 
     return new MasterBenchSummaryStatistics(mNumSuccess, responseTimePercentile,
         responseTime99Percentile, maxResponseTimesMs);
   }
-
 }

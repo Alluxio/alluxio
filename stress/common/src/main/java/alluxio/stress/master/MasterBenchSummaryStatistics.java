@@ -1,9 +1,14 @@
 package alluxio.stress.master;
 
+import alluxio.stress.graph.LineGraph;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+/**
+ * Statistics class for {@link MasterBenchSummary}.
+ */
 public class MasterBenchSummaryStatistics {
-  /** number of successes */
+  /** number of successes. */
   public long mNumSuccess;
 
   /** response times for all percentiles from 0 -> 100 (101 values). */
@@ -38,5 +43,26 @@ public class MasterBenchSummaryStatistics {
     mResponseTimePercentileMs = responseTimePercentileMs;
     mResponseTime99PercentileMs = responseTime99PercentileMs;
     mMaxResponseTimeMs = maxResponseTimeMs;
+  }
+
+  /**
+   * @return the response time linegraph data
+   */
+  public LineGraph.Data computeResponseTimeData() {
+    LineGraph.Data data = new LineGraph.Data();
+
+    data.addData(50, mResponseTimePercentileMs[50]);
+    data.addData(75, mResponseTimePercentileMs[75]);
+    data.addData(90, mResponseTimePercentileMs[90]);
+    data.addData(95, mResponseTimePercentileMs[95]);
+
+    int counter = 0;
+    for (float ms : mResponseTime99PercentileMs) {
+      float percentile = (float) (100.0 - 1.0 / (Math.pow(10.0, counter)));
+      data.addData(percentile, ms);
+      counter++;
+    }
+
+    return data;
   }
 }

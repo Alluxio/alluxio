@@ -11,7 +11,6 @@
 
 package alluxio.stress.cli;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
@@ -25,7 +24,6 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.io.JsonEOFException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -56,6 +54,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
 
+  private static final String AGENT_OUTPUT_PATH = "/tmp/stress_master.log";
+
   @ParametersDelegate
   private MasterBenchParameters mParameters = new MasterBenchParameters();
 
@@ -80,6 +80,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
           "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
+    }
+
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + mParameters.mProfileAgent
+          + "=" + AGENT_OUTPUT_PATH);
     }
 
     if (!mBaseParameters.mDistributed) {
@@ -163,7 +168,9 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
-    context.addAdditionalResult("test.txt");
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      context.addAdditionalResult(AGENT_OUTPUT_PATH);
+    }
 
     return context.getResult();
   }
@@ -219,8 +226,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
 
-      long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs()) /
-          MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
+      long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
+          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       final ObjectMapper objectMapper = new ObjectMapper();
       while ((line = reader.readLine()) != null) {
@@ -322,7 +329,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
-      mResult.encodeResponseTimeNsRaw(mResponseTimeNs);
+      mResult.getStatistics().encodeResponseTimeNsRaw(mResponseTimeNs);
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
@@ -339,8 +346,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
 
-      long bucketSize =
-          (mContext.getEndMs() - recordMs) / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
+      long bucketSize = (mContext.getEndMs() - recordMs)
+          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
