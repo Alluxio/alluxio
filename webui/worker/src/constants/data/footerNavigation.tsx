@@ -27,9 +27,4 @@ export const footerNavigationData: INavigationData[] = [
     url: ({ masterHostname, masterPort }): string =>
       `${window.location.protocol}//${masterHostname}:${masterPort}/workers`,
   },
-  {
-    attributes: { target: '_blank' },
-    innerText: 'Slack Channel',
-    url: 'https://www.alluxio.io/slack',
-  },
 ];
