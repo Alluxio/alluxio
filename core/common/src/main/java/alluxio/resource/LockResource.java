@@ -31,7 +31,6 @@ import java.util.concurrent.locks.LockSupport;
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
-
   private final Lock mLock;
 
   /**

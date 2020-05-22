@@ -38,6 +38,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,6 +54,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
   private final ActiveSyncManager mSyncManager;
   private final MountTable mMountTable;
   private final long mMountId;
+  private final AlluxioURI mMountUri;
   private final Queue<CompletableFuture<?>> mSyncTasks;
 
   /**
@@ -66,18 +69,17 @@ public class ActiveSyncer implements HeartbeatExecutor {
       MountTable mountTable, long mountId) {
     mFileSystemMaster = fileSystemMaster;
     mSyncManager = syncManager;
-    mMountId = mountId;
     mMountTable = mountTable;
+    mMountId = mountId;
+    mMountUri =  Objects.requireNonNull(mMountTable.getMountInfo(mMountId)).getAlluxioUri();
     mSyncTasks = new LinkedBlockingQueue<>(32);
   }
 
   @Override
   public void heartbeat() {
-    LOG.debug("start Active Syncer heartbeat");
+    LOG.debug("start sync heartbeat for {} with mount id {}", mMountUri, mMountId);
     // Remove any previously completed sync tasks
-    while (mSyncTasks.peek() != null && !mSyncTasks.peek().isDone()) {
-      Future<?> ignored = mSyncTasks.poll();
-    }
+    mSyncTasks.removeIf(Future::isDone);
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
 
@@ -89,42 +91,50 @@ public class ActiveSyncer implements HeartbeatExecutor {
       UfsManager.UfsClient ufsclient = Objects.requireNonNull(mMountTable.getUfsClient(mMountId));
       try (CloseableResource<UnderFileSystem> ufsResource = ufsclient.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
-        if (ufs.supportsActiveSync()) {
-          SyncInfo syncInfo = ufs.getActiveSyncInfo();
-          // This returns a list of ufsUris that we need to sync.
-          Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
-          // Parallelize across sync points
-          List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
-          for (AlluxioURI ufsUri : ufsSyncPoints) {
-            tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
-              processSyncPoint(ufsUri, syncInfo);
-              return syncInfo.getTxId();
-            }, mSyncManager.getExecutor()));
+        if (!ufs.supportsActiveSync()) {
+          return;
+        }
+        SyncInfo syncInfo = ufs.getActiveSyncInfo();
+        // This returns a list of ufsUris that we need to sync.
+        Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
+        // Parallelize across sync points
+        List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
+        for (AlluxioURI ufsUri : ufsSyncPoints) {
+          tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
+            processSyncPoint(ufsUri, syncInfo);
+            return syncInfo.getTxId();
+          }, mSyncManager.getExecutor()));
+        }
+        // Journal the latest processed txId
+        CompletableFuture<Void> syncTask =
+            CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
+            .thenRunAsync(() -> mFileSystemMaster
+                    .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
+                mSyncManager.getExecutor());
+        int attempts = 0;
+        while (!mSyncTasks.offer(syncTask)) {
+          if (Thread.currentThread().isInterrupted()) {
+            break;
           }
-          // Journal the latest processed txId
-          CompletableFuture<Void> syncTask =
-              CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
-              .thenRunAsync(() -> mFileSystemMaster
-                      .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
-                  mSyncManager.getExecutor());
-          while (!mSyncTasks.offer(syncTask)) {
+          // We should only enter the loop if the task queue is full. This would occur if all
+          // sync tasks in the last 32 / (heartbeats/minute) minutes have not completed.
+          for (CompletableFuture<?> f : mSyncTasks) {
             try {
-              CompletableFuture<?> task = mSyncTasks.poll();
-              if (task == null) {
-                // If the task can't be tracked, then we shouldn't let it run.
-                syncTask.cancel(true);
-                throw new IllegalStateException("Failed to add sync task to queue, but queue head "
-                    + "returned null");
-              } else {
-                task.get();
-              }
+              long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
+                  / mSyncTasks.size();
+              f.get(waitTime, TimeUnit.MILLISECONDS);
+              mSyncTasks.remove(f);
+              break;
+            } catch (TimeoutException e) {
+              LOG.trace("sync task did not complete during heartbeat. Attempt: {}", attempts);
             } catch (InterruptedException | ExecutionException e) {
               LogUtils.warnWithException(LOG, "Failed while waiting on task to add new task to "
                   + "head of queue", e);
-              if (e instanceof InterruptedException) {
+              if (Thread.currentThread().isInterrupted()) {
                 Thread.currentThread().interrupt();
               }
             }
+            attempts++;
           }
         }
       }

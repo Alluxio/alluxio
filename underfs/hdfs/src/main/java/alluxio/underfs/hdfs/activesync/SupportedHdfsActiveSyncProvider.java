@@ -287,12 +287,11 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
           if (batch == null) {
             break;
           }
-          EventBatch finalBatch = batch;
           process.add(() -> {
-            for (Event event : finalBatch.getEvents()) {
-              processEvent(event, mUfsUriList, finalBatch.getTxid());
+            for (Event event : batch.getEvents()) {
+              processEvent(event, mUfsUriList, batch.getTxid());
             }
-            return finalBatch.getEvents().length;
+            return batch.getEvents().length;
           });
         }
         mProcessTasks.add(mExecutorService.submit(() -> process.stream().map(
