@@ -38,6 +38,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   private final AlluxioConfiguration mConf;
 
+  // TODO(binfan): Remove the IOException throwing or make this into a factory method
   /**
    * @param fs a FileSystem instance to query on local cache miss
    * @param conf the configuration, only respected for the first call
