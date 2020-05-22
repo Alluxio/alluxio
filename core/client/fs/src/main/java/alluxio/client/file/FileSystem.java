@@ -146,7 +146,11 @@ public interface FileSystem extends Closeable {
       // Enable local cache only for clients which have the property set.
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
           && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
-        return new LocalCacheFileSystem(fs, conf);
+        try {
+          return new LocalCacheFileSystem(fs, conf);
+        } catch (IOException e) {
+          LOG.error("Fallback without client caching: ", e);
+        }
       }
       return fs;
     }
