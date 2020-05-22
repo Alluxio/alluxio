@@ -9,22 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { INavigationData } from '@alluxio/common-ui/src/constants';
-import { routePaths } from './routePaths';
+@import '../../constants/scss/themeVariables';
 
-export const footerNavigationData: INavigationData[] = [
-  {
-    attributes: { target: '_blank' },
-    innerText: 'Project Website',
-    url: 'https://alluxio.io/',
-  },
-  {
-    attributes: { target: '_blank' },
-    innerText: 'User Mailing List',
-    url: 'https://groups.google.com/forum/#!forum/alluxio-users',
-  },
-  {
-    innerText: 'Workers',
-    url: routePaths.workers,
-  },
-];
+.absolute-bottom-right {
+  bottom: 0px;
+  margin: 15px;
+  position: absolute;
+  right: 0px;
+}
+
+.button-icon {
+  height: 100px;
+  width: 100px;
+}
