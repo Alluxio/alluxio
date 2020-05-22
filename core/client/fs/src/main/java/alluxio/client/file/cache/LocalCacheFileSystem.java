@@ -19,7 +19,10 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +45,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
       value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
       justification = "write to static is made threadsafe")
-  public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) {
+  public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) throws IOException {
     super(fs);
     // TODO(feng): support multiple cache managers
     if (sCacheManager == null) {
@@ -51,8 +54,8 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
           try {
             sCacheManager = Optional.of(CacheManager.create(conf));
           } catch (IOException e) {
-            LOG.warn("Failed to create CacheManager: {}", e.toString());
-            sCacheManager = Optional.empty();
+            Metrics.CREATE_ERRORS.inc();
+            throw new IOException("Failed to create CacheManager", e);
           }
         }
       }
@@ -81,5 +84,13 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
+  }
+
+  private static final class Metrics {
+    /** Errors when creating cache. */
+    private static final Counter CREATE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_CREATE_ERRORS.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }
