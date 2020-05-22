@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -41,7 +42,7 @@ public class BlockTransferExecutor {
   private final ExecutorService mExecutor;
   private final BlockStore mBlockStore;
   private final StoreLoadTracker mLoadTracker;
-  private final int mMaxConcurrency;
+  private final int mParallelism;
 
   /**
    * Creates a new instance for executing block transfers.
@@ -49,14 +50,14 @@ public class BlockTransferExecutor {
    * @param executor the executor to use
    * @param blockStore the block store
    * @param loadTracker the load tracker
-   * @param maxConcurrency the max concurrent transfers
+   * @param parallelism the max concurrent transfers
    */
   public BlockTransferExecutor(ExecutorService executor, BlockStore blockStore,
-      StoreLoadTracker loadTracker, int maxConcurrency) {
+      StoreLoadTracker loadTracker, int parallelism) {
     mExecutor = executor;
     mBlockStore = blockStore;
     mLoadTracker = loadTracker;
-    mMaxConcurrency = maxConcurrency;
+    mParallelism = parallelism;
   }
 
   /**
@@ -76,27 +77,26 @@ public class BlockTransferExecutor {
    */
   public void executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
-    LOG.debug("Executing transfer list of size:{}", transferInfos.size());
+    LOG.debug("Executing transfer list of size: {}. Parallelism: {}",
+        transferInfos.size(), mParallelism);
     // Return immediately for an empty transfer list.
     if (transferInfos.isEmpty()) {
       return;
     }
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
-        partitionTransfers(transferInfos, mMaxConcurrency);
-    LOG.debug("Partitioned transfer list of size:{} to {} partitions.", transferInfos.size(),
-        executionPartitions.size());
+        partitionTransfers(transferInfos, mParallelism);
     // Execute to-be-transferred blocks from the plan.
     Collection<Callable<Void>> executionTasks = new LinkedList<>();
     for (List<BlockTransferInfo> executionPartition : executionPartitions) {
       executionTasks.add(() -> {
-        // TODO(ggezer): Prevent collisions by location locking.
+        // TODO(ggezer): Prevent collisions by locking on locations.
         // Above to-do requires both source and destination locations to be allocated.
         executeTransferPartition(executionPartition, exceptionHandler);
         return null;
       });
     }
-    LOG.debug("Invoking {} concurrent transfer tasks.", executionTasks.size());
+    LOG.debug("Executing {} concurrent transfer partitions.", executionTasks.size());
     try {
       mExecutor.invokeAll(executionTasks);
     } catch (InterruptedException e) {
@@ -144,8 +144,23 @@ public class BlockTransferExecutor {
       transferBuckets.get(keyLoc).add(transferInfo);
     }
 
-    return balancePartitions(transferBuckets.values().stream().collect(Collectors.toList()),
-        maxPartitionCount);
+    List<List<BlockTransferInfo>> balancedPartitions = balancePartitions(
+        transferBuckets.values().stream().collect(Collectors.toList()), maxPartitionCount);
+
+    // Log partition details.
+    if (LOG.isDebugEnabled()) {
+      StringBuilder partitionDbgStr = new StringBuilder();
+      partitionDbgStr
+          .append(String.format("Partitioned %d transfers into %d buckets using key:%s.%n",
+              transferInfos.size(), balancedPartitions.size(), key.name()));
+      // List each partition content.
+      for (int i = 0; i < balancedPartitions.size(); i++) {
+        partitionDbgStr.append(String.format("Partition-%d:%n ->%s", i, balancedPartitions.get(i)
+            .stream().map(Objects::toString).collect(Collectors.joining("\n ->"))));
+      }
+      LOG.debug(partitionDbgStr.toString());
+    }
+    return balancedPartitions;
   }
 
   /**
@@ -159,10 +174,8 @@ public class BlockTransferExecutor {
       return partitions;
     }
 
+    // TODO(ggezer): Support partitioning that considers block sizes.
     // Greedily build a balanced partitions by transfer count.
-
-    // TODO(ggezer): Capacity based partitioning possible if BlockTransferInfo contains the block
-    // size.
     Collections.sort(partitions, Comparator.comparingInt(List::size));
 
     // Initialize balanced partitions.
@@ -225,7 +238,7 @@ public class BlockTransferExecutor {
       try {
         if (mLoadTracker.loadDetected(transferInfo.getSrcLocation(),
             transferInfo.getDstLocation())) {
-          LOG.warn("Skipping transfer-order: {} due to user activity.", transferInfo);
+          LOG.debug("Skipping transfer-order: {} due to user activity.", transferInfo);
           continue;
         }
 

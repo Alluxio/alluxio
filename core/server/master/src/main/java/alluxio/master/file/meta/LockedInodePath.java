@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,6 +70,8 @@ public class LockedInodePath implements Closeable {
   protected final InodeLockList mLockList;
   /** The locking pattern. */
   protected LockPattern mLockPattern;
+  /** Whether to use {@link Lock#tryLock()} or {@link Lock#lock()}. */
+  private final boolean mUseTryLock;
 
   /**
    * Creates a new locked inode path.
@@ -78,16 +81,19 @@ public class LockedInodePath implements Closeable {
    * @param inodeLockManager the inode lock manager
    * @param root the root inode
    * @param lockPattern the pattern to lock in
+   * @param tryLock whether or not use {@link Lock#tryLock()} or {@link Lock#lock()}
    */
   public LockedInodePath(AlluxioURI uri, ReadOnlyInodeStore inodeStore,
-      InodeLockManager inodeLockManager, InodeDirectory root, LockPattern lockPattern)
+      InodeLockManager inodeLockManager, InodeDirectory root, LockPattern lockPattern,
+      boolean tryLock)
       throws InvalidPathException {
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(uri.getPath());
     mInodeStore = inodeStore;
-    mLockList = new SimpleInodeLockList(inodeLockManager);
     mLockPattern = lockPattern;
     mRoot = root;
+    mUseTryLock = tryLock;
+    mLockList = new SimpleInodeLockList(inodeLockManager, mUseTryLock);
   }
 
   /**
@@ -99,14 +105,15 @@ public class LockedInodePath implements Closeable {
    * @param lockPattern the pattern to lock in
    */
   private LockedInodePath(AlluxioURI uri, LockedInodePath path, String[] pathComponents,
-      LockPattern lockPattern) {
+      LockPattern lockPattern, boolean tryLock) {
     Preconditions.checkState(!path.mLockList.isEmpty());
     mUri = uri;
     mPathComponents = pathComponents;
     mInodeStore = path.mInodeStore;
-    mLockList = new CompositeInodeLockList(path.mLockList);
+    mLockList = new CompositeInodeLockList(path.mLockList, tryLock);
     mLockPattern = lockPattern;
     mRoot = path.mLockList.get(0);
+    mUseTryLock = tryLock;
   }
 
   /**
@@ -333,7 +340,7 @@ public class LockedInodePath implements Closeable {
   public LockedInodePath lockDescendant(AlluxioURI descendantUri, LockPattern lockPattern)
       throws InvalidPathException {
     LockedInodePath path = new LockedInodePath(descendantUri, this,
-        PathUtils.getPathComponents(descendantUri.getPath()), lockPattern);
+        PathUtils.getPathComponents(descendantUri.getPath()), lockPattern, mUseTryLock);
     path.traverseOrClose();
     return path;
   }
@@ -368,7 +375,7 @@ public class LockedInodePath implements Closeable {
   public LockedInodePath lockChild(Inode child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
     LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(child.getName()), this,
-        childComponentsHint, lockPattern);
+        childComponentsHint, lockPattern, mUseTryLock);
     path.traverseOrClose();
     return path;
   }
@@ -390,7 +397,7 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(!fullPathExists());
 
     LockedInodePath newPath =
-        new LockedInodePath(mUri, this, mPathComponents, LockPattern.WRITE_EDGE);
+        new LockedInodePath(mUri, this, mPathComponents, LockPattern.WRITE_EDGE, mUseTryLock);
     newPath.traverse();
     return newPath;
   }

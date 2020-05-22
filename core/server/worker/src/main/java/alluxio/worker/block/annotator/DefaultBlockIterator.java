@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -116,7 +115,7 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} updated at location:{}. Size:{}", blockId, location, sortedSet.size());
+      LOG.debug("Block:{} updated at {} with {} blocks.", blockId, location, sortedSet.size());
     }
   }
 
@@ -130,7 +129,7 @@ public class DefaultBlockIterator implements BlockIterator {
     sortedSet.remove(blockId);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block:{} removed from location:{}. Size:{}", blockId, location, sortedSet.size());
+      LOG.debug("Block:{} removed from {} with {} blocks.", blockId, location, sortedSet.size());
     }
   }
 
@@ -139,7 +138,7 @@ public class DefaultBlockIterator implements BlockIterator {
    */
   private void blockMoved(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    // TODO(ggezer): Fix callback logic to not called with the same locations.
+    // TODO(ggezer): Fix callback logic to not called for the same locations.
     if (!oldLocation.equals(newLocation)) {
       // Acquire the sorted-set for the block's current location.
       SortedBlockSet oldSortedSet = mPerDirOrderedSets.get(oldLocation);
@@ -156,8 +155,8 @@ public class DefaultBlockIterator implements BlockIterator {
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Block:{} moved from {} - {}. Src size:{}, Dst size: {}", blockId, oldLocation,
-            newLocation, oldSortedSet.size(), newSortedSet.size());
+        LOG.debug("Block: {} moved from {} with {} blocks to {} with {} blocks.",
+            blockId, oldLocation, oldSortedSet.size(), newLocation, newSortedSet.size());
       }
     }
   }
@@ -237,38 +236,30 @@ public class DefaultBlockIterator implements BlockIterator {
       }
     }
 
-    int swapCount = Math.min(srcList.size(), dstList.size());
-    Pair<List<Long>, List<Long>> swapLists =
-        new Pair(new ArrayList<>(swapCount), new ArrayList<>(swapCount));
-    // Find blocks to swap in order to eliminate overlap.
-    while (swapCount-- > 0) {
-      if (intersectionOrder.comparator().compare(srcList.get(0).getSecond(),
-          dstList.get(0).getSecond()) < 0) {
+    // Simulate swapping until both ends of the list are aligned.
+    int swapLimit = Math.min(srcList.size(), dstList.size());
+    int swapCount = 0;
+    while (swapCount < swapLimit) {
+      Pair<Long, BlockSortedField> srcItem = srcList.get(swapCount);
+      Pair<Long, BlockSortedField> dstItem = dstList.get(swapCount);
+
+      if (intersectionOrder.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) <= 0) {
         break;
       }
 
-      Pair<Long, BlockSortedField> srcItem = srcList.get(0);
-      Pair<Long, BlockSortedField> dstItem = dstList.get(0);
-      swapLists.getFirst().add(srcItem.getFirst());
-      swapLists.getSecond().add(dstItem.getFirst());
-
-      srcList.remove(0);
-      dstList.remove(0);
-      srcList.add(dstItem);
-      dstList.add(srcItem);
-
-      Collections.sort(srcList,
-          (o1, o2) -> srcOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
-      Collections.sort(dstList,
-          (o1, o2) -> dstOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
+      swapCount++;
     }
 
-    return swapLists;
+    return new Pair<>(
+        srcList.subList(0, swapCount).stream().map((kv) -> kv.getFirst())
+            .collect(Collectors.toList()),
+        dstList.subList(0, swapCount).stream().map((kv) -> kv.getFirst())
+            .collect(Collectors.toList()));
   }
 
   @Override
   public boolean aligned(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
-                         BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
+      BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
     // Get source iterator with given source order.
     Iterator<Pair<Long, BlockSortedField>> srcIterator =
         getIteratorInternal(srcLocation, order);
@@ -314,7 +305,7 @@ public class DefaultBlockIterator implements BlockIterator {
     if (!mBlockAnnotator.isOnlineSorter()) {
       if (mUnorderedLocations.stream()
           .anyMatch((dirtyLocation) -> dirtyLocation.belongsTo(location))) {
-        LOG.debug("Updating total order for directories that belong to: {}", location);
+        LOG.debug("Updating total order for directories that belong to {}", location);
         updateTotalOrder(locations);
       }
     }
@@ -331,7 +322,8 @@ public class DefaultBlockIterator implements BlockIterator {
           iteratorList.add(mPerDirOrderedSets.get(dirLocation).getDescendingIterator());
           break;
         default:
-          throw new IllegalArgumentException(String.format("Unsupported order: %s", order.name()));
+          throw new IllegalArgumentException(
+              String.format("Unsupported sort order: %s", order.name()));
       }
     }
 
@@ -346,7 +338,7 @@ public class DefaultBlockIterator implements BlockIterator {
    *
    * This will invoke order provider with the full list in order to satisfy this requirement.
    *
-   * TODO(ggezer): Consider adding new Sorter API to extract logical time.
+   * TODO(ggezer): Consider adding a new {@link BlockAnnotator} API to extract logical time.
    */
   private synchronized void updateTotalOrder(List<BlockStoreLocation> locations) {
     // No need if there is no unordered locations.
@@ -367,8 +359,10 @@ public class DefaultBlockIterator implements BlockIterator {
         updatedEntries.add(locationIter.next());
       }
 
-      LOG.debug("Updating total order for location:{} with {} blocks.", location,
-          updatedEntries.size());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Updating total order for {} with {} blocks.",
+            location, updatedEntries.size());
+      }
 
       // Invoke order provider to update fields all together.
       mBlockAnnotator.updateSortedFields(updatedEntries);

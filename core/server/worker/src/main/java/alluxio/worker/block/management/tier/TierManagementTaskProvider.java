@@ -114,6 +114,7 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
     // Return swap-restore task if marked.
     if (swapRestoreEnabled && sSwapRestoreRequired) {
       setSwapRestoreRequired(false);
+      LOG.debug("Swap-restore needed.");
       return TierManagementTaskType.SWAP_RESTORE;
     }
 
@@ -127,8 +128,8 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
       if (alignEnabled && !mMetadataManager.getBlockIterator().aligned(intersection.getFirst(),
           intersection.getSecond(), BlockOrder.Natural,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
-        LOG.debug("Need alignment between: {} - {}",
-            intersection.getFirst(), intersection.getSecond());
+        LOG.debug("Alignment needed between: {} - {}", intersection.getFirst().tierAlias(),
+            intersection.getSecond().tierAlias());
         return TierManagementTaskType.ALIGN;
       }
 
@@ -148,8 +149,8 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
               .getIterator(intersection.getSecond(), BlockOrder.Reverse);
           while (lowBlocks.hasNext()) {
             if (evictorView.isBlockEvictable(lowBlocks.next())) {
-              LOG.debug("Promotions allowed between {} - {}", intersection.getSecond(),
-                  intersection.getFirst());
+              LOG.debug("Promotions needed from {} to {}", intersection.getSecond().tierAlias(),
+                  intersection.getFirst().tierAlias());
               return TierManagementTaskType.PROMOTE;
             }
           }

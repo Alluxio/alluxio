@@ -37,6 +37,7 @@ import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
+import alluxio.security.user.UserState;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -499,21 +500,23 @@ public class FileSystemContext implements Closeable {
       final WorkerNetAddress workerNetAddress)
       throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
-      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext());
+      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext(),
+          getClientContext().getUserState());
     }
   }
 
   private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
-      final WorkerNetAddress workerNetAddress, final ClientContext context) throws IOException {
+      final WorkerNetAddress workerNetAddress, final ClientContext context, UserState userState)
+      throws IOException {
     SocketAddress address = NetworkAddressUtils
         .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
     ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
-            .getImpersonationUser(context.getSubject(), context.getClusterConf()));
+            .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(context.getUserState(), serverAddress,
+        k -> new BlockWorkerClientPool(userState, serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN),
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX),
             context.getClusterConf()))

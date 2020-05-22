@@ -116,7 +116,7 @@ public final class LogUtils {
 
   /**
    * Log a warning message with full exception if debug logging is enabled,
-   * or just the message otherwise.
+   * or just the exception string otherwise.
    *
    * @param logger the logger to be used
    * @param message the message to be logged
@@ -127,7 +127,7 @@ public final class LogUtils {
       logger.debug(message, args);
     } else {
       if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
-        args[args.length - 1] = ((Throwable) args[args.length - 1]).getMessage();
+        args[args.length - 1] = (args[args.length - 1]).toString();
       }
       logger.warn(message + ": {}", args);
     }

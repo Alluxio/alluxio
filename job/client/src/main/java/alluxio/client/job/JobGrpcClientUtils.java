@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,6 +38,24 @@ public final class JobGrpcClientUtils {
   private static final Logger LOG = LoggerFactory.getLogger(JobGrpcClientUtils.class);
 
   /**
+   * @param jobId the job id
+   * @param alluxioConf the Alluxio configuration
+   * @param verbose if true, will return the detailed job info
+   * @return the {@link JobInfo} for the job id
+   */
+  public static JobInfo getJobStatus(long jobId, AlluxioConfiguration alluxioConf,
+      boolean verbose) throws IOException {
+    try (final JobMasterClient client = JobMasterClient.Factory
+        .create(JobMasterClientContext.newBuilder(ClientContext.create(alluxioConf)).build())) {
+      if (verbose) {
+        return client.getJobStatusDetailed(jobId);
+      } else {
+        return client.getJobStatus(jobId);
+      }
+    }
+  }
+
+  /**
    * Runs the specified job and waits for it to finish. If the job fails, it is retried the given
    * number of times. If the job does not complete in the given number of attempts, an exception
    * is thrown.
@@ -44,8 +63,9 @@ public final class JobGrpcClientUtils {
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
    * @param alluxioConf Alluxio configuration
+   * @return the job id of the job
    */
-  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
+  public static long run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
     String errorMessage = "";
@@ -65,7 +85,7 @@ public final class JobGrpcClientUtils {
         break;
       }
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
-        return;
+        return jobInfo.getId();
       }
       errorMessage = jobInfo.getErrorMessage();
       LOG.warn("Job {} failed to complete with attempt {}. error: {}",
@@ -78,6 +98,7 @@ public final class JobGrpcClientUtils {
    * @param jobId the ID of the job to wait for
    * @return the job info once it finishes or null if the status cannot be fetched
    */
+  @Nullable
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     try (final JobMasterClient client =

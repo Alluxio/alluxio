@@ -6,6 +6,7 @@ group: Install Alluxio
 priority: 9
 ---
 
+* Table of Contents
 {:toc}
 
 ## General Requirements
@@ -53,6 +54,7 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
   * Inbound TCP 29999 - The Alluxio worker's default RPC port
   * Inbound TCP 30000 - The Alluxio worker's default web UI port: `http://<worker-hostname>:30000`
   * Inbound TCP 30001 - The Alluxio job worker's default RPC port
+  * Inbound TCP 30002 - The Alluxio job worker's default data port
   * Inbound TCP 30003 - The Alluxio job worker's default web UI 
     port: `http://<worker-hostname>:30003`
 

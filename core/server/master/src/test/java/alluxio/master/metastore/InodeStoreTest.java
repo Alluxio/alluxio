@@ -244,27 +244,27 @@ public class InodeStoreTest {
   }
 
   private void writeInode(MutableInode<?> inode) {
-    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE)) {
+    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {
       mStore.writeInode(inode);
     }
   }
 
   private void writeEdge(MutableInode<?> parent, MutableInode<?> child) {
     try (LockResource lr =
-        mLockManager.lockEdge(new Edge(parent.getId(), child.getName()), LockMode.WRITE)) {
+        mLockManager.lockEdge(new Edge(parent.getId(), child.getName()), LockMode.WRITE, false)) {
       mStore.addChild(parent.getId(), child);
     }
   }
 
   private void removeInode(InodeView inode) {
-    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE)) {
+    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {
       mStore.remove(inode);
     }
   }
 
   private void removeParentEdge(InodeView child) {
-    try (LockResource lr =
-        mLockManager.lockEdge(new Edge(child.getParentId(), child.getName()), LockMode.WRITE)) {
+    try (LockResource lr = mLockManager
+        .lockEdge(new Edge(child.getParentId(), child.getName()), LockMode.WRITE, false)) {
       mStore.removeChild(child.getParentId(), child.getName());
     }
   }
