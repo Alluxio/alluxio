@@ -283,6 +283,7 @@ public class LocalCacheManager implements CacheManager {
             mMetaStore.removePage(pageId);
           } catch (PageNotFoundException e) {
             // best effort to remove this page from meta store and ignore the exception
+            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
           }
         }
         LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ret);
@@ -326,6 +327,7 @@ public class LocalCacheManager implements CacheManager {
             mMetaStore.removePage(pageId);
           } catch (PageNotFoundException e) {
             // best effort to remove this page from meta store and ignore the exception
+            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
           }
         }
         LOG.debug("Add page ({},{} bytes) after evicting ({}), success: {}", pageId, page.length,
@@ -365,6 +367,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           // best effort to remove this page from meta store and ignore the exception
+          Metrics.GET_ERRORS_FAILED_READ.inc();
         }
       }
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
@@ -472,9 +475,15 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
+    /** Errors when getting pages due to failed reads from cache storage. */
+    private static final Counter GET_ERRORS_FAILED_READ =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_FAILED_READ_ERRORS.getName());
     /** Errors when adding pages. */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
+    /** Errors when adding pages due to failed writes to cache storage. */
+    private static final Counter PUT_FAILED_WRITE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS.getName());
 
     private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(
