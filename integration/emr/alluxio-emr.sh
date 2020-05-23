@@ -143,7 +143,7 @@ emr_install_alluxio() {
   download_file "${alluxio_tarball}"
 
   release=$(basename "${alluxio_tarball}")
-  local release_prefix
+  local release_unzip
   if [[ "${release}" == *-* ]]; then
     release_unzip="${release%%-*}" # trims everything after the first '-', ex. alluxio-foo-bar-whatever -> alluxio
   else
