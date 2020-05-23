@@ -12,6 +12,7 @@
 package alluxio.worker.block.management;
 
 import com.google.common.base.MoreObjects;
+import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -22,9 +23,10 @@ import java.util.Map;
  * It contains sub-results for each {@link BlockOperationType} that is issued
  * by the magement task.
  */
+@NotThreadSafe
 public class BlockManagementTaskResult {
   /** Map of block-operation results. */
-  private Hashtable<BlockOperationType, BlockOperationResult> mBlockOpResults;
+  private Map<BlockOperationType, BlockOperationResult> mBlockOpResults;
 
   /**
    * Creates a new empty task result.

@@ -182,8 +182,7 @@ public class ManagementTaskCoordinator implements Closeable {
         // Run the current task on coordinator thread.
         try {
           BlockManagementTaskResult result = currentTask.run();
-          LOG.debug("Management task: {} finished with result: {}",
-              currentTask.getClass().getSimpleName(), result);
+          LOG.info("{} finished with result: {}", currentTask.getClass().getSimpleName(), result);
 
           if (result.noProgress()) {
             LOG.debug("Task made no progress due to failures/back-offs. Sleeping {}ms",
