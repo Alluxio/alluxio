@@ -587,8 +587,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
-  private int readInternal(String path, Pointer buf, @size_t long size, @off_t long offset,
-                           FuseFileInfo fi) {
+  private synchronized int readInternal(
+      String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
       return -ErrorCodes.EINVAL();
@@ -623,7 +623,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         buf.put(0, dest, 0, nread);
       }
     } catch (Throwable t) {
-      LOG.error("Failed to read file {}", path, t);
+      LOG.error("Failed to read file={}, offset={}, size={}", path, offset, size, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
 
@@ -947,6 +947,21 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
+  }
+
+  @Override
+  public void mount(Path mountPoint, boolean blocking, boolean debug, String[] fuseOpts) {
+    LOG.info(
+        "Mount AlluxioFuseFileSystem: mountPoint=\"{}\", blocking={}, "
+            + "debug={}, fuseOpts=\"{}\"",
+        mountPoint, blocking, debug, Arrays.toString(fuseOpts));
+    super.mount(mountPoint, blocking, debug, fuseOpts);
+  }
+
+  @Override
+  public void umount() {
+    LOG.info("Umount AlluxioFuseFileSystem");
+    super.umount();
   }
 
   /**

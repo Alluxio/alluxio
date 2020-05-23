@@ -16,7 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.FuseException;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -100,13 +99,13 @@ public final class AlluxioFuse {
       // cache and go directly to alluxio. This avoids extra memory copies
       // in the write path.
       // TODO(binfan): support kernel_cache (issues#10840)
-      fuseOpts.add("-odirect_io");
+      //fuseOpts.add("-odirect_io");
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
         try {
-          fuseFs.mount(true, opts.isDebug(), fuseOpts.toArray(new String[0]));
-          LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
+          LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
               opts.getMountPoint(), fuseOpts.toArray(new String[0]));
+          fuseFs.mount(true, opts.isDebug(), fuseOpts.toArray(new String[0]));
         } catch (FuseException e) {
           LOG.error("Failed to mount {}", opts.getMountPoint(), e);
           // only try to umount file system when exception occurred.
@@ -119,8 +118,6 @@ public final class AlluxioFuse {
         try {
           fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
               fuseOpts.toArray(new String[0]));
-          LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
-              opts.getMountPoint(), fuseOpts.toArray(new String[0]));
         } catch (ru.serce.jnrfuse.FuseException e) {
           LOG.error("Failed to mount {}", opts.getMountPoint(), e);
           // only try to umount file system when exception occurred.
