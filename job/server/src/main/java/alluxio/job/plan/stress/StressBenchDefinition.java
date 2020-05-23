@@ -24,12 +24,14 @@ import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,7 +63,18 @@ public final class StressBenchDefinition
   public Set<Pair<WorkerInfo, ArrayList<String>>> selectExecutors(StressBenchConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
-    for (WorkerInfo worker : jobWorkerInfoList) {
+
+    // sort copy of workers by hashcode
+    List<WorkerInfo> workerList = Lists.newArrayList(jobWorkerInfoList);
+    workerList.sort(Comparator.comparingInt(w -> w.getAddress().hashCode()));
+    // take the first subset, according to cluster limit
+    int clusterLimit = config.getClusterLimit();
+    if (clusterLimit <= 0) {
+      clusterLimit = workerList.size();
+    }
+    workerList = workerList.subList(0, clusterLimit);
+
+    for (WorkerInfo worker : workerList) {
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
