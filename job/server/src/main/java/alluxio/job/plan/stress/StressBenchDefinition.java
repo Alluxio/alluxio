@@ -99,7 +99,7 @@ public final class StressBenchDefinition
 
     if (config.getArgs().stream().noneMatch((s) -> s.equals(BaseParameters.START_MS_FLAG))) {
       command.add(BaseParameters.START_MS_FLAG);
-      command.add(Long.toString((System.currentTimeMillis() + 5000)));
+      command.add(Long.toString((System.currentTimeMillis() + config.getStartDelayMs())));
     }
 
     command.addAll(args);
