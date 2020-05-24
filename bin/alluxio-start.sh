@@ -187,8 +187,7 @@ start_job_worker() {
   local nworkers=${ALLUXIO_JOB_WORKER_COUNT:-1}
   for (( c = 1; c < ${nworkers}; c++ )); do
     echo "Starting job worker #$((c+1)) @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (ALLUXIO_JOB_WORKER_JAVA_OPTS=${ALLUXIO_JOB_WORKER_JAVA_OPTS} \
-    nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
+    ( nohup ${BIN}/launch-process job_worker > ${ALLUXIO_LOGS_DIR}/job_worker.out 2>&1) &
   done
 }
 
