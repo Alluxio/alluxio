@@ -14,9 +14,9 @@ package alluxio.stress.cli.client;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.Benchmark;
+import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.stress.client.ClientIOOperation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -52,7 +52,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
 
+  /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+    /** Set to true after the first barrier is passed. */
+  private volatile boolean mStartBarrierPassed = false;
 
   /**
    * Creates instance.
@@ -142,7 +145,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
-    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+    if (startMs == BaseParameters.UNDEFINED_START_MS || mStartBarrierPassed) {
+      // if the barrier was already passed, then overwrite the start time
       startMs = CommonUtils.getCurrentMs() + 10000;
     }
     long endMs = startMs + warmupMs + durationMs;
@@ -273,6 +277,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
+      mStartBarrierPassed = true;
 
       while (!Thread.currentThread().isInterrupted() && (!isRead
           || CommonUtils.getCurrentMs() < mContext.getEndMs())) {
