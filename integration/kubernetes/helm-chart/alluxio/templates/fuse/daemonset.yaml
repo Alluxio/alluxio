@@ -100,7 +100,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.mountPath }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -108,7 +108,7 @@ spec:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
-              mountPath: /alluxio-fuse
+              mountPath: {{ .Values.mountPath | dir }}
               mountPropagation: Bidirectional
             {{- if $shortCircuitEnabled}}
               {{- if eq .Values.shortCircuit.policy "uuid" }}
@@ -127,7 +127,7 @@ spec:
             type: File
         - name: alluxio-fuse-mount
           hostPath:
-            path: /alluxio-fuse
+            path: {{ .Values.mountPath | dir }}
             type: DirectoryOrCreate
         {{- if $shortCircuitEnabled}}
           {{- if eq .Values.shortCircuit.policy "uuid" }}

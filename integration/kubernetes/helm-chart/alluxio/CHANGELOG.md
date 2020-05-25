@@ -77,3 +77,7 @@
 - Refactored configmap to generate config properties in a list
 - Changed JVM options from one string to a list
 - Supported Helm version upgraded to 3.X
+
+0.6.0
+
+- Fix alluxio-fuse container fail to restart when it exited with error
