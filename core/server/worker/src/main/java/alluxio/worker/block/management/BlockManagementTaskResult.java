@@ -14,7 +14,7 @@ package alluxio.worker.block.management;
 import com.google.common.base.MoreObjects;
 import net.jcip.annotations.NotThreadSafe;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,7 +32,7 @@ public class BlockManagementTaskResult {
    * Creates a new empty task result.
    */
   public BlockManagementTaskResult() {
-    mBlockOpResults = new Hashtable<>();
+    mBlockOpResults = new HashMap<>();
   }
 
   /**
