@@ -20,10 +20,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ public class BlockTransferPartitioner {
       };
     }
 
-    Hashtable<BlockStoreLocation, List<BlockTransferInfo>> transferBuckets = new Hashtable<>();
+    Map<BlockStoreLocation, List<BlockTransferInfo>> transferBuckets = new HashMap<>();
     for (BlockTransferInfo transferInfo : transferInfos) {
       BlockStoreLocation keyLoc;
       switch (key) {
@@ -156,24 +157,25 @@ public class BlockTransferPartitioner {
       dstLocations.add(transferInfo.getDstLocation());
     }
 
-    // Find the desired partitioning key.
-    if (srcAllocatedCount == dstAllocatedCount) { // All locations are fully identified.
-      if (srcAllocatedCount == 0) {
-        // Partitioning not possible. (This is not expected).
-        return TransferPartitionKey.NONE;
-      } else {
-        // Partition based on the location that has more distinct sub-locations.
-        // This will later be capped by configured parallelism.
-        if (srcLocations.size() >= dstLocations.size()) {
-          return TransferPartitionKey.SRC;
-        } else {
-          return TransferPartitionKey.DST;
-        }
-      }
-    } else if (srcAllocatedCount > dstAllocatedCount) { // Src locations are identified.
+    // The case for when optimization is not possible.
+    if (srcAllocatedCount == 0 && dstAllocatedCount == 0) { // No allocated location.
+      // Partitioning not possible. (This is not expected).
+      return TransferPartitionKey.NONE;
+    }
+
+    // Choose the key by masses.
+    if (srcAllocatedCount > dstAllocatedCount) {
       return TransferPartitionKey.SRC;
-    } else { // Dst locations are identified.
+    } else if (dstAllocatedCount > srcAllocatedCount) {
       return TransferPartitionKey.DST;
+    } else { // It's a match. Choose the key by distinction.
+      // Partition based on the location that has more distinct sub-locations.
+      // This will later be capped by configured parallelism.
+      if (srcLocations.size() >= dstLocations.size()) {
+        return TransferPartitionKey.SRC;
+      } else {
+        return TransferPartitionKey.DST;
+      }
     }
   }
 
