@@ -497,7 +497,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
-        attributeOptionsBuilder.setGroup(userName);
+        attributeOptionsBuilder.setOwner(userName);
       }
       SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
       mFileSystem.createDirectory(turi,
