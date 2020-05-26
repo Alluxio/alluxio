@@ -476,28 +476,38 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
+    SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
     FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     try {
-      String groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached since input gid is always valid
-        LOG.error("Failed to get group name from gid {}.", gid);
-        return -ErrorCodes.EFAULT();
+      if (gid != GID) {
+        String groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached since input gid is always valid
+          LOG.error("Failed to get group name from gid {}.", gid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setGroup(groupName);
       }
-      String userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached since input uid is always valid
-        LOG.error("Failed to get user name from uid {}", uid);
-        return -ErrorCodes.EFAULT();
+      if (uid != UID) {
+        String userName = AlluxioFuseUtils.getUserName(uid);
+        if (userName.isEmpty()) {
+          // This should never be reached since input uid is always valid
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EFAULT();
+        }
+        attributeOptionsBuilder.setOwner(userName);
       }
+      SetAttributePOptions setAttributePOptions = attributeOptionsBuilder.build();
       mFileSystem.createDirectory(turi,
           CreateDirectoryPOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
               .build());
-      mFileSystem.setAttribute(turi, SetAttributePOptions.newBuilder()
-          .setOwner(userName).setGroup(groupName).build());
+      if (gid != GID || uid != UID) {
+        LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
+        mFileSystem.setAttribute(turi, setAttributePOptions);
+      }
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create directory {}, directory already exists", path);
       return -ErrorCodes.EEXIST();
