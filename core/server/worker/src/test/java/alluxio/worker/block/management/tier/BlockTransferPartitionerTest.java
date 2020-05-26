@@ -45,8 +45,8 @@ public class BlockTransferPartitionerTest {
     // Test partitioning for when there are 2 distinct locations with "3 and 1" transfers.
     for (List<BlockTransferInfo> transfers : generateTransferLists(4, new int[] {3, 1})) {
       validatePartitions(mPartitioner.partitionTransfers(transfers, 1), 1, 4);
-      validatePartitions(mPartitioner.partitionTransfers(transfers, 2), 2, 1, 3);
-      validatePartitions(mPartitioner.partitionTransfers(transfers, 3), 2, 1, 3);
+      validatePartitions(mPartitioner.partitionTransfers(transfers, 2), 2, 3, 1);
+      validatePartitions(mPartitioner.partitionTransfers(transfers, 3), 2, 3, 1);
     }
 
     // Test partitioning for when there are 3 distinct locations with "1, 1 and 2" transfers.
