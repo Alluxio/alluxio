@@ -26,7 +26,8 @@ group: 1000
 fsGroup: 1000
 
 # Mount path in the host
-mountPath: /mnt/alluxio-fuse
+#mountPath: /mnt/alluxio-fuse
+mountPath: /mnt
 
 # Site properties for all the components
 properties:
