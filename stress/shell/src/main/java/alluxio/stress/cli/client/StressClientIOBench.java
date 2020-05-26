@@ -14,9 +14,9 @@ package alluxio.stress.cli.client;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.Benchmark;
+import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.stress.client.ClientIOOperation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -52,7 +52,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
 
+  /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+    /** Set to true after the first barrier is passed. */
+  private volatile boolean mStartBarrierPassed = false;
 
   /**
    * Creates instance.
@@ -69,9 +72,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
   @Override
   public void prepare() throws Exception {
-    if (mBaseParameters.mCluster) {
-      throw new IllegalArgumentException(this.getClass().getName()
-          + " is a single-node client IO stress test, so it cannot be run in cluster mode.");
+    if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
+      throw new IllegalArgumentException(String.format(
+          "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
+              + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
@@ -141,7 +145,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
-    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+    if (startMs == BaseParameters.UNDEFINED_START_MS || mStartBarrierPassed) {
+      // if the barrier was already passed, then overwrite the start time
       startMs = CommonUtils.getCurrentMs() + 10000;
     }
     long endMs = startMs + warmupMs + durationMs;
@@ -272,6 +277,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
+      mStartBarrierPassed = true;
 
       while (!Thread.currentThread().isInterrupted() && (!isRead
           || CommonUtils.getCurrentMs() < mContext.getEndMs())) {
