@@ -67,6 +67,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
   /** Metadata state pause lock. */
   private Lock mStatePauseLock;
 
+  /** Duration to try on locking the state-lock. */
+  private final long mStateLockTimeout;
+
   /** Scheduled future to time-put backups on leader. */
   private ScheduledFuture<?> mTimeoutBackupFuture;
   /** Time at which the last heart-beat was received by leader. */
@@ -98,8 +101,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
     // Store state lock for pausing state change when necessary.
     mStatePauseLock = masterContext.pauseStateLock();
     // Read properties.
-    mBackupAbandonTimeout =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
+    mStateLockTimeout = ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_TIMEOUT);
+    mBackupAbandonTimeout = ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
   }
 
   @Override
@@ -250,16 +253,15 @@ public class BackupLeaderRole extends AbstractBackupRole {
    */
   private void scheduleLocalBackup(BackupPRequest request) {
     mLocalBackupFuture = mExecutorService.submit(() -> {
-      try (LockResource lr = new LockResource(mStatePauseLock)) {
-        try {
-          mBackupTracker.updateState(BackupState.Running);
-          AlluxioURI backupUri = takeBackup(request, mBackupTracker.getEntryCounter());
-          mBackupTracker.updateBackupUri(backupUri);
-          mBackupTracker.updateState(BackupState.Completed);
-        } catch (IOException e) {
-          mBackupTracker.updateError(
-              new BackupException(String.format("Local backup failed: %s", e.getMessage()), e));
-        }
+      try (LockResource stateLockResource =
+          new LockResource(mStatePauseLock, mStateLockTimeout, TimeUnit.MILLISECONDS)) {
+        mBackupTracker.updateState(BackupState.Running);
+        AlluxioURI backupUri = takeBackup(request, mBackupTracker.getEntryCounter());
+        mBackupTracker.updateBackupUri(backupUri);
+        mBackupTracker.updateState(BackupState.Completed);
+      } catch (Exception e) {
+        mBackupTracker.updateError(
+            new BackupException(String.format("Local backup failed: %s", e.getMessage()), e));
       }
     });
   }
@@ -282,7 +284,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
         sendMessageBlocking(workerEntry.getKey(), new BackupSuspendMessage());
         // Get consistent journal sequences.
         Map<String, Long> journalSequences;
-        try (LockResource stateLock = new LockResource(mStatePauseLock)) {
+        try (LockResource stateLockResource =
+            new LockResource(mStatePauseLock, mStateLockTimeout, TimeUnit.MILLISECONDS)) {
           journalSequences = mJournalSystem.getCurrentSequenceNumbers();
         }
         // Send backup request along with consistent journal sequences.
