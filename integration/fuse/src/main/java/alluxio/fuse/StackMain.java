@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.fuse;
@@ -15,8 +14,14 @@ package alluxio.fuse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Main entry for StackFS.
+ */
 public class StackMain {
 
+  /**
+   * @param args arguments
+   */
   public static void main(String[] args) {
     if (args.length < 2) {
       System.out.println("Usage: <root> <mountPoint> <fuseOpts...>");
@@ -26,7 +31,7 @@ public class StackMain {
     Path mountPoint = Paths.get(args[1]);
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
-    System.arraycopy(args, 2, fuseOpts, 0, args.length-2);
+    System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);
     try {
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {

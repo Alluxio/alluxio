@@ -73,6 +73,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
 
+  /**
+   * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
+   *
+   * @param fs Alluxio file system
+   * @param opts options
+   * @param conf Alluxio configuration
+   */
   public AlluxioJniFuseFileSystem(
       FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
     super(Paths.get(opts.getMountPoint()));

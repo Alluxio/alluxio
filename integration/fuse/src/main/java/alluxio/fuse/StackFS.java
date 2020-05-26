@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.fuse;
@@ -27,9 +26,16 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Stack FS.
+ */
 public class StackFS extends AbstractFuseFileSystem {
   private final Path mRoot;
 
+  /**
+   * @param root root
+   * @param mountPoint mount point
+   */
   public StackFS(Path root, Path mountPoint) {
     super(mountPoint);
     mRoot = root;
@@ -105,27 +111,23 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int open(String path, FuseFileInfo fi) {
     path = transformPath(path);
-    try {
-      FileInputStream fis = new FileInputStream(path);
-      fis.close();
+    try (FileInputStream fis = new FileInputStream(path)) {
+      return 0;
     } catch (Exception e) {
       e.printStackTrace();
       return -ErrorCodes.EIO();
     }
-    return 0;
   }
 
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     path = transformPath(path);
     int nread = 0;
-    try {
-      FileInputStream fis = new FileInputStream(path);
+    try (FileInputStream fis = new FileInputStream(path)) {
       byte[] tmpbuf = new byte[(int) size];
       long nskipped = fis.skip(offset);
       nread = fis.read(tmpbuf, 0, (int) size);
       buf.put(tmpbuf, 0, nread);
-      fis.close();
     } catch (IndexOutOfBoundsException e) {
       return 0;
     } catch (Exception e) {
