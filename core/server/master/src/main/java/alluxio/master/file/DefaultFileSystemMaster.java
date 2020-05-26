@@ -3126,7 +3126,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
           InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor, this,
               mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
               DescendantType.ALL, mUfsSyncPathCache, options, false, false, false);
-          sync.sync();
+          if (!sync.sync()) {
+            LOG.debug("Active full sync on {} didn't sync any paths.", path);
+          }
         }
         long end = System.currentTimeMillis();
         LOG.info("Ended an active full sync of {} in {}ms", path.toString(), end - start);
@@ -3144,7 +3146,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
               InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor,
                   this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
                   DescendantType.NONE, mUfsSyncPathCache, options, false, false, false);
-              sync.sync();
+              if (!sync.sync()) {
+                // Use debug because this can be a noisy log
+                LOG.debug("Incremental sync on {} didn't sync any paths.", path);
+              }
             } catch (InvalidPathException e) {
               LogUtils.warnWithException(LOG,
                   "incremental active sync processed an invalid path {}", changedFile.getPath(), e);
