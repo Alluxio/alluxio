@@ -41,35 +41,35 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public State validate(Map<String, String> optionsMap) {
     if (!UnderFileSystemUtils.isHdfs(mUfs)) {
       // only support check on HDFS for now
       System.out.format("Under file system is not HDFS. Skip validation.%n");
-      return TaskResult.SKIPPED;
+      return State.SKIPPED;
     }
     UfsStatus status;
     try {
       status = mUfs.getStatus(mPath);
       if (status == null) {
         System.err.format("Unable to get status for under file system path %s.%n", mPath);
-        return TaskResult.FAILED;
+        return State.FAILED;
       }
       if (Strings.isNullOrEmpty(status.getOwner()) && Strings.isNullOrEmpty(status.getGroup())) {
         System.err.format("Cannot determine owner of under file system path %s.%n", mPath);
-        return TaskResult.WARNING;
+        return State.WARNING;
       }
     } catch (IOException e) {
       System.err.format("Unable to access under file system path %s: %s.%n", mPath,
           e.getMessage());
-      return TaskResult.FAILED;
+      return State.FAILED;
     }
     try {
       mUfs.setOwner(mPath, status.getOwner(), status.getGroup());
-      return TaskResult.OK;
+      return State.OK;
     } catch (IOException e) {
       System.err.format("Unable to set owner of under file system path %s: %s. "
           + "Please check if Alluxio is super user on the file system.%n", mPath, e.getMessage());
-      return TaskResult.WARNING;
+      return State.WARNING;
     }
   }
 }

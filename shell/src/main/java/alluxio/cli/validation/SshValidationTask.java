@@ -34,10 +34,10 @@ public final class SshValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public State validate(Map<String, String> optionsMap) {
     Set<String> nodes = ConfigurationUtils.getServerHostnames(mConf);
     if (nodes == null) {
-      return TaskResult.FAILED;
+      return State.FAILED;
     }
 
     boolean hasUnreachableNodes = false;
@@ -47,6 +47,6 @@ public final class SshValidationTask extends AbstractValidationTask {
         hasUnreachableNodes = true;
       }
     }
-    return hasUnreachableNodes ? TaskResult.WARNING : TaskResult.OK;
+    return hasUnreachableNodes ? State.WARNING : State.OK;
   }
 }

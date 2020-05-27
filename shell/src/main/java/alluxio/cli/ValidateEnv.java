@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.Constants;
 import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
-import alluxio.cli.validation.HdfsValidationTask;
+import alluxio.cli.validation.HdfsConfValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.validation.SecureHdfsValidationTask;
@@ -95,7 +95,7 @@ public final class ValidateEnv {
     // HDFS configuration validations
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
-        new HdfsValidationTask(CONF), COMMON_TASKS);
+        new HdfsConfValidationTask(CONF), COMMON_TASKS);
 
     // port availability validations
     registerTask("master.rpc.port.available",
@@ -242,7 +242,7 @@ public final class ValidateEnv {
   private static boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
-    Map<ValidationTask.TaskResult, Integer> results = new HashMap<>();
+    Map<ValidationTask.State, Integer> results = new HashMap<>();
     Map<String, String> optionsMap = new HashMap<>();
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
@@ -255,7 +255,7 @@ public final class ValidateEnv {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      ValidationTask.TaskResult result = task.validate(optionsMap);
+      ValidationTask.State result = task.validate(optionsMap);
       results.put(result, results.getOrDefault(result, 0) + 1);
       switch (result) {
         case OK:
@@ -277,21 +277,21 @@ public final class ValidateEnv {
       System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
-      System.err.format("%d failures ", results.get(ValidationTask.TaskResult.FAILED));
+    if (results.containsKey(ValidationTask.State.FAILED)) {
+      System.err.format("%d failures ", results.get(ValidationTask.State.FAILED));
     }
-    if (results.containsKey(ValidationTask.TaskResult.WARNING)) {
-      System.err.format("%d warnings ", results.get(ValidationTask.TaskResult.WARNING));
+    if (results.containsKey(ValidationTask.State.WARNING)) {
+      System.err.format("%d warnings ", results.get(ValidationTask.State.WARNING));
     }
-    if (results.containsKey(ValidationTask.TaskResult.SKIPPED)) {
-      System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.SKIPPED));
+    if (results.containsKey(ValidationTask.State.SKIPPED)) {
+      System.err.format("%d skipped ", results.get(ValidationTask.State.SKIPPED));
     }
     System.err.println();
     if (validationCount == 0) {
       System.err.format("No validation task matched name \"%s\".%n", name);
       return false;
     }
-    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
+    if (results.containsKey(ValidationTask.State.FAILED)) {
       return false;
     }
     System.out.println("Validation succeeded.");

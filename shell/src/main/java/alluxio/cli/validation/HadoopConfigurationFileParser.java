@@ -87,4 +87,32 @@ public class HadoopConfigurationFileParser {
     }
     return ret;
   }
+
+  public Map<String, String> parseXmlConfNonNull(final String path) throws IOException, SAXException,
+          ParserConfigurationException {
+    File xmlFile;
+    xmlFile = new File(path);
+    if (!xmlFile.exists()) {
+      System.err.format("File %s does not exist.", path);
+      return null;
+    }
+    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+    Document doc;
+    doc = docBuilder.parse(xmlFile);
+    // Optional, but recommended.
+    // Refer to http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+    doc.getDocumentElement().normalize();
+    Map<String, String> ret = new HashMap<>();
+    NodeList propNodeList = doc.getElementsByTagName("property");
+    for (int i = 0; i < propNodeList.getLength(); i++) {
+      Node propNode = propNodeList.item(i);
+      if (propNode.getNodeType() == Node.ELEMENT_NODE) {
+        Element element = (Element) propNode;
+        ret.put(element.getElementsByTagName("name").item(0).getTextContent(),
+                element.getElementsByTagName("value").item(0).getTextContent());
+      }
+    }
+    return ret;
+  }
 }

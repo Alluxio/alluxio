@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * Task for validating security configurations.
  */
-public final class SecureHdfsValidationTask extends HdfsValidationTask {
+public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.
@@ -69,17 +69,17 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public State validate(Map<String, String> optionsMap) {
     if (shouldSkip()) {
-      return TaskResult.SKIPPED;
+      return State.SKIPPED;
     }
-    if (super.validate(optionsMap) == TaskResult.FAILED) {
-      return TaskResult.FAILED;
+    if (super.validate(optionsMap) == State.FAILED) {
+      return State.FAILED;
     }
     if (!validatePrincipalLogin()) {
-      return TaskResult.FAILED;
+      return State.FAILED;
     }
-    return TaskResult.OK;
+    return State.OK;
   }
 
   @Override

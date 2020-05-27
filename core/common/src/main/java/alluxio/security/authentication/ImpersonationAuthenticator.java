@@ -17,9 +17,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +40,8 @@ import javax.security.sasl.AuthenticationException;
  */
 @ThreadSafe
 public final class ImpersonationAuthenticator {
+  public static final String WILDCARD = "*";
   private static final Splitter SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
-  private static final String WILDCARD = "*";
   // Maps users configured for impersonation to the set of groups which they can impersonate.
   private final Map<String, Set<String>> mImpersonationGroups;
   // Maps users configured for impersonation to the set of users which they can impersonate.
@@ -145,5 +147,13 @@ public final class ImpersonationAuthenticator {
             + "Please read the guide to configure impersonation at %s",
         connectionUser, impersonationUser, connectionUser, impersonationUser,
         RuntimeConstants.ALLUXIO_SECURITY_DOCS_URL));
+  }
+
+  public Map<String, Set<String>> getImpersonationUsers() {
+    return Collections.unmodifiableMap(mImpersonationUsers);
+  }
+
+  public Map<String, Set<String>> getmImpersonationGroups() {
+    return Collections.unmodifiableMap(mImpersonationGroups);
   }
 }

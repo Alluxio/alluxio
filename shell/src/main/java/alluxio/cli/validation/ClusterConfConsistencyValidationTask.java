@@ -47,7 +47,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public State validate(Map<String, String> optionMap) throws InterruptedException {
     Set<String> masters = ConfigurationUtils.getMasterHostnames(mConf);
     Set<String> workers = ConfigurationUtils.getWorkerHostnames(mConf);
     Set<String> nodes = Sets.union(masters, workers);
@@ -55,17 +55,17 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
     Set<String> propertyNames = new HashSet<>();
     if (masters.isEmpty()) {
       System.err.println("No master nodes specified in conf/masters file");
-      return TaskResult.SKIPPED;
+      return State.SKIPPED;
     }
     if (workers.isEmpty()) {
       System.err.println("No worker nodes specified in conf/workers file");
-      return TaskResult.SKIPPED;
+      return State.SKIPPED;
     }
-    TaskResult result = TaskResult.OK;
+    State result = State.OK;
     for (String node : nodes) {
       Properties props = getNodeConf(node);
       if (props == null) {
-        result = TaskResult.FAILED;
+        result = State.FAILED;
         continue;
       }
       allProperties.put(node, props);
@@ -96,21 +96,21 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       boolean isConsistent = true;
 
       String errLabel;
-      TaskResult errLevel;
+      State errLevel;
       switch (level) {
         case ENFORCE:
           errLabel = "Error";
-          errLevel = TaskResult.FAILED;
+          errLevel = State.FAILED;
           break;
         case WARN:
           errLabel = "Warning";
-          errLevel = TaskResult.WARNING;
+          errLevel = State.WARNING;
           break;
         default:
           System.err.format(
               "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
               level.name(), propertyName);
-          result = TaskResult.FAILED;
+          result = State.FAILED;
           continue;
       }
       for (String remoteNode : targetNodes) {
@@ -130,7 +130,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
       }
       if (!isConsistent) {
-        result = result == TaskResult.FAILED ? TaskResult.FAILED : errLevel;
+        result = result == State.FAILED ? State.FAILED : errLevel;
       }
     }
     return result;

@@ -31,15 +31,29 @@ public interface ValidationTask {
    * @param optionMap contains string representation of <key, value> pairs
    * @return the result of validation task
    */
-  TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
+  State validate(Map<String, String> optionMap) throws InterruptedException;
 
   /**
    * Result of a validation task.
    */
-  enum TaskResult {
+  enum State {
     OK,
     WARNING,
     FAILED,
     SKIPPED
+  }
+
+  class TaskResult {
+    public State mState;
+    public String mTaskName;
+    public String mOutput;
+    public String mAdvice;
+
+    public TaskResult(State state, String taskName, String output, String advice) {
+      mState = state;
+      mTaskName = taskName;
+      mOutput = output;
+      mAdvice = advice;
+    }
   }
 }

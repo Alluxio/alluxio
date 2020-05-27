@@ -37,7 +37,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public State validate(Map<String, String> optionsMap) {
     try {
       Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(
@@ -45,37 +45,37 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
         String line = processOutputReader.readLine();
         if (line == null) {
           System.err.format("Unable to check user limit for %s.%n", mName);
-          return TaskResult.FAILED;
+          return State.FAILED;
         }
 
         if (line.equals("unlimited")) {
           if (mUpperBound != null) {
             System.err.format("The user limit for %s is unlimited. It should be less than %d%n",
                 mName, mUpperBound);
-            return TaskResult.WARNING;
+            return State.WARNING;
           }
 
-          return TaskResult.OK;
+          return State.OK;
         }
 
         int value = Integer.parseInt(line);
         if (mUpperBound != null && value > mUpperBound) {
           System.err.format("The user limit for %s is too large. The current value is %d. "
               + "It should be less than %d%n", mName, value, mUpperBound);
-          return TaskResult.WARNING;
+          return State.WARNING;
         }
 
         if (mLowerBound != null && value < mLowerBound) {
           System.err.format("The user limit for %s is too small. The current value is %d. "
               + "For production use, it should be bigger than %d%n", mName, value, mLowerBound);
-          return TaskResult.WARNING;
+          return State.WARNING;
         }
 
-        return TaskResult.OK;
+        return State.OK;
       }
     } catch (IOException e) {
       System.err.format("Unable to check user limit for %s: %s.%n", mName, e.getMessage());
-      return TaskResult.FAILED;
+      return State.FAILED;
     }
   }
 
