@@ -21,6 +21,9 @@ import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.BlockManagementTaskResult;
+import alluxio.worker.block.management.BlockOperationResult;
+import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
@@ -64,8 +67,9 @@ public class PromoteTask extends AbstractBlockManagementTask {
   }
 
   @Override
-  public void run() {
+  public BlockManagementTaskResult run() {
     LOG.debug("Running promote task.");
+    BlockManagementTaskResult result = new BlockManagementTaskResult();
     // Iterate each tier intersection and move to upper tier whenever required.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
@@ -77,9 +81,12 @@ public class PromoteTask extends AbstractBlockManagementTask {
           mMetadataManager.getBlockIterator().getIterator(tierDownLoc, BlockOrder.Reverse);
 
       // Acquire and execute promotion transfers.
-      mTransferExecutor.executeTransferList(
+      BlockOperationResult tierResult = mTransferExecutor.executeTransferList(
           getTransferInfos(tierDownIterator, tierUpLoc, tierDownLoc));
+
+      result.addOpResults(BlockOperationType.PROMOTE_MOVE, tierResult);
     }
+    return result;
   }
 
   /**
