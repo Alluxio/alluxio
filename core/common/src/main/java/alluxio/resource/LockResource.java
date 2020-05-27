@@ -11,6 +11,8 @@
 
 package alluxio.resource;
 
+import alluxio.exception.ExceptionMessage;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +104,7 @@ public class LockResource implements Closeable {
       }
     }
     if (!lockAcquired) {
-      throw new TimeoutException(
-          String.format("Failed to acquire the lock:%s, after %dms", mLock, timeoutMs));
+      throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(timeoutMs));
     }
   }
 
