@@ -21,6 +21,9 @@ import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.BlockManagementTaskResult;
+import alluxio.worker.block.management.BlockOperationResult;
+import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
@@ -62,27 +65,38 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
   }
 
   @Override
-  public void run() {
+  public BlockManagementTaskResult run() {
     LOG.debug("Running swap-restore task.");
     // Generate swap-restore plan.
     Pair<List<Long>, List<BlockTransferInfo>> swapRestorePlan = getSwapRestorePlan();
     LOG.debug("Generated swap-restore plan with {} deletions and {} transfers.",
         swapRestorePlan.getFirst().size(), swapRestorePlan.getSecond().size());
 
+    BlockManagementTaskResult result = new BlockManagementTaskResult();
     // Execute to-be-removed blocks from the plan.
+    int removalFailCount = 0;
     for (Long blockId : swapRestorePlan.getFirst()) {
       try {
         mBlockStore.removeBlock(Sessions.createInternalSessionId(), blockId);
       } catch (Exception e) {
         LOG.warn("Failed to remove block: {} during swap-restore task.", blockId);
+        removalFailCount++;
       }
     }
+    result.addOpResults(BlockOperationType.SWAP_RESTORE_REMOVE,
+        new BlockOperationResult(swapRestorePlan.getFirst().size(), removalFailCount, 0));
 
     // Execute to-be-transferred blocks from the plan.
-    mTransferExecutor.executeTransferList(swapRestorePlan.getSecond());
+    BlockOperationResult flushResult =
+        mTransferExecutor.executeTransferList(swapRestorePlan.getSecond());
+    result.addOpResults(BlockOperationType.SWAP_RESTORE_FLUSH, flushResult);
 
     // Re-balance each tier.
-    mTransferExecutor.executeTransferList(getBalancingTransfersList());
+    BlockOperationResult balanceResult =
+        mTransferExecutor.executeTransferList(getBalancingTransfersList());
+    result.addOpResults(BlockOperationType.SWAP_RESTORE_BALANCE, balanceResult);
+
+    return result;
   }
 
   /**

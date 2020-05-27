@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -59,9 +60,10 @@ public class BlockTransferExecutor {
    * Executes given list of {@link BlockTransferInfo}s.
    *
    * @param transferInfos the list of transfers
+   * @return the result of transfers
    */
-  public void executeTransferList(List<BlockTransferInfo> transferInfos) {
-    executeTransferList(transferInfos, null);
+  public BlockOperationResult executeTransferList(List<BlockTransferInfo> transferInfos) {
+    return executeTransferList(transferInfos, null);
   }
 
   /**
@@ -69,25 +71,38 @@ public class BlockTransferExecutor {
    *
    * @param transferInfos the list of transfers
    * @param exceptionHandler exception handler for when a transfer fails
+   * @return the result of transfers
    */
-  public void executeTransferList(List<BlockTransferInfo> transferInfos,
+  public BlockOperationResult executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
     LOG.debug("Executing transfer list of size: {}. Concurrency limit: {}",
         transferInfos.size(), mConcurrencyLimit);
     // Return immediately for an empty transfer list.
     if (transferInfos.isEmpty()) {
-      return;
+      return new BlockOperationResult();
     }
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
+<<<<<<< HEAD
         mPartitioner.partitionTransfers(transferInfos, mConcurrencyLimit);
+=======
+        partitionTransfers(transferInfos, mParallelism);
+    // Counters for ops/failures/backoffs.
+    AtomicInteger opCount = new AtomicInteger(0);
+    AtomicInteger failCount = new AtomicInteger(0);
+    AtomicInteger backOffCount = new AtomicInteger(0);
+>>>>>>> upstream/master
     // Execute to-be-transferred blocks from the plan.
     Collection<Callable<Void>> executionTasks = new LinkedList<>();
     for (List<BlockTransferInfo> executionPartition : executionPartitions) {
       executionTasks.add(() -> {
         // TODO(ggezer): Prevent collisions by locking on locations.
         // Above to-do requires both source and destination locations to be allocated.
-        executeTransferPartition(executionPartition, exceptionHandler);
+        BlockOperationResult res = executeTransferPartition(executionPartition, exceptionHandler);
+        // Accumulate partition results.
+        opCount.addAndGet(res.opCount());
+        failCount.addAndGet(res.failCount());
+        backOffCount.addAndGet(res.backOffCount());
         return null;
       });
     }
@@ -97,19 +112,29 @@ public class BlockTransferExecutor {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
+
+    return new BlockOperationResult(opCount.get(), failCount.get(), backOffCount.get());
   }
 
   /**
    * Used as entry point for executing a single transfer partition.
    */
-  private void executeTransferPartition(List<BlockTransferInfo> transferInfos,
+  private BlockOperationResult executeTransferPartition(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
+<<<<<<< HEAD
     LOG.debug("Executing transfer partition of size {}", transferInfos.size());
+=======
+    // Counters for failure and back-offs.
+    int failCount = 0;
+    int backOffCount = 0;
+    // Execute transfers in order.
+>>>>>>> upstream/master
     for (BlockTransferInfo transferInfo : transferInfos) {
       try {
         if (mLoadTracker.loadDetected(transferInfo.getSrcLocation(),
             transferInfo.getDstLocation())) {
           LOG.debug("Skipping transfer-order: {} due to user activity.", transferInfo);
+          backOffCount++;
           continue;
         }
 
@@ -126,10 +151,13 @@ public class BlockTransferExecutor {
         }
       } catch (Exception e) {
         LOG.warn("Transfer-order: {} failed. {}. ", transferInfo, e);
+        failCount++;
         if (exceptionHandler != null) {
           exceptionHandler.accept(e);
         }
       }
     }
+
+    return new BlockOperationResult(transferInfos.size(), failCount, backOffCount);
   }
 }

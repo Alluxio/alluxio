@@ -9,17 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.management;
+@import '../../constants/scss/themeVariables';
 
-/**
- * An interface for BlockStore management task.
- */
-public interface BlockManagementTask {
+.absolute-bottom-right {
+  bottom: 0px;
+  margin: 15px;
+  position: fixed;
+  right: 0px;
+}
 
-  /**
-   * Run management task.
-   *
-   * @return the task result
-   */
-  BlockManagementTaskResult run();
+.button-icon {
+  height: 100px;
+  width: 100px;
 }

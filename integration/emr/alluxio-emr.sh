@@ -144,8 +144,11 @@ emr_install_alluxio() {
 
   release=$(basename "${alluxio_tarball}")
   local release_unzip
-  release_unzip="${release%%-*}" # trims everything after the first '-', ex. alluxio-foo-bar-whatever -> alluxio
-
+  if [[ "${release}" == *-* ]]; then
+    release_unzip="${release%%-*}" # trims everything after the first '-', ex. alluxio-foo-bar-whatever -> alluxio
+  else
+    release_unzip="${release%%.tar*}" # trims everything after the '.tar', ex. alluxio.tar.gz -> alluxio
+  fi
   # Unpack and inflate the release tar
   # TODO logic for different compression formats, s3 URIs, git URIs, etc.
   sudo cp "${release}" /opt/

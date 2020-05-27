@@ -250,10 +250,14 @@ public final class PlanCoordinator {
           mPlanInfo.setStatus(Status.FAILED);
           if (mPlanInfo.getErrorMessage().isEmpty()) {
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
+            LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
           }
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
+            if (mPlanInfo.getStatus() != Status.CANCELED) {
+              LOG.info("Job cancelled Id={}", mPlanInfo.getId());
+            }
             mPlanInfo.setStatus(Status.CANCELED);
           }
           return;

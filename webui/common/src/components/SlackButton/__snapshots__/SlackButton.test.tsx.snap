@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SlackButton Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <div
+    className="absolute-bottom-right"
+    id="SlackChannel"
+  >
+    <Button
+      className="button-icon"
+      color="info"
+      id="SlackChannel"
+      onClick={[Function]}
+      tag="button"
+    >
+      <img
+        src="icon-slack.svg"
+      />
+    </Button>
+  </div>
+  <UncontrolledPopover
+    placement="auto"
+    target="SlackChannel"
+    trigger="hover"
+  >
+    <PopoverBody
+      tag="div"
+    >
+      <span>
+        Ask a question on
+         
+        <a
+          href="https://www.alluxio.io/slack"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Slack
+        </a>
+        !
+      </span>
+    </PopoverBody>
+  </UncontrolledPopover>
+</Fragment>
+`;
