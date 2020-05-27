@@ -97,7 +97,7 @@ public class LockResource implements Closeable {
         lockAcquired = true;
         break;
       } else {
-        long remainingWaitMs = deadlineMs = System.currentTimeMillis();
+        long remainingWaitMs = deadlineMs - System.currentTimeMillis();
         if (remainingWaitMs > 0) {
           Thread.sleep(Math.min(sleepMs, remainingWaitMs));
         }
