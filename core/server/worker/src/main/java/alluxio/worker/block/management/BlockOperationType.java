@@ -12,14 +12,12 @@
 package alluxio.worker.block.management;
 
 /**
- * An interface for BlockStore management task.
+ * Used to specify several operation stages executed by {@link BlockManagementTask}s.
  */
-public interface BlockManagementTask {
-
-  /**
-   * Run management task.
-   *
-   * @return the task result
-   */
-  BlockManagementTaskResult run();
+public enum BlockOperationType {
+    ALIGN_SWAP,             // {@link AlignTask} swap transfers.
+    PROMOTE_MOVE,           // {@link PromoteTask} move transfers.
+    SWAP_RESTORE_REMOVE,    // {@link SwapRestoreTask} removals.
+    SWAP_RESTORE_FLUSH,     // {@link SwapRestoreTask} flush moves.
+    SWAP_RESTORE_BALANCE    // {@link SwapRestoreTask} balance moves.
 }

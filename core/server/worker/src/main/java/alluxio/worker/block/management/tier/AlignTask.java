@@ -23,6 +23,9 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.BlockManagementTaskResult;
+import alluxio.worker.block.management.BlockOperationResult;
+import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
 
@@ -66,13 +69,14 @@ public class AlignTask extends AbstractBlockManagementTask {
   }
 
   @Override
-  public void run() {
+  public BlockManagementTaskResult run() {
     LOG.debug("Running align task.");
     // Acquire align range from the configuration.
     // This will limit swap operations in a single run.
     final int alignRange =
         ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RANGE);
 
+    BlockManagementTaskResult result = new BlockManagementTaskResult();
     // Align each tier intersection by swapping blocks.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
@@ -98,8 +102,11 @@ public class AlignTask extends AbstractBlockManagementTask {
       };
 
       // Execute swap transfers.
-      mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
+      BlockOperationResult tierResult =
+          mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
+      result.addOpResults(BlockOperationType.ALIGN_SWAP, tierResult);
     }
+    return result;
   }
 
   private List<BlockTransferInfo> generateSwapTransferInfos(
