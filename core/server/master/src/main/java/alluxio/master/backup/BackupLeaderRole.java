@@ -254,7 +254,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
   private void scheduleLocalBackup(BackupPRequest request) {
     mLocalBackupFuture = mExecutorService.submit(() -> {
       try (LockResource stateLockResource =
-          new LockResource(mStatePauseLock, mStateLockTimeout, TimeUnit.MILLISECONDS)) {
+          new LockResource(mStatePauseLock, request.getOptions().getStateLockTryDurationMs(),
+              request.getOptions().getStateLockSleepDurationMs(),
+              request.getOptions().getStateLockTimeoutMs())) {
         mBackupTracker.updateState(BackupState.Running);
         AlluxioURI backupUri = takeBackup(request, mBackupTracker.getEntryCounter());
         mBackupTracker.updateBackupUri(backupUri);
@@ -285,7 +287,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
         // Get consistent journal sequences.
         Map<String, Long> journalSequences;
         try (LockResource stateLockResource =
-            new LockResource(mStatePauseLock, mStateLockTimeout, TimeUnit.MILLISECONDS)) {
+            new LockResource(mStatePauseLock, request.getOptions().getStateLockTryDurationMs(),
+                request.getOptions().getStateLockSleepDurationMs(),
+                request.getOptions().getStateLockTimeoutMs())) {
           journalSequences = mJournalSystem.getCurrentSequenceNumbers();
         }
         // Send backup request along with consistent journal sequences.
