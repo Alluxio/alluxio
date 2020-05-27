@@ -90,40 +90,12 @@ public final class MasterBenchTaskResult implements TaskResult {
   }
 
   /**
-   * @return number of successes
-   */
-  public long getNumSuccess() {
-    return mStatistics.mNumSuccess;
-  }
-
-  /**
    * Increments the number of successes by an amount.
    *
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(long numSuccess) {
     mStatistics.mNumSuccess += numSuccess;
-  }
-
-  /**
-   * @param numSuccess number of successes
-   */
-  public void setNumSuccess(long numSuccess) {
-    mStatistics.mNumSuccess = numSuccess;
-  }
-
-  /**
-   * @return the raw response time data
-   */
-  public byte[] getResponseTimeNsRaw() {
-    return mStatistics.mResponseTimeNsRaw;
-  }
-
-  /**
-   * @param responseTimeNsRaw the raw response time data
-   */
-  public void setResponseTimeNsRaw(byte[] responseTimeNsRaw) {
-    mStatistics.mResponseTimeNsRaw = responseTimeNsRaw;
   }
 
   /**

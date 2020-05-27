@@ -381,7 +381,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           mResponseTimeNs.recordValue(responseTimeNs);
 
           // track max response time
-          long[] maxResponseTimeNs = mResult.getMaxResponseTimeNs();
+          long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
           int bucket =
               Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
           if (responseTimeNs > maxResponseTimeNs[bucket]) {

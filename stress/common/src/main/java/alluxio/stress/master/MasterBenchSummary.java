@@ -37,6 +37,7 @@ public final class MasterBenchSummary implements Summary {
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
 
+  private float mThroughput;
   private MasterBenchSummaryStatistics mStatistics;
 
   private Map<String, MasterBenchSummaryStatistics> mStatisticsPerMethod;
@@ -70,6 +71,7 @@ public final class MasterBenchSummary implements Summary {
 
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
+    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
     mErrors = errors;
@@ -78,8 +80,15 @@ public final class MasterBenchSummary implements Summary {
   /**
    * @return the throughput
    */
-  public float computeThroughput() {
-    return ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+  public float getThroughput() {
+    return mThroughput;
+  }
+
+  /**
+   * @param throughput the throughput
+   */
+  public void setThroughput(float throughput) {
+    mThroughput = throughput;
   }
 
   /**

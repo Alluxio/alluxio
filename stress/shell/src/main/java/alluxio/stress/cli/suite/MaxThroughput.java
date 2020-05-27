@@ -94,7 +94,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       MasterBenchSummary mbr = runSingleTest(requiredCount, newArgs);
 
       int current = next;
-      final float actualThroughput = mbr.computeThroughput();
+      final float actualThroughput = mbr.getThroughput();
       if ((actualThroughput > requestedThroughput)
           || ((requestedThroughput - actualThroughput) / (float) requestedThroughput) < 0.02) {
         // the throughput was achieved. increase.
