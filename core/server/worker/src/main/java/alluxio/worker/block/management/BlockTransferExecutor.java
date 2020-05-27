@@ -83,15 +83,11 @@ public class BlockTransferExecutor {
     }
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
-<<<<<<< HEAD
         mPartitioner.partitionTransfers(transferInfos, mConcurrencyLimit);
-=======
-        partitionTransfers(transferInfos, mParallelism);
     // Counters for ops/failures/backoffs.
     AtomicInteger opCount = new AtomicInteger(0);
     AtomicInteger failCount = new AtomicInteger(0);
     AtomicInteger backOffCount = new AtomicInteger(0);
->>>>>>> upstream/master
     // Execute to-be-transferred blocks from the plan.
     Collection<Callable<Void>> executionTasks = new LinkedList<>();
     for (List<BlockTransferInfo> executionPartition : executionPartitions) {
@@ -121,14 +117,11 @@ public class BlockTransferExecutor {
    */
   private BlockOperationResult executeTransferPartition(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
-<<<<<<< HEAD
     LOG.debug("Executing transfer partition of size {}", transferInfos.size());
-=======
     // Counters for failure and back-offs.
     int failCount = 0;
     int backOffCount = 0;
     // Execute transfers in order.
->>>>>>> upstream/master
     for (BlockTransferInfo transferInfo : transferInfos) {
       try {
         if (mLoadTracker.loadDetected(transferInfo.getSrcLocation(),
