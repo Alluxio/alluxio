@@ -151,6 +151,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <jackson.version>2.10.1</jackson.version>
+    <ozone.version>0.5.0-beta</ozone.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -170,6 +171,7 @@
     <module>job</module>
     <module>shaded</module>
     <module>shell</module>
+    <module>stress</module>
     <module>table</module>
     <module>tests</module>
     <module>underfs</module>
@@ -500,6 +502,16 @@
         <version>${hadoop.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-ozone-client</artifactId>
+        <version>${ozone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-ozone-filesystem</artifactId>
+        <version>${ozone.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
         <version>4.5.3</version>
@@ -632,6 +644,11 @@
             <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.hdrhistogram</groupId>
+        <artifactId>HdrHistogram</artifactId>
+        <version>2.1.12</version>
       </dependency>
       <dependency>
         <groupId>org.javaswift</groupId>

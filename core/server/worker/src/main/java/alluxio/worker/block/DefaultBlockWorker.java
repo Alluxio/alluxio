@@ -251,10 +251,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
+    // Stop the base. (closes executors.)
+    // This is intentionally called first in order to send interrupt signals to heartbeat threads.
+    // Otherwise, if the heartbeat threads are not interrupted then the shutdown can hang.
+    super.stop();
     // Stop heart-beat executors and clients.
     mResourceCloser.close();
-    // Stop the base. (closes executors.)
-    super.stop();
   }
 
   @Override

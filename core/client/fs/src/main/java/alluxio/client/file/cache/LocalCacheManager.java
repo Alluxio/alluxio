@@ -277,6 +277,15 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
+        if (!ret) {
+          // something is wrong to add this page, let's remove it from meta store
+          try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+            mMetaStore.removePage(pageId);
+          } catch (PageNotFoundException e) {
+            // best effort to remove this page from meta store and ignore the exception
+            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
+          }
+        }
         LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ret);
         return ret;
       }
@@ -312,6 +321,15 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
+        if (!ret) {
+          // something is wrong to add this page, let's remove it from meta store
+          try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
+            mMetaStore.removePage(pageId);
+          } catch (PageNotFoundException e) {
+            // best effort to remove this page from meta store and ignore the exception
+            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
+          }
+        }
         LOG.debug("Add page ({},{} bytes) after evicting ({}), success: {}", pageId, page.length,
             victimPageInfo, ret);
         return ret;
@@ -343,6 +361,15 @@ public class LocalCacheManager implements CacheManager {
         return null;
       }
       ReadableByteChannel ret = getPage(pageId, pageOffset);
+      if (ret == null) {
+        // something is wrong to read this page, let's remove it from meta store
+        try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+          mMetaStore.removePage(pageId);
+        } catch (PageNotFoundException e) {
+          // best effort to remove this page from meta store and ignore the exception
+          Metrics.GET_ERRORS_FAILED_READ.inc();
+        }
+      }
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return ret;
     }
@@ -448,9 +475,15 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
+    /** Errors when getting pages due to failed reads from cache storage. */
+    private static final Counter GET_ERRORS_FAILED_READ =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_FAILED_READ_ERRORS.getName());
     /** Errors when adding pages. */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
+    /** Errors when adding pages due to failed writes to cache storage. */
+    private static final Counter PUT_FAILED_WRITE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS.getName());
 
     private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(

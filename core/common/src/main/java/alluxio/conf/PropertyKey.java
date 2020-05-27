@@ -2132,6 +2132,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
+      new Builder(Name.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL)
+          .setDefaultValue(6)
+          .setDescription("The maximum number of concurrent sync tasks running for a given sync "
+              + "operation")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
+      new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "The total number of threads which can concurrently execute metadata sync "
+                  + "operations.")
+          .setDescription("The number of threads used to execute all metadata sync"
+              + "operations")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
+      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "The number of threads which can concurrently fetch metadata from UFSes during a "
+                  + "metadata sync operations")
+          .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
+              + "operations")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_PARALLELISM =
       new Builder(Name.MASTER_RPC_EXECUTOR_PARALLELISM)
           .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
@@ -2356,11 +2384,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
           .setDefaultValue("ANY")
-          .setDescription("Defines the backoff strategy used by background tasks. "
+          .setDescription("Defines the backoff scope respected by background tasks. "
               + "Supported values are ANY / DIRECTORY. "
-              + "ANY: Background tasks will backoff when there is any load on worker, "
-              + "regardless of which tier/dir/medium the load is in. "
-              + "DIRECTORY: Background tasks will backoff only on directories with load.")
+              + "ANY: Management tasks will backoff from worker when there is any user I/O."
+              + "This mode will ensure low management task overhead in order to favor "
+              + "immediate user I/O performance. However, making progress on management tasks "
+              + "will require quite periods on the worker."
+              + "DIRECTORY: Management tasks will backoff from directories with ongoing user I/O."
+              + "This mode will give better chance of making progress on management tasks."
+              + "However, immediate user I/O throughput might be reduced due to "
+              + "increased management task activity.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2850,15 +2883,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_TIERED_STORE_LEVELS)
           .setDefaultValue(1)
           .setDescription("The number of storage tiers on the worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-      new Builder(Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)
-          .setAlias("alluxio.worker.tieredstore.reserver.interval.ms")
-          .setDefaultValue("1sec")
-          .setDescription("The time period of space reserver service, which "
-              + "keeps certain portion of available space on each layer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4827,6 +4851,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.embedded.journal.transport.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
+    public static final String MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
+        "alluxio.master.metadata.sync.concurrency.level";
+    public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
+        "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
+        "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
@@ -5067,8 +5097,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
         "alluxio.worker.tieredstore.free.ahead.bytes";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
-    public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
-        "alluxio.worker.tieredstore.reserver.interval";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";

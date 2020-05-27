@@ -11,7 +11,7 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
-FROM maven:3.5.4-jdk-8
+FROM maven:3.6.3-jdk-8
 
 # need to create /.config to avoid npm errors
 RUN mkdir -p /home/jenkins && \
@@ -22,3 +22,6 @@ RUN mkdir -p /home/jenkins && \
     apt-get update -y && \
     apt-get install -y golang-go ruby ruby-dev make build-essential fuse && \
     gem install jekyll bundler
+RUN wget --quiet https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip && \
+    unzip -o ./terraform_0.12.24_linux_amd64.zip -d /usr/local/bin/ && \
+    rm terraform_0.12.24_linux_amd64.zip

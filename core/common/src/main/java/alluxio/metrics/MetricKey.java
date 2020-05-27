@@ -22,12 +22,13 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Metric keys. This class provides a set of pre-defined Alluxio metric keys.
@@ -831,6 +832,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_CREATE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_CREATE_ERRORS)
+          .setDescription("Number of failures when creating a cache in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_DELETE_ERRORS =
       new Builder(Name.CLIENT_CACHE_DELETE_ERRORS)
           .setDescription("Number of failures when deleting cached data in the client cache.")
@@ -843,9 +850,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_GET_FAILED_READ_ERRORS =
+      new Builder(Name.CLIENT_CACHE_GET_FAILED_READ_ERRORS)
+          .setDescription("Number of failures when getting cached data in the client cache due to"
+              + " read failures from local storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PUT_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache due to"
+              + " write failures to local storage.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1053,9 +1074,14 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_HIT_RATE = "Client.CacheHitRate";
     public static final String CLIENT_CACHE_SPACE_AVAILABLE = "Client.CacheSpaceAvailable";
     public static final String CLIENT_CACHE_SPACE_USED = "Client.CacheSpaceUsed";
+    public static final String CLIENT_CACHE_CREATE_ERRORS = "Client.CacheCreateErrors";
+    public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
+    public static final String CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS =
+        "Client.CachePutFailedWriteErrors";
     public static final String CLIENT_CACHE_DELETE_ERRORS = "Client.CacheDeleteErrors";
     public static final String CLIENT_CACHE_GET_ERRORS = "Client.CacheGetErrors";
-    public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
+    public static final String CLIENT_CACHE_GET_FAILED_READ_ERRORS =
+        "Client.CacheGetFailedReadErrors";
 
     private Name() {} // prevent instantiation
   }

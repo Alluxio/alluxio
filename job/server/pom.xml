@@ -85,6 +85,11 @@
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-stress-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Internal test Dependencies -->
     <dependency>
