@@ -11,21 +11,19 @@ import com.google.common.collect.Sets;
 import javax.security.auth.Subject;
 import java.util.*;
 
-public class HdfsImpersonationValidationTask extends AbstractValidationTask {
-
-  private final AlluxioConfiguration mConf;
+public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
   private final Map<String, Set<String>> mImpersonationUsers;
   private final Map<String, Set<String>> mImpersonationGroups;
-  // TODO(jiacheng): get this from HdfsConfValTask
-  private Map<String, String> mCoreConf;
+  private final Mode mMode;
 
   /**
    * Creates a new instance of {@link HdfsImpersonationValidationTask}
    * for validating impersonation configuration.
    * @param conf configuration
    */
-  public HdfsImpersonationValidationTask(AlluxioConfiguration conf) {
-    mConf = conf;
+  public HdfsImpersonationValidationTask(String path, AlluxioConfiguration conf, Mode mode) {
+    super(path, conf);
+    mMode = mode;
     ImpersonationAuthenticator ia = new ImpersonationAuthenticator(mConf);
     mImpersonationUsers = ia.getImpersonationUsers();
     mImpersonationGroups = ia.getmImpersonationGroups();
@@ -48,6 +46,12 @@ public class HdfsImpersonationValidationTask extends AbstractValidationTask {
       return true;
     }
     return false;
+  }
+
+  public enum Mode {
+    USERS,
+    GROUPS,
+    HOSTS
   }
 
   private TaskResult validateImpersonationUsers() {
@@ -199,19 +203,24 @@ public class HdfsImpersonationValidationTask extends AbstractValidationTask {
     return new TaskResult(state, taskName, msg.toString(), advice.toString());
   }
 
-  private List<TaskResult> validateProxyUser() {
-    List<TaskResult> results = new ArrayList<>();
+  @Override
+  public TaskResult validate(Map<String, String> optionMap) {
+    TaskResult loadConfig = loadHdfsConfig();
+    if (loadConfig.mState != State.OK) {
+      return loadConfig;
+    }
 
     // TODO(jiacheng): do we want to check the current user even if there's no impersonation setting?
 
-    results.add(validateImpersonationUsers());
-    results.add(validateImpersonationGroups());
-    results.add(validateImpersonationHosts());
-    return results;
-  }
-
-  @Override
-  public State validate(Map<String, String> optionMap) throws InterruptedException {
-    return null;
+    switch (mMode) {
+      case USERS:
+        return validateImpersonationUsers();
+      case GROUPS:
+        return validateImpersonationGroups();
+      case HOSTS:
+        return validateImpersonationHosts();
+      default:
+        throw new RuntimeException(String.format("Unknown validation mode %s", mMode));
+    }
   }
 }

@@ -56,37 +56,4 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     System.out.println("Hadoop version " + version);
     return version;
   }
-
-  public List<TaskResult> validateTasks() {
-    List<TaskResult> results = new ArrayList<>();
-    String taskName = "Validate hadoop version";
-    // get hadoop version
-    String hadoopVersion;
-    try {
-      hadoopVersion = getHadoopVersion();
-    } catch (IOException e) {
-      // log
-
-      results.add(new TaskResult(State.FAILED, taskName,
-              String.format("Failed to get hadoop version: %s.", e.getMessage()),
-              "Please check if hadoop is on your PATH."));
-      return results;
-    }
-
-    String version = mConf.get(PropertyKey.UNDERFS_VERSION);
-    TaskResult result;
-    if (version.equals(hadoopVersion)) {
-      result = new TaskResult(State.OK, taskName,
-              String.format("Hadoop version %s matches %s.",
-                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString()),
-              "");
-    } else {
-      result = new TaskResult(State.FAILED, taskName,
-              String.format("Hadoop version %s does not match %s=%s.",
-                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
-              String.format("Please configure %s to match the HDFS version.", PropertyKey.UNDERFS_VERSION.toString()));
-    }
-    results.add(result);
-    return results;
-  }
 }

@@ -42,7 +42,6 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
-
     String path = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
     String alias = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals("MEM")) {
