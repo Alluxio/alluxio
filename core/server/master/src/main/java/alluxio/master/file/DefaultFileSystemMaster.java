@@ -3145,7 +3145,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
               InodeSyncStream sync = new InodeSyncStream(inodePath, mActiveSyncMetadataExecutor,
                   this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
-                  DescendantType.NONE, mUfsSyncPathCache, options, false, false, false);
+                  DescendantType.ONE, mUfsSyncPathCache, options, false, false, false);
               if (!sync.sync()) {
                 // Use debug because this can be a noisy log
                 LOG.debug("Incremental sync on {} didn't sync any paths.", path);
