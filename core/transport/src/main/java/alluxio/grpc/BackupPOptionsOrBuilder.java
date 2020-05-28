@@ -39,4 +39,37 @@ public interface BackupPOptionsOrBuilder extends
    * @return The allowLeader.
    */
   boolean getAllowLeader();
+
+  /**
+   * <code>optional int64 stateLockTryDurationMs = 4;</code>
+   * @return Whether the stateLockTryDurationMs field is set.
+   */
+  boolean hasStateLockTryDurationMs();
+  /**
+   * <code>optional int64 stateLockTryDurationMs = 4;</code>
+   * @return The stateLockTryDurationMs.
+   */
+  long getStateLockTryDurationMs();
+
+  /**
+   * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+   * @return Whether the stateLockSleepDurationMs field is set.
+   */
+  boolean hasStateLockSleepDurationMs();
+  /**
+   * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+   * @return The stateLockSleepDurationMs.
+   */
+  long getStateLockSleepDurationMs();
+
+  /**
+   * <code>optional int64 stateLockTimeoutMs = 6;</code>
+   * @return Whether the stateLockTimeoutMs field is set.
+   */
+  boolean hasStateLockTimeoutMs();
+  /**
+   * <code>optional int64 stateLockTimeoutMs = 6;</code>
+   * @return The stateLockTimeoutMs.
+   */
+  long getStateLockTimeoutMs();
 }

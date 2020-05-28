@@ -115,8 +115,17 @@ public final class DailyMetadataBackup {
   private void dailyBackup() {
     try {
       BackupStatus resp =
-          mMetaMaster.backup(BackupPRequest.newBuilder().setTargetDirectory(mBackupDir)
-              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(mIsLocal)).build());
+          mMetaMaster.backup(BackupPRequest.newBuilder()
+              .setTargetDirectory(mBackupDir)
+              .setOptions(BackupPOptions.newBuilder()
+                  .setLocalFileSystem(mIsLocal)
+                  .setStateLockTryDurationMs(ServerConfiguration
+                      .getMs(PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION))
+                  .setStateLockSleepDurationMs(ServerConfiguration
+                      .getMs(PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION))
+                  .setStateLockTimeoutMs(ServerConfiguration
+                      .getMs(PropertyKey.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)))
+              .build());
       if (mIsLocal) {
         LOG.info("Successfully backed up journal to {} on master {} with {} entries.",
             resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());

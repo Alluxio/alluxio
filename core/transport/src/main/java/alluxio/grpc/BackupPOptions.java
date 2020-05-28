@@ -64,6 +64,21 @@ private static final long serialVersionUID = 0L;
             allowLeader_ = input.readBool();
             break;
           }
+          case 32: {
+            bitField0_ |= 0x00000008;
+            stateLockTryDurationMs_ = input.readInt64();
+            break;
+          }
+          case 40: {
+            bitField0_ |= 0x00000010;
+            stateLockSleepDurationMs_ = input.readInt64();
+            break;
+          }
+          case 48: {
+            bitField0_ |= 0x00000020;
+            stateLockTimeoutMs_ = input.readInt64();
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -148,6 +163,57 @@ private static final long serialVersionUID = 0L;
     return allowLeader_;
   }
 
+  public static final int STATELOCKTRYDURATIONMS_FIELD_NUMBER = 4;
+  private long stateLockTryDurationMs_;
+  /**
+   * <code>optional int64 stateLockTryDurationMs = 4;</code>
+   * @return Whether the stateLockTryDurationMs field is set.
+   */
+  public boolean hasStateLockTryDurationMs() {
+    return ((bitField0_ & 0x00000008) != 0);
+  }
+  /**
+   * <code>optional int64 stateLockTryDurationMs = 4;</code>
+   * @return The stateLockTryDurationMs.
+   */
+  public long getStateLockTryDurationMs() {
+    return stateLockTryDurationMs_;
+  }
+
+  public static final int STATELOCKSLEEPDURATIONMS_FIELD_NUMBER = 5;
+  private long stateLockSleepDurationMs_;
+  /**
+   * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+   * @return Whether the stateLockSleepDurationMs field is set.
+   */
+  public boolean hasStateLockSleepDurationMs() {
+    return ((bitField0_ & 0x00000010) != 0);
+  }
+  /**
+   * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+   * @return The stateLockSleepDurationMs.
+   */
+  public long getStateLockSleepDurationMs() {
+    return stateLockSleepDurationMs_;
+  }
+
+  public static final int STATELOCKTIMEOUTMS_FIELD_NUMBER = 6;
+  private long stateLockTimeoutMs_;
+  /**
+   * <code>optional int64 stateLockTimeoutMs = 6;</code>
+   * @return Whether the stateLockTimeoutMs field is set.
+   */
+  public boolean hasStateLockTimeoutMs() {
+    return ((bitField0_ & 0x00000020) != 0);
+  }
+  /**
+   * <code>optional int64 stateLockTimeoutMs = 6;</code>
+   * @return The stateLockTimeoutMs.
+   */
+  public long getStateLockTimeoutMs() {
+    return stateLockTimeoutMs_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -171,6 +237,15 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) != 0)) {
       output.writeBool(3, allowLeader_);
     }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      output.writeInt64(4, stateLockTryDurationMs_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      output.writeInt64(5, stateLockSleepDurationMs_);
+    }
+    if (((bitField0_ & 0x00000020) != 0)) {
+      output.writeInt64(6, stateLockTimeoutMs_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -191,6 +266,18 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(3, allowLeader_);
+    }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(4, stateLockTryDurationMs_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(5, stateLockSleepDurationMs_);
+    }
+    if (((bitField0_ & 0x00000020) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(6, stateLockTimeoutMs_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -222,6 +309,21 @@ private static final long serialVersionUID = 0L;
       if (getAllowLeader()
           != other.getAllowLeader()) return false;
     }
+    if (hasStateLockTryDurationMs() != other.hasStateLockTryDurationMs()) return false;
+    if (hasStateLockTryDurationMs()) {
+      if (getStateLockTryDurationMs()
+          != other.getStateLockTryDurationMs()) return false;
+    }
+    if (hasStateLockSleepDurationMs() != other.hasStateLockSleepDurationMs()) return false;
+    if (hasStateLockSleepDurationMs()) {
+      if (getStateLockSleepDurationMs()
+          != other.getStateLockSleepDurationMs()) return false;
+    }
+    if (hasStateLockTimeoutMs() != other.hasStateLockTimeoutMs()) return false;
+    if (hasStateLockTimeoutMs()) {
+      if (getStateLockTimeoutMs()
+          != other.getStateLockTimeoutMs()) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -247,6 +349,21 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + ALLOWLEADER_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getAllowLeader());
+    }
+    if (hasStateLockTryDurationMs()) {
+      hash = (37 * hash) + STATELOCKTRYDURATIONMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStateLockTryDurationMs());
+    }
+    if (hasStateLockSleepDurationMs()) {
+      hash = (37 * hash) + STATELOCKSLEEPDURATIONMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStateLockSleepDurationMs());
+    }
+    if (hasStateLockTimeoutMs()) {
+      hash = (37 * hash) + STATELOCKTIMEOUTMS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStateLockTimeoutMs());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -387,6 +504,12 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       allowLeader_ = false;
       bitField0_ = (bitField0_ & ~0x00000004);
+      stateLockTryDurationMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000008);
+      stateLockSleepDurationMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000010);
+      stateLockTimeoutMs_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -426,6 +549,18 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000004) != 0)) {
         result.allowLeader_ = allowLeader_;
         to_bitField0_ |= 0x00000004;
+      }
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.stateLockTryDurationMs_ = stateLockTryDurationMs_;
+        to_bitField0_ |= 0x00000008;
+      }
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.stateLockSleepDurationMs_ = stateLockSleepDurationMs_;
+        to_bitField0_ |= 0x00000010;
+      }
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.stateLockTimeoutMs_ = stateLockTimeoutMs_;
+        to_bitField0_ |= 0x00000020;
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -484,6 +619,15 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasAllowLeader()) {
         setAllowLeader(other.getAllowLeader());
+      }
+      if (other.hasStateLockTryDurationMs()) {
+        setStateLockTryDurationMs(other.getStateLockTryDurationMs());
+      }
+      if (other.hasStateLockSleepDurationMs()) {
+        setStateLockSleepDurationMs(other.getStateLockSleepDurationMs());
+      }
+      if (other.hasStateLockTimeoutMs()) {
+        setStateLockTimeoutMs(other.getStateLockTimeoutMs());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -622,6 +766,117 @@ private static final long serialVersionUID = 0L;
     public Builder clearAllowLeader() {
       bitField0_ = (bitField0_ & ~0x00000004);
       allowLeader_ = false;
+      onChanged();
+      return this;
+    }
+
+    private long stateLockTryDurationMs_ ;
+    /**
+     * <code>optional int64 stateLockTryDurationMs = 4;</code>
+     * @return Whether the stateLockTryDurationMs field is set.
+     */
+    public boolean hasStateLockTryDurationMs() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional int64 stateLockTryDurationMs = 4;</code>
+     * @return The stateLockTryDurationMs.
+     */
+    public long getStateLockTryDurationMs() {
+      return stateLockTryDurationMs_;
+    }
+    /**
+     * <code>optional int64 stateLockTryDurationMs = 4;</code>
+     * @param value The stateLockTryDurationMs to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStateLockTryDurationMs(long value) {
+      bitField0_ |= 0x00000008;
+      stateLockTryDurationMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 stateLockTryDurationMs = 4;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearStateLockTryDurationMs() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      stateLockTryDurationMs_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long stateLockSleepDurationMs_ ;
+    /**
+     * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+     * @return Whether the stateLockSleepDurationMs field is set.
+     */
+    public boolean hasStateLockSleepDurationMs() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+     * @return The stateLockSleepDurationMs.
+     */
+    public long getStateLockSleepDurationMs() {
+      return stateLockSleepDurationMs_;
+    }
+    /**
+     * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+     * @param value The stateLockSleepDurationMs to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStateLockSleepDurationMs(long value) {
+      bitField0_ |= 0x00000010;
+      stateLockSleepDurationMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 stateLockSleepDurationMs = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearStateLockSleepDurationMs() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      stateLockSleepDurationMs_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long stateLockTimeoutMs_ ;
+    /**
+     * <code>optional int64 stateLockTimeoutMs = 6;</code>
+     * @return Whether the stateLockTimeoutMs field is set.
+     */
+    public boolean hasStateLockTimeoutMs() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>optional int64 stateLockTimeoutMs = 6;</code>
+     * @return The stateLockTimeoutMs.
+     */
+    public long getStateLockTimeoutMs() {
+      return stateLockTimeoutMs_;
+    }
+    /**
+     * <code>optional int64 stateLockTimeoutMs = 6;</code>
+     * @param value The stateLockTimeoutMs to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStateLockTimeoutMs(long value) {
+      bitField0_ |= 0x00000020;
+      stateLockTimeoutMs_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 stateLockTimeoutMs = 6;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearStateLockTimeoutMs() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      stateLockTimeoutMs_ = 0L;
       onChanged();
       return this;
     }
