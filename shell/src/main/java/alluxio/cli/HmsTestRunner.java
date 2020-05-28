@@ -32,6 +32,8 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -50,6 +52,8 @@ import java.util.stream.Collectors;
  * Run tests against an existing hive metastore.
  */
 public class HmsTestRunner {
+  private static final Logger LOG = LoggerFactory.getLogger(HmsTestRunner.class);
+
   // The maximum number of table objects that this test will get.
   // Used to avoid issuing too many calls to the hive metastore
   // which may need a long time based on network conditions
@@ -288,7 +292,7 @@ public class HmsTestRunner {
       List<Table> tables = mClient.getTableObjectsByName(mDatabase, tableNames);
       StringBuilder tableLocations = new StringBuilder();
       for (Table table : tables) {
-        tableLocations.append(String.format("Table (name: %s, location: %s)\n",
+        tableLocations.append(String.format("Table (name: %s, location: %s)%n",
             table.getTableName(), table.getSd().getLocation()));
       }
       mResults.computeIfAbsent(State.OK, k -> new ArrayList<>()).add(
@@ -304,7 +308,7 @@ public class HmsTestRunner {
         String tableFields = mClient.getSchema(mDatabase, table).stream()
             .map(FieldSchema::getName).collect(Collectors.joining(","));
         tableFieldsOutput.append(String
-            .format("Table (name: %s, fields: %s)\n", table, tableFields));
+            .format("Table (name: %s, fields: %s)%n", table, tableFields));
       }
       mResults.computeIfAbsent(State.OK, k -> new ArrayList<>()).add(
           new TaskResult(State.OK, testName, tableFieldsOutput.toString(), ""));

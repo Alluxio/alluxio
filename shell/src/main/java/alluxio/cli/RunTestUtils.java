@@ -72,6 +72,8 @@ public final class RunTestUtils {
    * Represents the result of a given task.
    */
   public static class TaskResult implements Serializable {
+    private static final long serialVersionUID = -2746652850515278409L;
+
     State mState = State.OK;
     String mName = "";
     // Output stores stdout if test passed or stderr if error thrown
