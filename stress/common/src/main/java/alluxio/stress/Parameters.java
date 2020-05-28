@@ -203,7 +203,7 @@ public abstract class Parameters {
   }
 
   /**
-   * This annotation is for descriptions which do not display the key/name
+   * This annotation is for descriptions which do not display the key/name.
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.FIELD})
