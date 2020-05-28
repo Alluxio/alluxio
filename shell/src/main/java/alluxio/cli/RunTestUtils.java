@@ -16,6 +16,7 @@ import alluxio.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 /**
@@ -55,5 +56,118 @@ public final class RunTestUtils {
     }
     RunTestUtils.printPassInfo(result);
     return result;
+  }
+
+  /**
+   * Task State.
+   */
+  public enum State {
+    OK,
+    WARNING,
+    FAILED,
+    SKIPPED
+  }
+
+  /**
+   * Represents the result of a given task.
+   */
+  public static class TaskResult implements Serializable {
+    State mState = State.OK;
+    String mName = "";
+    // Output stores stdout if test passed or stderr if error thrown
+    String mOutput = "";
+    String mAdvice = "";
+
+    /**
+     * Creates a new {@link TaskResult}.
+     *
+     * @param state task state
+     * @param name task name
+     * @param output task output
+     * @param advice task advice
+     */
+    TaskResult(State state, String name, String output, String advice) {
+      mState = state;
+      mName = name;
+      mOutput = output;
+      mAdvice = advice;
+    }
+
+    /**
+     * Creates a new {@link TaskResult}.
+     */
+    TaskResult() {}
+
+    /**
+     * Sets task state.
+     *
+     * @param state state to set
+     * @return the task result
+     */
+    public TaskResult setState(State state) {
+      mState = state;
+      return this;
+    }
+
+    /**
+     * Sets task name.
+     *
+     * @param name name to set
+     * @return the task result
+     */
+    public TaskResult setName(String name) {
+      mName = name;
+      return this;
+    }
+
+    /**
+     * Sets task output.
+     *
+     * @param output output to set
+     * @return the task result
+     */
+    public TaskResult setOutput(String output) {
+      mOutput = output;
+      return this;
+    }
+
+    /**
+     * Sets task advice.
+     *
+     * @param advice advice to set
+     * @return the task result
+     */
+    public TaskResult setAdvice(String advice) {
+      mAdvice = advice;
+      return this;
+    }
+
+    /**
+     * @return task state
+     */
+    public State getState() {
+      return mState;
+    }
+
+    /**
+     * @return task name
+     */
+    public String getName() {
+      return mName;
+    }
+
+    /**
+     * @return task result
+     */
+    public String getResult() {
+      return mOutput;
+    }
+
+    /**
+     * @return task advice
+     */
+    public String getAdvice() {
+      return mAdvice;
+    }
   }
 }
