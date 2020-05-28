@@ -47,29 +47,41 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public State validate(Map<String, String> optionMap) throws InterruptedException {
+  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     Set<String> masters = ConfigurationUtils.getMasterHostnames(mConf);
     Set<String> workers = ConfigurationUtils.getWorkerHostnames(mConf);
     Set<String> nodes = Sets.union(masters, workers);
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
     if (masters.isEmpty()) {
-      System.err.println("No master nodes specified in conf/masters file");
-      return State.SKIPPED;
+      msg.append(String.format("No master nodes specified in %s/masters file. ", mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the master node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
+      return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
-      System.err.println("No worker nodes specified in conf/workers file");
-      return State.SKIPPED;
+      msg.append(String.format("No worker nodes specified in %s/workers file. ", mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the worker node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
+      return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
     }
-    State result = State.OK;
+    State state = State.OK;
+    Exception ex = null;
     for (String node : nodes) {
-      Properties props = getNodeConf(node);
-      if (props == null) {
-        result = State.FAILED;
+      try {
+        Properties props = getNodeConf(node);
+        allProperties.put(node, props);
+        propertyNames.addAll(props.stringPropertyNames());
+      } catch (IOException e) {
+        System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
+        msg.append(String.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage()));
+        advice.append(String.format("Please check the connection from node %s. ", node));
+        ex = e;
+        state = State.FAILED;
+        // Check all nodes before returning
         continue;
       }
-      allProperties.put(node, props);
-      propertyNames.addAll(props.stringPropertyNames());
     }
     for (String propertyName : propertyNames) {
       if (!PropertyKey.isValid(propertyName)) {
@@ -107,10 +119,11 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
           errLevel = State.WARNING;
           break;
         default:
-          System.err.format(
+          msg.append(String.format(
               "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
-              level.name(), propertyName);
-          result = State.FAILED;
+              level.name(), propertyName));
+          advice.append(String.format("Please check property %s.%n", propertyName));
+          state = State.FAILED;
           continue;
       }
       for (String remoteNode : targetNodes) {
@@ -122,37 +135,33 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
         String remoteValue = allProperties.get(remoteNode).getProperty(propertyName);
         if (!StringUtils.equals(remoteValue, baseValue)) {
-          System.err.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
-              errLabel, propertyName, baseNode, remoteNode);
-          System.err.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
-              remoteNode,  Objects.toString(remoteValue, "not set"));
+          msg.append(String.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
+              errLabel, propertyName, baseNode, remoteNode));
+          msg.append(String.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
+              remoteNode,  Objects.toString(remoteValue, "not set")));
+          advice.append(String.format("Please check your settings for property %s on %s and %s.%n",
+                  propertyName, baseNode, remoteNode));
           isConsistent = false;
         }
       }
       if (!isConsistent) {
-        result = result == State.FAILED ? State.FAILED : errLevel;
+        state = state == State.FAILED ? State.FAILED : errLevel;
       }
     }
-    return result;
+    return new TaskResult(state, mName, msg.toString(), advice.toString());
   }
 
-  @Nullable
-  private Properties getNodeConf(String node) {
-    try {
-      String homeDir = mConf.get(PropertyKey.HOME);
-      String remoteCommand = String.format(
-          "%s/bin/alluxio getConf", homeDir);
-      String localCommand = String.format(
-          "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
-          node, remoteCommand);
-      String[] command = {"bash", "-c", localCommand};
-      Properties properties = new Properties();
-      Process process = Runtime.getRuntime().exec(command);
-      properties.load(process.getInputStream());
-      return properties;
-    } catch (IOException e) {
-      System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
-      return null;
-    }
+  private Properties getNodeConf(String node) throws IOException {
+    String homeDir = mConf.get(PropertyKey.HOME);
+    String remoteCommand = String.format(
+        "%s/bin/alluxio getConf", homeDir);
+    String localCommand = String.format(
+        "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
+        node, remoteCommand);
+    String[] command = {"bash", "-c", localCommand};
+    Properties properties = new Properties();
+    Process process = Runtime.getRuntime().exec(command);
+    properties.load(process.getInputStream());
+    return properties;
   }
 }

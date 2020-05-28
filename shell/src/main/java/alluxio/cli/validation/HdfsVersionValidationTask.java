@@ -23,8 +23,31 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public State validate(Map<String, String> optionMap) throws InterruptedException {
-    return null;
+  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+    // get hadoop version
+    String hadoopVersion;
+    try {
+      hadoopVersion = getHadoopVersion();
+    } catch (IOException e) {
+      // log
+
+      return new TaskResult(State.FAILED, mName,
+              String.format("Failed to get hadoop version: %s.", e.getMessage()),
+              "Please check if hadoop is on your PATH.");
+    }
+
+    String version = mConf.get(PropertyKey.UNDERFS_VERSION);
+    if (version.equals(hadoopVersion)) {
+      return new TaskResult(State.OK, mName,
+              String.format("Hadoop version %s matches %s.",
+                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString()),
+              "");
+    }
+
+    return new TaskResult(State.FAILED, mName,
+            String.format("Hadoop version %s does not match %s=%s.",
+                    hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
+            String.format("Please configure %s to match the HDFS version.", PropertyKey.UNDERFS_VERSION.toString()));
   }
 
   private String getHadoopVersion() throws IOException {

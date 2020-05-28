@@ -43,17 +43,22 @@ public final class PortAvailabilityValidationTask extends AbstractValidationTask
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     if (ShellUtils.isAlluxioRunning(mOwner)) {
-      System.out.format("%s is already running. Skip validation.%n", mOwner);
-      return State.SKIPPED;
+      msg.append(String.format("%s is already running. Skip validation.%n", mOwner));
+      return new TaskResult(State.SKIPPED, mName, msg.toString(), advice.toString());
     }
     int port = NetworkAddressUtils.getPort(mServiceType, mConf);
     if (!isLocalPortAvailable(port)) {
-      System.err.format("%s port %d is not available.%n", mServiceType.getServiceName(), port);
-      return State.FAILED;
+      msg.append(String.format("%s port %d is not available.%n", mServiceType.getServiceName(), port));
+      advice.append(String.format("Please open your port %s for service %s.%n", port, mServiceType.getServiceName()));
+      return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
     }
-    return State.OK;
+    msg.append("All ports are validated.\n");
+    return new TaskResult(State.OK, mName, msg.toString(), advice.toString());
   }
 
   private static boolean isLocalPortAvailable(int port) {

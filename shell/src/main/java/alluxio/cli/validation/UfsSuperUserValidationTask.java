@@ -41,35 +41,43 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     if (!UnderFileSystemUtils.isHdfs(mUfs)) {
       // only support check on HDFS for now
-      System.out.format("Under file system is not HDFS. Skip validation.%n");
-      return State.SKIPPED;
+      msg.append(String.format("Under file system is not HDFS. Skip validation. "));
+      return new TaskResult(State.SKIPPED, mName, msg.toString(), advice.toString());
     }
     UfsStatus status;
     try {
       status = mUfs.getStatus(mPath);
       if (status == null) {
-        System.err.format("Unable to get status for under file system path %s.%n", mPath);
-        return State.FAILED;
+        msg.append(String.format("Unable to get status for under file system path %s. ", mPath));
+        advice.append(String.format("Please check your path %s. ", mPath));
+        return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
       }
       if (Strings.isNullOrEmpty(status.getOwner()) && Strings.isNullOrEmpty(status.getGroup())) {
-        System.err.format("Cannot determine owner of under file system path %s.%n", mPath);
-        return State.WARNING;
+        msg.append(String.format("Cannot determine owner of under file system path %s. ", mPath));
+        advice.append(String.format("Please check your path %s. ", mPath));
+        return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
       }
     } catch (IOException e) {
-      System.err.format("Unable to access under file system path %s: %s.%n", mPath,
-          e.getMessage());
-      return State.FAILED;
+      msg.append(String.format("Unable to access under file system path %s: %s.", mPath,
+          e.getMessage()));
+      TaskResult result = new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
+      result.setError(e);
+      return result;
     }
     try {
       mUfs.setOwner(mPath, status.getOwner(), status.getGroup());
-      return State.OK;
+      return new TaskResult(State.OK, mName, msg.toString(), advice.toString());
     } catch (IOException e) {
-      System.err.format("Unable to set owner of under file system path %s: %s. "
-          + "Please check if Alluxio is super user on the file system.%n", mPath, e.getMessage());
-      return State.WARNING;
+      msg.append(String.format("Unable to set owner of under file system path %s: %s. ",
+              mPath, e.getMessage()));
+      advice.append("Please check if Alluxio is super user on the file system. ");
+      return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
     }
   }
 }

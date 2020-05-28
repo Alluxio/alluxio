@@ -12,6 +12,7 @@
 package alluxio.cli.validation;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
@@ -34,19 +35,26 @@ public final class SshValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     Set<String> nodes = ConfigurationUtils.getServerHostnames(mConf);
     if (nodes == null) {
-      return State.FAILED;
+      msg.append("Failed to find master/worker nodes from Alluxio configuration. ");
+      advice.append(String.format("Please check your %s/master and %s/worker files. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
     }
 
-    boolean hasUnreachableNodes = false;
+    State state = State.OK;
     for (String nodeName : nodes) {
       if (!CommonUtils.isAddressReachable(nodeName, 22)) {
-        System.err.format("Unable to reach ssh port 22 on node %s.%n", nodeName);
-        hasUnreachableNodes = true;
+        msg.append(String.format("Unable to reach ssh port 22 on node %s.%n", nodeName));
+        advice.append(String.format("Please configure password-less ssh to node %s.%n", nodeName));
+        state = State.FAILED;
       }
     }
-    return hasUnreachableNodes ? State.WARNING : State.OK;
+    return new TaskResult(state, mName, msg.toString(), advice.toString());
   }
 }

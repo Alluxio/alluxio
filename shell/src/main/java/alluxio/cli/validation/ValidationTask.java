@@ -31,7 +31,7 @@ public interface ValidationTask {
    * @param optionMap contains string representation of <key, value> pairs
    * @return the result of validation task
    */
-  State validate(Map<String, String> optionMap) throws InterruptedException;
+  TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
 
   /**
    * Result of a validation task.
@@ -46,14 +46,21 @@ public interface ValidationTask {
   class TaskResult {
     public State mState;
     public String mTaskName;
+    // TODO(jiacheng): add desc
     public String mOutput;
     public String mAdvice;
+    public String mError;
 
     public TaskResult(State state, String taskName, String output, String advice) {
       mState = state;
       mTaskName = taskName;
       mOutput = output;
       mAdvice = advice;
+    }
+
+    // TODO(jiacheng): consider if we want to keep the Exception or just want string
+    public void setError(Exception e) {
+      mError = String.format("%s", e);
     }
   }
 }

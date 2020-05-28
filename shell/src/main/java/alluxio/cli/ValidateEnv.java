@@ -12,17 +12,7 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
-import alluxio.cli.validation.HdfsConfValidationTask;
-import alluxio.cli.validation.PortAvailabilityValidationTask;
-import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
-import alluxio.cli.validation.SecureHdfsValidationTask;
-import alluxio.cli.validation.SshValidationTask;
-import alluxio.cli.validation.StorageSpaceValidationTask;
-import alluxio.cli.validation.UfsDirectoryValidationTask;
-import alluxio.cli.validation.UfsSuperUserValidationTask;
-import alluxio.cli.validation.UserLimitValidationTask;
-import alluxio.cli.validation.ValidationTask;
+import alluxio.cli.validation.*;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -76,6 +66,7 @@ public final class ValidateEnv {
   private static final Options OPTIONS = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
+  // TODO(jiacheng): move description into TaskResult too
   private static final Map<String, String> TASK_DESCRIPTIONS = new HashMap<>();
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
@@ -179,10 +170,13 @@ public final class ValidateEnv {
     return targetMap;
   }
 
-  private static ValidationTask registerTask(String name, String description, ValidationTask task,
+  private static ValidationTask registerTask(String name, String description, AbstractValidationTask task,
       List<ValidationTask> tasks) {
     TASKS.put(task, name);
     TASK_DESCRIPTIONS.put(name, description);
+    // TODO(jiacheng): is there a better way to set this rather than here?
+    task.mName = name;
+    task.mDescription = description;
     tasks.add(task);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {

@@ -3,8 +3,6 @@ package alluxio.cli.validation;
 import alluxio.conf.AlluxioConfiguration;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -23,6 +21,7 @@ public class NativeLibValidationTask extends AbstractValidationTask {
 
   private TaskResult accessNativeLib() {
     String taskName = "Acess native lib path";
+    // TODO(jiacheng): how do i get this property from mConf?
     String nativeLibPath = System.getProperty("java.library.path");
     StringTokenizer parser = new StringTokenizer(nativeLibPath, ";");
     State state = State.OK;
@@ -42,9 +41,7 @@ public class NativeLibValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public State validate(Map<String, String> optionMap) throws InterruptedException {
-    List<TaskResult> results = new ArrayList<>();
-    results.add(accessNativeLib());
-    return results;
+  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+    return accessNativeLib();
   }
 }

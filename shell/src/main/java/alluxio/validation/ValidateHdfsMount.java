@@ -1,7 +1,7 @@
 package alluxio.validation;
 
 import alluxio.cli.UnderFileSystemContractTest;
-import alluxio.cli.validation.HdfsValidationTask;
+import alluxio.cli.validation.HdfsConfValidationTask;
 import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.ValidationTask;
@@ -43,7 +43,7 @@ public class ValidateHdfsMount {
 
     public static List<ValidationTask> getValidationTasks(AlluxioConfiguration conf) {
         List<ValidationTask> tasks = new ArrayList<>();
-        tasks.add(new HdfsValidationTask(conf));
+        tasks.add(new HdfsConfValidationTask(conf));
         // TODO(jiacheng): get rid of these
         tasks.add(new SecureHdfsValidationTask("master", conf));
         tasks.add(new SecureHdfsValidationTask("worker", conf));
@@ -52,7 +52,7 @@ public class ValidateHdfsMount {
     }
 
     public static void validateEnvChecks(AlluxioConfiguration conf) throws InterruptedException {
-        // TODO(jiacheng): HdfsValidationTask reads from the option map
+        // TODO(jiacheng): HdfsConfValidationTask reads from the option map
         Map<String, String> optionMap = new HashMap<>();
 
         List<ValidationTask> tasks = getValidationTasks(conf);
@@ -77,6 +77,7 @@ public class ValidateHdfsMount {
         args = cmd.getArgs();
 
         // Merge options from the command line option
+        // TODO(jiacheng): this should work for root and nested mount
         UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(InstancedConfiguration.defaults());
         if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
             conf.setReadOnly(true);

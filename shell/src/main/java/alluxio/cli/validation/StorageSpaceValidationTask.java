@@ -42,10 +42,13 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     int numLevel = mConf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
-
+    Exception ex = null;
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
@@ -59,8 +62,9 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
       String rawDirQuota = mConf.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
-        System.err.format("Tier %d: Quota cannot be empty.%n", level);
-        return State.FAILED;
+        msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
+        advice.append(String.format("Please check your setting for %s.%n", tierDirCapacityConf.toString()));
+        return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
       }
 
       String[] dirQuotas = rawDirQuota.split(",");
@@ -69,7 +73,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         Map<String, MountedStorage> storageMap = new HashMap<>();
         File file = new File(dirPaths[0]);
         if (dirPaths.length == 1 && alias.equals("MEM") && !file.exists()) {
-          System.out.format("RAM disk is not mounted at %s, skip validation.%n", dirPaths[0]);
+          msg.append(String.format("RAM disk is not mounted at %s, skip validation.%n", dirPaths[0]));
           continue;
         }
 
@@ -77,8 +81,8 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         for (int i = 0; i < dirPaths.length; i++) {
           int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
           if (ShellUtils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
-            System.out.format("ramfs mounted at %s does not report space information,"
-                + " skip validation.%n", dirPaths[i]);
+            msg.append(String.format("ramfs mounted at %s does not report space information,"
+                + " skip validation.%n", dirPaths[i]));
             hasRamfsLocation = true;
             break;
           }
@@ -100,29 +104,39 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
                 FormatUtils.getSizeFromBytes(directoryQuota.getValue())));
           }
           if (quota > used + available) {
-            System.err.format(
+            msg.append(String.format(
                 "Tier %d: Not enough space on %s. %n"
                     + "Total desired quota: %s%n"
                     + "%s"
                     + "Used in tiered storage: %s%n"
-                    + "Available: %s (Additional %s free space required)%n",
+                    + "Available: %s (Additional %s free space required).%n",
                 level, storageEntry.getKey(),
                 FormatUtils.getSizeFromBytes(quota),
                 builder.toString(),
                 FormatUtils.getSizeFromBytes(used),
                 FormatUtils.getSizeFromBytes(available),
-                FormatUtils.getSizeFromBytes(quota - used - available));
+                FormatUtils.getSizeFromBytes(quota - used - available)));
+            advice.append(String.format("Please check your quota setting for tier %s.%n", level));
             success = false;
           }
         }
       } catch (IOException e) {
-        System.err.format("Tier %d: Unable to validate available space - %s.%n",
-            level, e.getMessage());
+        msg.append(String.format("Tier %d: Unable to validate available space - %s.%n",
+            level, e.getMessage()));
+        advice.append(String.format("Please check your path for tier %s.%n", level));
+        // TODO(jiacheng): how to handle multiple exceptions?
+        ex = e;
         success = false;
       }
     }
 
-    return success ? State.OK : State.WARNING;
+    State state = success ? State.OK : State.WARNING;
+    TaskResult result = new TaskResult(state, mName, msg.toString(), advice.toString());
+    if (ex != null) {
+      // Only the last exception will be kept!
+      result.setError(ex);
+    }
+    return result;
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

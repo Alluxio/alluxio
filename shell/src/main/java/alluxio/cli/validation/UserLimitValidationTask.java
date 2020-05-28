@@ -24,58 +24,64 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
   private static final int NUMBER_OF_OPEN_FILES_MAX = 800000;
   private static final int NUMBER_OF_USER_PROCESSES_MIN = 16384;
   private final String mCommand;
-  private final String mName;
   private final Integer mLowerBound;
   private final Integer mUpperBound;
 
-  private UserLimitValidationTask(String name, String command,
+  private UserLimitValidationTask(String command,
                                   Integer lowerBound, Integer upperBound) {
-    mName = name;
     mCommand = command;
     mLowerBound = lowerBound;
     mUpperBound = upperBound;
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    State state = State.OK;
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     try {
       Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(
-          new InputStreamReader(process.getInputStream()))) {
+              new InputStreamReader(process.getInputStream()))) {
         String line = processOutputReader.readLine();
         if (line == null) {
-          System.err.format("Unable to check user limit for %s.%n", mName);
-          return State.FAILED;
+          msg.append(String.format("Unable to check user limit for %s.%n", mName));
+          advice.append(String.format("Please check if you are able to run %s. ", mCommand));
+          return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
         }
 
         if (line.equals("unlimited")) {
+          msg.append(String.format("The user limit for %s is unlimited. ", mName));
           if (mUpperBound != null) {
-            System.err.format("The user limit for %s is unlimited. It should be less than %d%n",
-                mName, mUpperBound);
-            return State.WARNING;
+            state = State.WARNING;
+            advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
           }
-
-          return State.OK;
+          return new TaskResult(state, mName, msg.toString(), advice.toString());
         }
 
         int value = Integer.parseInt(line);
         if (mUpperBound != null && value > mUpperBound) {
-          System.err.format("The user limit for %s is too large. The current value is %d. "
-              + "It should be less than %d%n", mName, value, mUpperBound);
-          return State.WARNING;
+          state = State.WARNING;
+          msg.append(String.format("The user limit for %s is too large. The current value is %d. ",
+                  mName, value));
+          advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
         }
 
         if (mLowerBound != null && value < mLowerBound) {
-          System.err.format("The user limit for %s is too small. The current value is %d. "
-              + "For production use, it should be bigger than %d%n", mName, value, mLowerBound);
-          return State.WARNING;
+          state = State.WARNING;
+          msg.append(String.format("The user limit for %s is too small. The current value is %d. ",
+                  mName, value));
+          advice.append(String.format("For production use, it should be bigger than %d%n", mLowerBound));
         }
 
-        return State.OK;
+        return new TaskResult(state, mName, msg.toString(), advice.toString());
       }
     } catch (IOException e) {
-      System.err.format("Unable to check user limit for %s: %s.%n", mName, e.getMessage());
-      return State.FAILED;
+      msg.append(String.format("Unable to check user limit for %s: %s. ", mName, e.getMessage()));
+      TaskResult result = new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
+      result.setError(e);
+      return result;
     }
   }
 
@@ -85,7 +91,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
    * @return the validation task for this check
    */
   public static ValidationTask createOpenFilesLimitValidationTask() {
-    return new UserLimitValidationTask("number of open files", "ulimit -n",
+    return new UserLimitValidationTask("ulimit -n",
         NUMBER_OF_OPEN_FILES_MIN, NUMBER_OF_OPEN_FILES_MAX);
   }
 
@@ -95,7 +101,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
    * @return the validation task for this check
    */
   public static ValidationTask createUserProcessesLimitValidationTask() {
-    return new UserLimitValidationTask("number of user processes", "ulimit -u",
+    return new UserLimitValidationTask("ulimit -u",
         NUMBER_OF_USER_PROCESSES_MIN, null);
   }
 }

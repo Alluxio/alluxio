@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import org.apache.hadoop.mapreduce.v2.app.job.event.TaskRecoverEvent;
 
 import java.io.IOException;
 import java.util.Map;
@@ -33,24 +34,30 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    * @param conf configuration
    */
   public UfsDirectoryValidationTask(AlluxioConfiguration conf) {
+    // TODO(jiacheng): UFSConf for nested path?
     mUfs = UnderFileSystem.Factory.createForRoot(conf);
     mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }
 
   @Override
-  public State validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
-        System.err.format("Unable to list under file system path %s.%n", mPath);
-        return State.FAILED;
+        msg.append(String.format("Unable to list under file system path %s. ", mPath));
+        advice.append(String.format("Please check if path %s denotes a directory. ", mPath));
+        return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
       }
-
-      return State.OK;
+      msg.append(String.format("Successfully listed path %s. ", mPath));
+      return new TaskResult(State.OK, mName, msg.toString(), advice.toString());
     } catch (IOException e) {
-      System.err.format("Unable to access under file system path %s: %s.%n", mPath,
-          e.getMessage());
-      return State.FAILED;
+      msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
+              e.getMessage()));
+      TaskResult result = new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
+      result.setError(e);
+      return result;
     }
   }
 }
