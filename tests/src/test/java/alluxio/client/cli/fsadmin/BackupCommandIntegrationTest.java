@@ -12,26 +12,34 @@
 package alluxio.client.cli.fsadmin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.ServerConfiguration;
-import alluxio.testutils.LocalAlluxioClusterResource.Config;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterProcess;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Integration tests for the backup command.
  */
 public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
-  @Config(confParams = {Name.MASTER_BACKUP_DIRECTORY, "${alluxio.work.dir}/backups"})
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Name.MASTER_BACKUP_DIRECTORY, "${alluxio.work.dir}/backups"})
   public void defaultDirectory() throws IOException {
     Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
     Files.createDirectories(dir);
@@ -43,6 +51,8 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Name.MASTER_BACKUP_DIRECTORY, "${alluxio.work.dir}/backups"})
   public void specificDirectory() throws IOException {
     Path dir = AlluxioTestDirectory.createTemporaryDirectory("test-backup").toPath();
     Files.createDirectories(dir);
@@ -51,5 +61,32 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
     assertEquals(1, Files.list(dir).count());
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {Name.MASTER_BACKUP_DIRECTORY,
+      "${alluxio.work.dir}/backups", Name.MASTER_BACKUP_STATE_LOCK_TIMEOUT, "3s"})
+  public void timeout() throws IOException {
+    // Grab the master state-change lock via reflection.
+    MasterProcess masterProcess =
+        Whitebox.getInternalState(mLocalAlluxioCluster.getLocalAlluxioMaster(), "mMasterProcess");
+    MasterContext masterCtx = Whitebox.getInternalState(masterProcess, "mContext");
+    Lock stateLock = masterCtx.pauseStateLock();
+
+    try {
+      // Lock the state-change lock on the master before initiating the backup.
+      stateLock.lock();
+      // Prepare for a backup.
+      Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
+      Files.createDirectories(dir);
+      assertEquals(0, Files.list(dir).count());
+      // Initiate backup. It should fail.
+      int errCode = mFsAdminShell.run("backup");
+      assertTrue(mOutput.toString().contains(ExceptionMessage.STATE_LOCK_TIMED_OUT
+          .getMessage(3000/* matching the cluster resource configuration. */)));
+      assertNotEquals(0, errCode);
+    } finally {
+      masterCtx.pauseStateLock().unlock();
+    }
   }
 }

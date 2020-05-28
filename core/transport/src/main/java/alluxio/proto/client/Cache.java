@@ -20,32 +20,39 @@ public final class Cache {
 
     /**
      * <code>optional int64 pageSize = 1;</code>
+     * @return Whether the pageSize field is set.
      */
     boolean hasPageSize();
     /**
      * <code>optional int64 pageSize = 1;</code>
+     * @return The pageSize.
      */
     long getPageSize();
 
     /**
      * <code>optional int64 cacheSize = 2;</code>
+     * @return Whether the cacheSize field is set.
      */
     boolean hasCacheSize();
     /**
      * <code>optional int64 cacheSize = 2;</code>
+     * @return The cacheSize.
      */
     long getCacheSize();
 
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return Whether the alluxioVersion field is set.
      */
     boolean hasAlluxioVersion();
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return The alluxioVersion.
      */
     java.lang.String getAlluxioVersion();
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return The bytes for alluxioVersion.
      */
     com.google.protobuf.ByteString
         getAlluxioVersionBytes();
@@ -63,9 +70,14 @@ public final class Cache {
       super(builder);
     }
     private PPageStoreCommonOptions() {
-      pageSize_ = 0L;
-      cacheSize_ = 0L;
       alluxioVersion_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PPageStoreCommonOptions();
     }
 
     @java.lang.Override
@@ -92,13 +104,6 @@ public final class Cache {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               bitField0_ |= 0x00000001;
               pageSize_ = input.readInt64();
@@ -113,6 +118,13 @@ public final class Cache {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
               alluxioVersion_ = bs;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -132,6 +144,7 @@ public final class Cache {
       return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PPageStoreCommonOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PPageStoreCommonOptions_fieldAccessorTable
@@ -144,12 +157,14 @@ public final class Cache {
     private long pageSize_;
     /**
      * <code>optional int64 pageSize = 1;</code>
+     * @return Whether the pageSize field is set.
      */
     public boolean hasPageSize() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 pageSize = 1;</code>
+     * @return The pageSize.
      */
     public long getPageSize() {
       return pageSize_;
@@ -159,12 +174,14 @@ public final class Cache {
     private long cacheSize_;
     /**
      * <code>optional int64 cacheSize = 2;</code>
+     * @return Whether the cacheSize field is set.
      */
     public boolean hasCacheSize() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int64 cacheSize = 2;</code>
+     * @return The cacheSize.
      */
     public long getCacheSize() {
       return cacheSize_;
@@ -174,12 +191,14 @@ public final class Cache {
     private volatile java.lang.Object alluxioVersion_;
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return Whether the alluxioVersion field is set.
      */
     public boolean hasAlluxioVersion() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return The alluxioVersion.
      */
     public java.lang.String getAlluxioVersion() {
       java.lang.Object ref = alluxioVersion_;
@@ -197,6 +216,7 @@ public final class Cache {
     }
     /**
      * <code>optional string alluxioVersion = 3;</code>
+     * @return The bytes for alluxioVersion.
      */
     public com.google.protobuf.ByteString
         getAlluxioVersionBytes() {
@@ -213,6 +233,7 @@ public final class Cache {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -222,34 +243,36 @@ public final class Cache {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, pageSize_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeInt64(2, cacheSize_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, alluxioVersion_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, pageSize_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, cacheSize_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, alluxioVersion_);
       }
       size += unknownFields.getSerializedSize();
@@ -267,24 +290,23 @@ public final class Cache {
       }
       alluxio.proto.client.Cache.PPageStoreCommonOptions other = (alluxio.proto.client.Cache.PPageStoreCommonOptions) obj;
 
-      boolean result = true;
-      result = result && (hasPageSize() == other.hasPageSize());
+      if (hasPageSize() != other.hasPageSize()) return false;
       if (hasPageSize()) {
-        result = result && (getPageSize()
-            == other.getPageSize());
+        if (getPageSize()
+            != other.getPageSize()) return false;
       }
-      result = result && (hasCacheSize() == other.hasCacheSize());
+      if (hasCacheSize() != other.hasCacheSize()) return false;
       if (hasCacheSize()) {
-        result = result && (getCacheSize()
-            == other.getCacheSize());
+        if (getCacheSize()
+            != other.getCacheSize()) return false;
       }
-      result = result && (hasAlluxioVersion() == other.hasAlluxioVersion());
+      if (hasAlluxioVersion() != other.hasAlluxioVersion()) return false;
       if (hasAlluxioVersion()) {
-        result = result && getAlluxioVersion()
-            .equals(other.getAlluxioVersion());
+        if (!getAlluxioVersion()
+            .equals(other.getAlluxioVersion())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -383,6 +405,7 @@ public final class Cache {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -390,6 +413,7 @@ public final class Cache {
     public static Builder newBuilder(alluxio.proto.client.Cache.PPageStoreCommonOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -413,6 +437,7 @@ public final class Cache {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PPageStoreCommonOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PPageStoreCommonOptions_fieldAccessorTable
@@ -435,6 +460,7 @@ public final class Cache {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         pageSize_ = 0L;
@@ -446,15 +472,18 @@ public final class Cache {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PPageStoreCommonOptions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PPageStoreCommonOptions getDefaultInstanceForType() {
         return alluxio.proto.client.Cache.PPageStoreCommonOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PPageStoreCommonOptions build() {
         alluxio.proto.client.Cache.PPageStoreCommonOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -463,19 +492,20 @@ public final class Cache {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PPageStoreCommonOptions buildPartial() {
         alluxio.proto.client.Cache.PPageStoreCommonOptions result = new alluxio.proto.client.Cache.PPageStoreCommonOptions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.pageSize_ = pageSize_;
           to_bitField0_ |= 0x00000001;
         }
-        result.pageSize_ = pageSize_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.cacheSize_ = cacheSize_;
           to_bitField0_ |= 0x00000002;
         }
-        result.cacheSize_ = cacheSize_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.alluxioVersion_ = alluxioVersion_;
@@ -484,32 +514,39 @@ public final class Cache {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.client.Cache.PPageStoreCommonOptions) {
           return mergeFrom((alluxio.proto.client.Cache.PPageStoreCommonOptions)other);
@@ -537,10 +574,12 @@ public final class Cache {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -563,18 +602,22 @@ public final class Cache {
       private long pageSize_ ;
       /**
        * <code>optional int64 pageSize = 1;</code>
+       * @return Whether the pageSize field is set.
        */
       public boolean hasPageSize() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 pageSize = 1;</code>
+       * @return The pageSize.
        */
       public long getPageSize() {
         return pageSize_;
       }
       /**
        * <code>optional int64 pageSize = 1;</code>
+       * @param value The pageSize to set.
+       * @return This builder for chaining.
        */
       public Builder setPageSize(long value) {
         bitField0_ |= 0x00000001;
@@ -584,6 +627,7 @@ public final class Cache {
       }
       /**
        * <code>optional int64 pageSize = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPageSize() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -595,18 +639,22 @@ public final class Cache {
       private long cacheSize_ ;
       /**
        * <code>optional int64 cacheSize = 2;</code>
+       * @return Whether the cacheSize field is set.
        */
       public boolean hasCacheSize() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional int64 cacheSize = 2;</code>
+       * @return The cacheSize.
        */
       public long getCacheSize() {
         return cacheSize_;
       }
       /**
        * <code>optional int64 cacheSize = 2;</code>
+       * @param value The cacheSize to set.
+       * @return This builder for chaining.
        */
       public Builder setCacheSize(long value) {
         bitField0_ |= 0x00000002;
@@ -616,6 +664,7 @@ public final class Cache {
       }
       /**
        * <code>optional int64 cacheSize = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCacheSize() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -627,12 +676,14 @@ public final class Cache {
       private java.lang.Object alluxioVersion_ = "";
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @return Whether the alluxioVersion field is set.
        */
       public boolean hasAlluxioVersion() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @return The alluxioVersion.
        */
       public java.lang.String getAlluxioVersion() {
         java.lang.Object ref = alluxioVersion_;
@@ -650,6 +701,7 @@ public final class Cache {
       }
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @return The bytes for alluxioVersion.
        */
       public com.google.protobuf.ByteString
           getAlluxioVersionBytes() {
@@ -666,6 +718,8 @@ public final class Cache {
       }
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @param value The alluxioVersion to set.
+       * @return This builder for chaining.
        */
       public Builder setAlluxioVersion(
           java.lang.String value) {
@@ -679,6 +733,7 @@ public final class Cache {
       }
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAlluxioVersion() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -688,6 +743,8 @@ public final class Cache {
       }
       /**
        * <code>optional string alluxioVersion = 3;</code>
+       * @param value The bytes for alluxioVersion to set.
+       * @return This builder for chaining.
        */
       public Builder setAlluxioVersionBytes(
           com.google.protobuf.ByteString value) {
@@ -699,11 +756,13 @@ public final class Cache {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -725,6 +784,7 @@ public final class Cache {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<PPageStoreCommonOptions>
         PARSER = new com.google.protobuf.AbstractParser<PPageStoreCommonOptions>() {
+      @java.lang.Override
       public PPageStoreCommonOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -742,6 +802,7 @@ public final class Cache {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.client.Cache.PPageStoreCommonOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -754,10 +815,12 @@ public final class Cache {
 
     /**
      * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+     * @return Whether the commonOptions field is set.
      */
     boolean hasCommonOptions();
     /**
      * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+     * @return The commonOptions.
      */
     alluxio.proto.client.Cache.PPageStoreCommonOptions getCommonOptions();
     /**
@@ -778,6 +841,13 @@ public final class Cache {
       super(builder);
     }
     private PRocksPageStoreOptions() {
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PRocksPageStoreOptions();
     }
 
     @java.lang.Override
@@ -804,16 +874,9 @@ public final class Cache {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               alluxio.proto.client.Cache.PPageStoreCommonOptions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              if (((bitField0_ & 0x00000001) != 0)) {
                 subBuilder = commonOptions_.toBuilder();
               }
               commonOptions_ = input.readMessage(alluxio.proto.client.Cache.PPageStoreCommonOptions.PARSER, extensionRegistry);
@@ -822,6 +885,13 @@ public final class Cache {
                 commonOptions_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000001;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -841,6 +911,7 @@ public final class Cache {
       return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PRocksPageStoreOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PRocksPageStoreOptions_fieldAccessorTable
@@ -853,12 +924,14 @@ public final class Cache {
     private alluxio.proto.client.Cache.PPageStoreCommonOptions commonOptions_;
     /**
      * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+     * @return Whether the commonOptions field is set.
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+     * @return The commonOptions.
      */
     public alluxio.proto.client.Cache.PPageStoreCommonOptions getCommonOptions() {
       return commonOptions_ == null ? alluxio.proto.client.Cache.PPageStoreCommonOptions.getDefaultInstance() : commonOptions_;
@@ -871,6 +944,7 @@ public final class Cache {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -880,20 +954,22 @@ public final class Cache {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(1, getCommonOptions());
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getCommonOptions());
       }
@@ -912,14 +988,13 @@ public final class Cache {
       }
       alluxio.proto.client.Cache.PRocksPageStoreOptions other = (alluxio.proto.client.Cache.PRocksPageStoreOptions) obj;
 
-      boolean result = true;
-      result = result && (hasCommonOptions() == other.hasCommonOptions());
+      if (hasCommonOptions() != other.hasCommonOptions()) return false;
       if (hasCommonOptions()) {
-        result = result && getCommonOptions()
-            .equals(other.getCommonOptions());
+        if (!getCommonOptions()
+            .equals(other.getCommonOptions())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1008,6 +1083,7 @@ public final class Cache {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1015,6 +1091,7 @@ public final class Cache {
     public static Builder newBuilder(alluxio.proto.client.Cache.PRocksPageStoreOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1038,6 +1115,7 @@ public final class Cache {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PRocksPageStoreOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PRocksPageStoreOptions_fieldAccessorTable
@@ -1061,6 +1139,7 @@ public final class Cache {
           getCommonOptionsFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (commonOptionsBuilder_ == null) {
@@ -1072,15 +1151,18 @@ public final class Cache {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.client.Cache.internal_static_alluxio_proto_client_PRocksPageStoreOptions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PRocksPageStoreOptions getDefaultInstanceForType() {
         return alluxio.proto.client.Cache.PRocksPageStoreOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PRocksPageStoreOptions build() {
         alluxio.proto.client.Cache.PRocksPageStoreOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -1089,49 +1171,57 @@ public final class Cache {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.client.Cache.PRocksPageStoreOptions buildPartial() {
         alluxio.proto.client.Cache.PRocksPageStoreOptions result = new alluxio.proto.client.Cache.PRocksPageStoreOptions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          if (commonOptionsBuilder_ == null) {
+            result.commonOptions_ = commonOptions_;
+          } else {
+            result.commonOptions_ = commonOptionsBuilder_.build();
+          }
           to_bitField0_ |= 0x00000001;
-        }
-        if (commonOptionsBuilder_ == null) {
-          result.commonOptions_ = commonOptions_;
-        } else {
-          result.commonOptions_ = commonOptionsBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.client.Cache.PRocksPageStoreOptions) {
           return mergeFrom((alluxio.proto.client.Cache.PRocksPageStoreOptions)other);
@@ -1151,10 +1241,12 @@ public final class Cache {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1174,17 +1266,19 @@ public final class Cache {
       }
       private int bitField0_;
 
-      private alluxio.proto.client.Cache.PPageStoreCommonOptions commonOptions_ = null;
+      private alluxio.proto.client.Cache.PPageStoreCommonOptions commonOptions_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.client.Cache.PPageStoreCommonOptions, alluxio.proto.client.Cache.PPageStoreCommonOptions.Builder, alluxio.proto.client.Cache.PPageStoreCommonOptionsOrBuilder> commonOptionsBuilder_;
       /**
        * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+       * @return Whether the commonOptions field is set.
        */
       public boolean hasCommonOptions() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional .alluxio.proto.client.PPageStoreCommonOptions commonOptions = 1;</code>
+       * @return The commonOptions.
        */
       public alluxio.proto.client.Cache.PPageStoreCommonOptions getCommonOptions() {
         if (commonOptionsBuilder_ == null) {
@@ -1228,7 +1322,7 @@ public final class Cache {
        */
       public Builder mergeCommonOptions(alluxio.proto.client.Cache.PPageStoreCommonOptions value) {
         if (commonOptionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001) &&
+          if (((bitField0_ & 0x00000001) != 0) &&
               commonOptions_ != null &&
               commonOptions_ != alluxio.proto.client.Cache.PPageStoreCommonOptions.getDefaultInstance()) {
             commonOptions_ =
@@ -1291,11 +1385,13 @@ public final class Cache {
         }
         return commonOptionsBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1317,6 +1413,7 @@ public final class Cache {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<PRocksPageStoreOptions>
         PARSER = new com.google.protobuf.AbstractParser<PRocksPageStoreOptions>() {
+      @java.lang.Override
       public PRocksPageStoreOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1334,6 +1431,7 @@ public final class Cache {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.client.Cache.PRocksPageStoreOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1366,18 +1464,10 @@ public final class Cache {
       "ns\022D\n\rcommonOptions\030\001 \001(\0132-.alluxio.prot" +
       "o.client.PPageStoreCommonOptions"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_proto_client_PPageStoreCommonOptions_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_client_PPageStoreCommonOptions_fieldAccessorTable = new
