@@ -11,11 +11,15 @@
 
 package alluxio.resource;
 
+import alluxio.exception.ExceptionMessage;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 
@@ -67,6 +71,40 @@ public class LockResource implements Closeable {
       } else {
         mLock.lock();
       }
+    }
+  }
+
+  /**
+   * Creates a new instance of {@link LockResource} using the given lock.
+   *
+   * This method will use the {@link Lock#tryLock(long, TimeUnit)} internally in a loop
+   * for trying to grab the lock without causing total blockage of other waiters of the lock.
+   *
+   * @param lock  the lock to acquire
+   * @param tryMs the duration to attempt acquiring the lock
+   * @param sleepMs the wait duration after failed attempt to acquire the lock
+   * @param timeoutMs the total duration to try acquiring the lock in a loop
+   * @throws InterruptedException if interrupted while acquiring the lock
+   * @throws TimeoutException if the lock was not acquired after given timeout
+   */
+  public LockResource(Lock lock, long tryMs, long sleepMs, long timeoutMs)
+      throws InterruptedException, TimeoutException {
+    mLock = lock;
+    long deadlineMs = System.currentTimeMillis() + timeoutMs;
+    boolean lockAcquired = false;
+    while (System.currentTimeMillis() < deadlineMs) {
+      if (mLock.tryLock(tryMs, TimeUnit.MILLISECONDS)) {
+        lockAcquired = true;
+        break;
+      } else {
+        long remainingWaitMs = deadlineMs - System.currentTimeMillis();
+        if (remainingWaitMs > 0) {
+          Thread.sleep(Math.min(sleepMs, remainingWaitMs));
+        }
+      }
+    }
+    if (!lockAcquired) {
+      throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(timeoutMs));
     }
   }
 

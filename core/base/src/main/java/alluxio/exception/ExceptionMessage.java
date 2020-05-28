@@ -34,6 +34,7 @@ public enum ExceptionMessage {
   PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
   PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
+  STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
 
   // general block
   BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
