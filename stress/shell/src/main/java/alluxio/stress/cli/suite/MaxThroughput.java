@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A max throughput suite.
@@ -83,6 +84,11 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       int perWorkerThroughput = next / mNumWorkers;
       int requestedThroughput = perWorkerThroughput * mNumWorkers;
 
+      if (perWorkerThroughput == 0) {
+        // Cannot run with a target of 0
+        break;
+      }
+
       List<String> newArgs = new ArrayList<>(baseArgs);
       updateArgValue(newArgs, "--target-throughput", Integer.toString(perWorkerThroughput));
 
@@ -119,6 +125,11 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       LOG.info(
           "target: " + requestedThroughput + " actual: " + mbr.getThroughput() + " [" + lower + " "
               + next + " " + upper + "]");
+      for (Map.Entry<String, List<String>> entry : mbr.getErrors().entrySet()) {
+        for (String error : entry.getValue()) {
+          LOG.error(String.format("%s: %s", entry.getKey(), error));
+        }
+      }
       if (Math.abs(current - next) / (float) current <= 0.02) {
         break;
       }
