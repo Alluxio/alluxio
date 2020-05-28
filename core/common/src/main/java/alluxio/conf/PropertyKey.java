@@ -2002,7 +2002,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
-          .setDefaultValue("3")
+          .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+              "The number of threads used by the active sync provider process active sync events."
+                  + " A higher number allow the master to use more CPU to process events from "
+                  + "an event stream in parallel. If this value is too low, Alluxio may fall "
+                  + "behind processing events. Defaults to # of processors / 2")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2027,6 +2031,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The max total duration to retry failed active sync operations."
               + "A large duration is useful to handle transient failures such as an "
               + "unresponsive under storage but can lock the inode tree being synced longer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
+          .setDefaultValue("1024")
+          .setDescription("The number of event batches that should be submitted together to a "
+              + "single thread for processing.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -4984,6 +4997,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
         "alluxio.master.ufs.active.sync.retry.timeout";
+    public static final String MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+        "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =

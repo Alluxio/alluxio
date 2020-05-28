@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -42,6 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -150,23 +152,11 @@ public class UfsStatusCacheTest {
 
   @Test
   public void testFetchInterruptedException() throws Exception {
-    mUfs = Mockito.spy(mUfs);
-    MountInfo rootMountInfo = new MountInfo(
-        new AlluxioURI(MountTable.ROOT),
-        new AlluxioURI(mUfsUri),
-        IdUtils.ROOT_MOUNT_ID,
-        MountPOptions.newBuilder()
-            .setReadOnly(false)
-            .setShared(false)
-            .build());
-    MasterUfsManager manager = new MasterUfsManager();
-    manager.getRoot(); // add root mount
-    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
+    spyUfs();
     doAnswer((Answer<UfsStatus[]>) invocation -> {
       Thread.sleep(30 * Constants.HOUR_MS);
       return new UfsStatus[] {Mockito.mock(UfsStatus.class)};
     }).when(mUfs).listStatus(any(String.class));
-    mMountTable = new MountTable(manager, rootMountInfo);
     mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
     AtomicReference<Error> ref = new AtomicReference<>(null);
     Thread t = new Thread(() -> {
@@ -191,19 +181,7 @@ public class UfsStatusCacheTest {
 
   @Test
   public void testFetchExecutionException() throws Exception {
-    mUfs = Mockito.spy(mUfs);
-    MountInfo rootMountInfo = new MountInfo(
-        new AlluxioURI(MountTable.ROOT),
-        new AlluxioURI(mUfsUri),
-        IdUtils.ROOT_MOUNT_ID,
-        MountPOptions.newBuilder()
-            .setReadOnly(false)
-            .setShared(false)
-            .build());
-    MasterUfsManager manager = new MasterUfsManager();
-    manager.getRoot(); // add root mount
-    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-    mMountTable = new MountTable(manager, rootMountInfo);
+    spyUfs();
     // Now test execution exception
     AtomicReference<Error> ref = new AtomicReference<>(null);
 
@@ -365,6 +343,65 @@ public class UfsStatusCacheTest {
         mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("dir1", s.getName()));
+  }
+
+  @Test
+  public void testFetchNonExistingSingleStatus() throws Exception {
+    spyUfs();
+    createUfsFile("testFile");
+    UfsStatus status = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    assertNotNull(status);
+    assertEquals("testFile", status.getName());
+    Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
+  }
+
+  @Test
+  public void testFetchExistingSingleStatus() throws Exception {
+    spyUfs();
+    createUfsFile("testFile");
+    UfsStatus status = mUfs.getStatus(PathUtils.concatPath(mUfsUri, "testFile"));
+    status.setName("testFile");
+    mCache.addStatus(new AlluxioURI("/testFile"), status);
+    UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
+    assertNotNull(fetched);
+    assertEquals("testFile", fetched.getName());
+  }
+
+  @Test
+  public void testFetchSingleStatusNonExistingPath() throws Exception {
+    spyUfs();
+    UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
+    assertNull(fetched);
+  }
+
+  @Test
+  public void testFetchSingleStatusThrowsException() throws Exception {
+    spyUfs();
+    doThrow(new IOException("test exception")).when(mUfs).getStatus(any(String.class));
+    UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
+    assertNull(fetched);
+  }
+
+  /**
+   * Recreates the mount table with the local UFS as a spy'd mockito object.
+   */
+  private void spyUfs() {
+    mUfs = Mockito.spy(mUfs);
+    MountInfo rootMountInfo = new MountInfo(
+        new AlluxioURI(MountTable.ROOT),
+        new AlluxioURI(mUfsUri),
+        IdUtils.ROOT_MOUNT_ID,
+        MountPOptions.newBuilder()
+            .setReadOnly(false)
+            .setShared(false)
+            .build());
+    MasterUfsManager manager = new MasterUfsManager();
+    manager.getRoot(); // add root mount
+    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
+    mMountTable = new MountTable(manager, rootMountInfo);
   }
 
   public void createUfsFile(String relPath) throws Exception {
