@@ -581,7 +581,7 @@ public class InodeSyncStream {
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
 
-    UfsStatus status = mStatusCache.getStatus(inodePath.getUri());
+    UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
             .setCreateAncestors(true)
