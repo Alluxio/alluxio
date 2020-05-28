@@ -80,6 +80,11 @@ public final class MasterBenchParameters extends Parameters {
           + "directory with exactly 1000 paths.")
   public int mFixedCount = 100;
 
+  @Parameter(names = {"--profile-agent"},
+      description = "The path to the profile agent if one is available. "
+          + "Providing this will enable a more detailed output.")
+  public String mProfileAgent = "";
+
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
 }
