@@ -25,7 +25,6 @@ user: 1000
 group: 1000
 fsGroup: 1000
 
-
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
