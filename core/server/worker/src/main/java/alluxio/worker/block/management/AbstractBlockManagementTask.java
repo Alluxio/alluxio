@@ -48,6 +48,6 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
     mLoadTracker = loadTracker;
     mExecutor = executor;
     mTransferExecutor = new BlockTransferExecutor(executor, blockStore, loadTracker,
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM));
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT));
   }
 }
