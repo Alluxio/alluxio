@@ -68,7 +68,6 @@ public final class StressBenchDefinition
       args.add(BaseParameters.ID_FLAG);
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
       result.add(new Pair<>(worker, args));
-      LOG.info("selectExecutors() args={}", args);
     }
     return result;
   }
@@ -76,9 +75,6 @@ public final class StressBenchDefinition
   @Override
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
-    LOG.info("Args: {}", args);
-    System.out.println("Running here "+ args);
-
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
@@ -94,9 +90,6 @@ public final class StressBenchDefinition
     }
 
     command.addAll(args);
-
-    LOG.info("running command: " + String.join(" ", command));
-    System.out.println("Commands here "+ command);
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;
   }

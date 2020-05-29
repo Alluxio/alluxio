@@ -81,7 +81,12 @@ public abstract class Benchmark<T extends TaskResult> {
     jc.setProgramName(this.getClass().getSimpleName());
     try {
       jc.parse(args);
+      if (mBaseParameters.mHelp) {
+        jc.usage();
+        System.exit(0);
+      }
     } catch (Exception e) {
+      LOG.error("Failed to parse command: ", e);
       jc.usage();
       throw e;
     }
@@ -102,7 +107,7 @@ public abstract class Benchmark<T extends TaskResult> {
 
     // run locally
     if (mBaseParameters.mInProcess) {
-      LOG.info("Run in process, mDistributed={}", mBaseParameters.mDistributed);
+      LOG.debug("Run in process, mDistributed={}", mBaseParameters.mDistributed);
 
       // run in process
       T result = runLocal();
@@ -121,8 +126,7 @@ public abstract class Benchmark<T extends TaskResult> {
       command.addAll(Arrays.asList(args));
       command.add(BaseParameters.IN_PROCESS_FLAG);
       command.addAll(mBaseParameters.mJavaOpts);
-
-      LOG.info("running command: " + String.join(" ", command));
+      LOG.debug("running command: " + String.join(" ", command));
       return ShellUtils.execCommand(command.toArray(new String[0]));
     }
   }

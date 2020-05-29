@@ -45,11 +45,6 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     if (taskResults.isEmpty()) {
       throw new IOException("No results from any workers.");
     }
-    LOG.info("join()");
-    for(Map.Entry<WorkerInfo, String> entry : taskResults.entrySet()) {
-      LOG.info("worker={}", entry.getKey());
-      LOG.info("{}", entry.getValue());
-    }
 
     AtomicReference<IOException> error = new AtomicReference<>(null);
     List<IOTaskResult> results = taskResults.entrySet().stream().map(
@@ -81,7 +76,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     Collections.shuffle(jobWorkerInfoList);
     int cnt = config.getWorkerNum();
     for (WorkerInfo worker : jobWorkerInfoList) {
-      if (cnt <= 0) {
+      if (cnt-- <= 0) {
         break;
       }
       ArrayList<String> args = new ArrayList<>(2);
@@ -90,7 +85,6 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
       args.add(BaseParameters.ID_FLAG);
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
       result.add(new Pair<>(worker, args));
-      cnt--;
     }
     return result;
   }
@@ -98,8 +92,6 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
   @Override
   public String runTask(IOConfig config, ArrayList<String> args, RunTaskContext runTaskContext)
           throws Exception {
-    LOG.info("args={}", args);
-
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
@@ -117,7 +109,6 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
 
     command.addAll(args);
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
-    LOG.info("Command output: {}", output);
     return output;
   }
 }
