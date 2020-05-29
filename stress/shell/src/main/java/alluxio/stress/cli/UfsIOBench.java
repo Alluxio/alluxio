@@ -84,7 +84,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     @Override
     public void prepare() throws Exception {
-        // Nothing to prepare here
+        // TODO(jiacheng): any HDFS conf to add?
     }
 
     /**
@@ -189,11 +189,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
             throws IOException, InterruptedException, ExecutionException {
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
-        // TODO(jiacheng): need hdfs conf?
-        Map<String, String> hdfsConf = new HashMap<>();
 
         UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-                .createMountSpecificConf(hdfsConf);
+                .createMountSpecificConf(mHdfsConf);
         UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
         if (!ufs.exists(mParameters.mPath)) {
             LOG.debug("Prepare directory {}", mParameters.mPath);

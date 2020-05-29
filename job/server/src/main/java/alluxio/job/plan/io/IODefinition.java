@@ -70,7 +70,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     command.add("runUfsIOTest");
     command.add(config.getClassName());
     command.addAll(config.getArgs());
-    // the cluster will run distributed tasks
+    // Run in distributed mode with job service
     command.add(BaseParameters.DISTRIBUTED_FLAG);
     command.add(BaseParameters.IN_PROCESS_FLAG);
     command.addAll(args);
