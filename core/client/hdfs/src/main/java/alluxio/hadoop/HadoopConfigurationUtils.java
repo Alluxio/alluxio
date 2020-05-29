@@ -57,7 +57,7 @@ public final class HadoopConfigurationUtils {
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
 
     alluxioProps.merge(alluxioConfProperties, Source.RUNTIME);
-    // Creting a new instanced configuration from an AlluxioProperties object isn't expensive.
+    // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     InstancedConfiguration mergedConf = new InstancedConfiguration(alluxioProps);
     mergedConf.validate();
     return mergedConf;
