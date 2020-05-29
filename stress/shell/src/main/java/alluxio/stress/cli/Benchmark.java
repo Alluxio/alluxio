@@ -68,7 +68,16 @@ public abstract class Benchmark<T extends TaskResult> {
     }
   }
 
-  public abstract PlanConfig generateJobConfig(String[] args);
+  public PlanConfig generateJobConfig(String[] args) {
+    // remove the cluster flag
+    List<String> commandArgs =
+            Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
+                    .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
+
+    commandArgs.addAll(mBaseParameters.mJavaOpts);
+    String className = this.getClass().getCanonicalName();
+    return new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit);
+  }
 
   /**
    * Runs the test and returns the string output.

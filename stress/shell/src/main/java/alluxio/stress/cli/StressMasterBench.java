@@ -145,18 +145,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
-  public PlanConfig generateJobConfig(String[] args) {
-    // remove the cluster flag
-    List<String> commandArgs =
-            Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
-                    .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
-
-    commandArgs.addAll(mBaseParameters.mJavaOpts);
-    String className = this.getClass().getCanonicalName();
-    return new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit);
-  }
-
-  @Override
   public MasterBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();

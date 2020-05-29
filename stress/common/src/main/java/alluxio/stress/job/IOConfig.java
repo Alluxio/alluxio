@@ -40,7 +40,7 @@ public class IOConfig extends StressBenchConfig {
                   @JsonProperty("dataSize") int dataSize,
                   @JsonProperty("workerNum") int workerNum,
                   @JsonProperty("path") String path) {
-    super(className, args, 0);
+    super(className, args, 0, workerNum);
     mThreadNum = threadNum;
     mDataSize = dataSize;
     mPath = path;
@@ -53,7 +53,7 @@ public class IOConfig extends StressBenchConfig {
    * @param params a {@link WorkerBenchParameters} to get information from
    * */
   public IOConfig(String className, List<String> args, WorkerBenchParameters params) {
-    super(className, args, 0);
+    super(className, args, 0,  params.mWorkerNum);
     mThreadNum = params.mThreads;
     mDataSize = params.mDataSize;
     mPath = params.mPath;
