@@ -691,6 +691,15 @@ fuse:
   clientEnabled: true
 ```
 
+By default, the mountPath is `/mnt/alluxio-fuse`. If you'd like to configure the mountPath of the fuse, please update the following properties:
+
+```properties
+fuse:
+  enabled: true
+  clientEnabled: true
+  mountPath: /mnt/alluxio-fuse
+```
+
 Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
 
 If Alluxio has already been deployed with helm and now you want to enable FUSE, you use
