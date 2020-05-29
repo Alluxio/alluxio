@@ -35,6 +35,7 @@ import org.apache.hadoop.util.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -204,13 +205,12 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
                 int wroteMB = 0;
                 try {
-                    OutputStream outStream = ufs.create(filePath);
+                    BufferedOutputStream outStream = new BufferedOutputStream(ufs.create(filePath));
                     while (wroteMB < mParameters.mDataSize) {
                         outStream.write(randomData);
                         wroteMB += 1; // 1 MB
-                        // TODO(jiacheng): when do i flush?
-                        outStream.flush();
                     }
+                    outStream.flush();
 
                     long endTime = CommonUtils.getCurrentMs();
                     double duration = (endTime - startTime) / 1000.0; // convert to second
