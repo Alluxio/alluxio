@@ -15,6 +15,7 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
+MOUNT_POINT='/mnt/alluxio-fuse'
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
@@ -89,8 +90,10 @@ function mountAlluxioRootFSWithFuseOption {
   fi
 
   # Unmount first if cleanup failed and ignore error
-  ! integration/fuse/bin/alluxio-fuse unmount /alluxio-fuse
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} /alluxio-fuse /
+  ! mkdir -p ${MOUNT_POINT}
+  ! umount ${MOUNT_POINT}
+  #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
+  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
 }
 
 # Sends a signal to each of the running background processes
