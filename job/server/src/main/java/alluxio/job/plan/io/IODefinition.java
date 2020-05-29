@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
  * The output will be serialized and deserialized using JSON, collected and merged.
  */
 public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>, String> {
-  private static final Logger LOG = LoggerFactory.getLogger(IODefinition.class);
-
   @Override
   public Class<IOConfig> getJobConfigClass() {
     return IOConfig.class;
@@ -94,7 +92,7 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
           throws Exception {
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
-    command.add("runClass");
+    command.add("runUfsIOTest");
     command.add(config.getClassName());
     command.addAll(config.getArgs());
     // the cluster will run distributed tasks

@@ -123,8 +123,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 .createMountSpecificConf(mHdfsConf);
         UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
         if (!ufs.exists(mParameters.mPath)) {
-            LOG.info("mkdirs {}", mParameters.mPath);
-            ufs.mkdirs(mParameters.mPath);
+            // If the directory does not exist, there's no point proceeding
+            throw new IOException(String.format("The target directory %s does not exist!",
+                    mParameters.mPath));
         }
 
         List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
@@ -137,14 +138,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);
-                LOG.info("filePath={}", filePath);
+                LOG.debug("Reading filePath={}", filePath);
 
                 int readMB = 0;
                 try {
                     InputStream inStream = ufs.open(filePath);
                     byte[] buf = new byte[BUFFER_SIZE];
                     while (readMB < mParameters.mDataSize && inStream.read(buf) > 0) {
-                        LOG.info("readMB={}", readMB);
                         readMB += 1; // 1 MB
                     }
 
@@ -152,7 +152,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                     double duration = (endTime - startTime) / 1000.0; // convert to second
                     IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.READ, duration, readMB);
                     result.addPoint(p);
-                    LOG.info("Read task finished {}", p);
+                    LOG.debug("Read task finished {}", p);
                 } catch (IOException e) {
                     LOG.error("Failed to read {}", filePath, e);
                     result.addError(e.getMessage());
@@ -176,8 +176,6 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     public IOTaskResult write(ExecutorService pool)
             throws IOException, InterruptedException, ExecutionException {
-        LOG.info("write()");
-
         // Use multiple threads to saturate the bandwidth of this worker
         int numThreads = mParameters.mThreads;
         // TODO(jiacheng): need hdfs conf?
@@ -187,7 +185,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 .createMountSpecificConf(hdfsConf);
         UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
         if (!ufs.exists(mParameters.mPath)) {
-            LOG.info("mkdirs {}", mParameters.mPath);
+            LOG.debug("Prepare directory {}", mParameters.mPath);
             ufs.mkdirs(mParameters.mPath);
         }
 
@@ -202,15 +200,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 long startTime = CommonUtils.getCurrentMs();
 
                 String filePath = getFilePathStr(idx);
-                LOG.info("filePath={}, data to write={}MB", filePath, mParameters.mDataSize);
+                LOG.debug("filePath={}, data to write={}MB", filePath, mParameters.mDataSize);
 
                 int wroteMB = 0;
                 try {
                     OutputStream outStream = ufs.create(filePath);
-                    LOG.info("OutputStream class {}", outStream.getClass().getCanonicalName());
                     while (wroteMB < mParameters.mDataSize) {
                         outStream.write(randomData);
-                        LOG.info("Progress {}MB", wroteMB);
                         wroteMB += 1; // 1 MB
                         // TODO(jiacheng): when do i flush?
                         outStream.flush();
@@ -221,15 +217,14 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                     IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.WRITE,
                             duration, wroteMB);
                     result.addPoint(p);
-                    LOG.info("Write task finished {}", p);
+                    LOG.debug("Write task finished {}", p);
                 } catch (IOException e) {
                     LOG.error("Failed to write to UFS: ",e);
                     result.addError(e.getMessage());
                 }
 
-                LOG.info("Thread {} file={}, IOBench result={}", Thread.currentThread().getName(),
+                LOG.debug("Thread {} file={}, IOBench result={}", Thread.currentThread().getName(),
                         filePath, result);
-
                 return result;
 
             }, pool);
