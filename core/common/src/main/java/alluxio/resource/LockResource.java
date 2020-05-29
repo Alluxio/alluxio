@@ -11,10 +11,17 @@
 
 package alluxio.resource;
 
+import alluxio.exception.ExceptionMessage;
+
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * A resource lock that makes it possible to acquire and release locks using the following idiom:
@@ -27,6 +34,7 @@ import java.util.concurrent.locks.Lock;
  */
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
   private final Lock mLock;
 
   /**
@@ -35,24 +43,73 @@ public class LockResource implements Closeable {
    * @param lock the lock to acquire
    */
   public LockResource(Lock lock) {
-    this(lock, true);
+    this(lock, true, false);
   }
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
    *
+   * This method may use the {@link Lock#tryLock()} method to gain ownership of the locks. The
+   * reason one might want to use this is to avoid the fairness heuristics within the
+   * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
+   * threads if a writer if the first in the queue.
+   *
    * @param lock the lock to acquire
    * @param acquireLock whether to lock the lock
+   * @param useTryLock whether or not use to {@link Lock#tryLock()}
    */
-  public LockResource(Lock lock, boolean acquireLock) {
+  public LockResource(Lock lock, boolean acquireLock, boolean useTryLock) {
     mLock = lock;
     if (acquireLock) {
-      mLock.lock();
+      if (useTryLock) {
+        while (!mLock.tryLock()) { // returns immediately
+          // The reason we don't use #tryLock(int, TimeUnit) here is because we found there is a bug
+          // somewhere in the internal accounting of the ReentrantRWLock that, even though all
+          // threads had released the lock, that a final thread would never be able to acquire it.
+          LockSupport.parkNanos(10000);
+        }
+      } else {
+        mLock.lock();
+      }
     }
   }
 
   /**
-   * Returns true if the other lockresource contains the same lock.
+   * Creates a new instance of {@link LockResource} using the given lock.
+   *
+   * This method will use the {@link Lock#tryLock(long, TimeUnit)} internally in a loop
+   * for trying to grab the lock without causing total blockage of other waiters of the lock.
+   *
+   * @param lock  the lock to acquire
+   * @param tryMs the duration to attempt acquiring the lock
+   * @param sleepMs the wait duration after failed attempt to acquire the lock
+   * @param timeoutMs the total duration to try acquiring the lock in a loop
+   * @throws InterruptedException if interrupted while acquiring the lock
+   * @throws TimeoutException if the lock was not acquired after given timeout
+   */
+  public LockResource(Lock lock, long tryMs, long sleepMs, long timeoutMs)
+      throws InterruptedException, TimeoutException {
+    mLock = lock;
+    long deadlineMs = System.currentTimeMillis() + timeoutMs;
+    boolean lockAcquired = false;
+    while (System.currentTimeMillis() < deadlineMs) {
+      if (mLock.tryLock(tryMs, TimeUnit.MILLISECONDS)) {
+        lockAcquired = true;
+        break;
+      } else {
+        long remainingWaitMs = deadlineMs - System.currentTimeMillis();
+        if (remainingWaitMs > 0) {
+          Thread.sleep(Math.min(sleepMs, remainingWaitMs));
+        }
+      }
+    }
+    if (!lockAcquired) {
+      throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(timeoutMs));
+    }
+  }
+
+  /**
+   * Returns true if the other {@link LockResource} contains the same lock.
    *
    * @param other other LockResource
    * @return true if the other lockResource has the same lock

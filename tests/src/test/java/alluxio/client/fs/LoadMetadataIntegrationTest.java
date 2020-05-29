@@ -69,6 +69,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions()
+              .setGetStatusMs(SLEEP_MS)
               .setExistsMs(SLEEP_MS)
               .setListStatusWithOptionsMs(LONG_SLEEP_MS)));
 
@@ -219,15 +220,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         fileWriter.close();
       }
     }
-    long startMs = CommonUtils.getCurrentMs();
     List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
-    long durationMs = CommonUtils.getCurrentMs() - startMs;
     // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
     Assert.assertEquals(25 * 2 + 5 + 2, list.size());
-
-    // Should load metadata once, in one recursive call
-    Assert.assertTrue("Expected to be between one and two SLEEP_MS. actual duration (ms): "
-            + durationMs, durationMs >= LONG_SLEEP_MS && durationMs <= 2 * LONG_SLEEP_MS);
   }
 
   /**

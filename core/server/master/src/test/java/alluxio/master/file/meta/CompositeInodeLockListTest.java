@@ -27,7 +27,7 @@ import java.util.Arrays;
  * Unit tests for {@link CompositeInodeLockList}.
  */
 public class CompositeInodeLockListTest extends BaseInodeLockingTest {
-  private InodeLockList mBase = new SimpleInodeLockList(mInodeLockManager);
+  private InodeLockList mBase = new SimpleInodeLockList(mInodeLockManager, false);
   private CompositeInodeLockList mComposite;
 
   @Rule
@@ -48,7 +48,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
     mBase.lockInode(mRootDir, LockMode.READ);
     mBase.lockEdge(mRootDir, mDirA.getName(), LockMode.READ);
 
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     mComposite.lockInode(mDirA, LockMode.READ);
     mComposite.lockEdge(mDirA, mDirB.getName(), LockMode.READ);
     mComposite.lockInode(mDirB, LockMode.WRITE);
@@ -65,7 +65,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
     mBase.lockRootEdge(LockMode.READ);
     mBase.lockInode(mRootDir, LockMode.READ);
     mBase.lockEdge(mRootDir, mDirA.getName(), LockMode.READ);
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     assertEquals(LockMode.READ, mComposite.getLockMode());
     assertEquals(Arrays.asList(mRootDir), mComposite.getLockedInodes());
 
@@ -89,7 +89,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
   public void extendFromInode() {
     mBase.lockRootEdge(LockMode.READ);
     mBase.lockInode(mRootDir, LockMode.READ);
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     assertEquals(LockMode.READ, mComposite.getLockMode());
     assertEquals(Arrays.asList(mRootDir), mComposite.getLockedInodes());
 
@@ -112,7 +112,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
   @Test
   public void extendFromWriteLocked() {
     mBase.lockRootEdge(LockMode.WRITE);
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     assertEquals(LockMode.WRITE, mComposite.getLockMode());
 
     checkOnlyNodesReadLocked();
@@ -124,7 +124,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
   @Test
   public void doubleWriteLock() {
     mBase.lockRootEdge(LockMode.WRITE);
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     mComposite.lockInode(mRootDir, LockMode.WRITE);
     mComposite.unlockLastInode();
     assertEquals(LockMode.WRITE, mComposite.getLockMode());
@@ -133,7 +133,7 @@ public class CompositeInodeLockListTest extends BaseInodeLockingTest {
   @Test
   public void unlockIntoBase() {
     mBase.lockRootEdge(LockMode.WRITE);
-    mComposite = new CompositeInodeLockList(mBase);
+    mComposite = new CompositeInodeLockList(mBase, false);
     mComposite.unlockLastEdge();
   }
 }

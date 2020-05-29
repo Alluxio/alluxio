@@ -22,6 +22,7 @@ import java.util.List;
  */
 public final class BaseParameters {
   public static final String CLUSTER_FLAG = "--cluster";
+  public static final String CLUSTER_LIMIT_FLAG = "--cluster-limit";
   public static final String DISTRIBUTED_FLAG = "--distributed";
   public static final String ID_FLAG = "--id";
   public static final String IN_PROCESS_FLAG = "--in-process";
@@ -36,6 +37,11 @@ public final class BaseParameters {
       description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "
           + "locally.")
   public boolean mCluster = false;
+
+  @Parameter(names = {CLUSTER_LIMIT_FLAG},
+      description = "If greater than 0, it will only run on that number of workers. If 0 or less,"
+          + " will run on all available cluster workers.")
+  public int mClusterLimit = 0;
 
   @Parameter(names = {ID_FLAG},
       description = "Any string to uniquely identify this invocation", hidden = true)

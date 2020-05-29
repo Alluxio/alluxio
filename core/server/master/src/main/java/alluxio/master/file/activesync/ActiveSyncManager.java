@@ -37,6 +37,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.SyncPointInfo;
 
@@ -54,8 +55,10 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -92,9 +95,9 @@ public class ActiveSyncManager implements Journaled {
   // a lock which protects the above data structures
   private final Lock mLock;
   // a reference to FSM
-  private FileSystemMaster mFileSystemMaster;
+  private final FileSystemMaster mFileSystemMaster;
   // a local executor service used to launch polling threads
-  private ExecutorService mExecutorService;
+  private final ThreadPoolExecutor mExecutorService;
 
   /**
    * Constructs a Active Sync Manager.
@@ -114,8 +117,11 @@ public class ActiveSyncManager implements Journaled {
     // A lock used to protect the state stored in the above maps and lists
     mLock = new ReentrantLock();
     // Executor Service for active syncing
-    mExecutorService =
-        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    mExecutorService = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
+        Runtime.getRuntime().availableProcessors(),
+        1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+        ThreadFactoryUtils.build("ActiveSyncManager-%d", false));
+    mExecutorService.allowCoreThreadTimeOut(true);
   }
 
   /**
@@ -337,12 +343,11 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stopSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
       throws InvalidPathException {
+    if (!isSyncPoint(syncPoint)) {
+      throw new InvalidPathException(String.format("%s is not a sync point", syncPoint));
+    }
     try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
-      if (resolution == null) {
-        throw new InvalidPathException("Failed to stop sync point " + syncPoint
-            + " because it is not mounted.");
-      }
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       final long mountId = resolution.getMountId();
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()

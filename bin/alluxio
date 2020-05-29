@@ -373,7 +373,7 @@ function main {
   ;;
   "validateEnv")
     CLASS="alluxio.cli.ValidateEnv"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

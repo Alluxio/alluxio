@@ -41,8 +41,8 @@ public class MetricsHeartbeatContextTest {
 
   @Test
   public void testExecutorInitialized() {
-
     InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory

@@ -38,7 +38,7 @@ public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
   /** Duration to sleep when a) load detected on worker. b) no work to do. */
   private final long mLoadDetectionCoolDownMs;
-  /** How to back-off when there is user activity. */
+  /** The back-off strategy. */
   private BackoffStrategy mBackoffStrategy;
 
   /** Runner thread for launching management tasks. */
@@ -160,11 +160,10 @@ public class ManagementTaskCoordinator implements Closeable {
 
       BlockManagementTask currentTask;
       try {
-        // Back off if any load detected.
+        // Back off from worker if configured so.
         if (mBackoffStrategy == BackoffStrategy.ANY
             && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
-          LOG.debug("Load detected. Sleeping {}ms.",
-              mLoadDetectionCoolDownMs);
+          LOG.debug("Load detected. Sleeping {}ms.", mLoadDetectionCoolDownMs);
           Thread.sleep(mLoadDetectionCoolDownMs);
           continue;
         }
@@ -182,12 +181,18 @@ public class ManagementTaskCoordinator implements Closeable {
         LOG.debug("Running task of type:{}", currentTask.getClass().getSimpleName());
         // Run the current task on coordinator thread.
         try {
-          currentTask.run();
+          BlockManagementTaskResult result = currentTask.run();
+          LOG.info("{} finished with result: {}", currentTask.getClass().getSimpleName(), result);
+
+          if (result.noProgress()) {
+            LOG.debug("Task made no progress due to failures/back-offs. Sleeping {}ms",
+                mLoadDetectionCoolDownMs);
+            Thread.sleep(mLoadDetectionCoolDownMs);
+          }
         } catch (Exception e) {
           LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
               e);
         }
-        LOG.debug("Management task finished: {}", currentTask.getClass().getSimpleName());
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
@@ -199,7 +204,7 @@ public class ManagementTaskCoordinator implements Closeable {
   }
 
   /**
-   * Used to specify how to back-off.
+   * Used to specify from where to back-off.
    */
   enum BackoffStrategy {
     ANY, DIRECTORY

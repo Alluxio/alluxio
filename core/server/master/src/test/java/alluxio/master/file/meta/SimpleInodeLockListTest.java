@@ -28,7 +28,7 @@ import java.util.Arrays;
  * Unit tests for {@link InodeLockList}.
  */
 public class SimpleInodeLockListTest extends BaseInodeLockingTest {
-  private InodeLockList mLockList = new SimpleInodeLockList(mInodeLockManager);
+  private InodeLockList mLockList = new SimpleInodeLockList(mInodeLockManager, false);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

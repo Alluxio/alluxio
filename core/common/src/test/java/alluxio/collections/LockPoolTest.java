@@ -18,6 +18,7 @@ import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,6 +38,11 @@ public class LockPoolTest {
   @Before
   public void before() {
     mPool = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
+  }
+
+  @After
+  public void after() throws Exception {
+    mPool.close();
   }
 
   @Test(timeout = 10000)
@@ -107,7 +113,7 @@ public class LockPoolTest {
     assertEquals(LOW_WATERMARK, mPool.size());
 
     // Fills in the pool again.
-    int newStartKey = HIGH_WATERMARK;
+    int newStartKey = HIGH_WATERMARK + 1;
     int newEndKey = newStartKey + HIGH_WATERMARK - LOW_WATERMARK;
     Thread t4 = getKeys(newStartKey, newEndKey);
     Thread t5 = getKeys(newStartKey, newEndKey);
