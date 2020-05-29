@@ -98,13 +98,6 @@ public class IODefinition implements PlanDefinition<IOConfig, ArrayList<String>,
     // the cluster will run distributed tasks
     command.add(BaseParameters.DISTRIBUTED_FLAG);
     command.add(BaseParameters.IN_PROCESS_FLAG);
-
-    // TODO(jiacheng): do i need this?
-    if (config.getArgs().stream().noneMatch((s) -> s.equals(BaseParameters.START_MS_FLAG))) {
-      command.add(BaseParameters.START_MS_FLAG);
-      command.add(Long.toString((System.currentTimeMillis() + 5000)));
-    }
-
     command.addAll(args);
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;

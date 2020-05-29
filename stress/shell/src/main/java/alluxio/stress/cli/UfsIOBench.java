@@ -142,8 +142,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 LOG.debug("Reading filePath={}", filePath);
 
                 int readMB = 0;
+                InputStream inStream = null;
                 try {
-                    InputStream inStream = ufs.open(filePath);
+                    inStream = ufs.open(filePath);
                     byte[] buf = new byte[BUFFER_SIZE];
                     while (readMB < mParameters.mDataSize && inStream.read(buf) > 0) {
                         readMB += 1; // 1 MB
@@ -157,6 +158,15 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 } catch (IOException e) {
                     LOG.error("Failed to read {}", filePath, e);
                     result.addError(e.getMessage());
+                } finally {
+                    if (inStream != null) {
+                        try {
+                            inStream.close();
+                        } catch (IOException e) {
+                            LOG.warn("Failed to close read stream {}", filePath, e);
+                            result.addError(e.getMessage());
+                        }
+                    }
                 }
 
                 return result;
@@ -204,8 +214,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 LOG.debug("filePath={}, data to write={}MB", filePath, mParameters.mDataSize);
 
                 int wroteMB = 0;
+                BufferedOutputStream outStream = null;
                 try {
-                    BufferedOutputStream outStream = new BufferedOutputStream(ufs.create(filePath));
+                    outStream = new BufferedOutputStream(ufs.create(filePath));
                     while (wroteMB < mParameters.mDataSize) {
                         outStream.write(randomData);
                         wroteMB += 1; // 1 MB
@@ -221,6 +232,15 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                 } catch (IOException e) {
                     LOG.error("Failed to write to UFS: ",e);
                     result.addError(e.getMessage());
+                } finally {
+                    if (outStream != null) {
+                        try {
+                            outStream.close();
+                        } catch (IOException e) {
+                            LOG.warn("Failed to close stream to UFS: ",e);
+                            result.addError(e.getMessage());
+                        }
+                    }
                 }
 
                 LOG.debug("Thread {} file={}, IOBench result={}", Thread.currentThread().getName(),
