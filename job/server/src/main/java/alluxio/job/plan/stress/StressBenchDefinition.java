@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
+import alluxio.job.util.BenchmarkJobUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.JsonSerializable;
 import alluxio.stress.TaskResult;
@@ -49,8 +50,7 @@ public final class StressBenchDefinition
   /**
    * Constructs a new instance.
    */
-  public StressBenchDefinition() {
-  }
+  public StressBenchDefinition() {}
 
   @Override
   public Class<StressBenchConfig> getJobConfigClass() {
@@ -62,12 +62,7 @@ public final class StressBenchDefinition
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
     for (WorkerInfo worker : jobWorkerInfoList) {
-      ArrayList<String> args = new ArrayList<>(2);
-      // Add the worker hostname + worker id as the unique task id for each distributed task.
-      // The worker id is used since there may be multiple workers on a single host.
-      args.add(BaseParameters.ID_FLAG);
-      args.add(worker.getAddress().getHost() + "-" + worker.getId());
-      result.add(new Pair<>(worker, args));
+      result.add(new Pair<>(worker, BenchmarkJobUtils.generateIdArgs(worker)));
     }
     return result;
   }
@@ -97,28 +92,6 @@ public final class StressBenchDefinition
   @Override
   public String join(StressBenchConfig config, Map<WorkerInfo, String> taskResults)
       throws Exception {
-    if (taskResults.isEmpty()) {
-      throw new IOException("No results from any workers.");
-    }
-
-    AtomicReference<IOException> error = new AtomicReference<>(null);
-
-    List<TaskResult> results = taskResults.entrySet().stream().map(
-        entry -> {
-          try {
-            return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
-          } catch (IOException | ClassNotFoundException e) {
-            error.set(new IOException(String
-                .format("Failed to parse task output from %s into result class",
-                    entry.getKey().getAddress().getHost()), e));
-          }
-          return null;
-        }).collect(Collectors.toList());
-
-    if (error.get() != null) {
-      throw error.get();
-    }
-
-    return results.get(0).aggregator().aggregate(results).toJson();
+    return BenchmarkJobUtils.join(taskResults);
   }
 }

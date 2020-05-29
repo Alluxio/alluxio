@@ -84,7 +84,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     @Override
     public void prepare() throws Exception {
-        // TODO(jiacheng): what to set for hdfs conf?
+        // Nothing to prepare here
     }
 
     /**

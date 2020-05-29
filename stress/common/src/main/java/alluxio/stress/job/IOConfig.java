@@ -18,11 +18,11 @@ public class IOConfig extends StressBenchConfig {
   public static final String NAME = "IO";
   // The number of streams to write to the UFS concurrently
   private int mThreadNum;
-  // Size of data to write in total
-  // They will be read in the read performance test
+  // Size of data to write in total, will be read in the read performance test
   private int mDataSize;
   // Temp dir to generate test files in
   private String mPath;
+  // Number of workers to run test with
   private int mWorkerNum;
 
   /**
