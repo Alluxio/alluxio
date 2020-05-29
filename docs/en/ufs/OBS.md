@@ -76,7 +76,7 @@ Valid values are similar to `obs.cn-east-2.myhuaweicloud.com` and `obs.cn-south-
 Available endpoints are listed in the [Region and Endpoint list](https://developer.huaweicloud.com/en-us/endpoint)
 under the Object Storage Service category.
 
-## Excample: Running Alluxio Locally with OBS
+## Example: Running Alluxio Locally with OBS
 
 Start the Alluxio servers:
 
