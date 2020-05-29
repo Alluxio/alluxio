@@ -12,7 +12,16 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+/**
+ * Utilities used by benchmarking jobs.
+ * */
 public class BenchmarkJobUtils {
+  /**
+   * Generate the ID argument from {@link WorkerInfo}.
+   *
+   * @param worker worker info
+   * @return args
+   * */
   public static ArrayList<String> generateIdArgs(WorkerInfo worker) {
     ArrayList<String> args = new ArrayList<>(2);
     // Add the worker hostname + worker id as the unique task id for each distributed task.
@@ -22,6 +31,12 @@ public class BenchmarkJobUtils {
     return args;
   }
 
+  /**
+   * Deserialize and merge the task results from workers.
+   *
+   * @param taskResults task results from workers
+   * @return serialized merged results
+   * */
   public static String join(Map<WorkerInfo, String> taskResults) throws Exception {
     if (taskResults.isEmpty()) {
       throw new IOException("No results from any workers.");
@@ -29,17 +44,16 @@ public class BenchmarkJobUtils {
     AtomicReference<IOException> error = new AtomicReference<>(null);
 
     List<TaskResult> results = taskResults.entrySet().stream().map(
-            entry -> {
-              try {
-                return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
-              } catch (IOException | ClassNotFoundException e) {
-                error.set(new IOException(String
-                        .format("Failed to parse task output from %s into result class",
-                                entry.getKey().getAddress().getHost()), e));
-              }
-              return null;
-            }).collect(Collectors.toList());
-
+        entry -> {
+          try {
+            return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
+          } catch (IOException | ClassNotFoundException e) {
+            error.set(new IOException(String
+                    .format("Failed to parse task output from %s into result class",
+                            entry.getKey().getAddress().getHost()), e));
+          }
+          return null;
+        }).collect(Collectors.toList());
     if (error.get() != null) {
       throw error.get();
     }

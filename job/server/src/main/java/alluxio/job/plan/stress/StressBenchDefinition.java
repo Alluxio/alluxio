@@ -19,8 +19,6 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.util.BenchmarkJobUtils;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.JsonSerializable;
-import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.WorkerInfo;
@@ -30,14 +28,11 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
