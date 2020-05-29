@@ -71,7 +71,7 @@ public class HmsTestRunner {
   private String mDatabase = "default";
 
   @Parameter(names = {"-t", "--tables"}, required = false,
-      description = "Database to run tests against.")
+      description = "Tables to run tests against. Multiple tables should be separated with comma")
   private String mTables;
 
   @Parameter(names = {"-st", "--socketTimeout"}, required = false,

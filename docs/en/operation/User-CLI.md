@@ -246,6 +246,27 @@ $ ./bin/alluxio runTests
 The `runJournalCrashTest` simulates a failover to test recovery from the journal.
 Note that this command will stop any Alluxio services running on the machine.
 
+### runHmsTest
+
+The `runHmsTests` amis to validate the configuration, connectivity, and permissions of an existing hive metastore 
+which is an important component in compute workflows with Alluxio.
+
+`--help` provides detailed guidance.
+`--metastoreUri <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
+`--database <databse_name>` the database to run tests against. Use `default` database if not provided.
+`--tables` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
+`--socketTimeout` socket timeout of hive metastore client.
+
+```
+$ ./bin/alluxio runHmsTests --metastoreUri thrift://<hms_host>:<hms_port> --database tpcds
+  --tables store_sales,web_sales 
+```
+
+This tool is suggested to run from compute application environments and checks
+* if the given hive metastore uris are valid
+* if the hive metastore client connection can be established with the target server
+* if hive metastore client operations can be run against the given database and tables
+
 ### runMesosTest
 
 The `runMesosTest` validates the Alluxio Mesos integration.
