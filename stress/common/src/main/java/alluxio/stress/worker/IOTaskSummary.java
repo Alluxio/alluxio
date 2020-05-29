@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.stress.worker;
 
 import alluxio.collections.Pair;
@@ -307,21 +318,17 @@ public class IOTaskSummary implements Summary {
               results.stream().map(x -> (IOTaskSummary) x).collect(Collectors.toList());
 
       if (summaries.isEmpty()) {
-        LOG.info("No summaries");
+        LOG.info("No summaries to generate.");
         return graphs;
       }
 
-      // TODO(jiacheng): how to include params in this?
       // first() is the list of common field names, second() is the list of unique field names
       Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
               summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
-      System.out.format("FieldNames: %s%n", fieldNames);
 
       // Split up common description into 100 character chunks, for the sub title
       List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
               summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
-      System.out.format("subtitle: %s%n", subTitle);
-
       for (IOTaskSummary summary : summaries) {
         String series = summary.mParameters.getDescription(fieldNames.getSecond());
         subTitle.add(series);

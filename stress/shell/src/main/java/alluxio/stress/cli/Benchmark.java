@@ -68,6 +68,12 @@ public abstract class Benchmark<T extends TaskResult> {
     }
   }
 
+  /**
+   * Generate a {@link StressBenchConfig} as the default JobConfig.
+   *
+   * @param args arguments
+   * @return the JobConfig
+   * */
   public PlanConfig generateJobConfig(String[] args) {
     // remove the cluster flag
     List<String> commandArgs =

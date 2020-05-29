@@ -24,6 +24,8 @@ public interface TaskResult extends JsonSerializable {
 
   /**
    * The interface that aggregates multiple task results into a summary.
+   *
+   * @param <T> a {@link TaskResult} type
    */
   interface Aggregator<T extends TaskResult> {
     /**
