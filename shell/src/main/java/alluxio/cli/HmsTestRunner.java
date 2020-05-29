@@ -32,8 +32,6 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -52,8 +50,6 @@ import java.util.stream.Collectors;
  * Run tests against an existing hive metastore.
  */
 public class HmsTestRunner {
-  private static final Logger LOG = LoggerFactory.getLogger(HmsTestRunner.class);
-
   // The maximum number of table objects that this test will get.
   // Used to avoid issuing too many calls to the hive metastore
   // which may need a long time based on network conditions
