@@ -253,6 +253,8 @@ fuse:
   args:
     - fuse
     - --fuse-opts=allow_other
+  # Mount path in the host
+  mountPath: /mnt/alluxio-fuse
   resources:
     requests:
       cpu: "0.5"
