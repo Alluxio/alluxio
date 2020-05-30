@@ -836,7 +836,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         throw new FileDoesNotExistException(e.getMessage(), e);
       }
     }
-    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()) {
+    // Rehydrate missing block-infos for persisted files.
+    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
+        && inode.isPersisted()) {
       List<Long> missingBlockIds = fileInfo.getBlockIds().stream()
           .filter((bId) -> fileInfo.getFileBlockInfo(bId) != null).collect(Collectors.toList());
 
@@ -846,9 +848,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
       // Commit all the file blocks (without locations) so the metadata for the block exists.
       commitBlockInfosForFile(
-          fileInfo.getBlockIds(),        // ordered block id list
-          fileInfo.getLength(),          // file length
-          fileInfo.getBlockSizeBytes()); // block size
+          fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes());
       // Reset file-block-info list with the new list.
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
