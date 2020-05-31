@@ -1322,6 +1322,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_TIMEOUT)
+          .setDefaultValue("1m")
+          .setDescription(
+              "The max duration to try acquiring the state lock for taking backups via shell.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION)
+          .setDefaultValue("30s")
+          .setDescription("The duration to try acquiring the state lock exclusively..")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION)
+          .setDefaultValue("10m")
+          .setDescription("The duration to sleep between trials to acquire the lock.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
+          .setDefaultValue("12h")
+          .setDescription("The max duration to try acquiring the state lock.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -1973,7 +2002,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
-          .setDefaultValue("3")
+          .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+              "The number of threads used by the active sync provider process active sync events."
+                  + " A higher number allow the master to use more CPU to process events from "
+                  + "an event stream in parallel. If this value is too low, Alluxio may fall "
+                  + "behind processing events. Defaults to # of processors / 2")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1998,6 +2031,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The max total duration to retry failed active sync operations."
               + "A large duration is useful to handle transient failures such as an "
               + "unresponsive under storage but can lock the inode tree being synced longer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
+          .setDefaultValue("1024")
+          .setDescription("The number of event batches that should be submitted together to a "
+              + "single thread for processing.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2424,11 +2466,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
-          .setDescription(
-              "Controls how many disk pairs are spinned during tier management tasks.")
+  public static final PropertyKey WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+      new Builder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use {CPU core count}/2 threads block transfer")
+          .setDescription("Puts a limit to how many block transfers are "
+              + "executed concurrently during management.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4776,12 +4819,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.connect.interval.max";
     public static final String MASTER_BACKUP_ABANDON_TIMEOUT =
         "alluxio.master.backup.abandon.timeout";
+    public static final String MASTER_BACKUP_STATE_LOCK_TIMEOUT =
+        "alluxio.master.backup.state.lock.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
+        "alluxio.master.daily.backup.state.lock.try.duration";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
+        "alluxio.master.daily.backup.state.lock.sleep.duration";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
+        "alluxio.master.daily.backup.state.lock.timeout";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
         "alluxio.master.cluster.metrics.update.interval";
@@ -4947,6 +4998,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
         "alluxio.master.ufs.active.sync.retry.timeout";
+    public static final String MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+        "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =
@@ -5026,8 +5079,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
-    public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-        "alluxio.worker.management.tier.task.disk.parallelism";
+    public static final String WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+        "alluxio.worker.management.block.transfer.concurrency.limit";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
         "alluxio.worker.management.tier.align.enabled";
     public static final String WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =

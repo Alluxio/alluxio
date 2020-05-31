@@ -358,6 +358,20 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public BackupStatus backup(BackupPRequest request) throws AlluxioException {
+    // Update the request based on caller.
+    // Currently daily-backup provides all required state-lock timeouts.
+    // Here the code assumes it's a shell invocation when related fields are not set.
+    if (!request.getOptions().hasStateLockTimeoutMs()) {
+      // Make shell invocations to try acquiring the lock the whole time.
+      request = request.toBuilder()
+          .setOptions(request.getOptions().toBuilder()
+              .setStateLockTimeoutMs(
+                  ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_TIMEOUT))
+              .setStateLockTryDurationMs(
+                  ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_TIMEOUT))
+              .setStateLockSleepDurationMs(0))
+          .build();
+    }
     return mBackupRole.backup(request);
   }
 

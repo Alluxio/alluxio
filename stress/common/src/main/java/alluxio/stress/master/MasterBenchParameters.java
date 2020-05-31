@@ -45,8 +45,16 @@ public final class MasterBenchParameters extends Parameters {
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
-  @Parameters.PathDescription
+  @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio://localhost:19998/stress-master-base";
+
+  @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
+  @Parameters.KeylessDescription
+  public String mBaseAlias = "";
+
+  @Parameter(names = {"--tag"}, description = "A string to identify this run")
+  @Parameters.KeylessDescription
+  public String mTag = "";
 
   @Parameter(names = {"--create-file-size"},
       description = "The size of a file to create, allowed to be 0. (1m, 2k, 8k, etc.)")
@@ -79,6 +87,11 @@ public final class MasterBenchParameters extends Parameters {
           + "ListDir task will list that portion, knowing every task/thread will always read a "
           + "directory with exactly 1000 paths.")
   public int mFixedCount = 100;
+
+  @Parameter(names = {"--profile-agent"},
+      description = "The path to the profile agent if one is available. "
+          + "Providing this will enable a more detailed output.")
+  public String mProfileAgent = "";
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
