@@ -11,12 +11,10 @@
 
 package alluxio.cli;
 
-import alluxio.cli.RunTestUtils.State;
-import alluxio.cli.RunTestUtils.TaskResult;
+import alluxio.cli.ValidateUtils.State;
+import alluxio.cli.ValidateUtils.TaskResult;
 import alluxio.util.CommonUtils;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -49,49 +47,51 @@ import java.util.stream.Collectors;
 /**
  * Run tests against an existing hive metastore.
  */
-public class HmsTestRunner {
+public class ValidateHms {
   // The maximum number of table objects that this test will get.
   // Used to avoid issuing too many calls to the hive metastore
   // which may need a long time based on network conditions
   private static final int GET_TABLE_OBJECT_THRESHOLD = 5;
+  // Default hive metastore client socket timeout in minutes
+  public static final int DEFAULT_SOCKET_TIMEOUT = 12;
+  public static final String DEFAULT_DATABASE = "default";
 
-  @Parameter(names = {"-h", "--help"}, help = true)
-  private boolean mHelp = false;
-
-  @Parameter(names = {"-m", "--metastoreUri"}, required = true,
-      description = "Uri(s) to connect to hive metastore.")
   private String mMetastoreUri;
-
-  @Parameter(names = {"-d", "--database"}, required = false,
-      description = "Database to run tests against.")
-  private String mDatabase = "default";
-
-  @Parameter(names = {"-t", "--tables"}, required = false,
-      description = "Tables to run tests against. Multiple tables should be separated with comma")
+  private String mDatabase;
   private String mTables;
-
-  @Parameter(names = {"-st", "--socketTimeout"}, required = false,
-      description = "Socket timeout of hive metastore client.")
-  private int mSocketTimeout = 12;
-
+  private int mSocketTimeout;
   private IMetaStoreClient mClient;
-
   private Map<State, List<TaskResult>> mResults = new HashMap<>();
+
+  /**
+   * Constructs a new {@link ValidateHms}.
+   *
+   * @param metastoreUri hive metastore uris
+   * @param database database to run tests against
+   * @param tables tables to run tests against
+   * @param socketTimeout socket time of hms operations
+   */
+  public ValidateHms(String metastoreUri, String database, String tables, int socketTimeout) {
+    mMetastoreUri = metastoreUri;
+    mDatabase = database == null || database.isEmpty() ? DEFAULT_DATABASE : database;
+    mTables = tables;
+    mSocketTimeout = socketTimeout > 0 ? socketTimeout : DEFAULT_SOCKET_TIMEOUT;
+  }
 
   /**
    * Runs tests against an existing hive metastore.
    * If an error occur, all the following tests will be skipped.
    *
-   * @return 0 if succeed, -1 if error occurs
+   * @return a json string of the test results
    */
-  private int run() {
+  public String runTests() {
     try {
       checkConfiguration();
       HiveConf hiveConf = setHiveConf();
       mClient = createHiveMetastoreClient(hiveConf);
       try {
         getDatabaseTest();
-        if (mTables != null) {
+        if (mTables != null && !mTables.isEmpty()) {
           getTableObjectsTest(Arrays.asList(mTables.split(",")));
         } else {
           getAllTableInfoTest();
@@ -100,11 +100,9 @@ public class HmsTestRunner {
         mClient.close();
       }
     } catch (Throwable t) {
-      printCheckReport(t);
-      return -1;
+      return printCheckReport(t);
     }
-    printCheckReport(null);
-    return 0;
+    return printCheckReport(null);
   }
 
   /**
@@ -113,6 +111,13 @@ public class HmsTestRunner {
    * @throws Exception if any of the given configuration is invalid
    */
   private void checkConfiguration() throws Exception {
+    if (mMetastoreUri == null || mMetastoreUri.isEmpty()) {
+      String errorMessage = "Hive metastore uris must be provided";
+      mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
+          new TaskResult(State.FAILED, "HmsUrisConfigCheck", errorMessage,
+              "Please provide the hive metastore uris"));
+      throw new IOException(errorMessage);
+    }
     if (mMetastoreUri.contains(",")) {
       // In HA mode, all the uris format need to be valid,
       // but only one of the uris needs to be reachable.
@@ -336,7 +341,7 @@ public class HmsTestRunner {
     mResults.computeIfAbsent(State.WARNING, k -> new ArrayList<>()).add(taskResult);
   }
 
-  private void printCheckReport(Throwable throwable) {
+  private String printCheckReport(Throwable throwable) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     if (throwable != null && mResults.get(State.FAILED) == null) {
       // Should not reach here!
@@ -344,20 +349,7 @@ public class HmsTestRunner {
           .add(new TaskResult(State.FAILED, "UnexpectedError", getErrorInfo(throwable),
               "Failed to run hive metastore tests"));
     }
-    System.out.println(gson.toJson(mResults));
-  }
-
-  /**
-   * @param args the input arguments
-   */
-  public static void main(String[] args) throws Exception {
-    HmsTestRunner test = new HmsTestRunner();
-    JCommander jc = new JCommander(test, args);
-    if (test.mHelp) {
-      jc.usage();
-      return;
-    }
-    System.exit(test.run());
+    return gson.toJson(mResults);
   }
 
   /**

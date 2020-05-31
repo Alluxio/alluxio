@@ -312,7 +312,7 @@ function main {
     runJavaClass "$@"
     ;;
   "runHmsTests")
-    CLASS="alluxio.cli.HmsTestRunner"
+    CLASS="alluxio.cli.HmsTest"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
