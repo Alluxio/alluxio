@@ -25,6 +25,7 @@ import alluxio.util.io.PathUtils;
 import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.util.concurrent.RateLimiter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
@@ -239,7 +240,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           final Map<String, Object> lineMap;
           try {
             lineMap = objectMapper.readValue(line, Map.class);
-          } catch (JsonParseException e) {
+          } catch (JsonParseException | MismatchedInputException e) {
             // skip the last line of a not completed file
             break;
           }
