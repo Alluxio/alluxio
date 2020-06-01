@@ -77,7 +77,8 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
     int lower = 0;
     int upper = Integer.MAX_VALUE;
-    int next = 2000;
+    // use the input target throughput as the starting point
+    int next = mParameters.mTargetThroughput;
     int best = 0;
 
     while (true) {
