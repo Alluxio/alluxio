@@ -40,6 +40,10 @@
       <scope>compile</scope>
       <exclusions>
         <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-1.2-api</artifactId>
         </exclusion>
