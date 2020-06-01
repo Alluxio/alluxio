@@ -153,8 +153,8 @@ public class S3AOutputStream extends OutputStream {
       LOG.error("Failed to upload {}: {}", path, e.toString());
       throw new IOException(e);
     } finally {
-      // Delete the temporary file on the local machine if the transfer manager completed the upload
-      // or if the upload failed.
+      // Delete the temporary file on the local machine if the transfer manager completed the
+      // upload or if the upload failed.
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
