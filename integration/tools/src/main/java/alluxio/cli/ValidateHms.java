@@ -71,7 +71,8 @@ public class ValidateHms {
    * @param tables tables to run tests against
    * @param socketTimeout socket time of hms operations
    */
-  public ValidateHms(String metastoreUri, String database, String tables, int socketTimeout) {
+  public ValidateHms(String metastoreUri, String database, String tables,
+      int socketTimeout) {
     mMetastoreUri = metastoreUri;
     mDatabase = database == null || database.isEmpty() ? DEFAULT_DATABASE : database;
     mTables = tables;
