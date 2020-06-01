@@ -90,7 +90,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createOpenFilesLimitValidationTask() {
+  public static AbstractValidationTask createOpenFilesLimitValidationTask() {
     return new UserLimitValidationTask("ulimit -n",
         NUMBER_OF_OPEN_FILES_MIN, NUMBER_OF_OPEN_FILES_MAX);
   }
@@ -100,7 +100,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createUserProcessesLimitValidationTask() {
+  public static AbstractValidationTask createUserProcessesLimitValidationTask() {
     return new UserLimitValidationTask("ulimit -u",
         NUMBER_OF_USER_PROCESSES_MIN, null);
   }

@@ -41,21 +41,21 @@ public class ValidateHdfsMount {
     private static final Options OPTIONS =
             new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION).addOption(OPTION_OPTION);
 
-    public static List<ValidationTask> getValidationTasks(AlluxioConfiguration conf) {
+    public static List<ValidationTask> getValidationTasks(String path, AlluxioConfiguration conf) {
         List<ValidationTask> tasks = new ArrayList<>();
-        tasks.add(new HdfsConfValidationTask(conf));
+        tasks.add(new HdfsConfValidationTask(path, conf));
         // TODO(jiacheng): get rid of these
-        tasks.add(new SecureHdfsValidationTask("master", conf));
-        tasks.add(new SecureHdfsValidationTask("worker", conf));
+        tasks.add(new SecureHdfsValidationTask("master", path, conf));
+        tasks.add(new SecureHdfsValidationTask("worker", path, conf));
         tasks.add(new UfsSuperUserValidationTask(conf));
         return tasks;
     }
 
-    public static void validateEnvChecks(AlluxioConfiguration conf) throws InterruptedException {
+    public static void validateEnvChecks(String path, AlluxioConfiguration conf) throws InterruptedException {
         // TODO(jiacheng): HdfsConfValidationTask reads from the option map
         Map<String, String> optionMap = new HashMap<>();
 
-        List<ValidationTask> tasks = getValidationTasks(conf);
+        List<ValidationTask> tasks = getValidationTasks(path, conf);
         for (ValidationTask t : tasks) {
             t.validate(optionMap);
         }
@@ -67,6 +67,7 @@ public class ValidateHdfsMount {
     }
 
     public static void main(String[] args) throws Exception {
+        // TODO(jiacheng): use jccommand
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
         try {
@@ -75,6 +76,9 @@ public class ValidateHdfsMount {
             System.exit(1);
         }
         args = cmd.getArgs();
+
+        String ufsPath = args[0];
+        System.out.format("ufs path is %s%n", ufsPath);
 
         // Merge options from the command line option
         // TODO(jiacheng): this should work for root and nested mount
@@ -92,7 +96,7 @@ public class ValidateHdfsMount {
         }
 
         // Run validateEnv
-        validateEnvChecks(conf);
+        validateEnvChecks(ufsPath, conf);
 
         // Run runUfsTests
         // TODO(jiacheng): pass conf?

@@ -82,11 +82,12 @@ public final class ValidateEnv {
 
   static {
     CONF = InstancedConfiguration.defaults();
+    String rootPath = CONF.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // HDFS configuration validations
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
-        new HdfsConfValidationTask(CONF), COMMON_TASKS);
+        new HdfsConfValidationTask(rootPath, CONF), COMMON_TASKS);
 
     // port availability validations
     registerTask("master.rpc.port.available",
@@ -113,10 +114,10 @@ public final class ValidateEnv {
     // security configuration validations
     registerTask("master.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for masters",
-        new SecureHdfsValidationTask("master", CONF), MASTER_TASKS);
+        new SecureHdfsValidationTask("master", rootPath, CONF), MASTER_TASKS);
     registerTask("worker.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for workers",
-        new SecureHdfsValidationTask("worker", CONF), WORKER_TASKS);
+        new SecureHdfsValidationTask("worker", rootPath, CONF), WORKER_TASKS);
 
     // ssh validations
     registerTask("ssh.nodes.reachable",
@@ -249,9 +250,10 @@ public final class ValidateEnv {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      ValidationTask.State result = task.validate(optionsMap);
-      results.put(result, results.getOrDefault(result, 0) + 1);
-      switch (result) {
+      // TODO(jiacheng): better way to print it?
+      ValidationTask.TaskResult result = task.validate(optionsMap);
+      results.put(result.mState, results.getOrDefault(result, 0) + 1);
+      switch (result.mState) {
         case OK:
           System.out.print(Constants.ANSI_GREEN);
           break;
@@ -267,7 +269,7 @@ public final class ValidateEnv {
         default:
           break;
       }
-      System.out.print(result.name());
+      System.out.print(result.mTaskName);
       System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
