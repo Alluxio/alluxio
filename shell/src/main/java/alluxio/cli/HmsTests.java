@@ -22,7 +22,7 @@ import org.apache.commons.cli.ParseException;
 /**
  * Class for running tests against an existing hive metastore.
  */
-public class HmsTest {
+public class HmsTests {
   private static final String HELP_OPTION_NAME = "h";
   private static final String METASTORE_URI_OPTION_NAME = "m";
   private static final String DATABASE_OPTION_NAME = "d";

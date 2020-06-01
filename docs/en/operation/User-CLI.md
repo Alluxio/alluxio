@@ -246,9 +246,9 @@ $ ./bin/alluxio runTests
 The `runJournalCrashTest` simulates a failover to test recovery from the journal.
 Note that this command will stop any Alluxio services running on the machine.
 
-### runHmsTest
+### runHmsTests
 
-The `runHmsTests` amis to validate the configuration, connectivity, and permissions of an existing hive metastore 
+The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore 
 which is an important component in compute workflows with Alluxio.
 
 `-h` provides detailed guidance.
