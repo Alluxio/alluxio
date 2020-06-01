@@ -67,6 +67,15 @@ public class HmsTests {
       new Options().addOption(HELP_OPTION).addOption(METASTORE_URI_OPTION)
           .addOption(DATABASE_OPTION).addOption(TABLES_OPTION).addOption(SOCKET_TIMEOUT_OPTION);
 
+  private static void printUsage() {
+    new HelpFormatter().printHelp("alluxio runHmsTests",
+        "Test the configuration, connectivity, and permission "
+            + "of an existing hive metastore", OPTIONS,
+        "e.g. options '-m thrift://hms_host:9083 -d tpcds -t store_sales,web_sales -st 20'"
+            + "will connect to the hive metastore and run tests against the given database "
+            + "and tables.", true);
+  }
+
   /**
    * @param args the input arguments
    */
@@ -76,17 +85,12 @@ public class HmsTests {
     try {
       cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
+      printUsage();
       System.exit(1);
     }
 
     if (cmd.hasOption(HELP_OPTION_NAME)) {
-      new HelpFormatter().printHelp("alluxio runHmsTests "
-              + "-m <metastore_uris> -d <database> -t <tables> -st <socket_timeout>",
-          "Test the configuration, connectivity, and permission "
-          + "of an existing hive metastore", OPTIONS,
-          "e.g. options '-m thrift://hms_host:9083 -d tpcds -t store_sales,web_sales -st 20'"
-              + "will connect to the hive metastore and run tests against the given database"
-              + "and tables.", true);
+      printUsage();
       return;
     }
     String metastoreUri = cmd.getOptionValue(METASTORE_URI_OPTION_NAME);
