@@ -216,7 +216,7 @@ $ ./bin/alluxio logLevel \
 ```
 
 One can similarly turn on UFS operations on workers by passing `--target workers`.
-You can see in corresponding logs
+You can see operations in corresponding master or worker logs like below:
 
 ```
 2020-06-02 11:28:21,824 DEBUG UnderFileSystemWithLogging - Enter: GetSpace: path=/opt/alluxio/underFSStorage, type=SPACE_USED
