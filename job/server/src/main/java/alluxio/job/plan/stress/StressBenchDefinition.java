@@ -17,8 +17,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
-import alluxio.job.util.BenchmarkJobUtils;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.JsonSerializable;
+import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.WorkerInfo;
@@ -28,11 +29,14 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
@@ -47,7 +51,8 @@ public final class StressBenchDefinition
   /**
    * Constructs a new instance.
    */
-  public StressBenchDefinition() {}
+  public StressBenchDefinition() {
+  }
 
   @Override
   public Class<StressBenchConfig> getJobConfigClass() {
@@ -70,7 +75,12 @@ public final class StressBenchDefinition
     workerList = workerList.subList(0, clusterLimit);
 
     for (WorkerInfo worker : workerList) {
-      result.add(new Pair<>(worker, BenchmarkJobUtils.generateIdArgs(worker)));
+      ArrayList<String> args = new ArrayList<>(2);
+      // Add the worker hostname + worker id as the unique task id for each distributed task.
+      // The worker id is used since there may be multiple workers on a single host.
+      args.add(BaseParameters.ID_FLAG);
+      args.add(worker.getAddress().getHost() + "-" + worker.getId());
+      result.add(new Pair<>(worker, args));
     }
     return result;
   }
@@ -102,6 +112,26 @@ public final class StressBenchDefinition
   @Override
   public String join(StressBenchConfig config, Map<WorkerInfo, String> taskResults)
       throws Exception {
-    return BenchmarkJobUtils.join(taskResults);
+    if (taskResults.isEmpty()) {
+      throw new IOException("No results from any workers.");
+    }
+    AtomicReference<IOException> error = new AtomicReference<>(null);
+
+    List<TaskResult> results = taskResults.entrySet().stream().map(
+            entry -> {
+              try {
+                return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
+              } catch (IOException | ClassNotFoundException e) {
+                error.set(new IOException(String
+                        .format("Failed to parse task output from %s into result class",
+                                entry.getKey().getAddress().getHost()), e));
+              }
+              return null;
+            }).collect(Collectors.toList());
+    if (error.get() != null) {
+      throw error.get();
+    }
+
+    return results.get(0).aggregator().aggregate(results).toJson();
   }
 }

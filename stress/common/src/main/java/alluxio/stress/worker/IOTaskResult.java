@@ -216,6 +216,9 @@ public class IOTaskResult implements TaskResult {
     }
   }
 
+  /**
+   * The IO mode, either READ or WRITE.
+   * */
   public enum IOMode {
     READ,
     WRITE

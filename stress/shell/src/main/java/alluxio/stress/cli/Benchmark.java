@@ -122,8 +122,6 @@ public abstract class Benchmark<T extends TaskResult> {
 
     // run locally
     if (mBaseParameters.mInProcess) {
-      LOG.debug("Run in process, mDistributed={}", mBaseParameters.mDistributed);
-
       // run in process
       T result = runLocal();
       if (mBaseParameters.mDistributed) {
@@ -142,6 +140,7 @@ public abstract class Benchmark<T extends TaskResult> {
       command.addAll(Arrays.asList(args));
       command.add(BaseParameters.IN_PROCESS_FLAG);
       command.addAll(mBaseParameters.mJavaOpts);
+
       LOG.info("running command: " + String.join(" ", command));
       return ShellUtils.execCommand(command.toArray(new String[0]));
     }
