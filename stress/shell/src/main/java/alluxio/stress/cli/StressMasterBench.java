@@ -241,8 +241,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           try {
             lineMap = objectMapper.readValue(line, Map.class);
           } catch (JsonParseException | MismatchedInputException e) {
-            // skip the last line of a not completed file
-            break;
+            // there are occasionally corrupt lines, skip them
+            continue;
           }
 
           final String type = (String) lineMap.get("type");
