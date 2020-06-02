@@ -247,28 +247,34 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
           final String type = (String) lineMap.get("type");
           final String methodName = (String) lineMap.get("methodName");
-          final Long timestamp = (Long) lineMap.get("timestamp");
-          final Integer duration = (Integer) lineMap.get("duration");
+          final Number timestampNumber = (Number) lineMap.get("timestamp");
+          final Number durationNumber = (Number) lineMap.get("duration");
+
+          if (type == null || methodName == null || timestampNumber == null
+              || durationNumber == null) {
+            continue;
+          }
+
+          final long timestamp = timestampNumber.longValue();
+          final long duration = durationNumber.longValue();
 
           if (timestamp <= mResult.getRecordStartMs()) {
             continue;
           }
 
-          if (type != null && methodName != null && duration != null) {
-            if (!methodNameToHistogram.containsKey(methodName)) {
-              methodNameToHistogram.put(methodName, new PartialResultStatistic());
-            }
+          if (!methodNameToHistogram.containsKey(methodName)) {
+            methodNameToHistogram.put(methodName, new PartialResultStatistic());
+          }
 
-            final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
-            statistic.mResponseTimeNs.recordValue(duration);
-            statistic.mNumSuccess += 1;
+          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+          statistic.mResponseTimeNs.recordValue(duration);
+          statistic.mNumSuccess += 1;
 
-            int bucket =
-                Math.min(statistic.mMaxResponseTimeNs.length - 1,
-                    (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
-            if (duration > statistic.mMaxResponseTimeNs[bucket]) {
-              statistic.mMaxResponseTimeNs[bucket] = duration;
-            }
+          int bucket =
+              Math.min(statistic.mMaxResponseTimeNs.length - 1,
+                  (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
+          if (duration > statistic.mMaxResponseTimeNs[bucket]) {
+            statistic.mMaxResponseTimeNs[bucket] = duration;
           }
         }
       }
