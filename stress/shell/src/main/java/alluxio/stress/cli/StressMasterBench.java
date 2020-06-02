@@ -227,7 +227,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         return;
       }
 
-      Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+      Map<String, PartialResultStatistic> methodDescriptionToHistogram = new HashMap<>();
 
       try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
         String line;
@@ -255,6 +255,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             continue;
           }
 
+          final String methodDescription = getMethodDescription(type, methodName);
+
           final long timestamp = timestampNumber.longValue();
           final long duration = durationNumber.longValue();
 
@@ -262,11 +264,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             continue;
           }
 
-          if (!methodNameToHistogram.containsKey(methodName)) {
-            methodNameToHistogram.put(methodName, new PartialResultStatistic());
+          if (!methodDescriptionToHistogram.containsKey(methodDescription)) {
+            methodDescriptionToHistogram.put(methodDescription, new PartialResultStatistic());
           }
 
-          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+          final PartialResultStatistic statistic = methodDescriptionToHistogram.get(methodDescription);
           statistic.mResponseTimeNs.recordValue(duration);
           statistic.mNumSuccess += 1;
 
@@ -279,7 +281,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         }
       }
 
-      for (Map.Entry<String, PartialResultStatistic> entry : methodNameToHistogram.entrySet()) {
+      for (Map.Entry<String, PartialResultStatistic> entry : methodDescriptionToHistogram.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().mResponseTimeNs);
         stats.mNumSuccess = entry.getValue().mNumSuccess;
@@ -290,6 +292,15 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     public synchronized MasterBenchTaskResult getResult() {
       return mResult;
+    }
+
+    private String getMethodDescription(String type, String methodName) {
+      if (type.contains("RPC")) {
+        final int classNameDivider = methodName.lastIndexOf(".");
+        methodName = methodName.substring(classNameDivider + 1);
+      }
+
+      return type + ":" + methodName;
     }
   }
 
