@@ -43,10 +43,11 @@ public interface ValidationTask {
     SKIPPED
   }
 
+  // TODO(jiacheng): use Lu class
   class TaskResult {
     public State mState;
+    // TODO(jiacheng): Conform to Lu style
     public String mTaskName;
-    // TODO(jiacheng): add desc
     public String mOutput;
     public String mAdvice;
     public String mError;
@@ -61,6 +62,11 @@ public interface ValidationTask {
     // TODO(jiacheng): consider if we want to keep the Exception or just want string
     public void setError(Exception e) {
       mError = String.format("%s", e);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s: %s%n%s%n%s%n", mTaskName, mState, mOutput, mAdvice);
     }
   }
 }

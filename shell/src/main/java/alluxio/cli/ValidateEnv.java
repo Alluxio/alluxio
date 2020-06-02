@@ -87,7 +87,7 @@ public final class ValidateEnv {
     // HDFS configuration validations
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
-        new HdfsConfValidationTask(rootPath, CONF), COMMON_TASKS);
+        new HdfsConfParityValidationTask(rootPath, CONF), COMMON_TASKS);
 
     // port availability validations
     registerTask("master.rpc.port.available",
