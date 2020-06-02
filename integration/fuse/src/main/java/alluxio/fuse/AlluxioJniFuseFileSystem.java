@@ -218,10 +218,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         oe = mOpenFiles.get(path);
       }
       FileInStream is = oe.getIn();
-      is.seek(offset);
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
-        rd = is.read(dest, nread, sz - nread);
+        rd = is.positionedRead(offset, dest, nread, sz - nread);
         if (rd >= 0) {
           nread += rd;
         }
