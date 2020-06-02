@@ -22,9 +22,11 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.resource.LockResource;
 import alluxio.util.ThreadUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -35,8 +37,14 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,6 +64,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final String mFsName;
+
+  private static final int LOCK_SIZE = 1024;
+  /** A readwrite lock pool to guard individual files based on striping. */
+  private final ReadWriteLock[] mFileLocks = new ReentrantReadWriteLock[LOCK_SIZE];
+  /** A readwrite lock to guard metadata operations. */
+  private final ReadWriteLock mOpenFilesLock = new ReentrantReadWriteLock();
+
+  @GuardedBy("mOpenFilesLock")
+  private final Map<String, OpenFileEntry> mOpenFiles = new HashMap<>();
 
   // To make test build
   @VisibleForTesting
@@ -86,11 +103,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
-
-    final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(maxCachedPaths)
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new PathCacheLoader());
+    for (int i = 0; i < LOCK_SIZE; i++) {
+      mFileLocks[i] = new ReentrantReadWriteLock();
+    }
+  }
+
+  /**
+   * Gets the lock for a particular page. Note that multiple path may share the same lock as lock
+   * striping is used to reduce resource overhead for locks.
+   *
+   * @param path the file path
+   * @return the corresponding page lock
+   */
+  private ReadWriteLock getFileLock(String path) {
+    return mFileLocks[Math.floorMod(path.hashCode(), LOCK_SIZE)];
   }
 
   @Override
@@ -157,7 +186,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int open(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    try (FileInStream is = mFileSystem.openFile(uri)) {
+    try (LockResource r1 = new LockResource(getFileLock(path).writeLock())) {
+      FileInStream is = mFileSystem.openFile(uri);
+      try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
+        if (mOpenFiles.containsKey(path)) {
+          mOpenFiles.get(path).getCount().getAndIncrement();
+        } else {
+          mOpenFiles.put(path, new OpenFileEntry(path, is));
+        }
+      }
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -171,7 +208,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     int nread = 0;
     int rd = 0;
     final int sz = (int) size;
-    try (FileInStream is = mFileSystem.openFile(uri)) {
+    try (LockResource r1 = new LockResource(getFileLock(path).readLock())) {
+      final OpenFileEntry oe;
+      try (LockResource r2 = new LockResource(mOpenFilesLock.readLock())) {
+        if (!mOpenFiles.containsKey(path)) {
+          LOG.error("Cannot find fd for {}", path);
+          return -ErrorCodes.EBADFD();
+        }
+        oe = mOpenFiles.get(path);
+      }
+      FileInStream is = oe.getIn();
       is.seek(offset);
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
@@ -200,6 +246,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int release(String path, FuseFileInfo fi) {
+    final OpenFileEntry oe;
+    try (LockResource r1 = new LockResource(getFileLock(path).writeLock())) {
+      try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
+        if (!mOpenFiles.containsKey(path)) {
+          LOG.error("Cannot find fd for {}", path);
+          return -ErrorCodes.EBADFD();
+        }
+        oe = mOpenFiles.get(path);
+        if (oe.getCount().decrementAndGet() >= 0) {
+          return 0;
+        }
+        mOpenFiles.remove(path);
+      }
+      oe.getIn().close();
+    } catch (Throwable e) {
+      LOG.error("Failed closing {} [in]", path, e);
+      return -ErrorCodes.EIO();
+    }
     return 0;
   }
 
@@ -252,6 +316,54 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       final Path tpath = mAlluxioRootPath.resolve(relPath);
 
       return new AlluxioURI(tpath.toString());
+    }
+  }
+
+  @ThreadSafe
+  private final class OpenFileEntry {
+    private final FileInStream mIn;
+
+    // Path is likely to be changed when fuse rename() is called
+    private String mPath;
+
+    /** the ref count.  */
+    private final AtomicInteger mCount;
+
+    /**
+     * Constructs a new {@link alluxio.fuse.OpenFileEntry} for an Alluxio file.
+     *
+     * @param path the path of the file
+     * @param in the input stream of the file
+     */
+    public OpenFileEntry(String path, FileInStream in) {
+      Preconditions.checkNotNull(in, "in");
+      mIn = in;
+      mPath = path;
+      mCount = new AtomicInteger(1);
+    }
+
+    /**
+     * @return the path of the file
+     */
+    public String getPath() {
+      return mPath;
+    }
+
+    /**
+     * Gets the opened input stream for this open file entry. The value returned can be {@code null}
+     * if the file is not open for reading.
+     *
+     * @return an opened input stream for the open alluxio file, or null
+     */
+    public FileInStream getIn() {
+      return mIn;
+    }
+
+    /**
+     * @return the ref count
+     */
+    public AtomicInteger getCount() {
+      return mCount;
     }
   }
 }
