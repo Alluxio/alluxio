@@ -45,7 +45,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException if I/O error happens
    */
   static PageStore create(PageStoreOptions options, boolean init) throws IOException {
-    LOG.info("Create PageStore option={}", options.toString());
+    LOG.info("Creating PageStore with option={}, init={}", options.toString(), init);
     if (init) {
       initialize(options);
     }

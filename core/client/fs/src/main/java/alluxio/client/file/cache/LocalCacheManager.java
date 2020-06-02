@@ -97,10 +97,10 @@ public class LocalCacheManager implements CacheManager {
    */
   private static boolean restore(PageStore pageStore, PageStoreOptions options, MetaStore metaStore,
       CacheEvictor evictor) {
-    LOG.info("Restore PageStore with {}", options);
+    LOG.info("Attempt to restore PageStore with {}", options);
     Path rootDir = Paths.get(options.getRootDir());
     if (!Files.exists(rootDir)) {
-      LOG.error("Directory {} does not exist", rootDir);
+      LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
       return false;
     }
     try (Stream<PageInfo> stream = pageStore.getPages()) {
