@@ -90,7 +90,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
-    mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_IO_EXECUTOR);
   }
 
   /**

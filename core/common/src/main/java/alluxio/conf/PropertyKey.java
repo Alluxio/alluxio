@@ -2577,17 +2577,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
-          .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to read blocks in the data server.")
+  public static final PropertyKey WORKER_NETWORK_BLOCK_IO_THREADS =
+      new Builder(Name.WORKER_NETWORK_BLOCK_IO_THREADS)
+          .setAlias(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX,
+              Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "The number of threads used to serve IO requests. Increasing this value to high can"
+                  + " cause the JVM to pause for extended periods of time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write blocks in the data server.")
+  public static final PropertyKey WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE =
+      new Builder(Name.WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE)
+          .setDefaultValue(3072)
+          .setDescription("The maximum number of block IO requests that can be in a worker's "
+              + "queue before they are rejected.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5106,6 +5110,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_IO_THREADS =
+        "alluxio.worker.network.block.io.threads";
+    public static final String WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE =
+        "alluxio.worker.network.block.io.request.queue.size";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =

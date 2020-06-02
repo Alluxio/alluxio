@@ -58,9 +58,9 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
           args.getArgumentAt(0, ReadResponse.class).toByteString()));
       return null;
     }).when(mResponseObserver).onNext(any(ReadResponse.class));
-    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_IO_EXECUTOR, mBlockWorker,
         mResponseObserver, new AuthenticatedUserInfo(), false);
-    mReadHandlerNoException = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
+    mReadHandlerNoException = new BlockReadHandler(GrpcExecutors.BLOCK_IO_EXECUTOR,
         mBlockWorker, mResponseObserver, new AuthenticatedUserInfo(), false);
   }
 

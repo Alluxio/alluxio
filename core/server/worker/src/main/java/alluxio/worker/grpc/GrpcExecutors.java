@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -42,24 +41,21 @@ final class GrpcExecutors {
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(512),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
 
-  public static final ExecutorService BLOCK_READER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true)));
+  public static final ExecutorService BLOCK_IO_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(
+              ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE)
+      ),
+          ThreadFactoryUtils.build("BlockIOExecutor-%d", true)));
 
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
           ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
           new ThreadPoolExecutor.CallerRunsPolicy()));
-
-  public static final ExecutorService BLOCK_WRITER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true)));
 
   /**
    * Private constructor.
