@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.BaseParameters;
-import alluxio.stress.job.IOConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -27,8 +26,8 @@ public class IOSummaryTest {
   @Test
   public void json() throws Exception {
     IOTaskResult result = new IOTaskResult();
-    result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.READ, 100L, 20));
-    result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.WRITE, 100L, 5));
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 100L, 20));
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, 100L, 5));
     IOTaskSummary summary = new IOTaskSummary(result);
 
     // params
@@ -54,8 +53,8 @@ public class IOSummaryTest {
   @Test
   public void statJson() throws Exception {
     IOTaskResult result = new IOTaskResult();
-    result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.READ, 100L, 20));
-    result.addPoint(new IOTaskResult.Point(IOConfig.IOMode.WRITE, 100L, 5));
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 100L, 20));
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, 100L, 5));
     IOTaskSummary summary = new IOTaskSummary(result);
     IOTaskSummary.SpeedStat stat = summary.getReadSpeedStat();
     ObjectMapper mapper = new ObjectMapper();
@@ -85,6 +84,5 @@ public class IOSummaryTest {
     for (String e : b.getErrors()) {
       assertTrue(errors.contains(e));
     }
-    return;
   }
 }

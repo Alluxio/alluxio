@@ -15,7 +15,6 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.JsonSerializable;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
-import alluxio.stress.job.IOConfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -165,7 +164,7 @@ public class IOTaskResult implements TaskResult {
    * An object representation of a successful I/O operation to the UFS.
    * */
   public static class Point implements JsonSerializable {
-    public IOConfig.IOMode mMode;
+    public IOMode mMode;
     public double mDuration;
     public int mDataSizeMB;
 
@@ -175,7 +174,7 @@ public class IOTaskResult implements TaskResult {
      * @param dataSize the size of I/O in MB
      * */
     @JsonCreator
-    public Point(@JsonProperty("mode") IOConfig.IOMode mode,
+    public Point(@JsonProperty("mode") IOMode mode,
                  @JsonProperty("duration") double duration,
                  @JsonProperty("dataSizeMB") int dataSize) {
       mMode = mode;
@@ -215,5 +214,10 @@ public class IOTaskResult implements TaskResult {
     public Summary aggregate(Iterable<IOTaskResult> results) throws Exception {
       return new IOTaskSummary(reduceList(results));
     }
+  }
+
+  public enum IOMode {
+    READ,
+    WRITE
   }
 }

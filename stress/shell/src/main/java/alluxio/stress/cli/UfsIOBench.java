@@ -14,7 +14,6 @@ package alluxio.stress.cli;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.job.plan.PlanConfig;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.job.IOConfig;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.WorkerBenchParameters;
@@ -24,7 +23,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,17 +61,18 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     commandArgs.addAll(mBaseParameters.mJavaOpts);
     String className = this.getClass().getCanonicalName();
-//    return new IOConfig(className, commandArgs, mParameters);
     return new StressBenchConfig(className, commandArgs, 0, mParameters.mWorkerNum);
   }
 
   @Override
   public IOTaskResult runLocal() throws Exception {
+    LOG.debug("Running locally with {} threads", mParameters.mThreads);
     ExecutorService pool =
             ExecutorServiceFactories.fixedThreadPool("bench-io-thread", mParameters.mThreads)
                     .create();
 
     IOTaskResult result = runIOBench(pool);
+    LOG.debug("IO benchmark finished with result: {}", result);
 
     pool.shutdownNow();
     pool.awaitTermination(30, TimeUnit.SECONDS);
@@ -84,7 +83,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   @Override
   public void prepare() {
-    // TODO(jiacheng): any HDFS conf to add?
+    // No HDFS conf to add
   }
 
   /**
@@ -152,7 +151,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
           long endTime = CommonUtils.getCurrentMs();
           double duration = (endTime - startTime) / 1000.0; // convert to second
-          IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.READ, duration, readMB);
+          IOTaskResult.Point p = new IOTaskResult.Point(IOTaskResult.IOMode.READ, duration, readMB);
           result.addPoint(p);
           LOG.debug("Read task finished {}", p);
         } catch (IOException e) {
@@ -223,7 +222,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
           long endTime = CommonUtils.getCurrentMs();
           double duration = (endTime - startTime) / 1000.0; // convert to second
-          IOTaskResult.Point p = new IOTaskResult.Point(IOConfig.IOMode.WRITE,
+          IOTaskResult.Point p = new IOTaskResult.Point(IOTaskResult.IOMode.WRITE,
                   duration, wroteMB);
           result.addPoint(p);
           LOG.debug("Write task finished {}", p);

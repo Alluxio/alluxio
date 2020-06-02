@@ -18,7 +18,6 @@ import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
-import alluxio.stress.job.IOConfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -285,12 +284,12 @@ public class IOTaskSummary implements Summary {
 
   private void calculateStats() {
     List<IOTaskResult.Point> readPoints = mPoints.stream().filter((p) ->
-            p.mMode == IOConfig.IOMode.READ && p.mDuration > 0)
+            p.mMode == IOTaskResult.IOMode.READ && p.mDuration > 0)
             .collect(Collectors.toList());
     mReadSpeedStat = calculateStat(readPoints);
 
     List<IOTaskResult.Point> writePoints = mPoints.stream().filter((p) ->
-            p.mMode == IOConfig.IOMode.WRITE && p.mDuration > 0)
+            p.mMode == IOTaskResult.IOMode.WRITE && p.mDuration > 0)
             .collect(Collectors.toList());
     mWriteSpeedStat = calculateStat(writePoints);
   }
