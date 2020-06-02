@@ -247,14 +247,21 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
           final String type = (String) lineMap.get("type");
           final String methodName = (String) lineMap.get("methodName");
-          final Long timestamp = (Long) lineMap.get("timestamp");
-          final Integer duration = (Integer) lineMap.get("duration");
+          final Number timestampNumber = (Number) lineMap.get("timestamp");
+          final Number durationNumber = (Number) lineMap.get("duration");
+
+          if (timestampNumber == null || durationNumber == null) {
+            continue;
+          }
+
+          final long timestamp = timestampNumber.longValue();
+          final long duration = durationNumber.longValue();
 
           if (timestamp <= mResult.getRecordStartMs()) {
             continue;
           }
 
-          if (type != null && methodName != null && duration != null) {
+          if (type != null && methodName != null) {
             if (!methodNameToHistogram.containsKey(methodName)) {
               methodNameToHistogram.put(methodName, new PartialResultStatistic());
             }
