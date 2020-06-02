@@ -40,6 +40,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -453,6 +454,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param alluxioConfiguration [optional] alluxio configuration
    * @throws IOException
    */
+  @VisibleForTesting
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
@@ -476,6 +478,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
             : ConfigurationUtils.defaults();
+    LOG.info("Creating Alluxio configuration from Hadoop configuration {}, uri configuration {}",
+        conf, uriConfProperties);
     AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
     mAlluxioConf = alluxioConf;
 

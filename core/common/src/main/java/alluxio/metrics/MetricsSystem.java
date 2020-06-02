@@ -160,7 +160,7 @@ public final class MetricsSystem {
   public static void startSinks(String metricsConfFile) {
     synchronized (MetricsSystem.class) {
       if (sSinks != null) {
-        LOG.info("Sinks have already been started.");
+        LOG.debug("Sinks have already been started.");
         return;
       }
     }
@@ -208,7 +208,7 @@ public final class MetricsSystem {
    */
   public static synchronized void startSinksFromConfig(MetricsConfig config) {
     if (sSinks != null) {
-      LOG.info("Sinks have already been started.");
+      LOG.debug("Sinks have already been started.");
       return;
     }
     LOG.info("Starting sinks with config: {}.", config);
