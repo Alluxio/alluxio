@@ -14,6 +14,7 @@ package alluxio.stress.master;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -226,50 +227,69 @@ public final class MasterBenchSummary implements Summary {
             summaries.stream().filter(x -> x.mParameters.mOperation == operation)
                 .collect(Collectors.toList());
 
-        if (!opSummaries.isEmpty()) {
-          // first() is the list of common field names, second() is the list of unique field names
-          Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-              opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+        if (opSummaries.isEmpty()) {
+          continue;
+        }
 
-          // Split up common description into 100 character chunks, for the sub title
-          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+        // first() is the list of common field names, second() is the list of unique field names
+        Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+            opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-          for (MasterBenchSummary summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            subTitle.add(
-                series + ": " + DateFormat.getDateTimeInstance().format(summary.getEndTimeMs()));
-          }
+        // Split up common description into 100 character chunks, for the sub title
+        List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+            opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
-          LineGraph responseTimeGraph =
-              new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
-                  "Response Time (ms)");
+        for (MasterBenchSummary summary : opSummaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          subTitle.add(
+              series + ": " + DateFormat.getDateTimeInstance().format(summary.getEndTimeMs()));
+        }
 
-          Map<String, LineGraph> responseTimeGraphPerMethod = new HashMap<>();
+        LineGraph responseTimeGraph =
+            new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
+                "Response Time (ms)");
+        graphs.add(responseTimeGraph);
 
-          for (MasterBenchSummary summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
-            responseTimeGraph.setErrors(series, summary.collectErrors());
+        Map<String, LineGraph> responseTimeGraphPerMethod = new HashMap<>();
 
-            for (Map.Entry<String, MasterBenchSummaryStatistics> entry :
-                summary.getStatisticsPerMethod().entrySet()) {
-              final String method = entry.getKey();
-              final LineGraph.Data responseTimeData = entry.getValue().computeResponseTimeData();
+        // Maps method name to max number of calls
+        Map<String, Long> methodCounts = new HashMap<>();
 
-              if (!responseTimeGraphPerMethod.containsKey(method)) {
-                responseTimeGraphPerMethod.put(method,
-                    new LineGraph(operation + " - Response Time (ms) " + method, subTitle,
-                        "Percentile", "Response Time (ms)"));
-              }
-              responseTimeGraphPerMethod.get(method).addDataSeries(series, responseTimeData);
+        for (MasterBenchSummary summary : opSummaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
+          responseTimeGraph.setErrors(series, summary.collectErrors());
+
+          // add separate response time graph for each method
+          for (Map.Entry<String, MasterBenchSummaryStatistics> entry :
+              summary.getStatisticsPerMethod().entrySet()) {
+            final String method = entry.getKey();
+            final LineGraph.Data responseTimeData = entry.getValue().computeResponseTimeData();
+
+            if (!responseTimeGraphPerMethod.containsKey(method)) {
+              responseTimeGraphPerMethod.put(method,
+                  new LineGraph(operation + " - Response Time (ms) " + method, subTitle,
+                      "Percentile", "Response Time (ms)"));
             }
-          }
+            responseTimeGraphPerMethod.get(method).addDataSeries(series, responseTimeData);
 
-          graphs.add(responseTimeGraph);
-          for (LineGraph graph : responseTimeGraphPerMethod.values()) {
-            graphs.add(graph);
+            // collect max success for each method
+            methodCounts.put(method,
+                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccess));
           }
+        }
+
+        // add the api count graph
+        BarGraph maxGraph = new BarGraph(operation + " - Max API Calls", subTitle, "# API calls");
+        for (Map.Entry<String, Long> entry : methodCounts.entrySet()) {
+          BarGraph.Data data = new BarGraph.Data();
+          data.addData(entry.getValue());
+          maxGraph.addDataSeries(entry.getKey(), data);
+        }
+        graphs.add(maxGraph);
+
+        for (LineGraph graph : responseTimeGraphPerMethod.values()) {
+          graphs.add(graph);
         }
       }
 
