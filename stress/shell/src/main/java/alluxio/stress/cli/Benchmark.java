@@ -142,7 +142,7 @@ public abstract class Benchmark<T extends TaskResult> {
       command.addAll(Arrays.asList(args));
       command.add(BaseParameters.IN_PROCESS_FLAG);
       command.addAll(mBaseParameters.mJavaOpts);
-      LOG.debug("running command: " + String.join(" ", command));
+      LOG.info("running command: " + String.join(" ", command));
       return ShellUtils.execCommand(command.toArray(new String[0]));
     }
   }
