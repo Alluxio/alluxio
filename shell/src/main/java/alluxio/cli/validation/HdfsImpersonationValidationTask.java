@@ -41,8 +41,8 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
     // If no impersonation setting in Alluxio, skip the check
     if (mImpersonationUsers.entrySet().size() == 0 &&
             mImpersonationGroups.size() == 0) {
-      System.out.println("No impersonation setting found in Alluxio. "
-              + "Skip the impersonation validation step.");
+      mMsg.append("No impersonation setting found in Alluxio. "
+              + "Skip the impersonation validation step.\n");
       return true;
     }
     return false;
@@ -63,15 +63,15 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       String userName = entry.getKey();
       Set<String> impUsers = entry.getValue();
       PropertyKey alluxioKey = PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.format(userName);
-      String hdfsKey = String.format("hadoop.proxy.%s.users", userName);
-      msg.append(String.format("User %s has impersonation configured in Alluxio property %s=%s. ",
+      String hdfsKey = String.format("hadoop.proxyuser.%s.users", userName);
+      msg.append(String.format("User %s has impersonation configured in Alluxio property %s=%s. %n",
               userName, alluxioKey.toString(), mConf.get(alluxioKey)));
 
       // The impersonation user is not configured in core-site.xml
       if (!mCoreConf.containsKey(hdfsKey)) {
         state = State.FAILED;
-        msg.append(String.format("But %s is not configured in hadoop proxyuser. ", hdfsKey));
-        advice.append(String.format("Please configure %s to match %s", hdfsKey, alluxioKey.toString()));
+        msg.append(String.format("But %s is not configured in hadoop proxyuser.%n", hdfsKey));
+        advice.append(String.format("Please configure %s to match %s.%n", hdfsKey, alluxioKey.toString()));
         continue;
       }
       String hdfsImpUsers = mCoreConf.get(hdfsKey);
@@ -80,33 +80,39 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       if (impUsers.contains(ImpersonationAuthenticator.WILDCARD)) {
         if (hdfsImpUsers.equals(ImpersonationAuthenticator.WILDCARD)) {
           // If impersonation is enabled for all users in Alluxio and HDFS, succeed
-          msg.append(String.format("User %s can impersonate any user in Alluxio and HDFS. ", userName));
+          msg.append(String.format("User %s can impersonate any user in Alluxio and HDFS.%n", userName));
         } else {
-          msg.append(String.format("User %s can impersonate any user in Alluxio but not in HDFS. ", userName));
+          state = State.FAILED;
+          msg.append(String.format("User %s can impersonate any user in Alluxio but only %s in HDFS.%n", userName, hdfsImpUsers));
           advice.append(String.format("Please set %s to %s. ", hdfsKey, ImpersonationAuthenticator.WILDCARD));
         }
+        continue;
+      } else if (hdfsImpUsers.equals(ImpersonationAuthenticator.WILDCARD)) {
+        msg.append(String.format("User %s can impersonate any user in HDFS.%n", userName));
         continue;
       }
 
       // Not using wildcard, compare the exact usernames
       Set<String> nameSet = new HashSet<>(Arrays.asList(hdfsImpUsers.split(",")));
       System.out.format("Impersonable users: %s%n", nameSet);
+      // The proxyuser can be enabled to impersonate more users than defined in Alluxio
       Set<String> missedUsers = Sets.difference(impUsers, nameSet); // in alluxio not in hdfs
       System.out.format("Found missed users %s%n", missedUsers);
       if (missedUsers.size() > 0) {
         state = State.FAILED;
-        msg.append(String.format("User %s can impersonate as users %s in Alluxio but not in HDFS.", userName, missedUsers));
+        msg.append(String.format("User %s can impersonate as users %s in Alluxio but not in HDFS.%n", userName, missedUsers));
         advice.append(String.format("Please add the missing users to %s. ", hdfsKey));
         continue;
       }
 
       // All checks passed
-      msg.append(String.format("Found matching configuration in %s and %s. ", alluxioKey.toString(), hdfsKey));
+      msg.append("All impersonable users in Alluxio are found in HDFS. \n");
     }
 
     return new TaskResult(state, taskName, msg.toString(), advice.toString());
   }
 
+  // TODO(jiacheng): refactor with users logic
   private TaskResult validateImpersonationGroups() {
     String taskName = "Validate alluxio impersonation groups";
     State state = State.OK;
@@ -116,7 +122,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       String userName = entry.getKey();
       Set<String> impGroups = entry.getValue();
       PropertyKey alluxioKey = PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.format(userName);
-      String hdfsKey = String.format("hadoop.proxy.%s.groups", userName);
+      String hdfsKey = String.format("hadoop.proxyuser.%s.groups", userName);
       msg.append(String.format("User %s has impersonation configured in Alluxio property %s=%s. ",
               userName, alluxioKey.toString(), mConf.get(alluxioKey)));
 
@@ -139,11 +145,15 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
           advice.append(String.format("Please set %s to %s. ", hdfsKey, ImpersonationAuthenticator.WILDCARD));
         }
         continue;
+      } else if (hdfsImpGroups.equals(ImpersonationAuthenticator.WILDCARD)) {
+        msg.append(String.format("User %s can impersonate any group in HDFS.%n", userName));
+        continue;
       }
 
       // The impersonation group has different configuration in core-site.xml
       Set<String> nameSet = new HashSet<>(Arrays.asList(hdfsImpGroups.split(",")));
       System.out.format("Impersonable groups: %s%n", nameSet);
+      // The proxyuser can be enabled to impersonate more groups than defined in Alluxio
       Set<String> missedGroups = Sets.difference(impGroups, nameSet); // in alluxio not in hdfs
       System.out.format("Found missed groups %s%n", missedGroups);
       if (missedGroups.size() > 0) {
@@ -168,7 +178,6 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
 
     // current host
     String localhost = NetworkAddressUtils.getLocalHostName(1000);
-
 
     // All the possible users Alluxio needs
     Set<String> allUsers = Sets.union(mImpersonationUsers.keySet(), mImpersonationGroups.keySet());
@@ -205,6 +214,10 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
 
   @Override
   public TaskResult validate(Map<String, String> optionMap) {
+    if (shouldSkip()) {
+      return new TaskResult(State.SKIPPED, mName, mMsg.toString(), mAdvice.toString());
+    }
+
     TaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.mState != State.OK) {
       return loadConfig;

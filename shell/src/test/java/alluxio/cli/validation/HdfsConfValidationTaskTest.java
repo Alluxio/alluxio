@@ -38,7 +38,7 @@ public class HdfsConfValidationTaskTest {
   }
 
   // Prepare a temp dir with some log files
-  private static File prepareConfDir() throws IOException {
+  public static File prepareConfDir() throws IOException {
     // The dir path will contain randomness so will be different every time
     // TODO(jiacheng): move this util
     File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory();
@@ -47,7 +47,7 @@ public class HdfsConfValidationTaskTest {
     return testConfDir;
   }
 
-  private static Element createElement(Document doc, String k, String v) {
+  public static Element createElement(Document doc, String k, String v) {
     Element name = doc.createElement("name");
     name.appendChild(doc.createTextNode(k));
     Element value = doc.createElement("value");
@@ -58,7 +58,7 @@ public class HdfsConfValidationTaskTest {
     return prop;
   }
 
-  private static void writeXML(String path, Map<String, String> properties) {
+  public static void writeXML(String path, Map<String, String> properties) {
     // Example:
     // <configuration>
     //   <property>

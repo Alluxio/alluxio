@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 public class NativeLibValidationTask extends AbstractValidationTask {
+  public static final String NATIVE_LIB_PATH = "java.library.path";
+  public static final String NATIVE_LIB_PATH_SEPARATOR = ";";
   private final AlluxioConfiguration mConf;
 
   /**
@@ -22,8 +24,8 @@ public class NativeLibValidationTask extends AbstractValidationTask {
   private TaskResult accessNativeLib() {
     String taskName = "Acess native lib path";
     // TODO(jiacheng): how do i get this property from mConf?
-    String nativeLibPath = System.getProperty("java.library.path");
-    StringTokenizer parser = new StringTokenizer(nativeLibPath, ";");
+    String nativeLibPath = System.getProperty(NATIVE_LIB_PATH);
+    StringTokenizer parser = new StringTokenizer(nativeLibPath, NATIVE_LIB_PATH_SEPARATOR);
     State state = State.OK;
     StringBuilder msg = new StringBuilder();
     msg.append(String.format("java.library.path=%s. ", nativeLibPath));

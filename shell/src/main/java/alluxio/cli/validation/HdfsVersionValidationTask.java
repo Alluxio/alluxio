@@ -50,10 +50,9 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
             String.format("Please configure %s to match the HDFS version.", PropertyKey.UNDERFS_VERSION.toString()));
   }
 
-  private String getHadoopVersion() throws IOException {
+  protected String getHadoopVersion() throws IOException {
     String[] cmd = new String[]{"hadoop", "version"};
     String version = ShellUtils.execCommand(cmd);
-    System.out.println("Hadoop version " + version);
     return version;
   }
 }
