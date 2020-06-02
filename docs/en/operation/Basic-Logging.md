@@ -223,7 +223,6 @@ You can see operations in corresponding master or worker logs like below:
 2020-06-02 11:28:21,824 DEBUG UnderFileSystemWithLogging - Exit (OK): GetSpace: path=/opt/alluxio/underFSStorage, type=SPACE_USED
 ```
 
-
 ### Identifying Expensive Client RPCs / FUSE calls
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
