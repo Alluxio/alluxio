@@ -115,19 +115,21 @@ public final class StressBenchDefinition
     if (taskResults.isEmpty()) {
       throw new IOException("No results from any workers.");
     }
+
     AtomicReference<IOException> error = new AtomicReference<>(null);
 
     List<TaskResult> results = taskResults.entrySet().stream().map(
-            entry -> {
-              try {
-                return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
-              } catch (IOException | ClassNotFoundException e) {
-                error.set(new IOException(String
-                        .format("Failed to parse task output from %s into result class",
-                                entry.getKey().getAddress().getHost()), e));
-              }
-              return null;
-            }).collect(Collectors.toList());
+        entry -> {
+          try {
+            return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
+          } catch (IOException | ClassNotFoundException e) {
+            error.set(new IOException(String
+                    .format("Failed to parse task output from %s into result class",
+                            entry.getKey().getAddress().getHost()), e));
+          }
+          return null;
+        }).collect(Collectors.toList());
+
     if (error.get() != null) {
       throw error.get();
     }
