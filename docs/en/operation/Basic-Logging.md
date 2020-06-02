@@ -185,7 +185,7 @@ commonOptions {
 
 ### Logging RPC Calls Received by Masters
 
-On the master, debug-level RPC logging for File System level RPC calls can be turned on (e.g.,
+On the master, debug-level logging for incoming File System level RPC calls can be turned on (e.g.,
 creating/reading/writing/removing files, updating file attributions) using the `logLevel` command:
 
 ```console
@@ -202,6 +202,19 @@ $ ./bin/alluxio logLevel \
 --logName=alluxio.master.block.BlockMasterClientServiceHandler \
 --target master --level=DEBUG
 ```
+
+### Logging UnderFileSystem calls
+
+On the master, debug-level RPC logging for File System level RPC calls can be turned on (e.g.,
+creating/reading/writing/removing files on UFS) using the `logLevel` command:
+
+```console
+$ ./bin/alluxio logLevel \
+--logName=alluxio.underfs.UnderFileSystemWithLogging \
+--target master --level=DEBUG
+```
+
+One can similarly turn on UFS operations on workers by passing `--target workers`.
 
 ### Identifying Expensive Client RPCs / FUSE calls
 
