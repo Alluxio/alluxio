@@ -15,6 +15,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.job.plan.PlanConfig;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.job.IOConfig;
+import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.underfs.UnderFileSystem;
@@ -23,6 +24,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +63,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
     commandArgs.addAll(mBaseParameters.mJavaOpts);
     String className = this.getClass().getCanonicalName();
-    return new IOConfig(className, commandArgs, mParameters);
+//    return new IOConfig(className, commandArgs, mParameters);
+    return new StressBenchConfig(className, commandArgs, 0, mParameters.mWorkerNum);
   }
 
   @Override
