@@ -20,14 +20,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Task result for the UFS I/O test.
  * */
-@NotThreadSafe
 public class IOTaskResult implements TaskResult {
   private List<Point> mPoints;
   private List<String> mErrors;
