@@ -158,10 +158,15 @@ public final class COSOutputStream extends OutputStream {
         meta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
       mCosClient.putObject(mBucketName, mKey, in, meta);
-      mFile.delete();
     } catch (CosClientException e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
+      LOG.error("Failed to upload {}. ", mKey);
       throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the COS client completed the
+      // upload or if the upload failed.
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     }
     return;
   }
