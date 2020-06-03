@@ -11,7 +11,12 @@
 
 package alluxio.client;
 
+import alluxio.client.block.stream.BlockInStream;
+
+import java.io.Closeable;
 import java.io.IOException;
+
+import javax.annotation.Nullable;
 
 /**
  * Stream that permits positional reading.
@@ -34,4 +39,56 @@ public interface PositionedReadable {
    * @return actual number of bytes read; -1 means "EOF";
    */
   int positionedRead(long position, byte[] buffer, int offset, int length) throws IOException;
+
+  /**
+   * Reads up to the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
+   *
+   * Not all implementations meet the thread safety requirement. According to the documentation of
+   * the PositionedReadable interface in Hadoop, those that do not meet the requirement cannot
+   * be used as a backing store for some applications, such as Apache HBase.
+   *
+   * All implementations of this interface in Alluxio must meet the thread safety requirement.
+   *
+   * @param pos position within file
+   * @param b destination buffer
+   * @param off offset in the buffer
+   * @param len number of bytes to read
+   * @param context context
+   * @return actual number of bytes read; -1 means "EOF";
+   * @throws IOException
+   */
+  default int positionedRead(long pos, byte[] b, int off, int len,
+      @Nullable Context context) throws IOException {
+    return positionedRead(pos, b, off, len);
+  }
+
+  /**
+   * Context of position reads.
+   */
+  class Context implements Closeable {
+    private BlockInStream mCachedBlockInStream;
+
+    /**
+     * @return cachedPositionedReadStream
+     */
+    public BlockInStream getCachedBlockInStream() {
+      return mCachedBlockInStream;
+    }
+
+    /**
+     * @param cachedPositionedReadStream cachedPositionedReadStream
+     */
+    public void setCachedBlockInStream(BlockInStream cachedPositionedReadStream) {
+      mCachedBlockInStream = cachedPositionedReadStream;
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (mCachedBlockInStream != null) {
+        mCachedBlockInStream.close();
+        mCachedBlockInStream = null;
+      }
+    }
+  }
 }

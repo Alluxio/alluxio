@@ -351,6 +351,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
       closeDataReader();
     } finally {

@@ -12,6 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -30,9 +31,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -186,7 +190,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int open(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    try (LockResource r1 = new LockResource(getFileLock(path).writeLock())) {
+    try {
       FileInStream is = mFileSystem.openFile(uri);
       try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
         if (mOpenFiles.containsKey(path)) {
@@ -208,7 +212,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     int nread = 0;
     int rd = 0;
     final int sz = (int) size;
-    try (LockResource r1 = new LockResource(getFileLock(path).readLock())) {
+    try {
       final OpenFileEntry oe;
       try (LockResource r2 = new LockResource(mOpenFilesLock.readLock())) {
         if (!mOpenFiles.containsKey(path)) {
@@ -220,7 +224,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       FileInStream is = oe.getIn();
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
-        rd = is.positionedRead(offset, dest, nread, sz - nread);
+        rd = is.positionedRead(offset, dest, nread, sz - nread, oe.getContext());
         if (rd >= 0) {
           nread += rd;
         }
@@ -246,7 +250,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int release(String path, FuseFileInfo fi) {
     final OpenFileEntry oe;
-    try (LockResource r1 = new LockResource(getFileLock(path).writeLock())) {
+    try {
       try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
         if (!mOpenFiles.containsKey(path)) {
           LOG.error("Cannot find fd for {}", path);
@@ -258,7 +262,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         }
         mOpenFiles.remove(path);
       }
-      oe.getIn().close();
+      oe.close();
     } catch (Throwable e) {
       LOG.error("Failed closing {} [in]", path, e);
       return -ErrorCodes.EIO();
@@ -319,7 +323,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @ThreadSafe
-  private final class OpenFileEntry {
+  private final class OpenFileEntry implements Closeable {
     private final FileInStream mIn;
 
     // Path is likely to be changed when fuse rename() is called
@@ -327,6 +331,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
     /** the ref count.  */
     private final AtomicInteger mCount;
+
+    private final PositionedReadable.Context mContext;
+    private final Closer mCloser;
 
     /**
      * Constructs a new {@link alluxio.fuse.OpenFileEntry} for an Alluxio file.
@@ -339,6 +346,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       mIn = in;
       mPath = path;
       mCount = new AtomicInteger(1);
+      mContext = new PositionedReadable.Context();
+      mCloser = Closer.create();
+      mCloser.register(mIn);
+      mCloser.register(mContext);
     }
 
     /**
@@ -363,6 +374,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
      */
     public AtomicInteger getCount() {
       return mCount;
+    }
+
+    /**
+     * @return context
+     */
+    public PositionedReadable.Context getContext() {
+      return mContext;
+    }
+
+    @Override
+    public void close() throws IOException {
+      mCloser.close();
     }
   }
 }
