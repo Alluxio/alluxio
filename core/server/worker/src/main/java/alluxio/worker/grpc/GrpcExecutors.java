@@ -11,9 +11,12 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.collections.LatencyReportingLinkedBlockingQueue;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
@@ -43,24 +46,31 @@ final class GrpcExecutors {
 
   public static final ExecutorService BLOCK_IO_EXECUTOR;
 
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
-          ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
-          new ThreadPoolExecutor.CallerRunsPolicy()));
+  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR;
 
   static {
+    LatencyReportingLinkedBlockingQueue<Runnable> execQueue =
+        new LatencyReportingLinkedBlockingQueue<>(
+            ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE),
+            (x) -> { }, Integer.MAX_VALUE, 1.0f, 5.0f, 15.0f);
+    Metrics.registerGauges(execQueue);
     ThreadPoolExecutor exec =
         new ThreadPoolExecutor(
             ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
             ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
-            THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(
-            ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_REQUEST_QUEUE_SIZE)
-        ),
+            THREAD_STOP_MS, TimeUnit.MILLISECONDS, execQueue,
             ThreadFactoryUtils.build("BlockIOExecutor-%d", true));
     exec.allowCoreThreadTimeOut(true);
     BLOCK_IO_EXECUTOR = new ImpersonateThreadPoolExecutor(exec);
+
+    ThreadPoolExecutor serializedExec = new ThreadPoolExecutor(
+        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
+        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_IO_THREADS),
+        THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
+        ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
+        new ThreadPoolExecutor.CallerRunsPolicy());
+    serializedExec.allowCoreThreadTimeOut(true);
+    BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR = new ImpersonateThreadPoolExecutor(serializedExec);
   }
 
   /**
@@ -119,5 +129,29 @@ final class GrpcExecutors {
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
       return mDelegate.awaitTermination(timeout, unit);
     }
+  }
+
+  private static class Metrics {
+
+    /**
+     * Registers metric gauges.
+     *
+     * @param queue the reporting queue
+     */
+    public static void registerGauges(LatencyReportingLinkedBlockingQueue<Runnable> queue) {
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_1_MIN.getName()),
+          () -> queue.getEMAs().get(0).get());
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_5_MIN.getName()),
+          () -> queue.getEMAs().get(1).get());
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_15_MIN.getName()),
+          () -> queue.getEMAs().get(2).get());
+    }
+
+    private Metrics() { }
   }
 }
