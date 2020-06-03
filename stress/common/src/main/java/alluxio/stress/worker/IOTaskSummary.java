@@ -199,7 +199,7 @@ public class IOTaskSummary implements Summary {
             throws IOException {
       jgen.writeStartObject();
       jgen.writeStringField("totalDuration", value.mTotalDuration + "s");
-      jgen.writeStringField("totalSize", value.mTotalSize + "Bytes");
+      jgen.writeStringField("totalSize", FormatUtils.getSizeFromBytes(value.mTotalSize));
       jgen.writeStringField("maxSpeed", value.mMaxSpeed + "MB/s");
       jgen.writeStringField("minSpeed", value.mMinSpeed + "MB/s");
       jgen.writeStringField("avgSpeed", value.mAvgSpeed + "MB/s");
@@ -229,8 +229,8 @@ public class IOTaskSummary implements Summary {
       return Double.parseDouble(time.substring(0, time.length() - "s".length()));
     }
 
-    private int sizeToNumber(String size) {
-      return Integer.parseInt(size.substring(0, size.length() - "Bytes".length()));
+    private long sizeToNumber(String size) {
+      return FormatUtils.parseSpaceSize(size);
     }
 
     @Override
@@ -270,7 +270,7 @@ public class IOTaskSummary implements Summary {
       double speed = p.mDataSizeBytes / (p.mDuration * 1024 * 1024); // convert B/s to MB/s
       maxSpeed = Math.max(maxSpeed, speed);
       minSpeed = Math.min(minSpeed, speed);
-      speeds[i++] = p.mDataSizeBytes / p.mDuration;
+      speeds[i++] = speed;
     }
     double avgSpeed = totalSize / (totalDuration * 1024 * 1024); // convert B/s to MB/s
     double var = 0;
