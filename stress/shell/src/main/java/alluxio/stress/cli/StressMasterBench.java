@@ -227,7 +227,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         return;
       }
 
-      Map<String, PartialResultStatistic> methodDescriptionToHistogram = new HashMap<>();
+      Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
 
       try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
         String line;
@@ -255,7 +255,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             continue;
           }
 
-          final String methodDescription = getMethodDescription(type, methodName);
+          final String methodDesc = getMethodDescription(type, methodName);
 
           final long timestamp = timestampNumber.longValue();
           final long duration = durationNumber.longValue();
@@ -264,11 +264,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             continue;
           }
 
-          if (!methodDescriptionToHistogram.containsKey(methodDescription)) {
-            methodDescriptionToHistogram.put(methodDescription, new PartialResultStatistic());
+          if (!methodDescToHistogram.containsKey(methodDesc)) {
+            methodDescToHistogram.put(methodDesc, new PartialResultStatistic());
           }
 
-          final PartialResultStatistic statistic = methodDescriptionToHistogram.get(methodDescription);
+          final PartialResultStatistic statistic = methodDescToHistogram.get(methodDesc);
           statistic.mResponseTimeNs.recordValue(duration);
           statistic.mNumSuccess += 1;
 
@@ -281,7 +281,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         }
       }
 
-      for (Map.Entry<String, PartialResultStatistic> entry : methodDescriptionToHistogram.entrySet()) {
+      for (Map.Entry<String, PartialResultStatistic> entry : methodDescToHistogram.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().mResponseTimeNs);
         stats.mNumSuccess = entry.getValue().mNumSuccess;
