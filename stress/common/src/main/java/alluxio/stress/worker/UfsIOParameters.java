@@ -20,18 +20,14 @@ import com.beust.jcommander.Parameter;
  * */
 public class UfsIOParameters extends Parameters {
   @Parameter(names = {"--threads"}, description = "the number of threads to use")
-  public int mThreads = 16;
+  public int mThreads = 4;
 
   @Parameter(names = {"--io-size"},
-          description = "size of data to write or read in total, in MB")
+          description = "size of data to write and then read for each thread")
   public String mDataSize = "4G";
 
   @Parameter(names = {"--path"},
           description = "the Alluxio directory to write temporary data in",
           required = true)
   public String mPath;
-
-  @Parameter(names = {"--workers"},
-          description = "the number of workers to use")
-  public int mWorkerNum = 1;
 }
