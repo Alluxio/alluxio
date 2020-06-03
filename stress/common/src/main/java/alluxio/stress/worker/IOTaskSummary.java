@@ -318,7 +318,6 @@ public class IOTaskSummary implements Summary {
     @Override
     public List<Graph> generate(List<? extends Summary> results) {
       List<Graph> graphs = new ArrayList<>();
-      // only examine MaxThroughputSummary
       List<IOTaskSummary> summaries =
               results.stream().map(x -> (IOTaskSummary) x).collect(Collectors.toList());
 
