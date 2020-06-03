@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -375,9 +376,13 @@ public final class MasterWorkerInfo {
 
   @Override
   public String toString() {
+    int blockSizeLimit = 100;
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
+        .add("blocks",
+              (mBlocks.size() < blockSizeLimit) ? mBlocks :
+                mBlocks.stream().limit(blockSizeLimit).collect(Collectors.toList()))
         .add("lostStorage", mLostStorage).toString();
   }
 
