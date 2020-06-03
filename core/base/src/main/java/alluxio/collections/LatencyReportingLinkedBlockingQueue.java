@@ -50,12 +50,20 @@ import java.util.function.Consumer;
  * The intended use of this class is within ExecutorService's so that the latency of tasks can be
  * reported to users through Alluxio's metrics system.
  *
+ * There are two sets of EMAs reported by this class.
+ *
+ * - latency EMAs. These describe how long tasks wait in the IO queue before being processed. The
+ * numbers reported may be inaccurate if the queue goes unused for an extended period of time.
+ * - load EMAs. These describe the number of tasks in the IO queue waiting to be processed. They
+ * are comparable to the unix, load averages.
+ *
  * @param <T> the type of object to store in the queue
  */
 public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
     implements BlockingQueue<T> {
 
-  private final EMA[] mEMAs;
+  private final EMA[] mLatencyEMAs;
+  private final EMA[] mLoadEMAs;
   private final LinkedBlockingQueue<Pair<Long, T>> mInternalQueue;
   private final Consumer<List<EMA>> mReportingFunction;
   private final AtomicInteger mCount;
@@ -76,10 +84,12 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
   public LatencyReportingLinkedBlockingQueue(int capacity,
       Consumer<List<EMA>> reportingFunction, int reportFreq, double... minuteAverages) {
     mInternalQueue = new LinkedBlockingQueue<>(capacity);
-    mEMAs = new EMA[minuteAverages.length];
+    mLatencyEMAs = new EMA[minuteAverages.length];
+    mLoadEMAs = new EMA[minuteAverages.length];
     for (int i = 0; i < minuteAverages.length; i++) {
       Preconditions.checkArgument(minuteAverages[i] > 0, "minuteAverages[" + i + "] must be > 0.");
-      mEMAs[i] = new EMA(minuteAverages[i]);
+      mLatencyEMAs[i] = new EMA(minuteAverages[i]);
+      mLoadEMAs[i] = new EMA(minuteAverages[i]);
     }
     mReportingFunction = reportingFunction;
     mCount = new AtomicInteger(0);
@@ -87,14 +97,25 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
     mReportAfter = reportFreq;
   }
 
-  private synchronized void calculateNewEMAs(long startTime) {
+  private synchronized void calculateLatencyEMAs(long startTime) {
     long now = System.currentTimeMillis();
     long latency = now - startTime;
-    for (EMA ema : mEMAs) {
+    for (EMA ema : mLatencyEMAs) {
       ema.update(now, latency);
     }
     if (mCount.incrementAndGet() % mReportAfter == 0) {
-      mReportingFunction.accept(Arrays.asList(mEMAs));
+      mReportingFunction.accept(Arrays.asList(mLatencyEMAs));
+    }
+  }
+
+  private synchronized void calculateLoadEMAs() {
+    long now = System.currentTimeMillis();
+    long load = mInternalQueue.size();
+    for (EMA ema : mLoadEMAs) {
+      ema.update(now, load);
+    }
+    if (mCount.incrementAndGet() % mReportAfter == 0) {
+      mReportingFunction.accept(Arrays.asList(mLoadEMAs));
     }
   }
 
@@ -106,8 +127,21 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
    *
    * @return the list of EMAs
    */
-  public List<EMA> getEMAs() {
-    return Collections.unmodifiableList(Arrays.asList(mEMAs));
+  public List<EMA> getLatencyEMAs() {
+    return Collections.unmodifiableList(Arrays.asList(mLatencyEMAs));
+  }
+
+  /**
+   * Return the set of load EMAs in an unmodifiable list.
+   *
+   * The ordering of the EMAs corresponds to the order in which they were passed into the
+   * constructor.
+   *
+   * @return the list of EMAs
+   */
+  public List<EMA> getLoadEMAs() {
+    calculateLoadEMAs();
+    return Collections.unmodifiableList(Arrays.asList(mLoadEMAs));
   }
 
   @Override
@@ -129,7 +163,7 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
   @Nonnull
   public T take() throws InterruptedException {
     Pair<Long, T> item = mInternalQueue.take();
-    calculateNewEMAs(item.getFirst());
+    calculateLatencyEMAs(item.getFirst());
     return item.getSecond();
   }
 
@@ -150,7 +184,7 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
     long avgStartTime = Math.round(
         ((double) l.stream().map(Pair::getFirst).reduce(0L, Long::sum)) / l.size());
     l.stream().map(Pair::getSecond).forEach(c::add);
-    calculateNewEMAs(avgStartTime);
+    calculateLatencyEMAs(avgStartTime);
     return ret;
   }
 
@@ -160,7 +194,7 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
     if (item == null) {
       return null;
     }
-    calculateNewEMAs(item.getFirst());
+    calculateLatencyEMAs(item.getFirst());
     return item.getSecond();
   }
 
@@ -170,7 +204,7 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
     if (item == null) {
       return null;
     }
-    calculateNewEMAs(item.getFirst());
+    calculateLatencyEMAs(item.getFirst());
     return item.getSecond();
   }
 
@@ -201,7 +235,7 @@ public class LatencyReportingLinkedBlockingQueue<T> extends AbstractQueue<T>
       public void remove() {
         // This will occur is #next() is not called on the iterator first
         if (mLastItem != null) {
-          calculateNewEMAs(mLastItem.getFirst());
+          calculateLatencyEMAs(mLastItem.getFirst());
         }
         mIter.remove();
       }

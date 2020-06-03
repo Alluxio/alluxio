@@ -141,15 +141,27 @@ final class GrpcExecutors {
     public static void registerGauges(LatencyReportingLinkedBlockingQueue<Runnable> queue) {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_1_MIN.getName()),
-          () -> queue.getEMAs().get(0).get());
+          () -> queue.getLatencyEMAs().get(0).get());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_5_MIN.getName()),
-          () -> queue.getEMAs().get(1).get());
+          () -> queue.getLatencyEMAs().get(1).get());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_IO_QUEUE_15_MIN.getName()),
-          () -> queue.getEMAs().get(2).get());
+          () -> queue.getLatencyEMAs().get(2).get());
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_LOAD_1_MIN.getName()),
+          () -> queue.getLoadEMAs().get(0).get());
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_LOAD_5_MIN.getName()),
+          () -> queue.getLoadEMAs().get(1).get());
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_IO_LOAD_15_MIN.getName()),
+          () -> queue.getLoadEMAs().get(2).get());
     }
 
     private Metrics() { }

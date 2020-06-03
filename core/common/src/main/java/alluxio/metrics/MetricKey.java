@@ -740,21 +740,40 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_IO_LOAD_1_MIN =
+      new Builder(Name.WORKER_IO_LOAD_1_MIN)
+          .setDescription("The 1-minute exponential moving average of worker IO queue length.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_IO_LOAD_5_MIN =
+      new Builder(Name.WORKER_IO_LOAD_5_MIN)
+          .setDescription("The 5-minute exponential moving average of worker IO queue length.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_IO_LOAD_15_MIN =
+      new Builder(Name.WORKER_IO_LOAD_15_MIN)
+          .setDescription("The 15-minute exponential moving average of worker IO length.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_IO_QUEUE_1_MIN =
       new Builder(Name.WORKER_IO_QUEUE_1_MIN)
-          .setDescription("The 1-minute exponential moving average of worker IO queue times.")
+          .setDescription("The 1-minute exponential moving average of worker IO queue times in ms.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_IO_QUEUE_5_MIN =
       new Builder(Name.WORKER_IO_QUEUE_5_MIN)
-          .setDescription("The 5-minute exponential moving average of worker IO queue times.")
+          .setDescription("The 5-minute exponential moving average of worker IO queue times in ms.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_IO_QUEUE_15_MIN =
       new Builder(Name.WORKER_IO_QUEUE_15_MIN)
-          .setDescription("The 15-minute exponential moving average of worker IO queue times.")
+          .setDescription("The 15-minute exponential moving average of worker IO queue times in "
+              + "ms.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
@@ -1070,9 +1089,13 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";
     public static final String WORKER_CAPACITY_USED = "Worker.CapacityUsed";
     public static final String WORKER_CAPACITY_FREE = "Worker.CapacityFree";
+    public static final String WORKER_IO_LOAD_1_MIN = "Worker.IOLoad1Min";
+    public static final String WORKER_IO_LOAD_5_MIN = "Worker.IOLoad5Min";
+    public static final String WORKER_IO_LOAD_15_MIN = "Worker.IOLoad15Min";
     public static final String WORKER_IO_QUEUE_1_MIN = "Worker.IOQueue1Min";
     public static final String WORKER_IO_QUEUE_5_MIN = "Worker.IOQueue5Min";
     public static final String WORKER_IO_QUEUE_15_MIN = "Worker.IOQueue15Min";
+
 
     // Client metrics
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
