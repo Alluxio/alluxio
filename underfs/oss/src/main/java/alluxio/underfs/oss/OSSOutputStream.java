@@ -158,9 +158,14 @@ public final class OSSOutputStream extends OutputStream {
       }
       mOssClient.putObject(mBucketName, mKey, in, objMeta);
     } catch (ServiceException e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
+      LOG.error("Failed to upload {}.", mKey);
       throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the OSS client completed the
+      // upload or if the upload failed.
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     }
-    mFile.delete();
   }
 }
