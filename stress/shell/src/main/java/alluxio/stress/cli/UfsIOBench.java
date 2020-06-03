@@ -12,14 +12,12 @@
 package alluxio.stress.cli;
 
 import alluxio.conf.InstancedConfiguration;
-import alluxio.job.plan.PlanConfig;
-import alluxio.stress.BaseParameters;
-import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.IOTaskResult;
-import alluxio.stress.worker.WorkerBenchParameters;
+import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
@@ -29,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,22 +44,10 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final int BUFFER_SIZE = 1024 * 1024;
 
   @ParametersDelegate
-  private WorkerBenchParameters mParameters = new WorkerBenchParameters();
+  private UfsIOParameters mParameters = new UfsIOParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   private final HashMap<String, String> mHdfsConf = new HashMap<>();
-
-  @Override
-  public PlanConfig generateJobConfig(String[] args) {
-    // remove the cluster flag
-    List<String> commandArgs =
-            Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
-                    .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
-
-    commandArgs.addAll(mBaseParameters.mJavaOpts);
-    String className = this.getClass().getCanonicalName();
-    return new StressBenchConfig(className, commandArgs, 0, mParameters.mWorkerNum);
-  }
 
   @Override
   public IOTaskResult runLocal() throws Exception {
@@ -83,7 +68,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   @Override
   public void prepare() {
-    // No HDFS conf to add
+    // Parse the IO size, an IllegalArgumentException will be thrown if the size is not parsable
+    FormatUtils.parseSpaceSize(mParameters.mDataSize);
   }
 
   /**
@@ -118,6 +104,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
           throws IOException, InterruptedException, ExecutionException {
     // Use multiple threads to saturate the bandwidth of this worker
     int numThreads = mParameters.mThreads;
+    // This parse is guarded in prepare()
+    long ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
 
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
             .createMountSpecificConf(mHdfsConf);
@@ -140,18 +128,20 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         String filePath = getFilePathStr(idx);
         LOG.debug("Reading filePath={}", filePath);
 
-        int readMB = 0;
+        long readBytes = 0;
         InputStream inStream = null;
         try {
           inStream = ufs.open(filePath);
           byte[] buf = new byte[BUFFER_SIZE];
-          while (readMB < mParameters.mDataSize && inStream.read(buf) > 0) {
-            readMB += 1; // 1 MB
+          int readBufBytes;
+          while (readBytes < ioSizeBytes && (readBufBytes = inStream.read(buf)) > 0) {
+            readBytes += readBufBytes;
           }
 
           long endTime = CommonUtils.getCurrentMs();
           double duration = (endTime - startTime) / 1000.0; // convert to second
-          IOTaskResult.Point p = new IOTaskResult.Point(IOTaskResult.IOMode.READ, duration, readMB);
+          IOTaskResult.Point p = new IOTaskResult.Point(IOTaskResult.IOMode.READ,
+                  duration, readBytes);
           result.addPoint(p);
           LOG.debug("Read task finished {}", p);
         } catch (IOException e) {
@@ -188,6 +178,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
           throws IOException, InterruptedException, ExecutionException {
     // Use multiple threads to saturate the bandwidth of this worker
     int numThreads = mParameters.mThreads;
+    // This parse is guarded in prepare()
+    long ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
 
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
             .createMountSpecificConf(mHdfsConf);
@@ -208,22 +200,24 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         long startTime = CommonUtils.getCurrentMs();
 
         String filePath = getFilePathStr(idx);
-        LOG.debug("filePath={}, data to write={}MB", filePath, mParameters.mDataSize);
+        LOG.debug("filePath={}, data to write={}", filePath, mParameters.mDataSize);
 
-        int wroteMB = 0;
+        long wroteBytes = 0;
         BufferedOutputStream outStream = null;
         try {
           outStream = new BufferedOutputStream(ufs.create(filePath));
-          while (wroteMB < mParameters.mDataSize) {
-            outStream.write(randomData);
-            wroteMB += 1; // 1 MB
+          while (wroteBytes < ioSizeBytes) {
+            long bytesToWrite = Math.min(ioSizeBytes - wroteBytes, BUFFER_SIZE);
+            // bytesToWrite is bounded by BUFFER_SIZE, which is an integer
+            outStream.write(randomData, 0, (int) bytesToWrite);
+            wroteBytes += bytesToWrite;
           }
           outStream.flush();
 
           long endTime = CommonUtils.getCurrentMs();
           double duration = (endTime - startTime) / 1000.0; // convert to second
           IOTaskResult.Point p = new IOTaskResult.Point(IOTaskResult.IOMode.WRITE,
-                  duration, wroteMB);
+                  duration, wroteBytes);
           result.addPoint(p);
           LOG.debug("Write task finished {}", p);
         } catch (IOException e) {

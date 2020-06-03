@@ -19,15 +19,18 @@ import alluxio.stress.BaseParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class IOSummaryTest {
+public class IOTaskSummaryTest {
   @Test
   public void json() throws Exception {
     IOTaskResult result = new IOTaskResult();
-    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 100L, 20));
-    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, 100L, 5));
+    // Reading 200MB took 1s
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 1L, 200 * 1024 * 1024));
+    // Writing 50MB took 1s
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, 1L, 50 * 1024 * 1024));
     IOTaskSummary summary = new IOTaskSummary(result);
 
     // params
@@ -39,7 +42,7 @@ public class IOSummaryTest {
     baseParams.mInProcess = false;
     summary.setBaseParameters(baseParams);
 
-    WorkerBenchParameters workerParams = new WorkerBenchParameters();
+    UfsIOParameters workerParams = new UfsIOParameters();
     workerParams.mPath = "hdfs://path";
     summary.setParameters(workerParams);
 
@@ -53,14 +56,47 @@ public class IOSummaryTest {
   @Test
   public void statJson() throws Exception {
     IOTaskResult result = new IOTaskResult();
-    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 100L, 20));
-    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, 100L, 5));
+    // Reading 200MB took 1s
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 1L, 200 * 1024 * 1024));
+    // Reading 196MB took 1s
+    result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, 1L, 196 * 1024 * 1024));
     IOTaskSummary summary = new IOTaskSummary(result);
     IOTaskSummary.SpeedStat stat = summary.getReadSpeedStat();
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(stat);
     IOTaskSummary.SpeedStat other = mapper.readValue(json, IOTaskSummary.SpeedStat.class);
     checkEquality(stat, other);
+  }
+
+  @Test
+  public void statCalculation() {
+    IOTaskResult result = new IOTaskResult();
+    double[] durations = new double[]{1.0, 1.5, 2.0, 1.11};
+    long[] sizes = new long[]{200_000_000, 300_000_000, 500_000_000, 800_000_000};
+    for (int i = 0; i < sizes.length; i++) {
+      result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, durations[i], sizes[i]));
+      result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, durations[i], sizes[i]));
+    }
+
+    IOTaskSummary summary = new IOTaskSummary(result);
+    IOTaskSummary.SpeedStat readStat = summary.getReadSpeedStat();
+    double totalDuration = Arrays.stream(durations).sum();
+    long totalSize = Arrays.stream(sizes).sum();
+    double avgSpeed = totalSize / (totalDuration * 1024 * 1024);
+    double maxSpeed = 800_000_000 / (1.11 * 1024 * 1024);
+    double minSpeed = 200_000_000 / (1.0 * 1024 * 1024);
+    assertEquals(totalDuration, readStat.mTotalDuration, 1e-5);
+    assertEquals(totalSize, readStat.mTotalSize);
+    assertEquals(avgSpeed, readStat.mAvgSpeed, 1e-5);
+    assertEquals(maxSpeed, readStat.mMaxSpeed, 1e-5);
+    assertEquals(minSpeed, readStat.mMinSpeed, 1e-5);
+
+    IOTaskSummary.SpeedStat writeStat = summary.getWriteSpeedStat();
+    assertEquals(totalDuration, writeStat.mTotalDuration, 1e-5);
+    assertEquals(totalSize, writeStat.mTotalSize);
+    assertEquals(avgSpeed, writeStat.mAvgSpeed, 1e-5);
+    assertEquals(maxSpeed, writeStat.mMaxSpeed, 1e-5);
+    assertEquals(minSpeed, writeStat.mMinSpeed, 1e-5);
   }
 
   private void checkEquality(IOTaskSummary.SpeedStat a, IOTaskSummary.SpeedStat b) {

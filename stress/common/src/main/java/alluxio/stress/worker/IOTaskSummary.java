@@ -18,6 +18,7 @@ import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
+import alluxio.util.FormatUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -46,7 +47,7 @@ public class IOTaskSummary implements Summary {
   private List<IOTaskResult.Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private WorkerBenchParameters mParameters;
+  private UfsIOParameters mParameters;
   private SpeedStat mReadSpeedStat;
   private SpeedStat mWriteSpeedStat;
 
@@ -110,16 +111,16 @@ public class IOTaskSummary implements Summary {
   }
 
   /**
-   * @return the task specific {@link WorkerBenchParameters}
+   * @return the task specific {@link UfsIOParameters}
    * */
-  public WorkerBenchParameters getParameters() {
+  public UfsIOParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the {@link WorkerBenchParameters}
+   * @param parameters the {@link UfsIOParameters}
    * */
-  public void setParameters(WorkerBenchParameters parameters) {
+  public void setParameters(UfsIOParameters parameters) {
     mParameters = parameters;
   }
 
@@ -159,7 +160,7 @@ public class IOTaskSummary implements Summary {
   @JsonDeserialize(using = StatDeserializer.class)
   public static class SpeedStat implements JsonSerializable {
     public double mTotalDuration; // in second
-    public int mTotalSize; // in MB
+    public long mTotalSize; // in Bytes
     public double mMaxSpeed; // in MB/s
     public double mMinSpeed; // in MB/s
     public double mAvgSpeed; // in MB/s
@@ -172,9 +173,10 @@ public class IOTaskSummary implements Summary {
 
     @Override
     public String toString() {
-      return String.format("{totalDuration=%ss, totalSize=%sMB, maxSpeed=%sMB/s, "
+      return String.format("{totalDuration=%ss, totalSize=%s, maxSpeed=%sMB/s, "
                       + "minSpeed=%sMB/s, " + "avgSpeed=%sMB/s, stdDev=%s}",
-              mTotalDuration, mTotalSize, mMaxSpeed, mMinSpeed, mAvgSpeed, mStdDev);
+              mTotalDuration, FormatUtils.getSizeFromBytes(mTotalSize),
+              mMaxSpeed, mMinSpeed, mAvgSpeed, mStdDev);
     }
   }
 
@@ -183,6 +185,8 @@ public class IOTaskSummary implements Summary {
    * All the fields are attached with the unit.
    * */
   public static class StatSerializer extends StdSerializer<SpeedStat> {
+    private static final long serialVersionUID = -5198319303173120740L;
+
     /**
      * An empty constructor.
      * */
@@ -195,7 +199,7 @@ public class IOTaskSummary implements Summary {
             throws IOException {
       jgen.writeStartObject();
       jgen.writeStringField("totalDuration", value.mTotalDuration + "s");
-      jgen.writeStringField("totalSize", value.mTotalSize + "MB");
+      jgen.writeStringField("totalSize", value.mTotalSize + "Bytes");
       jgen.writeStringField("maxSpeed", value.mMaxSpeed + "MB/s");
       jgen.writeStringField("minSpeed", value.mMinSpeed + "MB/s");
       jgen.writeStringField("avgSpeed", value.mAvgSpeed + "MB/s");
@@ -208,6 +212,8 @@ public class IOTaskSummary implements Summary {
    * A customized deserializer for {@link SpeedStat}.
    * */
   public static class StatDeserializer extends StdDeserializer<SpeedStat> {
+    private static final long serialVersionUID = -5198319303173120741L;
+
     /**
      * An empty constructor.
      * */
@@ -224,7 +230,7 @@ public class IOTaskSummary implements Summary {
     }
 
     private int sizeToNumber(String size) {
-      return Integer.parseInt(size.substring(0, size.length() - "MB".length()));
+      return Integer.parseInt(size.substring(0, size.length() - "Bytes".length()));
     }
 
     @Override
@@ -253,20 +259,20 @@ public class IOTaskSummary implements Summary {
     }
 
     double totalDuration = 0.0;
-    int totalSize = 0;
+    long totalSize = 0L;
     double[] speeds = new double[points.size()];
     double maxSpeed = 0.0;
     double minSpeed = Double.MAX_VALUE;
     int i = 0;
     for (IOTaskResult.Point p : points) {
       totalDuration += p.mDuration;
-      totalSize += p.mDataSizeMB;
-      double speed = p.mDataSizeMB / p.mDuration;
+      totalSize += p.mDataSizeBytes;
+      double speed = p.mDataSizeBytes / (p.mDuration * 1024 * 1024); // convert B/s to MB/s
       maxSpeed = Math.max(maxSpeed, speed);
       minSpeed = Math.min(minSpeed, speed);
-      speeds[i++] = p.mDataSizeMB / p.mDuration;
+      speeds[i++] = p.mDataSizeBytes / p.mDuration;
     }
-    double avgSpeed = totalSize / totalDuration;
+    double avgSpeed = totalSize / (totalDuration * 1024 * 1024); // convert B/s to MB/s
     double var = 0;
     for (double s : speeds) {
       var += (s - avgSpeed) * (s - avgSpeed);

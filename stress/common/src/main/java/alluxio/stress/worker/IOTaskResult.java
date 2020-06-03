@@ -15,6 +15,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.JsonSerializable;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
+import alluxio.util.FormatUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,7 +31,7 @@ public class IOTaskResult implements TaskResult {
   private List<Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private WorkerBenchParameters mParameters;
+  private UfsIOParameters mParameters;
 
   /**
    * An empty constructor.
@@ -110,16 +111,16 @@ public class IOTaskResult implements TaskResult {
   }
 
   /**
-   * @return the {@link WorkerBenchParameters}
+   * @return the {@link UfsIOParameters}
    * */
-  public WorkerBenchParameters getParameters() {
+  public UfsIOParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the {@link WorkerBenchParameters} to use
+   * @param parameters the {@link UfsIOParameters} to use
    * */
-  public void setParameters(WorkerBenchParameters parameters) {
+  public void setParameters(UfsIOParameters parameters) {
     mParameters = parameters;
   }
 
@@ -163,27 +164,27 @@ public class IOTaskResult implements TaskResult {
    * */
   public static class Point implements JsonSerializable {
     public IOMode mMode;
-    public double mDuration;
-    public int mDataSizeMB;
+    public double mDuration; // in seconds
+    public long mDataSizeBytes; // in Bytes
 
     /**
      * @param mode the I/O mode
      * @param duration the time taken
-     * @param dataSize the size of I/O in MB
+     * @param dataSize the size of I/O in Bytes
      * */
     @JsonCreator
     public Point(@JsonProperty("mode") IOMode mode,
                  @JsonProperty("duration") double duration,
-                 @JsonProperty("dataSizeMB") int dataSize) {
+                 @JsonProperty("dataSizeBytes") long dataSize) {
       mMode = mode;
       mDuration = duration;
-      mDataSizeMB = dataSize;
+      mDataSizeBytes = dataSize;
     }
 
     @Override
     public String toString() {
-      return String.format("{mode=%s, duration=%ss, dataSize=%sMB}",
-              mMode, mDuration, mDataSizeMB);
+      return String.format("{mode=%s, duration=%ss, dataSize=%s}",
+              mMode, mDuration, FormatUtils.getSizeFromBytes(mDataSizeBytes));
     }
 
     @Override
@@ -192,13 +193,13 @@ public class IOTaskResult implements TaskResult {
         return false;
       }
       Point b = (Point) other;
-      return this.mMode == b.mMode && this.mDataSizeMB == b.mDataSizeMB
-              && this.mDuration == b.mDuration;
+      return this.mMode == b.mMode && this.mDataSizeBytes == b.mDataSizeBytes
+              && Math.abs(this.mDuration - b.mDuration) < 1e-5;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mMode, mDataSizeMB, mDuration);
+      return Objects.hashCode(mMode, mDataSizeBytes, mDuration);
     }
   }
 

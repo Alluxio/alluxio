@@ -18,13 +18,13 @@ import com.beust.jcommander.Parameter;
 /**
  * Parameters used in the UFS I/O throughput test.
  * */
-public class WorkerBenchParameters extends Parameters {
+public class UfsIOParameters extends Parameters {
   @Parameter(names = {"--threads"}, description = "the number of threads to use")
   public int mThreads = 16;
 
   @Parameter(names = {"--io-size"},
           description = "size of data to write or read in total, in MB")
-  public int mDataSize = 4096;
+  public String mDataSize = "4G";
 
   @Parameter(names = {"--path"},
           description = "the Alluxio directory to write temporary data in",
