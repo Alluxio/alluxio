@@ -21,6 +21,9 @@ import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.BlockManagementTaskResult;
+import alluxio.worker.block.management.BlockOperationResult;
+import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
@@ -34,7 +37,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * A BlockStore management task that is to move blocks to higher tiers.
@@ -62,8 +67,9 @@ public class PromoteTask extends AbstractBlockManagementTask {
   }
 
   @Override
-  public void run() {
+  public BlockManagementTaskResult run() {
     LOG.debug("Running promote task.");
+    BlockManagementTaskResult result = new BlockManagementTaskResult();
     // Iterate each tier intersection and move to upper tier whenever required.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
@@ -75,9 +81,12 @@ public class PromoteTask extends AbstractBlockManagementTask {
           mMetadataManager.getBlockIterator().getIterator(tierDownLoc, BlockOrder.Reverse);
 
       // Acquire and execute promotion transfers.
-      mTransferExecutor.executeTransferList(
+      BlockOperationResult tierResult = mTransferExecutor.executeTransferList(
           getTransferInfos(tierDownIterator, tierUpLoc, tierDownLoc));
+
+      result.addOpResults(BlockOperationType.PROMOTE_MOVE, tierResult);
     }
+    return result;
   }
 
   /**
@@ -124,8 +133,11 @@ public class PromoteTask extends AbstractBlockManagementTask {
         continue;
       }
     }
-    LOG.debug("Generated {} promotions from {} to {}", transferInfos.size(),
-        tierUpLocation.tierAlias(), tierDownLocation.tierAlias());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",
+          transferInfos.size(), tierDownLocation.tierAlias(), tierUpLocation.tierAlias(),
+          transferInfos.stream().map(Objects::toString).collect(Collectors.joining("\n ->")));
+    }
     return transferInfos;
   }
 }

@@ -147,17 +147,11 @@ exports[`App Shallow component Matches snapshot 1`] = `
               "innerText": "Workers",
               "url": [Function],
             },
-            Object {
-              "attributes": Object {
-                "target": "_blank",
-              },
-              "innerText": "Slack Channel",
-              "url": "https://www.alluxio.io/slack",
-            },
           ]
         }
       />
     </div>
+    <SlackButton />
   </div>
 </Connect(ConnectedRouterWithContext)>
 `;

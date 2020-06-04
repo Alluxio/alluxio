@@ -113,8 +113,13 @@ public class KodoOutputStream extends OutputStream {
       mLocalOutputStream.close();
       mKodoClient.uploadFile(mKey, mFile);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Failed to upload {}.", mKey, e);
+    } finally {
+      // Delete the temporary file on the local machine if the Kodo client completed the
+      // upload or if the upload failed.
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     }
-    mFile.delete();
   }
 }

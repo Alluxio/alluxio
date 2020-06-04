@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
+import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -22,7 +23,11 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.util.concurrent.RateLimiter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -31,10 +36,13 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -47,6 +55,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
+
+  private static final String AGENT_OUTPUT_PATH = "/tmp/stress_master.log";
 
   @ParametersDelegate
   private MasterBenchParameters mParameters = new MasterBenchParameters();
@@ -72,6 +82,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
           "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
+    }
+
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + mParameters.mProfileAgent
+          + "=" + AGENT_OUTPUT_PATH);
     }
 
     if (!mBaseParameters.mDistributed) {
@@ -155,6 +170,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      context.addAdditionalResult();
+    }
+
     return context.getResult();
   }
 
@@ -202,8 +221,101 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
+    @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
+    public synchronized void addAdditionalResult() throws IOException {
+      if (mResult == null) {
+        return;
+      }
+
+      Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
+
+      try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
+        String line;
+
+        long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
+            / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        while ((line = reader.readLine()) != null) {
+          final Map<String, Object> lineMap;
+          try {
+            lineMap = objectMapper.readValue(line, Map.class);
+          } catch (JsonParseException | MismatchedInputException e) {
+            // skip the last line of a not completed file
+            break;
+          }
+
+          final String type = (String) lineMap.get("type");
+          final String methodName = (String) lineMap.get("methodName");
+          final Number timestampNumber = (Number) lineMap.get("timestamp");
+          final Number durationNumber = (Number) lineMap.get("duration");
+
+          if (type == null || methodName == null || timestampNumber == null
+              || durationNumber == null) {
+            continue;
+          }
+
+          final String methodDesc = getMethodDescription(type, methodName);
+
+          final long timestamp = timestampNumber.longValue();
+          final long duration = durationNumber.longValue();
+
+          if (timestamp <= mResult.getRecordStartMs()) {
+            continue;
+          }
+
+          if (!methodDescToHistogram.containsKey(methodDesc)) {
+            methodDescToHistogram.put(methodDesc, new PartialResultStatistic());
+          }
+
+          final PartialResultStatistic statistic = methodDescToHistogram.get(methodDesc);
+          statistic.mResponseTimeNs.recordValue(duration);
+          statistic.mNumSuccess += 1;
+
+          int bucket =
+              Math.min(statistic.mMaxResponseTimeNs.length - 1,
+                  (int) ((timestamp - mResult.getRecordStartMs()) / bucketSize));
+          if (duration > statistic.mMaxResponseTimeNs[bucket]) {
+            statistic.mMaxResponseTimeNs[bucket] = duration;
+          }
+        }
+      }
+
+      for (Map.Entry<String, PartialResultStatistic> entry : methodDescToHistogram.entrySet()) {
+        final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
+        stats.encodeResponseTimeNsRaw(entry.getValue().mResponseTimeNs);
+        stats.mNumSuccess = entry.getValue().mNumSuccess;
+        stats.mMaxResponseTimeNs = entry.getValue().mMaxResponseTimeNs;
+        mResult.putStatisticsForMethod(entry.getKey(), stats);
+      }
+    }
+
     public synchronized MasterBenchTaskResult getResult() {
       return mResult;
+    }
+
+    private String getMethodDescription(String type, String methodName) {
+      if (type.contains("RPC")) {
+        final int classNameDivider = methodName.lastIndexOf(".");
+        methodName = methodName.substring(classNameDivider + 1);
+      }
+
+      return type + ":" + methodName;
+    }
+  }
+
+  private final class PartialResultStatistic {
+    private Histogram mResponseTimeNs;
+    private int mNumSuccess;
+    private long[] mMaxResponseTimeNs;
+
+    public PartialResultStatistic() {
+      mNumSuccess = 0;
+      mResponseTimeNs = new Histogram(
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      mMaxResponseTimeNs = new long[MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT];
+      Arrays.fill(mMaxResponseTimeNs, -1);
     }
   }
 
@@ -218,8 +330,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
-      mResponseTimeNs = new Histogram(MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_MAX,
-          MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      mResponseTimeNs = new Histogram(MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_MAX,
+          MasterBenchTaskResultStatistics.RESPONSE_TIME_HISTOGRAM_PRECISION);
       if (mParameters.mOperation == Operation.CreateDir) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
@@ -241,7 +353,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
-      mResult.encodeResponseTimeNsRaw(mResponseTimeNs);
+      mResult.getStatistics().encodeResponseTimeNsRaw(mResponseTimeNs);
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
@@ -258,8 +370,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
 
-      long bucketSize =
-          (mContext.getEndMs() - recordMs) / MasterBenchTaskResult.MAX_RESPONSE_TIME_COUNT;
+      long bucketSize = (mContext.getEndMs() - recordMs)
+          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
@@ -287,7 +399,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           mResponseTimeNs.recordValue(responseTimeNs);
 
           // track max response time
-          long[] maxResponseTimeNs = mResult.getMaxResponseTimeNs();
+          long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
           int bucket =
               Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
           if (responseTimeNs > maxResponseTimeNs[bucket]) {

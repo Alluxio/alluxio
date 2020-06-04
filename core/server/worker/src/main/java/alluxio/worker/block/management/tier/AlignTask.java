@@ -23,6 +23,9 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
+import alluxio.worker.block.management.BlockManagementTaskResult;
+import alluxio.worker.block.management.BlockOperationResult;
+import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
 
@@ -66,13 +69,14 @@ public class AlignTask extends AbstractBlockManagementTask {
   }
 
   @Override
-  public void run() {
+  public BlockManagementTaskResult run() {
     LOG.debug("Running align task.");
     // Acquire align range from the configuration.
     // This will limit swap operations in a single run.
     final int alignRange =
         ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RANGE);
 
+    BlockManagementTaskResult result = new BlockManagementTaskResult();
     // Align each tier intersection by swapping blocks.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
@@ -85,7 +89,7 @@ public class AlignTask extends AbstractBlockManagementTask {
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
 
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
-      LOG.debug("Acquired {} swaps to align tiers {} - {}", swapLists.getFirst().size(),
+      LOG.debug("Acquired {} block pairs to align tiers {} - {}", swapLists.getFirst().size(),
           tierUpLoc.tierAlias(), tierDownLoc.tierAlias());
 
       // Create exception handler to trigger swap-restore task when swap fails
@@ -98,12 +102,25 @@ public class AlignTask extends AbstractBlockManagementTask {
       };
 
       // Execute swap transfers.
-      mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
+      BlockOperationResult tierResult =
+          mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
+      result.addOpResults(BlockOperationType.ALIGN_SWAP, tierResult);
     }
+    return result;
   }
 
   private List<BlockTransferInfo> generateSwapTransferInfos(
       Pair<List<Long>, List<Long>> swapLists) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Generating transfer infos from swap lists.\n"
+              + "Source list of size:{} : {}\nDestination list of size:{} : {}",
+          swapLists.getFirst().size(),
+          swapLists.getFirst().stream().map(Object::toString).collect(Collectors.joining(",")),
+          swapLists.getSecond().size(),
+          swapLists.getSecond().stream().map(Object::toString).collect(Collectors.joining(",")));
+    }
+
     // Function that is used to map blockId to <blockId,location> pair.
     Function<Long, Pair<Long, BlockStoreLocation>> blockToPairFunc = (blockId) -> {
       try {
@@ -135,6 +152,16 @@ public class AlignTask extends AbstractBlockManagementTask {
     Collections.sort(blockLocPairListSrc, comparator);
     Collections.sort(blockLocPairListDst, comparator);
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
+          "Generated and sorted augmented swap lists.\n"
+              + "Source list of size:{} :\n ->{}\nDestination list of size:{} :\n ->{}",
+          blockLocPairListSrc.size(),
+          blockLocPairListSrc.stream().map(Object::toString).collect(Collectors.joining("\n ->")),
+          blockLocPairListDst.size(),
+          blockLocPairListDst.stream().map(Object::toString).collect(Collectors.joining("\n ->")));
+    }
+
     // Build transfer infos using the sorted locations.
     List<BlockTransferInfo> transferInfos = new ArrayList<>(blockLocPairListSrc.size());
     for (int i = 0; i < blockLocPairListSrc.size(); i++) {
@@ -143,6 +170,10 @@ public class AlignTask extends AbstractBlockManagementTask {
           blockLocPairListDst.get(i).getFirst()));
     }
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} swap transfers: \n ->{}", transferInfos.size(),
+          transferInfos.stream().map(Object::toString).collect(Collectors.joining(",\n ->")));
+    }
     return transferInfos;
   }
 }

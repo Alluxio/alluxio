@@ -69,6 +69,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions()
+              .setGetStatusMs(SLEEP_MS)
               .setExistsMs(SLEEP_MS)
               .setListStatusWithOptionsMs(LONG_SLEEP_MS)));
 

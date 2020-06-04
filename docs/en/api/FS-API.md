@@ -29,14 +29,46 @@ existing S3 workloads to use Alluxio.
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
-before being completed. Alluxio provides two different Filesystem APIs: the Alluxio API and a Hadoop
-compatible API. The Alluxio API provides additional functionality, while the Hadoop compatible API
+before being completed.
+Alluxio provides users two different Filesystem APIs to access the same file system:
+
+1. [Alluxio file system API](#alluxio-java-api) and
+1. [Hadoop compatible file system API](#hadoop-compatible-java-client)
+
+The Alluxio file system API provides full functionality, while the Hadoop compatible API
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
-using Hadoop's API.
+using Hadoop's API with limitaitons.
+
+### Configuring Dependency
+
+To build your Java application to access Alluxio File System using [maven](https://maven.apache.org/),
+include the artifact `alluxio-shaded-client` in your `pom.xml` like the following:
+
+```xml
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-shaded-client</artifactId>
+  <version>{{site.ALLUXIO_VERSION_STRING}}</version>
+</dependency>
+```
+
+Available since `2.0.1`, this artifact is self-contained by including all its
+transitive dependencies in a shaded form to prevent potential dependency conflicts.
+This artifact is recommended generally for a project to use Alluxio client.
+
+Alternatively, an application can also depend on the `alluxio-core-client-fs` artifact for
+the [Alluxio file system interface](#alluxio-java-api)
+or the `alluxio-core-client-hdfs` artifact for the
+[Hadoop compatible file system interface](#hadoop-compatible-java-client) of Alluxio.
+These two artifacts do not include transitive dependencies and therefore much smaller in size,
+also both included in `alluxio-shaded-client` artifact.
 
 ### Alluxio Java API
 
-All resources with the Alluxio Java API are specified through a `AlluxioURI` which represents the
+This section introduces the basic operations to use Alluxio File System interface.
+Read its [javadoc](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html)
+for the complete list of API methods.
+All resources with the Alluxio Java API are specified through an `AlluxioURI` which represents the
 path to the resource.
 
 #### Getting a Filesystem Client
@@ -214,24 +246,34 @@ in.close();
 #### Javadoc
 
 For additional API information, please refer to the
-[Alluxio javadocs](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html).
+[Alluxio javadocs](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
 
 ### Hadoop-Compatible Java Client
 
-Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
-semantics: they become immutable after they have been written in their entirety and cannot be read
-before being completed. Alluxio provides two different Filesystem APIs, the Alluxio Filesystem API
-and a Hadoop compatible API. The Alluxio API provides additional functionality, while the Hadoop
-compatible API gives users the flexibility of leveraging Alluxio without having to modify existing
-code written using Hadoop's API.
+On top of [Alluxio file system](#java-client), Alluxio also has a convenience class
+`alluxio.hadoop.FileSystem` to provide applications a
+[Hadoop compatible `FileSystem` interface](https://cwiki.apache.org/confluence/display/HADOOP2/HCFS).
+This client translates Hadoop file operations to Alluxio file system operations,
+allowing users to reuse previous code written for Hadoop without modification.
+Read its [javadoc](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/hadoop/FileSystem.html)
+for more details.
 
-Alluxio has a wrapper of the [Alluxio client](#java-client) which provides the Hadoop
-compatible `FileSystem` interface. With this client, Hadoop file operations will be translated to
-FileSystem operations. The latest documentation for the `FileSystem` interface may be found
-[here](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html).
+#### Example
 
-The Hadoop compatible interface is provided as a convenience class, allowing users to reuse
-previous code written for Hadoop.
+Here is a piece of example code to read ORC files from Alluxio file system using Hadoop interface.
+
+```java
+// create a new hadoop configuration
+org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+// enforce hadoop client to bind alluxio.hadoop.FileSystem for URIs like alluxio://
+conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
+conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.hadoop.AlluxioFileSystem");
+
+// Now alluxio address can be used like any other hadoop-compatible file system URIs
+org.apache.orc.OrcFile.ReaderOptions options = new org.apache.orc.OrcFile.ReaderOptions(conf)
+org.apache.orc.Reader orc = org.apache.orc.OrcFile.createReader(
+    new Path("alluxio://localhost:19998/path/file.orc"), options);
+```
 
 ## Rest API
 

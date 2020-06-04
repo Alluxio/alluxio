@@ -99,8 +99,9 @@ public abstract class Benchmark<T extends TaskResult> {
 
       commandArgs.addAll(mBaseParameters.mJavaOpts);
 
-      long jobId =
-          JobGrpcClientUtils.run(new StressBenchConfig(className, commandArgs, 5000), 0, conf);
+      long jobId = JobGrpcClientUtils
+          .run(new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit),
+              0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
       return jobInfo.getResult().toString();
     }
@@ -114,7 +115,8 @@ public abstract class Benchmark<T extends TaskResult> {
       }
 
       // aggregate the results
-      return result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      return s;
     } else {
       // Spawn a new process
       List<String> command = new ArrayList<>();

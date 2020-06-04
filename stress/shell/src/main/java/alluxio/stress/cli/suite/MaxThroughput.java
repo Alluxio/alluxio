@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A max throughput suite.
@@ -76,12 +77,18 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
     int lower = 0;
     int upper = Integer.MAX_VALUE;
-    int next = 2000;
+    // use the input target throughput as the starting point
+    int next = mParameters.mTargetThroughput;
     int best = 0;
 
     while (true) {
       int perWorkerThroughput = next / mNumWorkers;
       int requestedThroughput = perWorkerThroughput * mNumWorkers;
+
+      if (perWorkerThroughput == 0) {
+        // Cannot run with a target of 0
+        break;
+      }
 
       List<String> newArgs = new ArrayList<>(baseArgs);
       updateArgValue(newArgs, "--target-throughput", Integer.toString(perWorkerThroughput));
@@ -94,8 +101,9 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       MasterBenchSummary mbr = runSingleTest(requiredCount, newArgs);
 
       int current = next;
-      if ((mbr.getThroughput() > requestedThroughput)
-          || ((requestedThroughput - mbr.getThroughput()) / (float) requestedThroughput) < 0.02) {
+      final float actualThroughput = mbr.getThroughput();
+      if ((actualThroughput > requestedThroughput)
+          || ((requestedThroughput - actualThroughput) / (float) requestedThroughput) < 0.02) {
         // the throughput was achieved. increase.
         summary.addPassedRun(current, mbr);
 
@@ -117,8 +125,13 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
         next = (lower + next) / 2;
       }
       LOG.info(
-          "target: " + requestedThroughput + " actual: " + mbr.getThroughput() + " [" + lower + " "
+          "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
               + next + " " + upper + "]");
+      for (Map.Entry<String, List<String>> entry : mbr.getErrors().entrySet()) {
+        for (String error : entry.getValue()) {
+          LOG.error(String.format("%s: %s", entry.getKey(), error));
+        }
+      }
       if (Math.abs(current - next) / (float) current <= 0.02) {
         break;
       }

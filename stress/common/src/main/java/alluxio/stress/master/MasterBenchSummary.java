@@ -14,39 +14,34 @@ package alluxio.stress.master;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
 import com.google.common.base.Splitter;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
 
 /**
  * The summary for the master stress tests.
  */
 public final class MasterBenchSummary implements Summary {
   private long mDurationMs;
-  private long mNumSuccess;
-  private float mThroughput;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
 
-  /** response times for all percentiles from 0 -> 100 (101 values). */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mResponseTimePercentileMs;
-  /** percentiles of just 99.x%. first entry is 99%, second is 99.9%, etc. */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mResponseTime99PercentileMs;
-  /** max response time over time, over the duration of the test. */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private float[] mMaxResponseTimeMs;
+  private float mThroughput;
+  private MasterBenchSummaryStatistics mStatistics;
+
+  private Map<String, MasterBenchSummaryStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
@@ -58,44 +53,29 @@ public final class MasterBenchSummary implements Summary {
   /**
    * Creates an instance.
    *
-   * @param durationMs the duration (in ms)
-   * @param numSuccess the number of success
-   * @param endTimeMs the end time (in ms)
-   * @param responseTimePercentileMs the response times (in ms), for all percentiles
-   * @param responseTime99PercentileMs the response times (in ms), for the 99.x percentiles
-   * @param maxResponseTimeMs the max response times (in ms) over time
-   * @param parameters the parameters
+   * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
    * @param errors the list of errors
    */
-  public MasterBenchSummary(long durationMs, long numSuccess, long endTimeMs,
-      float[] responseTimePercentileMs, float[] responseTime99PercentileMs,
-      float[] maxResponseTimeMs, MasterBenchParameters parameters, List<String> nodes,
-      Map<String, List<String>> errors) {
-    mDurationMs = durationMs;
-    mNumSuccess = numSuccess;
-    mEndTimeMs = endTimeMs;
-    mResponseTimePercentileMs = responseTimePercentileMs;
-    mResponseTime99PercentileMs = responseTime99PercentileMs;
-    mThroughput = ((float) mNumSuccess / mDurationMs) * 1000.0f;
-    mMaxResponseTimeMs = maxResponseTimeMs;
-    mParameters = parameters;
+  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
+      Map<String, List<String>> errors) throws DataFormatException {
+    mStatistics = mergedTaskResults.getStatistics().toMasterBenchSummaryStatistics();
+
+    mStatisticsPerMethod = new HashMap<>();
+    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+        mergedTaskResults.getStatisticsPerMethod().entrySet()) {
+      final String key = entry.getKey();
+      final MasterBenchTaskResultStatistics value = entry.getValue();
+
+      mStatisticsPerMethod.put(key, value.toMasterBenchSummaryStatistics());
+    }
+
+    mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
+    mEndTimeMs = mergedTaskResults.getEndMs();
+    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+    mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
     mErrors = errors;
-  }
-
-  /**
-   * @return the duration (in ms)
-   */
-  public long getDurationMs() {
-    return mDurationMs;
-  }
-
-  /**
-   * @return the number of successes
-   */
-  public long getNumSuccess() {
-    return mNumSuccess;
   }
 
   /**
@@ -106,41 +86,6 @@ public final class MasterBenchSummary implements Summary {
   }
 
   /**
-   * @return the response times (in ms) for all percentiles
-   */
-  public float[] getResponseTimePercentileMs() {
-    return mResponseTimePercentileMs;
-  }
-
-  /**
-   * @return the response times (in ms) for 99.x%. first entry is 99%, second is 99.9%, etc
-   */
-  public float[] getResponseTime99PercentileMs() {
-    return mResponseTime99PercentileMs;
-  }
-
-  /**
-   * @return the list of max response times throughout the duration of the run
-   */
-  public float[] getMaxResponseTimeMs() {
-    return mMaxResponseTimeMs;
-  }
-
-  /**
-   * @param durationMs the duration (in ms)
-   */
-  public void setDurationMs(long durationMs) {
-    mDurationMs = durationMs;
-  }
-
-  /**
-   * @param numSuccess the number of successes
-   */
-  public void setNumSuccess(long numSuccess) {
-    mNumSuccess = numSuccess;
-  }
-
-  /**
    * @param throughput the throughput
    */
   public void setThroughput(float throughput) {
@@ -148,24 +93,17 @@ public final class MasterBenchSummary implements Summary {
   }
 
   /**
-   * @param responseTimePercentileMs the response times (in ms) for all percentiles
+   * @return the duration (in ms)
    */
-  public void setResponseTimePercentileMs(float[] responseTimePercentileMs) {
-    mResponseTimePercentileMs = responseTimePercentileMs;
+  public long getDurationMs() {
+    return mDurationMs;
   }
 
   /**
-   * @param responseTime99PercentileMs the response times (in ms) for 99.x%
+   * @param durationMs the duration (in ms)
    */
-  public void setResponseTime99PercentileMs(float[] responseTime99PercentileMs) {
-    mResponseTime99PercentileMs = responseTime99PercentileMs;
-  }
-
-  /**
-   * @param maxResponseTimeMs the list of max response times throughout the duration of the run
-   */
-  public void setMaxResponseTimeMs(float[] maxResponseTimeMs) {
-    mMaxResponseTimeMs = maxResponseTimeMs;
+  public void setDurationMs(long durationMs) {
+    mDurationMs = durationMs;
   }
 
   /**
@@ -224,23 +162,47 @@ public final class MasterBenchSummary implements Summary {
     mEndTimeMs = endTimeMs;
   }
 
-  private LineGraph.Data getResponseTimeData() {
-    LineGraph.Data data = new LineGraph.Data();
-    data.addData("50", mResponseTimePercentileMs[50]);
-    data.addData("75", mResponseTimePercentileMs[75]);
-    data.addData("90", mResponseTimePercentileMs[90]);
-    data.addData("95", mResponseTimePercentileMs[95]);
+  /**
+   * @return the statistics
+   */
+  public MasterBenchSummaryStatistics getStatistics() {
+    return mStatistics;
+  }
 
-    String percentile = "99";
-    for (float ms : mResponseTime99PercentileMs) {
-      data.addData(percentile, ms);
-      if (percentile.equals("99")) {
-        percentile += ".";
-      }
-      percentile += "9";
+  /**
+   * @param statistics the statistics
+   */
+  public void setStatistics(MasterBenchSummaryStatistics statistics) {
+    mStatistics = statistics;
+  }
+
+  /**
+   * @return statistics per method map
+   */
+  public Map<String, MasterBenchSummaryStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  /**
+   * @param statisticsPerMethod the statistics per method map
+   */
+  public void setStatisticsPerMethod(Map<String, MasterBenchSummaryStatistics>
+                                         statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
+  }
+
+  private LineGraph.Data computeResponseTimeData() {
+    return mStatistics.computeResponseTimeData();
+  }
+
+  private List<String> collectErrors() {
+    List<String> errors = new ArrayList<>();
+    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
+      // add all the errors for this node, with the node appended to prefix
+      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
+          .collect(Collectors.toList()));
     }
-
-    return data;
+    return errors;
   }
 
   @Override
@@ -265,31 +227,69 @@ public final class MasterBenchSummary implements Summary {
             summaries.stream().filter(x -> x.mParameters.mOperation == operation)
                 .collect(Collectors.toList());
 
-        if (!opSummaries.isEmpty()) {
-          // first() is the list of common field names, second() is the list of unique field names
-          Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-              opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+        if (opSummaries.isEmpty()) {
+          continue;
+        }
 
-          // Split up common description into 100 character chunks, for the sub title
-          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+        // first() is the list of common field names, second() is the list of unique field names
+        Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+            opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-          for (MasterBenchSummary summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            subTitle.add(
-                series + ": " + DateFormat.getDateTimeInstance().format(summary.getEndTimeMs()));
+        // Split up common description into 100 character chunks, for the sub title
+        List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+            opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+
+        for (MasterBenchSummary summary : opSummaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          subTitle.add(
+              series + ": " + DateFormat.getDateTimeInstance().format(summary.getEndTimeMs()));
+        }
+
+        LineGraph responseTimeGraph =
+            new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
+                "Response Time (ms)");
+        graphs.add(responseTimeGraph);
+
+        Map<String, LineGraph> responseTimeGraphPerMethod = new HashMap<>();
+
+        // Maps method name to max number of calls
+        Map<String, Long> methodCounts = new HashMap<>();
+
+        for (MasterBenchSummary summary : opSummaries) {
+          String series = summary.mParameters.getDescription(fieldNames.getSecond());
+          responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
+          responseTimeGraph.setErrors(series, summary.collectErrors());
+
+          // add separate response time graph for each method
+          for (Map.Entry<String, MasterBenchSummaryStatistics> entry :
+              summary.getStatisticsPerMethod().entrySet()) {
+            final String method = entry.getKey();
+            final LineGraph.Data responseTimeData = entry.getValue().computeResponseTimeData();
+
+            if (!responseTimeGraphPerMethod.containsKey(method)) {
+              responseTimeGraphPerMethod.put(method,
+                  new LineGraph(operation + " - Response Time (ms) " + method, subTitle,
+                      "Percentile", "Response Time (ms)"));
+            }
+            responseTimeGraphPerMethod.get(method).addDataSeries(series, responseTimeData);
+
+            // collect max success for each method
+            methodCounts.put(method,
+                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccess));
           }
+        }
 
-          LineGraph responseTimeGraph =
-              new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
-                  "Response Time (ms)");
+        // add the api count graph
+        BarGraph maxGraph = new BarGraph(operation + " - Max API Calls", subTitle, "# API calls");
+        for (Map.Entry<String, Long> entry : methodCounts.entrySet()) {
+          BarGraph.Data data = new BarGraph.Data();
+          data.addData(entry.getValue());
+          maxGraph.addDataSeries(entry.getKey(), data);
+        }
+        graphs.add(maxGraph);
 
-          for (MasterBenchSummary summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            responseTimeGraph.addDataSeries(series, summary.getResponseTimeData());
-          }
-
-          graphs.add(responseTimeGraph);
+        for (LineGraph graph : responseTimeGraphPerMethod.values()) {
+          graphs.add(graph);
         }
       }
 

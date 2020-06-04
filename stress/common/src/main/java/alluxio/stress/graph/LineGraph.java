@@ -28,11 +28,15 @@ public class LineGraph extends Graph {
   private static final String Y_FIELD = "y";
   private static final String SERIES_FIELD = "series";
 
+  private static final int POINT_SIZE = 81;
+  private static final Object CONDITIONAL_OPACITY = ImmutableMap.of("opacity", ImmutableMap
+      .of("condition", ImmutableMap.of("selection", "legendSelect", "value", 1), "value", 0.05));
+
   /**
    * This represents the data for a line graph.
    */
   public static final class Data {
-    private final List<Map<String, Object>> mData;
+    private final List<Map<Object, Object>> mData;
 
     /**
      * Creates an instance.
@@ -45,7 +49,7 @@ public class LineGraph extends Graph {
      * @param x the x value
      * @param y the y value
      */
-    public void addData(String x, Object y) {
+    public void addData(Object x, Object y) {
       mData.add(ImmutableMap.of(LineGraph.X_FIELD, x, LineGraph.Y_FIELD, y));
     }
   }
@@ -78,20 +82,26 @@ public class LineGraph extends Graph {
             ImmutableMap.of("field", X_FIELD, "type", "ordinal", "title", xTitle),
             ImmutableMap.of("field", Y_FIELD, "type", "quantitative", "title", yTitle)));
     encoding.put("color", ImmutableMap.of("field", SERIES_FIELD, "type", "nominal"));
+    encoding.put("strokeWidth", ImmutableMap.of("value", 3));
     mGraph.put("encoding", encoding);
 
     List<Object> layer = new ArrayList<>();
+    // This layer is for the transparent points and the selection
     layer.add(ImmutableMap
-        .of("mark", ImmutableMap.of("type", "line", "strokeWidth", 16, "stroke", "transparent"),
-            "selection", ImmutableMap.of("hover", ImmutableMap
-                .of("type", "single", "on", "mouseover", "empty", "none", "fields",
-                    new String[] {SERIES_FIELD}))));
+        .of("mark", ImmutableMap.of("type", "point", "size", POINT_SIZE, "stroke", "transparent"),
+            "selection", ImmutableMap.of("legendSelect", ImmutableMap
+                .of("type", "multi", "bind", "legend", "fields", new String[] {SERIES_FIELD}))));
+    // This layer is for the line (without points)
+    layer.add(ImmutableMap.of("mark", "line", "encoding", CONDITIONAL_OPACITY));
+    // This layer is for the points
     layer.add(ImmutableMap
-        .of("encoding", ImmutableMap.of("strokeWidth", ImmutableMap.of("value", 2, "condition",
-            ImmutableMap.of("selection", "hover", "value", 6))),
-            "mark", ImmutableMap.of("type", "line", "point", ImmutableMap
-                .of("filled", false, "fill", "white", "size", 32))));
+        .of("mark",
+            ImmutableMap.of("type", "point", "size", POINT_SIZE, "filled", false, "fill", "white"),
+            "encoding", CONDITIONAL_OPACITY));
     mGraph.put("layer", layer);
+
+    mGraph.put("config", ImmutableMap.of("legend",
+        ImmutableMap.of("orient", "bottom", "direction", "vertical", "labelLimit", 700)));
   }
 
   /**
@@ -99,9 +109,9 @@ public class LineGraph extends Graph {
    * @param data the series data to add
    */
   public void addDataSeries(String series, LineGraph.Data data) {
-    List<Map<String, Object>> newSeries =
+    List<Map<Object, Object>> newSeries =
         data.mData.stream().map(m -> {
-          Map<String, Object> newMap = new HashMap<>(m);
+          Map<Object, Object> newMap = new HashMap<>(m);
           newMap.put(LineGraph.SERIES_FIELD, series);
           return newMap;
         }).collect(Collectors.toList());
