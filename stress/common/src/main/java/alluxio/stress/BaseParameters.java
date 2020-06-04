@@ -39,12 +39,9 @@ public final class BaseParameters {
 
   @Parameter(names = {CLUSTER_LIMIT_FLAG},
       description = "If greater than 0, it will only run on that number of workers. If 0 or less,"
-          + " will run on all available cluster workers.")
+          + " will run on all available cluster workers. This flag is only used if " + CLUSTER_FLAG
+          + "is enabled.")
   public int mClusterLimit = 0;
-
-  @Parameter(names = {ID_FLAG},
-      description = "Any string to uniquely identify this invocation", hidden = true)
-  public String mId = "local-task-0";
 
   @Parameter(names = {JAVA_OPT_FLAG},
       description = "The java options to add to the command line to for the task. This can be "
@@ -53,6 +50,10 @@ public final class BaseParameters {
   public List<String> mJavaOpts = new ArrayList<>();
 
   // Hidden flags
+  @Parameter(names = {ID_FLAG},
+      description = "Any string to uniquely identify this invocation", hidden = true)
+  public String mId = "local-task-0";
+
   @Parameter(names = {DISTRIBUTED_FLAG},
       description = "If true, this is a distributed task, not a local task. This is "
           + "automatically added for a cluster job.",
