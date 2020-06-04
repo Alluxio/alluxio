@@ -417,7 +417,7 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void deleteDirDirRecursiveWithReadOnlyCheck() throws Exception {
+  public void deleteDirRecursiveWithReadOnlyCheck() throws Exception {
     AlluxioURI rootPath = new AlluxioURI("/mnt/");
     mFileSystemMaster.createDirectory(rootPath, CreateDirectoryContext.defaults());
     // Create ufs file.
