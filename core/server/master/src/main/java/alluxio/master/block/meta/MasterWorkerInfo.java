@@ -380,6 +380,7 @@ public final class MasterWorkerInfo {
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
+        .add("blockCount", mBlocks.size())
         .add("blocks",
               (mBlocks.size() < blockSizeLimit) ? mBlocks :
                 mBlocks.stream().limit(blockSizeLimit).collect(Collectors.toList()))
