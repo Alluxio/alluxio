@@ -133,7 +133,6 @@
     <netty.version>4.1.45.Final</netty.version>
     <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>2.7.3</hadoop.version>
-    <hive-metastore.version>2.2.0</hive-metastore.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
     <jersey.version>2.29.1</jersey.version>
@@ -516,11 +515,6 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-ozone-filesystem</artifactId>
         <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-metastore</artifactId>
-        <version>${hive-metastore.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>

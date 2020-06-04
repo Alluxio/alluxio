@@ -26,6 +26,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
+    <hive-metastore.version>2.3.6</hive-metastore.version>
   </properties>
 
   <dependencies>
@@ -37,6 +38,7 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
+      <version>${hive-metastore.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
