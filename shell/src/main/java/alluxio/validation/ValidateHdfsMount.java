@@ -1,5 +1,6 @@
 package alluxio.validation;
 
+import alluxio.cli.Command;
 import alluxio.cli.UnderFileSystemContractTest;
 import alluxio.cli.ValidateUtils;
 import alluxio.cli.validation.*;
@@ -12,6 +13,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.mapred.Task;
@@ -144,6 +147,8 @@ public class ValidateHdfsMount {
             // Convert to output and print
             System.out.println(results);
 
+            printResults(results);
+
             System.exit(0);
         }
 
@@ -166,7 +171,7 @@ public class ValidateHdfsMount {
 
             String[] validateHdfsArgs =
                     (String[]) ArrayUtils.addAll(
-                            new String[]{alluxioBinPath, "validateHdfsMount", "--local"}, args);
+                            new String[]{alluxioBinPath, "runClass", ValidateHdfsMount.class.getCanonicalName(), "--local"}, args);
 
             CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
                 try {
@@ -189,9 +194,23 @@ public class ValidateHdfsMount {
                         .map(CompletableFuture::join)
                         .collect(Collectors.toList())
                 ).get();
-        System.out.format("Collected results: %s%n", results);
+        for (CommandReturn cr : results) {
+            System.out.println(cr.getFormattedOutput());
+        }
 
+        // Parse and join results
 
         System.exit(0);
+    }
+
+    public static void printResults(List<ValidateUtils.TaskResult> results) {
+        Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> map = new HashMap<>();
+
+        // group by state
+        results.stream().forEach((r) -> {
+            map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
+        });
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println(gson.toJson(map));
     }
 }
