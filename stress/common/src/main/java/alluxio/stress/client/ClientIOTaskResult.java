@@ -17,6 +17,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -38,9 +39,17 @@ import java.util.stream.Collectors;
  * The task result for the master stress tests.
  */
 public final class ClientIOTaskResult implements TaskResult, Summary {
+  public static final int MAX_TIME_TO_FIRST_BYTE_COUNT = 20;
+
+  private long mRecordStartMs;
+  private long mEndMs;
   private Map<Integer, ThreadCountResult> mThreadCountResults;
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
+
+  private SummaryStatistics mStatistics;
+
+  private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
@@ -48,6 +57,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   public ClientIOTaskResult() {
     // Default constructor required for json deserialization
     mThreadCountResults = new HashMap<>();
+    mStatisticsPerMethod = new HashMap<>();
   }
 
   /**
@@ -76,6 +86,70 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
    */
   public void setParameters(ClientIOParameters parameters) {
     mParameters = parameters;
+  }
+
+  /**
+   * @return client IO statistics
+   */
+  public SummaryStatistics getStatistics() {
+    return mStatistics;
+  }
+
+  /**
+   * @param statistics client IO statistics
+   */
+  public void setStatistics(SummaryStatistics statistics) {
+    mStatistics = statistics;
+  }
+
+  /**
+   * @return client IO statistics per method
+   */
+  public Map<String, SummaryStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  /**
+   * @param statisticsPerMethod client IO statistics per method
+   */
+  public void setStatisticsPerMethod(Map<String, SummaryStatistics> statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
+  }
+
+  /**
+   * @param methodName method name
+   * @param statistics ClientIOTaskResultStatistics
+   */
+  public void putStatisticsPerMethod(String methodName, SummaryStatistics statistics) {
+    mStatisticsPerMethod.put(methodName, statistics);
+  }
+
+  /**
+   * @return the start time (in ms)
+   */
+  public long getRecordStartMs() {
+    return mRecordStartMs;
+  }
+
+  /**
+   * @param recordStartMs the start time (in ms)
+   */
+  public void setRecordStartMs(long recordStartMs) {
+    mRecordStartMs = recordStartMs;
+  }
+
+  /**
+   * @return the end time (in ms)
+   */
+  public long getEndMs() {
+    return mEndMs;
+  }
+
+  /**
+   * @param endMs the end time (in ms)
+   */
+  public void setEndMs(long endMs) {
+    mEndMs = endMs;
   }
 
   /**
@@ -156,7 +230,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   /**
    * The graph generator for this summary.
    */
-  public static final class GraphGenerator extends alluxio.stress.GraphGenerator {
+  public final class GraphGenerator extends alluxio.stress.GraphGenerator {
     @Override
     public List<Graph> generate(List<? extends Summary> results) {
       List<Graph> graphs = new ArrayList<>();
@@ -197,8 +271,21 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
               String series = summary.mParameters.getDescription(fieldNames.getSecond());
               responseTimeGraph.addDataSeries(series, summary.getThroughputData());
               responseTimeGraph.setErrors(series, summary.collectErrors());
-            }
 
+              for (Map.Entry<String, SummaryStatistics> entry :
+                  getStatisticsPerMethod().entrySet()) {
+                final String method = entry.getKey();
+                final LineGraph.Data timeToFirstByte = entry.getValue().computeTimeData();
+
+                if (method.equals("readChunk")) {
+                  LineGraph timeToFirstByteLineGraph =
+                      new LineGraph(operation + " - Time To First Byte (ms) " + method, subTitle,
+                          "Percentile", "Time To First Byte (ms)");
+                  timeToFirstByteLineGraph.addDataSeries(series, timeToFirstByte);
+                  graphs.add(timeToFirstByteLineGraph);
+                }
+              }
+            }
             graphs.add(responseTimeGraph);
           }
         }

@@ -11,17 +11,22 @@
 
 package alluxio.stress.cli.client;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -30,12 +35,16 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -48,6 +57,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
+
+  private static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
 
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
@@ -76,6 +87,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       throw new IllegalArgumentException(String.format(
           "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
               + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
+    }
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + mParameters.mProfileAgent
+          + "=" + AGENT_OUTPUT_PATH);
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
@@ -134,6 +149,11 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
+
+    if (!mParameters.mProfileAgent.isEmpty()) {
+      addAdditionalResult(taskResult);
+    }
+
     return taskResult;
   }
 
@@ -164,7 +184,119 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     ClientIOTaskResult.ThreadCountResult result = context.getResult();
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
         result.getErrors().size(), result.getIOMBps()));
+
     return result;
+  }
+
+  /**
+   * Read the log file from java agent log file.
+   *
+   * @param clientIOTaskResult client io task result
+   * @return ClientIOTaskResult with java agent info
+   * @throws IOException
+   */
+  @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
+  public synchronized ClientIOTaskResult addAdditionalResult(ClientIOTaskResult clientIOTaskResult)
+      throws IOException {
+    Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+
+    try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
+      String line;
+
+      final ObjectMapper objectMapper = new ObjectMapper();
+      while ((line = reader.readLine()) != null) {
+        final Map<String, Object> lineMap;
+        try {
+          lineMap = objectMapper.readValue(line, Map.class);
+        } catch (JsonParseException e) {
+          // skip the last line of a not completed file
+          break;
+        }
+
+        final String type = (String) lineMap.get("type");
+        final String methodName = (String) lineMap.get("methodName");
+        final Integer duration = (Integer) lineMap.get("duration");
+
+        if (type.equals("AlluxioBlockInStream") && methodName.equals("readChunk")) {
+          if (!methodNameToHistogram.containsKey(methodName)) {
+            methodNameToHistogram.put(methodName, new PartialResultStatistic());
+          }
+
+          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+          statistic.mTimeToFirstByteNs.add(duration);
+          statistic.mNumSuccess += 1;
+
+          if (duration > statistic.mMaxTimeToFirstByteNs[0]) {
+            statistic.mMaxTimeToFirstByteNs[0] = duration;
+            Arrays.sort(statistic.mMaxTimeToFirstByteNs);
+          }
+        }
+      }
+    }
+
+    for (Map.Entry<String, PartialResultStatistic> entry : methodNameToHistogram.entrySet()) {
+      Collections.sort(entry.getValue().mTimeToFirstByteNs);
+      final SummaryStatistics stats =
+          new SummaryStatistics(
+              entry.getValue().mNumSuccess,
+              computeTimePercentileMS(entry.getValue().mTimeToFirstByteNs),
+              computeTime99PercentileMS(entry.getValue().mTimeToFirstByteNs),
+              computeMaxTimeMS(entry.getValue().mMaxTimeToFirstByteNs));
+      clientIOTaskResult.putStatisticsPerMethod(entry.getKey(), stats);
+    }
+
+    return clientIOTaskResult;
+  }
+
+  private float[] computeTimePercentileMS(ArrayList<Integer> rawTime) {
+    float[] timePercentileMS = new float[101];
+    int step = rawTime.size() / 100;
+
+    for (int index = 0; index < 101; index++) {
+      timePercentileMS[index] = (float) rawTime.get(step * index).intValue() / Constants.MS_NANO;
+    }
+
+    return timePercentileMS;
+  }
+
+  private float[] computeTime99PercentileMS(ArrayList<Integer> rawTime) {
+    int length = rawTime.size() - 1;
+    float[] timePercentileMS = new float[6];
+
+    for (int index = 0; index < 6; index++) {
+      timePercentileMS[index] = (float) rawTime.get(
+          (int) (length * (100.0 - 1.0 / Math.pow(10.0, index)) / 100.0))
+          / Constants.MS_NANO;
+    }
+
+    return timePercentileMS;
+  }
+
+  private float[] computeMaxTimeMS(long[] rawTime) {
+    int step = rawTime.length;
+    float[] timePercentileMS = new float[step];
+
+    for (int index = 0; index < step; index++) {
+      timePercentileMS[index] = (float) rawTime[index] / Constants.MS_NANO;
+    }
+
+    return timePercentileMS;
+  }
+
+  /**
+   * Result statistics of time to first byte measurement.
+   */
+  private final class PartialResultStatistic {
+    private ArrayList mTimeToFirstByteNs;
+    private int mNumSuccess;
+    private long[] mMaxTimeToFirstByteNs;
+
+    public PartialResultStatistic() {
+      mNumSuccess = 0;
+      mTimeToFirstByteNs = new ArrayList();
+      mMaxTimeToFirstByteNs = new long[ClientIOTaskResult.MAX_TIME_TO_FIRST_BYTE_COUNT];
+      Arrays.fill(mMaxTimeToFirstByteNs, -1);
+    }
   }
 
   private final class BenchContext {

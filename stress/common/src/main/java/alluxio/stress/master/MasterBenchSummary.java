@@ -14,6 +14,7 @@ package alluxio.stress.master;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
@@ -39,9 +40,9 @@ public final class MasterBenchSummary implements Summary {
   private Map<String, List<String>> mErrors;
 
   private float mThroughput;
-  private MasterBenchSummaryStatistics mStatistics;
+  private SummaryStatistics mStatistics;
 
-  private Map<String, MasterBenchSummaryStatistics> mStatisticsPerMethod;
+  private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
@@ -165,34 +166,34 @@ public final class MasterBenchSummary implements Summary {
   /**
    * @return the statistics
    */
-  public MasterBenchSummaryStatistics getStatistics() {
+  public SummaryStatistics getStatistics() {
     return mStatistics;
   }
 
   /**
    * @param statistics the statistics
    */
-  public void setStatistics(MasterBenchSummaryStatistics statistics) {
+  public void setStatistics(SummaryStatistics statistics) {
     mStatistics = statistics;
   }
 
   /**
    * @return statistics per method map
    */
-  public Map<String, MasterBenchSummaryStatistics> getStatisticsPerMethod() {
+  public Map<String, SummaryStatistics> getStatisticsPerMethod() {
     return mStatisticsPerMethod;
   }
 
   /**
    * @param statisticsPerMethod the statistics per method map
    */
-  public void setStatisticsPerMethod(Map<String, MasterBenchSummaryStatistics>
+  public void setStatisticsPerMethod(Map<String, SummaryStatistics>
                                          statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
   private LineGraph.Data computeResponseTimeData() {
-    return mStatistics.computeResponseTimeData();
+    return mStatistics.computeTimeData();
   }
 
   private List<String> collectErrors() {
@@ -260,11 +261,10 @@ public final class MasterBenchSummary implements Summary {
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
           responseTimeGraph.setErrors(series, summary.collectErrors());
 
-          // add separate response time graph for each method
-          for (Map.Entry<String, MasterBenchSummaryStatistics> entry :
-              summary.getStatisticsPerMethod().entrySet()) {
-            final String method = entry.getKey();
-            final LineGraph.Data responseTimeData = entry.getValue().computeResponseTimeData();
+            for (Map.Entry<String, SummaryStatistics> entry :
+                summary.getStatisticsPerMethod().entrySet()) {
+              final String method = entry.getKey();
+              final LineGraph.Data responseTimeData = entry.getValue().computeTimeData();
 
             if (!responseTimeGraphPerMethod.containsKey(method)) {
               responseTimeGraphPerMethod.put(method,

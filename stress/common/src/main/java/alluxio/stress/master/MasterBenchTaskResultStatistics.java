@@ -13,6 +13,8 @@ package alluxio.stress.master;
 
 import alluxio.Constants;
 
+import alluxio.stress.common.SummaryStatistics;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 
@@ -91,12 +93,12 @@ public class MasterBenchTaskResultStatistics {
   }
 
   /**
-   * Converts this class to {@link MasterBenchSummaryStatistics}.
+   * Converts this class to {@link SummaryStatistics}.
    *
-   * @return new MasterBenchSummaryStatistics
+   * @return new SummaryStatistics
    * @throws DataFormatException if histogram decoding from compressed byte buffer fails
    */
-  public MasterBenchSummaryStatistics toMasterBenchSummaryStatistics() throws DataFormatException {
+  public SummaryStatistics toMasterBenchSummaryStatistics() throws DataFormatException {
     Histogram responseTime = new Histogram(RESPONSE_TIME_HISTOGRAM_MAX,
         RESPONSE_TIME_HISTOGRAM_PRECISION);
     if (mResponseTimeNsRaw != null) {
@@ -123,7 +125,7 @@ public class MasterBenchTaskResultStatistics {
       maxResponseTimesMs[i] = (float) mMaxResponseTimeNs[i] / Constants.MS_NANO;
     }
 
-    return new MasterBenchSummaryStatistics(mNumSuccess, responseTimePercentile,
+    return new SummaryStatistics(mNumSuccess, responseTimePercentile,
         responseTime99Percentile, maxResponseTimesMs);
   }
 }
