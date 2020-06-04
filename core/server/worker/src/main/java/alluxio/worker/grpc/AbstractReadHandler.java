@@ -159,8 +159,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   @GuardedBy("mLock")
   public boolean tooManyPendingChunks() {
-    return BufferAllocator.DEFAULT.isOverLimit()
-       || mContext.getPosToQueue() - mContext.getPosReceived() >= MAX_BYTES_IN_FLIGHT;
+    return mContext.getPosToQueue() - mContext.getPosReceived() >= MAX_BYTES_IN_FLIGHT;
   }
 
   @Override
@@ -336,7 +335,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           cancel = mContext.isCancel();
           error = mContext.getError();
 
-          if (eof || cancel || error != null || (!mResponse.isReady() && tooManyPendingChunks())) {
+          if (eof || cancel || error != null || (!mResponse.isReady() && tooManyPendingChunks())
+                  || BufferAllocator.DEFAULT.isOverLimit()) {
             mContext.setDataReaderActive(false);
             break;
           }
