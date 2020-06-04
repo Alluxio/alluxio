@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -105,8 +106,8 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTask.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.mState, ValidationTask.State.OK);
+    ValidateUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidateUtils.State.OK);
   }
 
   @Test
@@ -117,9 +118,9 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTask.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.mState, ValidationTask.State.FAILED);
-    assertThat(result.mOutput, containsString("core-site.xml is not configured"));
+    ValidateUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    assertThat(result.getResult(), containsString("core-site.xml is not configured"));
   }
 
   @Test
@@ -130,9 +131,9 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, coreSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTask.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.mState, ValidationTask.State.FAILED);
-    assertThat(result.mOutput, containsString("hdfs-site.xml is not configured"));
+    ValidateUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
   }
 
   @Test
@@ -145,14 +146,14 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
 
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("key1"));
-    assertThat(result.mOutput, containsString("value1 in core-site.xml"));
-    assertThat(result.mOutput, containsString("value2 in hdfs-site.xml"));
-    assertThat(result.mAdvice, containsString("fix the inconsistency"));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("key1"));
+    assertThat(result.getResult(), containsString("value1 in core-site.xml"));
+    assertThat(result.getResult(), containsString("value2 in hdfs-site.xml"));
+    assertThat(result.getAdvice(), containsString("fix the inconsistency"));
   }
 
   @Test
@@ -165,10 +166,10 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
 
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
   @After

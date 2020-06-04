@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 
 import java.io.File;
@@ -20,13 +21,16 @@ public class NativeLibValidationTask extends AbstractValidationTask {
     mConf = conf;
   }
 
+  @Override
+  public String getName() {
+    return "ValidateJavaNativeLibPaths";
+  }
 
-  private TaskResult accessNativeLib() {
-    String taskName = "Acess native lib path";
+  private ValidateUtils.TaskResult accessNativeLib() {
     // TODO(jiacheng): how do i get this property from mConf?
     String nativeLibPath = System.getProperty(NATIVE_LIB_PATH);
     StringTokenizer parser = new StringTokenizer(nativeLibPath, NATIVE_LIB_PATH_SEPARATOR);
-    State state = State.OK;
+    ValidateUtils.State state = ValidateUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     msg.append(String.format("java.library.path=%s. ", nativeLibPath));
     StringBuilder advice = new StringBuilder();
@@ -34,16 +38,16 @@ public class NativeLibValidationTask extends AbstractValidationTask {
       String path = parser.nextToken();
       File f = new File(path);
       if (!f.exists()) {
-        state = State.WARNING;
+        state = ValidateUtils.State.WARNING;
         msg.append(String.format("Java native lib not found at %s. ", path));
         advice.append(String.format("Please check %s. ", path));
       }
     }
-    return new TaskResult(state, taskName, msg.toString(), advice.toString());
+    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
     return accessNativeLib();
   }
 }

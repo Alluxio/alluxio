@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
@@ -42,7 +43,12 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public String getName() {
+    return "ValidateStorageSpace";
+  }
+
+  @Override
+  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -64,7 +70,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       if (rawDirQuota.isEmpty()) {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
         advice.append(String.format("Please check your setting for %s.%n", tierDirCapacityConf.toString()));
-        return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
+        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
       }
 
       String[] dirQuotas = rawDirQuota.split(",");
@@ -130,13 +136,12 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       }
     }
 
-    State state = success ? State.OK : State.WARNING;
-    TaskResult result = new TaskResult(state, mName, msg.toString(), advice.toString());
+    ValidateUtils.State state = success ? ValidateUtils.State.OK : ValidateUtils.State.WARNING;
     if (ex != null) {
       // Only the last exception will be kept!
-      result.setError(ex);
+      msg.append(ValidateUtils.getErrorInfo(ex));
     }
-    return result;
+    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

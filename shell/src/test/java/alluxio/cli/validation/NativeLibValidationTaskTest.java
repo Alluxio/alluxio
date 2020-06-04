@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import com.google.common.collect.ImmutableMap;
@@ -38,9 +39,9 @@ public class NativeLibValidationTaskTest {
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
     NativeLibValidationTask task = new NativeLibValidationTask(sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
   @Test
@@ -49,11 +50,11 @@ public class NativeLibValidationTaskTest {
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
     NativeLibValidationTask task = new NativeLibValidationTask(sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.WARNING, result.mState);
-    assertThat(result.mOutput, containsString("Java native lib not found at /usr/missing"));
-    assertThat(result.mAdvice, containsString("Please check /usr/missing"));
+    assertEquals(ValidateUtils.State.WARNING, result.getState());
+    assertThat(result.getResult(), containsString("Java native lib not found at /usr/missing"));
+    assertThat(result.getAdvice(), containsString("Please check /usr/missing"));
   }
 
   @After

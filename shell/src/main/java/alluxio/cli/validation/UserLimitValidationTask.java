@@ -11,6 +11,8 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,8 +37,13 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
-    State state = State.OK;
+  public String getName() {
+    return "ValidateUserLimit";
+  }
+
+  @Override
+  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
+    ValidateUtils.State state = ValidateUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -46,42 +53,41 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
               new InputStreamReader(process.getInputStream()))) {
         String line = processOutputReader.readLine();
         if (line == null) {
-          msg.append(String.format("Unable to check user limit for %s.%n", mName));
+          msg.append(String.format("Unable to check user limit for %s.%n", getName()));
           advice.append(String.format("Please check if you are able to run %s. ", mCommand));
-          return new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
+          return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
         }
 
         if (line.equals("unlimited")) {
-          msg.append(String.format("The user limit for %s is unlimited. ", mName));
+          msg.append(String.format("The user limit for %s is unlimited. ", getName()));
           if (mUpperBound != null) {
-            state = State.WARNING;
+            state = ValidateUtils.State.WARNING;
             advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
           }
-          return new TaskResult(state, mName, msg.toString(), advice.toString());
+          return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
         }
 
         int value = Integer.parseInt(line);
         if (mUpperBound != null && value > mUpperBound) {
-          state = State.WARNING;
+          state = ValidateUtils.State.WARNING;
           msg.append(String.format("The user limit for %s is too large. The current value is %d. ",
-                  mName, value));
+                  getName(), value));
           advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
         }
 
         if (mLowerBound != null && value < mLowerBound) {
-          state = State.WARNING;
+          state = ValidateUtils.State.WARNING;
           msg.append(String.format("The user limit for %s is too small. The current value is %d. ",
-                  mName, value));
+                  getName(), value));
           advice.append(String.format("For production use, it should be bigger than %d%n", mLowerBound));
         }
 
-        return new TaskResult(state, mName, msg.toString(), advice.toString());
+        return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
       }
     } catch (IOException e) {
-      msg.append(String.format("Unable to check user limit for %s: %s. ", mName, e.getMessage()));
-      TaskResult result = new TaskResult(State.FAILED, mName, msg.toString(), advice.toString());
-      result.setError(e);
-      return result;
+      msg.append(String.format("Unable to check user limit for %s: %s. ", getName(), e.getMessage()));
+      msg.append(ValidateUtils.getErrorInfo(e));
+      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
     }
   }
 

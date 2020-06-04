@@ -20,8 +20,7 @@ import java.util.List;
  * Abstract class for validation environment.
  */
 public abstract class AbstractValidationTask implements ValidationTask {
-  public String mName;
-  public String mDescription;
+  public abstract String getName();
 
   @Override
   public List<Option> getOptionList() {

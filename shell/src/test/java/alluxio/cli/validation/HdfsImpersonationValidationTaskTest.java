@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -53,9 +54,9 @@ public class HdfsImpersonationValidationTaskTest {
   public void skipped() {
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.SKIPPED, result.mState);
+    assertEquals(ValidateUtils.State.SKIPPED, result.getState());
   }
 
   @Test
@@ -68,11 +69,11 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("hadoop.proxy.bob.users is not configured"));
-    assertThat(result.mAdvice, containsString("Please configure hadoop.proxy.bob.users to match alluxio.master.security.impersonation.bob.users"));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("hadoop.proxy.bob.users is not configured"));
+    assertThat(result.getAdvice(), containsString("Please configure hadoop.proxy.bob.users to match alluxio.master.security.impersonation.bob.users"));
   }
 
   @Test
@@ -85,11 +86,11 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("User bob can impersonate any user in Alluxio but only user1,user2 in HDFS."));
-    assertThat(result.mAdvice, containsString("Please Please set hadoop.proxy.bob.users to *."));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("User bob can impersonate any user in Alluxio but only user1,user2 in HDFS."));
+    assertThat(result.getAdvice(), containsString("Please Please set hadoop.proxy.bob.users to *."));
   }
 
   @Test
@@ -102,10 +103,10 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
-    assertThat(result.mOutput, containsString("All impersonable users in Alluxio are found in HDFS."));
+    assertEquals(ValidateUtils.State.OK, result.getState());
+    assertThat(result.getResult(), containsString("All impersonable users in Alluxio are found in HDFS."));
   }
 
   @Test
@@ -118,11 +119,11 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("User bob can impersonate as users [user2] in Alluxio but not in HDFS."));
-    assertThat(result.mAdvice, containsString("Please add the missing users to hadoop.proxy.bob.users. "));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("User bob can impersonate as users [user2] in Alluxio but not in HDFS."));
+    assertThat(result.getAdvice(), containsString("Please add the missing users to hadoop.proxy.bob.users. "));
   }
 
   @Test
@@ -135,9 +136,9 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.USERS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
   // TODO(jiacheng): add groups validation
@@ -155,9 +156,9 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.HOSTS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
   @Test
@@ -173,9 +174,9 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.HOSTS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
   @Test
@@ -191,10 +192,10 @@ public class HdfsImpersonationValidationTaskTest {
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio", mConf, HdfsImpersonationValidationTask.Mode.HOSTS);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("hadoop.proxyuser.bob.hosts does not contain host localhost"));
-    assertThat(result.mAdvice, containsString("Please enable host localhost in hadoop.proxyuser.bob.hosts"));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("hadoop.proxyuser.bob.hosts does not contain host localhost"));
+    assertThat(result.getAdvice(), containsString("Please enable host localhost in hadoop.proxyuser.bob.hosts"));
   }
 }

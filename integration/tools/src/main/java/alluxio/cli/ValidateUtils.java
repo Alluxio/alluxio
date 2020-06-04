@@ -14,7 +14,9 @@ package alluxio.cli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 
 /**
  * Utilities to run the validation tests.
@@ -54,7 +56,7 @@ public final class ValidateUtils {
      * @param output task output
      * @param advice task advice
      */
-    TaskResult(State state, String name, String output, String advice) {
+    public TaskResult(State state, String name, String output, String advice) {
       mState = state;
       mName = name;
       mOutput = output;
@@ -64,7 +66,7 @@ public final class ValidateUtils {
     /**
      * Creates a new {@link TaskResult}.
      */
-    TaskResult() {}
+    public TaskResult() {}
 
     /**
      * Sets task state.
@@ -137,5 +139,11 @@ public final class ValidateUtils {
     public String getAdvice() {
       return mAdvice;
     }
+  }
+
+  public static String getErrorInfo(Throwable t) {
+    StringWriter errors = new StringWriter();
+    t.printStackTrace(new PrintWriter(errors));
+    return errors.toString();
   }
 }

@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import org.apache.commons.cli.Option;
 
 import java.util.List;
@@ -31,42 +32,5 @@ public interface ValidationTask {
    * @param optionMap contains string representation of <key, value> pairs
    * @return the result of validation task
    */
-  TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
-
-  /**
-   * Result of a validation task.
-   */
-  enum State {
-    OK,
-    WARNING,
-    FAILED,
-    SKIPPED
-  }
-
-  // TODO(jiacheng): use Lu class
-  class TaskResult {
-    public State mState;
-    // TODO(jiacheng): Conform to Lu style
-    public String mTaskName;
-    public String mOutput;
-    public String mAdvice;
-    public String mError;
-
-    public TaskResult(State state, String taskName, String output, String advice) {
-      mState = state;
-      mTaskName = taskName;
-      mOutput = output;
-      mAdvice = advice;
-    }
-
-    // TODO(jiacheng): consider if we want to keep the Exception or just want string
-    public void setError(Exception e) {
-      mError = String.format("%s", e);
-    }
-
-    @Override
-    public String toString() {
-      return String.format("%s: %s%n%s%n%s%n", mTaskName, mState, mOutput, mAdvice);
-    }
-  }
+  ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
 }

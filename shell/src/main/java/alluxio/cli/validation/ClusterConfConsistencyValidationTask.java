@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
@@ -29,10 +30,8 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 /**
- * Task for validating system limit for current user.
+ * Task for validating Alluxio configuration consistency in the cluster.
  */
 public final class ClusterConfConsistencyValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
@@ -47,7 +46,12 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public String getName() {
+    return "ValidateClusterConfConsistency";
+  }
+
+  @Override
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -59,14 +63,14 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
     if (masters.isEmpty()) {
       msg.append(String.format("No master nodes specified in %s/masters file. ", mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the master node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
-      return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(), msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
       msg.append(String.format("No worker nodes specified in %s/workers file. ", mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the worker node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
-      return new TaskResult(State.WARNING, mName, msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(), msg.toString(), advice.toString());
     }
-    State state = State.OK;
+    ValidateUtils.State state = ValidateUtils.State.OK;
     Exception ex = null;
     for (String node : nodes) {
       try {
@@ -78,7 +82,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         msg.append(String.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage()));
         advice.append(String.format("Please check the connection from node %s. ", node));
         ex = e;
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         // Check all nodes before returning
         continue;
       }
@@ -108,22 +112,22 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       boolean isConsistent = true;
 
       String errLabel;
-      State errLevel;
+      ValidateUtils.State errLevel;
       switch (level) {
         case ENFORCE:
           errLabel = "Error";
-          errLevel = State.FAILED;
+          errLevel = ValidateUtils.State.FAILED;
           break;
         case WARN:
           errLabel = "Warning";
-          errLevel = State.WARNING;
+          errLevel = ValidateUtils.State.WARNING;
           break;
         default:
           msg.append(String.format(
               "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
               level.name(), propertyName));
           advice.append(String.format("Please check property %s.%n", propertyName));
-          state = State.FAILED;
+          state = ValidateUtils.State.FAILED;
           continue;
       }
       for (String remoteNode : targetNodes) {
@@ -145,10 +149,10 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
       }
       if (!isConsistent) {
-        state = state == State.FAILED ? State.FAILED : errLevel;
+        state = state == ValidateUtils.State.FAILED ? ValidateUtils.State.FAILED : errLevel;
       }
     }
-    return new TaskResult(state, mName, msg.toString(), advice.toString());
+    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private Properties getNodeConf(String node) throws IOException {

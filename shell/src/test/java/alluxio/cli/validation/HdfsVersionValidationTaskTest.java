@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
@@ -39,10 +40,10 @@ public class HdfsVersionValidationTaskTest {
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("2.2");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("2.2 does not match alluxio.underfs.version"));
-    assertThat(result.mAdvice, containsString("configure alluxio.underfs.version"));
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("2.2 does not match alluxio.underfs.version"));
+    assertThat(result.getAdvice(), containsString("configure alluxio.underfs.version"));
   }
 
   @Test
@@ -53,11 +54,11 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.FAILED, result.mState);
-    assertThat(result.mOutput, containsString("2.7 does not match alluxio.underfs.version=2.6"));
-    assertThat(result.mAdvice, containsString("configure alluxio.underfs.version"));
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString("2.7 does not match alluxio.underfs.version=2.6"));
+    assertThat(result.getAdvice(), containsString("configure alluxio.underfs.version"));
   }
 
   @Test
@@ -68,9 +69,9 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationTask.TaskResult result = task.validate(ImmutableMap.of());
+    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidationTask.State.OK, result.mState);
+    assertEquals(ValidateUtils.State.OK, result.getState());
   }
 
 

@@ -175,9 +175,6 @@ public final class ValidateEnv {
       List<ValidationTask> tasks) {
     TASKS.put(task, name);
     TASK_DESCRIPTIONS.put(name, description);
-    // TODO(jiacheng): is there a better way to set this rather than here?
-    task.mName = name;
-    task.mDescription = description;
     tasks.add(task);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {
@@ -237,7 +234,7 @@ public final class ValidateEnv {
   private static boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
-    Map<ValidationTask.State, Integer> results = new HashMap<>();
+    Map<ValidateUtils.State, Integer> results = new HashMap<>();
     Map<String, String> optionsMap = new HashMap<>();
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
@@ -251,7 +248,7 @@ public final class ValidateEnv {
       }
       System.out.format("Validating %s...%n", taskName);
       // TODO(jiacheng): better way to print it?
-      ValidationTask.TaskResult result = task.validate(optionsMap);
+      ValidateUtils.TaskResult result = task.validate(optionsMap);
       results.put(result.mState, results.getOrDefault(result, 0) + 1);
       switch (result.mState) {
         case OK:
@@ -269,25 +266,25 @@ public final class ValidateEnv {
         default:
           break;
       }
-      System.out.print(result.mTaskName);
+      System.out.print(result.getName());
       System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-    if (results.containsKey(ValidationTask.State.FAILED)) {
-      System.err.format("%d failures ", results.get(ValidationTask.State.FAILED));
+    if (results.containsKey(ValidateUtils.State.FAILED)) {
+      System.err.format("%d failures ", results.get(ValidateUtils.State.FAILED));
     }
-    if (results.containsKey(ValidationTask.State.WARNING)) {
-      System.err.format("%d warnings ", results.get(ValidationTask.State.WARNING));
+    if (results.containsKey(ValidateUtils.State.WARNING)) {
+      System.err.format("%d warnings ", results.get(ValidateUtils.State.WARNING));
     }
-    if (results.containsKey(ValidationTask.State.SKIPPED)) {
-      System.err.format("%d skipped ", results.get(ValidationTask.State.SKIPPED));
+    if (results.containsKey(ValidateUtils.State.SKIPPED)) {
+      System.err.format("%d skipped ", results.get(ValidateUtils.State.SKIPPED));
     }
     System.err.println();
     if (validationCount == 0) {
       System.err.format("No validation task matched name \"%s\".%n", name);
       return false;
     }
-    if (results.containsKey(ValidationTask.State.FAILED)) {
+    if (results.containsKey(ValidateUtils.State.FAILED)) {
       return false;
     }
     System.out.println("Validation succeeded.");

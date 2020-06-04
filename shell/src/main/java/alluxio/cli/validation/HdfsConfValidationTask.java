@@ -12,6 +12,7 @@
 package alluxio.cli.validation;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.ValidateUtils;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -70,6 +71,11 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     mConf = conf;
   }
 
+  @Override
+  public String getName() {
+    return "ValidateHdfsConf";
+  }
+
   protected static boolean isHdfsScheme(String path) {
     String scheme = new AlluxioURI(path).getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
@@ -78,20 +84,20 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     return true;
   }
 
-  protected TaskResult loadHdfsConfig() {
+  protected ValidateUtils.TaskResult loadHdfsConfig() {
     Pair<String, String> clientConfFiles = getHdfsConfPaths();
     String coreConfPath = clientConfFiles.getFirst();
     String hdfsConfPath = clientConfFiles.getSecond();
 
-    TaskResult result;
+    ValidateUtils.TaskResult result;
     try {
       mCoreConf = accessAndParseConf("core-site.xml", coreConfPath);
       mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
-      State state = (mCoreConf != null) && (mHdfsConf != null) ? State.OK : State.FAILED;
-      result = new TaskResult(state, mName, mMsg.toString(), mAdvice.toString());
+      ValidateUtils.State state = (mCoreConf != null) && (mHdfsConf != null) ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
+      result = new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
     } catch (IOException e) {
-      result = new TaskResult(State.FAILED, mName, mMsg.toString(), mAdvice.toString());
-      result.setError(e);
+      mMsg.append(ValidateUtils.getErrorInfo(e));
+      result = new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
     }
     return result;
   }
@@ -114,14 +120,14 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
     if (!isHdfsScheme(mPath)) {
       mMsg.append(String.format("UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
-      return new TaskResult(State.SKIPPED, mName, mMsg.toString(), mAdvice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(), mMsg.toString(), mAdvice.toString());
     }
 
-    TaskResult loadConfig = loadHdfsConfig();
-    if (loadConfig.mState != State.OK) {
+    ValidateUtils.TaskResult loadConfig = loadHdfsConfig();
+    if (loadConfig.getState() != ValidateUtils.State.OK) {
       // If failed to load config files, abort
       return loadConfig;
     }
@@ -132,21 +138,21 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
 
   // Verify core-site.xml and hdfs.site.xml has no conflicts
   // mCoreConf and mHdfsConf are verified to be non-null as precondition
-  protected TaskResult checkConflicts() {
-    State state = State.OK;
+  protected ValidateUtils.TaskResult checkConflicts() {
+    ValidateUtils.State state = ValidateUtils.State.OK;
     for (String k : mCoreConf.keySet()) {
       if (mHdfsConf.containsKey(k)) {
         String hdfsValue = mHdfsConf.get(k);
         String coreValue = mCoreConf.get(k);
         if (!hdfsValue.equals(coreValue)) {
-          state = State.FAILED;
+          state = ValidateUtils.State.FAILED;
           mMsg.append(String.format("Property %s is %s in core-site.xml and %s in hdfs-site.xml",
                   k, coreValue, hdfsValue));
           mAdvice.append(String.format("Please fix the inconsistency for %s in core-site.xml and hdfs.xml.%n", k));
         }
       }
     }
-    return new TaskResult(state, mName, mMsg.toString(), mAdvice.toString());
+    return new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   @Nullable

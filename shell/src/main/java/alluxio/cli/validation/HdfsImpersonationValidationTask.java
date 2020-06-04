@@ -1,5 +1,6 @@
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
@@ -29,12 +30,9 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
     mImpersonationGroups = ia.getmImpersonationGroups();
   }
 
-  private String getCurrentUser() throws UnauthenticatedException {
-    // get the current user
-    UserState userState = UserState.Factory.create(mConf, new Subject());
-    String userName = userState.getUser().getName();
-    System.out.format("Current user is %s%n", userName);
-    return userName;
+  @Override
+  public String getName() {
+    return String.format("ValidateImpersonationConf%s", mMode);
   }
 
   private boolean shouldSkip() {
@@ -48,15 +46,9 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
     return false;
   }
 
-  public enum Mode {
-    USERS,
-    GROUPS,
-    HOSTS
-  }
-
-  private TaskResult validateImpersonationUsers() {
+  private ValidateUtils.TaskResult validateImpersonationUsers() {
     String taskName = "Validate alluxio impersonation users";
-    State state = State.OK;
+    ValidateUtils.State state = ValidateUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
     for (Map.Entry<String, Set<String>> entry : mImpersonationUsers.entrySet()) {
@@ -69,7 +61,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
 
       // The impersonation user is not configured in core-site.xml
       if (!mCoreConf.containsKey(hdfsKey)) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append(String.format("But %s is not configured in hadoop proxyuser.%n", hdfsKey));
         advice.append(String.format("Please configure %s to match %s.%n", hdfsKey, alluxioKey.toString()));
         continue;
@@ -82,7 +74,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
           // If impersonation is enabled for all users in Alluxio and HDFS, succeed
           msg.append(String.format("User %s can impersonate any user in Alluxio and HDFS.%n", userName));
         } else {
-          state = State.FAILED;
+          state = ValidateUtils.State.FAILED;
           msg.append(String.format("User %s can impersonate any user in Alluxio but only %s in HDFS.%n", userName, hdfsImpUsers));
           advice.append(String.format("Please set %s to %s. ", hdfsKey, ImpersonationAuthenticator.WILDCARD));
         }
@@ -99,7 +91,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       Set<String> missedUsers = Sets.difference(impUsers, nameSet); // in alluxio not in hdfs
       System.out.format("Found missed users %s%n", missedUsers);
       if (missedUsers.size() > 0) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append(String.format("User %s can impersonate as users %s in Alluxio but not in HDFS.%n", userName, missedUsers));
         advice.append(String.format("Please add the missing users to %s. ", hdfsKey));
         continue;
@@ -109,13 +101,13 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       msg.append("All impersonable users in Alluxio are found in HDFS. \n");
     }
 
-    return new TaskResult(state, taskName, msg.toString(), advice.toString());
+    return new ValidateUtils.TaskResult(state, taskName, msg.toString(), advice.toString());
   }
 
   // TODO(jiacheng): refactor with users logic
-  private TaskResult validateImpersonationGroups() {
+  private ValidateUtils.TaskResult validateImpersonationGroups() {
     String taskName = "Validate alluxio impersonation groups";
-    State state = State.OK;
+    ValidateUtils.State state = ValidateUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
     for (Map.Entry<String, Set<String>> entry : mImpersonationGroups.entrySet()) {
@@ -128,7 +120,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
 
       // The impersonation group is not configured in core-site.xml
       if (!mCoreConf.containsKey(hdfsKey)) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append(String.format("But %s is not configured in hadoop proxyuser. ", hdfsKey));
         advice.append(String.format("Please configure %s to match %s", hdfsKey, alluxioKey.toString()));
         continue;
@@ -157,7 +149,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       Set<String> missedGroups = Sets.difference(impGroups, nameSet); // in alluxio not in hdfs
       System.out.format("Found missed groups %s%n", missedGroups);
       if (missedGroups.size() > 0) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append(String.format("User %s can impersonate as groups %s in Alluxio but not in HDFS.", userName, missedGroups));
         advice.append(String.format("Please add the missing groups to %s. ", hdfsKey));
         continue;
@@ -166,13 +158,13 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       // All checks passed
       msg.append(String.format("Found matching configuration in %s and %s. ", alluxioKey.toString(), hdfsKey));
     }
-    return new TaskResult(state, taskName, msg.toString(), advice.toString());
+    return new ValidateUtils.TaskResult(state, taskName, msg.toString(), advice.toString());
   }
 
   // At least the current host should be in hadoop.proxy.<username>.hosts
-  private TaskResult validateImpersonationHosts() {
+  private ValidateUtils.TaskResult validateImpersonationHosts() {
     String taskName = "Validate proxyuser hosts";
-    State state = State.OK;
+    ValidateUtils.State state = ValidateUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -186,7 +178,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
 
       String hdfsKey = String.format("hadoop.proxyuser.%s.hosts", userName);
       if (!mCoreConf.containsKey(hdfsKey)) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append("But the user is not allowed to use impersonation on this host.");
         advice.append(String.format("Please configure %s to contain %s. ", hdfsKey, localhost));
         continue;
@@ -200,7 +192,7 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       }
       // If wildcard is not used and the localhost is not in the permitted list
       if (!proxyHosts.contains(localhost)) {
-        state = State.FAILED;
+        state = ValidateUtils.State.FAILED;
         msg.append(String.format("But %s does not contain host %s. ", hdfsKey, localhost));
         advice.append(String.format("Please enable host %s in %s. ", localhost, hdfsKey));
         continue;
@@ -209,17 +201,17 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       // Passed all checks
       msg.append(String.format("Host %s is enabled to use impersonation in HDFS. ", localhost));
     }
-    return new TaskResult(state, taskName, msg.toString(), advice.toString());
+    return new ValidateUtils.TaskResult(state, taskName, msg.toString(), advice.toString());
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionMap) {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) {
     if (shouldSkip()) {
-      return new TaskResult(State.SKIPPED, mName, mMsg.toString(), mAdvice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(), mMsg.toString(), mAdvice.toString());
     }
 
-    TaskResult loadConfig = loadHdfsConfig();
-    if (loadConfig.mState != State.OK) {
+    ValidateUtils.TaskResult loadConfig = loadHdfsConfig();
+    if (loadConfig.getState() != ValidateUtils.State.OK) {
       return loadConfig;
     }
 
@@ -235,5 +227,11 @@ public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
       default:
         throw new RuntimeException(String.format("Unknown validation mode %s", mMode));
     }
+  }
+
+  public enum Mode {
+    USERS,
+    GROUPS,
+    HOSTS
   }
 }
