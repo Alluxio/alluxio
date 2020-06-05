@@ -215,7 +215,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         final String methodName = (String) lineMap.get("methodName");
         final Integer duration = (Integer) lineMap.get("duration");
 
-        if (type.equals("AlluxioBlockInStream") && methodName.equals("readChunk")) {
+        if ((type.equals("AlluxioBlockInStream") && methodName.equals("readChunk"))
+            || (type.equals("HDFSPacketReceiver") && methodName.equals("doRead"))) {
           if (!timeToFirstByte.containsKey(methodName)) {
             timeToFirstByte.put(methodName, new PartialResultStatistic());
           }
@@ -231,16 +232,24 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
       }
     }
-
-    Collections.sort(timeToFirstByte.get("readChunk").mTimeToFirstByteNs);
-    final SummaryStatistics stats =
-        new SummaryStatistics(
-            timeToFirstByte.get("readChunk").mNumSuccess,
-            computeTimePercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
-            computeTime99PercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
-            computeMaxTimeMS(timeToFirstByte.get("readChunk").mMaxTimeToFirstByteNs));
-
-    return stats;
+    if (timeToFirstByte.containsKey("readChunk")) {
+      Collections.sort(timeToFirstByte.get("readChunk").mTimeToFirstByteNs);
+      SummaryStatistics stats = new SummaryStatistics(
+          timeToFirstByte.get("readChunk").mNumSuccess,
+          computeTimePercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
+          computeTime99PercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
+          computeMaxTimeMS(timeToFirstByte.get("readChunk").mMaxTimeToFirstByteNs));
+      return stats;
+    } else if (timeToFirstByte.containsKey("doRead")) {
+      Collections.sort(timeToFirstByte.get("doRead").mTimeToFirstByteNs);
+      SummaryStatistics stats = new SummaryStatistics(
+          timeToFirstByte.get("doRead").mNumSuccess,
+          computeTimePercentileMS(timeToFirstByte.get("doRead").mTimeToFirstByteNs),
+          computeTime99PercentileMS(timeToFirstByte.get("doRead").mTimeToFirstByteNs),
+          computeMaxTimeMS(timeToFirstByte.get("doRead").mMaxTimeToFirstByteNs));
+      return stats;
+    }
+    return new SummaryStatistics();
   }
 
   private float[] computeTimePercentileMS(ArrayList<Integer> rawTime) {
