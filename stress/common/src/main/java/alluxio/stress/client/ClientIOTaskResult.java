@@ -47,9 +47,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
 
-  private SummaryStatistics mStatistics;
-
-  private Map<String, SummaryStatistics> mStatisticsPerMethod;
+  private Map<Integer, SummaryStatistics> mTimeToFirstByte;
 
   /**
    * Creates an instance.
@@ -57,7 +55,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   public ClientIOTaskResult() {
     // Default constructor required for json deserialization
     mThreadCountResults = new HashMap<>();
-    mStatisticsPerMethod = new HashMap<>();
+    mTimeToFirstByte = new HashMap<>();
   }
 
   /**
@@ -89,42 +87,6 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   }
 
   /**
-   * @return client IO statistics
-   */
-  public SummaryStatistics getStatistics() {
-    return mStatistics;
-  }
-
-  /**
-   * @param statistics client IO statistics
-   */
-  public void setStatistics(SummaryStatistics statistics) {
-    mStatistics = statistics;
-  }
-
-  /**
-   * @return client IO statistics per method
-   */
-  public Map<String, SummaryStatistics> getStatisticsPerMethod() {
-    return mStatisticsPerMethod;
-  }
-
-  /**
-   * @param statisticsPerMethod client IO statistics per method
-   */
-  public void setStatisticsPerMethod(Map<String, SummaryStatistics> statisticsPerMethod) {
-    mStatisticsPerMethod = statisticsPerMethod;
-  }
-
-  /**
-   * @param methodName method name
-   * @param statistics ClientIOTaskResultStatistics
-   */
-  public void putStatisticsPerMethod(String methodName, SummaryStatistics statistics) {
-    mStatisticsPerMethod.put(methodName, statistics);
-  }
-
-  /**
    * @return the start time (in ms)
    */
   public long getRecordStartMs() {
@@ -136,6 +98,28 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
    */
   public void setRecordStartMs(long recordStartMs) {
     mRecordStartMs = recordStartMs;
+  }
+
+  /**
+   * @return client IO statistics per method
+   */
+  public Map<Integer, SummaryStatistics> getTimeToFirstBytePerThread() {
+    return mTimeToFirstByte;
+  }
+
+  /**
+   * @param timeToFirstByte time to first statistics
+   */
+  public void setTimeToFirstBytePerThread(Map<Integer, SummaryStatistics> timeToFirstByte) {
+    mTimeToFirstByte = timeToFirstByte;
+  }
+
+  /**
+   * @param threadCount thread count
+   * @param statistics ClientIOTaskResultStatistics
+   */
+  public void putTimeToFirstBytePerThread(int threadCount, SummaryStatistics statistics) {
+    mTimeToFirstByte.put(threadCount, statistics);
   }
 
   /**
@@ -188,6 +172,12 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       data.addData(entry.getKey(), entry.getValue().getIOMBps());
     }
     return data;
+  }
+
+  private void getTimeToFistByteData(String series, LineGraph lineGraph) {
+    for (Map.Entry<Integer, SummaryStatistics> entry : mTimeToFirstByte.entrySet()) {
+      lineGraph.addDataSeries(series + ", thread " + entry.getKey(), entry.getValue().computeTimeData());
+    }
   }
 
   private List<String> collectErrors() {
@@ -267,26 +257,21 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
                         Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
                 subTitle, "# Threads", "Throughput (MB/s)");
 
+            LineGraph timeToFirstByteGraph = new LineGraph(String
+                .format("%s - %s - Time To First Byte", operation,
+                    opSummaries.get(0).mParameters.getDescription(
+                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+                subTitle, "# Threads", "Time To First Byte (Ms)");
+
             for (ClientIOTaskResult summary : opSummaries) {
               String series = summary.mParameters.getDescription(fieldNames.getSecond());
               responseTimeGraph.addDataSeries(series, summary.getThroughputData());
               responseTimeGraph.setErrors(series, summary.collectErrors());
 
-              for (Map.Entry<String, SummaryStatistics> entry :
-                  getStatisticsPerMethod().entrySet()) {
-                final String method = entry.getKey();
-                final LineGraph.Data timeToFirstByte = entry.getValue().computeTimeData();
-
-                if (method.equals("readChunk")) {
-                  LineGraph timeToFirstByteLineGraph =
-                      new LineGraph(operation + " - Time To First Byte (ms) " + method, subTitle,
-                          "Percentile", "Time To First Byte (ms)");
-                  timeToFirstByteLineGraph.addDataSeries(series, timeToFirstByte);
-                  graphs.add(timeToFirstByteLineGraph);
-                }
-              }
+              summary.getTimeToFistByteData(series, timeToFirstByteGraph);
             }
             graphs.add(responseTimeGraph);
+            graphs.add(timeToFirstByteGraph);
           }
         }
       }

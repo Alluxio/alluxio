@@ -147,11 +147,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     taskResult.setParameters(mParameters);
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
+      if (!mParameters.mProfileAgent.isEmpty()) {
+        taskResult.putTimeToFirstBytePerThread(numThreads, addAdditionalResult());
+      }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
-    }
-
-    if (!mParameters.mProfileAgent.isEmpty()) {
-      addAdditionalResult(taskResult);
     }
 
     return taskResult;
@@ -182,6 +181,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     service.awaitTermination(30, TimeUnit.SECONDS);
 
     ClientIOTaskResult.ThreadCountResult result = context.getResult();
+
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
         result.getErrors().size(), result.getIOMBps()));
 
@@ -191,14 +191,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /**
    * Read the log file from java agent log file.
    *
-   * @param clientIOTaskResult client io task result
-   * @return ClientIOTaskResult with java agent info
+   * @return summary statistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized ClientIOTaskResult addAdditionalResult(ClientIOTaskResult clientIOTaskResult)
-      throws IOException {
-    Map<String, PartialResultStatistic> methodNameToHistogram = new HashMap<>();
+  public synchronized SummaryStatistics addAdditionalResult() throws IOException {
+    Map<String, PartialResultStatistic> timeToFirstByte = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
       String line;
@@ -218,11 +216,11 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         final Integer duration = (Integer) lineMap.get("duration");
 
         if (type.equals("AlluxioBlockInStream") && methodName.equals("readChunk")) {
-          if (!methodNameToHistogram.containsKey(methodName)) {
-            methodNameToHistogram.put(methodName, new PartialResultStatistic());
+          if (!timeToFirstByte.containsKey(methodName)) {
+            timeToFirstByte.put(methodName, new PartialResultStatistic());
           }
 
-          final PartialResultStatistic statistic = methodNameToHistogram.get(methodName);
+          final PartialResultStatistic statistic = timeToFirstByte.get(methodName);
           statistic.mTimeToFirstByteNs.add(duration);
           statistic.mNumSuccess += 1;
 
@@ -234,18 +232,15 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    for (Map.Entry<String, PartialResultStatistic> entry : methodNameToHistogram.entrySet()) {
-      Collections.sort(entry.getValue().mTimeToFirstByteNs);
-      final SummaryStatistics stats =
-          new SummaryStatistics(
-              entry.getValue().mNumSuccess,
-              computeTimePercentileMS(entry.getValue().mTimeToFirstByteNs),
-              computeTime99PercentileMS(entry.getValue().mTimeToFirstByteNs),
-              computeMaxTimeMS(entry.getValue().mMaxTimeToFirstByteNs));
-      clientIOTaskResult.putStatisticsPerMethod(entry.getKey(), stats);
-    }
+    Collections.sort(timeToFirstByte.get("readChunk").mTimeToFirstByteNs);
+    final SummaryStatistics stats =
+        new SummaryStatistics(
+            timeToFirstByte.get("readChunk").mNumSuccess,
+            computeTimePercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
+            computeTime99PercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
+            computeMaxTimeMS(timeToFirstByte.get("readChunk").mMaxTimeToFirstByteNs));
 
-    return clientIOTaskResult;
+    return stats;
   }
 
   private float[] computeTimePercentileMS(ArrayList<Integer> rawTime) {
