@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +67,16 @@ public final class StressBenchDefinition
 
     // sort copy of workers by hashcode
     List<WorkerInfo> workerList = Lists.newArrayList(jobWorkerInfoList);
-    workerList.sort(Comparator.comparingInt(w -> w.getAddress().hashCode()));
+    workerList.sort(Comparator.comparing(w -> w.getAddress().getHost()));
     // take the first subset, according to cluster limit
     int clusterLimit = config.getClusterLimit();
-    if (clusterLimit <= 0) {
+    if (clusterLimit == 0) {
       clusterLimit = workerList.size();
+    }
+    if (clusterLimit < 0) {
+      // if negative, reverse the list
+      clusterLimit = -clusterLimit;
+      Collections.reverse(workerList);
     }
     workerList = workerList.subList(0, clusterLimit);
 
