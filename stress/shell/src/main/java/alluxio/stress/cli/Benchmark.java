@@ -15,6 +15,7 @@ import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
@@ -68,6 +69,23 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   /**
+   * Generate a {@link StressBenchConfig} as the default JobConfig.
+   *
+   * @param args arguments
+   * @return the JobConfig
+   * */
+  public PlanConfig generateJobConfig(String[] args) {
+    // remove the cluster flag
+    List<String> commandArgs =
+            Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
+                    .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
+
+    commandArgs.addAll(mBaseParameters.mJavaOpts);
+    String className = this.getClass().getCanonicalName();
+    return new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit);
+  }
+
+  /**
    * Runs the test and returns the string output.
    *
    * @param args the command-line args
@@ -78,7 +96,12 @@ public abstract class Benchmark<T extends TaskResult> {
     jc.setProgramName(this.getClass().getSimpleName());
     try {
       jc.parse(args);
+      if (mBaseParameters.mHelp) {
+        jc.usage();
+        System.exit(0);
+      }
     } catch (Exception e) {
+      LOG.error("Failed to parse command: ", e);
       jc.usage();
       throw e;
     }
@@ -91,17 +114,8 @@ public abstract class Benchmark<T extends TaskResult> {
 
     if (mBaseParameters.mCluster) {
       // run on job service
-
-      // remove the cluster flag
-      List<String> commandArgs =
-          Arrays.stream(args).filter((s) -> !BaseParameters.CLUSTER_FLAG.equals(s))
-              .filter((s) -> !s.isEmpty()).collect(Collectors.toList());
-
-      commandArgs.addAll(mBaseParameters.mJavaOpts);
-
-      long jobId = JobGrpcClientUtils
-          .run(new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit),
-              0, conf);
+      long jobId =
+          JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
       return jobInfo.getResult().toString();
     }
