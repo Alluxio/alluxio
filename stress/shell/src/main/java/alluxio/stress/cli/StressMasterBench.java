@@ -84,8 +84,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
     }
 
-    if (!BaseParameters.mProfileAgent.isEmpty()) {
-      mBaseParameters.mJavaOpts.add("-javaagent:" + BaseParameters.mProfileAgent
+    if (!BaseParameters.sProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + BaseParameters.sProfileAgent
           + "=" + AGENT_OUTPUT_PATH);
     }
 
@@ -170,7 +170,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
-    if (!BaseParameters.mProfileAgent.isEmpty()) {
+    if (!BaseParameters.sProfileAgent.isEmpty()) {
       context.addAdditionalResult();
     }
 

@@ -89,8 +89,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
               + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
     }
-    if (!BaseParameters.mProfileAgent.isEmpty()) {
-      mBaseParameters.mJavaOpts.add("-javaagent:" + BaseParameters.mProfileAgent
+    if (!BaseParameters.sProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + BaseParameters.sProfileAgent
           + "=" + AGENT_OUTPUT_PATH);
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
@@ -148,7 +148,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     taskResult.setParameters(mParameters);
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
-      if (!BaseParameters.mProfileAgent.isEmpty()) {
+      if (!BaseParameters.sProfileAgent.isEmpty()) {
         taskResult.putTimeToFirstBytePerThread(numThreads, addAdditionalResult());
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);

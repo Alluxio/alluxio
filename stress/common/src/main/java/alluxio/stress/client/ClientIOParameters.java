@@ -94,7 +94,7 @@ public final class ClientIOParameters extends Parameters {
       description = "The number of workers to distribute the files to. The blocks of a written "
           + "file will be round-robin across these number of workers.")
   public int mWriteNumWorkers = 1;
-  
+
   @DynamicParameter(names = "--conf",
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
           + "configuration values.")

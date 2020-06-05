@@ -261,10 +261,10 @@ public final class MasterBenchSummary implements Summary {
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
           responseTimeGraph.setErrors(series, summary.collectErrors());
 
-            for (Map.Entry<String, SummaryStatistics> entry :
-                summary.getStatisticsPerMethod().entrySet()) {
-              final String method = entry.getKey();
-              final LineGraph.Data responseTimeData = entry.getValue().computeTimeData();
+          for (Map.Entry<String, SummaryStatistics> entry :
+              summary.getStatisticsPerMethod().entrySet()) {
+            final String method = entry.getKey();
+            final LineGraph.Data responseTimeData = entry.getValue().computeTimeData();
 
             if (!responseTimeGraphPerMethod.containsKey(method)) {
               responseTimeGraphPerMethod.put(method,
