@@ -41,14 +41,14 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -67,16 +67,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
 
-  private static final int LOCK_SIZE = 1024;
+  private static final int LOCK_SIZE = 2048;
   /** A readwrite lock pool to guard individual files based on striping. */
   private final ReadWriteLock[] mFileLocks = new ReentrantReadWriteLock[LOCK_SIZE];
-  /** A readwrite lock to guard metadata operations. */
-  private final ReadWriteLock mOpenFilesLock = new ReentrantReadWriteLock();
 
-  @GuardedBy("mOpenFilesLock")
-  private final Map<String, OpenFileEntry> mOpenFiles = new HashMap<>();
+  private final Map<Long, OpenFileEntry> mOpenFiles = new ConcurrentHashMap<>();
 
   // To make test build
   @VisibleForTesting
@@ -119,11 +117,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
    * Gets the lock for a particular page. Note that multiple path may share the same lock as lock
    * striping is used to reduce resource overhead for locks.
    *
-   * @param path the file path
+   * @param fd the file id
    * @return the corresponding page lock
    */
-  private ReadWriteLock getFileLock(String path) {
-    return mFileLocks[Math.floorMod(path.hashCode(), LOCK_SIZE)];
+  private ReadWriteLock getFileLock(long fd) {
+    return mFileLocks[Math.floorMod((int) fd, LOCK_SIZE)];
   }
 
   @Override
@@ -191,14 +189,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   public int open(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
+      long fd = mNextOpenFileId.getAndIncrement();
       FileInStream is = mFileSystem.openFile(uri);
-      try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
-        if (mOpenFiles.containsKey(path)) {
-          mOpenFiles.get(path).getCount().getAndIncrement();
-        } else {
-          mOpenFiles.put(path, new OpenFileEntry(path, is));
-        }
-      }
+      mOpenFiles.put(fd, new OpenFileEntry(path, is));
+      fi.fh.set(fd);
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -212,19 +206,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     int nread = 0;
     int rd = 0;
     final int sz = (int) size;
-    try {
-      final OpenFileEntry oe;
-      try (LockResource r2 = new LockResource(mOpenFilesLock.readLock())) {
-        if (!mOpenFiles.containsKey(path)) {
-          LOG.error("Cannot find fd for {}", path);
-          return -ErrorCodes.EBADFD();
-        }
-        oe = mOpenFiles.get(path);
+    long fd = fi.fh.get();
+    // FileInStream is not thread safe
+    try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
+      OpenFileEntry oe = mOpenFiles.get(fd);
+      if (oe == null) {
+        LOG.error("Cannot find fd {} for {}", fd, path);
+        return -ErrorCodes.EBADFD();
       }
+      oe.getIn().seek(offset);
       FileInStream is = oe.getIn();
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
-        rd = is.positionedRead(offset, dest, nread, sz - nread, oe.getContext());
+        rd = is.read(dest, nread, sz - nread);
         if (rd >= 0) {
           nread += rd;
         }
@@ -250,21 +244,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int release(String path, FuseFileInfo fi) {
     final OpenFileEntry oe;
-    try {
-      try (LockResource r2 = new LockResource(mOpenFilesLock.writeLock())) {
-        if (!mOpenFiles.containsKey(path)) {
-          LOG.error("Cannot find fd for {}", path);
-          return -ErrorCodes.EBADFD();
-        }
-        oe = mOpenFiles.get(path);
-        if (oe.getCount().decrementAndGet() >= 0) {
-          return 0;
-        }
-        mOpenFiles.remove(path);
+    long fd = fi.fh.get();
+    try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
+      oe = mOpenFiles.remove(fd);
+      if (oe == null) {
+        LOG.error("Cannot find fd {} for {}", fd, path);
+        return -ErrorCodes.EBADFD();
       }
       oe.close();
     } catch (Throwable e) {
-      LOG.error("Failed closing {} [in]", path, e);
+      LOG.error("Failed closing {}", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
