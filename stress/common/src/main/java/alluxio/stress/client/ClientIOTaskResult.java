@@ -176,7 +176,8 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
 
   private void getTimeToFistByteData(String series, LineGraph lineGraph) {
     for (Map.Entry<Integer, SummaryStatistics> entry : mTimeToFirstByte.entrySet()) {
-      lineGraph.addDataSeries(series + ", thread " + entry.getKey(), entry.getValue().computeTimeData());
+      lineGraph.addDataSeries(
+          series + ", thread " + entry.getKey(), entry.getValue().computeTimeData());
     }
   }
 
