@@ -28,6 +28,7 @@ public final class BaseParameters {
   public static final String IN_PROCESS_FLAG = "--in-process";
   public static final String JAVA_OPT_FLAG = "--java-opt";
   public static final String START_MS_FLAG = "--start-ms";
+  public static final String HELP_FLAG = "--help";
 
   public static final long UNDEFINED_START_MS = -1;
 
@@ -70,4 +71,7 @@ public final class BaseParameters {
           + "execute the task",
       hidden = true)
   public boolean mInProcess = false;
+
+  @Parameter(names = {"-h", HELP_FLAG}, help = true)
+  public boolean mHelp = false;
 }

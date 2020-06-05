@@ -132,22 +132,17 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     return new Aggregator();
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator {
+  private static final class Aggregator implements TaskResult.Aggregator<ClientIOTaskResult> {
     @Override
-    public ClientIOTaskResult aggregate(Iterable<TaskResult> results) throws Exception {
-      Iterator<TaskResult> it = results.iterator();
+    public ClientIOTaskResult aggregate(Iterable<ClientIOTaskResult> results) throws Exception {
+      Iterator<ClientIOTaskResult> it = results.iterator();
       if (it.hasNext()) {
-        TaskResult taskResult = it.next();
+        ClientIOTaskResult taskResult = it.next();
         if (it.hasNext()) {
           throw new IOException(
               "ClientIO is a single node test, so multiple task results cannot be aggregated.");
         }
-        if (!(taskResult instanceof ClientIOTaskResult)) {
-          throw new IOException(
-              "TaskResult is not of type ClientIOTaskResult. class: " + taskResult.getClass()
-                  .getName());
-        }
-        return (ClientIOTaskResult) taskResult;
+        return taskResult;
       }
       return new ClientIOTaskResult();
     }
