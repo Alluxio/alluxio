@@ -85,28 +85,28 @@ public class IOTaskSummaryTest {
     double avgSpeed = totalSize / (totalDuration * 1024 * 1024);
     double maxSpeed = 800_000_000 / (1.11 * 1024 * 1024);
     double minSpeed = 200_000_000 / (1.0 * 1024 * 1024);
-    assertEquals(totalDuration, readStat.mTotalDuration, 1e-5);
-    assertEquals(totalSize, readStat.mTotalSize);
-    assertEquals(avgSpeed, readStat.mAvgSpeed, 1e-5);
-    assertEquals(maxSpeed, readStat.mMaxSpeed, 1e-5);
-    assertEquals(minSpeed, readStat.mMinSpeed, 1e-5);
+    assertEquals(totalDuration, readStat.mTotalDurationSeconds, 1e-5);
+    assertEquals(totalSize, readStat.mTotalSizeBytes);
+    assertEquals(avgSpeed, readStat.mAvgSpeedMbps, 1e-5);
+    assertEquals(maxSpeed, readStat.mMaxSpeedMbps, 1e-5);
+    assertEquals(minSpeed, readStat.mMinSpeedMbps, 1e-5);
 
     IOTaskSummary.SpeedStat writeStat = summary.getWriteSpeedStat();
-    assertEquals(totalDuration, writeStat.mTotalDuration, 1e-5);
-    assertEquals(totalSize, writeStat.mTotalSize);
-    assertEquals(avgSpeed, writeStat.mAvgSpeed, 1e-5);
-    assertEquals(maxSpeed, writeStat.mMaxSpeed, 1e-5);
-    assertEquals(minSpeed, writeStat.mMinSpeed, 1e-5);
+    assertEquals(totalDuration, writeStat.mTotalDurationSeconds, 1e-5);
+    assertEquals(totalSize, writeStat.mTotalSizeBytes);
+    assertEquals(avgSpeed, writeStat.mAvgSpeedMbps, 1e-5);
+    assertEquals(maxSpeed, writeStat.mMaxSpeedMbps, 1e-5);
+    assertEquals(minSpeed, writeStat.mMinSpeedMbps, 1e-5);
   }
 
   private void checkEquality(IOTaskSummary.SpeedStat a, IOTaskSummary.SpeedStat b) {
     double delta = 1e-5;
-    assertEquals(a.mTotalDuration, b.mTotalDuration, delta);
-    assertEquals(a.mAvgSpeed, b.mAvgSpeed, delta);
-    assertEquals(a.mMaxSpeed, b.mMaxSpeed, delta);
-    assertEquals(a.mMinSpeed, b.mMinSpeed, delta);
+    assertEquals(a.mTotalDurationSeconds, b.mTotalDurationSeconds, delta);
+    assertEquals(a.mAvgSpeedMbps, b.mAvgSpeedMbps, delta);
+    assertEquals(a.mMaxSpeedMbps, b.mMaxSpeedMbps, delta);
+    assertEquals(a.mMinSpeedMbps, b.mMinSpeedMbps, delta);
     assertEquals(a.mStdDev, b.mStdDev, delta);
-    assertEquals(a.mTotalSize, b.mTotalSize);
+    assertEquals(a.mTotalSizeBytes, b.mTotalSizeBytes);
   }
 
   private void checkEquality(IOTaskSummary a, IOTaskSummary b) {

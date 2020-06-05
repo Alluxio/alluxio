@@ -164,8 +164,8 @@ public class IOTaskResult implements TaskResult {
    * */
   public static class Point implements JsonSerializable {
     public IOMode mMode;
-    public double mDuration; // in seconds
-    public long mDataSizeBytes; // in Bytes
+    public double mDurationSeconds;
+    public long mDataSizeBytes;
 
     /**
      * @param mode the I/O mode
@@ -174,17 +174,17 @@ public class IOTaskResult implements TaskResult {
      * */
     @JsonCreator
     public Point(@JsonProperty("mode") IOMode mode,
-                 @JsonProperty("duration") double duration,
+                 @JsonProperty("durationSeconds") double duration,
                  @JsonProperty("dataSizeBytes") long dataSize) {
       mMode = mode;
-      mDuration = duration;
+      mDurationSeconds = duration;
       mDataSizeBytes = dataSize;
     }
 
     @Override
     public String toString() {
       return String.format("{mode=%s, duration=%ss, dataSize=%s}",
-              mMode, mDuration, FormatUtils.getSizeFromBytes(mDataSizeBytes));
+              mMode, mDurationSeconds, FormatUtils.getSizeFromBytes(mDataSizeBytes));
     }
 
     @Override
@@ -194,12 +194,12 @@ public class IOTaskResult implements TaskResult {
       }
       Point b = (Point) other;
       return this.mMode == b.mMode && this.mDataSizeBytes == b.mDataSizeBytes
-              && Math.abs(this.mDuration - b.mDuration) < 1e-5;
+              && Math.abs(this.mDurationSeconds - b.mDurationSeconds) < 1e-5;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mMode, mDataSizeBytes, mDuration);
+      return Objects.hashCode(mMode, mDataSizeBytes, mDurationSeconds);
     }
   }
 
