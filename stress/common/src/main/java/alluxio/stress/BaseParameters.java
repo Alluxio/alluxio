@@ -54,7 +54,7 @@ public final class BaseParameters {
   @Parameter(names = {PROFILE_AGENT},
       description = "The path to the profile agent if one is available. "
           + "Providing this will enable a more detailed output.")
-  public static String sProfileAgent = "";
+  public String mProfileAgent = "";
 
   // Hidden flags
   @Parameter(names = {ID_FLAG},
