@@ -29,6 +29,7 @@ public final class BaseParameters {
   public static final String JAVA_OPT_FLAG = "--java-opt";
   public static final String START_MS_FLAG = "--start-ms";
   public static final String HELP_FLAG = "--help";
+  public static final String PROFILE_AGENT = "--profile-agent";
 
   public static final long UNDEFINED_START_MS = -1;
 
@@ -49,6 +50,11 @@ public final class BaseParameters {
           + "repeated. The options must be quoted and prefixed with a space, to avoid getting "
           + "passed to the JVM. For example: --java-opt \" -Xmx4g\" --java-opt \" -Xms2g\"")
   public List<String> mJavaOpts = new ArrayList<>();
+
+  @Parameter(names = {PROFILE_AGENT},
+      description = "The path to the profile agent if one is available. "
+          + "Providing this will enable a more detailed output.")
+  public static String mProfileAgent = "";
 
   // Hidden flags
   @Parameter(names = {ID_FLAG},

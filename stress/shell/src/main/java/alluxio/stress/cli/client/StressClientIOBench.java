@@ -26,6 +26,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -88,8 +89,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
               + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
     }
-    if (!mParameters.mProfileAgent.isEmpty()) {
-      mBaseParameters.mJavaOpts.add("-javaagent:" + mParameters.mProfileAgent
+    if (!BaseParameters.mProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + BaseParameters.mProfileAgent
           + "=" + AGENT_OUTPUT_PATH);
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
@@ -147,7 +148,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     taskResult.setParameters(mParameters);
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
-      if (!mParameters.mProfileAgent.isEmpty()) {
+      if (!BaseParameters.mProfileAgent.isEmpty()) {
         taskResult.putTimeToFirstBytePerThread(numThreads, addAdditionalResult());
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
@@ -206,7 +207,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         final Map<String, Object> lineMap;
         try {
           lineMap = objectMapper.readValue(line, Map.class);
-        } catch (JsonParseException e) {
+        } catch (JsonParseException | MismatchedInputException e) {
           // skip the last line of a not completed file
           break;
         }
@@ -214,6 +215,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         final String type = (String) lineMap.get("type");
         final String methodName = (String) lineMap.get("methodName");
         final Integer duration = (Integer) lineMap.get("duration");
+
+        if (type == null || methodName == null || duration == null) {
+          continue;
+        }
 
         if ((type.equals("AlluxioBlockInStream") && methodName.equals("readChunk"))
             || (type.equals("HDFSPacketReceiver") && methodName.equals("doRead"))) {
