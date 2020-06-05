@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   /** Name of the environment variable to store the path to Hadoop config directory. */
   protected static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";

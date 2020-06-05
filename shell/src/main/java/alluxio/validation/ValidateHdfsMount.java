@@ -2,6 +2,7 @@ package alluxio.validation;
 
 import alluxio.cli.Command;
 import alluxio.cli.UnderFileSystemContractTest;
+import alluxio.cli.ValidateEnv;
 import alluxio.cli.ValidateUtils;
 import alluxio.cli.validation.*;
 import alluxio.conf.AlluxioConfiguration;
@@ -13,6 +14,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.*;
@@ -63,34 +65,6 @@ public class ValidateHdfsMount {
             new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION).addOption(OPTION_OPTION)
             .addOption(LOCAL_OPTION);
 
-    // TODO(jiacheng): better way to handle this?
-    public static List<ValidationTask> getValidationTasks(String path, AlluxioConfiguration conf) {
-        List<ValidationTask> tasks = new ArrayList<>();
-        tasks.add(new HdfsConfValidationTask(path, conf));
-        tasks.add(new HdfsConfParityValidationTask(path, conf));
-        tasks.add(new HdfsImpersonationValidationTask(path, conf, HdfsImpersonationValidationTask.Mode.USERS));
-        tasks.add(new HdfsImpersonationValidationTask(path, conf, HdfsImpersonationValidationTask.Mode.GROUPS));
-        tasks.add(new HdfsImpersonationValidationTask(path, conf, HdfsImpersonationValidationTask.Mode.HOSTS));
-        tasks.add(new HdfsVersionValidationTask(conf));
-        tasks.add(new NativeLibValidationTask(conf));
-        tasks.add(new SecureHdfsValidationTask("master", path, conf));
-        tasks.add(new SecureHdfsValidationTask("worker", path, conf));
-        tasks.add(new UfsSuperUserValidationTask(conf));
-        return tasks;
-    }
-
-    public static List<ValidateUtils.TaskResult> validateEnvChecks(String path, AlluxioConfiguration conf) throws InterruptedException {
-        // TODO(jiacheng): HdfsConfValidationTask reads from the option map
-        Map<String, String> optionMap = new HashMap<>();
-
-        List<ValidateUtils.TaskResult> results = new ArrayList<>();
-        List<ValidationTask> tasks = getValidationTasks(path, conf);
-        for (ValidationTask t : tasks) {
-            results.add(t.validate(optionMap));
-        }
-        return results;
-    }
-
     // TODO(jiacheng)
     public static ValidateUtils.TaskResult runUfsTests() throws Exception {
         ValidateUtils.TaskResult result;
@@ -137,7 +111,9 @@ public class ValidateHdfsMount {
             }
 
             // Run validateEnv
-            List<ValidateUtils.TaskResult> results = validateEnvChecks(ufsPath, ufsConf);
+            Map<String, String> validateOpts = ImmutableMap.of();
+            ValidateEnv validate = new ValidateEnv(ufsPath, ufsConf);
+            List<ValidateUtils.TaskResult> results = validate.validateUfs(ApplicableUfsType.Type.HDFS, validateOpts);
 
             // Run runUfsTests
             // TODO(jiacheng): pass conf?

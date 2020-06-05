@@ -17,40 +17,19 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.CurrentUser;
-import alluxio.security.User;
-import alluxio.security.authentication.ImpersonationAuthenticator;
-import alluxio.security.user.UserState;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.util.io.PathUtils;
 
-import alluxio.util.network.NetworkAddressUtils;
 import jline.internal.Nullable;
-import org.apache.commons.cli.Option;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.Task;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.authorize.ProxyUsers;
 import org.xml.sax.SAXException;
 
-import javax.security.auth.Subject;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Abstract class for validating HDFS-related configurations.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsConfValidationTask extends AbstractValidationTask {
   public static final String SEPARATOR = ":";
   protected final AlluxioConfiguration mConf;

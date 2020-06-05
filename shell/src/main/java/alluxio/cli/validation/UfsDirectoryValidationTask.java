@@ -16,7 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskRecoverEvent;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,6 +23,7 @@ import java.util.Map;
 /**
  * Task for validating whether UFS directory is accessible.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;

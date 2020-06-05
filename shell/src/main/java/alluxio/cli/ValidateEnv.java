@@ -78,70 +78,81 @@ public final class ValidateEnv {
   private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
-  private static final AlluxioConfiguration CONF;
+  private final AlluxioConfiguration mConf;
+  private final String mPath;
 
-  static {
-    CONF = InstancedConfiguration.defaults();
-    String rootPath = CONF.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  public ValidateEnv(String path, AlluxioConfiguration conf) {
+    mPath = path;
+    mConf = conf;
 
     // HDFS configuration validations
+    // TODO(jiacheng): add all tasks here
+    registerTask("ufs.hdfs.config.correctness", "validate HDFS configuration files",
+            new HdfsConfValidationTask(mPath, mConf), COMMON_TASKS);
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
-        new HdfsConfParityValidationTask(rootPath, CONF), COMMON_TASKS);
+        new HdfsConfParityValidationTask(mPath, mConf), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.USERS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.GROUPS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.HOSTS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.version", "validate version compatibility between alluxio and hdfs",
+            new HdfsVersionValidationTask(mConf), COMMON_TASKS);
 
     // port availability validations
     registerTask("master.rpc.port.available",
         "validate master RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS, CONF),
+        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS, mConf),
         MASTER_TASKS);
     registerTask("master.web.port.available",
         "validate master web port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS, CONF),
+        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS, mConf),
         MASTER_TASKS);
     registerTask("worker.rpc.port.available",
         "validate worker RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS, CONF),
+        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS, mConf),
         WORKER_TASKS);
     registerTask("worker.web.port.available",
         "validate worker web port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS, CONF),
+        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS, mConf),
         WORKER_TASKS);
     registerTask("proxy.web.port.available",
         "validate proxy web port is available",
-        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS, CONF),
+        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS, mConf),
         COMMON_TASKS);
 
     // security configuration validations
     registerTask("master.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for masters",
-        new SecureHdfsValidationTask("master", rootPath, CONF), MASTER_TASKS);
+        new SecureHdfsValidationTask("master", mPath, mConf), MASTER_TASKS);
     registerTask("worker.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for workers",
-        new SecureHdfsValidationTask("worker", rootPath, CONF), WORKER_TASKS);
+        new SecureHdfsValidationTask("worker", mPath, mConf), WORKER_TASKS);
 
     // ssh validations
     registerTask("ssh.nodes.reachable",
         "validate SSH port on all Alluxio nodes are reachable",
-        new SshValidationTask(CONF), COMMON_TASKS);
+        new SshValidationTask(mConf), COMMON_TASKS);
 
     // UFS validations
     registerTask("ufs.root.accessible",
         "validate root under file system location is accessible",
-        new UfsDirectoryValidationTask(CONF), COMMON_TASKS);
+        new UfsDirectoryValidationTask(mConf), COMMON_TASKS);
     registerTask("ufs.root.superuser",
         "validate Alluxio has super user privilege on root under file system",
-        new UfsSuperUserValidationTask(CONF), COMMON_TASKS);
+        new UfsSuperUserValidationTask(mConf), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
         "validate user has the correct privilege to mount ramdisk",
-        new RamDiskMountPrivilegeValidationTask(CONF), WORKER_TASKS);
+        new RamDiskMountPrivilegeValidationTask(mConf), WORKER_TASKS);
 
     // User limit validations
     registerTask("ulimit.nofile",
         "validate ulimit for number of open files is set appropriately",
         UserLimitValidationTask.createOpenFilesLimitValidationTask(), COMMON_TASKS);
-
     registerTask("ulimit.nproc",
         "validate ulimit for number of processes is set appropriately",
         UserLimitValidationTask.createUserProcessesLimitValidationTask(), COMMON_TASKS);
@@ -149,10 +160,14 @@ public final class ValidateEnv {
     // space validations
     registerTask("worker.storage.space",
         "validate tiered storage locations have enough space",
-        new StorageSpaceValidationTask(CONF), WORKER_TASKS);
+        new StorageSpaceValidationTask(mConf), WORKER_TASKS);
     registerTask("cluster.conf.consistent",
         "validate configuration consistency across the cluster",
-        new ClusterConfConsistencyValidationTask(CONF), CLUSTER_TASKS);
+        new ClusterConfConsistencyValidationTask(mConf), CLUSTER_TASKS);
+
+    // java option validations
+    registerTask("java.native.libs", "validate java native lib paths",
+            new NativeLibValidationTask(mConf), COMMON_TASKS);
   }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
@@ -183,7 +198,7 @@ public final class ValidateEnv {
     return task;
   }
 
-  private static boolean validateRemote(Collection<String> nodes, String target, String name,
+  private boolean validateRemote(Collection<String> nodes, String target, String name,
       CommandLine cmd) throws InterruptedException {
     if (nodes == null) {
       return false;
@@ -198,7 +213,7 @@ public final class ValidateEnv {
   }
 
   // validates environment on remote node
-  private static boolean validateRemote(String node, String target, String name, CommandLine cmd)
+  private boolean validateRemote(String node, String target, String name, CommandLine cmd)
       throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
     if (!CommonUtils.isAddressReachable(node, 22)) {
@@ -208,7 +223,7 @@ public final class ValidateEnv {
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = CONF.get(PropertyKey.HOME);
+    String homeDir = mConf.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
@@ -231,7 +246,7 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name, CommandLine cmd)
+  private boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
     Map<ValidateUtils.State, Integer> results = new HashMap<>();
@@ -291,12 +306,27 @@ public final class ValidateEnv {
     return true;
   }
 
-  private static boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(ConfigurationUtils.getWorkerHostnames(CONF), "worker", name, cmd);
+  private boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(ConfigurationUtils.getWorkerHostnames(mConf), "worker", name, cmd);
   }
 
-  private static boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
-    return validateRemote(ConfigurationUtils.getMasterHostnames(CONF), "master", name, cmd);
+  private boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(ConfigurationUtils.getMasterHostnames(mConf), "master", name, cmd);
+  }
+
+  public List<ValidateUtils.TaskResult> validateUfs(ApplicableUfsType.Type target, Map<String, String> optionMap) throws InterruptedException {
+    List<ValidateUtils.TaskResult> results = new ArrayList<>();
+    for (Map.Entry<ValidationTask, String> entry :TASKS.entrySet()) {
+      ValidationTask task = entry.getKey();
+      Class clazz = task.getClass();
+      if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
+        ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
+        if (type.value() == target || type.value() == ApplicableUfsType.Type.ALL) {
+          results.add(task.validate(optionMap));
+        }
+      }
+    }
+    return results;
   }
 
   private static void printTasks(String target) {
@@ -317,23 +347,28 @@ public final class ValidateEnv {
 
   private static int runTasks(String target, String name, CommandLine cmd)
       throws InterruptedException {
+    // Validate against root path
+    AlluxioConfiguration conf = InstancedConfiguration.defaults();
+    String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    ValidateEnv validate = new ValidateEnv(rootPath, conf);
+
     boolean success;
     switch (target) {
       case "local":
       case "worker":
       case "master":
-        success = validateLocal(target, name, cmd);
+        success = validate.validateLocal(target, name, cmd);
         break;
       case "all":
-        success = validateMasters(name, cmd);
-        success = validateWorkers(name, cmd) && success;
-        success = validateLocal("cluster", name, cmd) && success;
+        success = validate.validateMasters(name, cmd);
+        success = validate.validateWorkers(name, cmd) && success;
+        success = validate.validateLocal("cluster", name, cmd) && success;
         break;
       case "workers":
-        success = validateWorkers(name, cmd);
+        success = validate.validateWorkers(name, cmd);
         break;
       case "masters":
-        success = validateMasters(name, cmd);
+        success = validate.validateMasters(name, cmd);
         break;
       default:
         printHelp("Invalid target.");
@@ -426,6 +461,4 @@ public final class ValidateEnv {
     }
     return cmd;
   }
-
-  private ValidateEnv() {} // prevents instantiation
 }

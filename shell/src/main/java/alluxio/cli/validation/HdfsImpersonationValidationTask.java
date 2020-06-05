@@ -3,15 +3,13 @@ package alluxio.cli.validation;
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.ImpersonationAuthenticator;
-import alluxio.security.user.UserState;
 import alluxio.util.network.NetworkAddressUtils;
 import com.google.common.collect.Sets;
 
-import javax.security.auth.Subject;
 import java.util.*;
 
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsImpersonationValidationTask extends HdfsConfValidationTask {
   private final Map<String, Set<String>> mImpersonationUsers;
   private final Map<String, Set<String>> mImpersonationGroups;

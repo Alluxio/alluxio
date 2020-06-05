@@ -26,6 +26,7 @@ import java.util.Map;
 /**
  * Task for validating whether Alluxio can access UFS as super user.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;

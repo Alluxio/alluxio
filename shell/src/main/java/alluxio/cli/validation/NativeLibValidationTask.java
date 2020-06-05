@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+@ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public class NativeLibValidationTask extends AbstractValidationTask {
   public static final String NATIVE_LIB_PATH = "java.library.path";
   public static final String NATIVE_LIB_PATH_SEPARATOR = ";";

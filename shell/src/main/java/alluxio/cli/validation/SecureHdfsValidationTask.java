@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 /**
  * Task for validating security configurations.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public final class SecureHdfsValidationTask extends AbstractValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure

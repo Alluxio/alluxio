@@ -3,14 +3,12 @@ package alluxio.cli.validation;
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.shell.CommandReturn;
 import alluxio.util.ShellUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsVersionValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
 
