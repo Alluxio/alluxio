@@ -11,6 +11,9 @@
 
 package alluxio.cli;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -94,15 +97,19 @@ public class HmsTests {
       return;
     }
     String metastoreUri = cmd.getOptionValue(METASTORE_URI_OPTION_NAME);
-    String database = cmd.getOptionValue(DATABASE_OPTION_NAME, ValidateHms.DEFAULT_DATABASE);
+    String database = cmd.getOptionValue(DATABASE_OPTION_NAME, "");
     String tables = cmd.getOptionValue(TABLES_OPTION_NAME, "");
-    int socketTimeout = Integer.parseInt(cmd.getOptionValue(SOCKET_TIMEOUT_OPTION_NAME,
-        String.valueOf(ValidateHms.DEFAULT_SOCKET_TIMEOUT)));
+    int socketTimeout = Integer.parseInt(cmd.getOptionValue(SOCKET_TIMEOUT_OPTION_NAME, "-1"));
 
-    ValidateHms tests = new ValidateHms(metastoreUri, database, tables, socketTimeout);
+    ValidationToolRegistry registry
+        = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    // load hms validation tool from alluxio lib directory
+    registry.refresh();
+
+    ValidationTool tests = registry.create(metastoreUri, database, tables, socketTimeout);
     String result = tests.runTests();
     System.out.println(result);
-    if (result.contains(ValidateUtils.State.FAILED.toString())) {
+    if (result.contains(ValidationUtils.State.FAILED.toString())) {
       System.exit(-1);
     }
     System.exit(0);
