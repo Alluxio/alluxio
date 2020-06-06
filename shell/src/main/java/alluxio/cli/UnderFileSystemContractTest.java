@@ -26,10 +26,16 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.io.Closer;
+import org.eclipse.jetty.util.IteratingCallback;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,6 +49,7 @@ import java.util.stream.Collectors;
  * all tests in {@link S3ASpecificOperations} will also be run.
  */
 public final class UnderFileSystemContractTest {
+  public static final String TASK_NAME = "ValidateUfsOperations";
   private static final String S3_IDENTIFIER = "s3";
 
   @Parameter(names = {"--path"}, required = true,
@@ -89,6 +96,55 @@ public final class UnderFileSystemContractTest {
     System.out.printf("Tests completed with %d failed.%n", failedCnt);
   }
 
+  public ValidateUtils.TaskResult runValidationTask() throws IOException {
+    Closer closer = Closer.create();
+    final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();
+    final ByteArrayOutputStream adviceBuf = new ByteArrayOutputStream();
+    PrintStream msgStream = new PrintStream(msgBuf, true);
+    PrintStream adviceStream = new PrintStream(adviceBuf, true);
+    closer.register(msgStream);
+    closer.register(adviceStream);
+    closer.register(msgBuf);
+    closer.register(adviceBuf);
+    try {
+      UnderFileSystemConfiguration ufsConf = getUfsConf();
+      UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, ufsConf);
+      // Check if the ufs path is valid
+      if (factory == null || !factory.supportsPath(mUfsPath)) {
+        msgStream.append(String.format("%s is not a valid path%n", mUfsPath));
+        adviceStream.append(String.format("Please validate if %s is a correct path\n", mUfsPath));
+        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME, msgBuf.toString(), adviceBuf.toString());
+      }
+
+      // Set common properties
+      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+      mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
+      // Increase the buffer time of journal writes to speed up tests
+      mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
+
+      mUfs = UnderFileSystem.Factory.create(mUfsPath, ufsConf);
+
+      int failedCnt = runCommonOperations(msgStream, adviceStream, System.err);
+
+      if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
+        failedCnt += runS3Operations(msgStream, adviceStream, System.err);
+      }
+      msgStream.append(String.format("Tests completed with %d failed.%n", failedCnt));
+      ValidateUtils.State state = failedCnt == 0 ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
+      if (failedCnt > 0) {
+        adviceStream.append("Please check the failed UFS operations from the output.");
+      }
+      return new ValidateUtils.TaskResult(state, TASK_NAME, msgBuf.toString(), adviceBuf.toString());
+    } catch (Exception e) {
+      msgStream.append(ValidateUtils.getErrorInfo(e));
+      adviceStream.append("Please resolve the errors from failed UFS operations.");
+      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME,
+              msgBuf.toString(), adviceBuf.toString());
+    } finally {
+      closer.close();
+    }
+  }
+
   private UnderFileSystemConfiguration getUfsConf() {
     return UnderFileSystemConfiguration.defaults(mConf)
         .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
@@ -98,12 +154,22 @@ public final class UnderFileSystemContractTest {
   }
 
   private int runCommonOperations() throws Exception {
+    return runCommonOperations(System.out, System.out, System.err);
+  }
+
+  private int runCommonOperations(PrintStream msgStream,
+                                  PrintStream adviceStream, PrintStream errStream) throws Exception {
     String testDir = createTestDirectory();
     return loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
-        testDir);
+            testDir, msgStream, adviceStream, errStream);
   }
 
   private int runS3Operations() throws Exception {
+    return runS3Operations(System.out, System.out, System.err);
+  }
+
+  private int runS3Operations(PrintStream msgStream,
+                              PrintStream adviceStream, PrintStream errStream) throws Exception {
     mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
@@ -112,17 +178,23 @@ public final class UnderFileSystemContractTest {
     mUfs = UnderFileSystem.Factory.create(mUfsPath, getUfsConf());
 
     String testDir = createTestDirectory();
-    return loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
+    return loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf),
+            testDir, msgStream, adviceStream, errStream);
   }
 
-  /**
-   * Loads and runs the tests in the target operations class.
-   *
-   * @param operations the class that contains the tests to run
-   * @param testDir the test directory to run tests against
-   * @return the number of failed tests
-   */
   private int loadAndRunTests(Object operations, String testDir) throws Exception {
+    return loadAndRunTests(operations, testDir, System.out, System.out, System.err);
+  }
+
+    /**
+     * Loads and runs the tests in the target operations class.
+     *
+     * @param operations the class that contains the tests to run
+     * @param testDir the test directory to run tests against
+     * @return the number of failed tests
+     */
+  private int loadAndRunTests(Object operations, String testDir, PrintStream msgStream,
+                              PrintStream adviceStream, PrintStream errStream) throws Exception {
     int failedTestCnt = 0;
     try {
       Class classToRun = operations.getClass();
@@ -134,7 +206,7 @@ public final class UnderFileSystemContractTest {
       for (Method test : tests) {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
-          System.out.printf("Running test: %s...", testName);
+          msgStream.printf("Running test: %s...", testName);
           boolean passed = false;
           try {
             test.invoke(operations);
@@ -143,7 +215,9 @@ public final class UnderFileSystemContractTest {
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
               logRelatedS3Operations(test);
             }
-            System.err.format("Test %s.%s aborted%n%s", test.getClass(), test.getName(), e);
+            msgStream.format("Operation %s failed%n", testName);
+            msgStream.format(ValidateUtils.getErrorInfo(e));
+            errStream.format("Test %s.%s aborted%n%s", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);
             RunTestUtils.printPassInfo(passed);

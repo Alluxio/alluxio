@@ -16,6 +16,7 @@ import alluxio.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
 /**
@@ -31,12 +32,16 @@ public final class RunTestUtils {
    *
    * @param pass the test result
    */
-  public static void printPassInfo(boolean pass) {
+  public static void printPassInfo(boolean pass, PrintStream outStream, PrintStream errStream) {
     if (pass) {
-      System.out.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
+      outStream.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
     } else {
-      System.out.println(Constants.ANSI_RED + "Failed the test!" + Constants.ANSI_RESET);
+      outStream.println(Constants.ANSI_RED + "Failed the test!" + Constants.ANSI_RESET);
     }
+  }
+
+  public static void printPassInfo(boolean pass) {
+    printPassInfo(pass, System.out, System.err);
   }
 
   /**

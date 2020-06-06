@@ -23,6 +23,7 @@ import org.apache.hadoop.mapred.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.annotation.Native;
 import java.nio.file.Paths;
 import java.util.*;
@@ -66,20 +67,17 @@ public class ValidateHdfsMount {
             .addOption(LOCAL_OPTION);
 
     // TODO(jiacheng)
-    public static ValidateUtils.TaskResult runUfsTests() throws Exception {
-        ValidateUtils.TaskResult result;
+    public static ValidateUtils.TaskResult runUfsTests(String path, InstancedConfiguration conf) {
         try {
-            UnderFileSystemContractTest test = new UnderFileSystemContractTest();
-            test.run();
-            result = new ValidateUtils.TaskResult(ValidateUtils.State.OK, "ufsTests", "", "");
-        } catch (Exception e) {
-            result = new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, "ufsTests", ValidateUtils.getErrorInfo(e), "");
+            UnderFileSystemContractTest test = new UnderFileSystemContractTest(path, conf);
+            return test.runValidationTask();
+        } catch (IOException e) {
+            return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, "ufsTests", ValidateUtils.getErrorInfo(e), "");
         }
-        return result;
     }
 
     public static void main(String[] args) throws Exception {
-        // TODO(jiacheng): use jccommand
+        // TODO(jiacheng): use jccommand?
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
         try {
@@ -116,8 +114,13 @@ public class ValidateHdfsMount {
             List<ValidateUtils.TaskResult> results = validate.validateUfs(ApplicableUfsType.Type.HDFS, validateOpts);
 
             // Run runUfsTests
-            // TODO(jiacheng): pass conf?
-            results.add(runUfsTests());
+            if (ufsConf.isReadOnly()) {
+                results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
+                        UnderFileSystemContractTest.TASK_NAME,
+                        String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath), ""));
+            } else {
+                results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
+            }
 
             // TODO(jiacheng): how to build a mapping between check and result?
             // Convert to output and print
