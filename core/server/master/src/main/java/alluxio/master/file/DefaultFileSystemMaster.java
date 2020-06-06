@@ -1548,7 +1548,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             for (LockedInodePath childPath : descendants) {
               try {
                 mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
-                mMountTable.checkUnderWritableMountPoint(childPath.getUri());
+                mMountTable.checkIsWritableMountPoint(childPath.getUri());
               } catch (AccessControlException e) {
                 failedChildren.add(e.getMessage());
               }

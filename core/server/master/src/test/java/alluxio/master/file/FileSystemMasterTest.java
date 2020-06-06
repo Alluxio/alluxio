@@ -426,7 +426,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
             MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
     mThrown.expect(AccessControlException.class);
-    // Will throw AccessControlException because /mnt/local is under a readonly mount point
+    // Will throw AccessControlException because /mnt/local is a readonly mount point
     mFileSystemMaster.delete(rootPath,
             DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
   }
