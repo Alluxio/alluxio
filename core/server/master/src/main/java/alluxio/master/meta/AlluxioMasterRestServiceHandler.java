@@ -212,6 +212,7 @@ public final class AlluxioMasterRestServiceHandler {
   public Response getWebUIInit() {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
+
       String proxyHostname = NetworkAddressUtils
           .getConnectHost(NetworkAddressUtils.ServiceType.PROXY_WEB, ServerConfiguration.global());
       int proxyPort = ServerConfiguration.getInt(PropertyKey.PROXY_WEB_PORT);

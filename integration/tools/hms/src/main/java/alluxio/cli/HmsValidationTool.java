@@ -214,7 +214,8 @@ public class HmsValidationTool implements ValidationTool {
       try {
         // use the extension class loader
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-        action = new ConnectHmsAction(mMetastoreUri, mSocketTimeout);
+        HiveConf conf = setHiveConf();
+        action = new ConnectHmsAction(conf);
         UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
         ugi.doAs(action);
       } finally {
@@ -372,12 +373,10 @@ public class HmsValidationTool implements ValidationTool {
    */
   static class ConnectHmsAction implements java.security.PrivilegedExceptionAction<Void> {
     private IMetaStoreClient mConnection;
-    private String mMetastoreUri;
-    private int mSocketTimeout;
+    private HiveConf mHiveConf;
 
-    public ConnectHmsAction(String metastoreUri, int socketTimeout) {
-      mMetastoreUri = metastoreUri;
-      mSocketTimeout = socketTimeout;
+    public ConnectHmsAction(HiveConf conf) {
+      mHiveConf = conf;
     }
 
     public IMetaStoreClient getConnection() {
@@ -386,11 +385,8 @@ public class HmsValidationTool implements ValidationTool {
 
     @Override
     public Void run() throws MetaException {
-      HiveConf conf = new HiveConf();
-      conf.setVar(HiveConf.ConfVars.METASTOREURIS, mMetastoreUri);
-      conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
       mConnection = RetryingMetaStoreClient
-          .getProxy(conf, table -> null, HiveMetaStoreClient.class.getName());
+          .getProxy(mHiveConf, table -> null, HiveMetaStoreClient.class.getName());
       return null;
     }
   }
