@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -43,7 +44,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -52,14 +52,13 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.DataFormatException;
 
 /**
  * Single node client IO stress test.
  */
 public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
-
-  private static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
 
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
@@ -88,10 +87,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       throw new IllegalArgumentException(String.format(
           "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
               + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
-    }
-    if (!mBaseParameters.mProfileAgent.isEmpty()) {
-      mBaseParameters.mJavaOpts.add("-javaagent:" + mBaseParameters.mProfileAgent
-          + "=" + AGENT_OUTPUT_PATH);
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
@@ -196,10 +191,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized SummaryStatistics addAdditionalResult() throws IOException {
-    Map<String, PartialResultStatistic> timeToFirstByte = new HashMap<>();
+  public synchronized SummaryStatistics addAdditionalResult()
+      throws IOException, DataFormatException {
+    Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
 
-    try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
+    try (final BufferedReader reader = new BufferedReader(
+        new FileReader(BaseParameters.AGENT_OUTPUT_PATH))) {
       String line;
 
       final ObjectMapper objectMapper = new ObjectMapper();
@@ -222,12 +219,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
         if ((type.equals("AlluxioBlockInStream") && methodName.equals("readChunk"))
             || (type.equals("HDFSPacketReceiver") && methodName.equals("doRead"))) {
-          if (!timeToFirstByte.containsKey(methodName)) {
-            timeToFirstByte.put(methodName, new PartialResultStatistic());
+          if (!methodDescToHistogram.containsKey(methodName)) {
+            methodDescToHistogram.put(methodName, new PartialResultStatistic());
           }
 
-          final PartialResultStatistic statistic = timeToFirstByte.get(methodName);
-          statistic.mTimeToFirstByteNs.add(duration);
+          final PartialResultStatistic statistic = methodDescToHistogram.get(methodName);
+          statistic.mTimeToFirstByteNs.recordValue(duration);
           statistic.mNumSuccess += 1;
 
           if (duration > statistic.mMaxTimeToFirstByteNs[0]) {
@@ -237,72 +234,67 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
       }
     }
-    if (timeToFirstByte.containsKey("readChunk")) {
-      Collections.sort(timeToFirstByte.get("readChunk").mTimeToFirstByteNs);
-      SummaryStatistics stats = new SummaryStatistics(
-          timeToFirstByte.get("readChunk").mNumSuccess,
-          computeTimePercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
-          computeTime99PercentileMS(timeToFirstByte.get("readChunk").mTimeToFirstByteNs),
-          computeMaxTimeMS(timeToFirstByte.get("readChunk").mMaxTimeToFirstByteNs));
-      return stats;
-    } else if (timeToFirstByte.containsKey("doRead")) {
-      Collections.sort(timeToFirstByte.get("doRead").mTimeToFirstByteNs);
-      SummaryStatistics stats = new SummaryStatistics(
-          timeToFirstByte.get("doRead").mNumSuccess,
-          computeTimePercentileMS(timeToFirstByte.get("doRead").mTimeToFirstByteNs),
-          computeTime99PercentileMS(timeToFirstByte.get("doRead").mTimeToFirstByteNs),
-          computeMaxTimeMS(timeToFirstByte.get("doRead").mMaxTimeToFirstByteNs));
-      return stats;
+    if (methodDescToHistogram.containsKey("readChunk")) {
+      return toSummaryStatistics(methodDescToHistogram.get("readChunk").mNumSuccess,
+          methodDescToHistogram.get("readChunk").mMaxTimeToFirstByteNs,
+          methodDescToHistogram.get("readChunk").mTimeToFirstByteNs);
+    } else if (methodDescToHistogram.containsKey("doRead")) {
+      return toSummaryStatistics(methodDescToHistogram.get("doRead").mNumSuccess,
+          methodDescToHistogram.get("doRead").mMaxTimeToFirstByteNs,
+          methodDescToHistogram.get("doRead").mTimeToFirstByteNs);
     }
     return new SummaryStatistics();
   }
 
-  private float[] computeTimePercentileMS(ArrayList<Integer> rawTime) {
-    float[] timePercentileMS = new float[101];
-    int step = rawTime.size() / 100;
-
-    for (int index = 0; index < 101; index++) {
-      timePercentileMS[index] = (float) rawTime.get(step * index).intValue() / Constants.MS_NANO;
+  /**
+   * Converts this class to {@link SummaryStatistics}.
+   *
+   * @param numSuccess number of success
+   * @param maxTimeToFirstByte maxTimeToFirstByte
+   * @param timeToFirstByteNs timeToFirstByteNs histogram
+   * @return new SummaryStatistics
+   * @throws DataFormatException if histogram decoding from compressed byte buffer fails
+   */
+  public SummaryStatistics toSummaryStatistics(
+      int numSuccess,
+      long[] maxTimeToFirstByte,
+      Histogram timeToFirstByteNs) throws DataFormatException {
+    float[] responseTimePercentile = new float[101];
+    for (int i = 0; i <= 100; i++) {
+      responseTimePercentile[i] =
+          (float) timeToFirstByteNs.getValueAtPercentile(i) / Constants.MS_NANO;
     }
 
-    return timePercentileMS;
-  }
-
-  private float[] computeTime99PercentileMS(ArrayList<Integer> rawTime) {
-    int length = rawTime.size() - 1;
-    float[] timePercentileMS = new float[6];
-
-    for (int index = 0; index < 6; index++) {
-      timePercentileMS[index] = (float) rawTime.get(
-          (int) (length * (100.0 - 1.0 / Math.pow(10.0, index)) / 100.0))
-          / Constants.MS_NANO;
+    float[] responseTime99Percentile = new float[ClientIOTaskResult.RESPONSE_TIME_99_COUNT];
+    for (int i = 0; i < responseTime99Percentile.length; i++) {
+      responseTime99Percentile[i] =
+          (float) timeToFirstByteNs.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
+              / Constants.MS_NANO;
     }
 
-    return timePercentileMS;
-  }
-
-  private float[] computeMaxTimeMS(long[] rawTime) {
-    int step = rawTime.length;
-    float[] timePercentileMS = new float[step];
-
-    for (int index = 0; index < step; index++) {
-      timePercentileMS[index] = (float) rawTime[index] / Constants.MS_NANO;
+    float[] maxResponseTimesMs = new float[ClientIOTaskResult.MAX_TIME_TO_FIRST_BYTE_COUNT];
+    Arrays.fill(maxResponseTimesMs, -1);
+    for (int i = 0; i < maxTimeToFirstByte.length; i++) {
+      maxResponseTimesMs[i] = (float) maxTimeToFirstByte[i] / Constants.MS_NANO;
     }
 
-    return timePercentileMS;
+    return new SummaryStatistics(numSuccess, responseTimePercentile,
+        responseTime99Percentile, maxResponseTimesMs);
   }
 
   /**
    * Result statistics of time to first byte measurement.
    */
   private final class PartialResultStatistic {
-    private ArrayList mTimeToFirstByteNs;
+    private Histogram mTimeToFirstByteNs;
     private int mNumSuccess;
     private long[] mMaxTimeToFirstByteNs;
 
     public PartialResultStatistic() {
       mNumSuccess = 0;
-      mTimeToFirstByteNs = new ArrayList();
+      mTimeToFirstByteNs = new Histogram(
+          ClientIOTaskResult.TIME_TO_FIRST_BYTE_HISTOGRAM_MAX,
+          ClientIOTaskResult.TIME_TO_FIRST_BYTE_HISTOGRAM_PRECISION);
       mMaxTimeToFirstByteNs = new long[ClientIOTaskResult.MAX_TIME_TO_FIRST_BYTE_COUNT];
       Arrays.fill(mMaxTimeToFirstByteNs, -1);
     }

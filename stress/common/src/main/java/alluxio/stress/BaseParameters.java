@@ -32,6 +32,7 @@ public final class BaseParameters {
   public static final String PROFILE_AGENT = "--profile-agent";
 
   public static final long UNDEFINED_START_MS = -1;
+  public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
 
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},

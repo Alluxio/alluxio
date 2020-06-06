@@ -109,6 +109,11 @@ public abstract class Benchmark<T extends TaskResult> {
     // prepare the benchmark.
     prepare();
 
+    if (!mBaseParameters.mProfileAgent.isEmpty()) {
+      mBaseParameters.mJavaOpts.add("-javaagent:" + mBaseParameters.mProfileAgent
+          + "=" + BaseParameters.AGENT_OUTPUT_PATH);
+    }
+
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     String className = this.getClass().getCanonicalName();
 

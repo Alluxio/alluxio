@@ -56,8 +56,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
 
-  private static final String AGENT_OUTPUT_PATH = "/tmp/stress_master.log";
-
   @ParametersDelegate
   private MasterBenchParameters mParameters = new MasterBenchParameters();
 
@@ -82,11 +80,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
           "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
-    }
-
-    if (!mBaseParameters.mProfileAgent.isEmpty()) {
-      mBaseParameters.mJavaOpts.add("-javaagent:" + mBaseParameters.mProfileAgent
-          + "=" + AGENT_OUTPUT_PATH);
     }
 
     if (!mBaseParameters.mDistributed) {
@@ -229,7 +222,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
 
-      try (final BufferedReader reader = new BufferedReader(new FileReader(AGENT_OUTPUT_PATH))) {
+      try (final BufferedReader reader = new BufferedReader(
+          new FileReader(BaseParameters.AGENT_OUTPUT_PATH))) {
         String line;
 
         long bucketSize = (mResult.getEndMs() - mResult.getRecordStartMs())
