@@ -10,6 +10,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Validates if the HDFS version works with the UFS version specified in
+ * alluxio configuration.
+ * */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsVersionValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
@@ -28,10 +32,11 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     return "ValidateHdfsVersion";
   }
 
-  public String parseVersion(String output) {
+  protected String parseVersion(String output) {
     // An example output from "hadoop version" command:
     //    Hadoop 2.7.2
-    //    Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r b165c4fe8a74265c792ce23f546c64604acf0e41
+    //    Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git
+    //      -r b165c4fe8a74265c792ce23f546c64604acf0e41
     //    Compiled by jenkins on 2016-01-26T00:08Z
     //    Compiled with protoc 2.5.0
     //    From source with checksum d0fda26633fa762bff87ec759ebe689c
@@ -47,7 +52,8 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap)
+          throws InterruptedException {
     // get hadoop version
     String hadoopVersion;
     try {
@@ -69,7 +75,8 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
             String.format("Hadoop version %s does not match %s=%s.",
                     hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
-            String.format("Please configure %s to match the HDFS version.", PropertyKey.UNDERFS_VERSION.toString()));
+            String.format("Please configure %s to match the HDFS version.",
+                    PropertyKey.UNDERFS_VERSION.toString()));
   }
 
   protected String getHadoopVersion() throws IOException {

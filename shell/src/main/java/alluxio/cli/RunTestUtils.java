@@ -28,9 +28,11 @@ public final class RunTestUtils {
   private RunTestUtils() {} // prevent instantiation
 
   /**
-   * Prints information of the test result.
+   * Prints information of the test result to redirected streams.
    *
    * @param pass the test result
+   * @param outStream stream for stdout
+   * @param errStream stream for stderr
    */
   public static void printPassInfo(boolean pass, PrintStream outStream, PrintStream errStream) {
     if (pass) {
@@ -40,6 +42,11 @@ public final class RunTestUtils {
     }
   }
 
+  /**
+   * Prints information of the test result.
+   *
+   * @param pass the test result
+   */
   public static void printPassInfo(boolean pass) {
     printPassInfo(pass, System.out, System.err);
   }

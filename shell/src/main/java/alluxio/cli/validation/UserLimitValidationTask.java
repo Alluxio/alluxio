@@ -55,7 +55,8 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
         if (line == null) {
           msg.append(String.format("Unable to check user limit for %s.%n", getName()));
           advice.append(String.format("Please check if you are able to run %s. ", mCommand));
-          return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+          return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+                  msg.toString(), advice.toString());
         }
 
         if (line.equals("unlimited")) {
@@ -79,15 +80,18 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
           state = ValidateUtils.State.WARNING;
           msg.append(String.format("The user limit for %s is too small. The current value is %d. ",
                   getName(), value));
-          advice.append(String.format("For production use, it should be bigger than %d%n", mLowerBound));
+          advice.append(String.format("For production use, it should be bigger than %d%n",
+                  mLowerBound));
         }
 
         return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
       }
     } catch (IOException e) {
-      msg.append(String.format("Unable to check user limit for %s: %s. ", getName(), e.getMessage()));
+      msg.append(String.format("Unable to check user limit for %s: %s. ",
+              getName(), e.getMessage()));
       msg.append(ValidateUtils.getErrorInfo(e));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
   }
 

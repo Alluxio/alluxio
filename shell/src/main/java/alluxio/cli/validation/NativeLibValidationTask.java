@@ -7,6 +7,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+/**
+ * Validates the Java native libs defined in the system property.
+ * */
 @ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public class NativeLibValidationTask extends AbstractValidationTask {
   public static final String NATIVE_LIB_PATH = "java.library.path";
@@ -48,7 +51,8 @@ public class NativeLibValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap)
+          throws InterruptedException {
     return accessNativeLib();
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.cli.validation;
 
 import alluxio.cli.ValidateUtils;
+
 import org.apache.commons.cli.Option;
 
 import java.util.List;

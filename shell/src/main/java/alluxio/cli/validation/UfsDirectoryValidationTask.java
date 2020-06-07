@@ -13,7 +13,6 @@ package alluxio.cli.validation;
 
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
@@ -32,7 +31,8 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    * Creates a new instance of {@link UfsDirectoryValidationTask}
    * for validating root under file system.
    *
-   * @param conf configuration
+   * @param path the UFS path
+   * @param conf the UFS configuration
    */
   public UfsDirectoryValidationTask(String path, AlluxioConfiguration conf) {
     mPath = path;
@@ -53,16 +53,19 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
       if (listStatus == null) {
         msg.append(String.format("Unable to list under file system path %s. ", mPath));
         advice.append(String.format("Please check if path %s denotes a directory. ", mPath));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+                msg.toString(), advice.toString());
       }
       msg.append(String.format("Successfully listed path %s. ", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(), msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
+              msg.toString(), advice.toString());
     } catch (IOException e) {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
               e.getMessage()));
       msg.append(ValidateUtils.getErrorInfo(e));
       advice.append(String.format("Please verify your path %s is correct.%n", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
   }
 }

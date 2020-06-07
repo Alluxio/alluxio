@@ -88,9 +88,9 @@ public class HadoopConfigurationFileParser {
     return ret;
   }
 
-  // TODO(jiacheng): decide to have only one
-  public Map<String, String> parseXmlConfNonNull(final String path) throws IOException, SAXException,
-          ParserConfigurationException {
+  // TODO(jiacheng): keep only one
+  public Map<String, String> parseXmlConfNonNull(final String path)
+          throws IOException, SAXException, ParserConfigurationException {
     File xmlFile;
     xmlFile = new File(path);
     if (!xmlFile.exists()) {

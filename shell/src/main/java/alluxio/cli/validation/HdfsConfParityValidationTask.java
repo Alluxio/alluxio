@@ -3,12 +3,16 @@ package alluxio.cli.validation;
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.io.PathUtils;
+
 import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Compares HDFS configuration in Alluxio and in HDFS environment variables.
+ * */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   /** Name of the environment variable to store the path to Hadoop config directory. */
@@ -18,6 +22,12 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
           Option.builder("hadoopConfDir").required(false).hasArg(true)
                   .desc("path to server-side hadoop conf dir").build();
 
+  /**
+   * Constructor.
+   *
+   * @param path the UFS path
+   * @param conf the UFS configuration
+   * */
   public HdfsConfParityValidationTask(String path, AlluxioConfiguration conf) {
     super(path, conf);
   }
@@ -30,8 +40,10 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   @Override
   public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
     if (!isHdfsScheme(mPath)) {
-      mMsg.append(String.format("UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(), mMsg.toString(), mAdvice.toString());
+      mMsg.append(String.format("UFS path %s is not HDFS. "
+              + "Skipping validation for HDFS properties.%n", mPath));
+      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
 
     return validateHdfsSettingParity(optionsMap);
@@ -54,10 +66,13 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
     if (serverHadoopConfDirPath == null) {
       mMsg.append("Path to server-side hadoop configuration unspecified,"
               + " skipping validation for HDFS properties.");
-      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(), mMsg.toString(), mAdvice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
-    String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/core-site.xml");
-    String serverHdfsSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/hdfs-site.xml");
+    String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath,
+            "/core-site.xml");
+    String serverHdfsSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath,
+            "/hdfs-site.xml");
 
     // Load client core-site and hdfs-site config
     ValidateUtils.TaskResult loadConfig = loadHdfsConfig();
@@ -66,9 +81,12 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
       return loadConfig;
     }
 
-     boolean ok = compareConfigurations(serverCoreSiteFilePath, "core-site.xml", mCoreConf)
-            && compareConfigurations(serverHdfsSiteFilePath, "hdfs-site.xml", mHdfsConf);
-     return new ValidateUtils.TaskResult(ok ? ValidateUtils.State.OK : ValidateUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
+    boolean ok = compareConfigurations(serverCoreSiteFilePath,
+             "core-site.xml", mCoreConf)
+            && compareConfigurations(serverHdfsSiteFilePath,
+             "hdfs-site.xml", mHdfsConf);
+    return new ValidateUtils.TaskResult(ok ? ValidateUtils.State.OK
+             : ValidateUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   private boolean compareConfigurations(String serverConfigFilePath, String clientSiteName,
@@ -87,13 +105,15 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
         matches = false;
         mMsg.append(String.format("%s is configured in %s, but not configured in %s.%n",
                 prop.getKey(), clientSiteName, serverConfigFilePath));
-        mAdvice.append(String.format("Please configure property %s in %s.%n", prop.getKey(), serverConfigFilePath));
+        mAdvice.append(String.format("Please configure property %s in %s.%n",
+                prop.getKey(), serverConfigFilePath));
       } else if (!prop.getValue().equals(serverSiteProps.get(prop.getKey()))) {
         matches = false;
         mMsg.append(String.format("%s is set to %s in %s, but to %s in %s.%n",
                 prop.getKey(), prop.getValue(), clientSiteName,
                 serverSiteProps.get(prop.getKey()), serverConfigFilePath));
-        mAdvice.append(String.format("Please fix the inconsistency on property %s.%n", prop.getKey()));
+        mAdvice.append(String.format("Please fix the inconsistency on property %s.%n",
+                prop.getKey()));
       }
     }
     if (!matches) {
@@ -104,13 +124,15 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
         matches = false;
         mMsg.append(String.format("%s is configured in %s, but not configured in %s.%n",
                 prop.getKey(), serverConfigFilePath, clientSiteName));
-        mAdvice.append(String.format("Please configure %s in %s.%n", prop.getKey(), clientSiteName));
+        mAdvice.append(String.format("Please configure %s in %s.%n",
+                prop.getKey(), clientSiteName));
       } else if (!prop.getValue().equals(clientSiteProps.get(prop.getKey()))) {
         matches = false;
         mMsg.append(String.format("%s is set to %s in %s, but to %s in %s.%n",
                 prop.getKey(), prop.getValue(), prop.getValue(),
                 clientSiteProps.get(prop.getKey()), clientSiteName));
-        mAdvice.append(String.format("Please fix the inconsistency on property %s.%n", prop.getKey()));
+        mAdvice.append(String.format("Please fix the inconsistency on property %s.%n",
+                prop.getKey()));
       }
     }
     return matches;

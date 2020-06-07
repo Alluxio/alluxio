@@ -69,8 +69,10 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       String rawDirQuota = mConf.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
-        advice.append(String.format("Please check your setting for %s.%n", tierDirCapacityConf.toString()));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+        advice.append(String.format("Please check your setting for %s.%n",
+                tierDirCapacityConf.toString()));
+        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+                msg.toString(), advice.toString());
       }
 
       String[] dirQuotas = rawDirQuota.split(",");
@@ -79,7 +81,8 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         Map<String, MountedStorage> storageMap = new HashMap<>();
         File file = new File(dirPaths[0]);
         if (dirPaths.length == 1 && alias.equals("MEM") && !file.exists()) {
-          msg.append(String.format("RAM disk is not mounted at %s, skip validation.%n", dirPaths[0]));
+          msg.append(String.format("RAM disk is not mounted at %s, skip validation.%n",
+                  dirPaths[0]));
           continue;
         }
 

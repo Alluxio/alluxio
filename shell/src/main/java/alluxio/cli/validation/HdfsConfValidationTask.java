@@ -44,7 +44,9 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   /**
    * Creates a new instance of {@link HdfsConfValidationTask}
    * for validating HDFS configuration.
-   * @param conf configuration
+   *
+   * @param path the UFS path
+   * @param conf the UFS configuration
    */
   public HdfsConfValidationTask(String path, AlluxioConfiguration conf) {
     mPath = path;
@@ -71,7 +73,8 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
 
     mCoreConf = accessAndParseConf("core-site.xml", coreConfPath);
     mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
-    ValidateUtils.State state = (mCoreConf != null) && (mHdfsConf != null) ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
+    ValidateUtils.State state = (mCoreConf != null) && (mHdfsConf != null)
+            ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
     return new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
@@ -95,8 +98,10 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   @Override
   public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
     if (!isHdfsScheme(mPath)) {
-      mMsg.append(String.format("UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(), mMsg.toString(), mAdvice.toString());
+      mMsg.append(String.format(
+              "UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
+      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
 
     ValidateUtils.TaskResult loadConfig = loadHdfsConfig();
@@ -121,7 +126,8 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
           state = ValidateUtils.State.FAILED;
           mMsg.append(String.format("Property %s is %s in core-site.xml and %s in hdfs-site.xml",
                   k, coreValue, hdfsValue));
-          mAdvice.append(String.format("Please fix the inconsistency for %s in core-site.xml and hdfs.xml.%n", k));
+          mAdvice.append(String.format(
+                  "Please fix the inconsistency for %s in core-site.xml and hdfs.xml.%n", k));
         }
       }
     }
@@ -132,19 +138,22 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   @Nullable
-  // TODO(jiacheng): maybe pass this exception back to TaskResult somehow
   private Map<String, String> accessAndParseConf(String configName, String path) {
     if (path == null || path.isEmpty()) {
-      mMsg.append(String.format("%s is not configured in Alluxio property %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
-      mAdvice.append(String.format("Please configure %s in %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mMsg.append(String.format("%s is not configured in Alluxio property %s%n", configName,
+              PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mAdvice.append(String.format("Please configure %s in %s%n", configName,
+              PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
     }
     try {
       PathUtils.getPathComponents(path);
     } catch (InvalidPathException e) {
-      mMsg.append(String.format("Invalid path %s in Alluxio property %s.%n", path, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mMsg.append(String.format("Invalid path %s in Alluxio property %s.%n", path,
+              PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       mMsg.append(ValidateUtils.getErrorInfo(e));
-      mAdvice.append(String.format("Please correct the path for %s in %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mAdvice.append(String.format("Please correct the path for %s in %s%n", configName,
+              PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
     }
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();

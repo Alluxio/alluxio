@@ -1,8 +1,13 @@
 package alluxio.cli.validation;
 
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 import alluxio.cli.ValidateUtils;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.conf.InstancedConfiguration;
+
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
@@ -10,10 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-
-import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.Assert.*;
 
 public class NativeLibValidationTaskTest {
   private String mLibPath;

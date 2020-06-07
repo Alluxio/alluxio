@@ -51,7 +51,8 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public ValidateUtils.TaskResult validate(Map<String, String> optionMap)
+          throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -61,14 +62,20 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
     if (masters.isEmpty()) {
-      msg.append(String.format("No master nodes specified in %s/masters file. ", mConf.get(PropertyKey.CONF_DIR)));
-      advice.append(String.format("Please configure %s to contain the master node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(), msg.toString(), advice.toString());
+      msg.append(String.format("No master nodes specified in %s/masters file. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the master node hostnames. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(),
+              msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
-      msg.append(String.format("No worker nodes specified in %s/workers file. ", mConf.get(PropertyKey.CONF_DIR)));
-      advice.append(String.format("Please configure %s to contain the worker node hostnames. ", mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(), msg.toString(), advice.toString());
+      msg.append(String.format("No worker nodes specified in %s/workers file. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the worker node hostnames. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(),
+              msg.toString(), advice.toString());
     }
     ValidateUtils.State state = ValidateUtils.State.OK;
     Exception ex = null;
@@ -79,7 +86,8 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         propertyNames.addAll(props.stringPropertyNames());
       } catch (IOException e) {
         System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
-        msg.append(String.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage()));
+        msg.append(String.format("Unable to retrieve configuration for %s: %s.",
+                node, e.getMessage()));
         advice.append(String.format("Please check the connection from node %s. ", node));
         ex = e;
         state = ValidateUtils.State.FAILED;
@@ -141,7 +149,8 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         if (!StringUtils.equals(remoteValue, baseValue)) {
           msg.append(String.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
               errLabel, propertyName, baseNode, remoteNode));
-          msg.append(String.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
+          msg.append(String.format(" %s: %s%n %s: %s%n", baseNode,
+                  Objects.toString(baseValue, "not set"),
               remoteNode,  Objects.toString(remoteValue, "not set")));
           advice.append(String.format("Please check your settings for property %s on %s and %s.%n",
                   propertyName, baseNode, remoteNode));

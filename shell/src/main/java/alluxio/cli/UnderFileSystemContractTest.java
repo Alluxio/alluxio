@@ -27,15 +27,14 @@ import alluxio.util.io.PathUtils;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.io.Closer;
-import org.eclipse.jetty.util.IteratingCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,6 +48,8 @@ import java.util.stream.Collectors;
  * all tests in {@link S3ASpecificOperations} will also be run.
  */
 public final class UnderFileSystemContractTest {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
+
   public static final String TASK_NAME = "ValidateUfsOperations";
   private static final String S3_IDENTIFIER = "s3";
 
@@ -62,15 +63,27 @@ public final class UnderFileSystemContractTest {
   private InstancedConfiguration mConf;
   private UnderFileSystem mUfs;
 
+  /**
+   * A constructor from default.
+   * */
   public UnderFileSystemContractTest() {
     mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 
+  /**
+   * Initiate the tests for a specific UFS path and UFS configs.
+   *
+   * @param path the UFS path
+   * @param conf the UFs configurations
+   * */
   public UnderFileSystemContractTest(String path, InstancedConfiguration conf) {
     mUfsPath = path;
     mConf = conf;
   }
 
+  /**
+   * Runs the tests and returns nothing.
+   * */
   public void run() throws Exception {
     UnderFileSystemConfiguration ufsConf = getUfsConf();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, ufsConf);
@@ -96,6 +109,11 @@ public final class UnderFileSystemContractTest {
     System.out.printf("Tests completed with %d failed.%n", failedCnt);
   }
 
+  /**
+   * Runs the tests and return a {@link alluxio.cli.ValidateUtils.TaskResult}.
+   *
+   * @return a task result for all UFS tests
+   * */
   public ValidateUtils.TaskResult runValidationTask() throws IOException {
     Closer closer = Closer.create();
     final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();
@@ -113,7 +131,8 @@ public final class UnderFileSystemContractTest {
       if (factory == null || !factory.supportsPath(mUfsPath)) {
         msgStream.append(String.format("%s is not a valid path%n", mUfsPath));
         adviceStream.append(String.format("Please validate if %s is a correct path\n", mUfsPath));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME, msgBuf.toString(), adviceBuf.toString());
+        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME,
+                msgBuf.toString(), adviceBuf.toString());
       }
 
       // Set common properties
@@ -130,11 +149,13 @@ public final class UnderFileSystemContractTest {
         failedCnt += runS3Operations(msgStream, adviceStream, System.err);
       }
       msgStream.append(String.format("Tests completed with %d failed.%n", failedCnt));
-      ValidateUtils.State state = failedCnt == 0 ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
+      ValidateUtils.State state = failedCnt == 0 ? ValidateUtils.State.OK
+              : ValidateUtils.State.FAILED;
       if (failedCnt > 0) {
         adviceStream.append("Please check the failed UFS operations from the output.");
       }
-      return new ValidateUtils.TaskResult(state, TASK_NAME, msgBuf.toString(), adviceBuf.toString());
+      return new ValidateUtils.TaskResult(state, TASK_NAME, msgBuf.toString(),
+              adviceBuf.toString());
     } catch (Exception e) {
       msgStream.append(ValidateUtils.getErrorInfo(e));
       adviceStream.append("Please resolve the errors from failed UFS operations.");
@@ -157,8 +178,8 @@ public final class UnderFileSystemContractTest {
     return runCommonOperations(System.out, System.out, System.err);
   }
 
-  private int runCommonOperations(PrintStream msgStream,
-                                  PrintStream adviceStream, PrintStream errStream) throws Exception {
+  private int runCommonOperations(PrintStream msgStream, PrintStream adviceStream,
+                                  PrintStream errStream) throws Exception {
     String testDir = createTestDirectory();
     return loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
             testDir, msgStream, adviceStream, errStream);
@@ -227,10 +248,10 @@ public final class UnderFileSystemContractTest {
           }
         }
       }
+      return failedTestCnt;
     } finally {
       mUfs.deleteDirectory(testDir, DeleteOptions.defaults().setRecursive(true));
       mUfs.close();
-      return failedTestCnt;
     }
   }
 
@@ -251,6 +272,10 @@ public final class UnderFileSystemContractTest {
    */
   private void cleanupUfs(String directory) throws IOException {
     UfsStatus[] statuses = mUfs.listStatus(directory);
+    if (statuses == null) {
+      LOG.error("Path {} is invalid.", directory);
+      return;
+    }
     for (UfsStatus status : statuses) {
       if (status instanceof UfsFileStatus) {
         mUfs.deleteFile(PathUtils.concatPath(directory, status.getName()));

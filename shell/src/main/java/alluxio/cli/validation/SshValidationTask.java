@@ -50,7 +50,8 @@ public final class SshValidationTask extends AbstractValidationTask {
       msg.append("Failed to find master/worker nodes from Alluxio configuration. ");
       advice.append(String.format("Please check your %s/master and %s/worker files. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
+      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
 
     ValidateUtils.State state = ValidateUtils.State.OK;

@@ -12,7 +12,23 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.validation.*;
+import alluxio.cli.validation.ApplicableUfsType;
+import alluxio.cli.validation.AbstractValidationTask;
+import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
+import alluxio.cli.validation.HdfsConfParityValidationTask;
+import alluxio.cli.validation.HdfsConfValidationTask;
+import alluxio.cli.validation.HdfsImpersonationValidationTask;
+import alluxio.cli.validation.HdfsVersionValidationTask;
+import alluxio.cli.validation.NativeLibValidationTask;
+import alluxio.cli.validation.PortAvailabilityValidationTask;
+import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
+import alluxio.cli.validation.SecureHdfsValidationTask;
+import alluxio.cli.validation.SshValidationTask;
+import alluxio.cli.validation.StorageSpaceValidationTask;
+import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UfsSuperUserValidationTask;
+import alluxio.cli.validation.UserLimitValidationTask;
+import alluxio.cli.validation.ValidationTask;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -66,7 +82,6 @@ public final class ValidateEnv {
   private static final Options OPTIONS = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
-  // TODO(jiacheng): move description into TaskResult too
   private static final Map<String, String> TASK_DESCRIPTIONS = new HashMap<>();
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
@@ -81,24 +96,36 @@ public final class ValidateEnv {
   private final AlluxioConfiguration mConf;
   private final String mPath;
 
+  /**
+   * Initializes from the target UFS path and configurations.
+   *
+   * @param path the UFS path
+   * @param conf the UFS configurtions
+   * */
   public ValidateEnv(String path, AlluxioConfiguration conf) {
     mPath = path;
     mConf = conf;
 
     // HDFS configuration validations
-    // TODO(jiacheng): add all tasks here
     registerTask("ufs.hdfs.config.correctness", "validate HDFS configuration files",
             new HdfsConfValidationTask(mPath, mConf), COMMON_TASKS);
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
         new HdfsConfParityValidationTask(mPath, mConf), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.USERS), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.GROUPS), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation", "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf, HdfsImpersonationValidationTask.Mode.HOSTS), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.version", "validate version compatibility between alluxio and hdfs",
+    registerTask("ufs.hdfs.config.impersonation",
+            "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf,
+                    HdfsImpersonationValidationTask.Mode.USERS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.impersonation",
+            "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf,
+                    HdfsImpersonationValidationTask.Mode.GROUPS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.impersonation",
+            "validate impersonation configuration in alluxio and hdfs",
+            new HdfsImpersonationValidationTask(mPath, mConf,
+                    HdfsImpersonationValidationTask.Mode.HOSTS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.version",
+            "validate version compatibility between alluxio and hdfs",
             new HdfsVersionValidationTask(mConf), COMMON_TASKS);
 
     // port availability validations
@@ -167,7 +194,7 @@ public final class ValidateEnv {
 
     // java option validations
     registerTask("java.native.libs", "validate java native lib paths",
-            new NativeLibValidationTask(mConf), COMMON_TASKS);
+        new NativeLibValidationTask(mConf), COMMON_TASKS);
   }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
@@ -186,8 +213,8 @@ public final class ValidateEnv {
     return targetMap;
   }
 
-  private static ValidationTask registerTask(String name, String description, AbstractValidationTask task,
-      List<ValidationTask> tasks) {
+  private static ValidationTask registerTask(String name, String description,
+                   AbstractValidationTask task, List<ValidationTask> tasks) {
     TASKS.put(task, name);
     TASK_DESCRIPTIONS.put(name, description);
     tasks.add(task);
@@ -314,7 +341,16 @@ public final class ValidateEnv {
     return validateRemote(ConfigurationUtils.getMasterHostnames(mConf), "master", name, cmd);
   }
 
-  public List<ValidateUtils.TaskResult> validateUfs(ApplicableUfsType.Type target, Map<String, String> optionMap) throws InterruptedException {
+  /**
+   * Runs the subset of tests based on the target UFS type.
+   * A validation task will run only if it matches the target type, or it matches all types.
+   *
+   * @param target the target UFS type
+   * @param optionMap an extra configuration map to pass to the validation tasks
+   * @return a list of task results for each task
+   * */
+  public List<ValidateUtils.TaskResult> validateUfs(ApplicableUfsType.Type target,
+                              Map<String, String> optionMap) throws InterruptedException {
     List<ValidateUtils.TaskResult> results = new ArrayList<>();
     for (Map.Entry<ValidationTask, String> entry :TASKS.entrySet()) {
       ValidationTask task = entry.getKey();

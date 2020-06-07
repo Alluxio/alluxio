@@ -1,11 +1,15 @@
 package alluxio.cli.validation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
+
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
+
 import com.google.common.collect.ImmutableMap;
-import org.apache.http.impl.auth.NTLMScheme;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,13 +19,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-
-import java.io.File;
 import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.core.StringContains.containsString;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ShellUtils.class)
@@ -57,7 +55,8 @@ public class HdfsVersionValidationTaskTest {
     ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
     assertEquals(ValidateUtils.State.FAILED, result.getState());
-    assertThat(result.getResult(), containsString("2.7 does not match alluxio.underfs.version=2.6"));
+    assertThat(result.getResult(), containsString(
+            "2.7 does not match alluxio.underfs.version=2.6"));
     assertThat(result.getAdvice(), containsString("configure alluxio.underfs.version"));
   }
 
@@ -98,17 +97,20 @@ public class HdfsVersionValidationTaskTest {
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
     ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidateUtils.State.FAILED, result.getState());
-    assertThat(result.getResult(), containsString("Hadoop version 2.6.2 does not match alluxio.underfs.version=2.6.3"));
+    assertThat(result.getResult(), containsString(
+            "Hadoop version 2.6.2 does not match alluxio.underfs.version=2.6.3"));
   }
 
   @Test
   public void versionParsing() {
-    String versionStr = "Hadoop 2.7.2\n" +
-    "Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r b165c4fe8a74265c792ce23f546c64604acf0e41\n" +
-    "Compiled by jenkins on 2016-01-26T00:08Z\n" +
-    "Compiled with protoc 2.5.0\n" +
-    "From source with checksum d0fda26633fa762bff87ec759ebe689c\n" +
-    "This command was run using /tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar";
+    String versionStr = "Hadoop 2.7.2\n"
+            + "Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git "
+            + "-r b165c4fe8a74265c792ce23f546c64604acf0e41\n"
+            + "Compiled by jenkins on 2016-01-26T00:08Z\n"
+            + "Compiled with protoc 2.5.0\n"
+            + "From source with checksum d0fda26633fa762bff87ec759ebe689c\n"
+            + "This command was run using "
+            + "/tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar";
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
     String version = task.parseVersion(versionStr);
