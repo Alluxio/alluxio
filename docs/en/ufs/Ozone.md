@@ -84,7 +84,7 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-Make sure the relates config file is on all servers nodes running Alluxio.
+Make sure the related config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
 
