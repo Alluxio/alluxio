@@ -88,4 +88,4 @@ Make sure the relates config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
 
-Now, we tested ozone-0.5.0-beta work well with Alluxio.
+Currently, the only tested Ozone version with Alluxio is `0.5.0-beta`.
