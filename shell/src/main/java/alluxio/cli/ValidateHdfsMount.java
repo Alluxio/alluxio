@@ -1,16 +1,12 @@
-package alluxio.validation;
+package alluxio.cli;
 
-import alluxio.cli.Command;
 import alluxio.cli.UnderFileSystemContractTest;
 import alluxio.cli.ValidateEnv;
-import alluxio.cli.ValidateUtils;
 import alluxio.cli.validation.*;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.shell.CommandReturn;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
@@ -19,12 +15,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.hadoop.mapred.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.annotation.Native;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
