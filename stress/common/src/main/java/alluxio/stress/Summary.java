@@ -11,6 +11,8 @@
 
 package alluxio.stress;
 
+import alluxio.cli.JsonSerializable;
+
 /**
  * The aggregated summary of multiple task results.
  */

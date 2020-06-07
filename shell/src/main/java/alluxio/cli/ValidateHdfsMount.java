@@ -9,6 +9,9 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -105,17 +108,13 @@ public class ValidateHdfsMount {
       System.exit(1);
     }
     args = cmd.getArgs();
-
     String ufsPath = args[0];
-    System.out.format("ufs path is %s%n", ufsPath);
 
     InstancedConfiguration conf = InstancedConfiguration.defaults();
-
     if (cmd.hasOption(LOCAL_OPTION.getLongOpt())) {
       // Merge options from the command line option
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
       if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
-        System.out.println("Target path is readonly!");
         ufsConf.setReadOnly(true);
       }
       if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
@@ -124,7 +123,7 @@ public class ValidateHdfsMount {
       if (cmd.hasOption(OPTION_OPTION.getLongOpt())) {
         Properties properties = cmd.getOptionProperties(OPTION_OPTION.getLongOpt());
         ufsConf.merge(properties, Source.MOUNT_OPTION);
-        LOG.info("Options from cmdline: {}", properties);
+        LOG.debug("Options from cmdline: {}", properties);
       }
 
       // Run validateEnv
@@ -135,7 +134,7 @@ public class ValidateHdfsMount {
 
       // Run runUfsTests
       if (ufsConf.isReadOnly()) {
-        System.out.println("Skip ufs operations here.");
+        LOG.debug("Ufs operations are skipped because the path is readonly.");
         results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
                 UnderFileSystemContractTest.TASK_NAME,
                 String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath),
@@ -144,22 +143,21 @@ public class ValidateHdfsMount {
         results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
       }
 
-      // Convert to output and print
-      System.out.println(results);
-
+      // Serialize the results back to the calling node
       printResults(results);
 
       System.exit(0);
     }
 
     // Cluster mode
+    LOG.info("Invoking the command remotely on the Alluxio cluster.");
 
     // how many nodes in the cluster
     Set<String> hosts = ConfigurationUtils.getServerHostnames(conf);
     ExecutorService executor = Executors.newFixedThreadPool(hosts.size());
 
-    // Invoke collectInfo locally on each host
-    List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
+    // Invoke validateHdfsMount locally on each host
+    Map<String, CompletableFuture<CommandReturn>> resultFuture = new HashMap<>();
     for (String host : hosts) {
       LOG.info("validate hdfs mount on host {}", host);
 
@@ -167,7 +165,7 @@ public class ValidateHdfsMount {
       String workDir = conf.get(PropertyKey.WORK_DIR);
       String alluxioBinPath = Paths.get(workDir, "bin/alluxio")
               .toAbsolutePath().toString();
-      System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);
+      LOG.info("host: {}, alluxio path {}", host, alluxioBinPath);
 
       String[] validateHdfsArgs =
               (String[]) ArrayUtils.addAll(
@@ -178,39 +176,47 @@ public class ValidateHdfsMount {
         try {
           return ShellUtils.sshExecCommandWithOutput(host, validateHdfsArgs);
         } catch (Exception e) {
-          LOG.error("Execution failed %s", e);
+          LOG.error("Execution failed: ", e);
           return new CommandReturn(1, validateHdfsArgs, e.toString());
         }
       }, executor);
-      sshFutureList.add(future);
+      resultFuture.put(host, future);
       LOG.info("Invoked local validateHdfs command on host {}", host);
     }
 
     // collect results
-    CompletableFuture[] cfs = sshFutureList.toArray(new CompletableFuture[0]);
-
-    List<CommandReturn> results = CompletableFuture.allOf(cfs)
-            .thenApply(f -> sshFutureList.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList())
-            ).get();
-    for (CommandReturn cr : results) {
-      System.out.println(cr.getFormattedOutput());
+    Map<String, Map<ValidateUtils.State, List<ValidateUtils.TaskResult>>> hostToGroupedResults = new HashMap<>();
+    for (Map.Entry<String, CompletableFuture<CommandReturn>> entry : resultFuture.entrySet()) {
+      String host = entry.getKey();
+      CommandReturn cr = entry.getValue().get();
+      System.out.format("Host %s%nStatus: %s%n", host, cr.getExitCode());
+      // Deserialize from JSON
+      List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());
+      Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> groupedMap = new HashMap<>();
+      // group by state
+      taskResults.forEach((r) -> {
+        groupedMap.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
+      });
+      hostToGroupedResults.put(host, groupedMap);
     }
 
     // Parse and join results
+    formatAndPrintGroupedResults(hostToGroupedResults);
 
     System.exit(0);
   }
 
-  private static void printResults(List<ValidateUtils.TaskResult> results) {
-    Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> map = new HashMap<>();
+  private static void printResults(List<ValidateUtils.TaskResult> results) throws Exception {
+    String json = JsonSerializable.listToJson(results);
+    System.out.println(json);
+  }
 
-    // group by state
-    results.forEach((r) -> {
-      map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
-    });
+  private static List<ValidateUtils.TaskResult> parseTaskResults(String json) throws JsonProcessingException {
+    return new ObjectMapper().readValue(json, new TypeReference<List<ValidateUtils.TaskResult>>() {});
+  }
+
+  private static void formatAndPrintGroupedResults(Map<String, Map<ValidateUtils.State, List<ValidateUtils.TaskResult>>> resultMap) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    System.out.println(gson.toJson(map));
+    System.out.println(gson.toJson(resultMap));
   }
 }

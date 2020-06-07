@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ public final class ValidateUtils {
   /**
    * Represents the result of a given task.
    */
-  public static class TaskResult implements Serializable {
+  public static class TaskResult implements JsonSerializable {
     private static final long serialVersionUID = -2746652850515278409L;
 
     State mState = State.OK;
@@ -56,7 +58,11 @@ public final class ValidateUtils {
      * @param output task output
      * @param advice task advice
      */
-    public TaskResult(State state, String name, String output, String advice) {
+    @JsonCreator
+    public TaskResult(@JsonProperty("state") State state,
+                      @JsonProperty("name") String name,
+                      @JsonProperty("result") String output,
+                      @JsonProperty("advice") String advice) {
       mState = state;
       mName = name;
       mOutput = output;

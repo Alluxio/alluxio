@@ -14,7 +14,7 @@ package alluxio.stress.cli.suite;
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.stress.JsonSerializable;
+import alluxio.cli.JsonSerializable;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchParameters;
