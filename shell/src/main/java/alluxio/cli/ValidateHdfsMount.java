@@ -190,6 +190,7 @@ public class ValidateHdfsMount {
       String host = entry.getKey();
       CommandReturn cr = entry.getValue().get();
       System.out.format("Host %s%nStatus: %s%n", host, cr.getExitCode());
+      System.out.println(cr.getFormattedOutput());
       // Deserialize from JSON
       List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());
       Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> groupedMap = new HashMap<>();
