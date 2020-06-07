@@ -58,7 +58,7 @@ Run a simple example program:
 $ ./bin/alluxio runTests
 ```
 
-Using HDFS shell or Ozone shell to Visit your Ozone directory `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>`
+Use the HDFS shell or Ozone shell to Visit your Ozone directory `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>`
 to verify the files and directories created by Alluxio exist. For this test, you should see files named like
 `<OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
 
