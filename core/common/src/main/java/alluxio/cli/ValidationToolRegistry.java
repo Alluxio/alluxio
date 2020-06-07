@@ -59,7 +59,6 @@ public class ValidationToolRegistry {
     try (DirectoryStream<Path> stream = Files
         .newDirectoryStream(Paths.get(libDir), HMS_TOOL_PATTERN)) {
       for (Path entry : stream) {
-        LOG.info(entry.getFileName().toString());
         if (entry.toFile().isFile()) {
           files.add(entry.toFile());
         }
