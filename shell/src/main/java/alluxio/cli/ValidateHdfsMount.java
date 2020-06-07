@@ -36,13 +36,13 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * A tool to validate an HDFS mount, before the paths is mounted to Alluxio.
  * */
 public class ValidateHdfsMount {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateHdfsMount.class);
+  private static final String JSON_START_POS_MARKER = "ValidateHdfsMount task results: \n";
 
   private static final Option READONLY_OPTION =
           Option.builder()
@@ -190,7 +190,6 @@ public class ValidateHdfsMount {
       String host = entry.getKey();
       CommandReturn cr = entry.getValue().get();
       System.out.format("Host %s%nStatus: %s%n", host, cr.getExitCode());
-      System.out.println(cr.getFormattedOutput());
       // Deserialize from JSON
       List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());
       Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> groupedMap = new HashMap<>();
@@ -208,11 +207,17 @@ public class ValidateHdfsMount {
   }
 
   private static void printResults(List<ValidateUtils.TaskResult> results) throws Exception {
+    // SSH command may print unexpected messages to the output, need to leave a marker where
+    // the real JSON contents start.
     String json = JsonSerializable.listToJson(results);
-    System.out.println(json);
+    System.out.format("%s%s%n", JSON_START_POS_MARKER,json);
   }
 
-  private static List<ValidateUtils.TaskResult> parseTaskResults(String json) throws JsonProcessingException {
+  private static List<ValidateUtils.TaskResult> parseTaskResults(String json) throws IOException {
+    if (!json.contains(JSON_START_POS_MARKER)) {
+      throw new IOException(String.format("Failed to locate task results from: %s", json));
+    }
+    json = json.replace(JSON_START_POS_MARKER, "");
     return new ObjectMapper().readValue(json, new TypeReference<List<ValidateUtils.TaskResult>>() {});
   }
 
