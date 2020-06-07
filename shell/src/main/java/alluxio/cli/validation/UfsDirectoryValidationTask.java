@@ -34,10 +34,9 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    *
    * @param conf configuration
    */
-  public UfsDirectoryValidationTask(AlluxioConfiguration conf) {
-    // TODO(jiacheng): UFSConf for nested path?
-    mUfs = UnderFileSystem.Factory.createForRoot(conf);
-    mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  public UfsDirectoryValidationTask(String path, AlluxioConfiguration conf) {
+    mPath = path;
+    mUfs = UnderFileSystem.Factory.create(mPath, conf);
   }
 
   @Override
@@ -62,6 +61,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
               e.getMessage()));
       msg.append(ValidateUtils.getErrorInfo(e));
+      advice.append(String.format("Please verify your path %s is correct.%n", mPath));
       return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), msg.toString(), advice.toString());
     }
   }

@@ -94,8 +94,7 @@ public class HadoopConfigurationFileParser {
     File xmlFile;
     xmlFile = new File(path);
     if (!xmlFile.exists()) {
-      System.err.format("File %s does not exist.", path);
-      return null;
+      throw new IOException(String.format("File %s does not exist.", path));
     }
     DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();

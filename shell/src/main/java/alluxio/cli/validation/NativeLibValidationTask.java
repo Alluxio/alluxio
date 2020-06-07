@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 @ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public class NativeLibValidationTask extends AbstractValidationTask {
   public static final String NATIVE_LIB_PATH = "java.library.path";
-  public static final String NATIVE_LIB_PATH_SEPARATOR = ";";
+  public static final String NATIVE_LIB_PATH_SEPARATOR = ":";
   private final AlluxioConfiguration mConf;
 
   /**
@@ -40,8 +40,8 @@ public class NativeLibValidationTask extends AbstractValidationTask {
       File f = new File(path);
       if (!f.exists()) {
         state = ValidateUtils.State.WARNING;
-        msg.append(String.format("Java native lib not found at %s. ", path));
-        advice.append(String.format("Please check %s. ", path));
+        msg.append(String.format("Java native lib not found at %s.%n", path));
+        advice.append(String.format("Please check your path %s.%n", path));
       }
     }
     return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());

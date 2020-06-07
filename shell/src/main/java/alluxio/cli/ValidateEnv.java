@@ -137,9 +137,9 @@ public final class ValidateEnv {
         new SshValidationTask(mConf), COMMON_TASKS);
 
     // UFS validations
-    registerTask("ufs.root.accessible",
-        "validate root under file system location is accessible",
-        new UfsDirectoryValidationTask(mConf), COMMON_TASKS);
+    registerTask("ufs.path.accessible",
+        "validate the under file system location is accessible",
+        new UfsDirectoryValidationTask(mPath, mConf), COMMON_TASKS);
     registerTask("ufs.root.superuser",
         "validate Alluxio has super user privilege on root under file system",
         new UfsSuperUserValidationTask(mConf), COMMON_TASKS);

@@ -139,6 +139,11 @@ public final class ValidateUtils {
     public String getAdvice() {
       return mAdvice;
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s: %s%nOutput: %s%nAdvice: %s%n", mName, mState, mOutput, mAdvice);
+    }
   }
 
   public static String getErrorInfo(Throwable t) {

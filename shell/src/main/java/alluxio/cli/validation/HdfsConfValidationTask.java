@@ -35,8 +35,9 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   protected final AlluxioConfiguration mConf;
   protected final String mPath;
 
-  protected Map<String, String> mCoreConf;
-  protected Map<String, String> mHdfsConf;
+  // TODO(jiacheng): change this public
+  public Map<String, String> mCoreConf;
+  public Map<String, String> mHdfsConf;
   protected StringBuilder mMsg = new StringBuilder();
   protected StringBuilder mAdvice = new StringBuilder();
 
@@ -68,17 +69,10 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     String coreConfPath = clientConfFiles.getFirst();
     String hdfsConfPath = clientConfFiles.getSecond();
 
-    ValidateUtils.TaskResult result;
-    try {
-      mCoreConf = accessAndParseConf("core-site.xml", coreConfPath);
-      mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
-      ValidateUtils.State state = (mCoreConf != null) && (mHdfsConf != null) ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
-      result = new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
-    } catch (IOException e) {
-      mMsg.append(ValidateUtils.getErrorInfo(e));
-      result = new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
-    }
-    return result;
+    mCoreConf = accessAndParseConf("core-site.xml", coreConfPath);
+    mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
+    ValidateUtils.State state = (mCoreConf != null) && (mHdfsConf != null) ? ValidateUtils.State.OK : ValidateUtils.State.FAILED;
+    return new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   protected Pair<String, String> getHdfsConfPaths() {
@@ -131,12 +125,15 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
         }
       }
     }
+    if (state == ValidateUtils.State.OK) {
+      mMsg.append("core-site.xml and hdfs-site.xml are consistent.\n");
+    }
     return new ValidateUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   @Nullable
   // TODO(jiacheng): maybe pass this exception back to TaskResult somehow
-  private Map<String, String> accessAndParseConf(String configName, String path) throws IOException {
+  private Map<String, String> accessAndParseConf(String configName, String path) {
     if (path == null || path.isEmpty()) {
       mMsg.append(String.format("%s is not configured in Alluxio property %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       mAdvice.append(String.format("Please configure %s in %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
@@ -146,27 +143,28 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
       PathUtils.getPathComponents(path);
     } catch (InvalidPathException e) {
       mMsg.append(String.format("Invalid path %s in Alluxio property %s.%n", path, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mMsg.append(ValidateUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please correct the path for %s in %s%n", configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
-      throw new IOException(e);
+      return null;
     }
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
-    Map<String, String> properties;
+    Map<String, String> properties = null;
     try {
       properties = parser.parseXmlConfNonNull(path);
       mMsg.append(String.format("Successfully loaded %s. %n", path));
     } catch (ParserConfigurationException e) {
       mMsg.append(String.format("Failed to create instance of DocumentBuilder for file: %s. %s.%n",
               path, e.getMessage()));
+      mMsg.append(ValidateUtils.getErrorInfo(e));
       mAdvice.append("Please check your configuration for javax.xml.parsers.DocumentBuilder.%n");
-      throw new IOException(e);
     } catch (IOException e) {
       mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
+      mMsg.append(ValidateUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
-      throw new IOException(e);
     } catch (SAXException e) {
       mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
+      mMsg.append(ValidateUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
-      throw new IOException(e);
     }
     return properties;
   }

@@ -20,6 +20,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -121,6 +122,7 @@ public class HdfsConfValidationTaskTest {
     ValidateUtils.TaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidateUtils.State.FAILED);
     assertThat(result.getResult(), containsString("core-site.xml is not configured"));
+    assertThat(result.getAdvice(), containsString("core-site.xml"));
   }
 
   @Test
@@ -134,6 +136,41 @@ public class HdfsConfValidationTaskTest {
     ValidateUtils.TaskResult result = task.loadHdfsConfig();
     assertEquals(result.getState(), ValidateUtils.State.FAILED);
     assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
+    assertThat(result.getAdvice(), containsString("hdfs-site.xml"));
+  }
+
+  @Test
+  public void missingBoth() {
+    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, "/conf/");
+    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+    ValidateUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
+    assertThat(result.getResult(), containsString("core-site.xml is not configured"));
+    assertThat(result.getAdvice(), containsString("hdfs-site.xml"));
+    assertThat(result.getAdvice(), containsString("core-site.xml"));
+  }
+
+  @Test
+  public void cannotParseCoreSiteXml() throws IOException {
+    String hdfsSite = Paths.get(sTestDir.toPath().toString(), "hdfs-site.xml").toString();
+    writeXML(hdfsSite, ImmutableMap.of("key2", "value2"));
+    RandomAccessFile hdfsFile = new RandomAccessFile(hdfsSite, "rw");
+    hdfsFile.setLength(hdfsFile.length() - 10);
+
+    String coreSite = Paths.get(sTestDir.toPath().toString(), "core-site.xml").toString();
+    writeXML(coreSite, ImmutableMap.of("key1", "value1"));
+    RandomAccessFile coreFile = new RandomAccessFile(coreSite, "rw");
+    coreFile.setLength(coreFile.length() - 10);
+
+    sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
+    HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
+    ValidateUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertThat(result.getResult(), containsString(String.format("Failed to parse %s", hdfsSite)));
+    assertThat(result.getResult(), containsString(String.format("Failed to parse %s", coreSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", hdfsSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", coreSite)));
   }
 
   @Test
@@ -157,7 +194,7 @@ public class HdfsConfValidationTaskTest {
   }
 
   @Test
-  public void valieConf() {
+  public void validConf() {
     String hdfsSite = Paths.get(sTestDir.toPath().toString(), "hdfs-site.xml").toString();
     writeXML(hdfsSite, ImmutableMap.of("key1", "value1", "key3", "value3"));
 

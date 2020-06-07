@@ -97,6 +97,7 @@ public class ValidateHdfsMount {
             // TODO(jiacheng): this should work for root and nested mount
             UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
             if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
+                System.out.println("Target path is readonly!");
                 ufsConf.setReadOnly(true);
             }
             if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
@@ -115,6 +116,7 @@ public class ValidateHdfsMount {
 
             // Run runUfsTests
             if (ufsConf.isReadOnly()) {
+                System.out.println("Skip ufs operations here.");
                 results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
                         UnderFileSystemContractTest.TASK_NAME,
                         String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath), ""));

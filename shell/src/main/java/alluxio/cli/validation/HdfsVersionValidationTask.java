@@ -7,6 +7,8 @@ import alluxio.util.ShellUtils;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsVersionValidationTask extends AbstractValidationTask {
@@ -26,6 +28,24 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     return "ValidateHdfsVersion";
   }
 
+  public String parseVersion(String output) {
+    // An example output from "hadoop version" command:
+    //    Hadoop 2.7.2
+    //    Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r b165c4fe8a74265c792ce23f546c64604acf0e41
+    //    Compiled by jenkins on 2016-01-26T00:08Z
+    //    Compiled with protoc 2.5.0
+    //    From source with checksum d0fda26633fa762bff87ec759ebe689c
+    //    This command was run using /tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar
+    String regex = "Hadoop\\s+(?<version>([0-9]\\.)+[0-9])";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(output);
+    String version = "";
+    if (matcher.find()) {
+      version = matcher.group("version");
+    }
+    return version;
+  }
+
   @Override
   public ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
     // get hadoop version
@@ -33,18 +53,16 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     try {
       hadoopVersion = getHadoopVersion();
     } catch (IOException e) {
-      // log
-
       return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
-              String.format("Failed to get hadoop version: %s.", e.getMessage()),
+              String.format("Failed to get hadoop version:%n%s.", ValidateUtils.getErrorInfo(e)),
               "Please check if hadoop is on your PATH.");
     }
 
     String version = mConf.get(PropertyKey.UNDERFS_VERSION);
-    if (version.equals(hadoopVersion)) {
+    if (hadoopVersion.contains(version)) {
       return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
-              String.format("Hadoop version %s matches %s.",
-                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString()),
+              String.format("Hadoop version %s contains UFS version defined in alluxio %s=%s.",
+                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
               "");
     }
 
@@ -57,6 +75,6 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   protected String getHadoopVersion() throws IOException {
     String[] cmd = new String[]{"hadoop", "version"};
     String version = ShellUtils.execCommand(cmd);
-    return version;
+    return parseVersion(version);
   }
 }
