@@ -832,7 +832,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
               + "ID can be found at the console address "
               + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
-              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
+              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\". "
+              + "Unspecified owner id will map to a default empty username")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
