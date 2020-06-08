@@ -385,7 +385,8 @@ public class LocalCacheFileInStreamTest {
         return 0;
       }
       mPagesServed++;
-      return Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE).length;
+      System.arraycopy(mPages.get(pageId), pageOffset, buffer, offsetInBuffer, bytesToRead);
+      return bytesToRead;
     }
 
     @Override
