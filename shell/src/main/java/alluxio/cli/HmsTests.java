@@ -103,7 +103,7 @@ public class HmsTests {
 
     ValidationToolRegistry registry
         = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    // load hms validation tool from alluxio lib directory
+    // Load hms validation tool from alluxio lib directory
     registry.refresh();
 
     ValidationTool tests = registry.create(metastoreUri, database, tables, socketTimeout);

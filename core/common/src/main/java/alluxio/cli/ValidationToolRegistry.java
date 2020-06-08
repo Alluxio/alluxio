@@ -102,7 +102,7 @@ public class ValidationToolRegistry {
   }
 
   /**
-   * Creates a new instance of an {@link ValidationTool}.
+   * Creates a new instance of {@link ValidationTool}.
    *
    * @param metastoreUri hive metastore uris
    * @param database database to run tests against

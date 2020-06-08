@@ -80,7 +80,7 @@ public class HmsValidationTool implements ValidationTool {
   }
 
   /**
-   * Create an instance of the {@link HmsValidationTool}.
+   * Creates an instance of {@link HmsValidationTool}.
    *
    * @param metastoreUri hive metastore uris
    * @param database database to run tests against
@@ -189,18 +189,6 @@ public class HmsValidationTool implements ValidationTool {
   }
 
   /**
-   * Sets hive configuration based on input parameters.
-   *
-   * @return the hive configuration
-   */
-  private HiveConf setHiveConf() {
-    HiveConf conf = new HiveConf();
-    conf.setVar(HiveConf.ConfVars.METASTOREURIS, mMetastoreUri);
-    conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
-    return conf;
-  }
-
-  /**
    * Create hive metastore client.
    *
    * @return the created hive metastore client
@@ -212,7 +200,7 @@ public class HmsValidationTool implements ValidationTool {
     try {
       ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
       try {
-        // use the extension class loader
+        // Use the extension class loader
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
         HiveConf conf = setHiveConf();
         action = new ConnectHmsAction(conf);
@@ -256,6 +244,18 @@ public class HmsValidationTool implements ValidationTool {
       throw t;
     }
     return action.getConnection();
+  }
+
+  /**
+   * Sets hive configuration based on input parameters.
+   *
+   * @return the hive configuration
+   */
+  private HiveConf setHiveConf() {
+    HiveConf conf = new HiveConf();
+    conf.setVar(HiveConf.ConfVars.METASTOREURIS, mMetastoreUri);
+    conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
+    return conf;
   }
 
   private void getDatabaseTest() throws Exception {
