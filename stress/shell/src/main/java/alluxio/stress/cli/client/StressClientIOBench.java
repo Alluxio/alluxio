@@ -417,6 +417,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
 
     private void runInternal() throws Exception {
+      // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mThreadCountResult.setRecordStartMs(recordMs);
       boolean isRead = ClientIOOperation.isRead(mParameters.mOperation);
