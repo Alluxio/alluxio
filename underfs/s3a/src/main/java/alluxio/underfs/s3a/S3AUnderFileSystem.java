@@ -554,9 +554,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
         if (mUfsConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
+          // Here accountOwner can be null if there is no mapping set for this owner id
           accountOwner = CommonUtils.getValueFromStaticMapping(
               mUfsConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        } else {
+        }
+        if (accountOwner == null || accountOwner.equals(DEFAULT_OWNER)) {
           // If there is no user-defined mapping, use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }

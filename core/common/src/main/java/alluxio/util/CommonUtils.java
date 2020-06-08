@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -452,8 +453,9 @@ public final class CommonUtils {
    *
    * @param mapping the "key=value" mapping in string format separated by ";"
    * @param key the key to query
-   * @return the mapped value if the key exists, otherwise returns ""
+   * @return the mapped value if the key exists, otherwise returns null
    */
+  @Nullable
   public static String getValueFromStaticMapping(String mapping, String key) {
     Map<String, String> m = Splitter.on(";")
         .omitEmptyStrings()
