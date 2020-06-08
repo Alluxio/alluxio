@@ -19,6 +19,7 @@ import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.SummaryStatistics;
+import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -144,7 +145,9 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       if (!mBaseParameters.mProfileAgent.isEmpty()) {
-        taskResult.putTimeToFirstBytePerThread(numThreads, addAdditionalResult());
+        taskResult.putTimeToFirstBytePerThread(
+            numThreads, addAdditionalResult(
+                threadCountResult.getRecordStartMs(), threadCountResult.getEndMs()));
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
@@ -187,17 +190,22 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /**
    * Read the log file from java agent log file.
    *
+   * @param startMs start time of certain num of threads
+   * @param endMs end time of certain num of threads
    * @return summary statistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized SummaryStatistics addAdditionalResult()
+  public synchronized SummaryStatistics addAdditionalResult(long startMs, long endMs)
       throws IOException, DataFormatException {
     Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(
         new FileReader(BaseParameters.AGENT_OUTPUT_PATH))) {
       String line;
+
+      long bucketSize = (endMs - startMs)
+          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
 
       final ObjectMapper objectMapper = new ObjectMapper();
       while ((line = reader.readLine()) != null) {
@@ -211,9 +219,18 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
         final String type = (String) lineMap.get("type");
         final String methodName = (String) lineMap.get("methodName");
-        final Integer duration = (Integer) lineMap.get("duration");
+        final Number timestampNumber = (Number) lineMap.get("timestamp");
+        final Integer durationNumber = (Integer) lineMap.get("duration");
 
-        if (type == null || methodName == null || duration == null) {
+        if (type == null || methodName == null || timestampNumber == null
+            || durationNumber == null) {
+          continue;
+        }
+
+        final long timestamp = timestampNumber.longValue();
+        final long duration = durationNumber.longValue();
+
+        if (timestamp <= startMs) {
           continue;
         }
 
@@ -227,9 +244,11 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           statistic.mTimeToFirstByteNs.recordValue(duration);
           statistic.mNumSuccess += 1;
 
-          if (duration > statistic.mMaxTimeToFirstByteNs[0]) {
-            statistic.mMaxTimeToFirstByteNs[0] = duration;
-            Arrays.sort(statistic.mMaxTimeToFirstByteNs);
+          int bucket =
+              Math.min(statistic.mMaxTimeToFirstByteNs.length - 1,
+                  (int) ((timestamp - startMs) / bucketSize));
+          if (duration > statistic.mMaxTimeToFirstByteNs[bucket]) {
+            statistic.mMaxTimeToFirstByteNs[bucket] = duration;
           }
         }
       }
@@ -398,7 +417,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
 
     private void runInternal() throws Exception {
-      // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mThreadCountResult.setRecordStartMs(recordMs);
       boolean isRead = ClientIOOperation.isRead(mParameters.mOperation);
