@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -377,13 +378,17 @@ public final class MasterWorkerInfo {
   @Override
   public String toString() {
     int blockSizeLimit = 100;
+    Collection<Long> blocks = mBlocks;
+    // We truncate the list of block IDs to print, unless it is for DEBUG logs
+    if (!LOG.isDebugEnabled()) {
+      blocks = (mBlocks.size() < blockSizeLimit) ? mBlocks :
+              mBlocks.stream().limit(blockSizeLimit).collect(Collectors.toList());
+    }
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
         .add("blockCount", mBlocks.size())
-        .add("blocks",
-              (mBlocks.size() < blockSizeLimit) ? mBlocks :
-                mBlocks.stream().limit(blockSizeLimit).collect(Collectors.toList()))
+        .add("blocks", blocks)
         .add("lostStorage", mLostStorage).toString();
   }
 
