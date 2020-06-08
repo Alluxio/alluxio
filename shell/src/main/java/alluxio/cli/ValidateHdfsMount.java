@@ -189,8 +189,10 @@ public class ValidateHdfsMount {
     for (Map.Entry<String, CompletableFuture<CommandReturn>> entry : resultFuture.entrySet()) {
       String host = entry.getKey();
       CommandReturn cr = entry.getValue().get();
-      System.out.format("Host %s%nStatus: %s%n", host, cr.getExitCode());
-      System.out.println(cr.getFormattedOutput());
+      if (cr.getExitCode() != 0) {
+        System.err.format("Failed to run validateHdfsMount on host %s.%n%s%n", host, cr.getFormattedOutput());
+        continue;
+      }
 
       // Deserialize from JSON
       List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());

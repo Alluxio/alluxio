@@ -54,7 +54,6 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
     int numLevel = mConf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
-    Exception ex = null;
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
@@ -132,18 +131,13 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       } catch (IOException e) {
         msg.append(String.format("Tier %d: Unable to validate available space - %s.%n",
             level, e.getMessage()));
+        msg.append(ValidateUtils.getErrorInfo(e));
         advice.append(String.format("Please check your path for tier %s.%n", level));
-        // TODO(jiacheng): how to handle multiple exceptions?
-        ex = e;
         success = false;
       }
     }
 
     ValidateUtils.State state = success ? ValidateUtils.State.OK : ValidateUtils.State.WARNING;
-    if (ex != null) {
-      // Only the last exception will be kept!
-      msg.append(ValidateUtils.getErrorInfo(ex));
-    }
     return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 

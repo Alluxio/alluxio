@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Abstract class for validating HDFS-related configurations.
+ * Class for validating HDFS-related configurations.
+ * Validates accessibility and correctness of the configuration files passed to Alluxio.
  */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsConfValidationTask extends AbstractValidationTask {

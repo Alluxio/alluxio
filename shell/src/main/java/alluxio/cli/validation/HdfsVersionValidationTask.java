@@ -54,7 +54,6 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   @Override
   public ValidateUtils.TaskResult validate(Map<String, String> optionMap)
           throws InterruptedException {
-    // get hadoop version
     String hadoopVersion;
     try {
       hadoopVersion = getHadoopVersion();
