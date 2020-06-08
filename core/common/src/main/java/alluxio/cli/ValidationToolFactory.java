@@ -17,7 +17,7 @@ package alluxio.cli;
 public interface ValidationToolFactory {
 
   /**
-   * Creates a new instance of an {@link ValidationTool}.
+   * Creates a new instance of {@link ValidationTool}.
    * Creation must not interact with external services.
    *
    * @param metastoreUri hive metastore uris
