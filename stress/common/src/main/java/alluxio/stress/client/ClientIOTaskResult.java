@@ -17,6 +17,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -38,9 +39,22 @@ import java.util.stream.Collectors;
  * The task result for the master stress tests.
  */
 public final class ClientIOTaskResult implements TaskResult, Summary {
+  public static final int MAX_TIME_TO_FIRST_BYTE_COUNT = 20;
+
+  /** The response time histogram can record values up to this amount. */
+  public static final long TIME_TO_FIRST_BYTE_HISTOGRAM_MAX = Constants.SECOND_NANO * 60 * 30;
+  public static final int TIME_TO_FIRST_BYTE_HISTOGRAM_PRECISION = 3;
+
+  public static final int COMPRESSION_LEVEL = 9;
+  public static final int RESPONSE_TIME_99_COUNT = 6;
+
+  private long mRecordStartMs;
+  private long mEndMs;
   private Map<Integer, ThreadCountResult> mThreadCountResults;
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
+
+  private Map<Integer, SummaryStatistics> mTimeToFirstByte;
 
   /**
    * Creates an instance.
@@ -48,6 +62,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   public ClientIOTaskResult() {
     // Default constructor required for json deserialization
     mThreadCountResults = new HashMap<>();
+    mTimeToFirstByte = new HashMap<>();
   }
 
   /**
@@ -76,6 +91,56 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
    */
   public void setParameters(ClientIOParameters parameters) {
     mParameters = parameters;
+  }
+
+  /**
+   * @return the start time (in ms)
+   */
+  public long getRecordStartMs() {
+    return mRecordStartMs;
+  }
+
+  /**
+   * @param recordStartMs the start time (in ms)
+   */
+  public void setRecordStartMs(long recordStartMs) {
+    mRecordStartMs = recordStartMs;
+  }
+
+  /**
+   * @return client IO statistics per method
+   */
+  public Map<Integer, SummaryStatistics> getTimeToFirstBytePerThread() {
+    return mTimeToFirstByte;
+  }
+
+  /**
+   * @param timeToFirstByte time to first statistics
+   */
+  public void setTimeToFirstBytePerThread(Map<Integer, SummaryStatistics> timeToFirstByte) {
+    mTimeToFirstByte = timeToFirstByte;
+  }
+
+  /**
+   * @param threadCount thread count
+   * @param statistics ClientIOTaskResultStatistics
+   */
+  public void putTimeToFirstBytePerThread(int threadCount, SummaryStatistics statistics) {
+    mTimeToFirstByte.put(threadCount, statistics);
+  }
+
+  /**
+   * @return the end time (in ms)
+   */
+  public long getEndMs() {
+    return mEndMs;
+  }
+
+  /**
+   * @param endMs the end time (in ms)
+   */
+  public void setEndMs(long endMs) {
+    mEndMs = endMs;
   }
 
   /**
@@ -114,6 +179,13 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
       data.addData(entry.getKey(), entry.getValue().getIOMBps());
     }
     return data;
+  }
+
+  private void getTimeToFistByteData(String series, LineGraph lineGraph) {
+    for (Map.Entry<Integer, SummaryStatistics> entry : mTimeToFirstByte.entrySet()) {
+      lineGraph.addDataSeries(
+          series + ", thread: " + entry.getKey(), entry.getValue().computeTimeData());
+    }
   }
 
   private List<String> collectErrors() {
@@ -193,13 +265,21 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
                         Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
                 subTitle, "# Threads", "Throughput (MB/s)");
 
+            LineGraph timeToFirstByteGraph = new LineGraph(String
+                .format("%s - %s - Time To First Byte", operation,
+                    opSummaries.get(0).mParameters.getDescription(
+                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+                subTitle, "# Threads", "Time To First Byte (Ms)");
+
             for (ClientIOTaskResult summary : opSummaries) {
               String series = summary.mParameters.getDescription(fieldNames.getSecond());
               responseTimeGraph.addDataSeries(series, summary.getThroughputData());
               responseTimeGraph.setErrors(series, summary.collectErrors());
-            }
 
+              summary.getTimeToFistByteData(series, timeToFirstByteGraph);
+            }
             graphs.add(responseTimeGraph);
+            graphs.add(timeToFirstByteGraph);
           }
         }
       }
