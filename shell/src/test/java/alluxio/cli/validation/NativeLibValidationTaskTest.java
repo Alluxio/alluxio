@@ -55,7 +55,7 @@ public class NativeLibValidationTaskTest {
     System.out.println(result);
     assertEquals(ValidateUtils.State.WARNING, result.getState());
     assertThat(result.getResult(), containsString("Java native lib not found at /usr/missing"));
-    assertThat(result.getAdvice(), containsString("Please check /usr/missing"));
+    assertThat(result.getAdvice(), containsString("Please check your path /usr/missing"));
   }
 
   @After

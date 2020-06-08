@@ -74,9 +74,9 @@ public class HdfsImpersonationValidationTaskTest {
     System.out.println(result);
     assertEquals(ValidateUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
-            "hadoop.proxy.bob.users is not configured"));
+            "hadoop.proxyuser.bob.users is not configured"));
     assertThat(result.getAdvice(), containsString(
-            "Please configure hadoop.proxy.bob.users to match "
+            "Please configure hadoop.proxyuser.bob.users to match "
                     + "alluxio.master.security.impersonation.bob.users"));
   }
 
@@ -97,7 +97,7 @@ public class HdfsImpersonationValidationTaskTest {
     assertThat(result.getResult(), containsString(
             "User bob can impersonate any user in Alluxio but only user1,user2 in HDFS."));
     assertThat(result.getAdvice(), containsString(
-            "Please Please set hadoop.proxy.bob.users to *."));
+            "Please set hadoop.proxyuser.bob.users to *."));
   }
 
   @Test
@@ -107,7 +107,7 @@ public class HdfsImpersonationValidationTaskTest {
     mConf.set(bobKey, "user1");
 
     // No proxy user definition in core-site.xml
-    prepareHdfsConfFiles(ImmutableMap.of("hadoop.proxy.bob.users", "user1,user2"));
+    prepareHdfsConfFiles(ImmutableMap.of("hadoop.proxyuser.bob.users", "user1,user2"));
 
     HdfsImpersonationValidationTask task =
             new HdfsImpersonationValidationTask("hdfs://namenode:9000/alluxio",
@@ -136,7 +136,7 @@ public class HdfsImpersonationValidationTaskTest {
     assertThat(result.getResult(), containsString(
             "User bob can impersonate as users [user2] in Alluxio but not in HDFS."));
     assertThat(result.getAdvice(), containsString(
-            "Please add the missing users to hadoop.proxy.bob.users. "));
+            "Please add the missing users to hadoop.proxyuser.bob.users. "));
   }
 
   @Test

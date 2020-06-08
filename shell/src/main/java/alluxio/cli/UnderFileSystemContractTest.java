@@ -227,18 +227,18 @@ public final class UnderFileSystemContractTest {
       for (Method test : tests) {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
-          msgStream.printf("Running test: %s...", testName);
+          msgStream.format("Running test: %s...%n", testName);
           boolean passed = false;
           try {
             test.invoke(operations);
             passed = true;
           } catch (Exception e) {
             if (mUfs.getUnderFSType().equals(S3_IDENTIFIER)) {
-              logRelatedS3Operations(test);
+              logRelatedS3Operations(test, msgStream);
             }
             msgStream.format("Operation %s failed%n", testName);
             msgStream.format(ValidateUtils.getErrorInfo(e));
-            errStream.format("Test %s.%s aborted%n%s", test.getClass(), test.getName(), e);
+            errStream.format("Test %s.%s aborted%n%s%n", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);
             RunTestUtils.printPassInfo(passed);
@@ -292,12 +292,12 @@ public final class UnderFileSystemContractTest {
    *
    * @param test the test to log
    */
-  private void logRelatedS3Operations(Method test) {
+  private void logRelatedS3Operations(Method test, PrintStream stream) {
     RelatedS3Operations annotation = test.getAnnotation(RelatedS3Operations.class);
     if (annotation != null) {
       String[] ops = annotation.operations();
       if (ops.length > 0) {
-        System.out.println("Related S3 operations: " + String.join(", ", ops));
+        stream.println("Related S3 operations: " + String.join(", ", ops));
       }
     }
   }
