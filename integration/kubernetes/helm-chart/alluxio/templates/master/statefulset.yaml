@@ -50,8 +50,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-master
     spec:
-      hostNetwork: {{ .Values.master.hostNetwork }}
-      dnsPolicy: {{ .Values.master.dnsPolicy }}
+      hostNetwork: {{ hasKey .Values.master "hostNetwork" | ternary .Values.master.hostNetwork $isRoot }}
+      dnsPolicy: {{ .Values.master.dnsPolicy | default ($isRoot | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
       {{- if .Values.master.nodeSelector }}
 {{ toYaml .Values.master.nodeSelector | trim | indent 8  }}
@@ -194,8 +194,23 @@ spec:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
+  {{- if $isRoot }}
+  volumes:
+    {{- if $needJournalVolume }}
+    - name: alluxio-journal
+      hostPath:
+        path: {{ .Values.journal.hostPath }}
+        type: DirectoryOrCreate
+    {{- end }}
+    {{- if .Values.master.metastore }}
+    - name: alluxio-metastore
+      hostPath:
+        path: {{ .Values.master.metastore.hostPath }}
+        type: DirectoryOrCreate
+    {{- end }}
+  {{- else }}
   volumeClaimTemplates:
-  {{- if $needJournalVolume }}
+    {{- if $needJournalVolume }}
     - metadata:
         name: alluxio-journal
       spec:
@@ -206,7 +221,7 @@ spec:
           requests:
             storage: {{ .Values.journal.size }}
   {{- end }}
-  {{- if .Values.master.metastore }}
+    {{- if .Values.master.metastore }}
     - metadata:
         name: alluxio-metastore
       spec:
@@ -216,4 +231,5 @@ spec:
         resources:
           requests:
             storage: {{ .Values.master.metastore.size }}
-  {{- end }}
+    {{- end }}
+  {{- end}}

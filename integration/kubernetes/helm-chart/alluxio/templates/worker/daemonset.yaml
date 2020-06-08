@@ -9,8 +9,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
-{{ $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") -}}
+{{- $isRoot := eq (int .Values.user) 0 }}
+{{- $shortCircuitEnabled := .Values.shortCircuit.enabled }}
+{{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -36,8 +38,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-worker
     spec:
-      hostNetwork: {{ .Values.worker.hostNetwork }}
-      dnsPolicy: {{ .Values.worker.dnsPolicy }}
+      hostNetwork: {{ hasKey .Values.worker "hostNetwork" | ternary .Values.worker.hostNetwork $isRoot }}
+      dnsPolicy: {{ .Values.worker.dnsPolicy | default ($isRoot | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       securityContext:
         fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
@@ -154,9 +156,16 @@ spec:
       restartPolicy: Always
       volumes:
         {{- if $needDomainSocketVolume }}
+          {{- if $isRoot }}
+        - name: alluxio-domain
+          hostPath:
+            path: {{ .Values.shortCircuit.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
         - name: alluxio-domain
           persistentVolumeClaim:
             claimName: "{{ .Values.shortCircuit.pvcName }}"
+          {{- end }}
         {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}

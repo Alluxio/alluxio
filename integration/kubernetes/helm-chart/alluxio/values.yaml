@@ -73,15 +73,13 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
-  hostNetwork: false
-  dnsPolicy: ClusterFirst
   # Example: use ROCKS DB instead of Heap
   # metastore:
   #   size: 1Gi
-  #   mountPath: /metastore
   #   storageClass: "standard"
   #   accessModes:
   #     - ReadWriteOnce
+  #   hostPath: /tmp/metastore
 
 jobMaster:
   args:
@@ -119,6 +117,7 @@ journal:
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
+  hostPath: "/tmp/journal"
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
@@ -155,8 +154,6 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
-  hostNetwork: false
-  dnsPolicy: ClusterFirst
 
 jobWorker:
   args:
@@ -229,6 +226,7 @@ shortCircuit:
     - ReadWriteOnce
   pvcSize: 1Mi
   pvcStorageClass: standard
+  hostPath: "/tmp/alluxio-domain"
 
 ## FUSE ##
 
