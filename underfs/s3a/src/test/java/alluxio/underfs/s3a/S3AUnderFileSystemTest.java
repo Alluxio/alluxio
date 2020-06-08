@@ -174,6 +174,46 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
+  public void getPermissionsWithMapping() throws Exception {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=altname");
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+      mS3UnderFileSystem =
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+    }
+
+    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
+    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
+
+    Assert.assertEquals("altname", permissions.getOwner());
+    Assert.assertEquals("altname", permissions.getGroup());
+    Assert.assertEquals(0, permissions.getMode());
+  }
+
+  @Test
+  public void getPermissionsNoMapping() throws Exception {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=userid");
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+      mS3UnderFileSystem =
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+    }
+
+    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
+    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
+
+    Assert.assertEquals("test", permissions.getOwner());
+    Assert.assertEquals("test", permissions.getGroup());
+    Assert.assertEquals(0, permissions.getMode());
+  }
+
+  @Test
   public void getOperationMode() throws Exception {
     Map<String, UfsMode> physicalUfsState = new Hashtable<>();
     // Check default
