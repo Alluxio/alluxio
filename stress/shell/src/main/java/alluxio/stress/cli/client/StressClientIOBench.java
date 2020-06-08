@@ -14,22 +14,18 @@ package alluxio.stress.cli.client;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -38,22 +34,18 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.DataFormatException;
 
 /**
  * Single node client IO stress test.
@@ -190,133 +182,56 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /**
    * Read the log file from java agent log file.
    *
-   * @param startMs start time of certain num of threads
-   * @param endMs end time of certain num of threads
+   * @param startMs start time for profiling
+   * @param endMs end time for profiling
    * @return summary statistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized SummaryStatistics addAdditionalResult(long startMs, long endMs)
-      throws IOException, DataFormatException {
-    Map<String, PartialResultStatistic> methodDescToHistogram = new HashMap<>();
-
-    try (final BufferedReader reader = new BufferedReader(
-        new FileReader(BaseParameters.AGENT_OUTPUT_PATH))) {
-      String line;
-
-      long bucketSize = (endMs - startMs)
-          / MasterBenchTaskResultStatistics.MAX_RESPONSE_TIME_COUNT;
-
-      final ObjectMapper objectMapper = new ObjectMapper();
-      while ((line = reader.readLine()) != null) {
-        final Map<String, Object> lineMap;
-        try {
-          lineMap = objectMapper.readValue(line, Map.class);
-        } catch (JsonParseException | MismatchedInputException e) {
-          // skip the last line of a not completed file
-          break;
-        }
-
-        final String type = (String) lineMap.get("type");
-        final String methodName = (String) lineMap.get("methodName");
-        final Number timestampNumber = (Number) lineMap.get("timestamp");
-        final Integer durationNumber = (Integer) lineMap.get("duration");
-
-        if (type == null || methodName == null || timestampNumber == null
-            || durationNumber == null) {
-          continue;
-        }
-
-        final long timestamp = timestampNumber.longValue();
-        final long duration = durationNumber.longValue();
-
-        if (timestamp <= startMs) {
-          continue;
-        }
-
-        if ((type.equals("AlluxioBlockInStream") && methodName.equals("readChunk"))
-            || (type.equals("HDFSPacketReceiver") && methodName.equals("doRead"))) {
-          if (!methodDescToHistogram.containsKey(methodName)) {
-            methodDescToHistogram.put(methodName, new PartialResultStatistic());
+      throws IOException {
+    Map<String, MethodStatistics> nameStatistics =
+        processMethodProfiles(startMs, endMs, (type, method) -> {
+          if ((type.equals("AlluxioBlockInStream") && method.equals("readChunk")) || (
+              type.equals("HDFSPacketReceiver") && method.equals("doRead"))) {
+            return method;
           }
-
-          final PartialResultStatistic statistic = methodDescToHistogram.get(methodName);
-          statistic.mTimeToFirstByteNs.recordValue(duration);
-          statistic.mNumSuccess += 1;
-
-          int bucket =
-              Math.min(statistic.mMaxTimeToFirstByteNs.length - 1,
-                  (int) ((timestamp - startMs) / bucketSize));
-          if (duration > statistic.mMaxTimeToFirstByteNs[bucket]) {
-            statistic.mMaxTimeToFirstByteNs[bucket] = duration;
-          }
-        }
-      }
+          return null;
+        });
+    if (nameStatistics.isEmpty()) {
+      return new SummaryStatistics();
     }
-    if (methodDescToHistogram.containsKey("readChunk")) {
-      return toSummaryStatistics(methodDescToHistogram.get("readChunk").mNumSuccess,
-          methodDescToHistogram.get("readChunk").mMaxTimeToFirstByteNs,
-          methodDescToHistogram.get("readChunk").mTimeToFirstByteNs);
-    } else if (methodDescToHistogram.containsKey("doRead")) {
-      return toSummaryStatistics(methodDescToHistogram.get("doRead").mNumSuccess,
-          methodDescToHistogram.get("doRead").mMaxTimeToFirstByteNs,
-          methodDescToHistogram.get("doRead").mTimeToFirstByteNs);
-    }
-    return new SummaryStatistics();
+
+    return toSummaryStatistics(nameStatistics.values().iterator().next());
   }
 
   /**
    * Converts this class to {@link SummaryStatistics}.
    *
-   * @param numSuccess number of success
-   * @param maxTimeToFirstByte maxTimeToFirstByte
-   * @param timeToFirstByteNs timeToFirstByteNs histogram
+   * @param methodStatistics the method statistics
    * @return new SummaryStatistics
-   * @throws DataFormatException if histogram decoding from compressed byte buffer fails
    */
-  public SummaryStatistics toSummaryStatistics(
-      int numSuccess,
-      long[] maxTimeToFirstByte,
-      Histogram timeToFirstByteNs) throws DataFormatException {
+  private SummaryStatistics toSummaryStatistics(MethodStatistics methodStatistics) {
     float[] responseTimePercentile = new float[101];
     for (int i = 0; i <= 100; i++) {
       responseTimePercentile[i] =
-          (float) timeToFirstByteNs.getValueAtPercentile(i) / Constants.MS_NANO;
+          (float) methodStatistics.getTimeNs().getValueAtPercentile(i) / Constants.MS_NANO;
     }
 
-    float[] responseTime99Percentile = new float[ClientIOTaskResult.RESPONSE_TIME_99_COUNT];
+    float[] responseTime99Percentile = new float[StressConstants.TIME_99_COUNT];
     for (int i = 0; i < responseTime99Percentile.length; i++) {
-      responseTime99Percentile[i] =
-          (float) timeToFirstByteNs.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
-              / Constants.MS_NANO;
+      responseTime99Percentile[i] = (float) methodStatistics.getTimeNs()
+          .getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i))) / Constants.MS_NANO;
     }
 
-    float[] maxResponseTimesMs = new float[ClientIOTaskResult.MAX_TIME_TO_FIRST_BYTE_COUNT];
+    float[] maxResponseTimesMs = new float[StressConstants.MAX_TIME_COUNT];
     Arrays.fill(maxResponseTimesMs, -1);
-    for (int i = 0; i < maxTimeToFirstByte.length; i++) {
-      maxResponseTimesMs[i] = (float) maxTimeToFirstByte[i] / Constants.MS_NANO;
+    for (int i = 0; i < methodStatistics.getMaxTimeNs().length; i++) {
+      maxResponseTimesMs[i] = (float) methodStatistics.getMaxTimeNs()[i] / Constants.MS_NANO;
     }
 
-    return new SummaryStatistics(numSuccess, responseTimePercentile,
+    return new SummaryStatistics(methodStatistics.getNumSuccess(), responseTimePercentile,
         responseTime99Percentile, maxResponseTimesMs);
-  }
-
-  /**
-   * Result statistics of time to first byte measurement.
-   */
-  private final class PartialResultStatistic {
-    private Histogram mTimeToFirstByteNs;
-    private int mNumSuccess;
-    private long[] mMaxTimeToFirstByteNs;
-
-    public PartialResultStatistic() {
-      mNumSuccess = 0;
-      mTimeToFirstByteNs = new Histogram(
-          ClientIOTaskResult.TIME_TO_FIRST_BYTE_HISTOGRAM_MAX,
-          ClientIOTaskResult.TIME_TO_FIRST_BYTE_HISTOGRAM_PRECISION);
-      mMaxTimeToFirstByteNs = new long[ClientIOTaskResult.MAX_TIME_TO_FIRST_BYTE_COUNT];
-      Arrays.fill(mMaxTimeToFirstByteNs, -1);
-    }
   }
 
   private final class BenchContext {
