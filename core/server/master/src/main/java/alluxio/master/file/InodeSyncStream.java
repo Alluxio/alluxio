@@ -32,6 +32,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -584,6 +585,10 @@ public class InodeSyncStream {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
+            .setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(-1)
+                .build())
             .setCreateAncestors(true)
             .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
         .setUfsStatus(status);
@@ -645,6 +650,11 @@ public class InodeSyncStream {
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
                     .setLoadDescendantType(LoadDescendantPType.NONE)
+                    // No Ttl on loaded files
+                    .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                        .setTtl(-1)
+                        .setTtlAction(TtlAction.DELETE)
+                        .build())
                     .setCreateAncestors(false))
                 .setUfsStatus(childStatus);
             try (LockedInodePath descendant = inodePath

@@ -11,6 +11,8 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.conf.ServerConfiguration;
@@ -20,9 +22,11 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.TtlAction;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.testutils.BaseIntegrationTest;
@@ -33,13 +37,13 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -55,7 +59,11 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long LONG_SLEEP_MS = Constants.SECOND_MS * 2;
 
   private FileSystem mFileSystem;
-  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+
+  @Rule
+  public TemporaryFolder mTempFoler = new TemporaryFolder();
+
+  private String mLocalUfsPath;
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
@@ -75,6 +83,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
+    mLocalUfsPath = mTempFoler.getRoot().getAbsolutePath();
     mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
@@ -211,18 +220,49 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
+    int createdInodes = createUfsFiles(5);
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
+    assertEquals(createdInodes + 2, list.size());
+  }
+
+  @Test
+  public void testNoTtlOnLoadedFiles() throws Exception {
+    int created = createUfsFiles(2);
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.ONCE.toString());
+    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(10000)
+                .setTtlAction(TtlAction.FREE)
+                .build())
+        .build();
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    assertEquals(created + 2, list.size());
+    list.forEach(stat -> {
+      assertEquals(-1, stat.getTtl());
+      assertEquals(TtlAction.DELETE, stat.getTtlAction());
+    });
+  }
+
+  public int createUfsFiles(int loops) throws Exception {
+    int count = 0;
+    for (int i = 0; i < loops; i++) {
+      new File(mLocalUfsPath + "/dir" + i + "/").mkdirs();
+      count += 1; // 1 dirs
+      for (int j = 0; j < loops; j++) {
         new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();
         FileWriter fileWriter = new FileWriter(mLocalUfsPath
             + "/dir" + i + "/dir" + j + "/" + "file");
         fileWriter.write("test" + i);
         fileWriter.close();
+        count += 2; // 1 dir and 1 file
       }
     }
-    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
-    // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
-    Assert.assertEquals(25 * 2 + 5 + 2, list.size());
+    return count;
   }
 
   /**
