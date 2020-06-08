@@ -190,6 +190,7 @@ public class ValidateHdfsMount {
       String host = entry.getKey();
       CommandReturn cr = entry.getValue().get();
       System.out.format("Host %s%nStatus: %s%n", host, cr.getExitCode());
+      System.out.println(cr.getFormattedOutput());
 
       // Deserialize from JSON
       List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());
@@ -215,10 +216,11 @@ public class ValidateHdfsMount {
   }
 
   private static List<ValidateUtils.TaskResult> parseTaskResults(String json) throws IOException {
-    if (!json.contains(JSON_START_POS_MARKER)) {
+    int idx = json.indexOf(JSON_START_POS_MARKER);
+    if (idx < 0) {
       throw new IOException(String.format("Failed to locate task results from: %s", json));
     }
-    json = json.replace(JSON_START_POS_MARKER, "");
+    json = json.substring(idx + JSON_START_POS_MARKER.length());
     System.out.println("Truncated json: ");
     System.out.println(json);
     return new ObjectMapper().readValue(json, new TypeReference<List<ValidateUtils.TaskResult>>() {});
