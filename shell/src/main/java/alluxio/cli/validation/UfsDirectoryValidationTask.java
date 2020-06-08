@@ -59,7 +59,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
       msg.append(String.format("Successfully listed path %s. ", mPath));
       return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
               msg.toString(), advice.toString());
-    } catch (IOException e) {
+    } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
               e.getMessage()));
       msg.append(ValidateUtils.getErrorInfo(e));
