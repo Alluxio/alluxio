@@ -1,0 +1,222 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.master;
+
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
+import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+/**
+ * Provides graceful and interruptable locking protocol for taking the state lock.
+ *
+ * {@link #lockShared()} will be used by user RPCs and may throw {@link InterruptedException}
+ * based on options passed to {@link #lockExclusive(StateLockOptions)}.
+ *
+ * {@link #lockExclusive(StateLockOptions)} will be used by metadata backups in order to
+ * guarantee paused state during critical tasks.
+ */
+public class StateLockManager {
+  private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
+
+  /** The state-lock. */
+  private ReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
+
+  /** The set of threads that are waiting for or holding the state-lock in shared mode. */
+  private Set<Thread> mSharedWaitersAndHolders;
+  /** Scheduler that is used for interrupt-cycle. */
+  private ScheduledExecutorService mScheduler;
+
+  /** Whether exclusive locking will trigger interrupt-cycle. */
+  private boolean mInterruptCycleEnabled;
+  /** Interval at which threads around shared-lock will be interrupted during interrupt-cycle. */
+  private long mInterruptCycleInterval;
+  /** Used to synchronize execution/termination of interrupt-cycle. */
+  private Lock mInterruptCycleLock = new ReentrantLock(true);
+  /** How many active exclusive locking attempts. */
+  private volatile long mInterruptCycleRefCount = 0;
+  /** The future for the active interrupt cycle. */
+  private ScheduledFuture<?> mInterrupterFuture;
+
+  // TODO(ggezer): Make it bound to a process start/stop cycle.
+  /** Shared locking requests will fail until this time. */
+  private long mExclusiveOnlyDeadlineMs;
+
+  /**
+   * Creates a new state-lock manager.
+   */
+  public StateLockManager() {
+    mSharedWaitersAndHolders = new ConcurrentHashSet<>();
+    // Init members.
+    mScheduler = Executors
+        .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("state-lock-manager-%d", true));
+    // Read properties.
+    mExclusiveOnlyDeadlineMs = System.currentTimeMillis()
+        + ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+    mInterruptCycleEnabled = ServerConfiguration
+        .getBoolean(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED);
+    mInterruptCycleInterval =
+        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL);
+    // Validate properties.
+    Preconditions.checkArgument(mInterruptCycleInterval > 0,
+        "Interrupt-cycle interval should be greater than 0.");
+  }
+
+  /**
+   * Locks the state shared.
+   *
+   * Calling thread might be interrupted by this manager,
+   * if it found to be waiting for the shared lock under when:
+   *  - backup is exiting grace-cycle and entering the lock permanently
+   *  - backup is in progress
+   *
+   * @return the lock resource
+   * @throws InterruptedException
+   */
+  public LockResource lockShared() throws InterruptedException {
+    // Do not allow taking shared lock during safe-mode.
+    if (System.currentTimeMillis() < mExclusiveOnlyDeadlineMs) {
+      String safeModeMsg = String.format(
+          "Master still in exclusive-only phase for the state-lock."
+              + "Please see documentation for %s.",
+          PropertyKey.Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+      throw new IllegalStateException(safeModeMsg);
+    }
+    // Register thread for interrupt cycle.
+    mSharedWaitersAndHolders.add(Thread.currentThread());
+    // Grab the lock interruptibly.
+    mStateLock.readLock().lockInterruptibly();
+    // Return the resource.
+    // Register an action to remove the thread from holders registry before releasing the lock.
+    return new LockResource(mStateLock.readLock(), false, false, () -> {
+      mSharedWaitersAndHolders.remove(Thread.currentThread());
+    });
+  }
+
+  /**
+   * Locks the state exclusively.
+   *
+   * @param lockOptions exclusive lock options
+   * @return the lock resource
+   * @throws TimeoutException if locking times out
+   * @throws InterruptedException if interrupting during locking
+   */
+  public LockResource lockExclusive(StateLockOptions lockOptions)
+      throws TimeoutException, InterruptedException {
+    // Run the grace cycle.
+    StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
+    boolean lockAcquired = false;
+    if (graceMode != StateLockOptions.GraceMode.SKIP) {
+      long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
+      while (System.currentTimeMillis() < deadlineMs) {
+        if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(),
+            TimeUnit.MILLISECONDS)) {
+          lockAcquired = true;
+          break;
+        } else {
+          long remainingWaitMs = deadlineMs - System.currentTimeMillis();
+          if (remainingWaitMs > 0) {
+            Thread.sleep(Math.min(lockOptions.getGraceCycleSleepMs(), remainingWaitMs));
+          }
+        }
+      }
+    }
+    if (lockAcquired) { // Lock was acquired within grace-cycle.
+      activateInterruptCycle();
+    } else { // Lock couldn't be acquired by grace-cycle.
+      if (graceMode == StateLockOptions.GraceMode.TIMEOUT) {
+        throw new TimeoutException(
+            ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(lockOptions.getGraceCycleTimeoutMs()));
+      }
+      if (mInterruptCycleEnabled && graceMode != StateLockOptions.GraceMode.SKIP) {
+        // Schedule interrupt cycle before entering the lock because it might wait in the queue.
+        activateInterruptCycle();
+      }
+      // Own the lock.
+      mStateLock.writeLock().lock();
+    }
+
+    // We have the lock, wrap it and return.
+    // Register an action for cancelling the interrupt cycle before releasing the lock.
+    return new LockResource(mStateLock.writeLock(), false, false, () -> {
+      // Before releasing the write-lock, activate interrupter if active.
+      if (mInterruptCycleEnabled && graceMode != StateLockOptions.GraceMode.SKIP) {
+        deactivateInterruptCycle();
+      }
+    });
+  }
+
+  /**
+   * Schedules the cycle of interrupting state-lock waiters/holders.
+   * It's called when:
+   *  - Lock is acquired by grace-cycle
+   *  - Lock is being taken directly after unsuccessful grace-cycle
+   *
+   * Calling it multiple times only schedules one interrupt-cycle.
+   */
+  private void activateInterruptCycle() {
+    try (LockResource lr = new LockResource(mInterruptCycleLock)) {
+      // Don't reschedule if it was before.
+      if (mInterruptCycleRefCount++ > 0) {
+        return;
+      }
+      // Setup the cycle.
+      mInterrupterFuture = mScheduler.scheduleAtFixedRate(this::waiterInterruptRoutine,
+          mInterruptCycleInterval, mInterruptCycleInterval, TimeUnit.MILLISECONDS);
+    }
+  }
+
+  /**
+   * Stops the cycle of interrupting state-lock waiters/holders.
+   *
+   * Interrupt-cycle will be stopped when this method is called as much as
+   * {@link #activateInterruptCycle()}.
+   */
+  private void deactivateInterruptCycle() {
+    try (LockResource lr = new LockResource(mInterruptCycleLock)) {
+      Preconditions.checkArgument(mInterruptCycleRefCount > 0);
+      // Don't do anything if there are exclusive lockers.
+      if (--mInterruptCycleRefCount > 0) {
+        return;
+      }
+      // Cancel the cycle.
+      mInterrupterFuture.cancel(true);
+      mInterrupterFuture = null;
+    }
+  }
+
+  /**
+   * Scheduled routine that interrupts waiters/holders of shared lock.
+   */
+  private void waiterInterruptRoutine() {
+    for (Thread th : mSharedWaitersAndHolders) {
+      th.interrupt();
+    }
+  }
+}

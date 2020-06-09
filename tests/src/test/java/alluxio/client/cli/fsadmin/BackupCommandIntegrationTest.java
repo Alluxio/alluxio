@@ -22,6 +22,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterProcess;
+import alluxio.master.StateLockManager;
+import alluxio.master.StateLockOptions;
+import alluxio.resource.LockResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;
@@ -31,7 +34,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.locks.Lock;
 
 /**
  * Integration tests for the backup command.
@@ -39,7 +41,8 @@ import java.util.concurrent.locks.Lock;
 @LocalAlluxioClusterResource.ServerConfig(
     confParams = {
         Name.MASTER_BACKUP_DIRECTORY, "${alluxio.work.dir}/backups",
-        Name.MASTER_BACKUP_STATE_LOCK_TIMEOUT, "3s"})
+        Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION, "3s",
+        Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s"})
 public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void defaultDirectory() throws IOException {
@@ -64,16 +67,15 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
   }
 
   @Test
-  public void timeout() throws IOException {
+  public void timeout() throws Exception {
     // Grab the master state-change lock via reflection.
     MasterProcess masterProcess =
         Whitebox.getInternalState(mLocalAlluxioCluster.getLocalAlluxioMaster(), "mMasterProcess");
     MasterContext masterCtx = Whitebox.getInternalState(masterProcess, "mContext");
-    Lock stateLock = masterCtx.pauseStateLock();
+    StateLockManager stateLockManager = masterCtx.getStateLockManager();
 
-    try {
-      // Lock the state-change lock on the master before initiating the backup.
-      stateLock.lock();
+    // Lock the state-change lock on the master before initiating the backup.
+    try (LockResource lr = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
       // Prepare for a backup.
       Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
       Files.createDirectories(dir);
@@ -83,8 +85,6 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
       assertTrue(mOutput.toString().contains(ExceptionMessage.STATE_LOCK_TIMED_OUT
           .getMessage(3000/* matching the cluster resource configuration. */)));
       assertNotEquals(0, errCode);
-    } finally {
-      masterCtx.pauseStateLock().unlock();
     }
   }
 }
