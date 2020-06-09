@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
@@ -25,13 +26,24 @@ import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -148,6 +160,108 @@ public abstract class Benchmark<T extends TaskResult> {
 
       LOG.info("running command: " + String.join(" ", command));
       return ShellUtils.execCommand(command.toArray(new String[0]));
+    }
+  }
+
+  /**
+   *
+   * @param startMs the start time
+   * @param endMs the end time
+   * @param nameTransformer function which transforms the type and method into a name. If the
+   *                        function returns null, then the method is skipped
+   * @return a map of names to statistics
+   */
+  @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
+  protected Map<String, MethodStatistics> processMethodProfiles(long startMs, long endMs,
+      BiFunction<String, String, String> nameTransformer) throws IOException {
+    Map<String, MethodStatistics> nameStatistics = new HashMap<>();
+
+    try (final BufferedReader reader = new BufferedReader(
+        new FileReader(BaseParameters.AGENT_OUTPUT_PATH))) {
+      String line;
+
+      long bucketSize = (endMs - startMs) / StressConstants.MAX_TIME_COUNT;
+
+      final ObjectMapper objectMapper = new ObjectMapper();
+      while ((line = reader.readLine()) != null) {
+        final Map<String, Object> lineMap;
+        try {
+          lineMap = objectMapper.readValue(line, Map.class);
+        } catch (JsonParseException | MismatchedInputException e) {
+          // skip the last line of a not completed file
+          break;
+        }
+
+        final String type = (String) lineMap.get("type");
+        final String methodName = (String) lineMap.get("methodName");
+        final Number timestampNumber = (Number) lineMap.get("timestamp");
+        final Number durationNumber = (Number) lineMap.get("duration");
+
+        if (type == null || methodName == null || timestampNumber == null
+            || durationNumber == null) {
+          continue;
+        }
+
+        final long timestamp = timestampNumber.longValue();
+        final long duration = durationNumber.longValue();
+
+        if (timestamp <= startMs) {
+          continue;
+        }
+
+        final String name = nameTransformer.apply(type, methodName);
+        if (name == null) {
+          continue;
+        }
+
+        if (!nameStatistics.containsKey(name)) {
+          nameStatistics.put(name, new MethodStatistics());
+        }
+        final MethodStatistics statistic = nameStatistics.get(name);
+
+        statistic.mTimeNs.recordValue(duration);
+        statistic.mNumSuccess += 1;
+
+        int bucket =
+            Math.min(statistic.mMaxTimeNs.length - 1, (int) ((timestamp - startMs) / bucketSize));
+        statistic.mMaxTimeNs[bucket] = Math.max(statistic.mMaxTimeNs[bucket], duration);
+      }
+    }
+    return nameStatistics;
+  }
+
+  protected static final class MethodStatistics {
+    private Histogram mTimeNs;
+    private int mNumSuccess;
+    private long[] mMaxTimeNs;
+
+    MethodStatistics() {
+      mNumSuccess = 0;
+      mTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
+          StressConstants.TIME_HISTOGRAM_PRECISION);
+      mMaxTimeNs = new long[StressConstants.MAX_TIME_COUNT];
+      Arrays.fill(mMaxTimeNs, -1);
+    }
+
+    /**
+     * @return the time histogram
+     */
+    public Histogram getTimeNs() {
+      return mTimeNs;
+    }
+
+    /**
+     * @return number of successes
+     */
+    public int getNumSuccess() {
+      return mNumSuccess;
+    }
+
+    /**
+     * @return the max time measurement, over the duration of the test
+     */
+    public long[] getMaxTimeNs() {
+      return mMaxTimeNs;
     }
   }
 }

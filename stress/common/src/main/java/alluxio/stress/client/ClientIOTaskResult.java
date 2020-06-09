@@ -39,15 +39,6 @@ import java.util.stream.Collectors;
  * The task result for the master stress tests.
  */
 public final class ClientIOTaskResult implements TaskResult, Summary {
-  public static final int MAX_TIME_TO_FIRST_BYTE_COUNT = 20;
-
-  /** The response time histogram can record values up to this amount. */
-  public static final long TIME_TO_FIRST_BYTE_HISTOGRAM_MAX = Constants.SECOND_NANO * 60 * 30;
-  public static final int TIME_TO_FIRST_BYTE_HISTOGRAM_PRECISION = 3;
-
-  public static final int COMPRESSION_LEVEL = 9;
-  public static final int RESPONSE_TIME_99_COUNT = 6;
-
   private long mRecordStartMs;
   private long mEndMs;
   private Map<Integer, ThreadCountResult> mThreadCountResults;
