@@ -194,22 +194,8 @@ spec:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
-  {{- if $isRoot }}
-    {{- if $needJournalVolume }}
-        - name: alluxio-journal
-          hostPath:
-            path: {{ printf "%v/%v" .Values.journal.hostPath (randAlphaNum 16) }}
-            type: DirectoryOrCreate
-    {{- end }}
-    {{- if .Values.master.metastore }}
-        - name: alluxio-metastore
-          hostPath:
-            path: {{ printf "%v/%v" .Values.master.metastore.hostPath (randAlphaNum 16) }}
-            type: DirectoryOrCreate
-    {{- end }}
-  {{- else }}
   volumeClaimTemplates:
-    {{- if $needJournalVolume }}
+  {{- if $needJournalVolume }}
     - metadata:
         name: alluxio-journal
       spec:
@@ -220,7 +206,7 @@ spec:
           requests:
             storage: {{ .Values.journal.size }}
   {{- end }}
-    {{- if .Values.master.metastore }}
+  {{- if .Values.master.metastore }}
     - metadata:
         name: alluxio-metastore
       spec:
@@ -230,5 +216,4 @@ spec:
         resources:
           requests:
             storage: {{ .Values.master.metastore.size }}
-    {{- end }}
-  {{- end}}
+  {{- end }}
