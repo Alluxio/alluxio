@@ -82,7 +82,7 @@ master:
   #   storageClass: "standard"
   #   accessModes:
   #     - ReadWriteOnce
-  #   hostPath: /tmp/metastore
+  #   hostPath: /tmp/metastore # The path to use if metastore volume is hostPath
 
 jobMaster:
   args:
