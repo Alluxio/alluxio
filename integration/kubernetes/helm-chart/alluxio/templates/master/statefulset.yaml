@@ -195,18 +195,17 @@ spec:
           {{- end }}
         {{- end }}
   {{- if $isRoot }}
-  volumes:
     {{- if $needJournalVolume }}
-    - name: alluxio-journal
-      hostPath:
-        path: {{ .Values.journal.hostPath }}
-        type: DirectoryOrCreate
+        - name: alluxio-journal
+          hostPath:
+            path: {{ printf "%v/%v" .Values.journal.hostPath }}
+            type: DirectoryOrCreate
     {{- end }}
     {{- if .Values.master.metastore }}
-    - name: alluxio-metastore
-      hostPath:
-        path: {{ .Values.master.metastore.hostPath }}
-        type: DirectoryOrCreate
+        - name: alluxio-metastore
+          hostPath:
+            path: {{ .Values.master.metastore.hostPath }}
+            type: DirectoryOrCreate
     {{- end }}
   {{- else }}
   volumeClaimTemplates:
