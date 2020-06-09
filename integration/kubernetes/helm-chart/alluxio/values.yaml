@@ -70,6 +70,9 @@ master:
     embedded: 19200
     rpc: 19998
     web: 19999
+  # You can specify hostNetwork and dnsPolicy here to override the default
+  # hostNetwork: false
+  # dnsPolicy: ClusterFirst
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
@@ -117,6 +120,7 @@ journal:
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
+  # The directory to use if journal volume is hostPath
   hostPath: "/tmp/journal"
   # Configuration for journal formatting job
   format:
@@ -151,6 +155,9 @@ worker:
   ports:
     rpc: 29999
     web: 30000
+  # You can specify hostNetwork and dnsPolicy here to override the default
+  # hostNetwork: false
+  # dnsPolicy: ClusterFirst
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
@@ -221,11 +228,13 @@ shortCircuit:
   # local means the cache directory is in the same mount namespace,
   # uuid means interact with domain socket
   policy: uuid
+  # Attributes if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket
   pvcAccessModes:
     - ReadWriteOnce
   pvcSize: 1Mi
   pvcStorageClass: standard
+  # The directory to use if the domain socket volume is hostPath
   hostPath: "/tmp/alluxio-domain"
 
 ## FUSE ##
