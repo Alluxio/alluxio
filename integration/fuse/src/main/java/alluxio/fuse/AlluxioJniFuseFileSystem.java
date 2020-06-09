@@ -12,7 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.PositionedReadable;
+import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -193,6 +193,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       FileInStream is = mFileSystem.openFile(uri);
       mOpenFiles.put(fd, new OpenFileEntry(path, is));
       fi.fh.set(fd);
+      LOG.info("open(fd={},entries={})", fd, mOpenFiles.size());
+      ((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -245,6 +247,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   public int release(String path, FuseFileInfo fi) {
     final OpenFileEntry oe;
     long fd = fi.fh.get();
+    LOG.info("release(fd={},entries={})", fd, mOpenFiles.size());
+    ((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
@@ -321,7 +325,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     /** the ref count.  */
     private final AtomicInteger mCount;
 
-    private final PositionedReadable.Context mContext;
     private final Closer mCloser;
 
     /**
@@ -335,10 +338,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       mIn = in;
       mPath = path;
       mCount = new AtomicInteger(1);
-      mContext = new PositionedReadable.Context();
       mCloser = Closer.create();
       mCloser.register(mIn);
-      mCloser.register(mContext);
     }
 
     /**
@@ -363,13 +364,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
      */
     public AtomicInteger getCount() {
       return mCount;
-    }
-
-    /**
-     * @return context
-     */
-    public PositionedReadable.Context getContext() {
-      return mContext;
     }
 
     @Override

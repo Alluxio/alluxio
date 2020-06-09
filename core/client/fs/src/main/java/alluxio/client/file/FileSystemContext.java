@@ -489,6 +489,20 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
+   * Prints pool size and available clients
+   */
+  public void printAvailableBlockWorkerClient() {
+    if (mBlockWorkerClientPoolMap == null) {
+      return;
+    }
+    for (ClientPoolKey key : mBlockWorkerClientPoolMap.keySet()) {
+      BlockWorkerClientPool pool = mBlockWorkerClientPoolMap.get(key);
+      LOG.info("client pool {}: size={}, available={}",
+          key, pool.size(), pool.getAvailableResources());
+    }
+  }
+
+  /**
    * Acquires a block worker client from the client pools. If there is no available client instance
    * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
    * create a new one.
