@@ -82,7 +82,6 @@ master:
   #   storageClass: "standard"
   #   accessModes:
   #     - ReadWriteOnce
-  #   hostPath: /tmp/metastore # The path to use if metastore volume is hostPath
 
 jobMaster:
   args:
@@ -120,8 +119,6 @@ journal:
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
-  # The directory to use if journal volume is hostPath
-  hostPath: "/tmp/journal"
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
