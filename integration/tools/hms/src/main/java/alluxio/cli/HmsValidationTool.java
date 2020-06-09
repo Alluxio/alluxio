@@ -11,8 +11,8 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidateUtils.State;
-import alluxio.cli.ValidateUtils.TaskResult;
+import alluxio.cli.ValidationUtils.State;
+import alluxio.cli.ValidationUtils.TaskResult;
 import alluxio.util.CommonUtils;
 
 import com.google.gson.Gson;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * Run tests against an existing hive metastore.
  */
-public class ValidateHms {
+public class HmsValidationTool implements ValidationTool {
   // The maximum number of table objects that this test will get.
   // Used to avoid issuing too many calls to the hive metastore
   // which may need a long time based on network conditions
@@ -64,14 +64,14 @@ public class ValidateHms {
   private Map<State, List<TaskResult>> mResults = new HashMap<>();
 
   /**
-   * Constructs a new {@link ValidateHms}.
+   * Constructs a new {@link HmsValidationTool}.
    *
    * @param metastoreUri hive metastore uris
    * @param database database to run tests against
    * @param tables tables to run tests against
    * @param socketTimeout socket time of hms operations
    */
-  public ValidateHms(String metastoreUri, String database, String tables,
+  private HmsValidationTool(String metastoreUri, String database, String tables,
       int socketTimeout) {
     mMetastoreUri = metastoreUri;
     mDatabase = database == null || database.isEmpty() ? DEFAULT_DATABASE : database;
@@ -80,16 +80,24 @@ public class ValidateHms {
   }
 
   /**
-   * Runs tests against an existing hive metastore.
-   * If an error occur, all the following tests will be skipped.
+   * Creates an instance of {@link HmsValidationTool}.
    *
-   * @return a json string of the test results
+   * @param metastoreUri hive metastore uris
+   * @param database database to run tests against
+   * @param tables tables to run tests against
+   * @param socketTimeout socket time of hms operations
+   * @return the new instance
    */
+  public static HmsValidationTool create(String metastoreUri, String database,
+      String tables, int socketTimeout) {
+    return new HmsValidationTool(metastoreUri, database, tables, socketTimeout);
+  }
+
+  @Override
   public String runTests() {
     try {
       checkConfiguration();
-      HiveConf hiveConf = setHiveConf();
-      mClient = createHiveMetastoreClient(hiveConf);
+      mClient = createHiveMetastoreClient();
       try {
         getDatabaseTest();
         if (mTables != null && !mTables.isEmpty()) {
@@ -107,7 +115,7 @@ public class ValidateHms {
   }
 
   /**
-   * Check if the given configuration is valid.
+   * Checks if the given configuration is valid.
    *
    * @throws Exception if any of the given configuration is invalid
    */
@@ -181,31 +189,26 @@ public class ValidateHms {
   }
 
   /**
-   * Sets hive configuration based on input parameters.
-   *
-   * @return the hive configuration
-   */
-  private HiveConf setHiveConf() {
-    HiveConf conf = new HiveConf();
-    conf.setVar(HiveConf.ConfVars.METASTOREURIS, mMetastoreUri);
-    conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
-    return conf;
-  }
-
-  /**
    * Create hive metastore client.
    *
-   * @param hiveConf the hive configuration for this client
    * @return the created hive metastore client
    * @throws Exception if failed to create hive metastore client
    */
-  private IMetaStoreClient createHiveMetastoreClient(HiveConf hiveConf) throws Exception {
+  private IMetaStoreClient createHiveMetastoreClient() throws Exception {
     ConnectHmsAction action;
     String testName = "CreateHmsClientTest";
     try {
-      action = new ConnectHmsAction(hiveConf);
-      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      ugi.doAs(action);
+      ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+      try {
+        // Use the extension class loader
+        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+        HiveConf conf = setHiveConf();
+        action = new ConnectHmsAction(conf);
+        UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+        ugi.doAs(action);
+      } finally {
+        Thread.currentThread().setContextClassLoader(currentClassLoader);
+      }
     } catch (UndeclaredThrowableException e) {
       if (e.getUndeclaredThrowable() instanceof IMetaStoreClient.IncompatibleMetastoreException) {
         mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
@@ -241,6 +244,18 @@ public class ValidateHms {
       throw t;
     }
     return action.getConnection();
+  }
+
+  /**
+   * Sets hive configuration based on input parameters.
+   *
+   * @return the hive configuration
+   */
+  private HiveConf setHiveConf() {
+    HiveConf conf = new HiveConf();
+    conf.setVar(HiveConf.ConfVars.METASTOREURIS, mMetastoreUri);
+    conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
+    return conf;
   }
 
   private void getDatabaseTest() throws Exception {
@@ -370,9 +385,8 @@ public class ValidateHms {
 
     @Override
     public Void run() throws MetaException {
-      IMetaStoreClient client = RetryingMetaStoreClient
+      mConnection = RetryingMetaStoreClient
           .getProxy(mHiveConf, table -> null, HiveMetaStoreClient.class.getName());
-      mConnection = client;
       return null;
     }
   }
