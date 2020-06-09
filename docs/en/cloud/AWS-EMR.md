@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on EMR
 nickname: AWS EMR
-group: Alluxio in the Cloud
+group: Cloud Native
 priority: 3
 ---
 

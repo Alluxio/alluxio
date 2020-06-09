@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Presto Sandbox on AWS
 nickname: Alluxio Presto Sandbox
-group: Alluxio in the Cloud
+group: Cloud Native
 priority: 5
 ---
 
