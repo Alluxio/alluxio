@@ -3,7 +3,7 @@ layout: global
 title: Deploy Alluxio on Kubernetes
 nickname: Kubernetes
 group: Install Alluxio
-priority: 5
+priority: 0
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
