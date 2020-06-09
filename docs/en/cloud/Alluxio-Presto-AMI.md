@@ -1,9 +1,9 @@
 ---
 layout: global
 title: Alluxio Presto Sandbox on AWS
-nickname: Alluxio Presto Sandbox
+nickname: AWS Presto Sandbox
 group: Cloud Native
-priority: 5
+priority: 6
 ---
 
 This guide describes how to launch a single node sandbox with Alluxio and Presto preconfigured to run queries.
