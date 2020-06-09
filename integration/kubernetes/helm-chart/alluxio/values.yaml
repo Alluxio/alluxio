@@ -180,6 +180,7 @@ jobWorker:
 # Tiered Storage
 # emptyDir example
 #  - level: 0
+#    alias: MEM
 #    mediumtype: MEM
 #    path: /dev/shm
 #    type: emptyDir
@@ -187,6 +188,7 @@ jobWorker:
 #
 # hostPath example
 #  - level: 0
+#    alias: MEM
 #    mediumtype: MEM
 #    path: /dev/shm
 #    type: hostPath
@@ -194,6 +196,7 @@ jobWorker:
 #
 # persistentVolumeClaim example
 #  - level: 1
+#    alias: SSD
 #    mediumtype: SSD
 #    type: persistentVolumeClaim
 #    name: alluxio-ssd
@@ -202,6 +205,7 @@ jobWorker:
 #
 # multi-part mediumtype example
 #  - level: 1
+#    alias: SSD,HDD
 #    mediumtype: SSD,HDD
 #    type: persistentVolumeClaim
 #    name: alluxio-ssd,alluxio-hdd
@@ -210,6 +214,7 @@ jobWorker:
 tieredstore:
   levels:
   - level: 0
+    alias: MEM
     mediumtype: MEM
     path: /dev/shm
     type: emptyDir
