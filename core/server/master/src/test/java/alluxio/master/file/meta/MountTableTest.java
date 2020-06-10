@@ -321,15 +321,6 @@ public final class MountTableTest {
     }
 
     try {
-      mMountTable.checkIsWritableMountPoint(alluxioUri);
-      Assert.fail("Readonly mount point should not be writable.");
-    } catch (AccessControlException e) {
-      // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
-              e.getMessage());
-    }
-
-    try {
       String path = mountPath + "/sub/directory";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
       mMountTable.checkUnderWritableMountPoint(alluxioUri);

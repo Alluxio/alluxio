@@ -405,23 +405,6 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Checks to see if a write operation is allowed for the specified Alluxio path, by determining
-   * if it is a readonly mount point.
-   *
-   * @param alluxioUri
-   * @throws AccessControlException
-   */
-  public void checkIsWritableMountPoint(AlluxioURI alluxioUri)
-          throws AccessControlException {
-    try (LockResource r = new LockResource(mReadLock)) {
-      // This will re-acquire the read lock, but that is allowed.
-      MountInfo mountInfo = mState.getMountTable().get(alluxioUri.getPath());
-      if (mountInfo.getOptions().getReadOnly()) {
-        throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, alluxioUri.getPath());
-      }
-    }
-  }
-  /**
    * @param mountId the given ufs id
    * @return the mount information with this id or null if this mount id is not found
    */
