@@ -88,8 +88,9 @@ public class CompositeInodeLockList implements InodeLockList {
 
   @Override
   public void downgradeToReadLocks() {
-    mBaseLockList.downgradeToReadLocks();
-    mSubLockList.downgradeToReadLocks();
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeToReadLocks();
+    }
   }
 
   @Override
