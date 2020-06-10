@@ -12,7 +12,7 @@
 package alluxio.stress.cli.report;
 
 import alluxio.stress.GraphGenerator;
-import alluxio.cli.JsonSerializable;
+import alluxio.util.JsonSerializable;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.Graph;
 

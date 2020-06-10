@@ -241,7 +241,7 @@ public final class UnderFileSystemContractTest {
             errStream.format("Test %s.%s aborted%n%s%n", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);
-            RunTestUtils.printPassInfo(passed);
+            RunTestUtils.printTestStatus(passed);
             if (!passed) {
               failedTestCnt++;
             }

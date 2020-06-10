@@ -34,7 +34,7 @@ public final class RunTestUtils {
    * @param outStream stream for stdout
    * @param errStream stream for stderr
    */
-  public static void printPassInfo(boolean pass, PrintStream outStream, PrintStream errStream) {
+  public static void printTestStatus(boolean pass, PrintStream outStream, PrintStream errStream) {
     if (pass) {
       outStream.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
     } else {
@@ -47,8 +47,8 @@ public final class RunTestUtils {
    *
    * @param pass the test result
    */
-  public static void printPassInfo(boolean pass) {
-    printPassInfo(pass, System.out, System.err);
+  public static void printTestStatus(boolean pass) {
+    printTestStatus(pass, System.out, System.err);
   }
 
   /**
@@ -65,7 +65,7 @@ public final class RunTestUtils {
       LOG.error("Exception running test: " + example, e);
       result = false;
     }
-    RunTestUtils.printPassInfo(result);
+    RunTestUtils.printTestStatus(result);
     return result;
   }
 }

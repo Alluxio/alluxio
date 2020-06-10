@@ -11,7 +11,7 @@
 
 package alluxio.stress;
 
-import alluxio.cli.JsonSerializable;
+import alluxio.util.JsonSerializable;
 
 /**
  * This represents the result of a single stress task. A {@link TaskResult} is meant to be
