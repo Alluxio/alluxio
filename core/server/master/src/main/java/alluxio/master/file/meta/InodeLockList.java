@@ -104,7 +104,7 @@ public interface InodeLockList extends AutoCloseable {
   void unlockLastEdge();
 
   /**
-   * Downgrades all inodes in the current lock list to read locks.
+   * Downgrades all locks in the current lock list to read locks.
    */
   void downgradeToReadLocks();
 

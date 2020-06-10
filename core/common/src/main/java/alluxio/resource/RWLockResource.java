@@ -51,6 +51,7 @@ public class RWLockResource extends LockResource {
     }
     Preconditions.checkState(mRwLock.isWriteLockedByCurrentThread(),
         "Lock downgrades may only be initiated by the holding thread.");
+    Preconditions.checkState(mLock == mRwLock.writeLock(), "mLock must be the same as mRwLock");
 
     // Downgrade by taking the read lock and then unlocking the write lock.
     mRwLock.readLock().lock();
