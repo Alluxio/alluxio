@@ -44,6 +44,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
+import alluxio.stress.cli.UfsIOBench;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -995,6 +996,31 @@ public final class AlluxioMasterRestServiceHandler {
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
 
       return response;
+    }, ServerConfiguration.global());
+  }
+
+  /**
+   * Gets Web UI metrics page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_METRICS)
+  public Response getUFSIOMetrics(@DefaultValue("4G") @QueryParam("ioSize") String ioSize,
+                                  @DefaultValue("4") @QueryParam("threads") String threadNum,
+                                  @DefaultValue("1") @QueryParam("clusterLimit") String workerNum,
+                                  @DefaultValue(" ") @QueryParam("javaOpts") String javaOpts,
+                                  @QueryParam("path") String ufsPath) {
+    // Pre-process the java opts
+
+    return RestUtils.call(() -> {
+      // Generate args
+      String[] args = new String[]{
+              "--ioSize", ioSize, "--threads", threadNum, "--cluster-limit", workerNum,
+              "--path", ufsPath, "--java-opt", javaOpts, "--cluster"
+      };
+      UfsIOBench bench = new UfsIOBench();
+      return bench.run(args);
     }, ServerConfiguration.global());
   }
 
