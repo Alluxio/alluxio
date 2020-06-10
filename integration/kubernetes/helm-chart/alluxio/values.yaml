@@ -70,15 +70,15 @@ master:
     embedded: 19200
     rpc: 19998
     web: 19999
+  # You can specify hostNetwork and dnsPolicy here to override the default
+  # hostNetwork: false
+  # dnsPolicy: ClusterFirst
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
-  hostNetwork: false
-  dnsPolicy: ClusterFirst
   # Example: use ROCKS DB instead of Heap
   # metastore:
   #   size: 1Gi
-  #   mountPath: /metastore
   #   storageClass: "standard"
   #   accessModes:
   #     - ReadWriteOnce
@@ -152,11 +152,12 @@ worker:
   ports:
     rpc: 29999
     web: 30000
+  # You can specify hostNetwork and dnsPolicy here to override the default
+  # hostNetwork: false
+  # dnsPolicy: ClusterFirst
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
-  hostNetwork: false
-  dnsPolicy: ClusterFirst
 
 jobWorker:
   args:
@@ -229,11 +230,14 @@ shortCircuit:
   # local means the cache directory is in the same mount namespace,
   # uuid means interact with domain socket
   policy: uuid
+  # Attributes if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket
   pvcAccessModes:
     - ReadWriteOnce
   pvcSize: 1Mi
   pvcStorageClass: standard
+  # The directory to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain"
 
 ## FUSE ##
 
