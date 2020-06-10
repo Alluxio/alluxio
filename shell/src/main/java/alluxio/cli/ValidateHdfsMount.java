@@ -53,7 +53,6 @@ import java.util.concurrent.Executors;
  * */
 public class ValidateHdfsMount {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateHdfsMount.class);
-  private static final String JSON_START_POS_MARKER = "ValidateHdfsMount task results: \n";
 
   private static final Option READONLY_OPTION =
           Option.builder()
@@ -79,12 +78,9 @@ public class ValidateHdfsMount {
                   .valueSeparator('=')
                   .desc("options associated with this mount point")
                   .build();
-  private static final Option LOCAL_OPTION =
-          Option.builder().required(false).longOpt("local").hasArg(false)
-                  .desc("running only on localhost").build();
   private static final Options OPTIONS =
           new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-                  .addOption(OPTION_OPTION).addOption(LOCAL_OPTION);
+                  .addOption(OPTION_OPTION);
 
   /**
    * Invokes {@link UnderFileSystemContractTest} to validate UFS operations.
@@ -122,125 +118,39 @@ public class ValidateHdfsMount {
     String ufsPath = args[0];
 
     InstancedConfiguration conf = InstancedConfiguration.defaults();
-    if (cmd.hasOption(LOCAL_OPTION.getLongOpt())) {
-      // Merge options from the command line option
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
-      if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
-        ufsConf.setReadOnly(true);
-      }
-      if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
-        ufsConf.setShared(true);
-      }
-      if (cmd.hasOption(OPTION_OPTION.getLongOpt())) {
-        Properties properties = cmd.getOptionProperties(OPTION_OPTION.getLongOpt());
-        ufsConf.merge(properties, Source.MOUNT_OPTION);
-        LOG.debug("Options from cmdline: {}", properties);
-      }
-
-      // Run validateEnv
-      Map<String, String> validateOpts = ImmutableMap.of();
-      ValidateEnv validate = new ValidateEnv(ufsPath, ufsConf);
-      List<ValidateUtils.TaskResult> results = validate.validateUfs(
-              ApplicableUfsType.Type.HDFS, validateOpts);
-
-      // Run runUfsTests
-      if (ufsConf.isReadOnly()) {
-        LOG.debug("Ufs operations are skipped because the path is readonly.");
-        results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
-                UnderFileSystemContractTest.TASK_NAME,
-                String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath),
-                ""));
-      } else {
-        results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
-      }
-
-      // Serialize the results back to the calling node
-      printResults(results);
-
-      System.exit(0);
+    // Merge options from the command line option
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
+    if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
+      ufsConf.setReadOnly(true);
+    }
+    if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
+      ufsConf.setShared(true);
+    }
+    if (cmd.hasOption(OPTION_OPTION.getLongOpt())) {
+      Properties properties = cmd.getOptionProperties(OPTION_OPTION.getLongOpt());
+      ufsConf.merge(properties, Source.MOUNT_OPTION);
+      LOG.debug("Options from cmdline: {}", properties);
     }
 
-    // Cluster mode
-    LOG.info("Invoking the command remotely on the Alluxio cluster.");
+    // Run validateEnv
+    Map<String, String> validateOpts = ImmutableMap.of();
+    ValidateEnv validate = new ValidateEnv(ufsPath, ufsConf);
+    List<ValidateUtils.TaskResult> results = validate.validateUfs(
+            ApplicableUfsType.Type.HDFS, validateOpts);
 
-    // how many nodes in the cluster
-    Set<String> hosts = ConfigurationUtils.getServerHostnames(conf);
-    ExecutorService executor = Executors.newFixedThreadPool(hosts.size());
-
-    // Invoke validateHdfsMount locally on each host
-    Map<String, CompletableFuture<CommandReturn>> resultFuture = new HashMap<>();
-    for (String host : hosts) {
-      LOG.info("validate hdfs mount on host {}", host);
-
-      // We make the assumption that the Alluxio WORK_DIR is the same
-      String workDir = conf.get(PropertyKey.WORK_DIR);
-      String alluxioBinPath = Paths.get(workDir, "bin/alluxio")
-              .toAbsolutePath().toString();
-      LOG.info("host: {}, alluxio path {}", host, alluxioBinPath);
-
-      String[] validateHdfsArgs =
-              (String[]) ArrayUtils.addAll(
-                      new String[]{alluxioBinPath, "runClass",
-                              ValidateHdfsMount.class.getCanonicalName(), "--local"}, args);
-
-      CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
-        try {
-          return ShellUtils.sshExecCommandWithOutput(host, validateHdfsArgs);
-        } catch (Exception e) {
-          LOG.error("Execution failed: ", e);
-          return new CommandReturn(1, validateHdfsArgs, e.toString());
-        }
-      }, executor);
-      resultFuture.put(host, future);
-      LOG.info("Invoked local validateHdfs command on host {}", host);
+    // Run runUfsTests
+    if (ufsConf.isReadOnly()) {
+      LOG.debug("Ufs operations are skipped because the path is readonly.");
+      results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
+              UnderFileSystemContractTest.TASK_NAME,
+              String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath),
+              ""));
+    } else {
+      results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
     }
 
-    // collect results
-    Map<String, Map<ValidateUtils.State, List<ValidateUtils.TaskResult>>> hostToGroupedResults = new HashMap<>();
-    for (Map.Entry<String, CompletableFuture<CommandReturn>> entry : resultFuture.entrySet()) {
-      String host = entry.getKey();
-      CommandReturn cr = entry.getValue().get();
-      if (cr.getExitCode() != 0) {
-        System.err.format("Failed to run validateHdfsMount on host %s.%n%s%n", host, cr.getFormattedOutput());
-        continue;
-      }
-
-      // Deserialize from JSON
-      List<ValidateUtils.TaskResult> taskResults = parseTaskResults(cr.getOutput());
-      Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> groupedMap = new HashMap<>();
-      // group by state
-      taskResults.forEach((r) -> {
-        groupedMap.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
-      });
-      hostToGroupedResults.put(host, groupedMap);
-    }
-
-    // Parse and join results
-    formatAndPrintGroupedResults(hostToGroupedResults);
+    System.out.println(JsonSerializable.listToJson(results));
 
     System.exit(0);
-  }
-
-  private static void printResults(List<ValidateUtils.TaskResult> results) throws Exception {
-    // SSH command may print unexpected messages to the output, need to leave a marker where
-    // the real JSON contents start.
-    String json = JsonSerializable.listToJson(results);
-    System.out.format("%s%s%n", JSON_START_POS_MARKER,json);
-  }
-
-  private static List<ValidateUtils.TaskResult> parseTaskResults(String json) throws IOException {
-    int idx = json.indexOf(JSON_START_POS_MARKER);
-    if (idx < 0) {
-      throw new IOException(String.format("Failed to locate task results from: %s", json));
-    }
-    json = json.substring(idx + JSON_START_POS_MARKER.length());
-    System.out.println("Truncated json: ");
-    System.out.println(json);
-    return new ObjectMapper().readValue(json, new TypeReference<List<ValidateUtils.TaskResult>>() {});
-  }
-
-  private static void formatAndPrintGroupedResults(Map<String, Map<ValidateUtils.State, List<ValidateUtils.TaskResult>>> resultMap) {
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    System.out.println(gson.toJson(resultMap));
   }
 }
