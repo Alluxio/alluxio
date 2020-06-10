@@ -167,9 +167,9 @@ public final class ValidateEnv {
     registerTask("ufs.path.accessible",
         "validate the under file system location is accessible",
         new UfsDirectoryValidationTask(mPath, mConf), COMMON_TASKS);
-    registerTask("ufs.root.superuser",
-        "validate Alluxio has super user privilege on root under file system",
-        new UfsSuperUserValidationTask(mConf), COMMON_TASKS);
+    registerTask("ufs.path.superuser",
+        "validate Alluxio has super user privilege on the under file system",
+        new UfsSuperUserValidationTask(mPath, mConf), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",

@@ -33,13 +33,13 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
 
   /**
    * Creates a new instance of {@link UfsSuperUserValidationTask}
-   * for validating root under file system.
+   * for validating the under file system.
    *
    * @param conf configuration
    */
-  public UfsSuperUserValidationTask(AlluxioConfiguration conf) {
-    mUfs = UnderFileSystem.Factory.createForRoot(conf);
-    mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  public UfsSuperUserValidationTask(String path, AlluxioConfiguration conf) {
+    mPath = path;
+    mUfs = UnderFileSystem.Factory.create(mPath, conf);
   }
 
   @Override
