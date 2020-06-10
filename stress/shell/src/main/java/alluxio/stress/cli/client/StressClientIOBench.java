@@ -19,7 +19,6 @@ import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.stress.client.TimeToFirstByteStatistics;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -191,10 +190,9 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized TimeToFirstByteStatistics addAdditionalResult(
+  public synchronized Map<String, SummaryStatistics> addAdditionalResult(
       long startMs, long endMs) throws IOException {
     Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
-    TimeToFirstByteStatistics timeToFirstByteStatistics = new TimeToFirstByteStatistics();
 
     Map<String, MethodStatistics> nameStatistics =
         processMethodProfiles(startMs, endMs, (type, method) -> {
@@ -214,9 +212,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    timeToFirstByteStatistics.setSummaryStatistics(summaryStatistics);
-
-    return timeToFirstByteStatistics;
+    return summaryStatistics;
   }
 
   /**

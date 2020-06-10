@@ -45,7 +45,8 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
 
-  private Map<Integer, TimeToFirstByteStatistics> mTimeToFirstByte;
+  //private Map<Integer, TimeToFirstByteStatistics> mTimeToFirstByte;
+  private Map<Integer, Map<String, SummaryStatistics>> mTimeToFirstByte;
 
   /**
    * Creates an instance.
@@ -101,14 +102,15 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   /**
    * @return client IO statistics per method
    */
-  public Map<Integer, TimeToFirstByteStatistics> getTimeToFirstBytePerThread() {
+  public Map<Integer, Map<String, SummaryStatistics>> getTimeToFirstBytePerThread() {
     return mTimeToFirstByte;
   }
 
   /**
    * @param timeToFirstByte time to first statistics
    */
-  public void setTimeToFirstBytePerThread(Map<Integer, TimeToFirstByteStatistics> timeToFirstByte) {
+  public void setTimeToFirstBytePerThread(Map<Integer, Map<String,
+      SummaryStatistics>> timeToFirstByte) {
     mTimeToFirstByte = timeToFirstByte;
   }
 
@@ -117,7 +119,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
    * @param statistics ClientIOTaskResultStatistics
    */
   public void putTimeToFirstBytePerThread(Integer numThreads,
-      TimeToFirstByteStatistics statistics) {
+      Map<String, SummaryStatistics> statistics) {
     mTimeToFirstByte.put(numThreads, statistics);
   }
 
@@ -176,10 +178,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private void getNumSuccessData(String series, LineGraph lineGraph) {
     Map<String, LineGraph.Data> data = new HashMap<>();
 
-    for (Map.Entry<Integer, TimeToFirstByteStatistics>
-             threadEntry : mTimeToFirstByte.entrySet()) {
+    for (Map.Entry<Integer, Map<String, SummaryStatistics>> threadEntry :
+        mTimeToFirstByte.entrySet()) {
       for (Map.Entry<String, SummaryStatistics> methodEntry :
-          threadEntry.getValue().getSummaryStatistics().entrySet()) {
+          threadEntry.getValue().entrySet()) {
         String prefix = series + ", method: " + methodEntry.getKey();
         LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
         currentData.addData(threadEntry.getKey(), methodEntry.getValue().mNumSuccess);
@@ -193,10 +195,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   }
 
   private void getTimeToFistByteData(String series, LineGraph lineGraph) {
-    for (Map.Entry<Integer, TimeToFirstByteStatistics> threadEntry :
+    for (Map.Entry<Integer, Map<String, SummaryStatistics>> threadEntry :
         mTimeToFirstByte.entrySet()) {
       for (Map.Entry<String, SummaryStatistics> methodEntry :
-          threadEntry.getValue().getSummaryStatistics().entrySet()) {
+          threadEntry.getValue().entrySet()) {
         lineGraph.addDataSeries(series
             + ", method: " + methodEntry.getKey()
             + ", thread: " + threadEntry.getKey(), methodEntry.getValue().computeTimeData());
