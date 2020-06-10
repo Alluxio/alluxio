@@ -87,10 +87,9 @@ public class CompositeInodeLockList implements InodeLockList {
   }
 
   @Override
-  public void downgradeLastInode() {
-    if (canDowngradeLast()) {
-      mSubLockList.downgradeLastInode();
-    }
+  public void downgradeToReadLocks() {
+    mBaseLockList.downgradeToReadLocks();
+    mSubLockList.downgradeToReadLocks();
   }
 
   @Override
@@ -109,16 +108,6 @@ public class CompositeInodeLockList implements InodeLockList {
     // Can't downgrade, just acquire new locks instead.
     mSubLockList.lockInode(inode, LockMode.WRITE);
     mSubLockList.lockEdge(inode, childName, LockMode.WRITE);
-  }
-
-  @Override
-  public void downgradeEdgeToInode(Inode inode, LockMode mode) {
-    if (canDowngradeLast()) {
-      mSubLockList.downgradeEdgeToInode(inode, mode);
-      return;
-    }
-    // Can't downgrade, just acquire new locks instead.
-    mSubLockList.lockInode(inode, LockMode.WRITE);
   }
 
   private boolean canDowngradeLast() {

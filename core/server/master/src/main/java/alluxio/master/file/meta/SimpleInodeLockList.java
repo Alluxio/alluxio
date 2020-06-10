@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -55,7 +56,7 @@ public class SimpleInodeLockList implements InodeLockList {
    * The locks always alternate between Inode lock and Edge lock.
    * The first lock can be either Inode or Edge lock.
    */
-  private LinkedList<LockResource> mLocks;
+  private LinkedList<RWLockResource> mLocks;
   /**
    * The index of the first write lock entry in {@link #mLocks}.
    * If all locks are read locks, mFirstWriteLockIndex == NO_WRITE_LOCK.
@@ -129,10 +130,10 @@ public class SimpleInodeLockList implements InodeLockList {
       lockEdge(inode, childName, LockMode.WRITE);
     } else {
       Edge lastEdge = lastEdge();
-      LockResource lastEdgeReadLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ,
+      RWLockResource lastEdgeReadLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ,
           mUseTryLock);
-      LockResource inodeLock = mInodeLockManager.lockInode(inode, LockMode.READ, mUseTryLock);
-      LockResource nextEdgeLock = mInodeLockManager.lockEdge(edge, LockMode.WRITE, mUseTryLock);
+      RWLockResource inodeLock = mInodeLockManager.lockInode(inode, LockMode.READ, mUseTryLock);
+      RWLockResource nextEdgeLock = mInodeLockManager.lockEdge(edge, LockMode.WRITE, mUseTryLock);
       removeLastLock(); // Remove edge write lock
       addEdgeLock(lastEdge, LockMode.READ, lastEdgeReadLock);
       addInodeLock(inode, LockMode.READ, inodeLock);
@@ -159,20 +160,9 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   @Override
-  public void downgradeLastInode() {
-    Preconditions.checkState(endsInInode(),
-        "Cannot downgrade last inode when lock list %s ends in an edge", this);
-    Preconditions.checkState(!mLocks.isEmpty(),
-        "Cannot downgrade last inode when the lock list is empty");
-    Preconditions.checkState(endsInWriteLock(),
-        "Cannot downgrade last inode when lock list %s is not write locked", this);
-
-    if (!endsInMultipleWriteLocks()) {
-      Inode lastInode = lastInode();
-      LockResource newLock = mInodeLockManager.lockInode(lastInode, LockMode.READ, mUseTryLock);
-      removeLastLock();
-      addInodeLock(lastInode, LockMode.READ, newLock);
-    }
+  public void downgradeToReadLocks() {
+    mLocks.forEach(RWLockResource::downgrade);
+    mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
   }
 
   @Override
@@ -186,36 +176,10 @@ public class SimpleInodeLockList implements InodeLockList {
 
     if (!endsInMultipleWriteLocks()) {
       Edge lastEdge = lastEdge();
-      LockResource newLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ, mUseTryLock);
+      RWLockResource newLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ, mUseTryLock);
       removeLastLock();
       addEdgeLock(lastEdge, LockMode.READ, newLock);
     }
-  }
-
-  @Override
-  public void downgradeEdgeToInode(Inode inode, LockMode mode) {
-    Preconditions.checkState(!endsInInode(),
-        "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
-            + "already ends in an inode",
-        this);
-    Preconditions.checkState(!mLocks.isEmpty(),
-        "Cannot downgrade from an edge write lock to an inode lock when the lock list is empty");
-    Preconditions.checkState(endsInWriteLock(),
-        "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
-            + "is not write locked",
-        this);
-
-    if (endsInMultipleWriteLocks()) {
-      lockInode(inode, LockMode.WRITE);
-      return;
-    }
-
-    Edge lastEdge = lastEdge();
-    LockResource newEdgeLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ, mUseTryLock);
-    LockResource inodeLock = mInodeLockManager.lockInode(inode, mode, mUseTryLock);
-    removeLastLock();
-    addEdgeLock(lastEdge, LockMode.READ, newEdgeLock);
-    addInodeLock(inode, mode, inodeLock);
   }
 
   /**
@@ -230,14 +194,14 @@ public class SimpleInodeLockList implements InodeLockList {
     return endsInWriteLock() ? LockMode.WRITE : mode;
   }
 
-  private void addLock(LockResource lock, LockMode mode) {
+  private void addLock(RWLockResource lock, LockMode mode) {
     if (!endsInWriteLock() && mode == LockMode.WRITE) {
       mFirstWriteLockIndex = mLocks.size();
     }
     mLocks.add(lock);
   }
 
-  private void addInodeLock(Inode inode, LockMode mode, LockResource lock) {
+  private void addInodeLock(Inode inode, LockMode mode, RWLockResource lock) {
     mInodes.add(inode);
     mLastEdge = null;
     addLock(lock, mode);
@@ -247,7 +211,7 @@ public class SimpleInodeLockList implements InodeLockList {
     addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode, mUseTryLock));
   }
 
-  private void addEdgeLock(Edge edge, LockMode mode, LockResource lock) {
+  private void addEdgeLock(Edge edge, LockMode mode, RWLockResource lock) {
     mLastEdge = edge;
     addLock(lock, mode);
   }

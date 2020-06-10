@@ -14,6 +14,7 @@ package alluxio.collections;
 import alluxio.Constants;
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
 import alluxio.resource.RefCountLockResource;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -204,19 +205,9 @@ public class LockPool<K> implements Closeable {
    *                   been acquired.
    * @return a lock resource which must be closed to unlock the key
    */
-  public LockResource get(K key, LockMode mode, boolean useTryLock) {
+  public RWLockResource get(K key, LockMode mode, boolean useTryLock) {
     Resource resource = getResource(key);
-    ReentrantReadWriteLock lock = resource.mLock;
-    switch (mode) {
-      case READ:
-        return new RefCountLockResource(
-            lock.readLock(), true, resource.mRefCount, useTryLock);
-      case WRITE:
-        return new RefCountLockResource(
-            lock.writeLock(), true, resource.mRefCount, useTryLock);
-      default:
-        throw new IllegalStateException("Unknown lock mode: " + mode);
-    }
+    return new RefCountLockResource(resource.mLock, mode, true, resource.mRefCount, useTryLock);
   }
 
   /**
@@ -226,7 +217,7 @@ public class LockPool<K> implements Closeable {
    * @param mode lockMode to acquire
    * @return either empty or a lock resource which must be closed to unlock the key
    */
-  public Optional<LockResource> tryGet(K key, LockMode mode) {
+  public Optional<RWLockResource> tryGet(K key, LockMode mode) {
     Resource resource = getResource(key);
     ReentrantReadWriteLock lock = resource.mLock;
     Lock innerLock;
@@ -243,7 +234,7 @@ public class LockPool<K> implements Closeable {
     if (!innerLock.tryLock()) {
       return Optional.empty();
     }
-    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount, false));
+    return Optional.of(new RefCountLockResource(lock, mode, false, resource.mRefCount, false));
   }
 
   /**
