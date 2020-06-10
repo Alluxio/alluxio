@@ -149,7 +149,13 @@ public class ValidateHdfsMount {
       results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
     }
 
-    System.out.println(JsonSerializable.listToJson(results));
+    // group by state
+    Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> map = new HashMap<>();
+    results.stream().forEach((r) -> {
+      map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
+    });
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    System.out.println(gson.toJson(map));
 
     System.exit(0);
   }

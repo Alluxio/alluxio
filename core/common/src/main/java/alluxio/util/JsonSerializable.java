@@ -52,12 +52,6 @@ public interface JsonSerializable {
     return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
   }
 
-  static <T extends JsonSerializable> String listToJson(List<T> list) throws JsonProcessingException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(list);
-  }
-
   /**
    * @param json the json string representation
    * @return the parsed object
