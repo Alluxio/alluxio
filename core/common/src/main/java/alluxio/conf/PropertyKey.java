@@ -60,8 +60,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
   /** A map from default property key's alias to the key. */
   private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new ConcurrentHashMap<>();
-  /** A cache storing result for isValid calls. */
-  private static final Cache<String, Boolean> VALID_CACHE = CacheBuilder.newBuilder()
+  /** A cache storing result for template regexp matching results. */
+  private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
   /**
@@ -5714,27 +5714,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String input) {
-    Boolean result = VALID_CACHE.getIfPresent(input);
-    if (result != null) {
-      return result;
-    }
-    result = isValidInternal(input);
-    VALID_CACHE.put(input, result);
-    return result;
-  }
-
-  private static boolean isValidInternal(String input) {
     // Check if input matches any default keys or aliases
     if (DEFAULT_KEYS_MAP.containsKey(input) || DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
     }
+    // Regex matching for templates can be expensive when checking properties frequently.
+    // Use a cache to store regexp matching results to reduce CPU overhead.
+    Boolean result = REGEXP_CACHE.getIfPresent(input);
+    if (result != null) {
+      return result;
+    }
     // Check if input matches any parameterized keys
+    result = false;
     for (Template template : Template.values()) {
       if (template.matches(input)) {
-        return true;
+        result = true;
+        break;
       }
     }
-    return false;
+    REGEXP_CACHE.put(input, result);
+    return result;
   }
 
   /**
