@@ -45,7 +45,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
 
-  private Map<String, SummaryStatistics> mTimeToFirstByte;
+  private Map<Integer, TimeToFirstByteStatistics> mTimeToFirstByte;
 
   /**
    * Creates an instance.
@@ -101,24 +101,24 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   /**
    * @return client IO statistics per method
    */
-  public Map<String, SummaryStatistics> getTimeToFirstBytePerThread() {
+  public Map<Integer, TimeToFirstByteStatistics> getTimeToFirstBytePerThread() {
     return mTimeToFirstByte;
   }
 
   /**
    * @param timeToFirstByte time to first statistics
    */
-  public void setTimeToFirstBytePerThread(Map<String, SummaryStatistics> timeToFirstByte) {
+  public void setTimeToFirstBytePerThread(Map<Integer, TimeToFirstByteStatistics> timeToFirstByte) {
     mTimeToFirstByte = timeToFirstByte;
   }
 
   /**
-   * @param threadCountWithMethod thread count
+   * @param numThreads thread count
    * @param statistics ClientIOTaskResultStatistics
    */
-  public void putTimeToFirstBytePerThread(String threadCountWithMethod,
-      SummaryStatistics statistics) {
-    mTimeToFirstByte.put(threadCountWithMethod, statistics);
+  public void putTimeToFirstBytePerThread(Integer numThreads,
+      TimeToFirstByteStatistics statistics) {
+    mTimeToFirstByte.put(numThreads, statistics);
   }
 
   /**
@@ -176,14 +176,15 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private void getNumSuccessData(String series, LineGraph lineGraph) {
     Map<String, LineGraph.Data> data = new HashMap<>();
 
-    for (Map.Entry<String, SummaryStatistics>
-             threadMethodEntry : mTimeToFirstByte.entrySet()) {
-      String[] threadMethod = threadMethodEntry.getKey().split(",", 2);
-      String prefix = series + ", method: " + threadMethod[1];
-      LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
-      currentData.addData(Integer.valueOf(threadMethod[0]),
-          threadMethodEntry.getValue().mNumSuccess);
-      data.put(prefix, currentData);
+    for (Map.Entry<Integer, TimeToFirstByteStatistics>
+             threadEntry : mTimeToFirstByte.entrySet()) {
+      for (Map.Entry<String, SummaryStatistics> methodEntry :
+          threadEntry.getValue().getSummaryStatistics().entrySet()) {
+        String prefix = series + ", method: " + methodEntry.getKey();
+        LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
+        currentData.addData(threadEntry.getKey(), methodEntry.getValue().mNumSuccess);
+        data.put(prefix, currentData);
+      }
     }
 
     for (Map.Entry<String, LineGraph.Data> entry : data.entrySet()) {
@@ -192,12 +193,14 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   }
 
   private void getTimeToFistByteData(String series, LineGraph lineGraph) {
-    for (Map.Entry<String, SummaryStatistics> threadMethodEntry :
+    for (Map.Entry<Integer, TimeToFirstByteStatistics> threadEntry :
         mTimeToFirstByte.entrySet()) {
-      String[] threadMethod = threadMethodEntry.getKey().split(",", 2);
-      lineGraph.addDataSeries(series
-              + ", method: " + threadMethod[1]
-              + ", thread: " + threadMethod[0], threadMethodEntry.getValue().computeTimeData());
+      for (Map.Entry<String, SummaryStatistics> methodEntry :
+          threadEntry.getValue().getSummaryStatistics().entrySet()) {
+        lineGraph.addDataSeries(series
+            + ", method: " + methodEntry.getKey()
+            + ", thread: " + threadEntry.getKey(), methodEntry.getValue().computeTimeData());
+      }
     }
   }
 
@@ -279,10 +282,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
                 subTitle, "# Threads", "Throughput (MB/s)");
 
             LineGraph numSuccessGraph = new LineGraph(String
-                .format("%s - %s - Number of Successes", operation,
+                .format("%s - %s - API calls", operation,
                     opSummaries.get(0).mParameters.getDescription(
                         Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "Number of Success (MB/s)");
+                subTitle, "# Threads", "# API calls");
 
             LineGraph timeToFirstByteGraph = new LineGraph(String
                 .format("%s - %s - Time To First Byte", operation,

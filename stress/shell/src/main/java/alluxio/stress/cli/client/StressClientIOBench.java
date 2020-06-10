@@ -19,6 +19,7 @@ import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
+import alluxio.stress.client.TimeToFirstByteStatistics;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -40,6 +41,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -137,8 +139,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       if (!mBaseParameters.mProfileAgent.isEmpty()) {
-        addAdditionalResult(taskResult, String.valueOf(numThreads),
-                threadCountResult.getRecordStartMs(), threadCountResult.getEndMs());
+        taskResult.putTimeToFirstBytePerThread(numThreads,
+            addAdditionalResult(
+                threadCountResult.getRecordStartMs(),
+                threadCountResult.getEndMs()));
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
@@ -181,16 +185,17 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /**
    * Read the log file from java agent log file.
    *
-   * @param taskResult client io task result
-   * @param numThreads number of thread in this test
    * @param startMs start time for profiling
    * @param endMs end time for profiling
+   * @return TimeToFirstByteStatistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized void addAdditionalResult(
-      ClientIOTaskResult taskResult, String numThreads,
+  public synchronized TimeToFirstByteStatistics addAdditionalResult(
       long startMs, long endMs) throws IOException {
+    Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
+    TimeToFirstByteStatistics timeToFirstByteStatistics = new TimeToFirstByteStatistics();
+
     Map<String, MethodStatistics> nameStatistics =
         processMethodProfiles(startMs, endMs, (type, method) -> {
           if ((type.equals("AlluxioBlockInStream") && method.equals("readChunk")) || (
@@ -204,10 +209,14 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         });
     if (!nameStatistics.isEmpty()) {
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
-        taskResult.putTimeToFirstBytePerThread(
-            numThreads + "," + entry.getKey(), toSummaryStatistics(entry.getValue()));
+        summaryStatistics.put(
+            entry.getKey(), toSummaryStatistics(entry.getValue()));
       }
     }
+
+    timeToFirstByteStatistics.setSummaryStatistics(summaryStatistics);
+
+    return timeToFirstByteStatistics;
   }
 
   /**
