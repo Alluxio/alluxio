@@ -32,7 +32,6 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.TtlAction;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -112,6 +111,11 @@ import java.util.concurrent.Future;
  */
 public class InodeSyncStream {
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
+
+  private static final FileSystemMasterCommonPOptions NO_TTL_OPTION =
+      FileSystemMasterCommonPOptions.newBuilder()
+          .setTtl(-1)
+          .build();
 
   /** The root path. Should be locked with a write lock. */
   private final LockedInodePath mRootPath;
@@ -585,10 +589,7 @@ public class InodeSyncStream {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
-            .setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder()
-                .setTtl(-1)
-                .build())
+            .setCommonOptions(NO_TTL_OPTION)
             .setCreateAncestors(true)
             .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
         .setUfsStatus(status);
@@ -651,10 +652,7 @@ public class InodeSyncStream {
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
                     .setLoadDescendantType(LoadDescendantPType.NONE)
                     // No Ttl on loaded files
-                    .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-                        .setTtl(-1)
-                        .setTtlAction(TtlAction.DELETE)
-                        .build())
+                    .setCommonOptions(NO_TTL_OPTION)
                     .setCreateAncestors(false))
                 .setUfsStatus(childStatus);
             try (LockedInodePath descendant = inodePath

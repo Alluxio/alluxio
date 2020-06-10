@@ -244,7 +244,6 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     assertEquals(created + 2, list.size());
     list.forEach(stat -> {
       assertEquals(-1, stat.getTtl());
-      assertEquals(TtlAction.DELETE, stat.getTtlAction());
     });
   }
 
