@@ -45,7 +45,6 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
 
-  //private Map<Integer, TimeToFirstByteStatistics> mTimeToFirstByte;
   private Map<Integer, Map<String, SummaryStatistics>> mTimeToFirstByte;
 
   /**
