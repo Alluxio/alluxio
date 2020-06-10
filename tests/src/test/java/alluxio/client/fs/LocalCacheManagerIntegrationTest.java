@@ -11,10 +11,8 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.client.file.cache.LocalCacheManager;
@@ -28,7 +26,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
-import com.google.common.io.ByteStreams;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,9 +33,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
 
 public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest {
@@ -56,6 +50,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf;
+  private final byte[] mBuffer = new byte[PAGE_SIZE_BYTES];
 
   @Before
   public void before() throws Exception {
@@ -97,12 +92,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testPageCached(PageId pageId) throws Exception {
-    ReadableByteChannel channel = mCacheManager.get(pageId);
-    assertNotNull(channel);
-    try (InputStream stream = Channels.newInputStream(channel)) {
-      assertTrue(BufferUtils.equalIncreasingByteArray(
-          PAGE_SIZE_BYTES, ByteStreams.toByteArray(stream)));
-    }
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertArrayEquals(PAGE, mBuffer);
   }
 
   @Test
@@ -129,15 +120,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     }
     int evicted = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
-      ReadableByteChannel channel = mCacheManager.get(new PageId("0", i));
-      if (channel == null) {
+      PageId pageId = new PageId("0", i);
+      int ret = mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0);
+      assertArrayEquals(PAGE, mBuffer);
+      if (ret <= 0) {
         evicted++;
         continue;
       }
-      try (InputStream stream = Channels.newInputStream(channel)) {
-        assertTrue(BufferUtils.equalIncreasingByteArray(
-            PAGE_SIZE_BYTES, ByteStreams.toByteArray(stream)));
-      }
+      assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0));
     }
     // verifies half of the loaded pages are evicted
     assertEquals(PAGE_COUNT / 2, evicted);
@@ -192,9 +182,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
     mCacheManager = LocalCacheManager.create(mConf);
-    try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
-      assertNull(channel);
-    }
+    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   @Test
@@ -207,9 +195,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
         mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
-    try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
-      assertNull(channel);
-    }
+    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   @Test
@@ -233,9 +219,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private void testLoadCacheConfMismatch(PropertyKey prop, Object value) throws Exception {
     testLoadCacheConfChanged(prop, value);
     // verify failed to read from recovered local cache
-    try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
-      assertNull(channel);
-    }
+    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   private void loadFullCache() throws Exception {
