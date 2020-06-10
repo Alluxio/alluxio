@@ -27,6 +27,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
@@ -58,7 +60,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
   /** A map from default property key's alias to the key. */
   private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new ConcurrentHashMap<>();
-
+  /** A cache storing result for isValid calls. */
+  private static final Cache<String, Boolean> VALID_CACHE = CacheBuilder.newBuilder()
+      .maximumSize(1024)
+      .build();
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -5709,6 +5714,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String input) {
+    Boolean result = VALID_CACHE.getIfPresent(input);
+    if (result != null) {
+      return result;
+    }
+    result = isValidInternal(input);
+    VALID_CACHE.put(input, result);
+    return result;
+  }
+
+  private static boolean isValidInternal(String input) {
     // Check if input matches any default keys or aliases
     if (DEFAULT_KEYS_MAP.containsKey(input) || DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
