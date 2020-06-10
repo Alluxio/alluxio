@@ -45,7 +45,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private ClientIOParameters mParameters;
 
-  private Map<Integer, SummaryStatistics> mTimeToFirstByte;
+  private Map<String, SummaryStatistics> mTimeToFirstByte;
 
   /**
    * Creates an instance.
@@ -101,23 +101,24 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
   /**
    * @return client IO statistics per method
    */
-  public Map<Integer, SummaryStatistics> getTimeToFirstBytePerThread() {
+  public Map<String, SummaryStatistics> getTimeToFirstBytePerThread() {
     return mTimeToFirstByte;
   }
 
   /**
    * @param timeToFirstByte time to first statistics
    */
-  public void setTimeToFirstBytePerThread(Map<Integer, SummaryStatistics> timeToFirstByte) {
+  public void setTimeToFirstBytePerThread(Map<String, SummaryStatistics> timeToFirstByte) {
     mTimeToFirstByte = timeToFirstByte;
   }
 
   /**
-   * @param threadCount thread count
+   * @param threadCountWithMethod thread count
    * @param statistics ClientIOTaskResultStatistics
    */
-  public void putTimeToFirstBytePerThread(int threadCount, SummaryStatistics statistics) {
-    mTimeToFirstByte.put(threadCount, statistics);
+  public void putTimeToFirstBytePerThread(String threadCountWithMethod,
+      SummaryStatistics statistics) {
+    mTimeToFirstByte.put(threadCountWithMethod, statistics);
   }
 
   /**
@@ -172,10 +173,31 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     return data;
   }
 
+  private void getNumSuccessData(String series, LineGraph lineGraph) {
+    Map<String, LineGraph.Data> data = new HashMap<>();
+
+    for (Map.Entry<String, SummaryStatistics>
+             threadMethodEntry : mTimeToFirstByte.entrySet()) {
+      String[] threadMethod = threadMethodEntry.getKey().split(",", 2);
+      String prefix = series + ", method: " + threadMethod[1];
+      LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
+      currentData.addData(Integer.valueOf(threadMethod[0]),
+          threadMethodEntry.getValue().mNumSuccess);
+      data.put(prefix, currentData);
+    }
+
+    for (Map.Entry<String, LineGraph.Data> entry : data.entrySet()) {
+      lineGraph.addDataSeries(entry.getKey(), entry.getValue());
+    }
+  }
+
   private void getTimeToFistByteData(String series, LineGraph lineGraph) {
-    for (Map.Entry<Integer, SummaryStatistics> entry : mTimeToFirstByte.entrySet()) {
-      lineGraph.addDataSeries(
-          series + ", thread: " + entry.getKey(), entry.getValue().computeTimeData());
+    for (Map.Entry<String, SummaryStatistics> threadMethodEntry :
+        mTimeToFirstByte.entrySet()) {
+      String[] threadMethod = threadMethodEntry.getKey().split(",", 2);
+      lineGraph.addDataSeries(series
+              + ", method: " + threadMethod[1]
+              + ", thread: " + threadMethod[0], threadMethodEntry.getValue().computeTimeData());
     }
   }
 
@@ -256,6 +278,12 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
                         Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
                 subTitle, "# Threads", "Throughput (MB/s)");
 
+            LineGraph numSuccessGraph = new LineGraph(String
+                .format("%s - %s - Number of Successes", operation,
+                    opSummaries.get(0).mParameters.getDescription(
+                        Collections.singletonList(ClientIOParameters.FIELD_READ_RANDOM))),
+                subTitle, "# Threads", "Number of Success (MB/s)");
+
             LineGraph timeToFirstByteGraph = new LineGraph(String
                 .format("%s - %s - Time To First Byte", operation,
                     opSummaries.get(0).mParameters.getDescription(
@@ -267,9 +295,12 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
               responseTimeGraph.addDataSeries(series, summary.getThroughputData());
               responseTimeGraph.setErrors(series, summary.collectErrors());
 
+              summary.getNumSuccessData(series, numSuccessGraph);
+
               summary.getTimeToFistByteData(series, timeToFirstByteGraph);
             }
             graphs.add(responseTimeGraph);
+            graphs.add(numSuccessGraph);
             graphs.add(timeToFirstByteGraph);
           }
         }

@@ -137,9 +137,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       if (!mBaseParameters.mProfileAgent.isEmpty()) {
-        taskResult.putTimeToFirstBytePerThread(
-            numThreads, addAdditionalResult(
-                threadCountResult.getRecordStartMs(), threadCountResult.getEndMs()));
+        addAdditionalResult(taskResult, String.valueOf(numThreads),
+                threadCountResult.getRecordStartMs(), threadCountResult.getEndMs());
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
@@ -182,27 +181,33 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /**
    * Read the log file from java agent log file.
    *
+   * @param taskResult client io task result
+   * @param numThreads number of thread in this test
    * @param startMs start time for profiling
    * @param endMs end time for profiling
-   * @return summary statistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized SummaryStatistics addAdditionalResult(long startMs, long endMs)
-      throws IOException {
+  public synchronized void addAdditionalResult(
+      ClientIOTaskResult taskResult, String numThreads,
+      long startMs, long endMs) throws IOException {
     Map<String, MethodStatistics> nameStatistics =
         processMethodProfiles(startMs, endMs, (type, method) -> {
           if ((type.equals("AlluxioBlockInStream") && method.equals("readChunk")) || (
-              type.equals("HDFSPacketReceiver") && method.equals("doRead"))) {
+              type.equals("HDFSPacketReceiver") && method.equals("doRead")) || (
+              type.equals("HDFSBlockReaderRemote")
+                  && method.equals("newBlockReader")
+                  || method.equals("readChunk"))) {
             return method;
           }
           return null;
         });
-    if (nameStatistics.isEmpty()) {
-      return new SummaryStatistics();
+    if (!nameStatistics.isEmpty()) {
+      for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
+        taskResult.putTimeToFirstBytePerThread(
+            numThreads + "," + entry.getKey(), toSummaryStatistics(entry.getValue()));
+      }
     }
-
-    return toSummaryStatistics(nameStatistics.values().iterator().next());
   }
 
   /**
@@ -230,7 +235,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       maxResponseTimesMs[i] = (float) methodStatistics.getMaxTimeNs()[i] / Constants.MS_NANO;
     }
 
-    return new SummaryStatistics(methodStatistics.getNumSuccess(), responseTimePercentile,
+    return new SummaryStatistics(methodStatistics.getNumSuccess(),
+        responseTimePercentile,
         responseTime99Percentile, maxResponseTimesMs);
   }
 
