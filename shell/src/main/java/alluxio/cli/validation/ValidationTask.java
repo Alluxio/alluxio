@@ -23,6 +23,13 @@ import java.util.Map;
  */
 public interface ValidationTask {
   /**
+   * Gets the name of the task.
+   *
+   * @return the task name
+   * */
+  String getName();
+
+  /**
    * @return Set of {@link Option} required by this task
    */
   List<Option> getOptionList();
