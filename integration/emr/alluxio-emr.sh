@@ -101,6 +101,7 @@ get_aws_region() {
   curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//'
 }
 
+
 # Puts a shutdown hook under the EMR defined /mnt/var/lib/instance-controller/public/shutdown-actions directory.
 # 
 # Args:
@@ -170,13 +171,15 @@ main() {
   print_help() {
     local -r USAGE=$(cat <<USAGE_END
 
-Usage: alluxio-emr.sh <root-ufs-uri> [-b <backup_uri>]
-                             [ -d <alluxio-download-uri>]
-                             [-f <file_uri>]
-                             [-i <journal_backup_uri>]
-                             [-n <storage percentage>]
-                             [-p <delimited_properties>]
-                             [-s <property_delimiter>]
+Usage: alluxio-emr.sh <root-ufs-uri>
+                      [-b <backup_uri>]
+                      [-c]
+                      [-d <alluxio-download-uri>]
+                      [-f <file_uri>]
+                      [-i <journal_backup_uri>]
+                      [-n <storage percentage>]
+                      [-p <delimited_properties>]
+                      [-s <property_delimiter>]
 
 alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
 with Alluxio. It can download and install Alluxio as well as add properties
@@ -189,8 +192,9 @@ nothing will be installed over it, even if -d is specified.
 
 If a different Alluxio version is desired, see the -d option.
 
-  <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
-                    namespace.
+  <root-ufs-uri>    The URI of the root UFS in the Alluxio namespace. If this
+                    is an empty string, the emr hdfs root will be used as the
+                    root UFS.
 
   -b                An s3:// URI that the Alluxio master will write a backup
                     to upon shutdown of the EMR cluster. The backup and and
@@ -199,6 +203,8 @@ If a different Alluxio version is desired, see the -d option.
                     be uploaded. This option is not recommended for production
                     or mission critical use cases where the backup is relied
                     upon to restore cluster state after a previous shutdown.
+
+  -c                Install the alluxio client jars only
 
   -d                An s3:// or http(s):// URI which points to an Alluxio
                     tarball. This script will download and untar the
@@ -231,7 +237,6 @@ If a different Alluxio version is desired, see the -d option.
   -s                A string containing a single character representing what
                     delimiter should be used to split the Alluxio properties
                     provided in the [-p] argument.
-
 USAGE_END
 )
     echo -e "${USAGE}" >&2
@@ -244,6 +249,7 @@ USAGE_END
   local restore_from_backup_uri=""
   local files_list=""
   local nvme_capacity_usage=""
+  local client_only="false"
 
   if [[ "$#" -lt "1" ]]; then
     echo -e "No root UFS URI provided"
@@ -252,11 +258,16 @@ USAGE_END
 
   local root_ufs_uri="${1}"
   shift
-  while getopts "b:d:f:i:n:p:s:" option; do
-    OPTARG=$(echo -e "${OPTARG}" | tr -d '[:space:]')
+  while getopts "b:cd:f:i:n:p:s:" option; do
+    if [[ -n "${OPTARG-}" ]]; then
+      OPTARG=$(echo -e "${OPTARG}" | tr -d '[:space:]')
+    fi
     case "${option}" in
       b)
         backup_uri="${OPTARG}"
+        ;;
+      c)
+        client_only="true"
         ;;
       d)
         alluxio_tarball="${OPTARG}"
@@ -332,6 +343,11 @@ USAGE_END
 
   doas alluxio "echo '${master}' > ${ALLUXIO_HOME}/conf/masters"
   doas alluxio "echo '${workers}' > ${ALLUXIO_HOME}/conf/workers"
+
+  # set root ufs uri
+  if [[ -z "${root_ufs_uri}" ]]; then
+    root_ufs_uri="hdfs://${master}:8020"
+  fi
 
   # Identify master
   local -r is_master=$(jq '.isMaster' /mnt/var/lib/info/instance.json)
@@ -434,39 +450,39 @@ USAGE_END
   append_alluxio_property alluxio.underfs.s3.owner.id.to.username.mapping "${canonical_id}=hadoop"
   doas alluxio "echo '# END AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
 
-  # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
-  if [[ ${is_master} = "true" ]]; then
-    local args=""
-    if [[ "${restore_from_backup_uri}" ]]; then
-      local -r backup_name="$(basename "${restore_from_backup_uri}")"
-      local -r backup_location=/tmp/alluxio_backup
-      mkdir -p "${backup_location}"
-      cd "${backup_location}"
-      download_file "${restore_from_backup_uri}"
-      chmod -R 777 "${backup_location}"
-      args="-i ${backup_location}/${backup_name}"
-    fi
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
+  if [  "${client_only}" != "true" ]; then 
+    # Alluxio can't rely on SSH to start services (i.e. no alluxio-start.sh all)
+    if [ "${is_master}" = "true" ]; then
+      local args=""
+      if [[ "${restore_from_backup_uri}" ]]; then
+        local -r backup_name="$(basename "${restore_from_backup_uri}")"
+        local -r backup_location=/tmp/alluxio_backup
+        mkdir -p "${backup_location}"
+        cd "${backup_location}"
+        download_file "${restore_from_backup_uri}"
+        chmod -R 777 "${backup_location}"
+        args="-i ${backup_location}/${backup_name}"
+      fi
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
 
-    if [[ "${backup_uri}" ]]; then
-      register_backup_on_shutdown "${backup_uri}"
+      if [[ "${backup_uri}" ]]; then
+        register_backup_on_shutdown "${backup_uri}"
+      fi
+    else
+      if [[ "${use_mem}" ]]; then
+        ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
+      fi
+      until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
+      do
+        sleep 5
+      done
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a worker"
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_worker"
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
     fi
-  else
-
-    if [[ "${use_mem}" ]]; then
-      ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
-    fi
-    until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
-    do
-      sleep 5
-    done
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a worker"
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_worker"
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
   fi
-
   # Compute application configs
   doas alluxio "ln -s ${ALLUXIO_HOME}/client/*client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar"
   sudo mkdir -p /usr/lib/spark/jars/
