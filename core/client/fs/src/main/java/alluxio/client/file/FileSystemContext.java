@@ -47,6 +47,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.math.StatsAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,6 +106,8 @@ public class FileSystemContext implements Closeable {
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
+
+  private final StatsAccumulator mSeekDistStats = new StatsAccumulator();
 
   //
   // Master related resources.
@@ -366,6 +369,13 @@ public class FileSystemContext implements Closeable {
       LOG.debug("FileSystemContext re-initialized");
       mReinitializer.onSuccess();
     }
+  }
+
+  /**
+   * @return stats of seek distance
+   */
+  public StatsAccumulator getSeekStats() {
+    return mSeekDistStats;
   }
 
   /**
