@@ -89,16 +89,6 @@
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-examples</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
       <!-- Test dependencies -->
     <dependency>
