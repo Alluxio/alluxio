@@ -9,8 +9,9 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- $isRoot := eq (int .Values.user) 0 }}
 {{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
-{{ $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") -}}
+{{ $needDomainSocketVolume := and (not $isRoot) (and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid")) -}}
 {{ if $needDomainSocketVolume -}}
 apiVersion: v1
 kind: PersistentVolumeClaim

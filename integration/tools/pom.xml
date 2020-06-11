@@ -18,6 +18,7 @@
     <groupId>org.alluxio</groupId>
     <version>2.3.0-SNAPSHOT</version>
   </parent>
+  <packaging>pom</packaging>
   <name>Alluxio Integration - Tools</name>
   <artifactId>alluxio-integration-tools</artifactId>
 
@@ -28,50 +29,18 @@
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
-  <dependencies>
-    <!-- External dependencies -->
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-metastore</artifactId>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.eclipse.jetty.aggregate</groupId>
-          <artifactId>jetty-all</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-1.2-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-slf4j-impl</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.protobuf</groupId>
-          <artifactId>protobuf-java</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+  <modules>
+    <module>hms</module>
+  </modules>
 
+  <dependencies>
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <!-- Internal test dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
+
 </project>

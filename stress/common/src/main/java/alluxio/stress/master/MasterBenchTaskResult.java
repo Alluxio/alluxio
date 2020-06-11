@@ -231,12 +231,11 @@ public final class MasterBenchTaskResult implements TaskResult {
     return new Aggregator();
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator {
+  private static final class Aggregator implements TaskResult.Aggregator<MasterBenchTaskResult> {
     @Override
-    public MasterBenchSummary aggregate(Iterable<TaskResult> results) throws Exception {
+    public MasterBenchSummary aggregate(Iterable<MasterBenchTaskResult> results) throws Exception {
       List<String> nodes = new ArrayList<>();
       Map<String, List<String>> errors = new HashMap<>();
-
       MasterBenchTaskResult mergingTaskResult = null;
 
       for (TaskResult taskResult : results) {

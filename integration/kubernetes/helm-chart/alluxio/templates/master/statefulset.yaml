@@ -50,8 +50,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-master
     spec:
-      hostNetwork: {{ .Values.master.hostNetwork }}
-      dnsPolicy: {{ .Values.master.dnsPolicy }}
+      hostNetwork: {{ hasKey .Values.master "hostNetwork" | ternary .Values.master.hostNetwork $isRoot }}
+      dnsPolicy: {{ .Values.master.dnsPolicy | default ($isRoot | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
       {{- if .Values.master.nodeSelector }}
 {{ toYaml .Values.master.nodeSelector | trim | indent 8  }}

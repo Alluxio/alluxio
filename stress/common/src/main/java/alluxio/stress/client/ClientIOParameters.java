@@ -35,12 +35,12 @@ public final class ClientIOParameters extends Parameters {
       required = true)
   public ClientIOOperation mOperation;
 
-  @Parameter(names = {"--clients"}, description = "the number of fs clients to use")
+  @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
 
   @Parameter(names = {"--threads"},
       description = "the comma-separated list of thread counts to test. The throughput for each "
-          + "thread tested is benchmarked.")
+          + "thread count is benchmarked and measured separately.")
   public List<Integer> mThreads = Collections.singletonList(1);
 
   @Parameter(names = {"--base"},
@@ -52,7 +52,7 @@ public final class ClientIOParameters extends Parameters {
   @Parameters.KeylessDescription
   public String mBaseAlias = "";
 
-  @Parameter(names = {"--tag"}, description = "A string to identify this run")
+  @Parameter(names = {"--tag"}, description = "optional human-readable string to identify this run")
   @Parameters.KeylessDescription
   public String mTag = "";
 
@@ -65,7 +65,7 @@ public final class ClientIOParameters extends Parameters {
   public String mBufferSize = "64k";
 
   @Parameter(names = {"--block-size"},
-      description = "The size of the file block. (16k, 64m, etc.)")
+      description = "The block size of files. (16k, 64m, etc.)")
   public String mBlockSize = "64m";
 
   @Parameter(names = {"--duration"},
@@ -78,13 +78,15 @@ public final class ClientIOParameters extends Parameters {
   public String mWarmup = "30s";
 
   @Parameter(names = {"--read-same-file"},
-      description = "If true, read the same file.")
+      description = "If true, all threads read from the same file. Otherwise, each thread reads "
+          + "from its own file.")
   @Parameters.BooleanDescription(trueDescription = "SameFile", falseDescription = "OwnFile")
   public boolean mReadSameFile = false;
 
   @Parameter(names = {"--read-random"},
-      description = "If true, read the file from random offsets. For stream operations, seek() is"
-          + " called to read random offsets.")
+      description = "If true, threads read the file from random offsets. For streaming "
+          + "operations, seek() is called to read random offsets. If false, the file is read "
+          + "sequentially.")
   @Parameters.BooleanDescription(trueDescription = "Random", falseDescription = "Sequential")
   public boolean mReadRandom = false;
 
@@ -93,6 +95,9 @@ public final class ClientIOParameters extends Parameters {
           + "file will be round-robin across these number of workers.")
   public int mWriteNumWorkers = 1;
 
-  @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
+  @DynamicParameter(names = "--conf",
+      description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
+          + "configuration values.")
+
   public Map<String, String> mConf = new HashMap<>();
 }

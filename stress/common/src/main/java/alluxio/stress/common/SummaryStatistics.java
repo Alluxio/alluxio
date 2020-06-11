@@ -9,33 +9,35 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.stress.master;
+package alluxio.stress.common;
 
 import alluxio.stress.graph.LineGraph;
+
+import alluxio.stress.master.MasterBenchSummary;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Statistics class for {@link MasterBenchSummary}.
  */
-public class MasterBenchSummaryStatistics {
+public class SummaryStatistics {
   /** number of successes. */
   public long mNumSuccess;
 
   /** response times for all percentiles from 0 -> 100 (101 values). */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  public float[] mResponseTimePercentileMs;
+  public float[] mTimePercentileMs;
   /** percentiles of just 99.x%. first entry is 99%, second is 99.9%, etc. */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  public float[] mResponseTime99PercentileMs;
-  /** max response time over time, over the duration of the test. */
+  public float[] mTime99PercentileMs;
+  /** max time over time, over the duration of the test. */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  public float[] mMaxResponseTimeMs;
+  public float[] mMaxTimeMs;
 
   /**
    * Creates an instance.
    */
-  public MasterBenchSummaryStatistics() {
+  public SummaryStatistics() {
     // Default constructor required for json deserialization
   }
 
@@ -43,32 +45,32 @@ public class MasterBenchSummaryStatistics {
    * Creates an instance.
    *
    * @param numSuccess the number of success
-   * @param responseTimePercentileMs the response times (in ms), for all percentiles
-   * @param responseTime99PercentileMs the response times (in ms), for the 99.x percentiles
-   * @param maxResponseTimeMs the max response times (in ms) over time
+   * @param timePercentileMs the response times (in ms), for all percentiles
+   * @param time99PercentileMs the response times (in ms), for the 99.x percentiles
+   * @param maxTimeMs the max response times (in ms) over time
    */
-  public MasterBenchSummaryStatistics(long numSuccess, float[] responseTimePercentileMs,
-                                      float[] responseTime99PercentileMs,
-                                      float[] maxResponseTimeMs) {
+  public SummaryStatistics(long numSuccess, float[] timePercentileMs,
+                                      float[] time99PercentileMs,
+                                      float[] maxTimeMs) {
     mNumSuccess = numSuccess;
-    mResponseTimePercentileMs = responseTimePercentileMs;
-    mResponseTime99PercentileMs = responseTime99PercentileMs;
-    mMaxResponseTimeMs = maxResponseTimeMs;
+    mTimePercentileMs = timePercentileMs;
+    mTime99PercentileMs = time99PercentileMs;
+    mMaxTimeMs = maxTimeMs;
   }
 
   /**
    * @return the response time linegraph data
    */
-  public LineGraph.Data computeResponseTimeData() {
+  public LineGraph.Data computeTimeData() {
     LineGraph.Data data = new LineGraph.Data();
 
-    data.addData(50, mResponseTimePercentileMs[50]);
-    data.addData(75, mResponseTimePercentileMs[75]);
-    data.addData(90, mResponseTimePercentileMs[90]);
-    data.addData(95, mResponseTimePercentileMs[95]);
+    data.addData(50, mTimePercentileMs[50]);
+    data.addData(75, mTimePercentileMs[75]);
+    data.addData(90, mTimePercentileMs[90]);
+    data.addData(95, mTimePercentileMs[95]);
 
     int counter = 0;
-    for (float ms : mResponseTime99PercentileMs) {
+    for (float ms : mTime99PercentileMs) {
       float percentile = (float) (100.0 - 1.0 / (Math.pow(10.0, counter)));
       data.addData(percentile, ms);
       counter++;

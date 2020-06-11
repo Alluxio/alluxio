@@ -103,6 +103,9 @@
   {{- $workerJavaOpts = printf "-Dalluxio.worker.tieredstore.levels=%v" (len .Values.tieredstore.levels) | append $workerJavaOpts }}
   {{- range .Values.tieredstore.levels }}
     {{- $tierName := printf "-Dalluxio.worker.tieredstore.level%v" .level }}
+    {{- if .alias }}
+    {{- $workerJavaOpts = printf "%v.alias=%v" $tierName .alias | append $workerJavaOpts }}
+    {{- end}}
     {{- $workerJavaOpts = printf "%v.dirs.mediumtype=%v" $tierName .mediumtype | append $workerJavaOpts }}
     {{- if .path }}
       {{- $workerJavaOpts = printf "%v.dirs.path=%v" $tierName .path | append $workerJavaOpts }}

@@ -81,3 +81,7 @@
 0.6.0
 
 - Fix alluxio-fuse container fail to restart when it exited with error
+
+0.6.1
+
+- Infer hostNetwork, dnsPolicy and domain socket volume type based on the user

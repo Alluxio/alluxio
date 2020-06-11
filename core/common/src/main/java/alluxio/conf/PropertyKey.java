@@ -27,6 +27,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
@@ -58,7 +60,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
   /** A map from default property key's alias to the key. */
   private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new ConcurrentHashMap<>();
-
+  /** A cache storing result for template regexp matching results. */
+  private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
+      .maximumSize(1024)
+      .build();
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -841,7 +846,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
               + "ID can be found at the console address "
               + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
-              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
+              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\". "
+              + "Unspecified owner id will map to a default empty username")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -5712,13 +5718,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     if (DEFAULT_KEYS_MAP.containsKey(input) || DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
     }
+    // Regex matching for templates can be expensive when checking properties frequently.
+    // Use a cache to store regexp matching results to reduce CPU overhead.
+    Boolean result = REGEXP_CACHE.getIfPresent(input);
+    if (result != null) {
+      return result;
+    }
     // Check if input matches any parameterized keys
+    result = false;
     for (Template template : Template.values()) {
       if (template.matches(input)) {
-        return true;
+        result = true;
+        break;
       }
     }
-    return false;
+    REGEXP_CACHE.put(input, result);
+    return result;
   }
 
   /**
