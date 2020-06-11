@@ -39,7 +39,8 @@ public final class StressBenchConfig implements PlanConfig {
    * @param className the class name of the benchmark to run
    * @param args the args for the benchmark
    * @param startDelayMs the start delay for the distributed tasks, in ms
-   * @param clusterLimit the max number of workers to run on. If <= 0, run on entire cluster
+   * @param clusterLimit the max number of workers to run on. If 0, run on entire cluster,
+   *                     If < 0, starts scheduling from the end of the worker list
    */
   public StressBenchConfig(@JsonProperty("className") String className,
       @JsonProperty("args") List<String> args,
@@ -78,7 +79,8 @@ public final class StressBenchConfig implements PlanConfig {
   }
 
   /**
-   * @return the number of workers to run on. If <= 0, run on entire cluster
+   * @return the number of workers to run on. If < 0, starts from the end of the worker list
+   *         If == 0, run on entire cluster
    */
   public int getClusterLimit() {
     return mClusterLimit;
