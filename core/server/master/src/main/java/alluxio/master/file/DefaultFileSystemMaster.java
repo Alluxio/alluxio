@@ -1549,7 +1549,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               try {
                 mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
                 if (mMountTable.isMountPoint(childPath.getUri())) {
-                    mMountTable.checkUnderWritableMountPoint(childPath.getUri());
+                  mMountTable.checkUnderWritableMountPoint(childPath.getUri());
                 }
               } catch (AccessControlException e) {
                 failedChildren.add(e.getMessage());
