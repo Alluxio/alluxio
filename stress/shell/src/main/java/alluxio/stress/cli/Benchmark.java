@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -167,14 +167,13 @@ public abstract class Benchmark<T extends TaskResult> {
    *
    * @param startMs the start time
    * @param endMs the end time
-   * @param isTTFB check if method is time to first byte function
-   * @param nameTransformer function which transforms the type and method into a name. If the
+   * @param javaAgentTransformer function which transforms the type and method into a name. If the
    *                        function returns null, then the method is skipped
    * @return a map of names to statistics
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   protected Map<String, MethodStatistics> processMethodProfiles(long startMs, long endMs,
-      boolean isTTFB, BiFunction<String, String, String> nameTransformer) throws IOException {
+      Function<JavaAgentInput, String> javaAgentTransformer) throws IOException {
     Map<String, MethodStatistics> nameStatistics = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(
@@ -208,15 +207,15 @@ public abstract class Benchmark<T extends TaskResult> {
         final long duration = durationNumber.longValue();
         final boolean ttfb = ttfbFlag.booleanValue();
 
-        if (isTTFB && !ttfb) {
-          continue;
-        }
-
         if (timestamp <= startMs) {
           continue;
         }
 
-        final String name = nameTransformer.apply(type, methodName);
+        JavaAgentInput javaAgentInput = new JavaAgentInput(type, methodName, ttfb);
+        final String name = javaAgentTransformer.apply(javaAgentInput);
+        if (name == null) {
+          continue;
+        }
 
         if (!nameStatistics.containsKey(name)) {
           nameStatistics.put(name, new MethodStatistics());
@@ -232,6 +231,46 @@ public abstract class Benchmark<T extends TaskResult> {
       }
     }
     return nameStatistics;
+  }
+
+  protected static final class JavaAgentInput {
+    private String mType;
+    private String mMethod;
+    private boolean mIsttfb;
+
+    JavaAgentInput(String type, String method, boolean isttfb) {
+      mType = type;
+      mMethod = method;
+      mIsttfb = isttfb;
+    }
+
+    /**
+     * @return class type
+     */
+    public String getType() {
+      return mType;
+    }
+
+    /**
+     * @return method name
+     */
+    public String getMethod() {
+      return mMethod;
+    }
+
+    /**
+     * @return method name
+     */
+    public void setMethod(String method) {
+      mMethod = method;
+    }
+
+    /**
+     * @return is time to first byte
+     */
+    public boolean getIsttfb() {
+      return mIsttfb;
+    }
   }
 
   protected static final class MethodStatistics {
