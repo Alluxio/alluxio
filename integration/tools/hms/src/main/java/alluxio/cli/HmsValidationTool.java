@@ -177,7 +177,8 @@ public class HmsValidationTool implements ValidationTool {
       InetAddress.getByName(uri.getHost());
     } catch (Throwable t) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, "HmsUrisHostnameResolvableCheck", ValidationUtils.getErrorInfo(t),
+          new TaskResult(State.FAILED, "HmsUrisHostnameResolvableCheck",
+                  ValidationUtils.getErrorInfo(t),
               "Please make sure the hostname in given hive metastore uri(s) is resolvable"));
       throw t;
     }
@@ -354,7 +355,8 @@ public class HmsValidationTool implements ValidationTool {
     if (throwable != null && mResults.get(State.FAILED) == null) {
       // Should not reach here!
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>())
-          .add(new TaskResult(State.FAILED, "UnexpectedError", ValidationUtils.getErrorInfo(throwable),
+          .add(new TaskResult(State.FAILED, "UnexpectedError",
+                  ValidationUtils.getErrorInfo(throwable),
               "Failed to run hive metastore tests"));
     }
     return gson.toJson(mResults);
