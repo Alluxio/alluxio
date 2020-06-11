@@ -195,13 +195,9 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
 
     Map<String, MethodStatistics> nameStatistics =
-        processMethodProfiles(startMs, endMs, (type, method) -> {
-          if ((type.equals("AlluxioBlockInStream") && method.equals("readChunk")) || (
-              type.equals("HDFSPacketReceiver") && method.equals("doRead")) || (
-              type.equals("HDFSBlockReaderRemote")
-                  && method.equals("newBlockReader")
-                  || method.equals("readChunk"))) {
-            return method;
+        processMethodProfiles(startMs, endMs, profileInput -> {
+          if (profileInput.getIsttfb()) {
+            return profileInput.getMethod();
           }
           return null;
         });
