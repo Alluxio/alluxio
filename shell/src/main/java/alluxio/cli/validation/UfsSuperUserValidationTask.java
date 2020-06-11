@@ -13,7 +13,6 @@ package alluxio.cli.validation;
 
 import alluxio.cli.ValidateUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
@@ -35,7 +34,8 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
    * Creates a new instance of {@link UfsSuperUserValidationTask}
    * for validating the under file system.
    *
-   * @param conf configuration
+   * @param path the UFS path
+   * @param conf the UFS configuration
    */
   public UfsSuperUserValidationTask(String path, AlluxioConfiguration conf) {
     mPath = path;
@@ -82,6 +82,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
     }
     try {
       mUfs.setOwner(mPath, status.getOwner(), status.getGroup());
+      msg.append(String.format("User has superuser privilege to path %s.%n", mPath));
       return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
               msg.toString(), advice.toString());
     } catch (IOException e) {

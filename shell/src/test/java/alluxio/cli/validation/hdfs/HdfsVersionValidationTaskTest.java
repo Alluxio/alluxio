@@ -1,10 +1,11 @@
-package alluxio.cli.validation;
+package alluxio.cli.validation.hdfs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 
 import alluxio.cli.ValidateUtils;
+import alluxio.cli.validation.hdfs.HdfsVersionValidationTask;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;

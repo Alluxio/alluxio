@@ -13,16 +13,9 @@ package alluxio.cli;
 
 import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.shell.CommandReturn;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.JsonSerializable;
-import alluxio.util.ShellUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,21 +25,15 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A tool to validate an HDFS mount, before the path is mounted to Alluxio.
@@ -100,13 +87,14 @@ public class ValidateHdfsMount {
     }
   }
 
+  // TODO(jiacheng): print help
+
   /**
    * The entrance.
    *
    * @param args command line arguments
    * */
   public static void main(String[] args) throws Exception {
-    // TODO(jiacheng): use jccommand?
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     try {

@@ -1,6 +1,7 @@
-package alluxio.cli.validation;
+package alluxio.cli.validation.hdfs;
 
 import alluxio.cli.ValidateUtils;
+import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.io.PathUtils;
 

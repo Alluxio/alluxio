@@ -15,14 +15,14 @@ import alluxio.Constants;
 import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.cli.validation.AbstractValidationTask;
 import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
-import alluxio.cli.validation.HdfsConfParityValidationTask;
-import alluxio.cli.validation.HdfsConfValidationTask;
-import alluxio.cli.validation.HdfsImpersonationValidationTask;
-import alluxio.cli.validation.HdfsVersionValidationTask;
+import alluxio.cli.validation.hdfs.HdfsConfParityValidationTask;
+import alluxio.cli.validation.hdfs.HdfsConfValidationTask;
+import alluxio.cli.validation.hdfs.HdfsProxyUserValidationTask;
+import alluxio.cli.validation.hdfs.HdfsVersionValidationTask;
 import alluxio.cli.validation.NativeLibValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
-import alluxio.cli.validation.SecureHdfsValidationTask;
+import alluxio.cli.validation.hdfs.SecureHdfsValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
@@ -112,18 +112,9 @@ public final class ValidateEnv {
     registerTask("ufs.hdfs.config.parity",
         "validate HDFS-related configurations",
         new HdfsConfParityValidationTask(mPath, mConf), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation",
-            "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf,
-                    HdfsImpersonationValidationTask.Mode.USERS), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation",
-            "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf,
-                    HdfsImpersonationValidationTask.Mode.GROUPS), COMMON_TASKS);
-    registerTask("ufs.hdfs.config.impersonation",
-            "validate impersonation configuration in alluxio and hdfs",
-            new HdfsImpersonationValidationTask(mPath, mConf,
-                    HdfsImpersonationValidationTask.Mode.HOSTS), COMMON_TASKS);
+    registerTask("ufs.hdfs.config.proxyuser",
+            "validate proxyuser configuration in hdfs for alluxio",
+            new HdfsProxyUserValidationTask(mPath, mConf), COMMON_TASKS);
     registerTask("ufs.hdfs.config.version",
             "validate version compatibility between alluxio and hdfs",
             new HdfsVersionValidationTask(mConf), COMMON_TASKS);

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.validation;
+package alluxio.cli.validation.hdfs;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
