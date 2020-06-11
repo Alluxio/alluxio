@@ -52,7 +52,7 @@ spec:
         fsGroup: {{ .Values.fuse.fsGroup }}
       affinity:
         podAffinity:
-          RequiredDuringSchedulingIgnoredDuringExecution:
+          requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
               - key: app
@@ -63,6 +63,7 @@ spec:
                 operator: In
                 values:
                 - alluxio-worker
+            topologyKey: kubernetes.io/hostname
       containers:
         - name: alluxio-fuse
           image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
