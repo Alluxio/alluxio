@@ -40,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -137,9 +138,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       if (!mBaseParameters.mProfileAgent.isEmpty()) {
-        taskResult.putTimeToFirstBytePerThread(
-            numThreads, addAdditionalResult(
-                threadCountResult.getRecordStartMs(), threadCountResult.getEndMs()));
+        taskResult.putTimeToFirstBytePerThread(numThreads,
+            addAdditionalResult(
+                threadCountResult.getRecordStartMs(),
+                threadCountResult.getEndMs()));
       }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
@@ -184,25 +186,33 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    *
    * @param startMs start time for profiling
    * @param endMs end time for profiling
-   * @return summary statistics
+   * @return TimeToFirstByteStatistics
    * @throws IOException
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public synchronized SummaryStatistics addAdditionalResult(long startMs, long endMs)
-      throws IOException {
+  public synchronized Map<String, SummaryStatistics> addAdditionalResult(
+      long startMs, long endMs) throws IOException {
+    Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
+
     Map<String, MethodStatistics> nameStatistics =
         processMethodProfiles(startMs, endMs, (type, method) -> {
           if ((type.equals("AlluxioBlockInStream") && method.equals("readChunk")) || (
-              type.equals("HDFSPacketReceiver") && method.equals("doRead"))) {
+              type.equals("HDFSPacketReceiver") && method.equals("doRead")) || (
+              type.equals("HDFSBlockReaderRemote")
+                  && method.equals("newBlockReader")
+                  || method.equals("readChunk"))) {
             return method;
           }
           return null;
         });
-    if (nameStatistics.isEmpty()) {
-      return new SummaryStatistics();
+    if (!nameStatistics.isEmpty()) {
+      for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
+        summaryStatistics.put(
+            entry.getKey(), toSummaryStatistics(entry.getValue()));
+      }
     }
 
-    return toSummaryStatistics(nameStatistics.values().iterator().next());
+    return summaryStatistics;
   }
 
   /**
@@ -230,7 +240,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       maxResponseTimesMs[i] = (float) methodStatistics.getMaxTimeNs()[i] / Constants.MS_NANO;
     }
 
-    return new SummaryStatistics(methodStatistics.getNumSuccess(), responseTimePercentile,
+    return new SummaryStatistics(methodStatistics.getNumSuccess(),
+        responseTimePercentile,
         responseTime99Percentile, maxResponseTimesMs);
   }
 
