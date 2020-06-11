@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -194,7 +193,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       mOpenFiles.put(fd, new OpenFileEntry(path, is));
       fi.fh.set(fd);
       LOG.info("open(fd={},entries={})", fd, mOpenFiles.size());
-      ((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
+      //((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -248,7 +247,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final OpenFileEntry oe;
     long fd = fi.fh.get();
     LOG.info("release(fd={},entries={})", fd, mOpenFiles.size());
-    ((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
+    //((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
