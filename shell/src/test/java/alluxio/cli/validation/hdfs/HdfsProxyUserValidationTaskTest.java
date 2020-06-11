@@ -4,7 +4,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.cli.validation.ValidationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -54,8 +54,8 @@ public class HdfsProxyUserValidationTaskTest {
     mConf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.SKIPPED, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.SKIPPED, result.getState());
   }
 
   @Test
@@ -67,8 +67,8 @@ public class HdfsProxyUserValidationTaskTest {
 
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
             "Alluxio is not able to perform impersonation."));
     assertThat(result.getAdvice(), containsString(
@@ -86,8 +86,8 @@ public class HdfsProxyUserValidationTaskTest {
 
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.WARNING, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.WARNING, result.getState());
     assertThat(result.getResult(), containsString(
             String.format("%s=user1,user2 and %s=groups", proxyUserKey, proxyGroupKey)));
     assertThat(result.getAdvice(), containsString(
@@ -104,8 +104,8 @@ public class HdfsProxyUserValidationTaskTest {
 
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
             "Alluxio is not able to perform impersonation."));
     assertThat(result.getAdvice(), containsString(
@@ -122,8 +122,8 @@ public class HdfsProxyUserValidationTaskTest {
 
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.OK, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
   @Test
@@ -136,7 +136,7 @@ public class HdfsProxyUserValidationTaskTest {
 
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
-    assertEquals(ValidateUtils.State.OK, result.getState());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    assertEquals(ValidationUtils.State.OK, result.getState());
   }
 }

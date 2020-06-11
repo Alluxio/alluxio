@@ -110,11 +110,11 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
-   * Runs the tests and return a {@link alluxio.cli.ValidateUtils.TaskResult}.
+   * Runs the tests and return a {@link alluxio.cli.ValidationUtils.TaskResult}.
    *
    * @return a task result for all UFS tests
    * */
-  public ValidateUtils.TaskResult runValidationTask() throws IOException {
+  public ValidationUtils.TaskResult runValidationTask() throws IOException {
     Closer closer = Closer.create();
     final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();
     final ByteArrayOutputStream adviceBuf = new ByteArrayOutputStream();
@@ -131,7 +131,7 @@ public final class UnderFileSystemContractTest {
       if (factory == null || !factory.supportsPath(mUfsPath)) {
         msgStream.append(String.format("%s is not a valid path%n", mUfsPath));
         adviceStream.append(String.format("Please validate if %s is a correct path\n", mUfsPath));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME,
+        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, TASK_NAME,
                 msgBuf.toString(), adviceBuf.toString());
       }
 
@@ -149,17 +149,17 @@ public final class UnderFileSystemContractTest {
         failedCnt += runS3Operations(msgStream, adviceStream, System.err);
       }
       msgStream.append(String.format("Tests completed with %d failed.%n", failedCnt));
-      ValidateUtils.State state = failedCnt == 0 ? ValidateUtils.State.OK
-              : ValidateUtils.State.FAILED;
+      ValidationUtils.State state = failedCnt == 0 ? ValidationUtils.State.OK
+              : ValidationUtils.State.FAILED;
       if (failedCnt > 0) {
         adviceStream.append("Please check the failed UFS operations from the output.");
       }
-      return new ValidateUtils.TaskResult(state, TASK_NAME, msgBuf.toString(),
+      return new ValidationUtils.TaskResult(state, TASK_NAME, msgBuf.toString(),
               adviceBuf.toString());
     } catch (Exception e) {
-      msgStream.append(ValidateUtils.getErrorInfo(e));
+      msgStream.append(ValidationUtils.getErrorInfo(e));
       adviceStream.append("Please resolve the errors from failed UFS operations.");
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, TASK_NAME,
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, TASK_NAME,
               msgBuf.toString(), adviceBuf.toString());
     } finally {
       closer.close();
@@ -237,7 +237,7 @@ public final class UnderFileSystemContractTest {
               logRelatedS3Operations(test, msgStream);
             }
             msgStream.format("Operation %s failed%n", testName);
-            msgStream.format(ValidateUtils.getErrorInfo(e));
+            msgStream.format(ValidationUtils.getErrorInfo(e));
             errStream.format("Test %s.%s aborted%n%s%n", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);

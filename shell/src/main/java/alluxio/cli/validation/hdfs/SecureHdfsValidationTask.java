@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation.hdfs;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.cli.validation.AbstractValidationTask;
 import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
@@ -83,9 +83,9 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
     if (shouldSkip()) {
-      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
     return validatePrincipalLogin();
@@ -108,7 +108,7 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
     return false;
   }
 
-  private ValidateUtils.TaskResult validatePrincipalLogin() {
+  private ValidationUtils.TaskResult validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
     String principal = mConf.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
@@ -116,7 +116,7 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
       mMsg.append(String.format("Principal %s is not in the right format.%n", principal));
       mAdvice.append(String.format("Please fix principal %s=%s.%n",
               mPrincipalProperty.toString(), principal));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
     String primary = matchPrincipal.group("primary");
@@ -130,16 +130,16 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
       String output = ShellUtils.execCommand(command);
       mMsg.append(String.format("Command %s finished with output: %s%n",
               Arrays.toString(command), output));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
               mMsg.toString(), mAdvice.toString());
     } catch (IOException e) {
       mMsg.append(String.format("Kerberos login failed for %s with keytab %s.%n",
               principal, keytab));
-      mMsg.append(ValidateUtils.getErrorInfo(e));
+      mMsg.append(ValidationUtils.getErrorInfo(e));
       mMsg.append(String.format("Primary is %s, instance is %s and realm is %s.%n",
               primary, instance, realm));
-      ValidateUtils.TaskResult result = new ValidateUtils.TaskResult(
-              ValidateUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
+      ValidationUtils.TaskResult result = new ValidationUtils.TaskResult(
+              ValidationUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
       return result;
     }
   }

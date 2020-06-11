@@ -4,7 +4,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.conf.InstancedConfiguration;
 
@@ -40,9 +40,9 @@ public class NativeLibValidationTaskTest {
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
     NativeLibValidationTask task = new NativeLibValidationTask(sConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidateUtils.State.OK, result.getState());
+    assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
   @Test
@@ -51,9 +51,9 @@ public class NativeLibValidationTaskTest {
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
     NativeLibValidationTask task = new NativeLibValidationTask(sConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
-    assertEquals(ValidateUtils.State.WARNING, result.getState());
+    assertEquals(ValidationUtils.State.WARNING, result.getState());
     assertThat(result.getResult(), containsString("Java native lib not found at /usr/missing"));
     assertThat(result.getAdvice(), containsString("Please check your path /usr/missing"));
   }

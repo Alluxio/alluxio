@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 
 import org.apache.commons.cli.Option;
 
@@ -33,5 +33,5 @@ public interface ValidationTask {
    * @param optionMap contains string representation of <key, value> pairs
    * @return the result of validation task
    */
-  ValidateUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
+  ValidationUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
 }

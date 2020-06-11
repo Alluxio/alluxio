@@ -4,7 +4,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.cli.validation.ValidationTestUtils;
 import alluxio.cli.validation.hdfs.HdfsConfValidationTask;
 import alluxio.conf.InstancedConfiguration;
@@ -43,8 +43,8 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.getState(), ValidateUtils.State.OK);
+    ValidationUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidationUtils.State.OK);
   }
 
   @Test
@@ -55,8 +55,8 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, hdfsSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    ValidationUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidationUtils.State.FAILED);
     assertThat(result.getResult(), containsString("core-site.xml is not configured"));
     assertThat(result.getAdvice(), containsString("core-site.xml"));
   }
@@ -69,8 +69,8 @@ public class HdfsConfValidationTaskTest {
 
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, coreSite);
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    ValidationUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidationUtils.State.FAILED);
     assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
     assertThat(result.getAdvice(), containsString("hdfs-site.xml"));
   }
@@ -79,8 +79,8 @@ public class HdfsConfValidationTaskTest {
   public void missingBoth() {
     sConf.set(PropertyKey.UNDERFS_HDFS_CONFIGURATION, "/conf/");
     HdfsConfValidationTask task = new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.loadHdfsConfig();
-    assertEquals(result.getState(), ValidateUtils.State.FAILED);
+    ValidationUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(result.getState(), ValidationUtils.State.FAILED);
     assertThat(result.getResult(), containsString("hdfs-site.xml is not configured"));
     assertThat(result.getResult(), containsString("core-site.xml is not configured"));
     assertThat(result.getAdvice(), containsString("hdfs-site.xml"));
@@ -103,8 +103,8 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.loadHdfsConfig();
-    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    ValidationUtils.TaskResult result = task.loadHdfsConfig();
+    assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(String.format("Failed to parse %s", hdfsSite)));
     assertThat(result.getResult(), containsString(String.format("Failed to parse %s", coreSite)));
     assertThat(result.getAdvice(), containsString(String.format("Please check your %s", hdfsSite)));
@@ -123,10 +123,10 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
 
-    assertEquals(ValidateUtils.State.FAILED, result.getState());
+    assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString("key1"));
     assertThat(result.getResult(), containsString("value1 in core-site.xml"));
     assertThat(result.getResult(), containsString("value2 in hdfs-site.xml"));
@@ -145,10 +145,10 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidateUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
     System.out.println(result);
 
-    assertEquals(ValidateUtils.State.OK, result.getState());
+    assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
   @After

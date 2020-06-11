@@ -267,7 +267,7 @@ public final class ValidateEnv {
   private boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
-    Map<ValidateUtils.State, Integer> results = new HashMap<>();
+    Map<ValidationUtils.State, Integer> results = new HashMap<>();
     Map<String, String> optionsMap = new HashMap<>();
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
@@ -281,7 +281,7 @@ public final class ValidateEnv {
       }
       System.out.format("Validating %s...%n", taskName);
       // TODO(jiacheng): better way to print it?
-      ValidateUtils.TaskResult result = task.validate(optionsMap);
+      ValidationUtils.TaskResult result = task.validate(optionsMap);
       results.put(result.mState, results.getOrDefault(result, 0) + 1);
       switch (result.mState) {
         case OK:
@@ -303,21 +303,21 @@ public final class ValidateEnv {
       System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-    if (results.containsKey(ValidateUtils.State.FAILED)) {
-      System.err.format("%d failures ", results.get(ValidateUtils.State.FAILED));
+    if (results.containsKey(ValidationUtils.State.FAILED)) {
+      System.err.format("%d failures ", results.get(ValidationUtils.State.FAILED));
     }
-    if (results.containsKey(ValidateUtils.State.WARNING)) {
-      System.err.format("%d warnings ", results.get(ValidateUtils.State.WARNING));
+    if (results.containsKey(ValidationUtils.State.WARNING)) {
+      System.err.format("%d warnings ", results.get(ValidationUtils.State.WARNING));
     }
-    if (results.containsKey(ValidateUtils.State.SKIPPED)) {
-      System.err.format("%d skipped ", results.get(ValidateUtils.State.SKIPPED));
+    if (results.containsKey(ValidationUtils.State.SKIPPED)) {
+      System.err.format("%d skipped ", results.get(ValidationUtils.State.SKIPPED));
     }
     System.err.println();
     if (validationCount == 0) {
       System.err.format("No validation task matched name \"%s\".%n", name);
       return false;
     }
-    if (results.containsKey(ValidateUtils.State.FAILED)) {
+    if (results.containsKey(ValidationUtils.State.FAILED)) {
       return false;
     }
     System.out.println("Validation succeeded.");
@@ -340,9 +340,9 @@ public final class ValidateEnv {
    * @param optionMap an extra configuration map to pass to the validation tasks
    * @return a list of task results for each task
    * */
-  public List<ValidateUtils.TaskResult> validateUfs(ApplicableUfsType.Type target,
+  public List<ValidationUtils.TaskResult> validateUfs(ApplicableUfsType.Type target,
                               Map<String, String> optionMap) throws InterruptedException {
-    List<ValidateUtils.TaskResult> results = new ArrayList<>();
+    List<ValidationUtils.TaskResult> results = new ArrayList<>();
     for (Map.Entry<ValidationTask, String> entry :TASKS.entrySet()) {
       ValidationTask task = entry.getKey();
       Class clazz = task.getClass();

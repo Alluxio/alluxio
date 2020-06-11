@@ -74,16 +74,16 @@ public class ValidateHdfsMount {
    *
    * @param path the UFS path
    * @param conf the UFS conf
-   * @return a {@link alluxio.cli.ValidateUtils.TaskResult} containing the validation result
+   * @return a {@link alluxio.cli.ValidationUtils.TaskResult} containing the validation result
    *        of the UFS operations
    * */
-  public static ValidateUtils.TaskResult runUfsTests(String path, InstancedConfiguration conf) {
+  public static ValidationUtils.TaskResult runUfsTests(String path, InstancedConfiguration conf) {
     try {
       UnderFileSystemContractTest test = new UnderFileSystemContractTest(path, conf);
       return test.runValidationTask();
     } catch (IOException e) {
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, "ufsTests",
-              ValidateUtils.getErrorInfo(e), "");
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, "ufsTests",
+              ValidationUtils.getErrorInfo(e), "");
     }
   }
 
@@ -123,13 +123,13 @@ public class ValidateHdfsMount {
     // Run validateEnv
     Map<String, String> validateOpts = ImmutableMap.of();
     ValidateEnv validate = new ValidateEnv(ufsPath, ufsConf);
-    List<ValidateUtils.TaskResult> results = validate.validateUfs(
+    List<ValidationUtils.TaskResult> results = validate.validateUfs(
             ApplicableUfsType.Type.HDFS, validateOpts);
 
     // Run runUfsTests
     if (ufsConf.isReadOnly()) {
       LOG.debug("Ufs operations are skipped because the path is readonly.");
-      results.add(new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED,
+      results.add(new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED,
               UnderFileSystemContractTest.TASK_NAME,
               String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath),
               ""));
@@ -138,7 +138,7 @@ public class ValidateHdfsMount {
     }
 
     // group by state
-    Map<ValidateUtils.State, List<ValidateUtils.TaskResult>> map = new HashMap<>();
+    Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> map = new HashMap<>();
     results.stream().forEach((r) -> {
       map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
     });

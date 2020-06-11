@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
@@ -48,7 +48,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -70,7 +70,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
         advice.append(String.format("Please check your setting for %s.%n",
                 tierDirCapacityConf.toString()));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
                 msg.toString(), advice.toString());
       }
 
@@ -131,14 +131,14 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       } catch (IOException e) {
         msg.append(String.format("Tier %d: Unable to validate available space - %s.%n",
             level, e.getMessage()));
-        msg.append(ValidateUtils.getErrorInfo(e));
+        msg.append(ValidationUtils.getErrorInfo(e));
         advice.append(String.format("Please check your path for tier %s.%n", level));
         success = false;
       }
     }
 
-    ValidateUtils.State state = success ? ValidateUtils.State.OK : ValidateUtils.State.WARNING;
-    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    ValidationUtils.State state = success ? ValidationUtils.State.OK : ValidationUtils.State.WARNING;
+    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

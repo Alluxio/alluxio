@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -41,7 +41,7 @@ public final class SshValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -50,18 +50,18 @@ public final class SshValidationTask extends AbstractValidationTask {
       msg.append("Failed to find master/worker nodes from Alluxio configuration. ");
       advice.append(String.format("Please check your %s/master and %s/worker files. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }
 
-    ValidateUtils.State state = ValidateUtils.State.OK;
+    ValidationUtils.State state = ValidationUtils.State.OK;
     for (String nodeName : nodes) {
       if (!CommonUtils.isAddressReachable(nodeName, 22)) {
         msg.append(String.format("Unable to reach ssh port 22 on node %s.%n", nodeName));
         advice.append(String.format("Please configure password-less ssh to node %s.%n", nodeName));
-        state = ValidateUtils.State.FAILED;
+        state = ValidationUtils.State.FAILED;
       }
     }
-    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 }

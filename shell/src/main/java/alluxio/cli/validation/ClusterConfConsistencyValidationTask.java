@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
@@ -51,7 +51,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionMap)
+  public ValidationUtils.TaskResult validate(Map<String, String> optionMap)
           throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
@@ -66,7 +66,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
               mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the master node hostnames. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
@@ -74,10 +74,10 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
               mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the worker node hostnames. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
-    ValidateUtils.State state = ValidateUtils.State.OK;
+    ValidationUtils.State state = ValidationUtils.State.OK;
     Exception ex = null;
     for (String node : nodes) {
       try {
@@ -90,7 +90,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
                 node, e.getMessage()));
         advice.append(String.format("Please check the connection from node %s. ", node));
         ex = e;
-        state = ValidateUtils.State.FAILED;
+        state = ValidationUtils.State.FAILED;
         // Check all nodes before returning
         continue;
       }
@@ -120,22 +120,22 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       boolean isConsistent = true;
 
       String errLabel;
-      ValidateUtils.State errLevel;
+      ValidationUtils.State errLevel;
       switch (level) {
         case ENFORCE:
           errLabel = "Error";
-          errLevel = ValidateUtils.State.FAILED;
+          errLevel = ValidationUtils.State.FAILED;
           break;
         case WARN:
           errLabel = "Warning";
-          errLevel = ValidateUtils.State.WARNING;
+          errLevel = ValidationUtils.State.WARNING;
           break;
         default:
           msg.append(String.format(
               "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
               level.name(), propertyName));
           advice.append(String.format("Please check property %s.%n", propertyName));
-          state = ValidateUtils.State.FAILED;
+          state = ValidationUtils.State.FAILED;
           continue;
       }
       for (String remoteNode : targetNodes) {
@@ -158,10 +158,10 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
       }
       if (!isConsistent) {
-        state = state == ValidateUtils.State.FAILED ? ValidateUtils.State.FAILED : errLevel;
+        state = state == ValidationUtils.State.FAILED ? ValidationUtils.State.FAILED : errLevel;
       }
     }
-    return new ValidateUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private Properties getNodeConf(String node) throws IOException {

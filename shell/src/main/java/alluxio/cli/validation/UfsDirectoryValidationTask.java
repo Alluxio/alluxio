@@ -11,7 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -44,7 +44,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
     try {
@@ -52,18 +52,18 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
       if (listStatus == null) {
         msg.append(String.format("Unable to list under file system path %s. ", mPath));
         advice.append(String.format("Please check if path %s denotes a directory. ", mPath));
-        return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
                 msg.toString(), advice.toString());
       }
       msg.append(String.format("Successfully listed path %s. ", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
               msg.toString(), advice.toString());
     } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
               e.getMessage()));
-      msg.append(ValidateUtils.getErrorInfo(e));
+      msg.append(ValidationUtils.getErrorInfo(e));
       advice.append(String.format("Please verify your path %s is correct.%n", mPath));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }
   }

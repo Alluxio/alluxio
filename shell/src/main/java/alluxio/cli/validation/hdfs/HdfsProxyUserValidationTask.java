@@ -1,6 +1,6 @@
 package alluxio.cli.validation.hdfs;
 
-import alluxio.cli.ValidateUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -37,7 +37,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
     return s.getUser().getName();
   }
 
-  private ValidateUtils.TaskResult validateProxyUsers(String userName) {
+  private ValidationUtils.TaskResult validateProxyUsers(String userName) {
     String proxyUserKey = String.format("hadoop.proxyuser.%s.users", userName);
     String proxyGroupKey = String.format("hadoop.proxyuser.%s.groups", userName);
     String proxyUsers = mCoreConf.getOrDefault(proxyUserKey, "");
@@ -50,7 +50,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
               + "impersonation.%n", userName, proxyUserKey, proxyGroupKey));
       mAdvice.append(String.format("Please enable Alluxio user %s to impersonate.%n", userName));
 
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(), mMsg.toString(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(), mMsg.toString(),
               mAdvice.toString());
     }
 
@@ -59,7 +59,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
             || proxyGroups.equals(ImpersonationAuthenticator.WILDCARD)) {
       mMsg.append(String.format("Alluxio user %s can impersonate as any user/group in HDFS.%n",
               userName));
-      return new ValidateUtils.TaskResult(ValidateUtils.State.OK, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
               mMsg.toString(), mAdvice.toString());
     }
 
@@ -70,21 +70,21 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
             userName, proxyUserKey, proxyUsers, proxyGroupKey, proxyGroups));
     mAdvice.append(String.format(
             "Please make sure that includes all users/groups Alluxio needs to impersonate as.%n"));
-    return new ValidateUtils.TaskResult(ValidateUtils.State.WARNING, getName(),
+    return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
             mMsg.toString(), mAdvice.toString());
   }
 
   @Override
-  public ValidateUtils.TaskResult validate(Map<String, String> optionMap) {
+  public ValidationUtils.TaskResult validate(Map<String, String> optionMap) {
     // Skip this test if NOSASL
     if (mConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE)
             .equals(AuthType.NOSASL.getAuthName())) {
-      return new ValidateUtils.TaskResult(ValidateUtils.State.SKIPPED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
               String.format("Impersonation validation is skipped for NOSASL"), "");
     }
 
-    ValidateUtils.TaskResult loadConfig = loadHdfsConfig();
-    if (loadConfig.getState() != ValidateUtils.State.OK) {
+    ValidationUtils.TaskResult loadConfig = loadHdfsConfig();
+    if (loadConfig.getState() != ValidationUtils.State.OK) {
       return loadConfig;
     }
 
@@ -96,9 +96,9 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
       return validateProxyUsers(alluxioUser);
     } catch (UnauthenticatedException e) {
       mMsg.append(String.format("Failed to authenticate in Alluxio: "));
-      mMsg.append(ValidateUtils.getErrorInfo(e));
+      mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append("Please fix the authentication issue.");
-      return new ValidateUtils.TaskResult(ValidateUtils.State.FAILED, getName(),
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
   }
