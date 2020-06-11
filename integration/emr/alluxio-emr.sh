@@ -193,7 +193,7 @@ nothing will be installed over it, even if -d is specified.
 If a different Alluxio version is desired, see the -d option.
 
   <root-ufs-uri>    The URI of the root UFS in the Alluxio namespace. If this
-                    is an empty string, the emr hdfs root will be used as the
+                    is the string "LOCAL", the emr hdfs root will be used as the
                     root UFS.
 
   -b                An s3:// URI that the Alluxio master will write a backup
@@ -345,7 +345,7 @@ USAGE_END
   doas alluxio "echo '${workers}' > ${ALLUXIO_HOME}/conf/workers"
 
   # set root ufs uri
-  if [[ -z "${root_ufs_uri}" ]]; then
+  if [[ "${root_ufs_uri}" = "LOCAL" ]]; then
     root_ufs_uri="hdfs://${master}:8020"
   fi
 
