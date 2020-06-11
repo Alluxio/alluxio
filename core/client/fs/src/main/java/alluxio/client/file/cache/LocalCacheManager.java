@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +44,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -174,7 +174,7 @@ public class LocalCacheManager implements CacheManager {
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mCacheSize = pageStore.getCacheSize();
     for (int i = 0; i < LOCK_SIZE; i++) {
-      mPageLocks[i] = new ReentrantReadWriteLock();
+      mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
     }
     mPendingRequests = new ConcurrentHashSet<>();
     mAsyncCacheExecutor =
@@ -341,14 +341,13 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId) {
-    return get(pageId, 0);
-  }
-
-  @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset) {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
+    Preconditions.checkArgument(bytesToRead <= buffer.length - offsetInBuffer,
+        "buffer does not have enough space: bufferLength=%s offsetInBuffer=%s bytesToRead=%s",
+        buffer.length, offsetInBuffer, bytesToRead);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -358,10 +357,10 @@ public class LocalCacheManager implements CacheManager {
       }
       if (!hasPage) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
-        return null;
+        return 0;
       }
-      ReadableByteChannel ret = getPage(pageId, pageOffset);
-      if (ret == null) {
+      int bytesRead = getPage(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer);
+      if (bytesRead <= 0) {
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
           mMetaStore.removePage(pageId);
@@ -369,9 +368,10 @@ public class LocalCacheManager implements CacheManager {
           // best effort to remove this page from meta store and ignore the exception
           Metrics.GET_ERRORS_FAILED_READ.inc();
         }
+        return -1;
       }
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
-      return ret;
+      return bytesRead;
     }
   }
 
@@ -445,18 +445,33 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  @Nullable
-  private ReadableByteChannel getPage(PageId pageId, int offset) {
-    ReadableByteChannel ret;
-    try {
-      ret = mPageStore.get(pageId, offset);
+  private int getPage(PageId pageId, int offset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer) {
+    try (ReadableByteChannel chan = mPageStore.get(pageId, offset)) {
+      // wrap return byte array in a bytebuffer and set the pos/limit for the page read
+      ByteBuffer buf = ByteBuffer.wrap(buffer);
+      buf.position(offsetInBuffer);
+      buf.limit(offsetInBuffer + bytesToRead);
+      // read data from cache
+      while (buf.position() != buf.limit()) {
+        if (chan.read(buf) == -1) {
+          break;
+        }
+      }
+      if (buf.position() != buf.limit()) {
+        // data read from page store is inconsistent from the metastore
+        Metrics.GET_ERRORS_FAILED_READ.inc();
+        throw new IOException(String.format(
+            "Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
+            pageId, bytesToRead, buf.position() - offsetInBuffer));
+      }
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to get existing page {}: {}", pageId, e);
       Metrics.GET_ERRORS.inc();
-      return null;
+      return -1;
     }
     mEvictor.updateOnGet(pageId);
-    return ret;
+    return bytesToRead;
   }
 
   private static final class Metrics {
