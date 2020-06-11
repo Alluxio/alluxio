@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.MapType;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**

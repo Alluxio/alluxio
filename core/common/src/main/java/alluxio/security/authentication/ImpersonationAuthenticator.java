@@ -17,11 +17,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -147,13 +145,5 @@ public final class ImpersonationAuthenticator {
             + "Please read the guide to configure impersonation at %s",
         connectionUser, impersonationUser, connectionUser, impersonationUser,
         RuntimeConstants.ALLUXIO_SECURITY_DOCS_URL));
-  }
-
-  public Map<String, Set<String>> getImpersonationUsers() {
-    return Collections.unmodifiableMap(mImpersonationUsers);
-  }
-
-  public Map<String, Set<String>> getmImpersonationGroups() {
-    return Collections.unmodifiableMap(mImpersonationGroups);
   }
 }
