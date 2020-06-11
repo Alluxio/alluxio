@@ -167,13 +167,14 @@ public abstract class Benchmark<T extends TaskResult> {
    *
    * @param startMs the start time
    * @param endMs the end time
+   * @param isTTFB check if method is time to first byte function
    * @param nameTransformer function which transforms the type and method into a name. If the
    *                        function returns null, then the method is skipped
    * @return a map of names to statistics
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   protected Map<String, MethodStatistics> processMethodProfiles(long startMs, long endMs,
-      BiFunction<String, String, String> nameTransformer) throws IOException {
+      boolean isTTFB, BiFunction<String, String, String> nameTransformer) throws IOException {
     Map<String, MethodStatistics> nameStatistics = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(
@@ -196,23 +197,26 @@ public abstract class Benchmark<T extends TaskResult> {
         final String methodName = (String) lineMap.get("methodName");
         final Number timestampNumber = (Number) lineMap.get("timestamp");
         final Number durationNumber = (Number) lineMap.get("duration");
+        final Boolean ttfbFlag = (Boolean) lineMap.get("ttfb");
 
         if (type == null || methodName == null || timestampNumber == null
-            || durationNumber == null) {
+            || durationNumber == null || ttfbFlag == null) {
           continue;
         }
 
         final long timestamp = timestampNumber.longValue();
         final long duration = durationNumber.longValue();
+        final boolean ttfb = ttfbFlag.booleanValue();
+
+        if (isTTFB && !ttfb) {
+          continue;
+        }
 
         if (timestamp <= startMs) {
           continue;
         }
 
         final String name = nameTransformer.apply(type, methodName);
-        if (name == null) {
-          continue;
-        }
 
         if (!nameStatistics.containsKey(name)) {
           nameStatistics.put(name, new MethodStatistics());

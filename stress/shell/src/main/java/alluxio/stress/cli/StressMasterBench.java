@@ -215,13 +215,14 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         return;
       }
       Map<String, MethodStatistics> nameStatistics =
-          processMethodProfiles(mResult.getRecordStartMs(), mResult.getEndMs(), (type, method) -> {
-            if (type.contains("RPC")) {
-              final int classNameDivider = method.lastIndexOf(".");
-              method = method.substring(classNameDivider + 1);
-            }
-            return type + ":" + method;
-          });
+          processMethodProfiles(mResult.getRecordStartMs(), mResult.getEndMs(),
+              false, (type, method) -> {
+              if (type.contains("RPC")) {
+                final int classNameDivider = method.lastIndexOf(".");
+                method = method.substring(classNameDivider + 1);
+              }
+              return type + ":" + method;
+            });
 
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
