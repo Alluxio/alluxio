@@ -137,7 +137,8 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       }
     }
 
-    ValidationUtils.State state = success ? ValidationUtils.State.OK : ValidationUtils.State.WARNING;
+    ValidationUtils.State state = success ? ValidationUtils.State.OK
+            : ValidationUtils.State.WARNING;
     return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 

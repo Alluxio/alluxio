@@ -214,8 +214,17 @@ public final class ValidateEnv {
     return task;
   }
 
-  private boolean validateRemote(Collection<String> nodes, String target, String name,
-      CommandLine cmd) throws InterruptedException {
+  /**
+   * Get the tasks registered.
+   *
+   * @return a map of tasks mapping to their name
+   * */
+  public Map<ValidationTask, String> getTasks() {
+    return Collections.unmodifiableMap(mTasks);
+  }
+
+  private boolean validateRemote(Collection<String> nodes, String target,
+                                 String name, CommandLine cmd) throws InterruptedException {
     if (nodes == null) {
       return false;
     }
@@ -228,18 +237,9 @@ public final class ValidateEnv {
     return success;
   }
 
-  /**
-   * Get the tasks registered.
-   *
-   * @return a map of tasks mapping to their name
-   * */
-  public Map<ValidationTask, String> getTasks() {
-    return Collections.unmodifiableMap(mTasks);
-  }
-
   // validates environment on remote node
-  private boolean validateRemote(String node, String target, String name, CommandLine cmd)
-      throws InterruptedException {
+  private boolean validateRemote(String node, String target, String name,
+                                 CommandLine cmd) throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
     if (!CommonUtils.isAddressReachable(node, 22)) {
       System.err.format("Unable to reach ssh port 22 on node %s.%n", node);

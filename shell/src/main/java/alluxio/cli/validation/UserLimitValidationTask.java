@@ -65,7 +65,8 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
             state = ValidationUtils.State.WARNING;
             advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
           }
-          return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+          return new ValidationUtils.TaskResult(state, getName(),
+                  msg.toString(), advice.toString());
         }
 
         int value = Integer.parseInt(line);

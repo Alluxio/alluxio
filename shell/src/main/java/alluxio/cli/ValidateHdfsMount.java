@@ -15,15 +15,10 @@ import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Closer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.CommandLine;
@@ -36,9 +31,7 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -139,7 +132,9 @@ public class ValidateHdfsMount {
   }
 
   /**
+   * Print help with the message.
    *
+   * @param message the message
    * */
   public static void printHelp(String message) {
     System.err.println(message);
