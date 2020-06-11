@@ -171,15 +171,15 @@ main() {
   print_help() {
     local -r USAGE=$(cat <<USAGE_END
 
-Usage: alluxio-emr.sh [-u <root-ufs-uri>]
+Usage: alluxio-emr.sh <root-ufs-uri>
                       [-b <backup_uri>]
+                      [-c]
                       [-d <alluxio-download-uri>]
                       [-f <file_uri>]
                       [-i <journal_backup_uri>]
                       [-n <storage percentage>]
                       [-p <delimited_properties>]
                       [-s <property_delimiter>]
-                      [-c]
 
 alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
 with Alluxio. It can download and install Alluxio as well as add properties
@@ -192,9 +192,9 @@ nothing will be installed over it, even if -d is specified.
 
 If a different Alluxio version is desired, see the -d option.
 
-  -u                The URI of the root UFS in the Alluxio namespace. If this 
-                    is not provided, the emr hdfs root will be used as the root
-                    UFS. 
+  <root-ufs-uri>    The URI of the root UFS in the Alluxio namespace. If this
+                    is an empty string, the emr hdfs root will be used as the
+                    root UFS.
 
   -b                An s3:// URI that the Alluxio master will write a backup
                     to upon shutdown of the EMR cluster. The backup and and
@@ -203,6 +203,8 @@ If a different Alluxio version is desired, see the -d option.
                     be uploaded. This option is not recommended for production
                     or mission critical use cases where the backup is relied
                     upon to restore cluster state after a previous shutdown.
+
+  -c                Install the alluxio client jars only
 
   -d                An s3:// or http(s):// URI which points to an Alluxio
                     tarball. This script will download and untar the
@@ -235,8 +237,6 @@ If a different Alluxio version is desired, see the -d option.
   -s                A string containing a single character representing what
                     delimiter should be used to split the Alluxio properties
                     provided in the [-p] argument.
-  
-  -c                Install the alluxio client jars only
 USAGE_END
 )
     echo -e "${USAGE}" >&2
@@ -249,18 +249,25 @@ USAGE_END
   local restore_from_backup_uri=""
   local files_list=""
   local nvme_capacity_usage=""
-  local root_ufs_uri=""
   local client_only="false"
-  while getopts ":u:b:d:f:i:n:p:s:c" option; do
+
+  if [[ "$#" -lt "1" ]]; then
+    echo -e "No root UFS URI provided"
+    print_help 1
+  fi
+
+  local root_ufs_uri="${1}"
+  shift
+  while getopts "b:cd:f:i:n:p:s:" option; do
     if [[ -n "${OPTARG-}" ]]; then
       OPTARG=$(echo -e "${OPTARG}" | tr -d '[:space:]')
     fi
     case "${option}" in
-      u)
-        root_ufs_uri="${OPTARG}"
-        ;;
       b)
         backup_uri="${OPTARG}"
+        ;;
+      c)
+        client_only="true"
         ;;
       d)
         alluxio_tarball="${OPTARG}"
@@ -281,9 +288,6 @@ USAGE_END
         ;;
       n)
         nvme_capacity_usage="${OPTARG}"
-        ;;
-      c)
-        client_only="true"
         ;;
       *)
         print_help 1
