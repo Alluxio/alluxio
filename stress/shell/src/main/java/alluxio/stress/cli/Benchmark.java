@@ -167,13 +167,13 @@ public abstract class Benchmark<T extends TaskResult> {
    *
    * @param startMs the start time
    * @param endMs the end time
-   * @param javaAgentTransformer function which transforms the type and method into a name. If the
+   * @param nameTransformer function which transforms the type and method into a name. If the
    *                        function returns null, then the method is skipped
    * @return a map of names to statistics
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   protected Map<String, MethodStatistics> processMethodProfiles(long startMs, long endMs,
-      Function<JavaAgentInput, String> javaAgentTransformer) throws IOException {
+      Function<ProfileInput, String> nameTransformer) throws IOException {
     Map<String, MethodStatistics> nameStatistics = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(
@@ -211,8 +211,8 @@ public abstract class Benchmark<T extends TaskResult> {
           continue;
         }
 
-        JavaAgentInput javaAgentInput = new JavaAgentInput(type, methodName, ttfb);
-        final String name = javaAgentTransformer.apply(javaAgentInput);
+        ProfileInput profileInput = new ProfileInput(type, methodName, ttfb);
+        final String name = nameTransformer.apply(profileInput);
         if (name == null) {
           continue;
         }
@@ -233,12 +233,12 @@ public abstract class Benchmark<T extends TaskResult> {
     return nameStatistics;
   }
 
-  protected static final class JavaAgentInput {
+  protected static final class ProfileInput {
     private String mType;
     private String mMethod;
     private boolean mIsttfb;
 
-    JavaAgentInput(String type, String method, boolean isttfb) {
+    ProfileInput(String type, String method, boolean isttfb) {
       mType = type;
       mMethod = method;
       mIsttfb = isttfb;

@@ -195,9 +195,9 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
 
     Map<String, MethodStatistics> nameStatistics =
-        processMethodProfiles(startMs, endMs, javaAgentInput -> {
-          if (javaAgentInput.getIsttfb()) {
-            return javaAgentInput.getMethod();
+        processMethodProfiles(startMs, endMs, profileInput -> {
+          if (profileInput.getIsttfb()) {
+            return profileInput.getMethod();
           }
           return null;
         });
