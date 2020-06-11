@@ -31,7 +31,6 @@ public class NativeLibValidationTask extends AbstractValidationTask {
   }
 
   private ValidationUtils.TaskResult accessNativeLib() {
-    // TODO(jiacheng): how do i get this property from mConf?
     String nativeLibPath = System.getProperty(NATIVE_LIB_PATH);
     StringTokenizer parser = new StringTokenizer(nativeLibPath, NATIVE_LIB_PATH_SEPARATOR);
     ValidationUtils.State state = ValidationUtils.State.OK;

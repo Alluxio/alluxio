@@ -22,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,10 @@ import java.util.Properties;
  * */
 public class ValidateHdfsMount {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateHdfsMount.class);
+
+  private static final String USAGE =
+          "USAGE: runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>"
+                  + "runHdfsMountTests runs a set of validations against the given hdfs path.";
 
   private static final Option READONLY_OPTION =
           Option.builder()
@@ -87,7 +93,14 @@ public class ValidateHdfsMount {
     }
   }
 
-  // TODO(jiacheng): print help
+  /**
+   *
+   * */
+  public static void printHelp(String message) {
+    System.err.println(message);
+    HelpFormatter help = new HelpFormatter();
+    help.printHelp(USAGE, OPTIONS);
+  }
 
   /**
    * The entrance.
@@ -100,11 +113,16 @@ public class ValidateHdfsMount {
     try {
       cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
+      printHelp(String.format("Failed to parse arguments %s%n", Arrays.toString(args)));
       System.exit(1);
     }
     args = cmd.getArgs();
-    String ufsPath = args[0];
+    if (args.length < 1) {
+      printHelp("Need at least 1 argument for <hdfsURI>!");
+      System.exit(1);
+    }
 
+    String ufsPath = args[0];
     InstancedConfiguration conf = InstancedConfiguration.defaults();
     // Merge options from the command line option
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);

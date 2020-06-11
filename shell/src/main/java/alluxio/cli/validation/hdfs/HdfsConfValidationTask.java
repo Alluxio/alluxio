@@ -36,13 +36,11 @@ import java.util.Map;
 public class HdfsConfValidationTask extends AbstractValidationTask {
   public static final String SEPARATOR = ":";
   protected final AlluxioConfiguration mConf;
-  protected final String mPath;
-
-  // TODO(jiacheng): change this public
-  public Map<String, String> mCoreConf;
-  public Map<String, String> mHdfsConf;
-  protected StringBuilder mMsg = new StringBuilder();
-  protected StringBuilder mAdvice = new StringBuilder();
+  final String mPath;
+  Map<String, String> mCoreConf;
+  Map<String, String> mHdfsConf;
+  StringBuilder mMsg = new StringBuilder();
+  StringBuilder mAdvice = new StringBuilder();
 
   /**
    * Creates a new instance of {@link HdfsConfValidationTask}
@@ -162,7 +160,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
     Map<String, String> properties = null;
     try {
-      properties = parser.parseXmlConfNonNull(path);
+      properties = parser.parseXmlConfiguration(path);
       mMsg.append(String.format("Successfully loaded %s. %n", path));
     } catch (ParserConfigurationException e) {
       mMsg.append(String.format("Failed to create instance of DocumentBuilder for file: %s. %s.%n",

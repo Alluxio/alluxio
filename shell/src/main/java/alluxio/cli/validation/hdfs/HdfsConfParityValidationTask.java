@@ -93,9 +93,13 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   private boolean compareConfigurations(String serverConfigFilePath, String clientSiteName,
                                         Map<String, String> clientSiteProps) {
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
-    Map<String, String> serverSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
-    if (serverSiteProps == null) {
+
+    Map<String, String> serverSiteProps;
+    try {
+      serverSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
+    } catch (Exception e) {
       mMsg.append(String.format("Failed to parse server-side %s.%n", serverConfigFilePath));
+      mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please fix the parsing error in %s.%n", serverConfigFilePath));
       return false;
     }

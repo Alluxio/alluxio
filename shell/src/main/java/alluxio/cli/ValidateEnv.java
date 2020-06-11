@@ -280,7 +280,6 @@ public final class ValidateEnv {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      // TODO(jiacheng): better way to print it?
       ValidationUtils.TaskResult result = task.validate(optionsMap);
       results.put(result.mState, results.getOrDefault(result, 0) + 1);
       switch (result.mState) {
