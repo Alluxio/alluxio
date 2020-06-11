@@ -40,6 +40,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -453,6 +454,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param alluxioConfiguration [optional] alluxio configuration
    * @throws IOException
    */
+  @VisibleForTesting
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
@@ -471,13 +473,23 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
+    // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
+    // all three into a single object.
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-
+    Map<String, Object> hadoopConfProperties =
+        HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
+    LOG.info("Creating Alluxio configuration from Hadoop configuration {}, uri configuration {}",
+        hadoopConfProperties, uriConfProperties);
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
             : ConfigurationUtils.defaults();
-    AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
-    mAlluxioConf = alluxioConf;
+    // Merge relevant Hadoop configuration into Alluxio's configuration.
+    alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
+    // Merge relevant connection details in the URI with the highest priority
+    alluxioProps.merge(uriConfProperties, Source.RUNTIME);
+    // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
+    mAlluxioConf = new InstancedConfiguration(alluxioProps);
+    mAlluxioConf.validate();
 
     if (mFileSystem != null) {
       return;
@@ -487,34 +499,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     LOG.debug("Using Hadoop subject: {}", subject);
 
     LOG.info("Initializing filesystem with connect details {}",
-        Factory.getConnectDetails(alluxioConf));
+        Factory.getConnectDetails(mAlluxioConf));
 
     // Create FileSystem for accessing Alluxio.
     // Disable URI validation for non-Alluxio schemes.
     boolean disableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
     mFileSystem = FileSystem.Factory.create(
-        ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
-  }
-
-  /**
-   * Merges the URI configuration with the Hadoop and Alluxio configuration, returning an
-   * {@link AlluxioConfiguration} with all properties merged into one object.
-   *
-   * @param uriConfProperties the configuration properties from the input uri
-   * @param conf the hadoop conf
-   * @param alluxioProps Alluxio configuration properties
-   */
-  private AlluxioConfiguration mergeConfigurations(Map<String, Object> uriConfProperties,
-      org.apache.hadoop.conf.Configuration conf, AlluxioProperties alluxioProps)
-      throws IOException {
-    // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
-    // all three into a single object.
-    InstancedConfiguration newConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        alluxioProps);
-    // Connection details in the URI has the highest priority
-    newConf.merge(uriConfProperties, Source.RUNTIME);
-    return newConf;
+        ClientContext.create(subject, mAlluxioConf).setUriValidationEnabled(disableUriValidation));
   }
 
   private Subject getSubjectFromUGI(UserGroupInformation ugi)
