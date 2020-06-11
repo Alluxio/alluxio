@@ -30,13 +30,6 @@ import java.io.File;
 public class NativeLibValidationTaskTest {
   private String mLibPath;
 
-  private static InstancedConfiguration sConf;
-
-  @BeforeClass
-  public static void prepareConf() {
-    sConf = InstancedConfiguration.defaults();
-  }
-
   @Before
   public void storeJavaLibPath() {
     mLibPath = System.getProperty(NativeLibValidationTask.NATIVE_LIB_PATH);
@@ -50,9 +43,8 @@ public class NativeLibValidationTaskTest {
     String libPath = testLibPath;
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
-    NativeLibValidationTask task = new NativeLibValidationTask(sConf);
+    NativeLibValidationTask task = new NativeLibValidationTask();
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
@@ -61,9 +53,8 @@ public class NativeLibValidationTaskTest {
     String libPath = "/usr/missing";
     System.setProperty(NativeLibValidationTask.NATIVE_LIB_PATH, libPath);
 
-    NativeLibValidationTask task = new NativeLibValidationTask(sConf);
+    NativeLibValidationTask task = new NativeLibValidationTask();
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
     assertEquals(ValidationUtils.State.WARNING, result.getState());
     assertThat(result.getResult(), containsString("Java native lib not found at /usr/missing"));
     assertThat(result.getAdvice(), containsString("Please check your path /usr/missing"));

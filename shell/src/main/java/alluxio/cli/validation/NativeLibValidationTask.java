@@ -25,16 +25,12 @@ import java.util.StringTokenizer;
 public class NativeLibValidationTask extends AbstractValidationTask {
   public static final String NATIVE_LIB_PATH = "java.library.path";
   public static final String NATIVE_LIB_PATH_SEPARATOR = ":";
-  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a new instance of {@link NativeLibValidationTask}
    * for validating Hadoop native lib path.
-   * @param conf configuration
    */
-  public NativeLibValidationTask(AlluxioConfiguration conf) {
-    mConf = conf;
-  }
+  public NativeLibValidationTask() {}
 
   @Override
   public String getName() {

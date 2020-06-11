@@ -131,7 +131,7 @@ public final class UnderFileSystemContractTest {
       // Check if the ufs path is valid
       if (factory == null || !factory.supportsPath(mUfsPath)) {
         msgStream.append(String.format("%s is not a valid path%n", mUfsPath));
-        adviceStream.append(String.format("Please validate if %s is a correct path\n", mUfsPath));
+        adviceStream.append(String.format("Please validate if %s is a correct path%n", mUfsPath));
         return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, TASK_NAME,
                 msgBuf.toString(), adviceBuf.toString());
       }

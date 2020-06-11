@@ -53,7 +53,6 @@ public class ValidationTestUtils {
     try {
       File f = new File(path);
       if (!f.exists()) {
-        System.out.format("Creating file %s%n", f.getAbsolutePath());
         f.createNewFile();
       }
 

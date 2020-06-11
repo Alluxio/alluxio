@@ -184,7 +184,7 @@ public final class ValidateEnv {
 
     // java option validations
     registerTask("java.native.libs", "validate java native lib paths",
-            new NativeLibValidationTask(mConf), mCommonTasks);
+            new NativeLibValidationTask(), mCommonTasks);
 
     mTargetTasks = initializeTargetTasks();
   }

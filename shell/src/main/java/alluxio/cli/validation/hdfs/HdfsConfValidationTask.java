@@ -37,8 +37,9 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   public static final String SEPARATOR = ":";
   protected final AlluxioConfiguration mConf;
   final String mPath;
-  Map<String, String> mCoreConf;
-  Map<String, String> mHdfsConf;
+  // loaded by loadHdfsConfig()
+  Map<String, String> mCoreConf = null;
+  Map<String, String> mHdfsConf = null;
   StringBuilder mMsg = new StringBuilder();
   StringBuilder mAdvice = new StringBuilder();
 
@@ -119,7 +120,8 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   // mCoreConf and mHdfsConf are verified to be non-null as precondition
   protected ValidationUtils.TaskResult checkConflicts() {
     ValidationUtils.State state = ValidationUtils.State.OK;
-    for (String k : mCoreConf.keySet()) {
+    for (Map.Entry<String, String> entry : mCoreConf.entrySet()) {
+      String k = entry.getKey();
       if (mHdfsConf.containsKey(k)) {
         String hdfsValue = mHdfsConf.get(k);
         String coreValue = mCoreConf.get(k);

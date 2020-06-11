@@ -65,7 +65,6 @@ public class HdfsVersionValidationTaskTest {
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
             "2.7 does not match alluxio.underfs.version=2.6"));
@@ -81,7 +80,6 @@ public class HdfsVersionValidationTaskTest {
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
@@ -126,7 +124,7 @@ public class HdfsVersionValidationTaskTest {
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
     String version = task.parseVersion(versionStr);
-    System.out.println(version);
+    assertEquals("2.7.2", version);
   }
 
   @After

@@ -135,7 +135,6 @@ public class HdfsConfValidationTaskTest {
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
 
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString("key1"));
@@ -157,7 +156,6 @@ public class HdfsConfValidationTaskTest {
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
     ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
-    System.out.println(result);
 
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
