@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -173,7 +173,7 @@ public abstract class Benchmark<T extends TaskResult> {
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   protected Map<String, MethodStatistics> processMethodProfiles(long startMs, long endMs,
-      BiFunction<String, String, String> nameTransformer) throws IOException {
+      Function<ProfileInput, String> nameTransformer) throws IOException {
     Map<String, MethodStatistics> nameStatistics = new HashMap<>();
 
     try (final BufferedReader reader = new BufferedReader(
@@ -196,20 +196,23 @@ public abstract class Benchmark<T extends TaskResult> {
         final String methodName = (String) lineMap.get("methodName");
         final Number timestampNumber = (Number) lineMap.get("timestamp");
         final Number durationNumber = (Number) lineMap.get("duration");
+        final Boolean ttfbFlag = (Boolean) lineMap.get("ttfb");
 
         if (type == null || methodName == null || timestampNumber == null
-            || durationNumber == null) {
+            || durationNumber == null || ttfbFlag == null) {
           continue;
         }
 
         final long timestamp = timestampNumber.longValue();
         final long duration = durationNumber.longValue();
+        final boolean ttfb = ttfbFlag.booleanValue();
 
         if (timestamp <= startMs) {
           continue;
         }
 
-        final String name = nameTransformer.apply(type, methodName);
+        ProfileInput profileInput = new ProfileInput(type, methodName, ttfb);
+        final String name = nameTransformer.apply(profileInput);
         if (name == null) {
           continue;
         }
@@ -228,6 +231,39 @@ public abstract class Benchmark<T extends TaskResult> {
       }
     }
     return nameStatistics;
+  }
+
+  protected static final class ProfileInput {
+    private final String mType;
+    private final String mMethod;
+    private final boolean mIsttfb;
+
+    ProfileInput(String type, String method, boolean isttfb) {
+      mType = type;
+      mMethod = method;
+      mIsttfb = isttfb;
+    }
+
+    /**
+     * @return class type
+     */
+    public String getType() {
+      return mType;
+    }
+
+    /**
+     * @return method name
+     */
+    public String getMethod() {
+      return mMethod;
+    }
+
+    /**
+     * @return is time to first byte
+     */
+    public boolean getIsttfb() {
+      return mIsttfb;
+    }
   }
 
   protected static final class MethodStatistics {
