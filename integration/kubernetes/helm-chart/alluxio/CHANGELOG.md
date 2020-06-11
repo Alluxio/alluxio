@@ -85,3 +85,7 @@
 0.6.1
 
 - Infer hostNetwork, dnsPolicy and domain socket volume type based on the user
+
+0.6.2
+
+- Fix alluxio chart failed to deploy with helm when "fuse.enabled" is true in values.yaml(issue: #11542)
