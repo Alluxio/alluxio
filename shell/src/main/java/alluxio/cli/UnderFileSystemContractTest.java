@@ -116,6 +116,7 @@ public final class UnderFileSystemContractTest {
    *
    * @return a task result for all UFS tests
    * */
+  // TODO(jiacheng): Refactor and move this into ValidateHdfsMount
   public ValidationUtils.TaskResult runValidationTask() throws IOException {
     Closer closer = Closer.create();
     final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();

@@ -12,7 +12,6 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.cli.validation.AbstractValidationTask;
 import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
 import alluxio.cli.validation.hdfs.HdfsConfParityValidationTask;
@@ -49,6 +48,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.List;
@@ -79,19 +79,18 @@ public final class ValidateEnv {
       + "OPTIONS can be a list of command line options. Each option has the"
       + " format \"-<optionName> [optionValue]\"\n";
 
-  private static final Options OPTIONS = new Options();
-
-  private static final Map<ValidationTask, String> TASKS = new HashMap<>();
-  private static final Map<String, String> TASK_DESCRIPTIONS = new HashMap<>();
-
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
+  private static final Options OPTIONS = new Options();
 
-  private static final List<ValidationTask> COMMON_TASKS = new ArrayList<>();
-  private static final List<ValidationTask> CLUSTER_TASKS = new ArrayList<>();
-  private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
-  private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
+  private final Map<ValidationTask, String> mTasks = new HashMap<>();
+  private final Map<String, String> mTaskDescriptions = new HashMap<>();
+  private final List<ValidationTask> mCommonTasks = new ArrayList<>();
+  private final List<ValidationTask> mClusterTasks = new ArrayList<>();
+  private final List<ValidationTask> mMasterTasks = new ArrayList<>();
+  private final List<ValidationTask> mWorkerTasks = new ArrayList<>();
+  private final Map<String, Collection<ValidationTask>> mTargetTasks;
 
   private final AlluxioConfiguration mConf;
   private final String mPath;
@@ -108,106 +107,105 @@ public final class ValidateEnv {
 
     // HDFS configuration validations
     registerTask("ufs.hdfs.config.correctness", "validate HDFS configuration files",
-            new HdfsConfValidationTask(mPath, mConf), COMMON_TASKS);
+            new HdfsConfValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.parity",
-        "validate HDFS-related configurations",
-        new HdfsConfParityValidationTask(mPath, mConf), COMMON_TASKS);
+            "validate HDFS-related configurations",
+            new HdfsConfParityValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.proxyuser",
             "validate proxyuser configuration in hdfs for alluxio",
-            new HdfsProxyUserValidationTask(mPath, mConf), COMMON_TASKS);
+            new HdfsProxyUserValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.version",
             "validate version compatibility between alluxio and hdfs",
-            new HdfsVersionValidationTask(mConf), COMMON_TASKS);
+            new HdfsVersionValidationTask(mConf), mCommonTasks);
 
     // port availability validations
     registerTask("master.rpc.port.available",
-        "validate master RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS, mConf),
-        MASTER_TASKS);
+            "validate master RPC port is available",
+            new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS, mConf),
+            mMasterTasks);
     registerTask("master.web.port.available",
-        "validate master web port is available",
-        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS, mConf),
-        MASTER_TASKS);
+            "validate master web port is available",
+            new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS, mConf),
+            mMasterTasks);
     registerTask("worker.rpc.port.available",
-        "validate worker RPC port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS, mConf),
-        WORKER_TASKS);
+            "validate worker RPC port is available",
+            new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS, mConf),
+            mWorkerTasks);
     registerTask("worker.web.port.available",
-        "validate worker web port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS, mConf),
-        WORKER_TASKS);
+            "validate worker web port is available",
+            new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS, mConf),
+            mWorkerTasks);
     registerTask("proxy.web.port.available",
-        "validate proxy web port is available",
-        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS, mConf),
-        COMMON_TASKS);
+            "validate proxy web port is available",
+            new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS, mConf),
+            mCommonTasks);
 
     // security configuration validations
     registerTask("master.ufs.hdfs.security.kerberos",
-        "validate kerberos security configurations for masters",
-        new SecureHdfsValidationTask("master", mPath, mConf), MASTER_TASKS);
+            "validate kerberos security configurations for masters",
+            new SecureHdfsValidationTask("master", mPath, mConf), mMasterTasks);
     registerTask("worker.ufs.hdfs.security.kerberos",
-        "validate kerberos security configurations for workers",
-        new SecureHdfsValidationTask("worker", mPath, mConf), WORKER_TASKS);
+            "validate kerberos security configurations for workers",
+            new SecureHdfsValidationTask("worker", mPath, mConf), mWorkerTasks);
 
     // ssh validations
     registerTask("ssh.nodes.reachable",
-        "validate SSH port on all Alluxio nodes are reachable",
-        new SshValidationTask(mConf), COMMON_TASKS);
+            "validate SSH port on all Alluxio nodes are reachable",
+            new SshValidationTask(mConf), mCommonTasks);
 
     // UFS validations
     registerTask("ufs.path.accessible",
-        "validate the under file system location is accessible",
-        new UfsDirectoryValidationTask(mPath, mConf), COMMON_TASKS);
+            "validate the under file system location is accessible",
+            new UfsDirectoryValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.path.superuser",
-        "validate Alluxio has super user privilege on the under file system",
-        new UfsSuperUserValidationTask(mPath, mConf), COMMON_TASKS);
+            "validate Alluxio has super user privilege on the under file system",
+            new UfsSuperUserValidationTask(mPath, mConf), mCommonTasks);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
-        "validate user has the correct privilege to mount ramdisk",
-        new RamDiskMountPrivilegeValidationTask(mConf), WORKER_TASKS);
+            "validate user has the correct privilege to mount ramdisk",
+            new RamDiskMountPrivilegeValidationTask(mConf), mWorkerTasks);
 
     // User limit validations
     registerTask("ulimit.nofile",
-        "validate ulimit for number of open files is set appropriately",
-        UserLimitValidationTask.createOpenFilesLimitValidationTask(), COMMON_TASKS);
+            "validate ulimit for number of open files is set appropriately",
+            UserLimitValidationTask.createOpenFilesLimitValidationTask(), mCommonTasks);
     registerTask("ulimit.nproc",
-        "validate ulimit for number of processes is set appropriately",
-        UserLimitValidationTask.createUserProcessesLimitValidationTask(), COMMON_TASKS);
+            "validate ulimit for number of processes is set appropriately",
+            UserLimitValidationTask.createUserProcessesLimitValidationTask(), mCommonTasks);
 
     // space validations
     registerTask("worker.storage.space",
-        "validate tiered storage locations have enough space",
-        new StorageSpaceValidationTask(mConf), WORKER_TASKS);
+            "validate tiered storage locations have enough space",
+            new StorageSpaceValidationTask(mConf), mWorkerTasks);
     registerTask("cluster.conf.consistent",
-        "validate configuration consistency across the cluster",
-        new ClusterConfConsistencyValidationTask(mConf), CLUSTER_TASKS);
+            "validate configuration consistency across the cluster",
+            new ClusterConfConsistencyValidationTask(mConf), mClusterTasks);
 
     // java option validations
     registerTask("java.native.libs", "validate java native lib paths",
-        new NativeLibValidationTask(mConf), COMMON_TASKS);
+            new NativeLibValidationTask(mConf), mCommonTasks);
+
+    mTargetTasks = initializeTargetTasks();
   }
 
-  private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
-      initializeTargetTasks();
-
-  private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
+  private Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
-    List<ValidationTask> allMasterTasks = new ArrayList<>(COMMON_TASKS);
-    allMasterTasks.addAll(MASTER_TASKS);
+    List<ValidationTask> allMasterTasks = new ArrayList<>(mCommonTasks);
+    allMasterTasks.addAll(mMasterTasks);
     targetMap.put("master", allMasterTasks);
-    List<ValidationTask> allWorkerTasks = new ArrayList<>(COMMON_TASKS);
-    allWorkerTasks.addAll(WORKER_TASKS);
+    List<ValidationTask> allWorkerTasks = new ArrayList<>(mCommonTasks);
+    allWorkerTasks.addAll(mWorkerTasks);
     targetMap.put("worker", allWorkerTasks);
-    targetMap.put("local", TASKS.keySet());
-    targetMap.put("cluster", new ArrayList<>(CLUSTER_TASKS));
+    targetMap.put("local", mTasks.keySet());
+    targetMap.put("cluster", new ArrayList<>(mClusterTasks));
     return targetMap;
   }
 
-  private static ValidationTask registerTask(String name, String description,
+  private ValidationTask registerTask(String name, String description,
                    AbstractValidationTask task, List<ValidationTask> tasks) {
-    TASKS.put(task, name);
-    TASK_DESCRIPTIONS.put(name, description);
+    mTasks.put(task, name);
+    mTaskDescriptions.put(name, description);
     tasks.add(task);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {
@@ -228,6 +226,15 @@ public final class ValidateEnv {
     }
 
     return success;
+  }
+
+  /**
+   * Get the tasks registered.
+   *
+   * @return a map of tasks mapping to their name
+   * */
+  public Map<ValidationTask, String> getTasks() {
+    return Collections.unmodifiableMap(mTasks);
   }
 
   // validates environment on remote node
@@ -272,10 +279,10 @@ public final class ValidateEnv {
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
     }
-    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    Collection<ValidationTask> tasks = mTargetTasks.get(target);
     System.out.format("Validating %s environment...%n", target);
     for (ValidationTask task: tasks) {
-      String taskName = TASKS.get(task);
+      String taskName = mTasks.get(task);
       if (name != null && !taskName.startsWith(name)) {
         continue;
       }
@@ -331,41 +338,17 @@ public final class ValidateEnv {
     return validateRemote(ConfigurationUtils.getMasterHostnames(mConf), "master", name, cmd);
   }
 
-  /**
-   * Runs the subset of tests based on the target UFS type.
-   * A validation task will run only if it matches the target type, or it matches all types.
-   *
-   * @param target the target UFS type
-   * @param optionMap an extra configuration map to pass to the validation tasks
-   * @return a list of task results for each task
-   * */
-  public List<ValidationUtils.TaskResult> validateUfs(ApplicableUfsType.Type target,
-                              Map<String, String> optionMap) throws InterruptedException {
-    List<ValidationUtils.TaskResult> results = new ArrayList<>();
-    for (Map.Entry<ValidationTask, String> entry :TASKS.entrySet()) {
-      ValidationTask task = entry.getKey();
-      Class clazz = task.getClass();
-      if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
-        ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
-        if (type.value() == target || type.value() == ApplicableUfsType.Type.ALL) {
-          results.add(task.validate(optionMap));
-        }
-      }
-    }
-    return results;
-  }
-
-  private static void printTasks(String target) {
+  private void printTasks(String target) {
     System.out.format("The following tasks are available to run on %s:%n", target);
-    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    Collection<ValidationTask> tasks = mTargetTasks.get(target);
     for (ValidationTask task: tasks) {
-      String taskName = TASKS.get(task);
-      System.out.printf("%s: %s%n", taskName, TASK_DESCRIPTIONS.get(taskName));
+      String taskName = mTasks.get(task);
+      System.out.printf("%s: %s%n", taskName, mTaskDescriptions.get(taskName));
     }
     System.out.println();
   }
 
-  private static void printTasks() {
+  private void printTasks() {
     printTasks("master");
     printTasks("worker");
     printTasks("cluster");
@@ -448,7 +431,11 @@ public final class ValidateEnv {
       return -1;
     }
     if (command.equals("list")) {
-      printTasks();
+      // Validate against root path
+      AlluxioConfiguration conf = InstancedConfiguration.defaults();
+      String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      ValidateEnv task = new ValidateEnv(rootPath, conf);
+      task.printTasks();
       return 0;
     }
     return runTasks(command, name, cmd);

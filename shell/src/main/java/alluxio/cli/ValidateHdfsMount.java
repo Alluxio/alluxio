@@ -12,11 +12,18 @@
 package alluxio.cli;
 
 import alluxio.cli.validation.ApplicableUfsType;
+import alluxio.cli.validation.ValidationTask;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Closer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.CommandLine;
@@ -29,7 +36,9 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,6 +70,13 @@ public class ValidateHdfsMount {
                   .hasArg(false)
                   .desc("mount point is shared")
                   .build();
+  private static final Option HELP_OPTION =
+          Option.builder()
+                  .longOpt("help")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("show help")
+                  .build();
   private static final Option OPTION_OPTION =
           Option.builder()
                   .longOpt("option")
@@ -73,7 +89,36 @@ public class ValidateHdfsMount {
                   .build();
   private static final Options OPTIONS =
           new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-                  .addOption(OPTION_OPTION);
+                  .addOption(HELP_OPTION).addOption(OPTION_OPTION);
+
+  /**
+   * Runs the subset of tests based on the target UFS type.
+   * A validation task will run only if it matches the target type, or it matches all types.
+   *
+   * @param ufsPath the UFS path
+   * @param ufsConf the UFS configurations
+   * @return a list of task results for each task
+   * */
+  public static List<ValidationUtils.TaskResult> validateUfs(String ufsPath,
+                                                             AlluxioConfiguration ufsConf)
+          throws InterruptedException {
+    Map<String, String> validateOpts = ImmutableMap.of();
+    ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
+
+    List<ValidationUtils.TaskResult> results = new ArrayList<>();
+    for (Map.Entry<ValidationTask, String> entry : tasks.getTasks().entrySet()) {
+      ValidationTask task = entry.getKey();
+      Class clazz = task.getClass();
+      if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
+        ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
+        if (type.value() == ApplicableUfsType.Type.HDFS
+                || type.value() == ApplicableUfsType.Type.ALL) {
+          results.add(task.validate(validateOpts));
+        }
+      }
+    }
+    return results;
+  }
 
   /**
    * Invokes {@link UnderFileSystemContractTest} to validate UFS operations.
@@ -116,6 +161,11 @@ public class ValidateHdfsMount {
       printHelp(String.format("Failed to parse arguments %s%n", Arrays.toString(args)));
       System.exit(1);
     }
+    if (cmd.hasOption(HELP_OPTION.getLongOpt())) {
+      printHelp("Showing usage for the command");
+      System.exit(0);
+    }
+
     args = cmd.getArgs();
     if (args.length < 1) {
       printHelp("Need at least 1 argument for <hdfsURI>!");
@@ -139,10 +189,7 @@ public class ValidateHdfsMount {
     }
 
     // Run validateEnv
-    Map<String, String> validateOpts = ImmutableMap.of();
-    ValidateEnv validate = new ValidateEnv(ufsPath, ufsConf);
-    List<ValidationUtils.TaskResult> results = validate.validateUfs(
-            ApplicableUfsType.Type.HDFS, validateOpts);
+    List<ValidationUtils.TaskResult> results = validateUfs(ufsPath, ufsConf);
 
     // Run runUfsTests
     if (ufsConf.isReadOnly()) {

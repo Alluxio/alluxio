@@ -66,6 +66,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
     // There are proxyable users and groups for the Alluxio user in HDFS,
     // but we cannot know if that is a full set.
     // Leave a warning for the user to double check.
+    // TODO(jiacheng): can we do better check than this?
     mMsg.append(String.format("Alluxio user %s has %s=%s and %s=%s set for HDFS.%n",
             userName, proxyUserKey, proxyUsers, proxyGroupKey, proxyGroups));
     mAdvice.append(String.format(
