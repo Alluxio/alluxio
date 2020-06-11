@@ -20,6 +20,7 @@ import alluxio.conf.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -41,6 +42,7 @@ public final class HadoopConfigurationUtils {
    * @param alluxioProps the Alluxio properties to merge
    * @return a configuration with properties all merged
    */
+  //TODO(binfan): remove this method after Presto code updated
   public static InstancedConfiguration mergeHadoopConfiguration(
       org.apache.hadoop.conf.Configuration hadoopConf, AlluxioProperties alluxioProps) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
@@ -61,6 +63,25 @@ public final class HadoopConfigurationUtils {
     InstancedConfiguration mergedConf = new InstancedConfiguration(alluxioProps);
     mergedConf.validate();
     return mergedConf;
+  }
+
+  /**
+   * Extracts relevant configuration from Hadoop {@link org.apache.hadoop.conf.Configuration}.
+   *
+   * @param hadoopConf the {@link org.apache.hadoop.conf.Configuration} to extract
+   * @return all relevant properties in a Map instance
+   */
+  public static Map<String, Object> getConfigurationFromHadoop(
+      org.apache.hadoop.conf.Configuration hadoopConf) {
+    Map<String, Object> alluxioConfProperties = new HashMap<>();
+    // Load any Alluxio configuration parameters in the Hadoop configuration.
+    for (Map.Entry<String, String> entry : hadoopConf) {
+      String propertyName = entry.getKey();
+      if (PropertyKey.isValid(propertyName)) {
+        alluxioConfProperties.put(propertyName, entry.getValue());
+      }
+    }
+    return alluxioConfProperties;
   }
 
   /**
