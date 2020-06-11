@@ -18,10 +18,6 @@ import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.channels.ReadableByteChannel;
-
-import javax.annotation.Nullable;
-
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
  */
@@ -48,27 +44,26 @@ public class NoExceptionCacheManager implements CacheManager {
     }
   }
 
-  @Nullable
   @Override
-  public ReadableByteChannel get(PageId pageId) {
+  public int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
     try {
-      return mCacheManager.get(pageId);
+      return mCacheManager.get(pageId, bytesToRead, buffer, offsetInBuffer);
     } catch (Exception e) {
       LOG.error("Failed to get page {}", pageId, e);
       Metrics.GET_ERRORS.inc();
-      return null;
+      return -1;
     }
   }
 
-  @Nullable
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset) {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer) {
     try {
-      return mCacheManager.get(pageId, pageOffset);
+      return mCacheManager.get(pageId, pageOffset,  bytesToRead, buffer, offsetInBuffer);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {}", pageId, pageOffset, e);
       Metrics.GET_ERRORS.inc();
-      return null;
+      return -1;
     }
   }
 
