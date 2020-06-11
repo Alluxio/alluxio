@@ -14,9 +14,6 @@ package alluxio.client.file.cache;
 import alluxio.conf.AlluxioConfiguration;
 
 import java.io.IOException;
-import java.nio.channels.ReadableByteChannel;
-
-import javax.annotation.Nullable;
 
 /**
  * Interface for managing cached pages.
@@ -42,25 +39,30 @@ public interface CacheManager extends AutoCloseable  {
   boolean put(PageId pageId, byte[] page);
 
   /**
-   * Wraps the page in a channel or null if the queried page is not found in the cache or otherwise
-   * unable to be read from the cache.
+   * Reads the entire page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
-   * @return a channel to read the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param offsetInBuffer offset in the destination buffer to write
+   * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  @Nullable
-  ReadableByteChannel get(PageId pageId);
+  default int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
+    return get(pageId, 0, bytesToRead, buffer, offsetInBuffer);
+  }
 
   /**
-   * Wraps a part of the page in a channel or null if the queried page is not found in the cache or
-   * otherwise unable to be read from the cache.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in
+   * buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
-   * @return a channel to read the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param offsetInBuffer offset in the destination buffer to write
+   * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  @Nullable
-  ReadableByteChannel get(PageId pageId, int pageOffset);
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer);
 
   /**
    * Deletes a page from the cache.
