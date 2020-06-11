@@ -234,9 +234,9 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   protected static final class ProfileInput {
-    private String mType;
-    private String mMethod;
-    private boolean mIsttfb;
+    private final String mType;
+    private final String mMethod;
+    private final boolean mIsttfb;
 
     ProfileInput(String type, String method, boolean isttfb) {
       mType = type;
@@ -256,13 +256,6 @@ public abstract class Benchmark<T extends TaskResult> {
      */
     public String getMethod() {
       return mMethod;
-    }
-
-    /**
-     * @return method name
-     */
-    public void setMethod(String method) {
-      mMethod = method;
     }
 
     /**
