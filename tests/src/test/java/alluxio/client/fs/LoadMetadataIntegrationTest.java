@@ -12,6 +12,8 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
@@ -35,6 +37,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.After;
@@ -143,7 +146,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
 
     // create dirB in UFS
-    Assert.assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
+    assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
     // 'ONCE' still should not load the metadata
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
@@ -162,13 +165,13 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     // create dirB in UFS
-    Assert.assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
+    assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
 
     // delete dirB in UFS
-    Assert.assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").delete());
+    assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").delete());
 
     // 'ONCE' should not be affected if UFS is changed
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
@@ -265,6 +268,33 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * This test makes sure that we can sync files deeply nested from a UFS without issues.
+   *
+   * Previous versions of the code caused a deadlock, which is why this test was added.
+   */
+  @Test(timeout = 20000)
+  public void loadNonexistentSubpath() throws Exception {
+    String rootUfs = mFileSystem.getMountTable().get("/").getUfsUri();
+    String subdirPath = "/i/dont/exist/in/alluxio";
+    String ufsPath = PathUtils.concatPath(rootUfs, subdirPath);
+    assertTrue(new File(ufsPath).mkdirs());
+    String filepath = PathUtils.concatPath(ufsPath, "a");
+    String data = "testtesttest";
+    try (FileWriter w = new FileWriter(filepath)) {
+      w.write(data);
+    }
+    String alluxioPath = PathUtils.concatPath(subdirPath, "a");
+    URIStatus s = mFileSystem.getStatus(new AlluxioURI(alluxioPath), GetStatusPOptions.newBuilder()
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
+        .build());
+    assertFalse(s.isFolder());
+    assertEquals(data.length(), s.getLength());
+    assertEquals("a", s.getName());
+    assertTrue(s.isPersisted());
+  }
+
+  /**
    * Checks the get status call with the specified parameters and expectations.
    *
    * @param path the path to get the status for
@@ -288,10 +318,10 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     }
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     if (expectLoadFromUfs) {
-      Assert.assertTrue("Expected to be slow (ufs load). actual duration (ms): " + durationMs,
+      assertTrue("Expected to be slow (ufs load). actual duration (ms): " + durationMs,
           durationMs >= SLEEP_MS);
     } else {
-      Assert.assertTrue("Expected to be fast (no ufs load). actual duration (ms): " + durationMs,
+      assertTrue("Expected to be fast (no ufs load). actual duration (ms): " + durationMs,
           durationMs < SLEEP_MS / 2);
     }
 

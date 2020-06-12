@@ -104,17 +104,9 @@ public interface InodeLockList extends AutoCloseable {
   void unlockLastEdge();
 
   /**
-   * Downgrades the last inode from a write lock to a read lock. The read lock is acquired before
-   * releasing the write lock.
-   *
-   * Example
-   * Starting from [a, a->b, b*]
-   *
-   * downgradeLastInode() results in [a, a->b, b]
-   *
-   * If the last inode is not the only write-locked inode, no downgrade occurs.
+   * Downgrades all locks in the current lock list to read locks.
    */
-  void downgradeLastInode();
+  void downgradeToReadLocks();
 
   /**
    * Downgrades the last edge lock in the lock list from WRITE lock to READ lock.
@@ -144,24 +136,6 @@ public interface InodeLockList extends AutoCloseable {
    * @param childName the child name for the edge to add to the lock list
    */
   void pushWriteLockedEdge(Inode inode, String childName);
-
-  /**
-   * Downgrades from edge write-locking to inode write-locking. This reduces the scope of the write
-   * lock by pushing it forward one entry.
-   *
-   * Example
-   * Starting from [a, a->b*]
-   *
-   * downgradeEdgeToInode(b, LockMode.READ) results in [a, a->b, b]
-   * downgradeEdgeToInode(b, LockMode.WRITE) results in [a, a->b, b*]
-   *
-   * The read lock on a->b is acquired before releasing the write lock. This ensures that no other
-   * thread can take the write lock before the read lock is acquired.
-   *
-   * @param inode the next inode in the lock list
-   * @param mode the mode to downgrade to
-   */
-  void downgradeEdgeToInode(Inode inode, LockMode mode);
 
   /**
    * @return {@link LockMode#WRITE} if the last entry in the list is write-locked, otherwise

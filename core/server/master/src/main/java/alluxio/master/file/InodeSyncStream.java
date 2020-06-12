@@ -271,7 +271,7 @@ public class InodeSyncStream {
       mStatusCache.remove(mRootPath.getUri());
       // downgrade so that if operations are parallelized, the lock on the root doesn't restrict
       // concurrent operations
-      mRootPath.downgradeToPattern(LockPattern.READ);
+      mRootPath.downgradeToRead();
     }
 
     // Process any children after the root.
