@@ -248,7 +248,7 @@ shortCircuit:
   # uuid means interact with domain socket
   policy: uuid
   # volumeType controls the type of shortCircuit volume.
-  # It can be "persistentVolumeClaim", "hostPath" or "emptyDir"
+  # It can be "persistentVolumeClaim" or "hostPath"
   volumeType: persistentVolumeClaim
   size: 1Mi
   # Attributes to use if the domain socket volume is PVC
