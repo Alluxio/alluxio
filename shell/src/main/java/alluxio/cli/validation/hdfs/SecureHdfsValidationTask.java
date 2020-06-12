@@ -9,11 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.validation;
+package alluxio.cli.validation.hdfs;
 
+import alluxio.cli.ValidationUtils;
+import alluxio.cli.validation.AbstractValidationTask;
+import alluxio.cli.validation.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.shell.CommandReturn;
 import alluxio.util.ShellUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +29,8 @@ import java.util.regex.Pattern;
 /**
  * Task for validating security configurations.
  */
-public final class SecureHdfsValidationTask extends HdfsValidationTask {
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
+public final class SecureHdfsValidationTask extends AbstractValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.
@@ -52,39 +55,45 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
   private PropertyKey mPrincipalProperty;
   private PropertyKey mKeytabProperty;
   private final AlluxioConfiguration mConf;
+  private final StringBuilder mMsg;
+  private final StringBuilder mAdvice;
+  private final String mPath;
 
   /**
    * Constructor of {@link SecureHdfsValidationTask}
    * for validating Kerberos login ability.
    *
    * @param process type of the process on behalf of which this validation task is run
+   * @param path the UFS path
    * @param conf configuration
    */
-  public SecureHdfsValidationTask(String process, AlluxioConfiguration conf) {
-    super(conf);
+  public SecureHdfsValidationTask(String process, String path, AlluxioConfiguration conf) {
     mConf = conf;
+    mPath = path;
     mProcess = process.toLowerCase();
     mPrincipalProperty = PRINCIPAL_MAP.get(mProcess);
     mKeytabProperty = KEYTAB_MAP.get(mProcess);
+    mMsg = new StringBuilder();
+    mAdvice = new StringBuilder();
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public String getName() {
+    return String.format("ValidateKerberosForSecureHdfs%s", mProcess.toUpperCase());
+  }
+
+  @Override
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
     if (shouldSkip()) {
-      return TaskResult.SKIPPED;
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
-    if (super.validate(optionsMap) == TaskResult.FAILED) {
-      return TaskResult.FAILED;
-    }
-    if (!validatePrincipalLogin()) {
-      return TaskResult.FAILED;
-    }
-    return TaskResult.OK;
+    return validatePrincipalLogin();
   }
 
-  @Override
   protected boolean shouldSkip() {
-    if (super.shouldSkip()) {
+    if (!HdfsConfValidationTask.isHdfsScheme(mPath)) {
+      mMsg.append("Skip this check as the UFS is not HDFS.\n");
       return true;
     }
     String principal = null;
@@ -92,20 +101,23 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       principal = mConf.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
-      System.out.format("Skip validation for secure HDFS. %s is not specified.%n",
-          PRINCIPAL_MAP.get(mProcess).getName());
+      mMsg.append(String.format("Skip validation for secure HDFS. %s is not specified.%n",
+          PRINCIPAL_MAP.get(mProcess).getName()));
       return true;
     }
     return false;
   }
 
-  private boolean validatePrincipalLogin() {
+  private ValidationUtils.TaskResult validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
     String principal = mConf.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
-      System.err.format("Principal %s is not in the right format.%n", principal);
-      return false;
+      mMsg.append(String.format("Principal %s is not in the right format.%n", principal));
+      mAdvice.append(String.format("Please fix principal %s=%s.%n",
+              mPrincipalProperty.toString(), principal));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
     String primary = matchPrincipal.group("primary");
     String instance = matchPrincipal.group("instance");
@@ -113,20 +125,22 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
     // Login with principal and keytab
     String keytab = mConf.get(mKeytabProperty);
-    CommandReturn cr;
     String[] command = new String[] {"kinit", "-kt", keytab, principal};
     try {
-      cr = ShellUtils.execCommandWithOutput(command);
-      if (cr.getExitCode() != 0) {
-        System.err.format("Kerberos login failed for %s with keytab %s with exit value %d.%n",
-                principal, keytab, cr.getExitCode());
-        System.err.format("Primary is %s, instance is %s and realm is %s.%n",
-                primary, instance, realm);
-        return false;
-      }
+      String output = ShellUtils.execCommand(command);
+      mMsg.append(String.format("Command %s finished with output: %s%n",
+              Arrays.toString(command), output));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+              mMsg.toString(), mAdvice.toString());
     } catch (IOException e) {
-      System.err.format("Failed to execute %s with exception: %s%n", Arrays.toString(command), e);
+      mMsg.append(String.format("Kerberos login failed for %s with keytab %s.%n",
+              principal, keytab));
+      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(String.format("Primary is %s, instance is %s and realm is %s.%n",
+              primary, instance, realm));
+      ValidationUtils.TaskResult result = new ValidationUtils.TaskResult(
+              ValidationUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
+      return result;
     }
-    return true;
   }
 }

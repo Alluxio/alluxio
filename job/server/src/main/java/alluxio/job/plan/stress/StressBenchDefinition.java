@@ -18,7 +18,7 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.JsonSerializable;
+import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;

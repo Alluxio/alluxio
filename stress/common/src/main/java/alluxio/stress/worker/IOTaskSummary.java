@@ -13,12 +13,12 @@ package alluxio.stress.worker;
 
 import alluxio.collections.Pair;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.JsonSerializable;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.util.FormatUtils;
+import alluxio.util.JsonSerializable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Splitter;

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.validation;
+package alluxio.cli.validation.hdfs;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,33 +44,17 @@ public class HadoopConfigurationFileParser {
    * @param path path to the xml file
    * @return Map from property names to values
    */
-  @Nullable
-  public Map<String, String> parseXmlConfiguration(final String path) {
+  public Map<String, String> parseXmlConfiguration(final String path)
+          throws IOException, SAXException, ParserConfigurationException {
     File xmlFile;
     xmlFile = new File(path);
     if (!xmlFile.exists()) {
-      System.err.format("File %s does not exist.", path);
-      return null;
+      throw new IOException(String.format("File %s does not exist.", path));
     }
     DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder docBuilder;
-    try {
-      docBuilder = docBuilderFactory.newDocumentBuilder();
-    } catch (ParserConfigurationException e) {
-      System.err.format("Failed to create instance of DocumentBuilder for file: %s. %s. %n",
-          path, e.getMessage());
-      return null;
-    }
+    DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
     Document doc;
-    try {
-      doc = docBuilder.parse(xmlFile);
-    } catch (IOException e) {
-      System.err.format("An I/O error occured reading file %s. %s.%n", path, e.getMessage());
-      return null;
-    } catch (SAXException e) {
-      System.err.format("A parsing error occured parsing file %s. %s.%n", path, e.getMessage());
-      return null;
-    }
+    doc = docBuilder.parse(xmlFile);
     // Optional, but recommended.
     // Refer to http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
     doc.getDocumentElement().normalize();
@@ -82,7 +65,7 @@ public class HadoopConfigurationFileParser {
       if (propNode.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) propNode;
         ret.put(element.getElementsByTagName("name").item(0).getTextContent(),
-            element.getElementsByTagName("value").item(0).getTextContent());
+                element.getElementsByTagName("value").item(0).getTextContent());
       }
     }
     return ret;

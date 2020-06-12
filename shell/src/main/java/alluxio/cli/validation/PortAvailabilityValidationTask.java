@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.ShellUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -43,17 +44,32 @@ public final class PortAvailabilityValidationTask extends AbstractValidationTask
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public String getName() {
+    return "ValidateAlluxioPorts";
+  }
+
+  @Override
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     if (ShellUtils.isAlluxioRunning(mOwner)) {
-      System.out.format("%s is already running. Skip validation.%n", mOwner);
-      return TaskResult.SKIPPED;
+      msg.append(String.format("%s is already running. Skip validation.%n", mOwner));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+              msg.toString(), advice.toString());
     }
     int port = NetworkAddressUtils.getPort(mServiceType, mConf);
     if (!isLocalPortAvailable(port)) {
-      System.err.format("%s port %d is not available.%n", mServiceType.getServiceName(), port);
-      return TaskResult.FAILED;
+      msg.append(String.format("%s port %d is not available.%n",
+              mServiceType.getServiceName(), port));
+      advice.append(String.format("Please open your port %s for service %s.%n",
+              port, mServiceType.getServiceName()));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
-    return TaskResult.OK;
+    msg.append("All ports are validated.\n");
+    return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+            msg.toString(), advice.toString());
   }
 
   private static boolean isLocalPortAvailable(int port) {

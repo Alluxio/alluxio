@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
@@ -29,10 +30,8 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 /**
- * Task for validating system limit for current user.
+ * Task for validating Alluxio configuration consistency in the cluster.
  */
 public final class ClusterConfConsistencyValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
@@ -47,29 +46,54 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
+  public String getName() {
+    return "ValidateClusterConfConsistency";
+  }
+
+  @Override
+  public ValidationUtils.TaskResult validate(Map<String, String> optionMap)
+          throws InterruptedException {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     Set<String> masters = ConfigurationUtils.getMasterHostnames(mConf);
     Set<String> workers = ConfigurationUtils.getWorkerHostnames(mConf);
     Set<String> nodes = Sets.union(masters, workers);
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
     if (masters.isEmpty()) {
-      System.err.println("No master nodes specified in conf/masters file");
-      return TaskResult.SKIPPED;
+      msg.append(String.format("No master nodes specified in %s/masters file. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the master node hostnames. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+              msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
-      System.err.println("No worker nodes specified in conf/workers file");
-      return TaskResult.SKIPPED;
+      msg.append(String.format("No worker nodes specified in %s/workers file. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      advice.append(String.format("Please configure %s to contain the worker node hostnames. ",
+              mConf.get(PropertyKey.CONF_DIR)));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+              msg.toString(), advice.toString());
     }
-    TaskResult result = TaskResult.OK;
+    ValidationUtils.State state = ValidationUtils.State.OK;
+    Exception ex = null;
     for (String node : nodes) {
-      Properties props = getNodeConf(node);
-      if (props == null) {
-        result = TaskResult.FAILED;
+      try {
+        Properties props = getNodeConf(node);
+        allProperties.put(node, props);
+        propertyNames.addAll(props.stringPropertyNames());
+      } catch (IOException e) {
+        System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
+        msg.append(String.format("Unable to retrieve configuration for %s: %s.",
+                node, e.getMessage()));
+        advice.append(String.format("Please check the connection from node %s. ", node));
+        ex = e;
+        state = ValidationUtils.State.FAILED;
+        // Check all nodes before returning
         continue;
       }
-      allProperties.put(node, props);
-      propertyNames.addAll(props.stringPropertyNames());
     }
     for (String propertyName : propertyNames) {
       if (!PropertyKey.isValid(propertyName)) {
@@ -96,21 +120,22 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       boolean isConsistent = true;
 
       String errLabel;
-      TaskResult errLevel;
+      ValidationUtils.State errLevel;
       switch (level) {
         case ENFORCE:
           errLabel = "Error";
-          errLevel = TaskResult.FAILED;
+          errLevel = ValidationUtils.State.FAILED;
           break;
         case WARN:
           errLabel = "Warning";
-          errLevel = TaskResult.WARNING;
+          errLevel = ValidationUtils.State.WARNING;
           break;
         default:
-          System.err.format(
+          msg.append(String.format(
               "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
-              level.name(), propertyName);
-          result = TaskResult.FAILED;
+              level.name(), propertyName));
+          advice.append(String.format("Please check property %s.%n", propertyName));
+          state = ValidationUtils.State.FAILED;
           continue;
       }
       for (String remoteNode : targetNodes) {
@@ -122,37 +147,34 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
         String remoteValue = allProperties.get(remoteNode).getProperty(propertyName);
         if (!StringUtils.equals(remoteValue, baseValue)) {
-          System.err.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
-              errLabel, propertyName, baseNode, remoteNode);
-          System.err.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
-              remoteNode,  Objects.toString(remoteValue, "not set"));
+          msg.append(String.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
+              errLabel, propertyName, baseNode, remoteNode));
+          msg.append(String.format(" %s: %s%n %s: %s%n", baseNode,
+                  Objects.toString(baseValue, "not set"),
+              remoteNode,  Objects.toString(remoteValue, "not set")));
+          advice.append(String.format("Please check your settings for property %s on %s and %s.%n",
+                  propertyName, baseNode, remoteNode));
           isConsistent = false;
         }
       }
       if (!isConsistent) {
-        result = result == TaskResult.FAILED ? TaskResult.FAILED : errLevel;
+        state = state == ValidationUtils.State.FAILED ? ValidationUtils.State.FAILED : errLevel;
       }
     }
-    return result;
+    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
-  @Nullable
-  private Properties getNodeConf(String node) {
-    try {
-      String homeDir = mConf.get(PropertyKey.HOME);
-      String remoteCommand = String.format(
-          "%s/bin/alluxio getConf", homeDir);
-      String localCommand = String.format(
-          "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
-          node, remoteCommand);
-      String[] command = {"bash", "-c", localCommand};
-      Properties properties = new Properties();
-      Process process = Runtime.getRuntime().exec(command);
-      properties.load(process.getInputStream());
-      return properties;
-    } catch (IOException e) {
-      System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
-      return null;
-    }
+  private Properties getNodeConf(String node) throws IOException {
+    String homeDir = mConf.get(PropertyKey.HOME);
+    String remoteCommand = String.format(
+        "%s/bin/alluxio getConf", homeDir);
+    String localCommand = String.format(
+        "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
+        node, remoteCommand);
+    String[] command = {"bash", "-c", localCommand};
+    Properties properties = new Properties();
+    Process process = Runtime.getRuntime().exec(command);
+    properties.load(process.getInputStream());
+    return properties;
   }
 }

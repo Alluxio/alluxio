@@ -298,7 +298,7 @@ public final class JournalCrashTest {
       } catch (Exception e) {
         LOG.error("Failed to check status", e);
       }
-      RunTestUtils.printPassInfo(checkSuccess);
+      RunTestUtils.printTestStatus(checkSuccess);
       ret &= checkSuccess;
     }
 
