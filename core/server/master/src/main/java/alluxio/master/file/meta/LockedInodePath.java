@@ -272,43 +272,11 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
-   * Downgrades from the current locking scheme to the desired locking scheme.
-   *
-   * @param desiredLockPattern the pattern to downgrade to
+   * Downgrades all locks in this list to read locks.
    */
-  public void downgradeToPattern(LockPattern desiredLockPattern) {
-    switch (desiredLockPattern) {
-      case READ:
-        if (mLockPattern == LockPattern.WRITE_INODE) {
-          mLockList.downgradeLastInode();
-        } else if (mLockPattern == LockPattern.WRITE_EDGE) {
-          downgradeEdgeToInode(LockMode.READ);
-        }
-        break;
-      case WRITE_INODE:
-        if (mLockPattern == LockPattern.WRITE_EDGE) {
-          downgradeEdgeToInode(LockMode.WRITE);
-        } else {
-          Preconditions.checkState(mLockPattern == LockPattern.WRITE_INODE);
-        }
-        break;
-      case WRITE_EDGE:
-        Preconditions.checkState(mLockPattern == LockPattern.WRITE_EDGE);
-        break; // Nothing to do
-      default:
-        throw new IllegalStateException("Unknown lock pattern: " + desiredLockPattern);
-    }
-    mLockPattern = desiredLockPattern;
-  }
-
-  private void downgradeEdgeToInode(LockMode lockMode) {
-    if (fullPathExists()) {
-      Inode lastInode = mLockList.get(mLockList.numInodes() - 1);
-      mLockList.unlockLastInode();
-      mLockList.downgradeEdgeToInode(lastInode, lockMode);
-    } else {
-      mLockList.unlockLastEdge();
-    }
+  public void downgradeToRead() {
+    mLockList.downgradeToReadLocks();
+    mLockPattern = LockPattern.READ;
   }
 
   /**
