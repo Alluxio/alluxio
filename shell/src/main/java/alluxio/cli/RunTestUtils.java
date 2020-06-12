@@ -16,6 +16,7 @@ import alluxio.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
 /**
@@ -27,16 +28,26 @@ public final class RunTestUtils {
   private RunTestUtils() {} // prevent instantiation
 
   /**
+   * Prints information of the test result to redirected streams.
+   *
+   * @param pass the test result
+   * @param outStream stream for stdout
+   */
+  public static void printTestStatus(boolean pass, PrintStream outStream) {
+    if (pass) {
+      outStream.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
+    } else {
+      outStream.println(Constants.ANSI_RED + "Failed the test!" + Constants.ANSI_RESET);
+    }
+  }
+
+  /**
    * Prints information of the test result.
    *
    * @param pass the test result
    */
-  public static void printPassInfo(boolean pass) {
-    if (pass) {
-      System.out.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
-    } else {
-      System.out.println(Constants.ANSI_RED + "Failed the test!" + Constants.ANSI_RESET);
-    }
+  public static void printTestStatus(boolean pass) {
+    printTestStatus(pass, System.out);
   }
 
   /**
@@ -53,7 +64,7 @@ public final class RunTestUtils {
       LOG.error("Exception running test: " + example, e);
       result = false;
     }
-    RunTestUtils.printPassInfo(result);
+    RunTestUtils.printTestStatus(result);
     return result;
   }
 }

@@ -9,16 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.stress;
+package alluxio.cli.validation;
 
-import alluxio.util.JsonSerializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
- * The aggregated summary of multiple task results.
- */
-public interface Summary extends JsonSerializable {
+ * An enum standing for a UFS type.
+ * */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ApplicableUfsType {
   /**
-   * @return the graph generator for this type of summary
-   */
-  GraphGenerator graphGenerator();
+   * Gets the value.
+   *
+   * @return the UFS type
+   * */
+  Type value() default Type.ALL;
+
+  /**
+   * UFS types.
+   * */
+  enum Type {
+    ALL,
+    HDFS,
+    OBJECT
+  }
 }

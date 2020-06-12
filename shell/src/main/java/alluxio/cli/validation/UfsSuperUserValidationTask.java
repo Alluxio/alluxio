@@ -11,8 +11,8 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
@@ -25,51 +25,72 @@ import java.util.Map;
 /**
  * Task for validating whether Alluxio can access UFS as super user.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;
 
   /**
    * Creates a new instance of {@link UfsSuperUserValidationTask}
-   * for validating root under file system.
+   * for validating the under file system.
    *
-   * @param conf configuration
+   * @param path the UFS path
+   * @param conf the UFS configuration
    */
-  public UfsSuperUserValidationTask(AlluxioConfiguration conf) {
-    mUfs = UnderFileSystem.Factory.createForRoot(conf);
-    mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  public UfsSuperUserValidationTask(String path, AlluxioConfiguration conf) {
+    mPath = path;
+    mUfs = UnderFileSystem.Factory.create(mPath, conf);
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public String getName() {
+    return "ValidateSuperUserPrivilege";
+  }
+
+  @Override
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
+
     if (!UnderFileSystemUtils.isHdfs(mUfs)) {
       // only support check on HDFS for now
-      System.out.format("Under file system is not HDFS. Skip validation.%n");
-      return TaskResult.SKIPPED;
+      msg.append(String.format("Under file system is not HDFS. Skip validation. "));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+              msg.toString(), advice.toString());
     }
     UfsStatus status;
     try {
       status = mUfs.getStatus(mPath);
       if (status == null) {
-        System.err.format("Unable to get status for under file system path %s.%n", mPath);
-        return TaskResult.FAILED;
+        msg.append(String.format("Unable to get status for under file system path %s. ", mPath));
+        advice.append(String.format("Please check your path %s. ", mPath));
+        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+                msg.toString(), advice.toString());
       }
       if (Strings.isNullOrEmpty(status.getOwner()) && Strings.isNullOrEmpty(status.getGroup())) {
-        System.err.format("Cannot determine owner of under file system path %s.%n", mPath);
-        return TaskResult.WARNING;
+        msg.append(String.format("Cannot determine owner of under file system path %s. ", mPath));
+        advice.append(String.format("Please check your path %s. ", mPath));
+        return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+                msg.toString(), advice.toString());
       }
     } catch (IOException e) {
-      System.err.format("Unable to access under file system path %s: %s.%n", mPath,
-          e.getMessage());
-      return TaskResult.FAILED;
+      msg.append(String.format("Unable to access under file system path %s: %s.", mPath,
+          e.getMessage()));
+      msg.append(ValidationUtils.getErrorInfo(e));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
     try {
       mUfs.setOwner(mPath, status.getOwner(), status.getGroup());
-      return TaskResult.OK;
+      msg.append(String.format("User has superuser privilege to path %s.%n", mPath));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+              msg.toString(), advice.toString());
     } catch (IOException e) {
-      System.err.format("Unable to set owner of under file system path %s: %s. "
-          + "Please check if Alluxio is super user on the file system.%n", mPath, e.getMessage());
-      return TaskResult.WARNING;
+      msg.append(String.format("Unable to set owner of under file system path %s: %s. ",
+              mPath, e.getMessage()));
+      advice.append("Please check if Alluxio is super user on the file system. ");
+      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+              msg.toString(), advice.toString());
     }
   }
 }

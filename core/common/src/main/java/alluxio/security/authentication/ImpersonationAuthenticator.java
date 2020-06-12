@@ -38,8 +38,8 @@ import javax.security.sasl.AuthenticationException;
  */
 @ThreadSafe
 public final class ImpersonationAuthenticator {
+  public static final String WILDCARD = "*";
   private static final Splitter SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
-  private static final String WILDCARD = "*";
   // Maps users configured for impersonation to the set of groups which they can impersonate.
   private final Map<String, Set<String>> mImpersonationGroups;
   // Maps users configured for impersonation to the set of users which they can impersonate.

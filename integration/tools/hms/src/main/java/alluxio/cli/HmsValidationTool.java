@@ -32,8 +32,6 @@ import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -162,7 +160,7 @@ public class HmsValidationTool implements ValidationTool {
       uri = new URI(uriAddress);
     } catch (Throwable t) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, "HmsUrisSyntaxCheck", getErrorInfo(t),
+          new TaskResult(State.FAILED, "HmsUrisSyntaxCheck", ValidationUtils.getErrorInfo(t),
               "Please make sure the given hive metastore uri(s) is valid"));
       throw t;
     }
@@ -179,7 +177,8 @@ public class HmsValidationTool implements ValidationTool {
       InetAddress.getByName(uri.getHost());
     } catch (Throwable t) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, "HmsUrisHostnameResolvableCheck", getErrorInfo(t),
+          new TaskResult(State.FAILED, "HmsUrisHostnameResolvableCheck",
+                  ValidationUtils.getErrorInfo(t),
               "Please make sure the hostname in given hive metastore uri(s) is resolvable"));
       throw t;
     }
@@ -212,24 +211,24 @@ public class HmsValidationTool implements ValidationTool {
     } catch (UndeclaredThrowableException e) {
       if (e.getUndeclaredThrowable() instanceof IMetaStoreClient.IncompatibleMetastoreException) {
         mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-            new TaskResult(State.FAILED, testName, getErrorInfo(e),
+            new TaskResult(State.FAILED, testName, ValidationUtils.getErrorInfo(e),
                 String.format("Hive metastore client (version: %s) is incompatible with "
                         + "your Hive Metastore server version",
                     IMetaStoreClient.class.getPackage().getImplementationVersion())));
       } else {
         mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-            new TaskResult(State.FAILED, testName, getErrorInfo(e),
+            new TaskResult(State.FAILED, testName, ValidationUtils.getErrorInfo(e),
                 "Failed to create hive metastore client. "
                     + "Please check if the given hive metastore uris is valid and reachable"));
       }
       throw e;
     } catch (InterruptedException e) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, testName, getErrorInfo(e),
+          new TaskResult(State.FAILED, testName, ValidationUtils.getErrorInfo(e),
               "Hive metastore client creation is interrupted. Please rerun the test if needed"));
       throw e;
     } catch (Throwable t) {
-      String errorInfo = getErrorInfo(t);
+      String errorInfo = ValidationUtils.getErrorInfo(t);
       TaskResult result = new TaskResult()
           .setState(State.FAILED).setName(testName).setOutput(errorInfo);
       if (errorInfo.contains("Could not connect to meta store using any of the URIs provided")) {
@@ -267,13 +266,13 @@ public class HmsValidationTool implements ValidationTool {
               database.getName(), database.getDescription()), ""));
     } catch (NoSuchObjectException e) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, testName, getErrorInfo(e),
+          new TaskResult(State.FAILED, testName, ValidationUtils.getErrorInfo(e),
               "Please make sure the given database name is valid "
                   + "and existing in the target hive metastore"));
       throw e;
     } catch (Throwable t) {
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>()).add(
-          new TaskResult(State.FAILED, testName, getErrorInfo(t),
+          new TaskResult(State.FAILED, testName, ValidationUtils.getErrorInfo(t),
               "Failed to get database from remote hive metastore"));
       throw t;
     }
@@ -334,15 +333,9 @@ public class HmsValidationTool implements ValidationTool {
     }
   }
 
-  private String getErrorInfo(Throwable t) {
-    StringWriter errors = new StringWriter();
-    t.printStackTrace(new PrintWriter(errors));
-    return errors.toString();
-  }
-
   private void addThrowableWarning(String opName, Throwable t, String opTarget) {
     TaskResult taskResult = new TaskResult().setState(State.WARNING).setName(opName)
-        .setOutput(getErrorInfo(t));
+        .setOutput(ValidationUtils.getErrorInfo(t));
     if (t instanceof InvalidOperationException) {
       taskResult.setAdvice(opName + " is invalid");
     } else if (t instanceof UnknownDBException) {
@@ -362,7 +355,8 @@ public class HmsValidationTool implements ValidationTool {
     if (throwable != null && mResults.get(State.FAILED) == null) {
       // Should not reach here!
       mResults.computeIfAbsent(State.FAILED, k -> new ArrayList<>())
-          .add(new TaskResult(State.FAILED, "UnexpectedError", getErrorInfo(throwable),
+          .add(new TaskResult(State.FAILED, "UnexpectedError",
+                  ValidationUtils.getErrorInfo(throwable),
               "Failed to run hive metastore tests"));
     }
     return gson.toJson(mResults);

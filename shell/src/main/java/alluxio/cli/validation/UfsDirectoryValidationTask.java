@@ -11,17 +11,17 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * Task for validating whether UFS directory is accessible.
  */
+@ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;
@@ -30,27 +30,41 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    * Creates a new instance of {@link UfsDirectoryValidationTask}
    * for validating root under file system.
    *
-   * @param conf configuration
+   * @param path the UFS path
+   * @param conf the UFS configuration
    */
-  public UfsDirectoryValidationTask(AlluxioConfiguration conf) {
-    mUfs = UnderFileSystem.Factory.createForRoot(conf);
-    mPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  public UfsDirectoryValidationTask(String path, AlluxioConfiguration conf) {
+    mPath = path;
+    mUfs = UnderFileSystem.Factory.create(mPath, conf);
   }
 
   @Override
-  public TaskResult validate(Map<String, String> optionsMap) {
+  public String getName() {
+    return "ValidateUfsDir";
+  }
+
+  @Override
+  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+    StringBuilder msg = new StringBuilder();
+    StringBuilder advice = new StringBuilder();
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
-        System.err.format("Unable to list under file system path %s.%n", mPath);
-        return TaskResult.FAILED;
+        msg.append(String.format("Unable to list under file system path %s. ", mPath));
+        advice.append(String.format("Please check if path %s denotes a directory. ", mPath));
+        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+                msg.toString(), advice.toString());
       }
-
-      return TaskResult.OK;
-    } catch (IOException e) {
-      System.err.format("Unable to access under file system path %s: %s.%n", mPath,
-          e.getMessage());
-      return TaskResult.FAILED;
+      msg.append(String.format("Successfully listed path %s. ", mPath));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+              msg.toString(), advice.toString());
+    } catch (Exception e) {
+      msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
+              e.getMessage()));
+      msg.append(ValidationUtils.getErrorInfo(e));
+      advice.append(String.format("Please verify your path %s is correct.%n", mPath));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              msg.toString(), advice.toString());
     }
   }
 }
