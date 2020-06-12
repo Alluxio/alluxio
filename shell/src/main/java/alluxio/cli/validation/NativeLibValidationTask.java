@@ -12,7 +12,6 @@
 package alluxio.cli.validation;
 
 import alluxio.cli.ValidationUtils;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.io.File;
 import java.util.Map;
