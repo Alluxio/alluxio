@@ -70,7 +70,7 @@ master:
     embedded: 19200
     rpc: 19998
     web: 19999
-  hostNetwork: true
+  hostNetwork: false
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -113,7 +113,7 @@ journal:
   folder: "/journal" # Master journal folder
   # volumeType controls the type of journal volume.
   # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: emptyDir
+  volumeType: persistentVolumeClaim
   size: 1Gi
   # Attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
@@ -138,7 +138,7 @@ journal:
 
 # You can enable metastore to use ROCKS DB instead of Heap
 metastore:
-  volumeType: emptyDir # Options: "persistentVolumeClaim" or "emptyDir"
+  volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
   size: 1Gi
   mountPath: /metastore
 # Attributes to use when the metastore is persistentVolumeClaim
@@ -167,7 +167,7 @@ worker:
   ports:
     rpc: 29999
     web: 30000
-  hostNetwork: true
+  hostNetwork: false
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -249,7 +249,7 @@ shortCircuit:
   policy: uuid
   # volumeType controls the type of shortCircuit volume.
   # It can be "persistentVolumeClaim", "hostPath" or "emptyDir"
-  volumeType: emptyDir
+  volumeType: persistentVolumeClaim
   size: 1Mi
   # Attributes to use if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket

@@ -263,15 +263,10 @@ resources:
           hostPath:
             path: {{ .Values.shortCircuit.hostPath }}
             type: DirectoryOrCreate
-  {{- else if eq .Values.shortCircuit.volumeType "persistentVolumeClaim" }}
+  {{- else }}
         - name: alluxio-domain
           persistentVolumeClaim:
             claimName: "{{ .Values.shortCircuit.pvcName }}"
-  {{- else }}
-        - name: alluxio-domain
-          emptyDir:
-            medium: {{ .Values.shortCircuit.medium }}
-            sizeLimit: {{ .Values.shortCircuit.size | quote }}
   {{- end }}
 {{- end -}}
 
