@@ -86,7 +86,7 @@ public class Table {
           previousTable.mPartitionScheme.getPartitions().stream()
               .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
       for (UdbPartition udbPartition : udbTable.getPartitions()) {
-        LOG.info("Get partition: {}, from table {} Database {}.",
+        LOG.debug("Get partition: {}, from table {} Database {}.",
             udbPartition.toString(), database.getName(), mName);
         Partition newPartition = existingPartitions.get(udbPartition.getSpec());
         if (newPartition == null) {
@@ -98,14 +98,17 @@ public class Table {
         }
         partitions.add(newPartition);
       }
+      LOG.debug("Get {} partitions from Table {} Database {}.",
+          partitions.size(), mName, database.getName());
     } else {
       // Use all the udb partitions
       partitions =
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-      for (UdbPartition partition : udbTable.getPartitions()) {
-        LOG.debug("Get partition: {}, from table {} Database {}.",
-            partition.toString(), database.getName(), mName);
-      }
+      LOG.debug("Get {} partitions from Table {} Database {}.",
+          partitions.size(), mName, database.getName());
+      udbTable.getPartitions().stream().forEach(udbPartition ->
+          LOG.debug("Get partition: {}, from table {} Database {}.",
+          udbPartition.toString(), mName, database.getName()));
     }
     mPartitionScheme =
         PartitionScheme.create(partitions, udbTable.getLayout(), udbTable.getPartitionCols());
