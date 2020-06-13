@@ -637,7 +637,6 @@ USAGE_END
   # set auto generated properties
   echo "Setting auto-generated properties in ${ALLUXIO_SITE_PROPERTIES}"
   doas alluxio "echo '# BEGIN AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
-  doas alluxio "echo '# Override these by specifying an alluxio-site.properties file, or delimited args within the EMR bootstrap' >> ${ALLUXIO_SITE_PROPERTIES}"
 
   local -r use_mem=$(configure_alluxio_worker_storage_properties "${nvme_capacity_usage}")
   configure_alluxio_general_properties "${master}"
