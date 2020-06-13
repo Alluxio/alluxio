@@ -575,11 +575,6 @@ USAGE_END
     exit 1
   fi
 
-  # set root ufs uri
-  if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
-    root_ufs_uri="hdfs://${master}:8020"
-  fi
-
   # self-invoke script as background task
   # this allows EMR to continue installing and launching applications
   # the script will wait until HDFS processes are running before continuing
@@ -630,6 +625,11 @@ USAGE_END
     master="${local_hostname}"
   else
     master=$(jq '.masterHost' /mnt/var/lib/info/extraInstanceData.json | sed -e 's/^"//' -e 's/"$//' | nslookup | awk '/name/{print substr($NF,1,length($NF)-1)}')
+  fi
+
+  # set root ufs uri
+  if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
+    root_ufs_uri="hdfs://${master}:8020"
   fi
 
   # wait until hadoop process is running
