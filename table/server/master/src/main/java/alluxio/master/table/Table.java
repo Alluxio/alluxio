@@ -86,6 +86,8 @@ public class Table {
           previousTable.mPartitionScheme.getPartitions().stream()
               .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
       for (UdbPartition udbPartition : udbTable.getPartitions()) {
+        LOG.info("Get partition: {}, from table {} Database {}.",
+            udbPartition.toString(), database.getName(), mName);
         Partition newPartition = existingPartitions.get(udbPartition.getSpec());
         if (newPartition == null) {
           // partition does not exist yet
@@ -100,6 +102,10 @@ public class Table {
       // Use all the udb partitions
       partitions =
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
+      for (UdbPartition partition : udbTable.getPartitions()) {
+        LOG.debug("Get partition: {}, from table {} Database {}.",
+            partition.toString(), database.getName(), mName);
+      }
     }
     mPartitionScheme =
         PartitionScheme.create(partitions, udbTable.getLayout(), udbTable.getPartitionCols());
