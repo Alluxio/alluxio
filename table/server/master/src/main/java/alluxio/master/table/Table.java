@@ -86,29 +86,42 @@ public class Table {
           previousTable.mPartitionScheme.getPartitions().stream()
               .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
       for (UdbPartition udbPartition : udbTable.getPartitions()) {
-        LOG.debug("Get partition: {}, from table {} Database {}.",
-            udbPartition.toString(), database.getName(), mName);
         Partition newPartition = existingPartitions.get(udbPartition.getSpec());
         if (newPartition == null) {
           // partition does not exist yet
           newPartition = new Partition(udbPartition);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Existing table {}.{} adding UDB partition: {}",
+                database.getName(), mName, udbPartition.toString());
+          }
         } else if (!newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
           // existing partition is updated
           newPartition = newPartition.createNext(udbPartition);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Existing table {}.{} updating UDB partition {}",
+                database.getName(), mName, udbPartition.toString());
+          }
+        } else {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Existing table {}.{} keeping partition spec: {}",
+                database.getName(), mName, udbPartition.toString());
+          }
         }
         partitions.add(newPartition);
       }
-      LOG.debug("Get {} partitions from Table {} Database {}.",
-          partitions.size(), mName, database.getName());
+      LOG.info("Updating existing table {}.{} with {} total partitions.",
+          database.getName(), mName, partitions.size());
     } else {
       // Use all the udb partitions
       partitions =
           udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
-      LOG.debug("Get {} partitions from Table {} Database {}.",
-          partitions.size(), mName, database.getName());
-      udbTable.getPartitions().stream().forEach(udbPartition ->
-          LOG.debug("Get partition: {}, from table {} Database {}.",
-          udbPartition.toString(), mName, database.getName()));
+      LOG.info("Creating new table {}.{} with {} total partitions.",
+          database.getName(), mName, partitions.size());
+      if (LOG.isDebugEnabled()) {
+        udbTable.getPartitions().stream().forEach(udbPartition ->
+            LOG.debug("New table {}.{} adding UDB partition: {}.",
+                database.getName(), mName, udbPartition.toString()));
+      }
     }
     mPartitionScheme =
         PartitionScheme.create(partitions, udbTable.getLayout(), udbTable.getPartitionCols());

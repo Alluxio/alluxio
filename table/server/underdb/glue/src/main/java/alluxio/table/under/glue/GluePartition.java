@@ -50,6 +50,9 @@ public class GluePartition implements UdbPartition {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
+    if (getSpec() != null) {
+      sb.append("Specs: ").append(getSpec()).append(",");
+    }
     if (mLayout.getData().getValuesList() != null) {
       sb.append("Values: ").append(mLayout.getData().getValuesList()).append(",");
     }
