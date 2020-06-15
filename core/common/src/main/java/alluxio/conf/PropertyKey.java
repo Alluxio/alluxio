@@ -1317,6 +1317,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
+          .setDefaultValue("15min")
+          .setDescription("Exclusive locking of the state-lock will timeout after "
+              + "this duration is spent on forced phase.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL)
           .setDefaultValue("30sec")
@@ -1357,12 +1365,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("TIMEOUT")
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
-              + "is called grace-cycle. Three modes are supported: TIMEOUT/GUARANTEED/SKIP."
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
               + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
               + "with grace-cycle. "
-              + "GUARANTEED: Means the state-lock will be taken directly if grace-cycle fails "
-              + "to acquire it. "
-              + "SKIP: Means the grace-cycle won't be tried.")
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1391,15 +1399,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE)
-          .setDefaultValue("GUARANTEED")
+          .setDefaultValue("FORCED")
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
-              + "is called grace-cycle. Three modes are supported: TIMEOUT/GUARANTEED/SKIP."
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
               + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
               + "with grace-cycle. "
-              + "GUARANTEED: Means the state-lock will be taken directly if grace-cycle fails "
-              + "to acquire it. "
-              + "SKIP: Means the grace-cycle won't be tried.")
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -4898,6 +4906,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.state.lock.exclusive.duration";
     public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
         "alluxio.master.backup.state.lock.interrupt.cycle.enabled";
+    public static final String MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+        "alluxio.master.backup.state.lock.forced.duration";
     public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
         "alluxio.master.backup.state.lock.interrupt.cycle.interval";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =

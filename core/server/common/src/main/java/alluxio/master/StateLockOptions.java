@@ -119,7 +119,7 @@ public class StateLockOptions {
    */
   public static StateLockOptions defaults() {
     return new StateLockOptions(
-        GraceMode.SKIP, // no grace-cycle
+        GraceMode.FORCED, // force the lock
         0, // grace-cycle try duration ms
         0, // grace-cycle sleep duration ms
         0 // grace-cycle total duration ms
@@ -131,7 +131,6 @@ public class StateLockOptions {
    */
   public enum GraceMode {
     TIMEOUT,    // Timeout if lock can't be acquired by grace-cycle.
-    GUARANTEED, // Take the lock directly if grace-cycle failed to acquire it.
-    SKIP        // Skip running grace-cycle and take the lock directly.
+    FORCED,     // Force the lock if grace-cycle failed to acquire it.
   }
 }

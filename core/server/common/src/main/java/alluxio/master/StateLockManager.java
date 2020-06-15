@@ -64,6 +64,9 @@ public class StateLockManager {
   /** The future for the active interrupt cycle. */
   private ScheduledFuture<?> mInterrupterFuture;
 
+  /** This is the deadline for forcing the lock. */
+  private long mForcedDurationMs;
+
   // TODO(ggezer): Make it bound to a process start/stop cycle.
   /** Shared locking requests will fail until this time. */
   private long mExclusiveOnlyDeadlineMs;
@@ -83,6 +86,8 @@ public class StateLockManager {
         .getBoolean(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED);
     mInterruptCycleInterval =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL);
+    mForcedDurationMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION);
     // Validate properties.
     Preconditions.checkArgument(mInterruptCycleInterval > 0,
         "Interrupt-cycle interval should be greater than 0.");
@@ -132,18 +137,15 @@ public class StateLockManager {
     // Run the grace cycle.
     StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
     boolean lockAcquired = false;
-    if (graceMode != StateLockOptions.GraceMode.SKIP) {
-      long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
-      while (System.currentTimeMillis() < deadlineMs) {
-        if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(),
-            TimeUnit.MILLISECONDS)) {
-          lockAcquired = true;
-          break;
-        } else {
-          long remainingWaitMs = deadlineMs - System.currentTimeMillis();
-          if (remainingWaitMs > 0) {
-            Thread.sleep(Math.min(lockOptions.getGraceCycleSleepMs(), remainingWaitMs));
-          }
+    long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
+    while (System.currentTimeMillis() < deadlineMs) {
+      if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(), TimeUnit.MILLISECONDS)) {
+        lockAcquired = true;
+        break;
+      } else {
+        long remainingWaitMs = deadlineMs - System.currentTimeMillis();
+        if (remainingWaitMs > 0) {
+          Thread.sleep(Math.min(lockOptions.getGraceCycleSleepMs(), remainingWaitMs));
         }
       }
     }
@@ -154,21 +156,26 @@ public class StateLockManager {
         throw new TimeoutException(
             ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(lockOptions.getGraceCycleTimeoutMs()));
       }
-      if (mInterruptCycleEnabled && graceMode != StateLockOptions.GraceMode.SKIP) {
-        // Schedule interrupt cycle before entering the lock because it might wait in the queue.
-        activateInterruptCycle();
+      // Activate the interrupt cycle before entering the lock because it might wait in the queue.
+      activateInterruptCycle();
+      // Force the lock.
+      try {
+        if (!mStateLock.writeLock().tryLock(mForcedDurationMs, TimeUnit.MILLISECONDS)) {
+          throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
+              .getMessage(lockOptions.getGraceCycleTimeoutMs() + mForcedDurationMs));
+        }
+      } catch (InterruptedException e) {
+        // Deactivate interrupter if active.
+        deactivateInterruptCycle();
+        throw e;
       }
-      // Own the lock.
-      mStateLock.writeLock().lock();
     }
 
     // We have the lock, wrap it and return.
     // Register an action for cancelling the interrupt cycle before releasing the lock.
     return new LockResource(mStateLock.writeLock(), false, false, () -> {
       // Before releasing the write-lock, activate interrupter if active.
-      if (mInterruptCycleEnabled && graceMode != StateLockOptions.GraceMode.SKIP) {
-        deactivateInterruptCycle();
-      }
+      deactivateInterruptCycle();
     });
   }
 
@@ -181,6 +188,9 @@ public class StateLockManager {
    * Calling it multiple times only schedules one interrupt-cycle.
    */
   private void activateInterruptCycle() {
+    if (!mInterruptCycleEnabled) {
+      return;
+    }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
       // Don't reschedule if it was before.
       if (mInterruptCycleRefCount++ > 0) {
@@ -199,6 +209,9 @@ public class StateLockManager {
    * {@link #activateInterruptCycle()}.
    */
   private void deactivateInterruptCycle() {
+    if (!mInterruptCycleEnabled) {
+      return;
+    }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
       Preconditions.checkArgument(mInterruptCycleRefCount > 0);
       // Don't do anything if there are exclusive lockers.
