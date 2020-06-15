@@ -41,7 +41,7 @@ spec:
       name: embedded
     - port: 20003
       name: job-embedded
-  type: NodePort
+  clusterIP: None
   selector:
     role: alluxio-master
     app: {{ $name }}
