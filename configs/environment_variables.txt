@@ -1,3 +1,8 @@
+# ---- {Docker Behavior Section} ------
+ALLUXIO_PROJECT_NAME=alluxio
+ALLUXIO_BEHAVIOR=developer
+ALLUXIO_FORMAT=false
+
 # ---------------------------- {ALLUXIO CONFIG} -----------------------------
 # Alluxio packages to build
-ALLUXIO_PACKAGES=.
+ALLUXIO_PACKAGES=assembly,core,examples,integration,logserver,minicluster,job,shaded,shell,table,tests,underfs,webui
