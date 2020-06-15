@@ -69,7 +69,7 @@ public class StateLockManager {
 
   // TODO(ggezer): Make it bound to a process start/stop cycle.
   /** Shared locking requests will fail until this time. */
-  private long mExclusiveOnlyDeadlineMs;
+  private long mExclusiveOnlyDeadlineMs = -1;
 
   /**
    * Creates a new state-lock manager.
@@ -80,8 +80,6 @@ public class StateLockManager {
     mScheduler = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("state-lock-manager-%d", true));
     // Read properties.
-    mExclusiveOnlyDeadlineMs = System.currentTimeMillis()
-        + ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
     mInterruptCycleEnabled = ServerConfiguration
         .getBoolean(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED);
     mInterruptCycleInterval =
@@ -91,6 +89,20 @@ public class StateLockManager {
     // Validate properties.
     Preconditions.checkArgument(mInterruptCycleInterval > 0,
         "Interrupt-cycle interval should be greater than 0.");
+  }
+
+  /**
+   * This is called by owning process in order to signal that
+   * the state is read completely and masters are started.
+   *
+   * This triggers the beginning of exclusive-only maintenance mode for the state-lock.
+   * Note: Calling it multiple times does not reset the maintenance window.
+   */
+  public void mastersStartedCallback() {
+    if (mExclusiveOnlyDeadlineMs == -1) {
+      mExclusiveOnlyDeadlineMs = System.currentTimeMillis()
+          + ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+    }
   }
 
   /**
