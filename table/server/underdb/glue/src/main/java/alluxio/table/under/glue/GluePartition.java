@@ -16,6 +16,7 @@ import alluxio.table.common.UdbPartition;
 
 import alluxio.table.common.layout.HiveLayout;
 
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,27 +49,13 @@ public class GluePartition implements UdbPartition {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("{");
-    if (getSpec() != null) {
-      sb.append("Specs: ").append(getSpec()).append(",");
-    }
-    if (mLayout.getData().getValuesList() != null) {
-      sb.append("Values: ").append(mLayout.getData().getValuesList()).append(",");
-    }
-    if (mLayout.getData().getPartitionName() != null) {
-      sb.append("PartitionName: ").append(mLayout.getData().getPartitionName()).append(",");
-    }
-    if (mLayout.getData().getDbName() != null) {
-      sb.append("DatabaseName: ").append(mLayout.getData().getDbName()).append(",");
-    }
-    if (mLayout.getData().getTableName() != null) {
-      sb.append("TableName: ").append(mLayout.getData().getTableName()).append(",");
-    }
-    if (mLayout.getData().getParametersMap() != null) {
-      sb.append("Parameters: ").append(mLayout.getData().getParametersMap());
-    }
-    sb.append("}");
-    return sb.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("Spec", getSpec())
+        .add("Values", mLayout.getData().getValuesList())
+        .add("PartitionName", mLayout.getData().getPartitionName())
+        .add("DatabaseName", mLayout.getData().getDbName())
+        .add("TableName", mLayout.getData().getTableName())
+        .add("Parameters", mLayout.getData().getParametersMap())
+        .toString();
   }
 }
