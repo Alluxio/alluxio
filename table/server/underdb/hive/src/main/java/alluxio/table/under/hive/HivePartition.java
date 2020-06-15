@@ -15,6 +15,7 @@ import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,5 +44,17 @@ public class HivePartition implements UdbPartition {
   @Override
   public Layout getLayout() {
     return mLayout;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("Spec", getSpec())
+        .add("Values", mLayout.getData().getValuesList())
+        .add("PartitionName", mLayout.getData().getPartitionName())
+        .add("DatabaseName", mLayout.getData().getDbName())
+        .add("TableName", mLayout.getData().getTableName())
+        .add("Parameters", mLayout.getData().getParametersMap())
+        .toString();
   }
 }
