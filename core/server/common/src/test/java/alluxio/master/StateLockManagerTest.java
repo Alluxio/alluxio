@@ -79,7 +79,7 @@ public class StateLockManagerTest {
   }
 
   @Test
-  public void testGraceMode_Guaranteed() throws Exception {
+  public void testGraceMode_Forced() throws Exception {
     // Enable interrupt-cycle with 100ms interval.
     configureInterruptCycle(true, 100);
     // The state-lock instance.
@@ -90,7 +90,7 @@ public class StateLockManagerTest {
     sharedHolderThread.waitUntilStateLockAcquired();
     // Take the state-lock exclusively with GUARANTEED grace mode.
     try (LockResource lr = stateLockManager
-        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.GUARANTEED, 10, 0, 100))) {
+        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.FORCED, 10, 0, 100))) {
       // Holder should have been interrupted.
       Assert.assertTrue(sharedHolderThread.lockInterrupted());
       sharedHolderThread.join();
@@ -101,33 +101,6 @@ public class StateLockManagerTest {
       CommonUtils.waitFor("waiter interrupted", () -> sharedWaiterThread.lockInterrupted());
       sharedWaiterThread.join();
     }
-  }
-
-  @Test
-  public void testGraceMode_Skipped() throws Exception {
-    // Enable interrupt-cycle with 100ms interval.
-    configureInterruptCycle(true, 100);
-    // The state-lock instance.
-    StateLockManager stateLockManager = new StateLockManager();
-    // Start a thread that owns the state-lock in shared mode.
-    StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
-    sharedHolderThread.start();
-    sharedHolderThread.waitUntilStateLockAcquired();
-    // Note: StateLockingThread uses GraceMode.SKIP for locking exclusive.
-    StateLockingThread exclusiveWaiterThread = new StateLockingThread(stateLockManager, true);
-    exclusiveWaiterThread.start();
-    // Verify lock can't be held and holders are not interrupted.
-    CommonUtils.waitFor("exclusive thread alive", () -> exclusiveWaiterThread.isAlive());
-    Thread.sleep(500);
-    Assert.assertFalse(exclusiveWaiterThread.stateLockAcquired());
-    Assert.assertFalse(sharedHolderThread.lockInterrupted());
-    // Allow shared holder to exit.
-    sharedHolderThread.unlockExit();
-    sharedHolderThread.join();
-    // Now exclusive locking can continue.
-    exclusiveWaiterThread.waitUntilStateLockAcquired();
-    exclusiveWaiterThread.unlockExit();
-    exclusiveWaiterThread.join();
   }
 
   /**
