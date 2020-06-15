@@ -386,6 +386,13 @@ public class GlueDatabase implements UnderDatabase {
               .withTableName(tableName);
       if (glueClient.getPartitions(getPartitionsRequest).getPartitions() != null) {
         partitions = glueClient.getPartitions(getPartitionsRequest).getPartitions();
+        LOG.info("Glue table {}.{} has {} partitions.",
+            mGlueDbName, tableName, partitions.size());
+        if (LOG.isDebugEnabled()) {
+          partitions.stream().forEach(partition ->
+              LOG.debug("Glue table {}.{} with partition: {}.",
+                  partition.getDatabaseName(), tableName, partition.toString()));
+        }
       }
       return partitions;
     } catch (AWSGlueException e) {
