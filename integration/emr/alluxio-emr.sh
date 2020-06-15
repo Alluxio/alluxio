@@ -169,23 +169,17 @@ emr_install_alluxio() {
 # Args:
 #   $1: is_master - "true" if instance is a master node, "false" if worker
 wait_for_hadoop() {
-  if [[ "$#" -ne "2" ]]; then
-    echo "Incorrect number of arguments passed into function wait_for_hadoop, expecting 2"
+  if [[ "$#" -ne "1" ]]; then
+    echo "Incorrect number of arguments passed into function wait_for_hadoop, expecting 1"
     exit 2
   fi
   local is_master="$1"
-  local is_krb="$2"
 
   local hadoop_process_name
   if [[ "${is_master}" == "true" ]]; then
     hadoop_process_name="NameNode"
   else
-    if [[ "${is_krb}" == "true" ]]; then
-      # secure datanode process has no name
-      hadoop_process_name=""
-    else
-      hadoop_process_name="DataNode"
-    fi
+    hadoop_process_name="DataNode"
   fi
   hdfs_pid="-1"
   while ! sudo jps | grep "${hdfs_pid} ${hadoop_process_name}"; do
@@ -634,7 +628,7 @@ USAGE_END
 
   # wait until hadoop process is running
   echo "Waiting for processes to start before starting script"
-  wait_for_hadoop "${is_master}" "${is_krb}"
+  wait_for_hadoop "${is_master}"
 
   echo "Starting Alluxio configuration"
   set_custom_alluxio_properties "${delimited_properties}"
