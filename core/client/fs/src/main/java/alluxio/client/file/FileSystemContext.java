@@ -108,6 +108,7 @@ public class FileSystemContext implements Closeable {
   private boolean mMetricsEnabled;
 
   private final StatsAccumulator mSeekDistStats = new StatsAccumulator();
+  private final StatsAccumulator mCacheStats = new StatsAccumulator();
 
   //
   // Master related resources.
@@ -376,6 +377,13 @@ public class FileSystemContext implements Closeable {
    */
   public StatsAccumulator getSeekStats() {
     return mSeekDistStats;
+  }
+
+  /**
+   * @return stats of seek distance
+   */
+  public StatsAccumulator getCacheStats() {
+    return mCacheStats;
   }
 
   /**

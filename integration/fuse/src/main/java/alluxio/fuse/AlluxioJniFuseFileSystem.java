@@ -212,6 +212,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.info("seek: count {}, mean {}, max {}, min {}, std {}",
           sa.count(), sa.mean(), sa.max(), sa.min(), sa.sampleVariance());
     }
+    StatsAccumulator cachesa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getCacheStats();
+    if (cachesa.count() > 2 && (cachesa.count() % 100) == 1) {
+      LOG.info("cache: count {}, hit {}, hit ratio {}",
+          cachesa.count(), cachesa.sum(), cachesa.mean());
+    }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int nread = 0;
     int rd = 0;
@@ -370,8 +375,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
     public int read(byte[] buf, long offset, long len) throws IOException {
       int nread = 0;
+      StatsAccumulator sa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getCacheStats();
       try {
         if (offset < mOffset || (offset + len) > mLimit) {
+          sa.add(0.0);
           mIn.seek(offset);
           int ncached = 0;
           int rd = 0;
@@ -387,6 +394,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           mOffset = offset;
           mLimit = mOffset + ncached;
         }
+        sa.add(1.0);
         System.arraycopy(mCache, (int) (offset - mOffset), buf, 0, (int) len);
         nread = (int) Math.min(len, mLimit - offset);
       } catch (IOException e) {
