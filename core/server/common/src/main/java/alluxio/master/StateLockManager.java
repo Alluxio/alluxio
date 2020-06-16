@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -100,8 +101,13 @@ public class StateLockManager {
    */
   public void mastersStartedCallback() {
     if (mExclusiveOnlyDeadlineMs == -1) {
-      mExclusiveOnlyDeadlineMs = System.currentTimeMillis()
-          + ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+      long exclusiveOnlyDurationMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+      mExclusiveOnlyDeadlineMs = System.currentTimeMillis() + exclusiveOnlyDurationMs;
+      if (exclusiveOnlyDurationMs > 0) {
+        LOG.info("State-lock will remain in exclusive-only mode for %dms until %s",
+            exclusiveOnlyDurationMs, new Date(mExclusiveOnlyDeadlineMs).toString());
+      }
     }
   }
 
@@ -118,11 +124,12 @@ public class StateLockManager {
    */
   public LockResource lockShared() throws InterruptedException {
     // Do not allow taking shared lock during safe-mode.
-    if (System.currentTimeMillis() < mExclusiveOnlyDeadlineMs) {
+    long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
+    if (exclusiveOnlyRemainingMs > 0) {
       String safeModeMsg = String.format(
-          "Master still in exclusive-only phase for the state-lock."
+          "Master still in exclusive-only phase (%dms remaining) for the state-lock. "
               + "Please see documentation for %s.",
-          PropertyKey.Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+          exclusiveOnlyRemainingMs, PropertyKey.Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
       throw new IllegalStateException(safeModeMsg);
     }
     // Register thread for interrupt cycle.
