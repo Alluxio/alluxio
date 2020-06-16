@@ -306,7 +306,7 @@ set_custom_alluxio_properties() {
   if [[ "${delimited_properties}" ]]; then
     # inject user defined properties from args
     echo "Setting user defined properties in ${ALLUXIO_SITE_PROPERTIES}"
-    IFS="${property_delimiter}" read -ra conf <<< "${delimited_properties}"
+    IFS="${delimiter}" read -ra conf <<< "${delimited_properties}"
     for property in "${conf[@]}"; do
       local key=${property%%"="*}
       local value=${property#*"="}
@@ -416,9 +416,10 @@ Usage: alluxio-emr.sh <root-ufs-uri>
                       [-d <alluxio_download_uri>]
                       [-f <file_uri>]
                       [-i <journal_backup_uri>]
+                      [-l <sync_list>]
                       [-n <storage percentage>]
                       [-p <delimited_properties>]
-                      [-s <property_delimiter>]
+                      [-s <delimiter>]
                       [-v <hdfs_version>]
 
 alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
@@ -461,6 +462,12 @@ If a different Alluxio version is desired, see the -d option.
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
 
+  -l                A string containing a delimited list of relative paths under
+                    the root UFS. Active sync will be enabled for the given paths.
+                    UFS metadata will be periodically syncing to Alluxio namespace.
+                    The delimiter by default is a semicolon ";". If a different
+                    delimiter is desired use the [-s] argument.
+
   -n                Automatically configure NVMe storage for Alluxio workers at
                     tier 0 instead of MEM. When present, the script will attempt
                     to locate mounted NVMe storage locations and configure them
@@ -476,7 +483,8 @@ If a different Alluxio version is desired, see the -d option.
 
   -s                A string containing a single character representing what
                     delimiter should be used to split the Alluxio properties
-                    provided in the [-p] argument.
+                    provided in the [-p] argument and the sync list provided
+                    in the [-l] argument.
 
   -v                Version of HDFS used as the root UFS. Required when
                     root UFS is HDFS.
@@ -496,8 +504,9 @@ USAGE_END
   local restore_from_backup_uri=""
   local nvme_capacity_usage=""
   local delimited_properties=""
-  local property_delimiter=";"
+  local delimiter=";"
   local hdfs_version=""
+  local sync_list=""
 
   if [[ "$#" -lt "1" ]]; then
     echo -e "No root UFS URI provided"
@@ -509,7 +518,7 @@ USAGE_END
   # the shifted argument needs to be manually added when launching the background process
   shift
 
-  while getopts "ehb:cd:f:i:n:p:s:v:" option; do
+  while getopts "ehb:cd:f:i:l:n:p:s:v:" option; do
     OPTARG=$(echo -e "${OPTARG}" | tr -d '[:space:]')
     case "${option}" in
       e)
@@ -537,6 +546,9 @@ USAGE_END
       i)
         restore_from_backup_uri="${OPTARG}"
         ;;
+      l)
+        sync_list="${OPTARG}"
+        ;;
       n)
         nvme_capacity_usage="${OPTARG}"
         ;;
@@ -544,7 +556,7 @@ USAGE_END
         delimited_properties="${OPTARG}"
         ;;
       s)
-        property_delimiter="${OPTARG}"
+        delimiter="${OPTARG}"
         ;;
       v)
         hdfs_version="${OPTARG}"
@@ -664,6 +676,13 @@ USAGE_END
 
       if [[ "${backup_uri}" ]]; then
         register_backup_on_shutdown "${backup_uri}"
+      fi
+
+      if [[ "${sync_list}" ]]; then
+        IFS="${delimiter}" read -ra paths <<< "${sync_list}"
+        for path in "${paths[@]}"; do
+          ${ALLUXIO_HOME}/bin/alluxio fs startSync "${path}"
+        done
       fi
     else
       if [[ "${use_mem}" == "true" ]]; then
