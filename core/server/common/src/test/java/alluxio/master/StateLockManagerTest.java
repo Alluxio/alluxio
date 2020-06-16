@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -45,7 +46,7 @@ public class StateLockManagerTest {
   }
 
   @Test
-  public void testGraceMode_Timeout() throws Exception {
+  public void testGraceMode_Timeout() throws Throwable {
     configureInterruptCycle(false);
     // The state-lock instance.
     StateLockManager stateLockManager = new StateLockManager();
@@ -79,7 +80,7 @@ public class StateLockManagerTest {
   }
 
   @Test
-  public void testGraceMode_Forced() throws Exception {
+  public void testGraceMode_Forced() throws Throwable {
     // Enable interrupt-cycle with 100ms interval.
     configureInterruptCycle(true, 100);
     // The state-lock instance.
@@ -101,6 +102,36 @@ public class StateLockManagerTest {
       CommonUtils.waitFor("waiter interrupted", () -> sharedWaiterThread.lockInterrupted());
       sharedWaiterThread.join();
     }
+  }
+
+  @Test
+  public void testExclusiveOnlyMode() throws Throwable {
+    // Configure exclusive-only duration to cover the entire test execution.
+    final long exclusiveOnlyDurationMs = 30 * 1000;
+    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION,
+        exclusiveOnlyDurationMs);
+
+    // The state-lock instance.
+    StateLockManager stateLockManager = new StateLockManager();
+    // Simulate masters-started event to initiate the exclusive-only phase.
+    stateLockManager.mastersStartedCallback();
+
+    for (int i = 0; i < 10; i++) {
+      StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
+      sharedHolderThread.start();
+      // Shared lockers are expected to fail.
+      mExpected.expect(IllegalStateException.class);
+      sharedHolderThread.waitUntilStateLockAcquired();
+    }
+
+    // Exclusive locking should be allowed.
+    StateLockingThread exclusiveHolderThread = new StateLockingThread(stateLockManager, true);
+    exclusiveHolderThread.start();
+    // State lock should be acquired.
+    exclusiveHolderThread.waitUntilStateLockAcquired();
+    // Signal exit and wait for the exclusive locker.
+    exclusiveHolderThread.unlockExit();
+    exclusiveHolderThread.join();
   }
 
   /**
@@ -146,6 +177,7 @@ public class StateLockManagerTest {
         if (e instanceof InterruptedException) {
           mInterrupted = true;
         }
+        mStateLockAcquired.setException(e);
       } finally {
         if (lr != null) {
           lr.close();
@@ -163,17 +195,18 @@ public class StateLockManagerTest {
     /**
      * Holds the caller until this thread acquires the state-lock.
      *
-     * @throws Exception
+     * @throws Exception that is received while acquiring the state-lock
      */
-    public void waitUntilStateLockAcquired() throws Exception {
-      mStateLockAcquired.get();
-    }
-
-    /**
-     * @return {@code true} if the state-lock is acquired
-     */
-    public boolean stateLockAcquired() {
-      return mStateLockAcquired.isDone();
+    public void waitUntilStateLockAcquired() throws Throwable {
+      try {
+        mStateLockAcquired.get();
+      } catch (ExecutionException e) {
+        if (e.getCause() != null) {
+          throw e.getCause();
+        } else {
+          throw e;
+        }
+      }
     }
 
     /**
