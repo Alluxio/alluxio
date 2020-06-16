@@ -67,15 +67,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private class JobAttempt {
     private final LoadConfig mJobConfig;
     private final RetryPolicy mRetryPolicy;
-    private final JobMasterClient mClient;
 
     private Long mJobId;
 
-    private JobAttempt(LoadConfig jobConfig, RetryPolicy retryPolicy, ClientContext clientContext) {
+    private JobAttempt(LoadConfig jobConfig, RetryPolicy retryPolicy) {
       mJobConfig = jobConfig;
       mRetryPolicy = retryPolicy;
-      mClient = JobMasterClient.Factory.create(
-          JobMasterClientContext.newBuilder(clientContext).build());
     }
 
     private boolean run() {
@@ -134,15 +131,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       }
       return Status.RUNNING;
     }
-
-    private void close() throws IOException {
-      // propagate failing to close up to prevent potential memory leak
-      mClient.close();
-    }
   }
 
   private List<JobAttempt> mSubmittedJobAttempts;
   private int mActiveJobs;
+  private JobMasterClient mClient;
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -152,6 +145,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
     mSubmittedJobAttempts = Lists.newArrayList();
+    mClient = null;
   }
 
   @Override
@@ -186,8 +180,14 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param replication The replication of file to load into Alluxio memory
    */
   private JobAttempt newJob(AlluxioURI filePath, int replication) {
+    final ClientContext clientContext = ClientContext.create(mFsContext.getPathConf(filePath));
+    if (mClient == null) {
+      mClient = JobMasterClient.Factory.create(
+          JobMasterClientContext.newBuilder(clientContext).build());
+    }
+
     JobAttempt jobAttempt = new JobAttempt(new LoadConfig(filePath.getPath(), replication),
-        new CountingRetry(3), ClientContext.create(mFsContext.getPathConf(filePath)));
+        new CountingRetry(3));
 
     jobAttempt.run();
 
@@ -200,7 +200,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private void waitJob() {
     AtomicBoolean removed = new AtomicBoolean(false);
     while (true) {
-      mSubmittedJobAttempts = mSubmittedJobAttempts.parallelStream().filter((jobAttempt) -> {
+      mSubmittedJobAttempts = mSubmittedJobAttempts.stream().filter((jobAttempt) -> {
         Status check = jobAttempt.check();
         switch (check) {
           case CREATED:
@@ -209,11 +209,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           case CANCELED:
           case COMPLETED:
             removed.set(true);
-            try {
-              jobAttempt.close();
-            } catch (IOException e) {
-              LOG.warn("Unable to close job master client", e);
-            }
             return false;
           case FAILED:
             removed.set(true);
