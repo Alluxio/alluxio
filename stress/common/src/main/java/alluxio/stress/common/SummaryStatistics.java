@@ -11,11 +11,13 @@
 
 package alluxio.stress.common;
 
+import alluxio.stress.StressConstants;
 import alluxio.stress.graph.LineGraph;
-
 import alluxio.stress.master.MasterBenchSummary;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import java.util.Arrays;
 
 /**
  * Statistics class for {@link MasterBenchSummary}.
@@ -39,6 +41,12 @@ public class SummaryStatistics {
    */
   public SummaryStatistics() {
     // Default constructor required for json deserialization
+    mTimePercentileMs = new float[101];
+    Arrays.fill(mTimePercentileMs, 0);
+    mTime99PercentileMs = new float[StressConstants.TIME_99_COUNT];
+    Arrays.fill(mTime99PercentileMs, 0);
+    mMaxTimeMs = new float[StressConstants.MAX_TIME_COUNT];
+    Arrays.fill(mMaxTimeMs, 0);
   }
 
   /**
@@ -63,6 +71,11 @@ public class SummaryStatistics {
    */
   public LineGraph.Data computeTimeData() {
     LineGraph.Data data = new LineGraph.Data();
+
+    if (mNumSuccess == 0) {
+      // Return empty data for empty results
+      return data;
+    }
 
     data.addData(50, mTimePercentileMs[50]);
     data.addData(75, mTimePercentileMs[75]);
