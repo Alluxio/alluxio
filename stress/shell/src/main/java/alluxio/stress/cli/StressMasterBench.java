@@ -137,6 +137,9 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
   private void deletePaths(FileSystem fs, Path basePath) throws Exception {
     // the base dir has sub directories per task id
+    if (!fs.exists(basePath)) {
+      return;
+    }
     FileStatus[] subDirs = fs.listStatus(basePath);
     if (subDirs.length == 0) {
       return;
