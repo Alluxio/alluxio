@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * Task for validating security configurations.
  */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
-public final class SecureHdfsValidationTask extends AbstractValidationTask {
+public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.
@@ -39,7 +39,7 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
    * for more details.
    */
   private static final Pattern PRINCIPAL_PATTERN =
-      Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+))?");
+      Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+(\\.[\\w]+)*)?)");
 
   private static final String PRINCIPAL_MAP_MASTER_KEY = "master";
   private static final String PRINCIPAL_MAP_WORKER_KEY = "worker";
@@ -50,6 +50,13 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
   private static final Map<String, PropertyKey> KEYTAB_MAP = ImmutableMap.of(
       PRINCIPAL_MAP_MASTER_KEY, PropertyKey.MASTER_KEYTAB_KEY_FILE,
       PRINCIPAL_MAP_WORKER_KEY, PropertyKey.WORKER_KEYTAB_FILE);
+
+  private static final String HDFS_AUTHORIZATION_KEY = "hadoop.security.authorization";
+  private static final String HDFS_AUTHORIZATION_VALUE = "true";
+  private static final String HDFS_AUTHENTICATION_KEY = "hadoop.security.authentication";
+  private static final String HDFS_AUTHENTICATION_VALUE = "kerberos";
+  private static final String DOC_LINK = "https://docs.alluxio.io/os/user/stable/en/ufs/HDFS.html"
+          + "#connect-to-secure-hdfs";
 
   private final String mProcess;
   private PropertyKey mPrincipalProperty;
@@ -68,6 +75,7 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
    * @param conf configuration
    */
   public SecureHdfsValidationTask(String process, String path, AlluxioConfiguration conf) {
+    super(path, conf);
     mConf = conf;
     mPath = path;
     mProcess = process.toLowerCase();
@@ -79,36 +87,70 @@ public final class SecureHdfsValidationTask extends AbstractValidationTask {
 
   @Override
   public String getName() {
-    return String.format("ValidateKerberosForSecureHdfs%s", mProcess.toUpperCase());
+    // Convert the first char to upper case
+    char first = Character.toUpperCase(mProcess.charAt(0));
+    return String.format("ValidateKerberosForSecureHdfs%s", first + mProcess.substring(1));
   }
 
   @Override
   public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
-    if (shouldSkip()) {
+    if (!HdfsConfValidationTask.isHdfsScheme(mPath)) {
+      mMsg.append("Skip this check as the UFS is not HDFS.\n");
       return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
+
+    ValidationUtils.TaskResult loadConfig = loadHdfsConfig();
+    if (loadConfig.getState() != ValidationUtils.State.OK) {
+      return loadConfig;
+    }
+
+    // The state is OK when the HDFS is secured
+    ValidationUtils.TaskResult hdfsSecured = validateSecureHdfs();
+    if (hdfsSecured.getState() != ValidationUtils.State.OK) {
+      return hdfsSecured;
+    }
+
     return validatePrincipalLogin();
   }
 
-  protected boolean shouldSkip() {
-    if (!HdfsConfValidationTask.isHdfsScheme(mPath)) {
-      mMsg.append("Skip this check as the UFS is not HDFS.\n");
-      return true;
+  private ValidationUtils.TaskResult validateSecureHdfs() {
+    // Skipped if HDFS is not Kerberized
+    // Ref: https://docs.cloudera.com/documentation/enterprise/5-16-x/topics
+    // /cdh_sg_hadoop_security_enable.html
+    String hadoopAuthentication = mCoreConf.getOrDefault(HDFS_AUTHENTICATION_KEY, "");
+    boolean authenticationEnabled = hadoopAuthentication.equalsIgnoreCase(HDFS_AUTHENTICATION_VALUE);
+    String hadoopAuthorization = mCoreConf.getOrDefault(HDFS_AUTHORIZATION_KEY, "");
+    boolean authorizationEnabled = hadoopAuthorization.equals(HDFS_AUTHORIZATION_VALUE);
+    if (!authenticationEnabled && !authorizationEnabled) {
+      mMsg.append("HDFS is not Kerberized. Skip this test.");
+      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
-    String principal = null;
-    if (mConf.isSet(mPrincipalProperty)) {
-      principal = mConf.get(mPrincipalProperty);
+
+    // Issue an error if the secured HDFS is not configured properly
+    if (!authenticationEnabled || !authorizationEnabled) {
+      mMsg.append(String.format("Found inconsistent configuration for Hadoop security. %s=%s but %s=%s.%n",
+              HDFS_AUTHENTICATION_KEY, hadoopAuthentication, HDFS_AUTHORIZATION_KEY, hadoopAuthorization));
+      mAdvice.append(String.format("Please enable Hadoop security by setting %s=%s and %s=%s%n.",
+              HDFS_AUTHENTICATION_KEY, HDFS_AUTHENTICATION_VALUE, HDFS_AUTHORIZATION_KEY,
+              HDFS_AUTHORIZATION_VALUE));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              mMsg.toString(), mAdvice.toString());
     }
-    if (principal == null || principal.isEmpty()) {
-      mMsg.append(String.format("Skip validation for secure HDFS. %s is not specified.%n",
-          PRINCIPAL_MAP.get(mProcess).getName()));
-      return true;
-    }
-    return false;
+    return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+            mMsg.toString(), mAdvice.toString());
   }
 
   private ValidationUtils.TaskResult validatePrincipalLogin() {
+    if (!mConf.isSet(mPrincipalProperty) || !mConf.isSet(mKeytabProperty)) {
+      mMsg.append("Failed to find Kerberos principal and keytab.\n");
+      mAdvice.append(String.format("Please configure Alluxio to connect with secure HDFS "
+              + "following %s%n", DOC_LINK));
+      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+              mMsg.toString(), mAdvice.toString());
+    }
+
     // Check whether can login with specified principal and keytab
     String principal = mConf.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
