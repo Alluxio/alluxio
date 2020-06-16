@@ -12,23 +12,14 @@
 package alluxio.client.cli.fsadmin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.master.MasterContext;
-import alluxio.master.MasterProcess;
-import alluxio.master.StateLockManager;
-import alluxio.master.StateLockOptions;
-import alluxio.resource.LockResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,27 +55,5 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
     assertEquals(1, Files.list(dir).count());
-  }
-
-  @Test
-  public void timeout() throws Exception {
-    // Grab the master state-change lock via reflection.
-    MasterProcess masterProcess =
-        Whitebox.getInternalState(mLocalAlluxioCluster.getLocalAlluxioMaster(), "mMasterProcess");
-    MasterContext masterCtx = Whitebox.getInternalState(masterProcess, "mContext");
-    StateLockManager stateLockManager = masterCtx.getStateLockManager();
-
-    // Lock the state-change lock on the master before initiating the backup.
-    try (LockResource lr = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
-      // Prepare for a backup.
-      Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
-      Files.createDirectories(dir);
-      assertEquals(0, Files.list(dir).count());
-      // Initiate backup. It should fail.
-      int errCode = mFsAdminShell.run("backup");
-      assertTrue(mOutput.toString().contains(ExceptionMessage.STATE_LOCK_TIMED_OUT
-          .getMessage(3000/* matching the cluster resource configuration. */)));
-      assertNotEquals(0, errCode);
-    }
   }
 }
