@@ -11,7 +11,6 @@
 
 package alluxio.cli.hdfs;
 
-import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
@@ -39,7 +38,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
    * for more details.
    */
   private static final Pattern PRINCIPAL_PATTERN =
-      Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+(\\.[\\w]+)*)?)");
+      Pattern.compile("(?<primary>[^/@]*)(/(?<instance>[^/@]*))?@(?<realm>[^/@]*)");
 
   private static final String PRINCIPAL_MAP_MASTER_KEY = "master";
   private static final String PRINCIPAL_MAP_WORKER_KEY = "worker";
@@ -119,7 +118,8 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
     // Ref: https://docs.cloudera.com/documentation/enterprise/5-16-x/topics
     // /cdh_sg_hadoop_security_enable.html
     String hadoopAuthentication = mCoreConf.getOrDefault(HDFS_AUTHENTICATION_KEY, "");
-    boolean authenticationEnabled = hadoopAuthentication.equalsIgnoreCase(HDFS_AUTHENTICATION_VALUE);
+    boolean authenticationEnabled =
+            hadoopAuthentication.equalsIgnoreCase(HDFS_AUTHENTICATION_VALUE);
     String hadoopAuthorization = mCoreConf.getOrDefault(HDFS_AUTHORIZATION_KEY, "");
     boolean authorizationEnabled = hadoopAuthorization.equals(HDFS_AUTHORIZATION_VALUE);
     if (!authenticationEnabled && !authorizationEnabled) {
@@ -130,8 +130,9 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
 
     // Issue an error if the secured HDFS is not configured properly
     if (!authenticationEnabled || !authorizationEnabled) {
-      mMsg.append(String.format("Found inconsistent configuration for Hadoop security. %s=%s but %s=%s.%n",
-              HDFS_AUTHENTICATION_KEY, hadoopAuthentication, HDFS_AUTHORIZATION_KEY, hadoopAuthorization));
+      mMsg.append(String.format("Found inconsistent configuration for Hadoop security."
+                      + " %s=%s but %s=%s.%n", HDFS_AUTHENTICATION_KEY, hadoopAuthentication,
+              HDFS_AUTHORIZATION_KEY, hadoopAuthorization));
       mAdvice.append(String.format("Please enable Hadoop security by setting %s=%s and %s=%s%n.",
               HDFS_AUTHENTICATION_KEY, HDFS_AUTHENTICATION_VALUE, HDFS_AUTHORIZATION_KEY,
               HDFS_AUTHORIZATION_VALUE));
