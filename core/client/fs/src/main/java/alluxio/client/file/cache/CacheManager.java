@@ -12,20 +12,71 @@
 package alluxio.client.file.cache;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.Counter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
+
+import javax.annotation.Nullable;
 
 /**
  * Interface for managing cached pages.
  */
 public interface CacheManager extends AutoCloseable  {
+
   /**
-   * @param conf the Alluxio configuration
-   * @return an instance of {@link CacheManager}
+   * Factory class to get or create a CacheManager.
    */
-  static CacheManager create(AlluxioConfiguration conf) throws IOException {
-    // TODO(feng): make cache manager type configurable when we introduce more implementations.
-    return new NoExceptionCacheManager(LocalCacheManager.create(conf));
+  class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+    private static Optional<CacheManager> sCacheManager = null;
+
+    /**
+     * @param conf the Alluxio configuration
+     * @return current CacheManager, creating a new one if it doesn't yet exist
+     */
+    @Nullable
+    public static synchronized CacheManager get(AlluxioConfiguration conf) throws IOException {
+      // TODO(feng): support multiple cache managers
+      if (sCacheManager == null) {
+        try {
+          sCacheManager = Optional.of(create(conf));
+        } catch (IOException e) {
+          sCacheManager = Optional.empty();
+          throw e;
+        }
+      }
+      return sCacheManager.orElse(null);
+    }
+
+    /**
+     * @param conf the Alluxio configuration
+     * @return an instance of {@link CacheManager}
+     */
+    static CacheManager create(AlluxioConfiguration conf) throws IOException {
+      try {
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf));
+      } catch (IOException e) {
+        Metrics.CREATE_ERRORS.inc();
+        LOG.error("Failed to create CacheManager", e);
+        throw e;
+      }
+    }
+
+    private Factory() {} // prevent instantiation
+
+    private static final class Metrics {
+      /** Errors when creating cache. */
+      private static final Counter CREATE_ERRORS =
+          MetricsSystem.counter(MetricKey.CLIENT_CACHE_CREATE_ERRORS.getName());
+
+      private Metrics() {} // prevent instantiation
+    }
   }
 
   /**
