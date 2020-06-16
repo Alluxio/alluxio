@@ -253,9 +253,9 @@ shortCircuit:
   size: 1Mi
   # Attributes to use if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket
-  pvcAccessModes:
+  accessModes:
     - ReadWriteOnce
-  pvcStorageClass: standard
+  storageClass: standard
   # Attributes to use if the domain socket volume is hostPath
   hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
   # Attributes to use if the domain socket volume is emptyDir

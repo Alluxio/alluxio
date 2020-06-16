@@ -93,6 +93,7 @@
 0.6.3
 
 - Enabled worker domain socket to choose between hostPath and PVC
+- Refactored some worker domain socket PVC properties to be consistent with documentation
 - Enabled master metastore to choose between emptyDir and PVC
 - Enabled master journal to choose between emptyDir and PVC
 - Moved metastore configuration properties to the root level, to be the same as journal
