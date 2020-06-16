@@ -213,7 +213,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           sa.count(), sa.mean(), sa.max(), sa.min(), sa.sampleVariance());
     }
     StatsAccumulator cachesa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getCacheStats();
-    if (cachesa.count() > 2 && (cachesa.count() % 100) == 1) {
+    if (cachesa.count() > 2 && (cachesa.count() % 1000) == 1) {
       LOG.info("cache: count {}, hit {}, hit ratio {}",
           cachesa.count(), cachesa.sum(), cachesa.mean());
     }
