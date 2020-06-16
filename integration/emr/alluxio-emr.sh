@@ -462,9 +462,9 @@ If a different Alluxio version is desired, see the -d option.
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
 
-  -l                A string containing a delimited list of relative paths under
-                    the root UFS. Active sync will be enabled for the given paths.
-                    UFS metadata will be periodically syncing to Alluxio namespace.
+  -l                A string containing a delimited list of Alluxio paths.
+                    Active sync will be enabled for the given paths. UFS metadata
+                    will be periodically synced with the Alluxio namespace.
                     The delimiter by default is a semicolon ";". If a different
                     delimiter is desired use the [-s] argument.
 
