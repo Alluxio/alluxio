@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.conf.AlluxioConfiguration;
@@ -43,10 +44,12 @@ import java.util.Properties;
  * An Alluxio client compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
  * interface, using Alluxio local cache. On cache miss,
  */
-public class LocalCachingFileSystem extends org.apache.hadoop.fs.FileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(LocalCachingFileSystem.class);
-  // The filesystem to query on cache miss
+public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
+  /** The external Hadoop filesystem to query on cache miss. */
   private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
+  /** Wrapper as an Alluxio filesystem of the external Hadoop filesystem. */
+  private final AlluxioHdfsFileSystem mExternalFileSystemWrapper;
   private CacheManager mCacheManager;
   private org.apache.hadoop.conf.Configuration mHadoopConf;
   private AlluxioConfiguration mAlluxioConf;
@@ -54,8 +57,9 @@ public class LocalCachingFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * @param fileSystem File System instance
    */
-  LocalCachingFileSystem(org.apache.hadoop.fs.FileSystem fileSystem) {
+  public LocalCacheFileSystem(org.apache.hadoop.fs.FileSystem fileSystem) {
     mExternalFileSystem = Preconditions.checkNotNull(fileSystem, "filesystem");
+    mExternalFileSystemWrapper = new AlluxioHdfsFileSystem(mExternalFileSystem);
   }
 
   @Override
@@ -114,7 +118,27 @@ public class LocalCachingFileSystem extends org.apache.hadoop.fs.FileSystem {
         new LocalCacheFileInStream(
             new AlluxioURI(path.toString()),
             OpenFilePOptions.getDefaultInstance(),
-            new AlluxioHdfsFileSystem(mExternalFileSystem, mAlluxioConf), mCacheManager),
+            mExternalFileSystemWrapper, mCacheManager),
+        statistics));
+  }
+
+  /**
+   * Attempts to open the specified file for reading.
+   *
+   * @param status the status of the file to open
+   * @param bufferSize stream buffer size in bytes, currently unused
+   * @return an {@link FSDataInputStream} at the indicated path of a file
+   */
+  public FSDataInputStream open(URIStatus status, int bufferSize) throws IOException {
+    if (mCacheManager == null) {
+      return mExternalFileSystem.open(
+          HadoopUtils.toPath(new AlluxioURI(status.getPath())), bufferSize);
+    }
+    return new FSDataInputStream(new HdfsFileInputStream(
+        new LocalCacheFileInStream(
+            status,
+            OpenFilePOptions.getDefaultInstance(),
+            mExternalFileSystemWrapper, mCacheManager),
         statistics));
   }
 

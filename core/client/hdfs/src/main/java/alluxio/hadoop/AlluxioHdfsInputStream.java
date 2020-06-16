@@ -87,6 +87,7 @@ public class AlluxioHdfsInputStream extends FileInStream {
     return mInput.getPos();
   }
 
+  // TODO(binfan): implement this method
   @Override
   public long remaining() {
     throw new UnsupportedOperationException("Remaining is not supported");

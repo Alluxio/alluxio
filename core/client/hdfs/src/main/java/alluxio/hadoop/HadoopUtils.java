@@ -11,8 +11,13 @@
 
 package alluxio.hadoop;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.wire.FileInfo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -182,6 +187,31 @@ public final class HadoopUtils {
     if (propertyValue != null && configuration.get(propertyName) == null) {
       configuration.set(propertyName, propertyValue);
     }
+  }
+
+  /**
+   * @param alluxioURI Alluxio uri
+   * @return corresponding Hadoop Path instance
+   */
+  public static Path toPath(AlluxioURI alluxioURI) {
+    return new Path(alluxioURI.toString());
+  }
+
+  /**
+   * @param status Hadoop file status
+   * @return corresponding Alluxio uri status instance
+   */
+  public static URIStatus toUriStatus(FileStatus status) {
+    // FilePath is a unique identifier for a file, however it can be a long string
+    // hence using md5 hash of the file path as the identifier in the cache.
+    FileInfo info = new FileInfo();
+    info.setFileIdentifier(md5().hashString(status.getPath().toString(), UTF_8).toString());
+    info.setLength(status.getLen()).setPath(status.getPath().toString());
+    info.setFolder(status.isDirectory()).setBlockSizeBytes(status.getBlockSize());
+    info.setLastModificationTimeMs(status.getModificationTime())
+        .setLastAccessTimeMs(status.getAccessTime());
+    info.setOwner(status.getOwner()).setGroup(status.getGroup());
+    return new URIStatus(info);
   }
 
   private HadoopUtils() {} // prevent instantiation
