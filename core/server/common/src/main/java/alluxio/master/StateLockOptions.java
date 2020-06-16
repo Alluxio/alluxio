@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -21,8 +22,12 @@ import java.util.concurrent.locks.Lock;
  * A typical framework for obtaining the state-lock exclusively is:
  *  1- Run a grace-cycle:
  *      cycle of {@link Lock#tryLock()} - {@link Thread#sleep(long)} calls.
- *  2- Interrupt state-lock holders if grace-cycle fails.
- *  3- Take the lock using {@link Lock#lock()}
+ *  2- Call {@link Lock#tryLock(long, TimeUnit)} for a long duration
+ *    a- Duration configured by {@link PropertyKey#MASTER_BACKUP_STATE_LOCK_FORCED_DURATION}.
+ *    b- Shared lock holders/waiter will regularly be interrupted if
+ *       {@link PropertyKey#MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED} is true.
+ *       - Interrupt interval defined by
+ *         {@link PropertyKey#MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL}.
  */
 public class StateLockOptions {
   /** Whether to wait grace-cycle. */

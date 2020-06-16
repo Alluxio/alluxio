@@ -1306,7 +1306,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("0ms")
           .setDescription("Alluxio master will allow only exclusive locking of "
               + "the state-lock for this duration. This duration starts after masters "
-              + "are started for the first time.")
+              + "are started for the first time. "
+              + "User RPCs will fail to acquire state-lock during this phase and "
+              + "a backup is guaranteed take the state-lock meanwhile.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
