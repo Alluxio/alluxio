@@ -258,8 +258,6 @@ shortCircuit:
   storageClass: standard
   # Attributes to use if the domain socket volume is hostPath
   hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
-  # Attributes to use if the domain socket volume is emptyDir
-  medium: ""
 
 
 ## FUSE ##
