@@ -144,8 +144,7 @@ properties:
 
   {% collapsible Example: Single Master and Journal in a Persistent Volume %}
 The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
-with a persistent volume claim `alluxio-pv-claim` mounted locally to the master Pod at location
-`/journal`.
+with a persistent volume claim mounted locally to the master Pod at location `/journal`.
 
 ```properties
 master:
@@ -155,10 +154,43 @@ journal:
   type: "UFS"
   ufsType: "local"
   folder: "/journal"
-  pvcName: alluxio-pv-claim
-  storageClass: "standard"
   size: 1Gi
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  # Attributes to use when the journal is persistentVolumeClaim
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
 ```
+  {% endcollapsible %}
+  
+  {% collapsible Example: Single Master and Journal in an `emptyDir` Volume %}
+The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
+with an `emptyDir` volume mounted locally to the master Pod at location `/journal`.
+
+```properties
+master:
+  count: 1 # For multiMaster mode increase this to >1
+
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"
+  size: 1Gi
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: emptyDir
+  # Attributes to use when the journal is emptyDir
+  medium: ""
+```
+
+>Note: An `emptyDir` volume has the same lifetime as the Pod. 
+It is NOT a persistent storage.
+The Alluxio journal will be LOST when the Pod is restarted or rescheduled.
+Please only use this for experimental use cases.
+Check [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) for more details.
+
   {% endcollapsible %}
 
   {% collapsible Example: HDFS as Journal %}
@@ -186,7 +218,7 @@ secrets:
 ```
   {% endcollapsible %}
 
-  {% collapsible Example: Multi-master with Embedded Journal %}
+  {% collapsible Example: Multi-master with Embedded Journal in Persistent Volumes %}
 ```properties
 master:
   count: 3
@@ -194,7 +226,40 @@ master:
 journal:
   type: "EMBEDDED"
   folder: "/journal"
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  size: 1Gi
+  # Attributes to use when the journal is persistentVolumeClaim
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
 ```
+  {% endcollapsible %}
+  
+  {% collapsible Example: Multi-master with Embedded Journal in `emptyDir` Volumes %}
+```properties
+master:
+  count: 3
+  
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"
+  size: 1Gi
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: emptyDir
+  # Attributes to use when the journal is emptyDir
+  medium: ""
+```
+
+>Note: An `emptyDir` volume has the same lifetime as the Pod. 
+It is NOT a persistent storage.
+The Alluxio journal will be LOST when the Pod is restarted or rescheduled.
+Please only use this for experimental use cases.
+Check [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) for more details.
+
   {% endcollapsible %}
 
   {% collapsible Example: HDFS as the under store %}
@@ -216,7 +281,7 @@ secrets:
 ```
   {% endcollapsible %}
 
-  {% collapsible Example: Off-heap Metastore Management %}
+  {% collapsible Example: Off-heap Metastore Management in Persistent Volumes %}
 The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the
 specified configuration and configures the Pod to use the volume for an on-disk RocksDB-based
 metastore.
@@ -225,14 +290,41 @@ properties:
   alluxio.master.metastore: ROCKS
   alluxio.master.metastore.dir: /metastore
 
-master:
-  metastore:
-    size: 1Gi
-    mountPath: /metastore
-    storageClass: "standard"
-    accessModes:
-      - ReadWriteOnce
+metastore:
+  volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
+  size: 1Gi
+  mountPath: /metastore
+  # Attributes to use when the metastore is persistentVolumeClaim
+  storageClass: "standard"
+  accessModes:
+   - ReadWriteOnce
 ```
+  {% endcollapsible %}
+  
+  {% collapsible Example: Off-heap Metastore Management in `emptyDir` Volumes %}
+The following configuration creates an `emptyDir` Volume for each Alluxio master Pod with the
+specified configuration and configures the Pod to use the volume for an on-disk RocksDB-based
+metastore.
+
+```properties
+properties:
+  alluxio.master.metastore: ROCKS
+  alluxio.master.metastore.dir: /metastore
+
+metastore:
+  volumeType: emptyDir # Options: "persistentVolumeClaim" or "emptyDir"
+  size: 1Gi
+  mountPath: /metastore
+  # Attributes to use when the metastore is emptyDir
+  medium: ""
+```
+
+>Note: An `emptyDir` volume has the same lifetime as the Pod. 
+It is NOT a persistent storage.
+The Alluxio metadata will be LOST when the Pod is restarted or rescheduled.
+Please only use this for experimental use cases.
+Check [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) for more details.
+
   {% endcollapsible %}
 
   {%collapsible Example: Multiple Secrets %}
