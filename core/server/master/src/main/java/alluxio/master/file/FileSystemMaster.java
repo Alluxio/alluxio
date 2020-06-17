@@ -234,7 +234,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return a copy of the current mount table
    */
-  Map<String, MountPointInfo>  getMountTable();
+  Map<String, MountPointInfo>  getMountInfo();
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.

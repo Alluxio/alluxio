@@ -18,6 +18,8 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,5 +97,14 @@ public final class LockingScheme {
    */
   public boolean shouldSync() {
     return mShouldSync;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("path", mPath)
+        .add("desiredLockPattern", mDesiredLockPattern)
+        .add("shouldSync", mShouldSync)
+        .toString();
   }
 }

@@ -228,6 +228,7 @@ public final class FileSystemMasterTest {
   @After
   public void after() throws Exception {
     stopServices();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -2672,6 +2673,46 @@ public final class FileSystemMasterTest {
             GetStatusContext.defaults()).getPersistenceState());
   }
 
+//  @Test
+//  public void testConflictingListStatuses() throws Exception {
+//    stopServices();
+//    ServerConfiguration.set(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE, "1");
+//    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+//    AuthenticatedClientUser.set("test");
+//    startServices();
+//    String longPath = "/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a";
+//    ExecutorService svc = Executors.newSingleThreadExecutor();
+//    mFileSystemMaster.createDirectory(new AlluxioURI(longPath), CreateDirectoryContext
+//        .mergeFrom(
+//            CreateDirectoryPOptions.newBuilder()
+//                .setCommonOptions(FileSystemMasterCommonPOptions
+//                  .newBuilder().setSyncIntervalMs(0))
+//                .setRecursive(true)
+//            .setWriteType(WritePType.CACHE_THROUGH)
+//        ));
+//    Future<?> f = svc.submit(() -> {
+//      AuthenticatedClientUser.set("test");
+//      try {
+//        mFileSystemMaster.listStatus(new AlluxioURI("/a"),
+//            ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
+//                .setCommonOptions(FileSystemMasterCommonPOptions
+                    // .newBuilder().setSyncIntervalMs(0))
+//                .setRecursive(true)));
+//      } catch (AccessControlException e) {
+//        e.printStackTrace();
+//      } catch (FileDoesNotExistException e) {
+//        e.printStackTrace();
+//      } catch (InvalidPathException e) {
+//        e.printStackTrace();
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//      }
+//    });
+// //    Thread.sleep(250);
+//    mFileSystemMaster.listStatus(new AlluxioURI("/a/b"),
+//        ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)));
+//  }
+
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
@@ -2691,8 +2732,8 @@ public final class FileSystemMasterTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
-    mExecutorService = Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mExecutorService = Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mInodeStore = mFileSystemMaster.getInodeStore();
@@ -2706,16 +2747,14 @@ public final class FileSystemMasterTest {
         new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
-        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB), ImmutableMap.of(),
+        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
-        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB), ImmutableMap.of(),
+        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {
