@@ -343,7 +343,7 @@ function main {
     runJavaClass "$@"
   ;;
   "runUfsTests")
-    CLASS="alluxio.cli.UnderFileSystemContractTest"
+    CLASS="alluxio.cli.UfsTests"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
