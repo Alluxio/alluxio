@@ -28,29 +28,29 @@ import java.util.Arrays;
 /**
  * Utility for checking Alluxio environment.
  */
-public class ValidateEnv {
+public final class ValidateEnv {
   private static final String USAGE = "validateEnv COMMAND [NAME] [OPTIONS]\n\n"
-          + "Validate environment for Alluxio.\n\n"
-          + "COMMAND can be one of the following values:\n"
-          + "local:   run all validation tasks on local\n"
-          + "master:  run master validation tasks on local\n"
-          + "worker:  run worker validation tasks on local\n"
-          + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
-          + "masters: run master validation tasks on all master nodes\n"
-          + "workers: run worker validation tasks on all worker nodes\n\n"
-          + "list:    list all validation tasks\n\n"
-          + "For all commands except list:\n"
-          + "NAME can be any task full name or prefix.\n"
-          + "When NAME is given, only tasks with name starts with the prefix will run.\n"
-          + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
-          + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
-          + "\"worker.rpc.port.available\".\n"
-          + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
-          + "OPTIONS can be a list of command line options. Each option has the"
-          + " format \"-<optionName> [optionValue]\"\n";
+      + "Validate environment for Alluxio.\n\n"
+      + "COMMAND can be one of the following values:\n"
+      + "local:   run all validation tasks on local\n"
+      + "master:  run master validation tasks on local\n"
+      + "worker:  run worker validation tasks on local\n"
+      + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
+      + "masters: run master validation tasks on all master nodes\n"
+      + "workers: run worker validation tasks on all worker nodes\n\n"
+      + "list:    list all validation tasks\n\n"
+      + "For all commands except list:\n"
+      + "NAME can be any task full name or prefix.\n"
+      + "When NAME is given, only tasks with name starts with the prefix will run.\n"
+      + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
+      + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
+      + "\"worker.rpc.port.available\".\n"
+      + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
+      + "OPTIONS can be a list of command line options. Each option has the"
+      + " format \"-<optionName> [optionValue]\"\n";
 
   private static int runTasks(String target, String name, CommandLine cmd)
-          throws InterruptedException {
+      throws InterruptedException {
     // Validate against root path
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
     String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
@@ -150,7 +150,7 @@ public class ValidateEnv {
    * @throws InvalidArgumentException if command line contains invalid argument(s)
    */
   private static CommandLine parseArgsAndOptions(Options options, String... args)
-          throws InvalidArgumentException {
+      throws InvalidArgumentException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
 
