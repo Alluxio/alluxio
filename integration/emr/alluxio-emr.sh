@@ -649,8 +649,6 @@ IN
   wait_for_hadoop "${is_master}"
 
   echo "Starting Alluxio configuration"
-  set_custom_alluxio_properties "${delimited_properties}"
-
   # set auto generated properties
   echo "Setting auto-generated properties in ${ALLUXIO_SITE_PROPERTIES}"
   doas alluxio "echo '# BEGIN AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
@@ -660,6 +658,9 @@ IN
   configure_alluxio_hdfs_root_mount "${root_ufs_uri}" "${hdfs_version}"
 
   doas alluxio "echo '# END AUTO-GENERATED PROPERTIES' >> ${ALLUXIO_SITE_PROPERTIES}"
+
+  # set user provided properties
+  set_custom_alluxio_properties "${delimited_properties}"
 
   # start Alluxio cluster
   if [[ "${client_only}" != "true" ]]; then
