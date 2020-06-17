@@ -26,6 +26,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.transport.GrpcMessagingClient;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -143,7 +144,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus backup(BackupPRequest request) throws AlluxioException {
+  public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
+      throws AlluxioException {
     throw new IllegalStateException("Backup-worker role can't serve RPCs");
   }
 
