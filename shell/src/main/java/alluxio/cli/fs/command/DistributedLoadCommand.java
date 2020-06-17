@@ -19,7 +19,6 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.plan.load.LoadConfig;
@@ -28,7 +27,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
