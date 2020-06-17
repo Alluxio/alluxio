@@ -11,13 +11,12 @@
 
 package alluxio.resource;
 
-import alluxio.exception.ExceptionMessage;
-
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -31,7 +30,12 @@ import java.util.concurrent.locks.Lock;
  */
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
-  private final Lock mLock;
+  private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
+
+  // The lock which represents the resource. It should only be written or modified by subclasses
+  // attempting to downgrade locks (see RWLockResource).
+  protected Lock mLock;
+  private final Runnable mCloseAction;
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -39,7 +43,7 @@ public class LockResource implements Closeable {
    * @param lock the lock to acquire
    */
   public LockResource(Lock lock) {
-    this(lock, true);
+    this(lock, true, false);
   }
 
   /**
@@ -47,45 +51,31 @@ public class LockResource implements Closeable {
    *
    * @param lock the lock to acquire
    * @param acquireLock whether to lock the lock
+   * @param useTryLock whether or not use to {@link Lock#tryLock()}
    */
-  public LockResource(Lock lock, boolean acquireLock) {
-    mLock = lock;
-    if (acquireLock) {
-      mLock.lock();
-    }
+  public LockResource(Lock lock, boolean acquireLock, boolean useTryLock) {
+    this(lock, acquireLock, useTryLock, null);
   }
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
    *
-   * This method will use the {@link Lock#tryLock(long, TimeUnit)} internally in a loop
-   * for trying to grab the lock without causing total blockage of other waiters of the lock.
+   * This method may use the {@link Lock#tryLock()} method to gain ownership of the locks. The
+   * reason one might want to use this is to avoid the fairness heuristics within the
+   * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
+   * threads if a writer if the first in the queue.
    *
-   * @param lock  the lock to acquire
-   * @param tryMs the duration to attempt acquiring the lock
-   * @param sleepMs the wait duration after failed attempt to acquire the lock
-   * @param timeoutMs the total duration to try acquiring the lock in a loop
-   * @throws InterruptedException if interrupted while acquiring the lock
-   * @throws TimeoutException if the lock was not acquired after given timeout
+   * @param lock the lock to acquire
+   * @param acquireLock whether to lock the lock
+   * @param useTryLock whether or not use to {@link Lock#tryLock()}
+   * @param closeAction the nullable closeable that will be run before releasing the lock
    */
-  public LockResource(Lock lock, long tryMs, long sleepMs, long timeoutMs)
-      throws InterruptedException, TimeoutException {
+  public LockResource(Lock lock, boolean acquireLock, boolean useTryLock,
+      @Nullable Runnable closeAction) {
     mLock = lock;
-    long deadlineMs = System.currentTimeMillis() + timeoutMs;
-    boolean lockAcquired = false;
-    while (System.currentTimeMillis() < deadlineMs) {
-      if (mLock.tryLock(tryMs, TimeUnit.MILLISECONDS)) {
-        lockAcquired = true;
-        break;
-      } else {
-        long remainingWaitMs = deadlineMs - System.currentTimeMillis();
-        if (remainingWaitMs > 0) {
-          Thread.sleep(Math.min(sleepMs, remainingWaitMs));
-        }
-      }
-    }
-    if (!lockAcquired) {
-      throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(timeoutMs));
+    mCloseAction = closeAction;
+    if (acquireLock) {
+      mLock.lock();
     }
   }
 
@@ -105,6 +95,9 @@ public class LockResource implements Closeable {
    */
   @Override
   public void close() {
+    if (mCloseAction != null) {
+      mCloseAction.run();
+    }
     mLock.unlock();
   }
 }

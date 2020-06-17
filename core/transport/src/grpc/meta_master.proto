@@ -119,9 +119,6 @@ message BackupPOptions {
     optional bool localFileSystem = 1;
     optional bool runAsync = 2;
     optional bool allowLeader = 3;
-    optional int64 stateLockTryDurationMs = 4;
-    optional int64 stateLockSleepDurationMs = 5;
-    optional int64 stateLockTimeoutMs = 6;
 }
 message BackupPStatus {
     optional string backupId = 1;

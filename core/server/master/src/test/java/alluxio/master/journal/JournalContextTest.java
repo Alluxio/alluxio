@@ -21,6 +21,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -100,8 +101,12 @@ public class JournalContextTest {
 
     Thread thread = new Thread(() -> {
       // the pause lock should block
-      mMasterContext.pauseStateLock().lock();
-      paused.set(true);
+      try {
+        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
+        paused.set(true);
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to grab state-lock exclusively", e);
+      }
     });
     thread.start();
 
@@ -122,7 +127,8 @@ public class JournalContextTest {
 
   @Test
   public void pauseBlocksJournalContext() throws Exception {
-    LockResource lock = new LockResource(mMasterContext.pauseStateLock());
+    LockResource lock =
+        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
 
     AtomicBoolean journalContextCreated = new AtomicBoolean(false);
 
@@ -176,8 +182,11 @@ public class JournalContextTest {
     // task that attempts to pause the state
     service.submit(() -> {
       // the pause lock should block
-      try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+      try (LockResource lr =
+          mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
         paused.set(true);
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to acquire state-lock exclusively.");
       }
     });
 

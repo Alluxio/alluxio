@@ -17,21 +17,17 @@ import alluxio.security.user.UserState;
 
 import com.google.common.base.Preconditions;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 /**
  * Stores context information for Alluxio masters.
  */
 public class MasterContext {
   private final JournalSystem mJournalSystem;
   /**
-   * The stateLock is used to allow us to pause master state changes so that we can take backups of
-   * master state. All state modifications should hold the read lock so that holding the write lock
-   * allows a thread to pause state modifications.
+   * The stateLockManager is used to allow us to pause master state changes so that we can
+   * take backups of master state. All state modifications should hold the lock in shared mode
+   * so that holding it exclusively allows a thread to pause state modifications.
    */
-  private final ReadWriteLock mStateLock;
+  private final StateLockManager mStateLockManager;
   private final UserState mUserState;
 
   /**
@@ -56,9 +52,7 @@ public class MasterContext {
     } else {
       mUserState = userState;
     }
-    // Use a fair state lock, so that when a backup is triggered, acquiring the write lock does not
-    // block indefinitely.
-    mStateLock = new ReentrantReadWriteLock(true);
+    mStateLockManager = new StateLockManager();
   }
 
   /**
@@ -76,16 +70,9 @@ public class MasterContext {
   }
 
   /**
-   * @return the lock which must be held to modify master state
+   * @return the state lock manager
    */
-  public Lock stateChangeLock() {
-    return mStateLock.readLock();
-  }
-
-  /**
-   * @return the lock which prevents master state from changing
-   */
-  public Lock pauseStateLock() {
-    return mStateLock.writeLock();
+  public StateLockManager getStateLockManager() {
+    return mStateLockManager;
   }
 }

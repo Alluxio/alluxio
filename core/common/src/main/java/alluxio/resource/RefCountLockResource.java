@@ -33,7 +33,7 @@ public class RefCountLockResource extends LockResource {
    * @param refCount ref count for the lock
    */
   public RefCountLockResource(Lock lock, boolean acquireLock, AtomicInteger refCount) {
-    super(lock, acquireLock);
+    super(lock, acquireLock, false);
     mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
   }
 
