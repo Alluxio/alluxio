@@ -179,6 +179,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     return 0;
   }
 
+  @Override
+  public void close() throws IOException {
+    mClient.close();
+  }
+
   /**
    * Creates a new job to load a file in Alluxio space, makes it resident in memory.
    *
