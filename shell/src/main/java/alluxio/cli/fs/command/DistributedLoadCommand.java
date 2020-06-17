@@ -147,6 +147,9 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
     mSubmittedJobAttempts = Lists.newArrayList();
+    final ClientContext clientContext = mFsContext.getClientContext();
+    mClient = JobMasterClient.Factory.create(
+        JobMasterClientContext.newBuilder(clientContext).build());
   }
 
   @Override
@@ -249,9 +252,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    */
   private void distributedLoad(AlluxioURI filePath, int replication)
       throws AlluxioException, IOException {
-    final ClientContext clientContext = ClientContext.create(mFsContext.getPathConf(filePath));
-    mClient = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(clientContext).build());
     load(filePath, replication);
     // Wait remaining jobs to complete.
     while (!mSubmittedJobAttempts.isEmpty()) {
