@@ -19,6 +19,7 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.plan.load.LoadConfig;
@@ -27,6 +28,7 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
@@ -135,7 +137,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   private List<JobAttempt> mSubmittedJobAttempts;
   private int mActiveJobs;
-  private JobMasterClient mClient;
+  private final JobMasterClient mClient;
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -145,7 +147,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
     mSubmittedJobAttempts = Lists.newArrayList();
-    mClient = null;
+
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    final ClientContext clientContext = ClientContext.create(conf);
+    mClient = JobMasterClient.Factory.create(
+        JobMasterClientContext.newBuilder(clientContext).build());
   }
 
   @Override
@@ -180,12 +186,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param replication The replication of file to load into Alluxio memory
    */
   private JobAttempt newJob(AlluxioURI filePath, int replication) {
-    final ClientContext clientContext = ClientContext.create(mFsContext.getPathConf(filePath));
-    if (mClient == null) {
-      mClient = JobMasterClient.Factory.create(
-          JobMasterClientContext.newBuilder(clientContext).build());
-    }
-
     JobAttempt jobAttempt = new JobAttempt(new LoadConfig(filePath.getPath(), replication),
         new CountingRetry(3));
 
