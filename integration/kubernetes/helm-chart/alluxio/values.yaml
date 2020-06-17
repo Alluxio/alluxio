@@ -137,16 +137,16 @@ journal:
 
 
 # You can enable metastore to use ROCKS DB instead of Heap
-metastore:
-  volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
-  size: 1Gi
-  mountPath: /metastore
-# Attributes to use when the metastore is persistentVolumeClaim
-  storageClass: "standard"
-  accessModes:
-   - ReadWriteOnce
-# Attributes to use when the metastore is emptyDir
-  medium: ""
+# metastore:
+#   volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
+#   size: 1Gi
+#   mountPath: /metastore
+# # Attributes to use when the metastore is persistentVolumeClaim
+#   storageClass: "standard"
+#   accessModes:
+#    - ReadWriteOnce
+# # Attributes to use when the metastore is emptyDir
+#   medium: ""
 
 
 ## Worker ##
