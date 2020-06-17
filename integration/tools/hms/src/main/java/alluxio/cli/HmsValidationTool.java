@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.cli.ValidationConfig;
 import alluxio.cli.ValidationUtils.State;
 import alluxio.cli.ValidationUtils.TaskResult;
 import alluxio.util.CommonUtils;
@@ -30,6 +31,8 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -46,6 +49,7 @@ import java.util.stream.Collectors;
  * Run tests against an existing hive metastore.
  */
 public class HmsValidationTool implements ValidationTool {
+  private static final Logger LOG = LoggerFactory.getLogger(HmsValidationTool.class);
   // The maximum number of table objects that this test will get.
   // Used to avoid issuing too many calls to the hive metastore
   // which may need a long time based on network conditions
@@ -80,14 +84,29 @@ public class HmsValidationTool implements ValidationTool {
   /**
    * Creates an instance of {@link HmsValidationTool}.
    *
-   * @param metastoreUri hive metastore uris
-   * @param database database to run tests against
-   * @param tables tables to run tests against
-   * @param socketTimeout socket time of hms operations
+   * @param configMap the hms validation tool config map
    * @return the new instance
    */
-  public static HmsValidationTool create(String metastoreUri, String database,
-      String tables, int socketTimeout) {
+  public static HmsValidationTool create(Map<Object, Object> configMap) {
+    String metastoreUri = "";
+    String database = DEFAULT_DATABASE;
+    String tables = "";
+    int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
+    try {
+      metastoreUri = (String) configMap
+          .getOrDefault(ValidationConfig.METASTORE_URI_CONFIG_NAME, "");
+      database = (String) configMap
+          .getOrDefault(ValidationConfig.DATABASE_CONFIG_NAME, DEFAULT_DATABASE);
+      tables = (String) configMap
+          .getOrDefault(ValidationConfig.TABLES_CONFIG_NAME, "");
+      socketTimeout = (int) configMap
+          .getOrDefault(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, DEFAULT_SOCKET_TIMEOUT);
+    } catch (RuntimeException e) {
+      // Try not to throw exception on the construction function
+      // The hms validation tool itself should return failed message if the given config is invalid
+      LOG.error("Failed to process hms validation tool config from config map {}: {}",
+          configMap, e.getMessage());
+    }
     return new HmsValidationTool(metastoreUri, database, tables, socketTimeout);
   }
 
