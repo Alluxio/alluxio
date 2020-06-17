@@ -84,7 +84,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
       // more threads for parallel deletes for cleanup
-      hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "512");
+      hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -149,7 +149,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     int fixedSize = fs.listStatus(new Path(subDirs[0].getPath(), "fixed")).length;
 
     long batchSize = 50_000;
-    int deleteThreads = 512;
+    int deleteThreads = 256;
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-delete-thread", deleteThreads).create();
 
@@ -187,7 +187,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             return null;
           });
         }
-        service.invokeAll(callables, 10, TimeUnit.MINUTES);
+        service.invokeAll(callables, 1, TimeUnit.MINUTES);
 
         if (success.get() == 0) {
           // stop deleting one-by-one if none of the batch succeeded.
@@ -198,7 +198,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
 
     service.shutdownNow();
-    service.awaitTermination(30, TimeUnit.SECONDS);
+    service.awaitTermination(10, TimeUnit.SECONDS);
 
     // Cleanup the rest recursively, which should be empty or much smaller than the full tree.
     LOG.info("Deleting base directory: {}", basePath);
