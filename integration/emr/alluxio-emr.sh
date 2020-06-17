@@ -612,8 +612,13 @@ USAGE_END
     input_args=( "$@" )
     if [[ "${#input_args[@]}" -gt "0" ]]; then
       for i in "${input_args[@]}"; do
-        # forcibly escape the three characters " { }
-        esc_i=$(echo "${i}" | sed 's/"/\\"/g' | sed 's/{/\\{/g' | sed 's/}/\\}/g')
+        # handle quoted arguments: https://unix.stackexchange.com/questions/187651/how-to-echo-single-quote-when-using-single-quote-to-wrap-special-characters-in
+        esc_i=$(sed "s/'"'/&\\&&/g
+     s/.*/'"'&'"'/
+' <<IN
+$i
+IN
+)
         launch_args="${launch_args} ${esc_i}"
       done
     fi
