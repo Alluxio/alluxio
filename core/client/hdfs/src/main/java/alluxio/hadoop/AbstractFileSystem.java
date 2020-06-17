@@ -473,23 +473,26 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
-    // all three into a single object.
-    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-    Map<String, Object> hadoopConfProperties =
-        HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
-    LOG.info("Creating Alluxio configuration from Hadoop configuration {}, uri configuration {}",
-        hadoopConfProperties, uriConfProperties);
-    AlluxioProperties alluxioProps =
-        (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
-            : ConfigurationUtils.defaults();
-    // Merge relevant Hadoop configuration into Alluxio's configuration.
-    alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
-    // Merge relevant connection details in the URI with the highest priority
-    alluxioProps.merge(uriConfProperties, Source.RUNTIME);
-    // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
-    mAlluxioConf = new InstancedConfiguration(alluxioProps);
-    mAlluxioConf.validate();
+    // check if Alluxio conf has been initialized (e.g., in subclass)
+    if (mAlluxioConf == null) {
+      // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
+      // all three into a single object.
+      Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
+      Map<String, Object> hadoopConfProperties =
+          HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
+      LOG.info("Creating Alluxio configuration from Hadoop configuration {}, uri configuration {}",
+          hadoopConfProperties, uriConfProperties);
+      AlluxioProperties alluxioProps =
+          (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
+              : ConfigurationUtils.defaults();
+      // Merge relevant Hadoop configuration into Alluxio's configuration.
+      alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
+      // Merge relevant connection details in the URI with the highest priority
+      alluxioProps.merge(uriConfProperties, Source.RUNTIME);
+      // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
+      mAlluxioConf = new InstancedConfiguration(alluxioProps);
+      mAlluxioConf.validate();
+    }
 
     if (mFileSystem != null) {
       return;
