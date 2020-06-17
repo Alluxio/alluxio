@@ -51,6 +51,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
       PRINCIPAL_MAP_MASTER_KEY, PropertyKey.MASTER_KEYTAB_KEY_FILE,
       PRINCIPAL_MAP_WORKER_KEY, PropertyKey.WORKER_KEYTAB_FILE);
 
+  // TODO(jiacheng): Use org.apache.hadoop.fs.CommonConfigurationKeysPublic for constants
   private static final String HDFS_AUTHENTICATION_KEY = "hadoop.security.authentication";
   private static final String HDFS_AUTHENTICATION_VALUE = "kerberos";
   private static final String DOC_LINK = "https://docs.alluxio.io/os/user/stable/en/ufs/HDFS.html"
