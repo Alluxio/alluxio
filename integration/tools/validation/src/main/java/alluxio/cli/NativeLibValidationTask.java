@@ -11,8 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
-
 import java.io.File;
 import java.util.Map;
 import java.util.StringTokenizer;

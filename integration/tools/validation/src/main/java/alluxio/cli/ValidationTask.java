@@ -11,11 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
-
-import org.apache.commons.cli.Option;
-
-import java.util.List;
 import java.util.Map;
 
 /**

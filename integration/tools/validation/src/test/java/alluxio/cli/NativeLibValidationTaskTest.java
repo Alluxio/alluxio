@@ -15,17 +15,12 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.cli.ValidationUtils;
-
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 
 public class NativeLibValidationTaskTest {
   private String mLibPath;
