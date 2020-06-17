@@ -831,11 +831,14 @@ The domain socket is a volume which should be mounted on:
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
 
-This domain socket volume is a `PersistentVolumeClaim`.
+This domain socket volume can be either a `PersistentVolumeClaim` or a `hostPath Volume`.
+
+***Use PersistentVolumeClaim.***
+By default, this domain socket volume is a `PersistentVolumeClaim`.
 You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
 And this `PersistentVolume` should be either `local` or `hostPath`.
 
-{% navtabs domainSocket %}
+{% navtabs domainSocketPVC %}
 {% navtab helm %}
 
 You can use `uuid` policy by setting the properties as below:
@@ -845,10 +848,14 @@ You can use `uuid` policy by setting the properties as below:
 shortCircuit:
   enabled: true
   policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket
   accessModes:
     - ReadWriteOnce
-  size: 1Gi
   storageClass: standard
 ```
 
@@ -878,6 +885,49 @@ volumes:
 (`/opt/domain`) as configured for the Alluxio workers.
 
 The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+***Use hostPath Volume.***
+You can also directly define the workers to use a `hostPath Volume` for domain socket.
+
+{% navtabs domainSocketHostPath %}
+{% navtab helm %}
+
+You can switch to directly use a `hostPath` volume for the domain socket.
+This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
+Note that you also need to define the path to use for the `hostPath` volume.
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: hostPath
+  # Attributes to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
+```
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should verify the properties in `ALLUXIO_WORKER_JAVA_OPTS` in the same way as using `PersistentVolumeClaim`.
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    hostPath:
+      path: /tmp/alluxio-domain
+      type: DirectoryOrCreate
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
 
 {% endnavtab %}
 {% endnavtabs %}
