@@ -71,28 +71,49 @@ public class FileStat extends Struct {
 
   public FileStat(ByteBuffer buffer) {
     super(buffer);
-    // TODO: support Mac & Windows platform
     if (OSUtils.isMacOS()) {
-      System.exit(-1);
-    } else if (OSUtils.isWindows()) {
-      System.exit(-1);
+      st_dev = new Unsigned64();
+      st_mode = new Unsigned32();
+      st_nlink = new Unsigned64();
+      st_ino = new Unsigned64();
+      st_uid = new Unsigned32();
+      st_gid = new Unsigned32();
+      st_rdev = new Unsigned64();
+      st_atim = new Timespec();
+      st_mtim = new Timespec();
+      st_ctim = new Timespec();
+      st_birthtime = new Timespec();
+      st_size = new SignedLong();
+      st_blocks = new SignedLong();
+      st_blksize = new SignedLong();
+      st_flags = new Unsigned32();
+      st_gen = new Unsigned32();
+      new Signed32();
+      new Signed64();
+      new Signed64();
+
+      pad1 = null;
     } else {
       // Linux platform
+      st_dev = new Unsigned64();
+      pad1 = null;
+      st_ino = new Unsigned64();
+      st_nlink = new Unsigned64();
+      st_mode = new Unsigned32();
+      st_uid = new Unsigned32();
+      st_gid = new Unsigned32();
+      st_rdev = new Unsigned64();
+      st_size = new SignedLong();
+      st_blksize = new SignedLong();
+      st_blocks = new SignedLong();
+      st_atim = new Timespec();
+      st_mtim = new Timespec();
+      st_ctim = new Timespec();
+
+      st_birthtime = null;
+      st_flags = null;
+      st_gen = null;
     }
-    st_dev = new Unsigned64();
-    pad1 = null;
-    st_ino = new Unsigned64();
-    st_nlink = new Unsigned64();
-    st_mode = new Unsigned32();
-    st_uid = new Unsigned32();
-    st_gid = new Unsigned32();
-    st_rdev = new Unsigned64();
-    st_size = new SignedLong();
-    st_blksize = new SignedLong();
-    st_blocks = new SignedLong();
-    st_atim = new Timespec();
-    st_mtim = new Timespec();
-    st_ctim = new Timespec();
   }
 
   public final Unsigned64 st_dev;
@@ -109,6 +130,11 @@ public class FileStat extends Struct {
   public final Timespec st_atim;
   public final Timespec st_mtim;
   public final Timespec st_ctim;
+  public final Timespec st_birthtime;
+
+  /** MacOS specific */
+  public final Unsigned32 st_flags;
+  public final Unsigned32 st_gen;
 
   public static FileStat wrap(ByteBuffer buffer) {
     return new FileStat(buffer);
