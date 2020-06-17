@@ -14,6 +14,7 @@ package alluxio.master.backup;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
+import alluxio.master.StateLockOptions;
 import alluxio.wire.BackupStatus;
 
 import java.io.IOException;
@@ -33,10 +34,12 @@ public interface BackupOps {
    * allowed by passing "AllowLeader" option in the request.
    *
    * @param request the backup request
+   * @param stateLockOptions the state lock options during the backup
    * @return the backup status response
    * @throws IOException if backup fails
    */
-  BackupStatus backup(BackupPRequest request) throws AlluxioException;
+  BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
+      throws AlluxioException;
 
   /**
    * Used to query the status of a backup.

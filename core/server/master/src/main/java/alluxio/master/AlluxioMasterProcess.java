@@ -211,6 +211,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         startRejectingServers();
       }
       mRegistry.start(isLeader);
+      // Signal state-lock-manager that masters are ready.
+      mContext.getStateLockManager().mastersStartedCallback();
       LOG.info("All masters started");
     } catch (IOException e) {
       throw new RuntimeException(e);

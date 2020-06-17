@@ -1301,6 +1301,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION)
+          .setDefaultValue("0ms")
+          .setDescription("Alluxio master will allow only exclusive locking of "
+              + "the state-lock for this duration. This duration starts after masters "
+              + "are started for the first time. "
+              + "User RPCs will fail to acquire state-lock during this phase and "
+              + "a backup is guaranteed take the state-lock meanwhile.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("This controls whether RPCs that are waiting/holding state-lock "
+              + "in shared-mode will be interrupted while state-lock is taken exclusively.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
+          .setDefaultValue("15min")
+          .setDescription("Exclusive locking of the state-lock will timeout after "
+              + "this duration is spent on forced phase.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL)
+          .setDefaultValue("30sec")
+          .setDescription("The interval at which the RPCs that are waiting/holding state-lock "
+              + "in shared-mode will be interrupted while state-lock is taken exclusively.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -1328,33 +1363,78 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_TIMEOUT =
-      new Builder(Name.MASTER_BACKUP_STATE_LOCK_TIMEOUT)
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE)
+          .setDefaultValue("TIMEOUT")
+          .setDescription("Grace mode helps taking the state-lock exclusively for backup "
+              + "with minimum disruption to existing RPCs. This low-impact locking phase "
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
+              + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
+              + "with grace-cycle. "
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION)
           .setDefaultValue("1m")
-          .setDescription(
-              "The max duration to try acquiring the state lock for taking backups via shell.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setDescription("The duration that controls how long the state-lock is "
+              + "tried within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION)
+          .setDefaultValue("0")
+          .setDescription("The duration that controls how long the lock waiter "
+              + "sleeps within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT)
+          .setDefaultValue("1m")
+          .setDescription("The max duration for a grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE)
+          .setDefaultValue("FORCED")
+          .setDescription("Grace mode helps taking the state-lock exclusively for backup "
+              + "with minimum disruption to existing RPCs. This low-impact locking phase "
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
+              + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
+              + "with grace-cycle. "
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION)
           .setDefaultValue("30s")
-          .setDescription("The duration to try acquiring the state lock exclusively..")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setDescription("The duration that controls how long the state-lock is "
+              + "tried within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION)
           .setDefaultValue("10m")
-          .setDescription("The duration to sleep between trials to acquire the lock.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setDescription("The duration that controls how long the lock waiter "
+              + "sleeps within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
           .setDefaultValue("12h")
-          .setDescription("The max duration to try acquiring the state lock.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setDescription("The max duration for a grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BIND_HOST =
@@ -4825,14 +4905,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.connect.interval.max";
     public static final String MASTER_BACKUP_ABANDON_TIMEOUT =
         "alluxio.master.backup.abandon.timeout";
-    public static final String MASTER_BACKUP_STATE_LOCK_TIMEOUT =
-        "alluxio.master.backup.state.lock.timeout";
+    public static final String MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION =
+        "alluxio.master.backup.state.lock.exclusive.duration";
+    public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
+        "alluxio.master.backup.state.lock.interrupt.cycle.enabled";
+    public static final String MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+        "alluxio.master.backup.state.lock.forced.duration";
+    public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
+        "alluxio.master.backup.state.lock.interrupt.cycle.interval";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
+        "alluxio.master.shell.backup.state.lock.grace.mode";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
+        "alluxio.master.shell.backup.state.lock.try.duration";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION =
+        "alluxio.master.shell.backup.state.lock.sleep.duration";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
+        "alluxio.master.shell.backup.state.lock.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
+        "alluxio.master.daily.backup.state.lock.grace.mode";
     public static final String MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
         "alluxio.master.daily.backup.state.lock.try.duration";
     public static final String MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
