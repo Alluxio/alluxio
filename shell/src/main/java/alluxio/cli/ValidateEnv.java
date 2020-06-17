@@ -158,7 +158,7 @@ public final class ValidateEnv {
       cmd = parser.parse(options, args);
     } catch (ParseException e) {
       throw new InvalidArgumentException(
-              "Failed to parse args for validateEnv", e);
+          "Failed to parse args for validateEnv", e);
     }
     return cmd;
   }
