@@ -75,14 +75,12 @@ public class ValidationToolRegistry {
 
     // Load the validation tool factory from libraries
     for (File jar : files) {
-      LOG.info("Loading {}", jar.toPath());
       try {
         URL extensionURL = jar.toURI().toURL();
         ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
             ClassLoader.getSystemClassLoader());
         for (ValidationToolFactory factory : ServiceLoader
             .load(ValidationToolFactory.class, extensionsClassLoader)) {
-          LOG.info("Found factory {} for ExtensionsClassLoader", factory.getClass());
           ValidationToolFactory existingFactory = map.get(factory.getType());
           if (existingFactory != null) {
             LOG.warn(
@@ -99,7 +97,6 @@ public class ValidationToolRegistry {
     // Load the validation tools from the default classloader
     for (ValidationToolFactory factory : ServiceLoader
         .load(ValidationToolFactory.class, ValidationToolRegistry.class.getClassLoader())) {
-      LOG.info("Found factory {} for default class loader", factory.getClass());
       ValidationToolFactory existingFactory = map.get(factory.getType());
       if (existingFactory != null) {
         LOG.warn("Ignoring duplicate validation tool type '{}' found in {}. Existing factory: {}",
