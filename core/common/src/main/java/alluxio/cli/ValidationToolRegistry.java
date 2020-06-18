@@ -27,7 +27,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
@@ -35,10 +37,10 @@ import java.util.ServiceLoader;
  */
 public class ValidationToolRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(ValidationToolRegistry.class);
-  private static final String HMS_TOOL_PATTERN = "alluxio-integration-tools-hms-*.jar";
+  private static final String VALIDATION_TOOL_PATTERN = "alluxio-integration-tools-*.jar";
 
   private AlluxioConfiguration mConf;
-  private ValidationToolFactory mFactory = null;
+  private Map<String, ValidationToolFactory> mFactories;
 
   /**
    * Creates a new instance of an {@link ValidationToolRegistry}.
@@ -46,6 +48,7 @@ public class ValidationToolRegistry {
    * @param conf the Alluxio configuration
    */
   public ValidationToolRegistry(AlluxioConfiguration conf) {
+    mFactories = new HashMap<>();
     mConf = conf;
   }
 
@@ -53,18 +56,20 @@ public class ValidationToolRegistry {
    * Refreshes the registry by service loading classes.
    */
   public void refresh() {
+    Map<String, ValidationToolFactory> map = new HashMap<>();
+
     String libDir = PathUtils.concatPath(mConf.get(PropertyKey.HOME), "lib");
-    LOG.info("Loading hive metastore validation tool jar from {}", libDir);
+    LOG.info("Loading validation tool jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files
-        .newDirectoryStream(Paths.get(libDir), HMS_TOOL_PATTERN)) {
+        .newDirectoryStream(Paths.get(libDir), VALIDATION_TOOL_PATTERN)) {
       for (Path entry : stream) {
         if (entry.toFile().isFile()) {
           files.add(entry.toFile());
         }
       }
     } catch (IOException e) {
-      LOG.warn("Failed to load hive metastore validation tool lib from {}. error: {}",
+      LOG.warn("Failed to load validation tool libs from {}. error: {}",
           libDir, e.toString());
     }
 
@@ -76,55 +81,58 @@ public class ValidationToolRegistry {
             ClassLoader.getSystemClassLoader());
         for (ValidationToolFactory factory : ServiceLoader
             .load(ValidationToolFactory.class, extensionsClassLoader)) {
-          if (mFactory != null) {
+          ValidationToolFactory existingFactory = map.get(factory.getType());
+          if (existingFactory != null) {
             LOG.warn(
-                "Ignoring duplicate hms validation tool factory found in {}. Existing factory: {}",
-                factory.getClass(), mFactory.getClass());
+                "Ignoring duplicate validation tool type '{}' found in {}. Existing factory: {}",
+                factory.getType(), factory.getClass(), existingFactory.getClass());
           }
-          mFactory = factory;
+          map.put(factory.getType(), factory);
         }
       } catch (Throwable t) {
-        LOG.warn("Failed to load hms validation tool jar {}", jar, t);
+        LOG.warn("Failed to load validation tool jar {}", jar, t);
       }
     }
 
-    // Load the hive metastore validation tool from the default classloader
+    // Load the validation tools from the default classloader
     for (ValidationToolFactory factory : ServiceLoader
         .load(ValidationToolFactory.class, ValidationToolRegistry.class.getClassLoader())) {
-      if (mFactory != null) {
-        LOG.warn("Ignoring duplicate hms validation tool factory found in {}. Existing factory: {}",
-            factory.getClass(), mFactory.getClass());
+      ValidationToolFactory existingFactory = map.get(factory.getType());
+      if (existingFactory != null) {
+        LOG.warn("Ignoring duplicate validation tool type '{}' found in {}. Existing factory: {}",
+            factory.getType(), factory.getClass(), existingFactory.getClass());
       }
-      mFactory = factory;
+      map.put(factory.getType(), factory);
     }
 
-    LOG.info("Registered hms validation tool factory: " + mFactory);
+    mFactories = map;
+    LOG.info("Registered UDBs: " + String.join(",", mFactories.keySet()));
   }
 
   /**
    * Creates a new instance of {@link ValidationTool}.
    *
-   * @param metastoreUri hive metastore uris
-   * @param database database to run tests against
-   * @param tables tables to run tests against
-   * @param socketTimeout socket time of hms operations
+   * @param type the validation tool type
+   * @param configMap the validation tool configuration tool
    * @return a new validation tool instance
    */
-  public ValidationTool create(String metastoreUri, String database, String tables,
-      int socketTimeout) {
-    if (mFactory == null) {
-      throw new IllegalArgumentException("HmsValidationToolFactory does not exist.");
+  public ValidationTool create(String type, Map<Object, Object> configMap) {
+    Map<String, ValidationToolFactory> map = mFactories;
+    ValidationToolFactory factory = map.get(type);
+    if (factory == null) {
+      throw new IllegalArgumentException(
+          String.format("ValidationToolFactory for type '%s' does not exist.", type));
     }
 
     ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       // Use the extension class loader of the factory.
-      Thread.currentThread().setContextClassLoader(mFactory.getClass().getClassLoader());
-      return mFactory.create(metastoreUri, database, tables, socketTimeout);
+      Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
+      return factory.create(configMap);
     } catch (Throwable e) {
       // Catching Throwable rather than Exception to catch service loading errors
       throw new IllegalStateException(
-          String.format("Failed to create HmsValidationTool by factory %s", mFactory), e);
+          String.format("Failed to create ValidationTool by factory %s", factory), e);
     } finally {
       Thread.currentThread().setContextClassLoader(previousClassLoader);
     }

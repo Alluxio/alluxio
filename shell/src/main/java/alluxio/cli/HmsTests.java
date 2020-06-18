@@ -22,6 +22,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Class for running tests against an existing hive metastore.
  */
@@ -106,7 +109,13 @@ public class HmsTests {
     // Load hms validation tool from alluxio lib directory
     registry.refresh();
 
-    ValidationTool tests = registry.create(metastoreUri, database, tables, socketTimeout);
+    Map<Object, Object> configMap = new HashMap<>();
+    configMap.put(ValidationConfig.METASTORE_URI_CONFIG_NAME, metastoreUri);
+    configMap.put(ValidationConfig.DATABASE_CONFIG_NAME, database);
+    configMap.put(ValidationConfig.TABLES_CONFIG_NAME, tables);
+    configMap.put(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, socketTimeout);
+
+    ValidationTool tests = registry.create(ValidationConfig.HMS_TOOL_TYPE, configMap);
     String result = tests.runTests();
     System.out.println(result);
     if (result.contains(ValidationUtils.State.FAILED.toString())) {
