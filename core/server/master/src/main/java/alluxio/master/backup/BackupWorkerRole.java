@@ -205,6 +205,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
     // Cancel timeout task created by suspend message handler.
     if (!mBackupTimeoutTask.cancel(true)) {
+      LOG.warn("Journal has been resumed due to a time-out");
       mBackupTracker.updateError(new BackupException("Journal has been resumed due to a time-out"));
       return msgFuture;
     }
@@ -234,6 +235,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
           LOG.warn("Failed to wait for backup heartbeat completion. ", e);
         }
       } catch (Exception e) {
+        LOG.error("Backup failed at worker", e);
         mBackupTracker.updateError(
             new BackupException(String.format("Backup failed at worker: %s", e.getMessage()), e));
       } finally {
