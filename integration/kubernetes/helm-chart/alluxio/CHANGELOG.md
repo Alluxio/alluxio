@@ -101,4 +101,4 @@
 - Added inferring dnsPolicy from hostNetwork
 - Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE
 - Fixed Fuse crash issue
-- Fixed the pod can't access itself through service
+- Change master service to headless from NodePort
