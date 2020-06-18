@@ -11,6 +11,7 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ValidationTask;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
  * Task for validating security configurations.
  */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
-public final class SecureHdfsValidationTask implements ValidationTask {
+public final class SecureHdfsValidationTask extends AbstractValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.

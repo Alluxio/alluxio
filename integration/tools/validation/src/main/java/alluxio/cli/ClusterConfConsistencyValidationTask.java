@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  * Task for validating Alluxio configuration consistency in the cluster.
  */
-public final class ClusterConfConsistencyValidationTask implements ValidationTask {
+public final class ClusterConfConsistencyValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
 
   /**

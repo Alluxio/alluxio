@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Task for validating system limit for current user.
  */
-public final class UserLimitValidationTask implements ValidationTask {
+public final class UserLimitValidationTask extends AbstractValidationTask {
   private static final int NUMBER_OF_OPEN_FILES_MIN = 16384;
   private static final int NUMBER_OF_OPEN_FILES_MAX = 800000;
   private static final int NUMBER_OF_USER_PROCESSES_MIN = 16384;
@@ -101,7 +101,7 @@ public final class UserLimitValidationTask implements ValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createOpenFilesLimitValidationTask() {
+  public static AbstractValidationTask createOpenFilesLimitValidationTask() {
     return new UserLimitValidationTask("ulimit -n",
         NUMBER_OF_OPEN_FILES_MIN, NUMBER_OF_OPEN_FILES_MAX);
   }
@@ -111,7 +111,7 @@ public final class UserLimitValidationTask implements ValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createUserProcessesLimitValidationTask() {
+  public static AbstractValidationTask createUserProcessesLimitValidationTask() {
     return new UserLimitValidationTask("ulimit -u",
         NUMBER_OF_USER_PROCESSES_MIN, null);
   }

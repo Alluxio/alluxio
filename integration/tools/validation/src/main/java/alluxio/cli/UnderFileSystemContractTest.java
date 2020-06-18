@@ -24,6 +24,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -81,15 +82,6 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
-   * Checks if need to print the help message.
-   *
-   * @return whether help is needed
-   * */
-  public boolean needHelp() {
-    return mHelp;
-  }
-
-  /**
    * Runs the tests and returns nothing.
    * */
   public void run() throws Exception {
@@ -122,7 +114,7 @@ public final class UnderFileSystemContractTest {
    *
    * @return a task result for all UFS tests
    * */
-  // TODO(jiacheng): Refactor and move this into HdfsValidationTool
+  // TODO(jiacheng): Refactor and move this into ValidateHdfsMount
   public ValidationUtils.TaskResult runValidationTask() throws IOException {
     Closer closer = Closer.create();
     final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();
@@ -308,6 +300,42 @@ public final class UnderFileSystemContractTest {
       if (ops.length > 0) {
         stream.println("Related S3 operations: " + String.join(", ", ops));
       }
+    }
+  }
+
+  private static String getHelpMessage() {
+    return "Test description:\n"
+        + "Test the integration between Alluxio and the under filesystem. "
+        + "If the given under filesystem is S3, this test can also be used as "
+        + "a S3 compatibility test to test if the target under filesystem can "
+        + "fulfill the minimum S3 compatibility requirements in order to "
+        + "work well with Alluxio through Alluxio's integration with S3. \n"
+        + "Command line example: 'bin/alluxio runUfsTests --path s3://testPath "
+        + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
+        + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
+        + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
+  }
+
+  /**
+   * @param args the input arguments
+   */
+  public static void main(String[] args) throws Exception {
+    UnderFileSystemContractTest test = new UnderFileSystemContractTest();
+    JCommander jc = new JCommander(test);
+    jc.setProgramName(UnderFileSystemContractTest.class.getName());
+    try {
+      jc.parse(args);
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      jc.usage();
+      System.out.println(getHelpMessage());
+      System.exit(1);
+    }
+    if (test.mHelp) {
+      jc.usage();
+      System.out.println(getHelpMessage());
+    } else {
+      test.run();
     }
   }
 }

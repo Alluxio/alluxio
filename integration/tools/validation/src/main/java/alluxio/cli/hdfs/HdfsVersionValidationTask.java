@@ -11,6 +11,7 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ValidationTask;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
@@ -28,7 +29,7 @@ import java.util.regex.Pattern;
  * alluxio configuration.
  * */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
-public class HdfsVersionValidationTask implements ValidationTask {
+public class HdfsVersionValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
 
   /**

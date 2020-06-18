@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Task for validating whether worker tiered storage has enough space.
  */
-public final class StorageSpaceValidationTask implements ValidationTask {
+public final class StorageSpaceValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
 
   /**

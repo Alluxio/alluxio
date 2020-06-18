@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Task for validating whether a specific port is available.
  */
-public final class PortAvailabilityValidationTask implements ValidationTask {
+public final class PortAvailabilityValidationTask extends AbstractValidationTask {
   private final ServiceType mServiceType;
   private final String mOwner;
   private final AlluxioConfiguration mConf;

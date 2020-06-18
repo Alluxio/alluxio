@@ -32,7 +32,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   private static final Option HADOOP_CONF_DIR_OPTION =
           Option.builder("hadoopConfDir").required(false).hasArg(true)
                   .desc("path to server-side hadoop conf dir").build();
-  // This is loaded by EnvValidationTool#getOptions() by reflection
+  // This is loaded by ValidateEnv#getOptions() by reflection
   public static final Options OPTIONS = new Options().addOption(HADOOP_CONF_DIR_OPTION);
 
   /**

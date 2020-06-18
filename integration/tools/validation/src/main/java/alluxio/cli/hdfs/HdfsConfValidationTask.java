@@ -12,6 +12,7 @@
 package alluxio.cli.hdfs;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ValidationTask;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
@@ -33,7 +34,7 @@ import java.util.Map;
  * Validates accessibility and correctness of the configuration files passed to Alluxio.
  */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
-public class HdfsConfValidationTask implements ValidationTask {
+public class HdfsConfValidationTask extends AbstractValidationTask {
   public static final String SEPARATOR = ":";
   protected final AlluxioConfiguration mConf;
   final String mPath;

@@ -15,6 +15,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
+import alluxio.util.ConfigurationUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.cli.CommandLine;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -129,11 +131,19 @@ public class ValidateHdfsMount {
       LOG.debug("Options from cmdline: {}", properties);
     }
 
-    // group by state
-    HdfsValidationTool tool = new HdfsValidationTool(ufsPath, ufsConf);
-    Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> map = tool.runValidations();
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    System.out.println(gson.toJson(map));
+    ValidationToolRegistry registry
+            = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    // Load hdfs validation tool from alluxio lib directory
+    registry.refresh();
+
+    Map<Object, Object> configMap = new HashMap<>();
+    // TODO(jiacheng): constants and enum
+    configMap.put("ufsPath", ufsPath);
+    configMap.put("ufsConfig", ufsConf);
+
+    ValidationTool tests = registry.create(ValidationConfig.HDFS_TOOL_TYPE, configMap);
+    String result = tests.runTests();
+    System.out.println(result);
 
     System.exit(0);
   }

@@ -21,4 +21,6 @@ public class ValidationConfig {
   public static final String DATABASE_CONFIG_NAME = "database";
   public static final String TABLES_CONFIG_NAME = "tables";
   public static final String SOCKET_TIMEOUT_CONFIG_NAME = "socket_timeout";
+  // Hdfs validation tool config
+  public static final String HDFS_TOOL_TYPE = "env";
 }

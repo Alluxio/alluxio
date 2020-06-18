@@ -13,27 +13,15 @@ package alluxio.cli;
 
 import org.apache.commons.cli.Option;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Interface for a validation task run by validateEnv command.
+ * Abstract class for validation environment.
  */
-public interface ValidationTask {
-  /**
-   * Gets the name of the task.
-   *
-   * @return the task name
-   * */
-  String getName();
-
-  List<Option> getOptionList();
-
-  /**
-   * Runs the validation task.
-   *
-   * @param optionMap contains string representation of <key, value> pairs
-   * @return the result of validation task
-   */
-  ValidationUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
+public abstract class AbstractValidationTask implements ValidationTask {
+  @Override
+  public List<Option> getOptionList() {
+    return new ArrayList<>();
+  }
 }

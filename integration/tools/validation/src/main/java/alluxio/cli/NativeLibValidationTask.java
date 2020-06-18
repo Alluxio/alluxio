@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * Validates the Java native libs defined in the system property.
  * */
 @ApplicableUfsType(ApplicableUfsType.Type.ALL)
-public class NativeLibValidationTask implements ValidationTask {
+public class NativeLibValidationTask extends AbstractValidationTask {
   public static final String NATIVE_LIB_PATH = "java.library.path";
   public static final String NATIVE_LIB_PATH_SEPARATOR = ":";
 

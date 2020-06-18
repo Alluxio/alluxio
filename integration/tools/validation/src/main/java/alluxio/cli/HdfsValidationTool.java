@@ -16,6 +16,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ import java.util.Map;
 /**
  * A tool to validate an HDFS mount, before the path is mounted to Alluxio.
  * */
-public class HdfsValidationTool {
+public class HdfsValidationTool implements ValidationTool {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsValidationTool.class);
 
   private String mUfsPath;
@@ -49,7 +51,7 @@ public class HdfsValidationTool {
                                                               AlluxioConfiguration ufsConf)
           throws InterruptedException {
     Map<String, String> validateOpts = ImmutableMap.of();
-    EnvValidationTool tasks = new EnvValidationTool(ufsPath, ufsConf);
+    ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
 
     List<ValidationUtils.TaskResult> results = new ArrayList<>();
     for (Map.Entry<ValidationTask, String> entry : tasks.getTasks().entrySet()) {
@@ -76,13 +78,8 @@ public class HdfsValidationTool {
     }
   }
 
-  /**
-   * Run the validation tasks.
-   *
-   * @return a mapping from task state to a list of task results
-   * */
-  public Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> runValidations()
-          throws Exception {
+  @Override
+  public String runTests() throws Exception {
     // Run validateEnv
     List<ValidationUtils.TaskResult> results = validateUfs(mUfsPath, mUfsConf);
 
@@ -103,6 +100,7 @@ public class HdfsValidationTool {
       map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
     });
 
-    return map;
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    return gson.toJson(map);
   }
 }
