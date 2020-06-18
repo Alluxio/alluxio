@@ -11,13 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.master.CallTracker;
-
-import com.google.common.base.Preconditions;
-
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Used as a base class for wrapping context around proto messages.
@@ -29,7 +23,7 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   // Proto message that is being wrapped
   private T mOptionsBuilder;
   // Used to track client call status.
-  private List<CallTracker> mCallTrackers;
+  private CallTracker mCallTracker;
 
   /**
    * Creates an instance with given proto message.
@@ -37,8 +31,20 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    * @param optionsBuilder Internal proto message builder instance
    */
   public OperationContext(T optionsBuilder) {
+    this(optionsBuilder, null);
     mOptionsBuilder = optionsBuilder;
-    mCallTrackers = new LinkedList<>();
+    mCallTracker = CallTracker.NOOP_TRACKER;
+  }
+
+  /**
+   * Creates an instance with given proto message.
+   *
+   * @param optionsBuilder Internal proto message builder instance
+   * @param callTracker client call tracker, or {@code null} if no tracking is desired
+   */
+  public OperationContext(T optionsBuilder, CallTracker callTracker) {
+    mOptionsBuilder = optionsBuilder;
+    mCallTracker = callTracker;
   }
 
   /**
@@ -49,30 +55,9 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   }
 
   /**
-   * Adds a new call-tracker to this context.
-   *
-   * @param callTracker the call tracker
-   */
-  public void addCallTracker(CallTracker callTracker) {
-    synchronized (mCallTrackers) {
-      mCallTrackers.add(Preconditions.checkNotNull(callTracker));
-    }
-  }
-
-  /**
    * @return {@code true} if the call is cancelled by the client
    */
   public boolean isCancelled() {
-    synchronized (mCallTrackers) {
-      if (mCallTrackers.isEmpty()) {
-        throw new IllegalStateException("No tracker registered.");
-      }
-      for (CallTracker callTracker : mCallTrackers) {
-        if (callTracker.isCancelled()) {
-          return true;
-        }
-      }
-      return false;
-    }
+    return mCallTracker.isCancelled();
   }
 }

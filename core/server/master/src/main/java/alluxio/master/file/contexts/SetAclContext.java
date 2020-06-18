@@ -13,7 +13,6 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.SetAclPOptions;
-import alluxio.master.CallTracker;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
@@ -30,8 +29,7 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    * @param callTracker client call tracker
    */
   private SetAclContext(SetAclPOptions.Builder optionsBuilder, CallTracker callTracker) {
-    super(optionsBuilder);
-    addCallTracker(callTracker);
+    super(optionsBuilder, callTracker);
   }
 
   /**

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.file.contexts;
 
 /**
  * An interface for RPC level call tracking.

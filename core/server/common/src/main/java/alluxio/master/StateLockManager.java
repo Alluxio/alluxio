@@ -32,7 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -66,9 +66,11 @@ public class StateLockManager {
   /** Used to synchronize execution/termination of interrupt-cycle. */
   private Lock mInterruptCycleLock = new ReentrantLock(true);
   /** How many active exclusive locking attempts. */
-  private AtomicInteger mInterruptCycleRefCount = new AtomicInteger(0);
+  private volatile int mInterruptCycleRefCount = 0;
   /** The future for the active interrupt cycle. */
   private ScheduledFuture<?> mInterrupterFuture;
+  /** Whether interrupt-cycle is entered. */
+  private AtomicBoolean mInterruptCycleTicking = new AtomicBoolean(false);
 
   /** This is the deadline for forcing the lock. */
   private long mForcedDurationMs;
@@ -219,12 +221,10 @@ public class StateLockManager {
   }
 
   /**
-   * Used to generate a call-tracker that knows when an interrupt cycle is active.
-   *
-   * @return the call tracker
+   * @return {@code true} if the interrupt-cycle has been ticked and ticking
    */
-  public CallTracker getInterruptCycleTracker() {
-    return () -> mInterruptCycleRefCount.get() > 0;
+  public boolean interruptCycleTicking() {
+    return mInterruptCycleTicking.get();
   }
 
   /**
@@ -241,7 +241,7 @@ public class StateLockManager {
     }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
       // Don't reschedule if it was before.
-      if (mInterruptCycleRefCount.incrementAndGet() > 0) {
+      if (mInterruptCycleRefCount++ > 0) {
         return;
       }
       // Setup the cycle.
@@ -262,13 +262,14 @@ public class StateLockManager {
       return;
     }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
-      Preconditions.checkArgument(mInterruptCycleRefCount.get() > 0);
+      Preconditions.checkArgument(mInterruptCycleRefCount > 0);
       // Don't do anything if there are exclusive lockers.
-      if (mInterruptCycleRefCount.decrementAndGet() > 0) {
+      if (--mInterruptCycleRefCount > 0) {
         return;
       }
       // Cancel the cycle.
       mInterrupterFuture.cancel(true);
+      mInterruptCycleTicking.set(false);
       LOG.info("Interrupt cycle deactivated.");
       mInterrupterFuture = null;
     }
@@ -278,6 +279,7 @@ public class StateLockManager {
    * Scheduled routine that interrupts waiters/holders of shared lock.
    */
   private void waiterInterruptRoutine() {
+    mInterruptCycleTicking.set(true);
     // Keeping a list of interrupted threads for logging consistently at the end.
     List<Thread> interruptedThreads = new ArrayList(mSharedWaitersAndHolders.size());
     // Interrupt threads that are registered under shared lock.

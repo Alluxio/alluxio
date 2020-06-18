@@ -11,8 +11,6 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.master.CallTracker;
-
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
