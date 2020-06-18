@@ -19,7 +19,10 @@ import alluxio.grpc.BackupState;
 import alluxio.resource.LockResource;
 import alluxio.wire.BackupStatus;
 
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +38,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Used to track and update status of a backup.
  */
 public class BackupTracker {
+  private static final Logger LOG = LoggerFactory.getLogger(BackupTracker.class);
+
   /** Underlying backup status. */
   private BackupStatus mBackupStatus;
   /** Settable future for tracking the completion of the backup. */
@@ -59,9 +64,11 @@ public class BackupTracker {
    * Resets this tracker.
    */
   public void reset() {
+    LOG.info("Resetting backup tracker.");
     try (LockResource statusLock = new LockResource(mStatusLock)) {
       // Set error for backup in-progress.
       if (inProgress()) {
+        LOG.info("Resetting the pending backup.");
         updateError(new BackupException("Backup reset by tracker"));
       }
       // Reset current backup status.
@@ -146,6 +153,7 @@ public class BackupTracker {
    * @param error the backup error
    */
   public void updateError(AlluxioException error) {
+    Preconditions.checkNotNull(error);
     mBackupStatus.setError(error);
     signalIfFinished();
   }
@@ -164,7 +172,8 @@ public class BackupTracker {
       throw new RuntimeException("Interrupted while waiting for backup to finish.");
     } catch (ExecutionException ee) {
       // mCompletion is only failed with status error.
-      throw mBackupStatus.getError();
+      AlluxioException e = mBackupStatus.getError();
+      throw (e != null) ? e : new BackupException("unknown error");
     }
   }
 
