@@ -27,6 +27,7 @@ import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.master.StateLockOptions;
 import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
@@ -54,7 +55,8 @@ public final class MetaMasterClientServiceHandler
 
   @Override
   public void backup(BackupPRequest request, StreamObserver<BackupPStatus> responseObserver) {
-    RpcUtils.call(LOG, () -> mMetaMaster.backup(request).toProto(),
+    RpcUtils.call(LOG,
+        () -> mMetaMaster.backup(request, StateLockOptions.defaultsForShellBackup()).toProto(),
         "backup", "request=%s", responseObserver, request);
   }
 

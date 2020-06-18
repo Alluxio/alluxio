@@ -40,6 +40,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
+import alluxio.master.StateLockOptions;
 import alluxio.master.backup.BackupLeaderRole;
 import alluxio.master.backup.BackupRole;
 import alluxio.master.backup.BackupWorkerRole;
@@ -357,22 +358,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public BackupStatus backup(BackupPRequest request) throws AlluxioException {
-    // Update the request based on caller.
-    // Currently daily-backup provides all required state-lock timeouts.
-    // Here the code assumes it's a shell invocation when related fields are not set.
-    if (!request.getOptions().hasStateLockTimeoutMs()) {
-      // Make shell invocations to try acquiring the lock the whole time.
-      request = request.toBuilder()
-          .setOptions(request.getOptions().toBuilder()
-              .setStateLockTimeoutMs(
-                  ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_TIMEOUT))
-              .setStateLockTryDurationMs(
-                  ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_TIMEOUT))
-              .setStateLockSleepDurationMs(0))
-          .build();
-    }
-    return mBackupRole.backup(request);
+  public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
+      throws AlluxioException {
+    return mBackupRole.backup(request, stateLockOptions);
   }
 
   @Override
@@ -382,11 +370,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public String checkpoint() throws IOException {
-    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+    try (LockResource lr =
+        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
       mJournalSystem.checkpoint();
+      return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+          ServerConfiguration.global());
+    } catch (Exception e) {
+      throw new IOException("Failed to take a checkpoint.", e);
     }
-    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
   }
 
   @Override

@@ -19,8 +19,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.locks.Lock;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -36,12 +34,12 @@ public final class StateChangeJournalContext implements JournalContext {
    * Constructs a {@link StateChangeJournalContext}.
    *
    * @param journalContext the journal context to wrap
-   * @param stateLock the state lock to use
+   * @param stateLockResource the state lock resource to keep
    */
-  public StateChangeJournalContext(JournalContext journalContext, Lock stateLock) {
+  public StateChangeJournalContext(JournalContext journalContext, LockResource stateLockResource) {
     Preconditions.checkNotNull(journalContext, "journalContext");
     mJournalContext = journalContext;
-    mStateLockResource = new LockResource(stateLock);
+    mStateLockResource = stateLockResource;
   }
 
   @Override

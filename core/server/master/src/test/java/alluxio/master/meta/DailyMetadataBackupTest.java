@@ -63,10 +63,11 @@ public class DailyMetadataBackupTest {
     mBackupDir = "/tmp/test/alluxio_backups";
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
-    when(mMetaMaster.backup(any())).thenReturn(BackupStatus.fromProto(BackupPStatus.newBuilder()
-        .setBackupId(UUID.randomUUID().toString()).setBackupState(BackupState.Completed)
-        .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
-        .setBackupHost("localhost").build()));
+    when(mMetaMaster.backup(any(), any()))
+        .thenReturn(BackupStatus.fromProto(BackupPStatus.newBuilder()
+            .setBackupId(UUID.randomUUID().toString()).setBackupState(BackupState.Completed)
+            .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
+            .setBackupHost("localhost").build()));
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     when(mUfs.getUnderFSType()).thenReturn("local");
@@ -101,19 +102,19 @@ public class DailyMetadataBackupTest {
       int backUpFileNum = 0;
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       int deleteFileNum = getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteFile(any());
 
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
 
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
     }
