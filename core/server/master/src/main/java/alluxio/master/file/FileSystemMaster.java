@@ -55,7 +55,6 @@ import alluxio.wire.SyncPointInfo;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -593,5 +592,5 @@ public interface FileSystemMaster extends Master {
    * @param transportTracker the transport level call-tracker
    * @return a composed call-tracker
    */
-  CallTracker composeCallTracker(@Nullable CallTracker transportTracker);
+  CallTracker composeCallTracker(CallTracker transportTracker);
 }
