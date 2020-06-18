@@ -42,6 +42,7 @@ import com.amazonaws.services.glue.model.EntityNotFoundException;
 import com.amazonaws.services.glue.model.GetDatabaseRequest;
 import com.amazonaws.services.glue.model.GetDatabaseResult;
 import com.amazonaws.services.glue.model.GetPartitionsRequest;
+import com.amazonaws.services.glue.model.GetPartitionsResult;
 import com.amazonaws.services.glue.model.GetTableRequest;
 import com.amazonaws.services.glue.model.GetTablesRequest;
 import com.amazonaws.services.glue.model.GetTablesResult;
@@ -377,15 +378,26 @@ public class GlueDatabase implements UnderDatabase {
 
   private List<Partition> batchGetPartitions(AWSGlueAsync glueClient, String tableName)
       throws IOException {
+    // TODO(shouwei): make getPartition multi-thread to accelerate the large table fetching
     List<Partition> partitions = new ArrayList<>();
+    String nextToken = null;
     try {
-      GetPartitionsRequest getPartitionsRequest =
-          new GetPartitionsRequest()
-              .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
-              .withDatabaseName(mGlueDbName)
-              .withTableName(tableName);
-      if (glueClient.getPartitions(getPartitionsRequest).getPartitions() != null) {
-        partitions = glueClient.getPartitions(getPartitionsRequest).getPartitions();
+      do {
+        GetPartitionsRequest getPartitionsRequest =
+            new GetPartitionsRequest()
+                .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+                .withDatabaseName(mGlueDbName)
+                .withTableName(tableName)
+                .withMaxResults(mGlueConfiguration.getInt(Property.MAX_GLUE_FETCH_PARTITIONS))
+                .withNextToken(nextToken);
+        GetPartitionsResult getPartitionsResult = glueClient.getPartitions(getPartitionsRequest);
+        getPartitionsResult.getPartitions().forEach(partition -> partitions.add(partition));
+        nextToken = getPartitionsResult.getNextToken();
+        LOG.debug("Glue table {}.{} added {} partitions.",
+            mGlueDbName, tableName, partitions.size());
+      } while (nextToken != null);
+
+      if (partitions != null) {
         LOG.info("Glue table {}.{} has {} partitions.",
             mGlueDbName, tableName, partitions.size());
         if (LOG.isDebugEnabled()) {
