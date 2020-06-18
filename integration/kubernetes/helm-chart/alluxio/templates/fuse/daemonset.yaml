@@ -11,6 +11,8 @@
 
 {{ if .Values.fuse.enabled -}}
 {{- $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
+{{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -92,7 +94,7 @@ spec:
               fieldRef:
                 fieldPath: status.hostIP
           - name: ALLUXIO_CLIENT_JAVA_OPTS
-            value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
+            value: " -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} "
           securityContext:
             privileged: true
             capabilities:
@@ -132,9 +134,7 @@ spec:
             type: DirectoryOrCreate
         {{- if $shortCircuitEnabled}}
           {{- if eq .Values.shortCircuit.policy "uuid" }}
-        - name: alluxio-domain
-          persistentVolumeClaim:
-            claimName: "{{ .Values.shortCircuit.pvcName }}"
+{{- include "alluxio.worker.shortCircuit.volume" . }}
           {{- end }}
           {{- if eq .Values.shortCircuit.policy "local" }}
 {{- include "alluxio.worker.tieredstoreVolumes" . }}

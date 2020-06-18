@@ -70,18 +70,14 @@ master:
     embedded: 19200
     rpc: 19998
     web: 19999
-  # You can specify hostNetwork and dnsPolicy here to override the default
-  # hostNetwork: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
   # dnsPolicy: ClusterFirst
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
-  # Example: use ROCKS DB instead of Heap
-  # metastore:
-  #   size: 1Gi
-  #   storageClass: "standard"
-  #   accessModes:
-  #     - ReadWriteOnce
 
 jobMaster:
   args:
@@ -112,13 +108,19 @@ jobMaster:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  storageClass: "standard"
-  size: 1Gi
-  accessModes:
-    - ReadWriteOnce
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  size: 1Gi
+  # Attributes to use when the journal is persistentVolumeClaim
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  # Attributes to use when the journal is emptyDir
+  medium: ""
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
@@ -132,6 +134,19 @@ journal:
       requests:
         cpu: "1"
         memory: "1G"
+
+
+# You can enable metastore to use ROCKS DB instead of Heap
+# metastore:
+#   volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
+#   size: 1Gi
+#   mountPath: /metastore
+# # Attributes to use when the metastore is persistentVolumeClaim
+#   storageClass: "standard"
+#   accessModes:
+#    - ReadWriteOnce
+# # Attributes to use when the metastore is emptyDir
+#   medium: ""
 
 
 ## Worker ##
@@ -152,8 +167,10 @@ worker:
   ports:
     rpc: 29999
     web: 30000
-  # You can specify hostNetwork and dnsPolicy here to override the default
-  # hostNetwork: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
   # dnsPolicy: ClusterFirst
   # JVM options specific to the worker container
   jvmOptions:
@@ -230,14 +247,18 @@ shortCircuit:
   # local means the cache directory is in the same mount namespace,
   # uuid means interact with domain socket
   policy: uuid
-  # Attributes if the domain socket volume is PVC
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  size: 1Mi
+  # Attributes to use if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket
-  pvcAccessModes:
+  accessModes:
     - ReadWriteOnce
-  pvcSize: 1Mi
-  pvcStorageClass: standard
-  # The directory to use if the domain socket volume is hostPath
-  hostPath: "/tmp/alluxio-domain"
+  storageClass: standard
+  # Attributes to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
+
 
 ## FUSE ##
 
