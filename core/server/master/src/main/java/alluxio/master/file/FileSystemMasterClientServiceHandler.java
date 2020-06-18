@@ -283,7 +283,8 @@ public final class FileSystemMasterClientServiceHandler
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder()));
+      mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder(),
+          mFileSystemMaster.composeCallTracker(new GrpcCallTracker(responseObserver))));
       return DeletePResponse.newBuilder().build();
     }, "Remove", "request=%s", responseObserver, request);
   }
