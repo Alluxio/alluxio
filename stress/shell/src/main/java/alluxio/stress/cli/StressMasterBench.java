@@ -145,7 +145,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       return;
     }
 
-    // determine the fixed portion size
+    // Determine the fixed portion size. Each sub directory has a fixed portion.
     int fixedSize = fs.listStatus(new Path(subDirs[0].getPath(), "fixed")).length;
 
     long batchSize = 50_000;
@@ -187,6 +187,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             return null;
           });
         }
+        // This may cancel some remaining threads, but that is fine, because any remaining paths
+        // will be taken care of during the final recursive delete.
         service.invokeAll(callables, 1, TimeUnit.MINUTES);
 
         if (success.get() == 0) {
