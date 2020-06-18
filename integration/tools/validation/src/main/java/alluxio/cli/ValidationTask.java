@@ -27,6 +27,9 @@ public interface ValidationTask {
    * */
   String getName();
 
+  /**
+   * @return Set of {@link Option} required by this task
+   */
   List<Option> getOptionList();
 
   /**

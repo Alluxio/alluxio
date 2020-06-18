@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;

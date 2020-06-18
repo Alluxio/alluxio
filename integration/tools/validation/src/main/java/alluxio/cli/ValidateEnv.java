@@ -59,24 +59,24 @@ import java.util.Map;
 // TODO(yanqin): decouple ValidationTask implementations for easier dependency management
 public final class ValidateEnv {
   private static final String USAGE = "validateEnv COMMAND [NAME] [OPTIONS]\n\n"
-          + "Validate environment for Alluxio.\n\n"
-          + "COMMAND can be one of the following values:\n"
-          + "local:   run all validation tasks on local\n"
-          + "master:  run master validation tasks on local\n"
-          + "worker:  run worker validation tasks on local\n"
-          + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
-          + "masters: run master validation tasks on all master nodes\n"
-          + "workers: run worker validation tasks on all worker nodes\n\n"
-          + "list:    list all validation tasks\n\n"
-          + "For all commands except list:\n"
-          + "NAME can be any task full name or prefix.\n"
-          + "When NAME is given, only tasks with name starts with the prefix will run.\n"
-          + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
-          + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
-          + "\"worker.rpc.port.available\".\n"
-          + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
-          + "OPTIONS can be a list of command line options. Each option has the"
-          + " format \"-<optionName> [optionValue]\"\n";
+      + "Validate environment for Alluxio.\n\n"
+      + "COMMAND can be one of the following values:\n"
+      + "local:   run all validation tasks on local\n"
+      + "master:  run master validation tasks on local\n"
+      + "worker:  run worker validation tasks on local\n"
+      + "all:     run corresponding validation tasks on all master nodes and worker nodes\n"
+      + "masters: run master validation tasks on all master nodes\n"
+      + "workers: run worker validation tasks on all worker nodes\n\n"
+      + "list:    list all validation tasks\n\n"
+      + "For all commands except list:\n"
+      + "NAME can be any task full name or prefix.\n"
+      + "When NAME is given, only tasks with name starts with the prefix will run.\n"
+      + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
+      + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
+      + "\"worker.rpc.port.available\".\n"
+      + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
+      + "OPTIONS can be a list of command line options. Each option has the"
+      + " format \"-<optionName> [optionValue]\"\n";
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
@@ -202,7 +202,7 @@ public final class ValidateEnv {
   }
 
   private ValidationTask registerTask(String name, String description,
-                                      AbstractValidationTask task, List<ValidationTask> tasks) {
+                   AbstractValidationTask task, List<ValidationTask> tasks) {
     mTasks.put(task, name);
     mTaskDescriptions.put(name, description);
     tasks.add(task);
@@ -249,11 +249,11 @@ public final class ValidateEnv {
     String argStr = String.join(" ", cmd.getArgs());
     String homeDir = mConf.get(PropertyKey.HOME);
     String remoteCommand = String.format(
-            "%s/bin/alluxio validateEnv %s %s %s",
-            homeDir, target, name == null ? "" : name, argStr);
+        "%s/bin/alluxio validateEnv %s %s %s",
+        homeDir, target, name == null ? "" : name, argStr);
     String localCommand = String.format(
-            "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
-            node, remoteCommand);
+        "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
+        node, remoteCommand);
     String[] command = {"bash", "-c", localCommand};
     try {
       ProcessBuilder builder = new ProcessBuilder(command);
@@ -271,7 +271,7 @@ public final class ValidateEnv {
 
   // runs validation tasks in local environment
   private boolean validateLocal(String target, String name, CommandLine cmd)
-          throws InterruptedException {
+      throws InterruptedException {
     int validationCount = 0;
     Map<ValidationUtils.State, Integer> results = new HashMap<>();
     Map<String, String> optionsMap = new HashMap<>();
@@ -354,7 +354,7 @@ public final class ValidateEnv {
   }
 
   private static int runTasks(String target, String name, CommandLine cmd)
-          throws InterruptedException {
+      throws InterruptedException {
     // Validate against root path
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
     String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
@@ -469,7 +469,7 @@ public final class ValidateEnv {
       cmd = parser.parse(options, args);
     } catch (ParseException e) {
       throw new InvalidArgumentException(
-              "Failed to parse args for validateEnv", e);
+          "Failed to parse args for validateEnv", e);
     }
     return cmd;
   }

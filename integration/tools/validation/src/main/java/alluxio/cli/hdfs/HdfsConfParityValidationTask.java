@@ -17,8 +17,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,11 +30,9 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   /** Name of the environment variable to store the path to Hadoop config directory. */
   protected static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";
 
-  private static final Option HADOOP_CONF_DIR_OPTION =
+  protected static final Option HADOOP_CONF_DIR_OPTION =
           Option.builder("hadoopConfDir").required(false).hasArg(true)
                   .desc("path to server-side hadoop conf dir").build();
-  // This is loaded by ValidateEnv#getOptions() by reflection
-  public static final Options OPTIONS = new Options().addOption(HADOOP_CONF_DIR_OPTION);
 
   /**
    * Constructor.
@@ -60,6 +59,13 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
     }
 
     return validateHdfsSettingParity(optionsMap);
+  }
+
+  @Override
+  public List<Option> getOptionList() {
+    List<Option> opts = new ArrayList<>();
+    opts.add(HADOOP_CONF_DIR_OPTION);
+    return opts;
   }
 
   private ValidationUtils.TaskResult validateHdfsSettingParity(Map<String, String> optionsMap) {

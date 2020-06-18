@@ -16,8 +16,7 @@ import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import alluxio.util.ConfigurationUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -137,9 +135,8 @@ public class ValidateHdfsMount {
     registry.refresh();
 
     Map<Object, Object> configMap = new HashMap<>();
-    // TODO(jiacheng): constants and enum
-    configMap.put("ufsPath", ufsPath);
-    configMap.put("ufsConfig", ufsConf);
+    configMap.put(ValidationConfig.UFS_PATH, ufsPath);
+    configMap.put(ValidationConfig.UFS_CONFIG, ufsConf);
 
     ValidationTool tests = registry.create(ValidationConfig.HDFS_TOOL_TYPE, configMap);
     String result = tests.runTests();
