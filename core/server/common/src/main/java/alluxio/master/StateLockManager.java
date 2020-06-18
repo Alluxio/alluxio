@@ -218,6 +218,15 @@ public class StateLockManager {
   }
 
   /**
+   * Used to generate a call-tracker that knows when an interrupt cycle is active.
+   *
+   * @return the call tracker
+   */
+  public CallTracker getInterruptCycleTracker() {
+    return () -> mInterruptCycleRefCount > 0;
+  }
+
+  /**
    * Schedules the cycle of interrupting state-lock waiters/holders.
    * It's called when:
    *  - Lock is acquired by grace-cycle

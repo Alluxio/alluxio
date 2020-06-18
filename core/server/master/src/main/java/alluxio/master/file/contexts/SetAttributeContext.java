@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.master.CallTracker;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
@@ -34,7 +35,8 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    */
   private SetAttributeContext(SetAttributePOptions.Builder optionsBuilder,
       CallTracker callTracker) {
-    super(optionsBuilder, callTracker);
+    super(optionsBuilder);
+    addCallTracker(callTracker);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }

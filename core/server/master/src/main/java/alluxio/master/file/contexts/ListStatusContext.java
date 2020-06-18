@@ -13,6 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.master.CallTracker;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
@@ -29,7 +30,8 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * @param callTracker client call tracker
    */
   private ListStatusContext(ListStatusPOptions.Builder optionsBuilder, CallTracker callTracker) {
-    super(optionsBuilder, callTracker);
+    super(optionsBuilder);
+    addCallTracker(callTracker);
   }
 
   /**

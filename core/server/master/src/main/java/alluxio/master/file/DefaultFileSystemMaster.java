@@ -76,6 +76,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -883,6 +884,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       ResultStream<FileInfo> resultStream)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
+    addFileSystemMasterCallTrackers(context);
     try (RpcContext rpcContext = createRpcContext();
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
@@ -2807,6 +2809,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       SetAclContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     Metrics.SET_ACL_OPS.inc();
+    addFileSystemMasterCallTrackers(context);
     try (RpcContext rpcContext = createRpcContext();
         FileSystemMasterAuditContext auditContext =
             createAuditContext("setAcl", path, null, null)) {
@@ -2981,6 +2984,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     SetAttributePOptions.Builder options = context.getOptions();
     Metrics.SET_ATTRIBUTE_OPS.inc();
+    addFileSystemMasterCallTrackers(context);
     // for chown
     boolean rootRequired = options.hasOwner();
     // for chgrp, chmod
@@ -3533,6 +3537,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  /**
+   * Used to augment given context with fsm bound call-trackers
+   * TODO(ggezer): Call this for each call and filter by a new method annotation (@Tracked).
+   *
+   * @param context the operation context
+   */
+  private void addFileSystemMasterCallTrackers(OperationContext context) {
+    // Add state-lock interrupt-cycle call-tracker to given context.
+    context.addCallTracker(mMasterContext.getStateLockManager().getInterruptCycleTracker());
   }
 
   /**
