@@ -995,7 +995,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       UnavailableException, AccessControlException, InvalidPathException {
     // Fail if the client has cancelled the rpc.
     if (context.isCancelled()) {
-      throw new RuntimeException("Call cancelled by the client.");
+      throw new RuntimeException("Call cancelled.");
     }
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
@@ -1652,7 +1652,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
         // Fail if the client has cancelled the rpc.
         if (deleteContext.isCancelled()) {
-          throw new RuntimeException("Call cancelled by the client.");
+          throw new RuntimeException("Call cancelled.");
         }
         Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
@@ -2978,7 +2978,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         for (LockedInodePath childPath : descendants) {
           // Fail if the client has cancelled the rpc.
           if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled by the client.");
+            throw new RuntimeException("Call cancelled.");
           }
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
@@ -3102,7 +3102,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         for (LockedInodePath childPath : descendants) {
           // Fail if the client has cancelled the rpc.
           if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled by the client.");
+            throw new RuntimeException("Call cancelled.");
           }
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }

@@ -55,6 +55,7 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   }
 
   /**
+   * TODO(ggezer): Make the call-tracker infra note the source of cancellation.
    * @return {@code true} if the call is cancelled by the client
    */
   public boolean isCancelled() {
