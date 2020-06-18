@@ -391,7 +391,7 @@ public class GlueDatabase implements UnderDatabase {
                 .withMaxResults(mGlueConfiguration.getInt(Property.MAX_GLUE_FETCH_PARTITIONS))
                 .withNextToken(nextToken);
         GetPartitionsResult getPartitionsResult = glueClient.getPartitions(getPartitionsRequest);
-        getPartitionsResult.getPartitions().forEach(partition -> partitions.add(partition));
+        partitions.addAll(getPartitionsResult.getPartitions());
         nextToken = getPartitionsResult.getNextToken();
         LOG.debug("Glue table {}.{} added {} partitions.",
             mGlueDbName, tableName, partitions.size());
