@@ -99,4 +99,6 @@
 - Moved metastore configuration properties to the root level, to be the same as journal
 - Removed inferring hostNetwork, dnsPolicy and domain socket from whether user is root
 - Added inferring dnsPolicy from hostNetwork
-- Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE   
+- Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE
+- Fixed Fuse crash issue
+- Fixed the pod can't access itself through service
