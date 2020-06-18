@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -65,7 +66,7 @@ public class StateLockManager {
   /** Used to synchronize execution/termination of interrupt-cycle. */
   private Lock mInterruptCycleLock = new ReentrantLock(true);
   /** How many active exclusive locking attempts. */
-  private volatile long mInterruptCycleRefCount = 0;
+  private AtomicInteger mInterruptCycleRefCount = new AtomicInteger(0);
   /** The future for the active interrupt cycle. */
   private ScheduledFuture<?> mInterrupterFuture;
 
@@ -223,7 +224,7 @@ public class StateLockManager {
    * @return the call tracker
    */
   public CallTracker getInterruptCycleTracker() {
-    return () -> mInterruptCycleRefCount > 0;
+    return () -> mInterruptCycleRefCount.get() > 0;
   }
 
   /**
@@ -240,7 +241,7 @@ public class StateLockManager {
     }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
       // Don't reschedule if it was before.
-      if (mInterruptCycleRefCount++ > 0) {
+      if (mInterruptCycleRefCount.incrementAndGet() > 0) {
         return;
       }
       // Setup the cycle.
@@ -261,9 +262,9 @@ public class StateLockManager {
       return;
     }
     try (LockResource lr = new LockResource(mInterruptCycleLock)) {
-      Preconditions.checkArgument(mInterruptCycleRefCount > 0);
+      Preconditions.checkArgument(mInterruptCycleRefCount.get() > 0);
       // Don't do anything if there are exclusive lockers.
-      if (--mInterruptCycleRefCount > 0) {
+      if (mInterruptCycleRefCount.decrementAndGet() > 0) {
         return;
       }
       // Cancel the cycle.
