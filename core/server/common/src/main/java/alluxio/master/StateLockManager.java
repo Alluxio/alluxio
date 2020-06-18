@@ -17,12 +17,15 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.ThreadUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -33,6 +36,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * Provides graceful and interruptable locking protocol for taking the state lock.
@@ -105,7 +109,7 @@ public class StateLockManager {
           ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
       mExclusiveOnlyDeadlineMs = System.currentTimeMillis() + exclusiveOnlyDurationMs;
       if (exclusiveOnlyDurationMs > 0) {
-        LOG.info("State-lock will remain in exclusive-only mode for %dms until %s",
+        LOG.info("State-lock will remain in exclusive-only mode for {}ms until {}",
             exclusiveOnlyDurationMs, new Date(mExclusiveOnlyDeadlineMs).toString());
       }
     }
@@ -123,6 +127,7 @@ public class StateLockManager {
    * @throws InterruptedException
    */
   public LockResource lockShared() throws InterruptedException {
+    LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
     if (exclusiveOnlyRemainingMs > 0) {
@@ -153,11 +158,19 @@ public class StateLockManager {
    */
   public LockResource lockExclusive(StateLockOptions lockOptions)
       throws TimeoutException, InterruptedException {
+    LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
     StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
+    boolean graceCycleEntered = false;
     boolean lockAcquired = false;
     long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
     while (System.currentTimeMillis() < deadlineMs) {
+      if (!graceCycleEntered) {
+        graceCycleEntered = true;
+        LOG.info("Thread-{} entered grace-cycle of try-sleep: {}ms-{}ms for the total of {}ms",
+            ThreadUtils.getCurrentThreadIdentifier(), lockOptions.getGraceCycleTryMs(),
+            lockOptions.getGraceCycleSleepMs(), lockOptions.getGraceCycleTimeoutMs());
+      }
       if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(), TimeUnit.MILLISECONDS)) {
         lockAcquired = true;
         break;
@@ -169,6 +182,8 @@ public class StateLockManager {
       }
     }
     if (lockAcquired) { // Lock was acquired within grace-cycle.
+      LOG.info("Thread-{} acquired the lock within grace-cycle.",
+          ThreadUtils.getCurrentThreadIdentifier());
       activateInterruptCycle();
     } else { // Lock couldn't be acquired by grace-cycle.
       if (graceMode == StateLockOptions.GraceMode.TIMEOUT) {
@@ -178,6 +193,10 @@ public class StateLockManager {
       // Activate the interrupt cycle before entering the lock because it might wait in the queue.
       activateInterruptCycle();
       // Force the lock.
+      LOG.info("Thread-{} forcing the lock with {} waiters/holders: {}",
+          ThreadUtils.getCurrentThreadIdentifier(), mSharedWaitersAndHolders.size(),
+          mSharedWaitersAndHolders.stream().map((th) -> Long.toString(th.getId()))
+              .collect(Collectors.joining(",")));
       try {
         if (!mStateLock.writeLock().tryLock(mForcedDurationMs, TimeUnit.MILLISECONDS)) {
           throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
@@ -216,6 +235,7 @@ public class StateLockManager {
         return;
       }
       // Setup the cycle.
+      LOG.info("Interrupt cycle activated.");
       mInterrupterFuture = mScheduler.scheduleAtFixedRate(this::waiterInterruptRoutine,
           mInterruptCycleInterval, mInterruptCycleInterval, TimeUnit.MILLISECONDS);
     }
@@ -239,6 +259,7 @@ public class StateLockManager {
       }
       // Cancel the cycle.
       mInterrupterFuture.cancel(true);
+      LOG.info("Interrupt cycle deactivated.");
       mInterrupterFuture = null;
     }
   }
@@ -247,8 +268,15 @@ public class StateLockManager {
    * Scheduled routine that interrupts waiters/holders of shared lock.
    */
   private void waiterInterruptRoutine() {
+    // Keeping a list of interrupted threads for logging consistently at the end.
+    List<Thread> interruptedThreads = new ArrayList(mSharedWaitersAndHolders.size());
+    // Interrupt threads that are registered under shared lock.
     for (Thread th : mSharedWaitersAndHolders) {
       th.interrupt();
+      interruptedThreads.add(th);
     }
+    LOG.info("Interrupt-cycle interrupted {} waiters/holders: {}", interruptedThreads.size(),
+        interruptedThreads.stream().map((th) -> ThreadUtils.getThreadIdentifier(th))
+            .collect(Collectors.joining(",")));
   }
 }
