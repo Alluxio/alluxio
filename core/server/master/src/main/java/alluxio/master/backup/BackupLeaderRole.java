@@ -187,7 +187,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
     if (delegateBackup) {
       // Fail the backup if delegation failed.
       if (!scheduleRemoteBackup(backupId, request, stateLockOptions)) {
-        AlluxioException err = new BackupDelegationException("Failed to delegate backup.");
+        LOG.error("Failed to schedule remote backup.");
+        AlluxioException err = new BackupDelegationException("Failed to delegate the backup.");
         mBackupTracker.updateError(err);
         // Throw here for failing the backup call.
         throw err;
@@ -251,6 +252,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
    * Schedule backup on this master.
    */
   private void scheduleLocalBackup(BackupPRequest request, StateLockOptions stateLockOptions) {
+    LOG.info("Scheduling backup at the backup-leader.");
     mLocalBackupFuture = mExecutorService.submit(() -> {
       try (LockResource stateLockResource = mStateLockManager.lockExclusive(stateLockOptions)) {
         mBackupTracker.updateState(BackupState.Running);
@@ -258,6 +260,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
         mBackupTracker.updateBackupUri(backupUri);
         mBackupTracker.updateState(BackupState.Completed);
       } catch (Exception e) {
+        LOG.error("Local backup failed at the backup-leader.", e);
         mBackupTracker.updateError(
             new BackupException(String.format("Local backup failed: %s", e.getMessage()), e));
       }
@@ -350,6 +353,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
         Duration sinceLastHeartbeat = Duration.between(mLastHeartBeat, Instant.now());
         if (sinceLastHeartbeat.toMillis() >= mBackupAbandonTimeout) {
           // Abandon the backup.
+          LOG.error("Abandoning the backup after not hearing for {}ms.", mBackupAbandonTimeout);
           mBackupTracker.updateError(new BackupAbortedException("Backup timed out"));
         }
       }, mBackupAbandonTimeout, TimeUnit.MILLISECONDS);
