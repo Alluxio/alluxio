@@ -31,6 +31,7 @@ public class LineGraph extends Graph {
   private static final int POINT_SIZE = 81;
   private static final Object CONDITIONAL_OPACITY = ImmutableMap.of("opacity", ImmutableMap
       .of("condition", ImmutableMap.of("selection", "legendSelect", "value", 1), "value", 0.05));
+  private static final Object LEGEND_CONFIG = ImmutableMap.of("columns", 3, "symbolLimit", 500);
 
   /**
    * This represents the data for a line graph.
@@ -81,7 +82,8 @@ public class LineGraph extends Graph {
         .asList(ImmutableMap.of("field", SERIES_FIELD, "type", "nominal", "title", "Series"),
             ImmutableMap.of("field", X_FIELD, "type", "ordinal", "title", xTitle),
             ImmutableMap.of("field", Y_FIELD, "type", "quantitative", "title", yTitle)));
-    encoding.put("color", ImmutableMap.of("field", SERIES_FIELD, "type", "nominal"));
+    encoding.put("color",
+        ImmutableMap.of("field", SERIES_FIELD, "type", "nominal", "legend", LEGEND_CONFIG));
     encoding.put("strokeWidth", ImmutableMap.of("value", 3));
     mGraph.put("encoding", encoding);
 
