@@ -83,6 +83,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+      // more threads for parallel deletes for cleanup
+      hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -98,7 +100,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       if (mParameters.mOperation == Operation.CreateFile
           || mParameters.mOperation == Operation.CreateDir) {
-        prepareFs.delete(basePath, true);
+        long start = CommonUtils.getCurrentMs();
+        deletePaths(prepareFs, basePath);
+        long end = CommonUtils.getCurrentMs();
+        LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
       } else {
         // these are read operations. the directory must exist
@@ -128,6 +133,78 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (int i = 0; i < mCachedFs.length; i++) {
       mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
     }
+  }
+
+  private void deletePaths(FileSystem fs, Path basePath) throws Exception {
+    // the base dir has sub directories per task id
+    if (!fs.exists(basePath)) {
+      return;
+    }
+    FileStatus[] subDirs = fs.listStatus(basePath);
+    if (subDirs.length == 0) {
+      return;
+    }
+
+    // Determine the fixed portion size. Each sub directory has a fixed portion.
+    int fixedSize = fs.listStatus(new Path(subDirs[0].getPath(), "fixed")).length;
+
+    long batchSize = 50_000;
+    int deleteThreads = 256;
+    ExecutorService service =
+        ExecutorServiceFactories.fixedThreadPool("bench-delete-thread", deleteThreads).create();
+
+    for (FileStatus subDir : subDirs) {
+      LOG.info("Cleaning up all files in: {}", subDir.getPath());
+      AtomicLong globalCounter = new AtomicLong();
+      Path fixedBase = new Path(subDir.getPath(), "fixed");
+      long runningLimit = 0;
+
+      // delete individual files in batches, to avoid the recursive-delete problem
+      while (!Thread.currentThread().isInterrupted()) {
+        AtomicLong success = new AtomicLong();
+        runningLimit += batchSize;
+        long limit = runningLimit;
+
+        List<Callable<Void>> callables = new ArrayList<>(deleteThreads);
+        for (int i = 0; i < deleteThreads; i++) {
+          callables.add(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+              long counter = globalCounter.getAndIncrement();
+              if (counter >= limit) {
+                globalCounter.getAndDecrement();
+                return null;
+              }
+              Path deletePath;
+              if (counter < fixedSize) {
+                deletePath = new Path(fixedBase, Long.toString(counter));
+              } else {
+                deletePath = new Path(subDir.getPath(), Long.toString(counter));
+              }
+              if (fs.delete(deletePath, true)) {
+                success.getAndIncrement();
+              }
+            }
+            return null;
+          });
+        }
+        // This may cancel some remaining threads, but that is fine, because any remaining paths
+        // will be taken care of during the final recursive delete.
+        service.invokeAll(callables, 1, TimeUnit.MINUTES);
+
+        if (success.get() == 0) {
+          // stop deleting one-by-one if none of the batch succeeded.
+          break;
+        }
+        LOG.info("Removed {} files", success.get());
+      }
+    }
+
+    service.shutdownNow();
+    service.awaitTermination(10, TimeUnit.SECONDS);
+
+    // Cleanup the rest recursively, which should be empty or much smaller than the full tree.
+    LOG.info("Deleting base directory: {}", basePath);
+    fs.delete(basePath, true);
   }
 
   @Override
