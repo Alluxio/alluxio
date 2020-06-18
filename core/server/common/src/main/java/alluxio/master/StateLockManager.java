@@ -161,12 +161,16 @@ public class StateLockManager {
     LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
     StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
+    boolean graceCycleEntered = false;
     boolean lockAcquired = false;
     long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
     while (System.currentTimeMillis() < deadlineMs) {
-      LOG.info("Thread-{} entered grace-cycle of try-sleep: {}ms-{}ms for the total of {}ms",
-          ThreadUtils.getCurrentThreadIdentifier(), lockOptions.getGraceCycleTryMs(),
-          lockOptions.getGraceCycleSleepMs(), lockOptions.getGraceCycleTimeoutMs());
+      if (!graceCycleEntered) {
+        graceCycleEntered = true;
+        LOG.info("Thread-{} entered grace-cycle of try-sleep: {}ms-{}ms for the total of {}ms",
+            ThreadUtils.getCurrentThreadIdentifier(), lockOptions.getGraceCycleTryMs(),
+            lockOptions.getGraceCycleSleepMs(), lockOptions.getGraceCycleTimeoutMs());
+      }
       if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(), TimeUnit.MILLISECONDS)) {
         lockAcquired = true;
         break;
