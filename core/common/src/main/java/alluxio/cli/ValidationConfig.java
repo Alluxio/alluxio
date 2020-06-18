@@ -11,24 +11,14 @@
 
 package alluxio.cli;
 
-import java.util.Map;
-
 /**
- * The validation tool factory interface.
+ * Configuration settings for the validation tools.
  */
-public interface ValidationToolFactory {
-
-  /**
-   * @return the type of validation tool for the factory
-   */
-  String getType();
-
-  /**
-   * Creates a new instance of {@link ValidationTool}.
-   * Creation must not interact with external services.
-   *
-   * @param configMap a map from config key to config value
-   * @return a new validation tool instance
-   */
-  ValidationTool create(Map<Object, Object> configMap);
+public class ValidationConfig {
+  // Hms validation tool config
+  public static final String HMS_TOOL_TYPE = "hms";
+  public static final String METASTORE_URI_CONFIG_NAME = "metastore_uri";
+  public static final String DATABASE_CONFIG_NAME = "database";
+  public static final String TABLES_CONFIG_NAME = "tables";
+  public static final String SOCKET_TIMEOUT_CONFIG_NAME = "socket_timeout";
 }

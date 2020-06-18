@@ -11,14 +11,19 @@
 
 package alluxio.cli;
 
+import java.util.Map;
+
 /**
  * Factory to create hive metastore validation tool implementation.
  */
 public class HmsValidationToolFactory implements ValidationToolFactory {
+  @Override
+  public String getType() {
+    return ValidationConfig.HMS_TOOL_TYPE;
+  }
 
   @Override
-  public ValidationTool create(String metastoreUri, String database,
-      String tables, int socketTimeout) {
-    return HmsValidationTool.create(metastoreUri, database, tables, socketTimeout);
+  public ValidationTool create(Map<Object, Object> configMap) {
+    return HmsValidationTool.create(configMap);
   }
 }
