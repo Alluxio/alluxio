@@ -26,7 +26,7 @@ public final class ProjectConstants {
   /* Update check host. **/
   public static final String UPDATE_CHECK_HOST = "${update.check.host}";
   /* Update check auth string. **/
-  public static final String UPDATE_CHECK_AUTH_STRING = "${update.check.auth.string}";
+  public static final String UPDATE_CHECK_MAGIC_NUMBER = "${update.check.auth.string}";
 
   private ProjectConstants() {} // prevent instantiation
 }
