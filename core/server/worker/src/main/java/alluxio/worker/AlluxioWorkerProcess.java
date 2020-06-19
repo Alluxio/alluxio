@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.client.file.AlluxioEvent;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -224,6 +225,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void start() throws Exception {
+    AlluxioEvent.Worker_Process_Starting.fire();
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
@@ -266,6 +268,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public void stop() throws Exception {
+    AlluxioEvent.Worker_Process_Stopping.fire();
     if (isServing()) {
       stopServing();
       if (mJvmPauseMonitor != null) {
