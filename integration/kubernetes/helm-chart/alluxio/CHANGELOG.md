@@ -100,7 +100,9 @@
 - Removed inferring hostNetwork, dnsPolicy and domain socket from whether user is root
 - Added inferring dnsPolicy from hostNetwork
 - Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE
+
+0.6.4
+
 - Fixed Fuse crash issue
 - Changed master service to headless from NodePort
-- 
-
+- Made the single master access itself without service
