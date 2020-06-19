@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
@@ -85,6 +86,11 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
+  }
+
+  @Override
+  public FileSystemContext getFileSystemContext() {
+    return mDelegatedFileSystem.getFileSystemContext();
   }
 
   private static final class Metrics {

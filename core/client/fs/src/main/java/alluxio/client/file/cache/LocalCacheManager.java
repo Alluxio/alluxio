@@ -70,7 +70,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
-  private static final int LOCK_SIZE = 1024;
+  private static final int LOCK_SIZE = 2048;
   private final long mPageSize;
   private final long mCacheSize;
   private final boolean mAsyncWrite;

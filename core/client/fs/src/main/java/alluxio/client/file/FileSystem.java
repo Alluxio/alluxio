@@ -311,6 +311,13 @@ public interface FileSystem extends Closeable {
   AlluxioConfiguration getConf();
 
   /**
+   * @return file system context
+   */
+  default FileSystemContext getFileSystemContext() {
+    return null;
+  }
+
+  /**
    * Convenience method for {@link #getStatus(AlluxioURI, GetStatusPOptions)} with default options.
    *
    * @param path the path to obtain information about

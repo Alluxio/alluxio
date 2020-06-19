@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -77,8 +76,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private final Map<Long, OpenFileEntry> mOpenFiles = new ConcurrentHashMap<>();
 
-  private final long mMaxCacheSize;
-
   // To make test build
   @VisibleForTesting
   public static final long ID_NOT_SET_VALUE = -1;
@@ -114,7 +111,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     for (int i = 0; i < LOCK_SIZE; i++) {
       mFileLocks[i] = new ReentrantReadWriteLock();
     }
-    mMaxCacheSize = conf.getBytes(PropertyKey.FUSE_MAXCACHE_BYTES);
   }
 
   /**
@@ -195,7 +191,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     try {
       long fd = mNextOpenFileId.getAndIncrement();
       FileInStream is = mFileSystem.openFile(uri);
-      mOpenFiles.put(fd, new OpenFileEntry(path, is, mMaxCacheSize));
+      mOpenFiles.put(fd, new OpenFileEntry(path, is));
       fi.fh.set(fd);
       LOG.info("open(fd={},entries={})", fd, mOpenFiles.size());
       return 0;
@@ -207,13 +203,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    StatsAccumulator sa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getSeekStats();
-    if (sa.count() > 2 && (sa.count() % 100 == 1)) {
-      LOG.info("seek: count {}, mean {}, max {}, min {}, std {}",
-          sa.count(), sa.mean(), sa.max(), sa.min(), sa.sampleVariance());
-    }
-    StatsAccumulator cachesa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getCacheStats();
-    if (cachesa.count() > 2 && (cachesa.count() % 1000) == 1) {
+//    StatsAccumulator sa = mFileSystem.getFileSystemContext().getSeekStats();
+//    if (sa.count() > 2 && (sa.count() % 100 == 1)) {
+//      LOG.info("seek: count {}, mean {}, max {}, min {}, std {}",
+//          sa.count(), sa.mean(), sa.max(), sa.min(), sa.sampleVariance());
+//    }
+    StatsAccumulator cachesa = mFileSystem.getFileSystemContext().getCacheStats();
+    if (cachesa.count() > 2 && (cachesa.count() % 10000) == 1) {
       LOG.info("cache: count {}, hit {}, hit ratio {}",
           cachesa.count(), cachesa.sum(), cachesa.mean());
     }
@@ -229,8 +225,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
+      oe.getIn().seek(offset);
+      FileInStream is = oe.getIn();
       final byte[] dest = new byte[sz];
-      nread = oe.read(dest, offset, size);
+      while (rd >= 0 && nread < size) {
+        rd = is.read(dest, nread, sz - nread);
+        if (rd >= 0) {
+          nread += rd;
+        }
+      }
+
       if (nread == -1) { // EOF
         nread = 0;
       } else if (nread > 0) {
@@ -253,7 +257,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final OpenFileEntry oe;
     long fd = fi.fh.get();
     LOG.info("release(fd={},entries={})", fd, mOpenFiles.size());
-    //((BaseFileSystem) mFileSystem).getFileSystemContext().printAvailableBlockWorkerClient();
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
@@ -332,28 +335,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
     private final Closer mCloser;
 
-    private long mOffset;
-    private long  mLimit;
-    private final long mMaxCacheSize;
-    private final byte[] mCache;
-
     /**
      * Constructs a new {@link alluxio.fuse.OpenFileEntry} for an Alluxio file.
      *
      * @param path the path of the file
      * @param in the input stream of the file
      */
-    public OpenFileEntry(String path, FileInStream in, long maxCacheSize) {
+    public OpenFileEntry(String path, FileInStream in) {
       Preconditions.checkNotNull(in, "in");
       mIn = in;
       mPath = path;
       mCount = new AtomicInteger(1);
       mCloser = Closer.create();
       mCloser.register(mIn);
-      mMaxCacheSize = maxCacheSize;
-      mOffset = -1;
-      mLimit = -1;
-      mCache = new byte[(int) mMaxCacheSize];
     }
 
     /**
@@ -371,39 +365,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
      */
     public FileInStream getIn() {
       return mIn;
-    }
-
-    public int read(byte[] buf, long offset, long len) throws IOException {
-      int nread = 0;
-      StatsAccumulator sa = ((BaseFileSystem) mFileSystem).getFileSystemContext().getCacheStats();
-      try {
-        if (offset < mOffset || (offset + len) > mLimit) {
-          sa.add(0.0);
-          mIn.seek(offset);
-          int ncached = 0;
-          int rd = 0;
-          while (rd >= 0 && ncached < mMaxCacheSize) {
-            rd = mIn.read(mCache, ncached, (int) mMaxCacheSize - ncached);
-            if (rd >= 0) {
-              ncached += rd;
-            }
-          }
-          if (ncached == -1) {
-            return 0;
-          }
-          mOffset = offset;
-          mLimit = mOffset + ncached;
-        }
-        sa.add(1.0);
-        System.arraycopy(mCache, (int) (offset - mOffset), buf, 0, (int) len);
-        nread = (int) Math.min(len, mLimit - offset);
-      } catch (IOException e) {
-        mOffset = -1;
-        mLimit = -1;
-        LOG.error("Failed to read(path={}, offset={}, len={})", mPath, offset, len);
-        throw e;
-      }
-      return nread;
     }
 
     /**

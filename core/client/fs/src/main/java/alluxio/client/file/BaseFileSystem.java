@@ -107,9 +107,7 @@ public class BaseFileSystem implements FileSystem {
     mCloser.register(mFsContext);
   }
 
-  /**
-   * @return file system context
-   */
+  @Override
   public FileSystemContext getFileSystemContext() {
     return mFsContext;
   }

@@ -146,10 +146,12 @@ public class LocalCacheFileInStream extends FileInStream {
       int bytesRead =
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
       if (bytesRead > 0) {
+        mExternalFs.getFileSystemContext().getCacheStats().add(1.0);
         totalBytesRead += bytesRead;
         mPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
       } else {
+        mExternalFs.getFileSystemContext().getCacheStats().add(0.0);
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
         byte[] page = readExternalPage(mPosition);
