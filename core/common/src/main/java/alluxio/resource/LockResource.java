@@ -15,6 +15,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
@@ -31,7 +32,11 @@ import java.util.concurrent.locks.LockSupport;
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
-  private final Lock mLock;
+
+  // The lock which represents the resource. It should only be written or modified by subclasses
+  // attempting to downgrade locks (see RWLockResource).
+  protected Lock mLock;
+  private final Runnable mCloseAction;
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -55,7 +60,26 @@ public class LockResource implements Closeable {
    * @param useTryLock whether or not use to {@link Lock#tryLock()}
    */
   public LockResource(Lock lock, boolean acquireLock, boolean useTryLock) {
+    this(lock, acquireLock, useTryLock, null);
+  }
+
+  /**
+   * Creates a new instance of {@link LockResource} using the given lock.
+   *
+   * This method may use the {@link Lock#tryLock()} method to gain ownership of the locks. The
+   * reason one might want to use this is to avoid the fairness heuristics within the
+   * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
+   * threads if a writer if the first in the queue.
+   *
+   * @param lock the lock to acquire
+   * @param acquireLock whether to lock the lock
+   * @param useTryLock whether or not use to {@link Lock#tryLock()}
+   * @param closeAction the nullable closeable that will be run before releasing the lock
+   */
+  public LockResource(Lock lock, boolean acquireLock, boolean useTryLock,
+      @Nullable Runnable closeAction) {
     mLock = lock;
+    mCloseAction = closeAction;
     if (acquireLock) {
       if (useTryLock) {
         while (!mLock.tryLock()) { // returns immediately
@@ -86,6 +110,9 @@ public class LockResource implements Closeable {
    */
   @Override
   public void close() {
+    if (mCloseAction != null) {
+      mCloseAction.run();
+    }
     mLock.unlock();
   }
 }

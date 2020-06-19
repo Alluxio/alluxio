@@ -11,17 +11,21 @@
 
 package alluxio.stress.cli.client;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
+import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.stress.client.ClientIOOperation;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -36,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -52,7 +57,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   @ParametersDelegate
   private ClientIOParameters mParameters = new ClientIOParameters();
 
+  /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+    /** Set to true after the first barrier is passed. */
+  private volatile boolean mStartBarrierPassed = false;
 
   /**
    * Creates instance.
@@ -69,9 +77,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
   @Override
   public void prepare() throws Exception {
-    if (mBaseParameters.mCluster) {
-      throw new IllegalArgumentException(this.getClass().getName()
-          + " is a single-node client IO stress test, so it cannot be run in cluster mode.");
+    if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
+      throw new IllegalArgumentException(String.format(
+          "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
+              + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
     }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
@@ -128,8 +137,15 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     taskResult.setParameters(mParameters);
     for (Integer numThreads : threadCounts) {
       ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
+      if (!mBaseParameters.mProfileAgent.isEmpty()) {
+        taskResult.putTimeToFirstBytePerThread(numThreads,
+            addAdditionalResult(
+                threadCountResult.getRecordStartMs(),
+                threadCountResult.getEndMs()));
+      }
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
+
     return taskResult;
   }
 
@@ -141,7 +157,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
-    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+    if (startMs == BaseParameters.UNDEFINED_START_MS || mStartBarrierPassed) {
+      // if the barrier was already passed, then overwrite the start time
       startMs = CommonUtils.getCurrentMs() + 10000;
     }
     long endMs = startMs + warmupMs + durationMs;
@@ -157,9 +174,71 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     service.awaitTermination(30, TimeUnit.SECONDS);
 
     ClientIOTaskResult.ThreadCountResult result = context.getResult();
+
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
         result.getErrors().size(), result.getIOMBps()));
+
     return result;
+  }
+
+  /**
+   * Read the log file from java agent log file.
+   *
+   * @param startMs start time for profiling
+   * @param endMs end time for profiling
+   * @return TimeToFirstByteStatistics
+   * @throws IOException
+   */
+  @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
+  public synchronized Map<String, SummaryStatistics> addAdditionalResult(
+      long startMs, long endMs) throws IOException {
+    Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
+
+    Map<String, MethodStatistics> nameStatistics =
+        processMethodProfiles(startMs, endMs, profileInput -> {
+          if (profileInput.getIsttfb()) {
+            return profileInput.getMethod();
+          }
+          return null;
+        });
+    if (!nameStatistics.isEmpty()) {
+      for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
+        summaryStatistics.put(
+            entry.getKey(), toSummaryStatistics(entry.getValue()));
+      }
+    }
+
+    return summaryStatistics;
+  }
+
+  /**
+   * Converts this class to {@link SummaryStatistics}.
+   *
+   * @param methodStatistics the method statistics
+   * @return new SummaryStatistics
+   */
+  private SummaryStatistics toSummaryStatistics(MethodStatistics methodStatistics) {
+    float[] responseTimePercentile = new float[101];
+    for (int i = 0; i <= 100; i++) {
+      responseTimePercentile[i] =
+          (float) methodStatistics.getTimeNs().getValueAtPercentile(i) / Constants.MS_NANO;
+    }
+
+    float[] responseTime99Percentile = new float[StressConstants.TIME_99_COUNT];
+    for (int i = 0; i < responseTime99Percentile.length; i++) {
+      responseTime99Percentile[i] = (float) methodStatistics.getTimeNs()
+          .getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i))) / Constants.MS_NANO;
+    }
+
+    float[] maxResponseTimesMs = new float[StressConstants.MAX_TIME_COUNT];
+    Arrays.fill(maxResponseTimesMs, -1);
+    for (int i = 0; i < methodStatistics.getMaxTimeNs().length; i++) {
+      maxResponseTimesMs[i] = (float) methodStatistics.getMaxTimeNs()[i] / Constants.MS_NANO;
+    }
+
+    return new SummaryStatistics(methodStatistics.getNumSuccess(),
+        responseTimePercentile,
+        responseTime99Percentile, maxResponseTimesMs);
   }
 
   private final class BenchContext {
@@ -272,6 +351,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
+      mStartBarrierPassed = true;
 
       while (!Thread.currentThread().isInterrupted() && (!isRead
           || CommonUtils.getCurrentMs() < mContext.getEndMs())) {

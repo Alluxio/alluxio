@@ -10,7 +10,7 @@
 #
 
 {{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
-{{ $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") -}}
+{{ $needDomainSocketVolume := and (and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid")) (eq .Values.shortCircuit.volumeType "persistentVolumeClaim") -}}
 {{ if $needDomainSocketVolume -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -26,10 +26,10 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.shortCircuit.pvcSize }}
-  storageClassName: {{ .Values.shortCircuit.pvcStorageClass }}
+      storage: {{ .Values.shortCircuit.size }}
+  storageClassName: {{ .Values.shortCircuit.storageClass }}
   accessModes:
-{{ toYaml .Values.shortCircuit.pvcAccessModes | trim | indent 4 }}
+{{ toYaml .Values.shortCircuit.accessModes | trim | indent 4 }}
   selector:
     matchLabels:
       app: {{ template "alluxio.name" . }}

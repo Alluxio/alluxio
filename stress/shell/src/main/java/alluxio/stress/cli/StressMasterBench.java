@@ -13,8 +13,10 @@ package alluxio.stress.cli;
 
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
+import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -23,6 +25,7 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.util.concurrent.RateLimiter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -80,6 +83,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+      // more threads for parallel deletes for cleanup
+      hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -95,7 +100,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       if (mParameters.mOperation == Operation.CreateFile
           || mParameters.mOperation == Operation.CreateDir) {
-        prepareFs.delete(basePath, true);
+        long start = CommonUtils.getCurrentMs();
+        deletePaths(prepareFs, basePath);
+        long end = CommonUtils.getCurrentMs();
+        LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
       } else {
         // these are read operations. the directory must exist
@@ -127,6 +135,78 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
   }
 
+  private void deletePaths(FileSystem fs, Path basePath) throws Exception {
+    // the base dir has sub directories per task id
+    if (!fs.exists(basePath)) {
+      return;
+    }
+    FileStatus[] subDirs = fs.listStatus(basePath);
+    if (subDirs.length == 0) {
+      return;
+    }
+
+    // Determine the fixed portion size. Each sub directory has a fixed portion.
+    int fixedSize = fs.listStatus(new Path(subDirs[0].getPath(), "fixed")).length;
+
+    long batchSize = 50_000;
+    int deleteThreads = 256;
+    ExecutorService service =
+        ExecutorServiceFactories.fixedThreadPool("bench-delete-thread", deleteThreads).create();
+
+    for (FileStatus subDir : subDirs) {
+      LOG.info("Cleaning up all files in: {}", subDir.getPath());
+      AtomicLong globalCounter = new AtomicLong();
+      Path fixedBase = new Path(subDir.getPath(), "fixed");
+      long runningLimit = 0;
+
+      // delete individual files in batches, to avoid the recursive-delete problem
+      while (!Thread.currentThread().isInterrupted()) {
+        AtomicLong success = new AtomicLong();
+        runningLimit += batchSize;
+        long limit = runningLimit;
+
+        List<Callable<Void>> callables = new ArrayList<>(deleteThreads);
+        for (int i = 0; i < deleteThreads; i++) {
+          callables.add(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+              long counter = globalCounter.getAndIncrement();
+              if (counter >= limit) {
+                globalCounter.getAndDecrement();
+                return null;
+              }
+              Path deletePath;
+              if (counter < fixedSize) {
+                deletePath = new Path(fixedBase, Long.toString(counter));
+              } else {
+                deletePath = new Path(subDir.getPath(), Long.toString(counter));
+              }
+              if (fs.delete(deletePath, true)) {
+                success.getAndIncrement();
+              }
+            }
+            return null;
+          });
+        }
+        // This may cancel some remaining threads, but that is fine, because any remaining paths
+        // will be taken care of during the final recursive delete.
+        service.invokeAll(callables, 1, TimeUnit.MINUTES);
+
+        if (success.get() == 0) {
+          // stop deleting one-by-one if none of the batch succeeded.
+          break;
+        }
+        LOG.info("Removed {} files", success.get());
+      }
+    }
+
+    service.shutdownNow();
+    service.awaitTermination(10, TimeUnit.SECONDS);
+
+    // Cleanup the rest recursively, which should be empty or much smaller than the full tree.
+    LOG.info("Deleting base directory: {}", basePath);
+    fs.delete(basePath, true);
+  }
+
   @Override
   public MasterBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
@@ -154,6 +234,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
+
+    if (!mBaseParameters.mProfileAgent.isEmpty()) {
+      context.addAdditionalResult();
+    }
 
     return context.getResult();
   }
@@ -202,6 +286,31 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
+    @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
+    public synchronized void addAdditionalResult() throws IOException {
+      if (mResult == null) {
+        return;
+      }
+      Map<String, MethodStatistics> nameStatistics =
+          processMethodProfiles(mResult.getRecordStartMs(), mResult.getEndMs(),
+              profileInput -> {
+              String method = profileInput.getMethod();
+              if (profileInput.getType().contains("RPC")) {
+                final int classNameDivider = profileInput.getMethod().lastIndexOf(".");
+                method = profileInput.getMethod().substring(classNameDivider + 1);
+              }
+              return profileInput.getType() + ":" + method;
+            });
+
+      for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
+        final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
+        stats.encodeResponseTimeNsRaw(entry.getValue().getTimeNs());
+        stats.mNumSuccess = entry.getValue().getNumSuccess();
+        stats.mMaxResponseTimeNs = entry.getValue().getMaxTimeNs();
+        mResult.putStatisticsForMethod(entry.getKey(), stats);
+      }
+    }
+
     public synchronized MasterBenchTaskResult getResult() {
       return mResult;
     }
@@ -218,8 +327,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
-      mResponseTimeNs = new Histogram(MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_MAX,
-          MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
+          StressConstants.TIME_HISTOGRAM_PRECISION);
       if (mParameters.mOperation == Operation.CreateDir) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
@@ -241,7 +350,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
-      mResult.encodeResponseTimeNsRaw(mResponseTimeNs);
+      mResult.getStatistics().encodeResponseTimeNsRaw(mResponseTimeNs);
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
@@ -258,8 +367,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
 
-      long bucketSize =
-          (mContext.getEndMs() - recordMs) / MasterBenchTaskResult.MAX_RESPONSE_TIME_COUNT;
+      long bucketSize = (mContext.getEndMs() - recordMs) / StressConstants.MAX_TIME_COUNT;
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
@@ -287,7 +395,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           mResponseTimeNs.recordValue(responseTimeNs);
 
           // track max response time
-          long[] maxResponseTimeNs = mResult.getMaxResponseTimeNs();
+          long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
           int bucket =
               Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
           if (responseTimeNs > maxResponseTimeNs[bucket]) {

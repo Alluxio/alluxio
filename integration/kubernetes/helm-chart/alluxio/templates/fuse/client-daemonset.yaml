@@ -51,11 +51,11 @@ spec:
           args: ["while true; do sleep 30 && echo .; done;"]
           volumeMounts:
             - name: alluxio-fuse-mount
-              mountPath: /alluxio-fuse
+              mountPath: {{ .Values.fuse.mountPath | dir }}
       restartPolicy: Always
       volumes:
         - name: alluxio-fuse-mount
           hostPath:
-            path: /alluxio-fuse
+            path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
 {{- end }}

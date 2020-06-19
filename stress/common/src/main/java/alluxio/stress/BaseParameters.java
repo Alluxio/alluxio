@@ -22,13 +22,17 @@ import java.util.List;
  */
 public final class BaseParameters {
   public static final String CLUSTER_FLAG = "--cluster";
+  public static final String CLUSTER_LIMIT_FLAG = "--cluster-limit";
   public static final String DISTRIBUTED_FLAG = "--distributed";
   public static final String ID_FLAG = "--id";
   public static final String IN_PROCESS_FLAG = "--in-process";
   public static final String JAVA_OPT_FLAG = "--java-opt";
   public static final String START_MS_FLAG = "--start-ms";
+  public static final String HELP_FLAG = "--help";
+  public static final String PROFILE_AGENT = "--profile-agent";
 
   public static final long UNDEFINED_START_MS = -1;
+  public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
 
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},
@@ -36,9 +40,11 @@ public final class BaseParameters {
           + "locally.")
   public boolean mCluster = false;
 
-  @Parameter(names = {ID_FLAG},
-      description = "Any string to uniquely identify this invocation", hidden = true)
-  public String mId = "local-task-0";
+  @Parameter(names = {CLUSTER_LIMIT_FLAG},
+      description = "If greater than 0, it will only run on that number of workers. If 0,"
+          + " will run on all available cluster workers. If < 0, will run on the workers from the"
+          + " end of the worker list. This flag is only used if " + CLUSTER_FLAG + " is enabled.")
+  public int mClusterLimit = 0;
 
   @Parameter(names = {JAVA_OPT_FLAG},
       description = "The java options to add to the command line to for the task. This can be "
@@ -46,7 +52,16 @@ public final class BaseParameters {
           + "passed to the JVM. For example: --java-opt \" -Xmx4g\" --java-opt \" -Xms2g\"")
   public List<String> mJavaOpts = new ArrayList<>();
 
+  @Parameter(names = {PROFILE_AGENT},
+      description = "The path to the profile agent if one is available. "
+          + "Providing this will enable a more detailed output.")
+  public String mProfileAgent = "";
+
   // Hidden flags
+  @Parameter(names = {ID_FLAG},
+      description = "Any string to uniquely identify this invocation", hidden = true)
+  public String mId = "local-task-0";
+
   @Parameter(names = {DISTRIBUTED_FLAG},
       description = "If true, this is a distributed task, not a local task. This is "
           + "automatically added for a cluster job.",
@@ -63,4 +78,7 @@ public final class BaseParameters {
           + "execute the task",
       hidden = true)
   public boolean mInProcess = false;
+
+  @Parameter(names = {"-h", HELP_FLAG}, help = true)
+  public boolean mHelp = false;
 }

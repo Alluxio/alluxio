@@ -22,6 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -30,8 +31,15 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,6 +54,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
   private final ActiveSyncManager mSyncManager;
   private final MountTable mMountTable;
   private final long mMountId;
+  private final AlluxioURI mMountUri;
+  private final Queue<CompletableFuture<?>> mSyncTasks;
 
   /**
    * Constructs a new {@link ActiveSyncer}.
@@ -59,13 +69,17 @@ public class ActiveSyncer implements HeartbeatExecutor {
       MountTable mountTable, long mountId) {
     mFileSystemMaster = fileSystemMaster;
     mSyncManager = syncManager;
-    mMountId = mountId;
     mMountTable = mountTable;
+    mMountId = mountId;
+    mMountUri =  Objects.requireNonNull(mMountTable.getMountInfo(mMountId)).getAlluxioUri();
+    mSyncTasks = new LinkedBlockingQueue<>(32);
   }
 
   @Override
   public void heartbeat() {
-    LOG.debug("start Active Syncer heartbeat");
+    LOG.debug("start sync heartbeat for {} with mount id {}", mMountUri, mMountId);
+    // Remove any previously completed sync tasks
+    mSyncTasks.removeIf(Future::isDone);
 
     List<AlluxioURI> filterList =  mSyncManager.getFilterList(mMountId);
 
@@ -74,29 +88,55 @@ public class ActiveSyncer implements HeartbeatExecutor {
     }
 
     try {
-      UfsManager.UfsClient ufsclient = mMountTable.getUfsClient(mMountId);
+      UfsManager.UfsClient ufsclient = Objects.requireNonNull(mMountTable.getUfsClient(mMountId));
       try (CloseableResource<UnderFileSystem> ufsResource = ufsclient.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
-        if (ufs.supportsActiveSync()) {
-          SyncInfo syncInfo = ufs.getActiveSyncInfo();
-          // This returns a list of ufsUris that we need to sync.
-          Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
-          // Parallelize across sync points
-          List<Callable<Void>> tasksPerSyncPoint = new ArrayList<>(ufsSyncPoints.size());
-          for (AlluxioURI ufsUri : ufsSyncPoints) {
-            tasksPerSyncPoint.add(() -> {
-              processSyncPoint(ufsUri, syncInfo);
-              return null;
-            });
-          }
-          mSyncManager.getExecutor().invokeAll(tasksPerSyncPoint);
-          // Journal the latest processed txId
-          mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
+        if (!ufs.supportsActiveSync()) {
+          return;
         }
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted while submitting active sync change job to master", e);
-        Thread.currentThread().interrupt();
-        return;
+        SyncInfo syncInfo = ufs.getActiveSyncInfo();
+        // This returns a list of ufsUris that we need to sync.
+        Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
+        // Parallelize across sync points
+        List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
+        for (AlluxioURI ufsUri : ufsSyncPoints) {
+          tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
+            processSyncPoint(ufsUri, syncInfo);
+            return syncInfo.getTxId();
+          }, mSyncManager.getExecutor()));
+        }
+        // Journal the latest processed txId
+        CompletableFuture<Void> syncTask =
+            CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
+            .thenRunAsync(() -> mFileSystemMaster
+                    .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
+                mSyncManager.getExecutor());
+        int attempts = 0;
+        while (!mSyncTasks.offer(syncTask)) {
+          if (Thread.currentThread().isInterrupted()) {
+            break;
+          }
+          // We should only enter the loop if the task queue is full. This would occur if all
+          // sync tasks in the last 32 / (heartbeats/minute) minutes have not completed.
+          for (CompletableFuture<?> f : mSyncTasks) {
+            try {
+              long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
+                  / mSyncTasks.size();
+              f.get(waitTime, TimeUnit.MILLISECONDS);
+              mSyncTasks.remove(f);
+              break;
+            } catch (TimeoutException e) {
+              LOG.trace("sync task did not complete during heartbeat. Attempt: {}", attempts);
+            } catch (InterruptedException | ExecutionException e) {
+              LogUtils.warnWithException(LOG, "Failed while waiting on task to add new task to "
+                  + "head of queue", e);
+              if (Thread.currentThread().isInterrupted()) {
+                Thread.currentThread().interrupt();
+              }
+            }
+            attempts++;
+          }
+        }
       }
     } catch (IOException e) {
       LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
@@ -105,7 +145,9 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    // Nothing to clean up
+    for (CompletableFuture<?> syncTask : mSyncTasks) {
+      syncTask.cancel(true);
+    }
   }
 
   /**
@@ -131,8 +173,8 @@ public class ActiveSyncer implements HeartbeatExecutor {
         LOG.debug("incremental sync {}", ufsUri.toString());
         RetryUtils.retry("Incremental Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri,
-              syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                  .map((uri) -> mMountTable.reverseResolve(uri).getUri())
+              syncInfo.getChangedFiles(ufsUri).stream()
+                  .map((uri) -> Objects.requireNonNull(mMountTable.reverseResolve(uri)).getUri())
                   .collect(Collectors.toSet()),
               mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(

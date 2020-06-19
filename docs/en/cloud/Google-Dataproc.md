@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on Google Cloud Dataproc
 nickname: Google Dataproc
-group: Alluxio in the Cloud
+group: Cloud Native
 priority: 4
 ---
 

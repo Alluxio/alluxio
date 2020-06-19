@@ -11,54 +11,39 @@
 
 package alluxio.stress.master;
 
-import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.HdrHistogram.Histogram;
-
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.DataFormatException;
 
 /**
  * The task result for the master stress tests.
  */
 public final class MasterBenchTaskResult implements TaskResult {
-  /** The response time histogram can record values up to this amount. */
-  public static final long RESPONSE_TIME_HISTOGRAM_MAX = Constants.SECOND_NANO * 60 * 30;
-  public static final int RESPONSE_TIME_HISTOGRAM_PRECISION = 3;
-  public static final int MAX_RESPONSE_TIME_COUNT = 20;
-
-  private static final int COMPRESSION_LEVEL = 9;
-  private static final int RESPONSE_TIME_99_COUNT = 6;
 
   private long mRecordStartMs;
   private long mEndMs;
   private long mDurationMs;
-  private long mNumSuccess;
   private BaseParameters mBaseParameters;
   private MasterBenchParameters mParameters;
   private List<String> mErrors;
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private byte[] mResponseTimeNsRaw;
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
-  private long[] mMaxResponseTimeNs;
+
+  private MasterBenchTaskResultStatistics mStatistics;
+
+  private Map<String, MasterBenchTaskResultStatistics> mStatisticsPerMethod;
 
   /**
    * Creates an instance.
    */
   public MasterBenchTaskResult() {
     // Default constructor required for json deserialization
-    mMaxResponseTimeNs = new long[MAX_RESPONSE_TIME_COUNT];
-    Arrays.fill(mMaxResponseTimeNs, -1);
     mErrors = new ArrayList<>();
+    mStatistics = new MasterBenchTaskResultStatistics();
+    mStatisticsPerMethod = new HashMap<>();
   }
 
   /**
@@ -67,33 +52,27 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(MasterBenchTaskResult result) throws Exception {
+    mStatistics.merge(result.mStatistics);
+
     mRecordStartMs = result.mRecordStartMs;
     if (result.mEndMs > mEndMs) {
       mEndMs = result.mEndMs;
     }
-    mNumSuccess += result.mNumSuccess;
-
-    Histogram responseTime = new Histogram(RESPONSE_TIME_HISTOGRAM_MAX,
-        RESPONSE_TIME_HISTOGRAM_PRECISION);
-    if (mResponseTimeNsRaw != null) {
-      responseTime.add(Histogram
-          .decodeFromCompressedByteBuffer(ByteBuffer.wrap(mResponseTimeNsRaw),
-              RESPONSE_TIME_HISTOGRAM_MAX));
-    }
-    if (result.mResponseTimeNsRaw != null) {
-      responseTime.add(Histogram
-          .decodeFromCompressedByteBuffer(ByteBuffer.wrap(result.mResponseTimeNsRaw),
-              RESPONSE_TIME_HISTOGRAM_MAX));
-    }
-    encodeResponseTimeNsRaw(responseTime);
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
-    for (int i = 0; i < mMaxResponseTimeNs.length; i++) {
-      if (result.mMaxResponseTimeNs[i] > mMaxResponseTimeNs[i]) {
-        mMaxResponseTimeNs[i] = result.mMaxResponseTimeNs[i];
+    mErrors.addAll(result.mErrors);
+
+    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+        result.mStatisticsPerMethod.entrySet()) {
+      final String key = entry.getKey();
+      final MasterBenchTaskResultStatistics value = entry.getValue();
+
+      if (!mStatisticsPerMethod.containsKey(key)) {
+        mStatisticsPerMethod.put(key, value);
+      } else {
+        mStatisticsPerMethod.get(key).merge(value);
       }
     }
-    mErrors.addAll(result.mErrors);
   }
 
   /**
@@ -111,53 +90,12 @@ public final class MasterBenchTaskResult implements TaskResult {
   }
 
   /**
-   * @return number of successes
-   */
-  public long getNumSuccess() {
-    return mNumSuccess;
-  }
-
-  /**
    * Increments the number of successes by an amount.
    *
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(long numSuccess) {
-    mNumSuccess += numSuccess;
-  }
-
-  /**
-   * @param numSuccess number of successes
-   */
-  public void setNumSuccess(long numSuccess) {
-    mNumSuccess = numSuccess;
-  }
-
-  /**
-   * @return the raw response time data
-   */
-  public byte[] getResponseTimeNsRaw() {
-    return mResponseTimeNsRaw;
-  }
-
-  /**
-   * Encodes the histogram into the internal byte array.
-   *
-   * @param responseTimeNs the histogram (in ns)
-   */
-  public void encodeResponseTimeNsRaw(Histogram responseTimeNs) {
-    ByteBuffer bb = ByteBuffer.allocate(responseTimeNs.getEstimatedFootprintInBytes());
-    responseTimeNs.encodeIntoCompressedByteBuffer(bb, COMPRESSION_LEVEL);
-    bb.flip();
-    mResponseTimeNsRaw = new byte[bb.limit()];
-    bb.get(mResponseTimeNsRaw);
-  }
-
-  /**
-   * @param responseTimeNsRaw the raw response time data
-   */
-  public void setResponseTimeNsRaw(byte[] responseTimeNsRaw) {
-    mResponseTimeNsRaw = responseTimeNsRaw;
+    mStatistics.mNumSuccess += numSuccess;
   }
 
   /**
@@ -192,14 +130,14 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @return the array of max response times (in ns)
    */
   public long[] getMaxResponseTimeNs() {
-    return mMaxResponseTimeNs;
+    return mStatistics.mMaxResponseTimeNs;
   }
 
   /**
    * @param maxResponseTimeNs the array of max response times (in ns)
    */
   public void setMaxResponseTimeNs(long[] maxResponseTimeNs) {
-    mMaxResponseTimeNs = maxResponseTimeNs;
+    mStatistics.mMaxResponseTimeNs = maxResponseTimeNs;
   }
 
   /**
@@ -251,25 +189,55 @@ public final class MasterBenchTaskResult implements TaskResult {
     mErrors.add(errMesssage);
   }
 
+  /**
+   * @return the statistics
+   */
+  public MasterBenchTaskResultStatistics getStatistics() {
+    return mStatistics;
+  }
+
+  /**
+   * @param statistics the statistics
+   */
+  public void setStatistics(MasterBenchTaskResultStatistics statistics) {
+    mStatistics = statistics;
+  }
+
+  /**
+   * @return the statistics per method
+   */
+  public Map<String, MasterBenchTaskResultStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  /**
+   * @param statisticsPerMethod the statistics per method
+   */
+  public void setStatisticsPerMethod(Map<String, MasterBenchTaskResultStatistics>
+                                         statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
+  }
+
+  /**
+   * @param method the name of the method to insert statistics for
+   * @param statistics the statistics for the method
+   */
+  public void putStatisticsForMethod(String method, MasterBenchTaskResultStatistics statistics) {
+    mStatisticsPerMethod.put(method, statistics);
+  }
+
   @Override
   public TaskResult.Aggregator aggregator() {
     return new Aggregator();
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator {
+  private static final class Aggregator implements TaskResult.Aggregator<MasterBenchTaskResult> {
     @Override
-    public MasterBenchSummary aggregate(Iterable<TaskResult> results) throws Exception {
-      long durationMs = 0;
-      long numSuccess = 0;
-      long endTimeMs = 0;
-      float[] maxResponseTimesMs = new float[MAX_RESPONSE_TIME_COUNT];
-      Arrays.fill(maxResponseTimesMs, -1);
-      MasterBenchParameters parameters = new MasterBenchParameters();
+    public MasterBenchSummary aggregate(Iterable<MasterBenchTaskResult> results) throws Exception {
       List<String> nodes = new ArrayList<>();
       Map<String, List<String>> errors = new HashMap<>();
+      MasterBenchTaskResult mergingTaskResult = null;
 
-      Histogram responseTime = new Histogram(RESPONSE_TIME_HISTOGRAM_MAX,
-          RESPONSE_TIME_HISTOGRAM_PRECISION);
       for (TaskResult taskResult : results) {
         if (!(taskResult instanceof MasterBenchTaskResult)) {
           throw new IOException(
@@ -277,49 +245,20 @@ public final class MasterBenchTaskResult implements TaskResult {
                   .getName());
         }
         MasterBenchTaskResult result = (MasterBenchTaskResult) taskResult;
-        durationMs = Math.max(result.getEndMs() - result.getRecordStartMs(), durationMs);
-        numSuccess += result.getNumSuccess();
-        parameters = result.getParameters();
-        if (result.getEndMs() > endTimeMs) {
-          endTimeMs = result.getEndMs();
-        }
         nodes.add(result.getBaseParameters().mId);
         if (!result.getErrors().isEmpty()) {
           List<String> errorList = new ArrayList<>(result.getErrors());
           errors.put(result.getBaseParameters().mId, errorList);
         }
 
-        try {
-          responseTime.add(Histogram
-              .decodeFromCompressedByteBuffer(ByteBuffer.wrap(result.mResponseTimeNsRaw),
-                  RESPONSE_TIME_HISTOGRAM_MAX));
-        } catch (DataFormatException e) {
-          throw new IOException(String.format("Failed to decode response time bytes from %s",
-              result.getBaseParameters().mId), e);
+        if (mergingTaskResult == null) {
+          mergingTaskResult = result;
+          continue;
         }
-
-        for (int i = 0; i < result.getMaxResponseTimeNs().length; i++) {
-          float ms = (float) result.getMaxResponseTimeNs()[i] / Constants.MS_NANO;
-          if (ms > maxResponseTimesMs[i]) {
-            maxResponseTimesMs[i] = ms;
-          }
-        }
+        mergingTaskResult.merge(result);
       }
 
-      float[] responseTimePercentile = new float[101];
-      for (int i = 0; i <= 100; i++) {
-        responseTimePercentile[i] =
-            (float) responseTime.getValueAtPercentile(i) / Constants.MS_NANO;
-      }
-
-      float[] responseTime99Percentile = new float[RESPONSE_TIME_99_COUNT];
-      for (int i = 0; i < responseTime99Percentile.length; i++) {
-        responseTime99Percentile[i] =
-            (float) responseTime.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
-                / Constants.MS_NANO;
-      }
-      return new MasterBenchSummary(durationMs, numSuccess, endTimeMs, responseTimePercentile,
-          responseTime99Percentile, maxResponseTimesMs, parameters, nodes, errors);
+      return new MasterBenchSummary(mergingTaskResult, nodes, errors);
     }
   }
 }

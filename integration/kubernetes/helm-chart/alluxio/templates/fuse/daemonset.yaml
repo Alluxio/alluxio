@@ -11,6 +11,8 @@
 
 {{ if .Values.fuse.enabled -}}
 {{- $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
+{{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -52,7 +54,7 @@ spec:
         fsGroup: {{ .Values.fuse.fsGroup }}
       affinity:
         podAffinity:
-          RequiredDuringSchedulingIgnoredDuringExecution:
+          requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
               - key: app
@@ -63,6 +65,7 @@ spec:
                 operator: In
                 values:
                 - alluxio-worker
+            topologyKey: kubernetes.io/hostname
       containers:
         - name: alluxio-fuse
           image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
@@ -91,7 +94,7 @@ spec:
               fieldRef:
                 fieldPath: status.hostIP
           - name: ALLUXIO_CLIENT_JAVA_OPTS
-            value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
+            value: " -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} "
           securityContext:
             privileged: true
             capabilities:
@@ -100,7 +103,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.fuse.mountPath }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -108,7 +111,7 @@ spec:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
-              mountPath: /alluxio-fuse
+              mountPath: {{ .Values.fuse.mountPath | dir }}
               mountPropagation: Bidirectional
             {{- if $shortCircuitEnabled}}
               {{- if eq .Values.shortCircuit.policy "uuid" }}
@@ -127,13 +130,11 @@ spec:
             type: File
         - name: alluxio-fuse-mount
           hostPath:
-            path: /alluxio-fuse
+            path: {{ .Values.fuse.mountPath | dir }}
             type: DirectoryOrCreate
         {{- if $shortCircuitEnabled}}
           {{- if eq .Values.shortCircuit.policy "uuid" }}
-        - name: alluxio-domain
-          persistentVolumeClaim:
-            claimName: "{{ .Values.shortCircuit.pvcName }}"
+{{- include "alluxio.worker.shortCircuit.volume" . }}
           {{- end }}
           {{- if eq .Values.shortCircuit.policy "local" }}
 {{- include "alluxio.worker.tieredstoreVolumes" . }}

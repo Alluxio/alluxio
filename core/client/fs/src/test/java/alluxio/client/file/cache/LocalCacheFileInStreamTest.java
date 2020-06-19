@@ -61,8 +61,6 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -381,22 +379,14 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public ReadableByteChannel get(PageId pageId) {
+    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+        int offsetInBuffer) {
       if (!mPages.containsKey(pageId)) {
-        return null;
+        return 0;
       }
       mPagesServed++;
-      return Channels.newChannel(new ByteArrayInputStream(mPages.get(pageId)));
-    }
-
-    @Override
-    public ReadableByteChannel get(PageId pageId, int pageOffset) {
-      if (!mPages.containsKey(pageId)) {
-        return null;
-      }
-      mPagesServed++;
-      return Channels.newChannel(new ByteArrayInputStream(
-          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE)));
+      System.arraycopy(mPages.get(pageId), pageOffset, buffer, offsetInBuffer, bytesToRead);
+      return bytesToRead;
     }
 
     @Override

@@ -133,6 +133,37 @@ public class UfsStatusCache {
   }
 
   /**
+   * Attempts to return a status from the cache. If it doesn't exist, reaches to the UFS for it.
+   *
+   * @param path the path the retrieve
+   * @param mountTable the Alluxio mount table
+   * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
+   */
+  @Nullable
+  public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
+      throws InvalidPathException {
+    UfsStatus status = mStatuses.get(path);
+    if (status != null) {
+      return status;
+    }
+    MountTable.Resolution resolution = mountTable.resolve(path);
+    AlluxioURI ufsUri = resolution.getUri();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
+      if (ufsStatus == null) {
+        return null;
+      }
+      ufsStatus.setName(path.getName());
+      addStatus(path, ufsStatus);
+      return ufsStatus;
+    } catch (IllegalArgumentException | IOException e) {
+      LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
+    }
+    return null;
+  }
+
+  /**
    * Fetches children of a given alluxio path, stores them in the cache, then returns them.
    *
    * Children can be returned in a few ways

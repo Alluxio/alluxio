@@ -75,7 +75,7 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
     if (!mInitialized) {
       mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
       // sort by hashcode
-      mWorkerInfoList.sort(Comparator.comparingInt(w -> w.getNetAddress().hashCode()));
+      mWorkerInfoList.sort(Comparator.comparing(w -> w.getNetAddress().getHost()));
       // take the first subset
       mWorkerInfoList =
           mWorkerInfoList.subList(0, Math.min(MAX_WORKERS.get(), mWorkerInfoList.size()));

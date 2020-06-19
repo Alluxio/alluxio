@@ -79,6 +79,9 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** Master context. */
+  protected final MasterContext mContext;
+
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager;
 
@@ -105,7 +108,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mBackupManager = new BackupManager(mRegistry);
       String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
       mUfsManager = new MasterUfsManager();
-      MasterContext context = CoreMasterContext.newBuilder()
+      mContext = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
@@ -116,7 +119,7 @@ public class AlluxioMasterProcess extends MasterProcess {
               .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
           .setUfsManager(mUfsManager)
           .build();
-      MasterUtils.createMasters(mRegistry, context);
+      MasterUtils.createMasters(mRegistry, mContext);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -208,6 +211,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         startRejectingServers();
       }
       mRegistry.start(isLeader);
+      // Signal state-lock-manager that masters are ready.
+      mContext.getStateLockManager().mastersStartedCallback();
       LOG.info("All masters started");
     } catch (IOException e) {
       throw new RuntimeException(e);

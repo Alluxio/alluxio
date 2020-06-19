@@ -11,6 +11,8 @@
 
 package alluxio.stress;
 
+import alluxio.util.JsonSerializable;
+
 /**
  * This represents the result of a single stress task. A {@link TaskResult} is meant to be
  * aggregated into a {@link Summary}.
@@ -24,14 +26,16 @@ public interface TaskResult extends JsonSerializable {
 
   /**
    * The interface that aggregates multiple task results into a summary.
+   *
+   * @param <T> a {@link TaskResult} type
    */
-  interface Aggregator {
+  interface Aggregator<T extends TaskResult> {
     /**
      * Aggregates multiple instances of a {@link TaskResult} to a summary.
      *
      * @param results list of {@link TaskResult}
      * @return the aggregated summary
      */
-    Summary aggregate(Iterable<TaskResult> results) throws Exception;
+    Summary aggregate(Iterable<T> results) throws Exception;
   }
 }

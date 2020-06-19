@@ -42,7 +42,7 @@ categoryList:
   - Overview
   - Core Services
   - Install Alluxio
-  - Alluxio in the Cloud
+  - Cloud Native
   - Compute Integrations
   - Storage Integrations
   - Operations
@@ -63,9 +63,8 @@ categoryInfo:
   Install Alluxio:
     en: Install Alluxio
     cn: 部署 Alluxio
-  Alluxio in the Cloud:
-    en: Alluxio in the Cloud
-    cn: Alluxio云端部署与应用
+  Cloud Native:
+    en: Cloud Native
   Compute Integrations:
     en: Compute Integrations
     cn: 计算应用

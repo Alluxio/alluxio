@@ -18,6 +18,8 @@ public interface BlockManagementTask {
 
   /**
    * Run management task.
+   *
+   * @return the task result
    */
-  void run();
+  BlockManagementTaskResult run();
 }

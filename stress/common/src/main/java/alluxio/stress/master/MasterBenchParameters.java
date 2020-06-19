@@ -33,10 +33,10 @@ public final class MasterBenchParameters extends Parameters {
       required = true)
   public Operation mOperation;
 
-  @Parameter(names = {"--clients"}, description = "the number of fs clients to use")
+  @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
 
-  @Parameter(names = {"--threads"}, description = "the number of threads to use")
+  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
   public int mThreads = 256;
 
   @Parameter(names = {"--target-throughput"},
@@ -45,11 +45,19 @@ public final class MasterBenchParameters extends Parameters {
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
-  @Parameters.PathDescription
+  @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio://localhost:19998/stress-master-base";
 
+  @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
+  @Parameters.KeylessDescription
+  public String mBaseAlias = "";
+
+  @Parameter(names = {"--tag"}, description = "optional human-readable string to identify this run")
+  @Parameters.KeylessDescription
+  public String mTag = "";
+
   @Parameter(names = {"--create-file-size"},
-      description = "The size of a file to create, allowed to be 0. (1m, 2k, 8k, etc.)")
+      description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mCreateFileSize = "0";
 
   @Parameter(names = {"--duration"},
@@ -73,13 +81,16 @@ public final class MasterBenchParameters extends Parameters {
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
           + "'fixed-count' paths are in the fixed portion of the namespace. This means all tasks "
           + "are guaranteed to have the same number of paths in the fixed portion. This is "
-          + "primarily useful for ensuring different tasks/threads perform a similarly sized "
+          + "primarily useful for ensuring different tasks/threads perform an identically-sized "
           + "operation. For example, if fixed-count is set to 1000, and CreateFile is run, each "
-          + "task will create files with exactly 1000 paths in the fixed portion. A subsequent "
-          + "ListDir task will list that portion, knowing every task/thread will always read a "
+          + "task will create files with exactly 1000 paths in the fixed directory. A subsequent "
+          + "ListDir task will list that directory, knowing every task/thread will always read a "
           + "directory with exactly 1000 paths.")
   public int mFixedCount = 100;
 
-  @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
+  @DynamicParameter(names = "--conf",
+      description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
+          + "configuration values.")
+
   public Map<String, String> mConf = new HashMap<>();
 }

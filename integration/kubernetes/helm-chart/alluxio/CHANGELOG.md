@@ -77,3 +77,26 @@
 - Refactored configmap to generate config properties in a list
 - Changed JVM options from one string to a list
 - Supported Helm version upgraded to 3.X
+
+0.6.0
+
+- Fix alluxio-fuse container fail to restart when it exited with error
+
+0.6.1
+
+- Infer hostNetwork, dnsPolicy and domain socket volume type based on the user
+
+0.6.2
+
+- Fix alluxio chart failed to deploy with helm when "fuse.enabled" is true in values.yaml(issue: #11542)
+
+0.6.3
+
+- Enabled worker domain socket to choose between hostPath and PVC
+- Refactored some worker domain socket PVC properties to be consistent with documentation
+- Enabled master metastore to choose between emptyDir and PVC
+- Enabled master journal to choose between emptyDir and PVC
+- Moved metastore configuration properties to the root level, to be the same as journal
+- Removed inferring hostNetwork, dnsPolicy and domain socket from whether user is root
+- Added inferring dnsPolicy from hostNetwork
+- Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE   

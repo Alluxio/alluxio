@@ -417,6 +417,21 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void deleteDirRecursiveWithReadOnlyCheck() throws Exception {
+    AlluxioURI rootPath = new AlluxioURI("/mnt/");
+    mFileSystemMaster.createDirectory(rootPath, CreateDirectoryContext.defaults());
+    // Create ufs file.
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
+            MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
+    mThrown.expect(AccessControlException.class);
+    // Will throw AccessControlException because /mnt/local is a readonly mount point
+    mFileSystemMaster.delete(rootPath,
+            DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+  }
+
+  @Test
   public void deleteDirRecursiveWithInsufficientPermissions() throws Exception {
     // userA has permissions to delete directory but not one of the nested files
     createFileWithSingleBlock(NESTED_FILE_URI);

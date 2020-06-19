@@ -18,18 +18,21 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.JsonSerializable;
+import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,7 +64,23 @@ public final class StressBenchDefinition
   public Set<Pair<WorkerInfo, ArrayList<String>>> selectExecutors(StressBenchConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
-    for (WorkerInfo worker : jobWorkerInfoList) {
+
+    // sort copy of workers by hashcode
+    List<WorkerInfo> workerList = Lists.newArrayList(jobWorkerInfoList);
+    workerList.sort(Comparator.comparing(w -> w.getAddress().getHost()));
+    // take the first subset, according to cluster limit
+    int clusterLimit = config.getClusterLimit();
+    if (clusterLimit == 0) {
+      clusterLimit = workerList.size();
+    }
+    if (clusterLimit < 0) {
+      // if negative, reverse the list
+      clusterLimit = -clusterLimit;
+      Collections.reverse(workerList);
+    }
+    workerList = workerList.subList(0, clusterLimit);
+
+    for (WorkerInfo worker : workerList) {
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
@@ -86,7 +105,7 @@ public final class StressBenchDefinition
 
     if (config.getArgs().stream().noneMatch((s) -> s.equals(BaseParameters.START_MS_FLAG))) {
       command.add(BaseParameters.START_MS_FLAG);
-      command.add(Long.toString((System.currentTimeMillis() + 5000)));
+      command.add(Long.toString((System.currentTimeMillis() + config.getStartDelayMs())));
     }
 
     command.addAll(args);

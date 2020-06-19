@@ -99,10 +99,24 @@ public abstract class Parameters {
 
         PathDescription pathAnnotation = field.getAnnotation(PathDescription.class);
         if (pathAnnotation != null) {
-          AlluxioURI uri = new AlluxioURI(fieldValue.toString());
-          description = uri.getScheme();
-          if (pathAnnotation.includeAuthority()) {
-            description += "-" + uri.getAuthority();
+          if (map.containsKey(pathAnnotation.aliasFieldName())) {
+            // if alias exists, ignore this field description and only display the alias
+            continue;
+          } else {
+            // show this description path
+            AlluxioURI uri = new AlluxioURI(fieldValue.toString());
+            description = uri.getScheme();
+            if (pathAnnotation.includeAuthority()) {
+              description += "-" + uri.getAuthority();
+            }
+          }
+        }
+
+        KeylessDescription keylessAnnotation = field.getAnnotation(KeylessDescription.class);
+        if (keylessAnnotation != null) {
+          description = fieldValue.toString();
+          if (description.isEmpty()) {
+            description = "_";
           }
         }
 
@@ -178,8 +192,21 @@ public abstract class Parameters {
   @Target({ElementType.FIELD})
   public @interface PathDescription {
     /**
+     * @return the field name that is the alias. If the alias exists, this description is skipped
+     */
+    String aliasFieldName() default "";
+
+    /**
      * @return true if the authority should be included in the path description
      */
     boolean includeAuthority() default true;
+  }
+
+  /**
+   * This annotation is for descriptions which do not display the key/name.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.FIELD})
+  public @interface KeylessDescription {
   }
 }

@@ -39,14 +39,14 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
     URIStatus statusA = sFileSystem.getStatus(uriA);
     URIStatus statusB = sFileSystem.getStatus(uriB);
-    Assert.assertFalse(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
     // Testing loading of a directory
     sFsShell.run("distributedLoad", "/testRoot");
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
-    Assert.assertTrue(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
 
   @Test
@@ -54,10 +54,10 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = sFileSystem.getStatus(uri);
-    Assert.assertFalse(status.getInMemoryPercentage() == 100);
+    Assert.assertNotEquals(100, status.getInMemoryPercentage());
     // Testing loading of a single file
     sFsShell.run("distributedLoad", "/testFile");
     status = sFileSystem.getStatus(uri);
-    Assert.assertTrue(status.getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, status.getInMemoryPercentage());
   }
 }

@@ -27,6 +27,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
@@ -58,7 +60,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
   /** A map from default property key's alias to the key. */
   private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new ConcurrentHashMap<>();
-
+  /** A cache storing result for template regexp matching results. */
+  private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
+      .maximumSize(1024)
+      .build();
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -841,7 +846,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
               + "ID can be found at the console address "
               + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
-              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
+              + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\". "
+              + "Unspecified owner id will map to a default empty username")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -1295,6 +1301,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION)
+          .setDefaultValue("0ms")
+          .setDescription("Alluxio master will allow only exclusive locking of "
+              + "the state-lock for this duration. This duration starts after masters "
+              + "are started for the first time. "
+              + "User RPCs will fail to acquire state-lock during this phase and "
+              + "a backup is guaranteed take the state-lock meanwhile.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("This controls whether RPCs that are waiting/holding state-lock "
+              + "in shared-mode will be interrupted while state-lock is taken exclusively.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
+          .setDefaultValue("15min")
+          .setDescription("Exclusive locking of the state-lock will timeout after "
+              + "this duration is spent on forced phase.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL)
+          .setDefaultValue("30sec")
+          .setDescription("The interval at which the RPCs that are waiting/holding state-lock "
+              + "in shared-mode will be interrupted while state-lock is taken exclusively.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -1319,6 +1360,80 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Backing up metadata requires a pause in master metadata changes, "
               + "so please set this value to an off-peak time "
               + "to avoid interfering with other users of the system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE)
+          .setDefaultValue("TIMEOUT")
+          .setDescription("Grace mode helps taking the state-lock exclusively for backup "
+              + "with minimum disruption to existing RPCs. This low-impact locking phase "
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
+              + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
+              + "with grace-cycle. "
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION)
+          .setDefaultValue("1m")
+          .setDescription("The duration that controls how long the state-lock is "
+              + "tried within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION)
+          .setDefaultValue("0")
+          .setDescription("The duration that controls how long the lock waiter "
+              + "sleeps within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
+      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT)
+          .setDefaultValue("1m")
+          .setDescription("The max duration for a grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE)
+          .setDefaultValue("FORCED")
+          .setDescription("Grace mode helps taking the state-lock exclusively for backup "
+              + "with minimum disruption to existing RPCs. This low-impact locking phase "
+              + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
+              + "TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lock"
+              + "with grace-cycle. "
+              + "FORCED: Means the state-lock will be taken forcefully if grace-cycle fails "
+              + "to acquire it. Forced phase might trigger interrupting of existing RPCs if "
+              + "it is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION)
+          .setDefaultValue("30s")
+          .setDescription("The duration that controls how long the state-lock is "
+              + "tried within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION)
+          .setDefaultValue("10m")
+          .setDescription("The duration that controls how long the lock waiter "
+              + "sleeps within a single grace-cycle.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
+      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
+          .setDefaultValue("12h")
+          .setDescription("The max duration for a grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1601,7 +1716,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4MB")
+          .setDefaultValue("100MB")
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
           .setScope(Scope.MASTER)
           .build();
@@ -1973,7 +2088,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
-          .setDefaultValue("3")
+          .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+              "The number of threads used by the active sync provider process active sync events."
+                  + " A higher number allow the master to use more CPU to process events from "
+                  + "an event stream in parallel. If this value is too low, Alluxio may fall "
+                  + "behind processing events. Defaults to # of processors / 2")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1998,6 +2117,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The max total duration to retry failed active sync operations."
               + "A large duration is useful to handle transient failures such as an "
               + "unresponsive under storage but can lock the inode tree being synced longer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
+          .setDefaultValue("1024")
+          .setDescription("The number of event batches that should be submitted together to a "
+              + "single thread for processing.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2424,11 +2552,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
-          .setDescription(
-              "Controls how many disk pairs are spinned during tier management tasks.")
+  public static final PropertyKey WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+      new Builder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use {CPU core count}/2 threads block transfer")
+          .setDescription("Puts a limit to how many block transfers are "
+              + "executed concurrently during management.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4809,12 +4938,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.connect.interval.max";
     public static final String MASTER_BACKUP_ABANDON_TIMEOUT =
         "alluxio.master.backup.abandon.timeout";
+    public static final String MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION =
+        "alluxio.master.backup.state.lock.exclusive.duration";
+    public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
+        "alluxio.master.backup.state.lock.interrupt.cycle.enabled";
+    public static final String MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+        "alluxio.master.backup.state.lock.forced.duration";
+    public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
+        "alluxio.master.backup.state.lock.interrupt.cycle.interval";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
+        "alluxio.master.shell.backup.state.lock.grace.mode";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
+        "alluxio.master.shell.backup.state.lock.try.duration";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION =
+        "alluxio.master.shell.backup.state.lock.sleep.duration";
+    public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
+        "alluxio.master.shell.backup.state.lock.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
+        "alluxio.master.daily.backup.state.lock.grace.mode";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
+        "alluxio.master.daily.backup.state.lock.try.duration";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
+        "alluxio.master.daily.backup.state.lock.sleep.duration";
+    public static final String MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
+        "alluxio.master.daily.backup.state.lock.timeout";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
         "alluxio.master.cluster.metrics.update.interval";
@@ -4980,6 +5133,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
     public static final String MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
         "alluxio.master.ufs.active.sync.retry.timeout";
+    public static final String MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
+        "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =
@@ -5059,8 +5214,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
-    public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
-        "alluxio.worker.management.tier.task.disk.parallelism";
+    public static final String WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
+        "alluxio.worker.management.block.transfer.concurrency.limit";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
         "alluxio.worker.management.tier.align.enabled";
     public static final String WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
@@ -5698,13 +5853,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     if (DEFAULT_KEYS_MAP.containsKey(input) || DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
     }
+    // Regex matching for templates can be expensive when checking properties frequently.
+    // Use a cache to store regexp matching results to reduce CPU overhead.
+    Boolean result = REGEXP_CACHE.getIfPresent(input);
+    if (result != null) {
+      return result;
+    }
     // Check if input matches any parameterized keys
+    result = false;
     for (Template template : Template.values()) {
       if (template.matches(input)) {
-        return true;
+        result = true;
+        break;
       }
     }
-    return false;
+    REGEXP_CACHE.put(input, result);
+    return result;
   }
 
   /**

@@ -257,6 +257,19 @@ resources:
   {{- end }}
 {{- end -}}
 
+{{- define "alluxio.worker.shortCircuit.volume" -}}
+  {{- if eq .Values.shortCircuit.volumeType "hostPath" }}
+        - name: alluxio-domain
+          hostPath:
+            path: {{ .Values.shortCircuit.hostPath }}
+            type: DirectoryOrCreate
+  {{- else }}
+        - name: alluxio-domain
+          persistentVolumeClaim:
+            claimName: "{{ .Values.shortCircuit.pvcName }}"
+  {{- end }}
+{{- end -}}
+
 {{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
   exec:

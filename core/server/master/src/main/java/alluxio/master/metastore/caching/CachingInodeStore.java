@@ -32,6 +32,7 @@ import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -299,7 +300,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
         for (Entry entry : entries) {
           Long inodeId = entry.mKey;
-          Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
+          Optional<RWLockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
           if (!lockOpt.isPresent()) {
             continue;
           }
@@ -435,7 +436,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
         for (Entry entry : entries) {
           Edge edge = entry.mKey;
-          Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
+          Optional<RWLockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
           if (!lockOpt.isPresent()) {
             continue;
           }
