@@ -46,7 +46,10 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
@@ -61,9 +64,12 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -553,6 +559,65 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    */
   @Deprecated
   protected abstract boolean isZookeeperMode();
+
+  @Override
+  protected RemoteIterator<LocatedFileStatus> listLocatedStatus(Path f, PathFilter filter)
+      throws FileNotFoundException, IOException {
+    return new RemoteIterator<LocatedFileStatus>() {
+      private final List<URIStatus> mStatusList = populateStatus();
+      private Iterator<URIStatus> it = mStatusList.iterator();
+
+      private List<URIStatus> populateStatus() {
+        try {
+          return mFileSystem.listStatus(getAlluxioPath(f)).stream()
+              .filter(s -> filter.accept(getFsPath(mAlluxioHeader, s))).collect(toList());
+        } catch (AlluxioException | IOException e) {
+          return Collections.emptyList();
+        }
+      }
+
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public LocatedFileStatus next() throws IOException {
+        if (!hasNext()) {
+          throw new NoSuchElementException("No more entry in " + f);
+        }
+        URIStatus status = it.next();
+
+        FileStatus fileStatus =
+            new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
+                status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
+                status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
+                status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
+
+        if (fileStatus.isDirectory()) {
+          // directories do not have locations
+          return new LocatedFileStatus(fileStatus, null);
+        }
+
+        // TODO(gpang): refactor out this because this is in common
+        List<BlockLocation> hadoopLocations = new ArrayList<>();
+        List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(status);
+        locations.forEach(location -> {
+          FileBlockInfo info = location.getBlockInfo();
+          List<WorkerNetAddress> workers = location.getLocations();
+          long offset = location.getBlockInfo().getOffset();
+          List<HostAndPort> addresses = workers.stream()
+              .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
+              .collect(toList());
+          String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
+          String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
+          hadoopLocations.add(new BlockLocation(names, hosts, offset,
+              info.getBlockInfo().getLength()));
+        });
+        return new LocatedFileStatus(fileStatus, hadoopLocations.toArray(new BlockLocation[0]));
+      }
+    };
+  }
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {

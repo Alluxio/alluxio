@@ -305,6 +305,8 @@ public interface FileSystem extends Closeable {
   List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  List<BlockLocationInfo> getBlockLocations(URIStatus status) throws IOException;
+
   /**
    * @return the configuration which the FileSystem is using to connect to Alluxio
    */
