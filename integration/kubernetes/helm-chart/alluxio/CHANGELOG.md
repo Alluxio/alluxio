@@ -101,4 +101,6 @@
 - Added inferring dnsPolicy from hostNetwork
 - Fixed one typo in ALLUXIO_CLIENT_JAVA_OPTS for FUSE
 - Fixed Fuse crash issue
-- Change master service to headless from NodePort
+- Changed master service to headless from NodePort
+- 
+
