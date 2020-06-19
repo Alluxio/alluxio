@@ -1267,14 +1267,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
-          .setDefaultValue("5sec")
+          .setDefaultValue("30sec")
           .setDescription("Request timeout for backup messaging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
-          .setDefaultValue("1sec")
+          .setDefaultValue("2sec")
           .setDescription("Interval at which follower updates the leader on ongoing backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
@@ -1282,20 +1282,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MIN =
       new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MIN)
           .setDefaultValue("1sec")
-          .setDescription("Minimum delay between each connection attempt to leader backup master.")
+          .setDescription("Minimum delay between each connection attempt to backup-leader.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MAX =
       new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MAX)
-          .setDefaultValue("10sec")
-          .setDescription("Maximum delay between each connection attempt to leader backup master.")
+          .setDefaultValue("30sec")
+          .setDescription("Maximum delay between each connection attempt to backup-leader.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_ABANDON_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
-          .setDefaultValue("2min")
+          .setDefaultValue("1min")
           .setDescription("Duration after which leader will abandon the backup"
               + " if not received heartbeat from backup-worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
