@@ -47,9 +47,8 @@ public class HdfsValidationTool implements ValidationTool {
     mUfsConf = ufsConf;
   }
 
-  private static List<ValidationUtils.TaskResult> validateUfs(String ufsPath,
-                                                              AlluxioConfiguration ufsConf)
-          throws InterruptedException {
+  private static List<ValidationUtils.TaskResult> validateUfs(
+          String ufsPath, AlluxioConfiguration ufsConf) throws InterruptedException {
     Map<String, String> validateOpts = ImmutableMap.of();
     ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
 
@@ -79,7 +78,7 @@ public class HdfsValidationTool implements ValidationTool {
   }
 
   @Override
-  public String runTests() throws Exception {
+  public String runTests() throws InterruptedException {
     // Run validateEnv
     List<ValidationUtils.TaskResult> results = validateUfs(mUfsPath, mUfsConf);
 
