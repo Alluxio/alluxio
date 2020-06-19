@@ -92,6 +92,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           {{- end }}
           envFrom:
           - configMapRef:
@@ -147,6 +153,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           {{- end }}
           envFrom:
           - configMapRef:
