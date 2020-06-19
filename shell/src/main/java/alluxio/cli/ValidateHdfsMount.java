@@ -11,16 +11,12 @@
 
 package alluxio.cli;
 
-import alluxio.cli.validation.ApplicableUfsType;
-import alluxio.cli.validation.ValidationTask;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import alluxio.util.ConfigurationUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -31,11 +27,8 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -83,53 +76,6 @@ public class ValidateHdfsMount {
   private static final Options OPTIONS =
           new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
                   .addOption(HELP_OPTION).addOption(OPTION_OPTION);
-
-  /**
-   * Runs the subset of tests based on the target UFS type.
-   * A validation task will run only if it matches the target type, or it matches all types.
-   *
-   * @param ufsPath the UFS path
-   * @param ufsConf the UFS configurations
-   * @return a list of task results for each task
-   * */
-  public static List<ValidationUtils.TaskResult> validateUfs(String ufsPath,
-                                                             AlluxioConfiguration ufsConf)
-          throws InterruptedException {
-    Map<String, String> validateOpts = ImmutableMap.of();
-    ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
-
-    List<ValidationUtils.TaskResult> results = new ArrayList<>();
-    for (Map.Entry<ValidationTask, String> entry : tasks.getTasks().entrySet()) {
-      ValidationTask task = entry.getKey();
-      Class clazz = task.getClass();
-      if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
-        ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
-        if (type.value() == ApplicableUfsType.Type.HDFS
-                || type.value() == ApplicableUfsType.Type.ALL) {
-          results.add(task.validate(validateOpts));
-        }
-      }
-    }
-    return results;
-  }
-
-  /**
-   * Invokes {@link UnderFileSystemContractTest} to validate UFS operations.
-   *
-   * @param path the UFS path
-   * @param conf the UFS conf
-   * @return a {@link alluxio.cli.ValidationUtils.TaskResult} containing the validation result
-   *        of the UFS operations
-   * */
-  public static ValidationUtils.TaskResult runUfsTests(String path, InstancedConfiguration conf) {
-    try {
-      UnderFileSystemContractTest test = new UnderFileSystemContractTest(path, conf);
-      return test.runValidationTask();
-    } catch (IOException e) {
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, "ufsTests",
-              ValidationUtils.getErrorInfo(e), "");
-    }
-  }
 
   /**
    * Print help with the message.
@@ -183,27 +129,18 @@ public class ValidateHdfsMount {
       LOG.debug("Options from cmdline: {}", properties);
     }
 
-    // Run validateEnv
-    List<ValidationUtils.TaskResult> results = validateUfs(ufsPath, ufsConf);
+    ValidationToolRegistry registry
+            = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    // Load hdfs validation tool from alluxio lib directory
+    registry.refresh();
 
-    // Run runUfsTests
-    if (ufsConf.isReadOnly()) {
-      LOG.debug("Ufs operations are skipped because the path is readonly.");
-      results.add(new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED,
-              UnderFileSystemContractTest.TASK_NAME,
-              String.format("UFS path %s is readonly, skipped UFS operation tests.", ufsPath),
-              ""));
-    } else {
-      results.add(runUfsTests(ufsPath, new InstancedConfiguration(ufsConf)));
-    }
+    Map<Object, Object> configMap = new HashMap<>();
+    configMap.put(ValidationConfig.UFS_PATH, ufsPath);
+    configMap.put(ValidationConfig.UFS_CONFIG, ufsConf);
 
-    // group by state
-    Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> map = new HashMap<>();
-    results.stream().forEach((r) -> {
-      map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
-    });
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    System.out.println(gson.toJson(map));
+    ValidationTool tests = registry.create(ValidationConfig.HDFS_TOOL_TYPE, configMap);
+    String result = tests.runTests();
+    System.out.println(result);
 
     System.exit(0);
   }

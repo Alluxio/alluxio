@@ -11,15 +11,17 @@
 
 package alluxio.cli;
 
-/**
- * The validation tool interface.
- */
-public interface ValidationTool {
+import org.apache.commons.cli.Option;
 
-  /**
-   * Runs validation tests.
-   *
-   * @return a json string of the test results
-   */
-  String runTests() throws InterruptedException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Abstract class for validation environment.
+ */
+public abstract class AbstractValidationTask implements ValidationTask {
+  @Override
+  public List<Option> getOptionList() {
+    return new ArrayList<>();
+  }
 }
