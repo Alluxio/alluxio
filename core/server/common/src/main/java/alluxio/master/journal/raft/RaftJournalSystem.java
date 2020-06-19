@@ -666,4 +666,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
   }
+
+  @Override
+  public String toString() {
+    return String.format("RaftJournalSystem, in quorum: {%s}", mConf.getClusterAddresses().stream()
+        .map(Object::toString).collect(Collectors.joining(",")));
+  }
 }

@@ -15,7 +15,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
-import alluxio.client.file.AlluxioEvent;
+import alluxio.AlluxioEvent;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -154,8 +154,12 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
-    AlluxioEvent.Master_Process_Starting.fire();
+    AlluxioEvent.MasterProcessStarting.fire();
+    // Start the journal system.
     mJournalSystem.start();
+    AlluxioEvent.JournalSystemStarted.fire(mJournalSystem);
+    // Assume leader.
+    AlluxioEvent.MasterIsPrimary.fire();
     mJournalSystem.gainPrimacy();
     startMasters(true);
     startServing();
@@ -163,7 +167,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    AlluxioEvent.Master_Process_Stopping.fire();
+    AlluxioEvent.MasterProcessStopping.fire();
     stopRejectingServers();
     if (isServing()) {
       stopServing();

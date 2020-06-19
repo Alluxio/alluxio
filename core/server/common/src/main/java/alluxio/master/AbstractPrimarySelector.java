@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioEvent;
 import alluxio.resource.LockResource;
 import alluxio.util.interfaces.Scoped;
 
@@ -57,6 +58,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
         mListeners.forEach(listener -> listener.get().accept(state));
       }
       LOG.info("Primary selector transitioning to {}", state);
+      AlluxioEvent.MasterIsTransitioning.fire(state.name());
     }
   }
 

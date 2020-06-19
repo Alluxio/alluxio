@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.AlluxioEvent;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
@@ -908,6 +909,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     registerWorkerInternal(workerId);
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    AlluxioEvent.WorkerRegistered.fire(worker.getWorkerAddress());
     LOG.info("registerWorker(): {}", worker);
   }
 
@@ -1129,6 +1131,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * @param worker the worker metadata
    */
   private void processLostWorker(MasterWorkerInfo worker) {
+    AlluxioEvent.WorkerLost.fire(worker.getWorkerAddress());
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();

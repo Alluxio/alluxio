@@ -212,4 +212,9 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       journal.checkpoint();
     }
   }
+
+  @Override
+  public String toString() {
+    return String.format("UfsJournalSystem, based at %s", mBase.toString());
+  }
 }

@@ -1,4 +1,4 @@
-package alluxio.client.file;
+package alluxio;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +13,14 @@ import org.slf4j.LoggerFactory;
  */
 public enum AlluxioEvent {
   // Alluxio master events.
-  Master_Process_Starting(1, EventType.INFO, "Master process starting."),
-  Master_Process_Stopping(2, EventType.INFO, "Master process stopping."),
-  // Alluxio worker events.
-  Worker_Process_Starting(3, EventType.INFO, "Worker process started."),
-  Worker_Process_Stopping(4, EventType.INFO, "Worker process stopping.");
+  MasterProcessStarting(1000, EventType.INFO, "Master process starting."),
+  JournalSystemStarted(1001, EventType.INFO, "Journal system started. %s"),
+  MasterIsPrimary(1002, EventType.INFO, "Master process is now the primary."),
+  MasterIsSecondary(1003, EventType.INFO, "Master process is now a secondary."),
+  MasterIsTransitioning(1004, EventType.INFO, "Master process is transitioning to become: %s"),
+  MasterProcessStopping(1005, EventType.INFO, "Master process stopping."),
+  WorkerRegistered(1006, EventType.INFO, "Worker registered: %s"),
+  WorkerLost(1007, EventType.INFO, "Worker lost: %s");
 
   // logger.
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEvent.class);
