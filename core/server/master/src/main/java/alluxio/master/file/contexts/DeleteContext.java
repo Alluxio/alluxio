@@ -27,8 +27,8 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    *
    * @param optionsBuilder options builder
    */
-  private DeleteContext(DeletePOptions.Builder optionsBuilder) {
-    super(optionsBuilder);
+  private DeleteContext(DeletePOptions.Builder optionsBuilder, CallTracker callTracker) {
+    super(optionsBuilder, callTracker);
   }
 
   /**
@@ -36,7 +36,17 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    * @return the instance of {@link DeleteContext} with given options
    */
   public static DeleteContext create(DeletePOptions.Builder optionsBuilder) {
-    return new DeleteContext(optionsBuilder);
+    return new DeleteContext(optionsBuilder, CallTracker.NOOP_TRACKER);
+  }
+
+  /**
+   * @param optionsBuilder Builder for proto {@link DeletePOptions}
+   * @param callTracker the call tracker
+   * @return the instance of {@link DeleteContext} with given options
+   */
+  public static DeleteContext create(DeletePOptions.Builder optionsBuilder,
+      CallTracker callTracker) {
+    return new DeleteContext(optionsBuilder, callTracker);
   }
 
   /**
