@@ -33,7 +33,7 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   public OperationContext(T optionsBuilder) {
     this(optionsBuilder, null);
     mOptionsBuilder = optionsBuilder;
-    mCallTracker = CallTracker.DISABLED_TRACKER;
+    mCallTracker = CallTracker.NOOP_TRACKER;
   }
 
   /**
@@ -55,6 +55,7 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   }
 
   /**
+   * TODO(ggezer): Make the call-tracker infra note the source of cancellation.
    * @return {@code true} if the call is cancelled by the client
    */
   public boolean isCancelled() {

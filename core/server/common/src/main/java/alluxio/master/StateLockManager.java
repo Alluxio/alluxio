@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -65,9 +66,11 @@ public class StateLockManager {
   /** Used to synchronize execution/termination of interrupt-cycle. */
   private Lock mInterruptCycleLock = new ReentrantLock(true);
   /** How many active exclusive locking attempts. */
-  private volatile long mInterruptCycleRefCount = 0;
+  private volatile int mInterruptCycleRefCount = 0;
   /** The future for the active interrupt cycle. */
   private ScheduledFuture<?> mInterrupterFuture;
+  /** Whether interrupt-cycle is entered. */
+  private AtomicBoolean mInterruptCycleTicking = new AtomicBoolean(false);
 
   /** This is the deadline for forcing the lock. */
   private long mForcedDurationMs;
@@ -218,6 +221,13 @@ public class StateLockManager {
   }
 
   /**
+   * @return {@code true} if the interrupt-cycle has been ticked and ticking
+   */
+  public boolean interruptCycleTicking() {
+    return mInterruptCycleTicking.get();
+  }
+
+  /**
    * Schedules the cycle of interrupting state-lock waiters/holders.
    * It's called when:
    *  - Lock is acquired by grace-cycle
@@ -259,6 +269,7 @@ public class StateLockManager {
       }
       // Cancel the cycle.
       mInterrupterFuture.cancel(true);
+      mInterruptCycleTicking.set(false);
       LOG.info("Interrupt cycle deactivated.");
       mInterrupterFuture = null;
     }
@@ -268,6 +279,7 @@ public class StateLockManager {
    * Scheduled routine that interrupts waiters/holders of shared lock.
    */
   private void waiterInterruptRoutine() {
+    mInterruptCycleTicking.set(true);
     // Keeping a list of interrupted threads for logging consistently at the end.
     List<Thread> interruptedThreads = new ArrayList(mSharedWaitersAndHolders.size());
     // Interrupt threads that are registered under shared lock.

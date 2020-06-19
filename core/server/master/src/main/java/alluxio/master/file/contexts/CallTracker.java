@@ -21,18 +21,6 @@ public interface CallTracker {
   boolean isCancelled();
 
   /**
-   * Used when call tracking should not be enabled.
-   * Invoking it will throw a runtime exception.
-   *
-   * This tracker will be used as default for service implementations that are not modified
-   * for tracking. That way using the tracking functionality without making proper
-   * modifications will throw exceptions.
-   */
-  CallTracker DISABLED_TRACKER = () -> {
-    throw new IllegalStateException("Call tracking is not supported.");
-  };
-
-  /**
    * Used when call tracking is not desired.
    * It will always return @{code false}.
    *
