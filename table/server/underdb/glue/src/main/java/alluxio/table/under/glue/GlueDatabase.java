@@ -393,8 +393,8 @@ public class GlueDatabase implements UnderDatabase {
         GetPartitionsResult getPartitionsResult = glueClient.getPartitions(getPartitionsRequest);
         partitions.addAll(getPartitionsResult.getPartitions());
         nextToken = getPartitionsResult.getNextToken();
-        LOG.debug("Glue table {}.{} added {} partitions.",
-            mGlueDbName, tableName, partitions.size());
+        LOG.debug("Glue table {}.{} adding {} batch partitions with total {} partitions.",
+            mGlueDbName, tableName, getPartitionsResult.getPartitions().size(), partitions.size());
       } while (nextToken != null);
 
       if (partitions != null) {

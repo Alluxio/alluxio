@@ -144,7 +144,7 @@ public class Property extends UdbProperty {
 
   public static final Property MAX_GLUE_FETCH_PARTITIONS =
       new Builder(Name.MAX_GLUE_FETCH_PARTITIONS)
-          .setDefaultValue("256")
+          .setDefaultValue("512")
           .setDescription("The maximum number of partitions to return in a single response.")
           .build();
 
