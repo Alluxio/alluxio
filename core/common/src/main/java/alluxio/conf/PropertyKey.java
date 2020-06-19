@@ -2143,7 +2143,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       new Builder(Name.MASTER_UPDATE_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(ProjectConstants.UPDATE_CHECK_ENABLED)
           .setDescription("Whether to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
