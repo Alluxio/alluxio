@@ -11,15 +11,27 @@
 
 package alluxio.cli;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
- * The validation tool interface.
- */
-public interface ValidationTool {
+ * An enum standing for a UFS type.
+ * */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ApplicableUfsType {
+  /**
+   * Gets the value.
+   *
+   * @return the UFS type
+   * */
+  Type value() default Type.ALL;
 
   /**
-   * Runs validation tests.
-   *
-   * @return a json string of the test results
-   */
-  String runTests() throws InterruptedException;
+   * UFS types.
+   * */
+  enum Type {
+    ALL,
+    HDFS,
+    OBJECT
+  }
 }
