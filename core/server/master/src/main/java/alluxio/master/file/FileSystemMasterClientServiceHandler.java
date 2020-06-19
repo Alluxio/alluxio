@@ -257,7 +257,7 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountInfo();
+      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));

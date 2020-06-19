@@ -740,7 +740,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     try (RpcContext rpcContext = createRpcContext()) {
       /*
       In order to prevent locking twice on RPCs where metadata does _not_ need to be loaded, we use
-      a two-phase scheme as an optimization to prevent the extra lock. loadMetadataIfNotExists
+      a two-step scheme as an optimization to prevent the extra lock. loadMetadataIfNotExists
       requires a lock on the tree to determine if the path should be loaded before executing. To
       prevent the extra lock, we execute the RPC as normal and use a conditional check in the
       main body of the function to determine whether control flow should be shifted out of the
@@ -812,17 +812,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
       /*
-      In order to prevent locking twice on RPCs where metadata does _not_ need to be loaded, we use
-      a two-phase scheme as an optimization to prevent the extra lock. loadMetadataIfNotExists
-      requires a lock on the tree to determine if the path should be loaded before executing. To
-      prevent the extra lock, we execute the RPC as normal and use a conditional check in the
-      main body of the function to determine whether control flow should be shifted out of the
-      RPC logic and back to the loadMetadataIfNotExists function.
-
-      If loadMetadataIfNotExists runs, then the next pass into the main logic body should
-      continue as normal. This may present a slight decrease in performance for newly-loaded
-      metadata, but it is better than affecting the most common case where metadata is not being
-      loaded.
+      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -863,8 +853,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ret = fileInfo;
         }
       }
-      return Preconditions.checkNotNull(ret,
-          "fileInfo returned should not be null. This is a bug.");
+      return ret;
     }
   }
 
@@ -950,17 +939,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
       }
       /*
-      In order to prevent locking twice on RPCs where metadata does _not_ need to be loaded, we use
-      a two-phase scheme as an optimization to prevent the extra lock. loadMetadataIfNotExists
-      requires a lock on the tree to determine if the path should be loaded before executing. To
-      prevent the extra lock, we execute the RPC as normal and use a conditional check in the
-      main body of the function to determine whether control flow should be shifted out of the
-      RPC logic and back to the loadMetadataIfNotExists function.
-
-      If loadMetadataIfNotExists runs, then the next pass into the main logic body should
-      continue as normal. This may present a slight decrease in performance for newly-loaded
-      metadata, but it is better than affecting the most common case where metadata is not being
-      loaded.
+      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
        */
       DescendantType loadDescendantType;
       if (context.getOptions().getLoadMetadataType() == LoadMetadataPType.NEVER) {
@@ -1534,7 +1513,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountInfo() {
+  public Map<String, MountPointInfo> getMountPointInfoSummary() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
@@ -2591,29 +2570,25 @@ public final class DefaultFileSystemMaster extends CoreMaster
   /**
    * Loads metadata for the path if it is (non-existing || load direct children is set).
    *
+   * See {@link #shouldLoadMetadataIfNotExists(LockedInodePath, LoadMetadataContext)}.
+   *
    * @param rpcContext the rpc context
-   * @param context the load metadata context
+   * @param path the path to load metadata for
+   * @param context the {@link LoadMetadataContext}
+   * @param isGetFileInfo whether this is loading for a {@link #getFileInfo} call
    */
   private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
       LoadMetadataContext context, boolean isGetFileInfo)
       throws InvalidPathException, AccessControlException {
-    LockingScheme scheme = new LockingScheme(path, LockPattern.READ, false);
-    boolean lm;
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
-      lm = shouldLoadMetadataIfNotExists(inodePath, context);
-    }
-
-    if (lm) {
-      DescendantType syncDescendantType =
-          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
-      FileSystemMasterCommonPOptions commonOptions =
-          context.getOptions().getCommonOptions();
-      // load metadata only and force sync
-      InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
-          this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true);
-      if (!sync.sync()) {
-        LOG.debug("Failed to load metadata for path from UFS: {}", path);
-      }
+    DescendantType syncDescendantType =
+        GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
+    FileSystemMasterCommonPOptions commonOptions =
+        context.getOptions().getCommonOptions();
+    // load metadata only and force sync
+    InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
+        this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true);
+    if (!sync.sync()) {
+      LOG.debug("Failed to load metadata for path from UFS: {}", path);
     }
   }
 
