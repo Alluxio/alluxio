@@ -11,14 +11,11 @@
 
 package alluxio.stress.cli.suite;
 
+import alluxio.stress.BaseParameters;
 import alluxio.stress.Summary;
 
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Base class for all benchmark suites.
@@ -28,21 +25,6 @@ import java.util.List;
 public abstract class Suite<T extends Summary> {
   @ParametersDelegate
   protected BaseParameters mBaseParameters = new BaseParameters();
-
-  private static final class BaseParameters {
-    static final String CLUSTER_FLAG = "--cluster";
-
-    @Parameter(names = {CLUSTER_FLAG},
-        description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "
-            + "locally.")
-    public boolean mCluster = false;
-
-    @Parameter(names = {"--java-opt"},
-        description = "The java options to add to the command line to for the task. This can be "
-            + "repeated. The options must be quoted and prefixed with a space, to avoid getting "
-            + "passed to the JVM. For example: --java-opt \" -Xmx4g\" --java-opt \" -Xms2g\"")
-    public List<String> mJavaOpts = new ArrayList<>();
-  }
 
   /**
    * Runs the suite.
