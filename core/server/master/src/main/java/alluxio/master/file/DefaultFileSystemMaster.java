@@ -58,6 +58,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.wire.JobInfo;
+import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
@@ -68,6 +69,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CompositeCallTracker;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
@@ -378,6 +380,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private AccessTimeUpdater mAccessTimeUpdater;
 
+  /** Used to check pending/running backup from RPCs. */
+  private CallTracker mStateLockCallTracker;
+
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -435,6 +440,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
         : Collections.emptyList();
 
+    mStateLockCallTracker = () -> masterContext.getStateLockManager().interruptCycleTicking();
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
@@ -989,7 +995,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       UnavailableException, AccessControlException, InvalidPathException {
     // Fail if the client has cancelled the rpc.
     if (context.isCancelled()) {
-      throw new RuntimeException("Call cancelled by the client.");
+      throw new RuntimeException("Call cancelled.");
     }
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
@@ -1644,6 +1650,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+        // Fail if the client has cancelled the rpc.
+        if (deleteContext.isCancelled()) {
+          throw new RuntimeException("Call cancelled.");
+        }
         Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
         Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
@@ -2968,7 +2978,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         for (LockedInodePath childPath : descendants) {
           // Fail if the client has cancelled the rpc.
           if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled by the client.");
+            throw new RuntimeException("Call cancelled.");
           }
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
@@ -3092,7 +3102,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         for (LockedInodePath childPath : descendants) {
           // Fail if the client has cancelled the rpc.
           if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled by the client.");
+            throw new RuntimeException("Call cancelled.");
           }
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }
@@ -4259,6 +4269,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
     throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
+  }
+
+  @Override
+  public CallTracker composeCallTracker(CallTracker transportTracker) {
+    return new CompositeCallTracker(transportTracker, mStateLockCallTracker);
   }
 
   /**

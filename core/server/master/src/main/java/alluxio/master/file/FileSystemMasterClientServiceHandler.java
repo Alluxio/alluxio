@@ -221,8 +221,10 @@ public final class FileSystemMasterClientServiceHandler
     try {
       RpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
-        mFileSystemMaster.listStatus(pathUri, ListStatusContext.create(
-            request.getOptions().toBuilder(), new GrpcCallTracker(responseObserver)), resultStream);
+        mFileSystemMaster.listStatus(pathUri,
+            ListStatusContext.create(request.getOptions().toBuilder(),
+                mFileSystemMaster.composeCallTracker(new GrpcCallTracker(responseObserver))),
+            resultStream);
         // Return just something.
         return null;
       }, "ListStatus", false, "request: %s", request);
@@ -281,7 +283,8 @@ public final class FileSystemMasterClientServiceHandler
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder()));
+      mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder(),
+          mFileSystemMaster.composeCallTracker(new GrpcCallTracker(responseObserver))));
       return DeletePResponse.newBuilder().build();
     }, "Remove", "request=%s", responseObserver, request);
   }
@@ -322,8 +325,9 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<SetAttributePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      mFileSystemMaster.setAttribute(pathUri, SetAttributeContext
-          .create(request.getOptions().toBuilder(), new GrpcCallTracker(responseObserver)));
+      mFileSystemMaster.setAttribute(pathUri,
+          SetAttributeContext.create(request.getOptions().toBuilder(),
+              mFileSystemMaster.composeCallTracker(new GrpcCallTracker(responseObserver))));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "request=%s", responseObserver, request);
   }
@@ -382,7 +386,7 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.setAcl(pathUri, request.getAction(),
           request.getEntriesList().stream().map(GrpcUtils::fromProto).collect(Collectors.toList()),
           SetAclContext.create(request.getOptions().toBuilder(),
-              new GrpcCallTracker(responseObserver)));
+              mFileSystemMaster.composeCallTracker(new GrpcCallTracker(responseObserver))));
       return SetAclPResponse.newBuilder().build();
     }, "setAcl", "request=%s", responseObserver, request);
   }
