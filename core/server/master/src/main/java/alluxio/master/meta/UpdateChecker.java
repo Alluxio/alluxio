@@ -51,7 +51,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
         mMetaMaster.setNewerVersionAvailable(true);
       }
     } catch (Throwable t) {
-      LOG.debug("Unable to check for updates: {}", t);
+      LOG.debug("Unable to check for updates:", t);
     }
   }
 

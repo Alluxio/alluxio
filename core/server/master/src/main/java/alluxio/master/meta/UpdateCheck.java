@@ -55,7 +55,7 @@ public final class UpdateCheck {
 
     HttpGet post = new HttpGet(url);
     post.setHeader("User-Agent", getUserAgentString(clusterID));
-    post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_AUTH_STRING);
+    post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_MAGIC_NUMBER);
 
     // Fire off the version check request.
     HttpClient client = HttpClientBuilder.create()
