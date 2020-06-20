@@ -106,3 +106,7 @@
 - Fixed Fuse crash issue
 - Changed master service to headless from NodePort
 - Made the single master access itself without service
+
+0.6.5
+
+- Removed alluxio worker hostname from ALLUXIO_JAVA_OPTS
