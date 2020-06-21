@@ -343,8 +343,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     // Debug:
     if (pos > mPos && (pos - mPos) < Constants.MB) {
-      readInternal(mSeekBuffer, 0, (int) (pos - mPos));
-      return;
+      // readInternal(mSeekBuffer, 0, (int) (pos - mPos));
+      // return;
     }
     closeDataReader();
     mPos = pos;
