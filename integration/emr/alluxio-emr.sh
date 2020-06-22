@@ -685,6 +685,10 @@ IN
       fi
 
       if [[ "${sync_list}" ]]; then
+        until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
+        do
+          sleep 5
+        done
         IFS="${delimiter}" read -ra paths <<< "${sync_list}"
         for path in "${paths[@]}"; do
           ${ALLUXIO_HOME}/bin/alluxio fs startSync "${path}"
