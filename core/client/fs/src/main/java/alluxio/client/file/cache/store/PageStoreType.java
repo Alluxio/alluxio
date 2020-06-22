@@ -16,6 +16,10 @@ package alluxio.client.file.cache.store;
  */
 public enum PageStoreType {
     /**
+     * A simple store using Java memory to store pages.
+     */
+    MEMORY,
+    /**
      * A simple store with pages on the local filesystem.
      */
     LOCAL,

@@ -38,6 +38,9 @@ public abstract class PageStoreOptions {
       case ROCKS:
         options = new RocksPageStoreOptions();
         break;
+      case MEMORY:
+        options = new MemoryPageStoreOptions();
+        break;
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));

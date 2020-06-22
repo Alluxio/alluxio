@@ -75,6 +75,9 @@ public class LocalPageStore implements PageStore {
           "parent of cache file should not be null");
       Files.createDirectories(parent);
       Files.createFile(p);
+    } else {
+      Files.delete(p);
+      LOG.warn("Overwriting page {} at {}", pageId, p);
     }
     try {
       // extra try to ensure output stream is closed
@@ -109,7 +112,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
