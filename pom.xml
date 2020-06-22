@@ -556,7 +556,7 @@
       <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
-        <version>0.23.0</version>
+        <version>1.4.3</version>
         <exclusions>
           <!-- Excluded to avoid conflict with the version Alluxio uses. -->
           <exclusion>
