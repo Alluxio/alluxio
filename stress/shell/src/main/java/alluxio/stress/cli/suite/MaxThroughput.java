@@ -189,6 +189,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       case GetBlockLocations: // initial state requires createFile
       case GetFileStatus:     // initial state requires createFile
       case ListDir:           // initial state requires createFile
+      case ListDirLocated:    // initial state requires createFile
       case OpenFile:          // initial state requires createFile
         createFiles(mParameters.mFixedCount, args);
         break;
@@ -218,6 +219,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       case GetBlockLocations: // do nothing
       case GetFileStatus:     // do nothing
       case ListDir:           // do nothing
+      case ListDirLocated:    // do nothing
       case OpenFile:          // do nothing
       case CreateDir:         // do nothing
       default:

@@ -29,7 +29,7 @@ public final class MasterBenchParameters extends Parameters {
 
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, RenameFile, DeleteFile]",
+          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
       required = true)
   public Operation mOperation;
 
