@@ -45,7 +45,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
       String latestVersion =
           UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), 3000, 3000, 3000);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
-        System.out.println("The latest version (" + latestVersion + ") is not the same "
+        LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
             + "visit https://www.alluxio.io/download/.");
         mMetaMaster.setNewerVersionAvailable(true);
