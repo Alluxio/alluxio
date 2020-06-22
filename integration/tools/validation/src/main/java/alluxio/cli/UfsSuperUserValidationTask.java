@@ -11,11 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Strings;
 
@@ -27,7 +25,7 @@ import java.util.Map;
  */
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public final class UfsSuperUserValidationTask extends AbstractValidationTask {
-  private final UnderFileSystem mUfs;
+  private final AlluxioConfiguration mConf;
   private final String mPath;
 
   /**
@@ -39,7 +37,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
    */
   public UfsSuperUserValidationTask(String path, AlluxioConfiguration conf) {
     mPath = path;
-    mUfs = UnderFileSystem.Factory.create(mPath, conf);
+    mConf = conf;
   }
 
   @Override
@@ -52,15 +50,17 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
-    if (!UnderFileSystemUtils.isHdfs(mUfs)) {
+    if (!ValidationUtils.isHdfsScheme(mPath)) {
       // only support check on HDFS for now
       msg.append(String.format("Under file system is not HDFS. Skip validation. "));
       return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
               msg.toString(), advice.toString());
     }
     UfsStatus status;
+    UnderFileSystem ufs;
     try {
-      status = mUfs.getStatus(mPath);
+      ufs = UnderFileSystem.Factory.create(mPath, mConf);
+      status = ufs.getStatus(mPath);
       if (status == null) {
         msg.append(String.format("Unable to get status for under file system path %s. ", mPath));
         advice.append(String.format("Please check your path %s. ", mPath));
@@ -73,7 +73,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
         return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
                 msg.toString(), advice.toString());
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s.", mPath,
           e.getMessage()));
       msg.append(ValidationUtils.getErrorInfo(e));
@@ -81,7 +81,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
               msg.toString(), advice.toString());
     }
     try {
-      mUfs.setOwner(mPath, status.getOwner(), status.getGroup());
+      ufs.setOwner(mPath, status.getOwner(), status.getGroup());
       msg.append(String.format("User has superuser privilege to path %s.%n", mPath));
       return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
               msg.toString(), advice.toString());
