@@ -507,7 +507,7 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * Prints pool size and available clients
+   * Prints pool size and available clients.
    */
   public void printAvailableBlockWorkerClient() {
     if (mBlockWorkerClientPoolMap == null) {

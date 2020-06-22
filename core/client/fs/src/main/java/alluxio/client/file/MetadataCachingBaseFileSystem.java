@@ -114,7 +114,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
    */
   @VisibleForTesting
   public void asyncUpdateFileAccessTime(AlluxioURI path) {
-    if (mDisableUpdateFileAccessTime){
+    if (mDisableUpdateFileAccessTime) {
       return;
     }
     try {
