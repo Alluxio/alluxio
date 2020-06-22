@@ -2673,46 +2673,6 @@ public final class FileSystemMasterTest {
             GetStatusContext.defaults()).getPersistenceState());
   }
 
-//  @Test
-//  public void testConflictingListStatuses() throws Exception {
-//    stopServices();
-//    ServerConfiguration.set(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE, "1");
-//    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
-//    AuthenticatedClientUser.set("test");
-//    startServices();
-//    String longPath = "/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a";
-//    ExecutorService svc = Executors.newSingleThreadExecutor();
-//    mFileSystemMaster.createDirectory(new AlluxioURI(longPath), CreateDirectoryContext
-//        .mergeFrom(
-//            CreateDirectoryPOptions.newBuilder()
-//                .setCommonOptions(FileSystemMasterCommonPOptions
-//                  .newBuilder().setSyncIntervalMs(0))
-//                .setRecursive(true)
-//            .setWriteType(WritePType.CACHE_THROUGH)
-//        ));
-//    Future<?> f = svc.submit(() -> {
-//      AuthenticatedClientUser.set("test");
-//      try {
-//        mFileSystemMaster.listStatus(new AlluxioURI("/a"),
-//            ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
-//                .setCommonOptions(FileSystemMasterCommonPOptions
-                    // .newBuilder().setSyncIntervalMs(0))
-//                .setRecursive(true)));
-//      } catch (AccessControlException e) {
-//        e.printStackTrace();
-//      } catch (FileDoesNotExistException e) {
-//        e.printStackTrace();
-//      } catch (InvalidPathException e) {
-//        e.printStackTrace();
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//      }
-//    });
-// //    Thread.sleep(250);
-//    mFileSystemMaster.listStatus(new AlluxioURI("/a/b"),
-//        ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)));
-//  }
-
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileContext);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
