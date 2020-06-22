@@ -14,79 +14,69 @@ package alluxio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * Defines and Manages well-known Alluxio events.
- *
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * !!! - Keep increasing the event-id for new events. !!!
- * !!! - Don't reassign event ids.                    !!!
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 public enum AlluxioEvent {
-  // Alluxio master events.
-  MasterProcessStarting(1000, EventType.INFO, "Master process starting."),
-  JournalSystemStarted(1001, EventType.INFO, "Journal system started. %s"),
-  MasterIsPrimary(1002, EventType.INFO, "Master process is now the primary."),
-  MasterIsSecondary(1003, EventType.INFO, "Master process is now a secondary."),
-  MasterIsTransitioning(1004, EventType.INFO, "Master process is transitioning to become: %s"),
-  MasterProcessStopping(1005, EventType.INFO, "Master process stopping."),
-  WorkerRegistered(1006, EventType.INFO, "Worker registered: %s"),
-  WorkerLost(1007, EventType.INFO, "Worker lost: %s");
+  // [1000,2000) Alluxio process events.
+  MasterProcessStarting(1000, "Master process starting."),
+  JournalSystemStarted(1001, "Journal system started."),
+  MasterIsPrimary(1002, "Master process is now the primary."),
+  MasterIsSecondary(1003, "Master process is now a secondary."),
+  MasterIsTransitioning(1004, "Master process is transitioning to become."),
+  MasterProcessStopping(1005, "Master process stopping."),
+  // [2000,3000) Alluxio fs master events.
+  // [3000,4000) Alluxio block master events.
+  WorkerRegistered(3000, "Worker registered."),
+  WorkerLost(3001, "Worker lost.");
+  // [4000,5000) Alluxio meta master events.
+  // [5000,6000) Alluxio table master events.
 
   // logger.
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEvent.class);
 
   /** The unique event id. */
   private final int mId;
-  /** The event type. */
-  private final EventType mEventType;
   /** The message string format. */
-  private final String mMsgFormat;
+  private final String mMessage;
 
   /**
    * Creates new Alluxio event type.
    *
    * @param eventId the unique event id
-   * @param eventType the event type
-   * @param msgFormat the event message (format string)
+   * @param message the event message
    */
-  AlluxioEvent(int eventId, EventType eventType, String msgFormat) {
+  AlluxioEvent(int eventId, String message) {
     mId = eventId;
-    mEventType = eventType;
-    mMsgFormat = msgFormat;
+    mMessage = message;
+  }
+
+  /**
+   * @return the event id
+   */
+  public int getId() {
+    return mId;
+  }
+
+  /**
+   * @return the event message
+   */
+  public String getMessage() {
+    return mMessage;
   }
 
   /**
    * Fires the event.
    *
-   * @param args arguments to event message string
+   * @param additionalInfo additional information to include in the event
    */
-  public void fire(Object... args) {
-    String msgString = String.format(mMsgFormat, args);
-    String eventString = String.format("Id: %d, Name: %s, Message:%s", mId, this.name(), msgString);
-    switch (mEventType) {
-      case INFO:
-        LOG.info(eventString);
-        break;
-      case ERROR:
-        LOG.error(eventString);
-        break;
-      case WARNING:
-        LOG.warn(eventString);
-        break;
-      case DIAGNOSTIC:
-        LOG.debug(eventString);
-        break;
-      default:
-        throw new IllegalArgumentException(
-            String.format("Unrecognized event type: %s", mEventType.name()));
-    }
-  }
-
-  /**
-   * Defines event levels.
-   */
-  enum EventType {
-    INFO, WARNING, ERROR, DIAGNOSTIC
+  public void fire(Object... additionalInfo) {
+    String eventString = String.format("Id: %d, Name: %s, Message:%s, AdditionalInfo: %s",
+        mId, this.name(), mMessage,
+        Arrays.stream(additionalInfo).map(Object::toString).collect(Collectors.joining(",")));
+    LOG.info(eventString);
   }
 }
