@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.AlluxioURI;
+
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -152,5 +154,19 @@ public final class ValidationUtils {
     StringWriter errors = new StringWriter();
     t.printStackTrace(new PrintWriter(errors));
     return errors.toString();
+  }
+
+  /**
+   * Checks if a path is HDFS.
+   *
+   * @param path the UFS path
+   * @return true if the path is HDFS
+   * */
+  public static boolean isHdfsScheme(String path) {
+    String scheme = new AlluxioURI(path).getScheme();
+    if (scheme == null || !scheme.startsWith("hdfs")) {
+      return false;
+    }
+    return true;
   }
 }

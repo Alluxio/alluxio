@@ -91,7 +91,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
 
   @Override
   public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
-    if (!HdfsConfValidationTask.isHdfsScheme(mPath)) {
+    if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append("Skip this check as the UFS is not HDFS.\n");
       return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());

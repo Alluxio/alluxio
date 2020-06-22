@@ -85,6 +85,10 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   private IOTaskResult runIOBench(ExecutorService pool) throws Exception {
     IOTaskResult writeTaskResult = write(pool);
+    if (writeTaskResult.getPoints().size() == 0) {
+      LOG.error("Failed to write any files. Abort the test.");
+      return writeTaskResult;
+    }
     IOTaskResult readTaskResult = read(pool);
     cleanUp();
     return writeTaskResult.merge(readTaskResult);
@@ -110,10 +114,20 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
             .createMountSpecificConf(mHdfsConf);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
-    if (!ufs.exists(mParameters.mPath)) {
-      // If the directory does not exist, there's no point proceeding
-      throw new IOException(String.format("The target directory %s does not exist!",
-              mParameters.mPath));
+    try {
+      if (!ufs.exists(mParameters.mPath)) {
+        // If the directory does not exist, there's no point proceeding
+        throw new IOException(String.format("The target directory %s does not exist!",
+                mParameters.mPath));
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to access UFS path {}", mParameters.mPath);
+      // If the UFS path is not valid, abort the test
+      IOTaskResult result = new IOTaskResult();
+      result.setParameters(mParameters);
+      result.setBaseParameters(mBaseParameters);
+      result.addError(e.getMessage());
+      return result;
     }
 
     List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
@@ -144,7 +158,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                   duration, readBytes);
           result.addPoint(p);
           LOG.debug("Read task finished {}", p);
-        } catch (IOException e) {
+        } catch (Exception e) {
           LOG.error("Failed to read {}", filePath, e);
           result.addError(e.getMessage());
         } finally {
@@ -184,9 +198,19 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
             .createMountSpecificConf(mHdfsConf);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
-    if (!ufs.exists(mParameters.mPath)) {
-      LOG.debug("Prepare directory {}", mParameters.mPath);
-      ufs.mkdirs(mParameters.mPath);
+    try {
+      if (!ufs.exists(mParameters.mPath)) {
+        LOG.debug("Prepare directory {}", mParameters.mPath);
+        ufs.mkdirs(mParameters.mPath);
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to access UFS path {}", mParameters.mPath);
+      // If the UFS path is not valid, abort the test
+      IOTaskResult result = new IOTaskResult();
+      result.setParameters(mParameters);
+      result.setBaseParameters(mBaseParameters);
+      result.addError(e.getMessage());
+      return result;
     }
 
     List<CompletableFuture<IOTaskResult>> futures = new ArrayList<>();
@@ -220,7 +244,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
                   duration, wroteBytes);
           result.addPoint(p);
           LOG.debug("Write task finished {}", p);
-        } catch (IOException e) {
+        } catch (Exception e) {
           LOG.error("Failed to write to UFS: ", e);
           result.addError(e.getMessage());
         } finally {
