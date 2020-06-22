@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 
@@ -100,7 +101,7 @@ public final class WorkerWebServer extends WebServer {
         errorHandler.addErrorPage(404, "/");
         mServletContextHandler.setErrorHandler(errorHandler);
       }
-    } catch (MalformedURLException e) {
+    } catch (IOException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }
   }
