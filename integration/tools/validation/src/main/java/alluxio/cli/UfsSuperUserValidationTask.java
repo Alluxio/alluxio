@@ -11,11 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Strings;
 
