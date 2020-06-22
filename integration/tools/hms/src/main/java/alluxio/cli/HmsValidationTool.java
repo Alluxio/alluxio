@@ -27,7 +27,6 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -118,7 +117,7 @@ public class HmsValidationTool implements ValidationTool {
       try {
         getDatabaseTest();
         if (mTables != null && !mTables.isEmpty()) {
-          getTableObjectsTest(Arrays.asList(mTables.split(",")));
+          getTableSchemaTest(Arrays.asList(mTables.split(",")));
         } else {
           getAllTableInfoTest();
         }
@@ -315,28 +314,11 @@ public class HmsValidationTool implements ValidationTool {
     if (tables.size() > GET_TABLE_OBJECT_THRESHOLD) {
       tables = tables.subList(0, GET_TABLE_OBJECT_THRESHOLD);
     }
-    getTableObjectsTest(tables);
+    getTableSchemaTest(tables);
   }
 
-  private void getTableObjectsTest(List<String> tableNames) {
-    String opTarget = "tables: " + String.join(",", tableNames);
-    String testName = "GetTableObjectsByName";
-    try {
-      // This call may take too long if the database contains hundred thousands of tables
-      // and the network between hms and client is really bad
-      List<Table> tables = mClient.getTableObjectsByName(mDatabase, tableNames);
-      StringBuilder tableLocations = new StringBuilder();
-      for (Table table : tables) {
-        tableLocations.append(String.format("Table (name: %s, location: %s)%n",
-            table.getTableName(), table.getSd().getLocation()));
-      }
-      mResults.computeIfAbsent(State.OK, k -> new ArrayList<>()).add(
-          new TaskResult(State.OK, testName, tableLocations.toString(), ""));
-    } catch (Throwable t) {
-      addThrowableWarning(testName, t, opTarget);
-    }
-
-    testName = "GetTableSchema";
+  private void getTableSchemaTest(List<String> tableNames) {
+    String testName = "GetTableSchema";
     try {
       StringBuilder tableFieldsOutput = new StringBuilder();
       for (String table : tableNames) {
@@ -348,7 +330,7 @@ public class HmsValidationTool implements ValidationTool {
       mResults.computeIfAbsent(State.OK, k -> new ArrayList<>()).add(
           new TaskResult(State.OK, testName, tableFieldsOutput.toString(), ""));
     } catch (Throwable t) {
-      addThrowableWarning(testName, t, opTarget);
+      addThrowableWarning(testName, t, "tables: " + String.join(",", tableNames));
     }
   }
 
