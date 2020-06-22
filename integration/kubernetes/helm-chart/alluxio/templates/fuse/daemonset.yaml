@@ -41,6 +41,7 @@ spec:
         role: alluxio-fuse
     spec:
       hostNetwork: {{ .Values.fuse.hostNetwork }}
+      hostPID: {{ .Values.fuse.hostPID }}
       dnsPolicy: {{ .Values.fuse.dnsPolicy }}
       nodeSelector:
       {{- if .Values.fuse.nodeSelector }}
