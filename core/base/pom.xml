@@ -62,5 +62,11 @@
       <artifactId>alluxio-core-transport</artifactId>
       <version>${project.version}</version>
     </dependency>
+      <dependency>
+          <groupId>br.com.simbiose</groupId>
+          <artifactId>debug_log</artifactId>
+          <version>0.0.1</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 </project>
