@@ -679,11 +679,13 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
-
       if [[ "${backup_uri}" ]]; then
         register_backup_on_shutdown "${backup_uri}"
       fi
-
+      until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
+      do
+        sleep 5
+      done
       if [[ "${sync_list}" ]]; then
         IFS="${delimiter}" read -ra paths <<< "${sync_list}"
         for path in "${paths[@]}"; do
