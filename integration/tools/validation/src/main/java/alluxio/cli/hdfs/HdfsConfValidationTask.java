@@ -60,14 +60,6 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     return "ValidateHdfsConf";
   }
 
-  protected static boolean isHdfsScheme(String path) {
-    String scheme = new AlluxioURI(path).getScheme();
-    if (scheme == null || !scheme.startsWith("hdfs")) {
-      return false;
-    }
-    return true;
-  }
-
   protected ValidationUtils.TaskResult loadHdfsConfig() {
     Pair<String, String> clientConfFiles = getHdfsConfPaths();
     String coreConfPath = clientConfFiles.getFirst();
@@ -99,7 +91,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
 
   @Override
   public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
-    if (!isHdfsScheme(mPath)) {
+    if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append(String.format(
               "UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
       return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),

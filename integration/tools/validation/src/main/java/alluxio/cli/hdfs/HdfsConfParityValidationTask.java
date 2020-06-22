@@ -51,7 +51,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
 
   @Override
   public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
-    if (!isHdfsScheme(mPath)) {
+    if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append(String.format("UFS path %s is not HDFS. "
               + "Skipping validation for HDFS properties.%n", mPath));
       return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
