@@ -20,6 +20,7 @@ public enum Operation {
   GetBlockLocations, // call for fixed-N
   GetFileStatus, // call for fixed-N
   ListDir, // call for fixed-N
+  ListDirLocated, // call for fixed-N
   OpenFile, // open for fixed-N
 
   // Dependent on CreateFile
