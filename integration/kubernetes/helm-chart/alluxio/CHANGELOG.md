@@ -110,3 +110,7 @@
 0.6.5
 
 - Removed alluxio worker hostname from ALLUXIO_JAVA_OPTS
+- Increase the default memory limit to match the default xmx
+- Added HostPID for using Java profile
+
+
