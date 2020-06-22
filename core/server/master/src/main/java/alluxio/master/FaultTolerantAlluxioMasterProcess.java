@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioEvent;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
@@ -72,10 +71,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void start() throws Exception {
-    AlluxioEvent.MasterProcessStarting.fire();
     mRunning = true;
     mJournalSystem.start();
-    AlluxioEvent.JournalSystemStarted.fire(mJournalSystem);
     try {
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
@@ -85,7 +82,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     startMasters(false);
     LOG.info("Secondary started");
-    AlluxioEvent.MasterIsSecondary.fire();
     while (!Thread.interrupted()) {
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
@@ -146,7 +142,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException("Alluxio master failed to come up");
     }
     LOG.info("Primary started");
-    AlluxioEvent.MasterIsPrimary.fire();
     return true;
   }
 
@@ -172,7 +167,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     startMasters(false);
     LOG.info("Secondary started");
-    AlluxioEvent.MasterIsSecondary.fire();
   }
 
   @Override

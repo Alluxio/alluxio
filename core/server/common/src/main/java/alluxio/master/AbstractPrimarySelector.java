@@ -51,6 +51,8 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   private State mState = State.SECONDARY;
 
   protected final void setState(State state) {
+    AlluxioEvent.MasterIsTransitioning
+        .fire(String.format("Old-State: %s, New-State: %s", mState, state));
     try (LockResource lr = new LockResource(mStateLock)) {
       mState = state;
       mStateCond.signalAll();
@@ -58,7 +60,6 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
         mListeners.forEach(listener -> listener.get().accept(state));
       }
       LOG.info("Primary selector transitioning to {}", state);
-      AlluxioEvent.MasterIsTransitioning.fire(state.name());
     }
   }
 

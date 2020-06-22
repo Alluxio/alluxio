@@ -124,6 +124,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    AlluxioEvent.MasterProcessCreated.fire();
   }
 
   @Override
@@ -154,12 +155,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
-    AlluxioEvent.MasterProcessStarting.fire();
     // Start the journal system.
     mJournalSystem.start();
-    AlluxioEvent.JournalSystemStarted.fire(mJournalSystem);
-    // Assume leader.
-    AlluxioEvent.MasterIsPrimary.fire();
     mJournalSystem.gainPrimacy();
     startMasters(true);
     startServing();
@@ -167,7 +164,6 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
-    AlluxioEvent.MasterProcessStopping.fire();
     stopRejectingServers();
     if (isServing()) {
       stopServing();
@@ -339,7 +335,9 @@ public class AlluxioMasterProcess extends MasterProcess {
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
+      AlluxioEvent.MasterRpcServerStarted.fire(mRpcConnectAddress);
       mGrpcServer.awaitTermination();
+      AlluxioEvent.MasterRpcServerStopped.fire(mRpcConnectAddress);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

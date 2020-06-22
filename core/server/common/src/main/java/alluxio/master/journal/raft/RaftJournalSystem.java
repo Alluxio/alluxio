@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.AlluxioEvent;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -329,6 +330,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
+    AlluxioEvent.JournalSystemGainedPrimacy.fire(getClass().getSimpleName());
   }
 
   @Override
@@ -374,6 +376,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     LOG.info("Raft server successfully restarted");
+    AlluxioEvent.JournalSystemLostPrimacy.fire(getClass().getSimpleName());
   }
 
   @Override

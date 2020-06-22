@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.AlluxioEvent;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.master.Master;
 import alluxio.master.journal.sink.JournalSink;
@@ -49,6 +50,7 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     Preconditions.checkState(!mRunning, "Journal is already running");
     startInternal();
     mRunning = true;
+    AlluxioEvent.JournalSystemStarted.fire(getClass().getSimpleName());
   }
 
   @Override
@@ -57,6 +59,7 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     mAllJournalSinks.forEach(JournalSink::beforeShutdown);
     mRunning = false;
     stopInternal();
+    AlluxioEvent.JournalSystemStopped.fire(getClass().getSimpleName());
   }
 
   @Override

@@ -22,12 +22,14 @@ import java.util.stream.Collectors;
  */
 public enum AlluxioEvent {
   // [1000,2000) Alluxio process events.
-  MasterProcessStarting(1000, "Master process starting."),
+  MasterProcessCreated(1000, "Alluxio master process created."),
   JournalSystemStarted(1001, "Journal system started."),
-  MasterIsPrimary(1002, "Master process is now the primary."),
-  MasterIsSecondary(1003, "Master process is now a secondary."),
-  MasterIsTransitioning(1004, "Master process is transitioning to become."),
-  MasterProcessStopping(1005, "Master process stopping."),
+  JournalSystemStopped(1002, "Journal system stopped."),
+  JournalSystemGainedPrimacy(1003, "Journal system gained primacy."),
+  JournalSystemLostPrimacy(1004, "Journal system lost primacy."),
+  MasterRpcServerStarted(1005, "Alluxio master RPC server started."),
+  MasterRpcServerStopped(1006, "Alluxio master RPC server stopped."),
+  MasterIsTransitioning(1007, "Alluxio master process is transitioning."),
   // [2000,3000) Alluxio fs master events.
   // [3000,4000) Alluxio block master events.
   WorkerRegistered(3000, "Worker registered."),
