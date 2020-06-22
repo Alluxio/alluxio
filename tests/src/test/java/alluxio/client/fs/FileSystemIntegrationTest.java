@@ -16,13 +16,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -329,6 +329,34 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
       assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
           + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
       lastOffset = location.getBlockInfo().getOffset();
+    }
+  }
+
+  @Test
+  public void getBlockLocationsStatus() throws Exception {
+    // Test not in alluxio
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
+    List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(testFile);
+    List<BlockLocationInfo> locations2 =
+        mFileSystem.getBlockLocations(mFileSystem.getStatus(testFile));
+    assertEquals(locations.size(), locations2.size());
+    for (int i = 0; i < locations.size(); i++) {
+      assertEquals(locations.get(i).getBlockInfo(), locations2.get(i).getBlockInfo());
+      assertEquals(locations.get(i).getLocations(), locations2.get(i).getLocations());
+    }
+
+    // Test in alluxio
+    testFile = new AlluxioURI("/test2");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
+    locations = mFileSystem.getBlockLocations(testFile);
+    locations2 = mFileSystem.getBlockLocations(mFileSystem.getStatus(testFile));
+    assertEquals(locations.size(), locations2.size());
+    for (int i = 0; i < locations.size(); i++) {
+      assertEquals(locations.get(i).getBlockInfo(), locations2.get(i).getBlockInfo());
+      assertEquals(locations.get(i).getLocations(), locations2.get(i).getLocations());
     }
   }
 

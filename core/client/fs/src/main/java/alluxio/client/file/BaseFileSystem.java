@@ -213,30 +213,8 @@ public class BaseFileSystem implements FileSystem {
       throws IOException, AlluxioException {
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
     // Don't need to checkUri here because we call other client operations
-    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
-    for (FileBlockInfo fileBlockInfo : blocks) {
-      // add the existing in-Alluxio block locations
-      List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
-          .stream().map(BlockLocation::getWorkerAddress).collect(toList());
-      if (locations.isEmpty()) { // No in-Alluxio location
-        if (!fileBlockInfo.getUfsLocations().isEmpty()) {
-          // Case 1: Fallback to use under file system locations with co-located workers.
-          // This maps UFS locations to a worker which is co-located.
-          Map<String, WorkerNetAddress> finalWorkerHosts = getHostWorkerMap();
-          locations = fileBlockInfo.getUfsLocations().stream().map(
-              location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
-              .filter(Objects::nonNull).collect(toList());
-        }
-        if (locations.isEmpty() && mFsContext.getPathConf(path)
-            .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
-          // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
-          locations.addAll(getHostWorkerMap().values());
-          Collections.shuffle(locations);
-        }
-      }
-      blockLocations.add(new BlockLocationInfo(fileBlockInfo, locations));
-    }
-    return blockLocations;
+    URIStatus status = getStatus(path);
+    return getBlockLocations(status);
   }
 
   @Override

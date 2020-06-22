@@ -277,26 +277,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mStatistics.incrementReadOps(1);
     }
 
-    List<BlockLocation> blockLocations = new ArrayList<>();
     AlluxioURI path = getAlluxioPath(file.getPath());
     try {
       List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
-      locations.forEach(location -> {
-        FileBlockInfo info = location.getBlockInfo();
-        List<WorkerNetAddress> workers = location.getLocations();
-        long offset = location.getBlockInfo().getOffset();
-        long end = offset + info.getBlockInfo().getLength();
-        if (end >= start && offset <= start + len) {
-          List<HostAndPort> addresses = workers.stream()
-              .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
-              .collect(toList());
-          String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
-          String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
-          blockLocations.add(new BlockLocation(names, hosts, offset,
-              info.getBlockInfo().getLength()));
-        }
-      });
-      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+      BlockLocation[] ret = convertBlockLocations(locations, start, len);
       if (LOG.isDebugEnabled()) {
         LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
             file.getPath().getName(), start, len, Arrays.toString(ret));
@@ -305,6 +289,36 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Converts the alluxio block location data structures, into hdfs block location data structures.
+   *
+   * @param locations the alluxio block location list
+   * @param start the starting offset
+   * @param len the end of the locations
+   * @return the array of hdfs block locations
+   */
+  private BlockLocation[] convertBlockLocations(List<BlockLocationInfo> locations, long start,
+      long len) {
+    List<BlockLocation> blockLocations = new ArrayList<>();
+
+    locations.forEach(location -> {
+      FileBlockInfo info = location.getBlockInfo();
+      List<WorkerNetAddress> workers = location.getLocations();
+      long offset = location.getBlockInfo().getOffset();
+      long end = offset + info.getBlockInfo().getLength();
+      if (end >= start && offset <= start + len) {
+        List<HostAndPort> addresses = workers.stream()
+            .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
+            .collect(toList());
+        String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
+        String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
+        blockLocations
+            .add(new BlockLocation(names, hosts, offset, info.getBlockInfo().getLength()));
+      }
+    });
+    return blockLocations.toArray(new BlockLocation[0]);
   }
 
   @Override
@@ -561,12 +575,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   protected abstract boolean isZookeeperMode();
 
   @Override
-  protected RemoteIterator<LocatedFileStatus> listLocatedStatus(Path f, PathFilter filter)
-      throws FileNotFoundException, IOException {
+  protected RemoteIterator<LocatedFileStatus> listLocatedStatus(Path f, PathFilter filter) {
     return new RemoteIterator<LocatedFileStatus>() {
       private final List<URIStatus> mStatusList = populateStatus();
-      private Iterator<URIStatus> it = mStatusList.iterator();
+      private Iterator<URIStatus> mIterator = mStatusList.iterator();
 
+      /**
+       * @return the list of status which pass the filter
+       */
       private List<URIStatus> populateStatus() {
         try {
           return mFileSystem.listStatus(getAlluxioPath(f)).stream()
@@ -578,7 +594,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
       @Override
       public boolean hasNext() {
-        return it.hasNext();
+        return mIterator.hasNext();
       }
 
       @Override
@@ -586,7 +602,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         if (!hasNext()) {
           throw new NoSuchElementException("No more entry in " + f);
         }
-        URIStatus status = it.next();
+        URIStatus status = mIterator.next();
 
         FileStatus fileStatus =
             new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
@@ -599,22 +615,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
           return new LocatedFileStatus(fileStatus, null);
         }
 
-        // TODO(gpang): refactor out this because this is in common
-        List<BlockLocation> hadoopLocations = new ArrayList<>();
         List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(status);
-        locations.forEach(location -> {
-          FileBlockInfo info = location.getBlockInfo();
-          List<WorkerNetAddress> workers = location.getLocations();
-          long offset = location.getBlockInfo().getOffset();
-          List<HostAndPort> addresses = workers.stream()
-              .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
-              .collect(toList());
-          String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
-          String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
-          hadoopLocations.add(new BlockLocation(names, hosts, offset,
-              info.getBlockInfo().getLength()));
-        });
-        return new LocatedFileStatus(fileStatus, hadoopLocations.toArray(new BlockLocation[0]));
+        BlockLocation[] ret = convertBlockLocations(locations, 0, fileStatus.getLen());
+        return new LocatedFileStatus(fileStatus, ret);
       }
     };
   }
