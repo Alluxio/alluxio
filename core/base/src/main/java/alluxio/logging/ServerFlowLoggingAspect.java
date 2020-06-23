@@ -23,11 +23,12 @@ public class ServerFlowLoggingAspect extends BaseAspect {
 
     private static final String FLOW_NAME = "ServerFlow";
 
-    private static final String START_METHOD = "execution(* alluxio..*(..)";
+    private static final String START_METHOD = "execution(* alluxio..*(..))";
 
-    private static final String WHITE_AND_BLACK_LIST = "!within(br.com.s1mbi0se.shannondb.util.logs..*)";
+    private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
+            + "!within(alluxio.logging..*(..))";
 
-    private static final String FINISH_METHOD = "execution(* alluxio.master.BackupManager.backup(..)";
+    private static final String FINISH_METHOD = "execution(* alluxio.master.BackupManager.backup(..))";
 
     protected final Map<Long, Integer> threadIdToStep = new ConcurrentHashMap<>();
     protected final Map<Long, Long> threadIdToDebugLogId = new ConcurrentHashMap<>();
