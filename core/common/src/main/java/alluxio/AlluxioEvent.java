@@ -31,11 +31,16 @@ public enum AlluxioEvent {
   MasterRpcServerStopped(1006, "Alluxio master RPC server stopped."),
   MasterIsTransitioning(1007, "Alluxio master process is transitioning."),
   // [2000,3000) Alluxio fs master events.
+  ActiveSyncStarted(2000, "Active sync started."),
+  ActiveSyncProcessedSyncPoint(2001, "The active sync processed a sync-point."),
+  ActiveSyncFailed(2002,"The active sync failed."),
+  ActiveSyncFinished(2003, "Active sync finished."),
   // [3000,4000) Alluxio block master events.
   WorkerRegistered(3000, "Worker registered."),
-  WorkerLost(3001, "Worker lost.");
+  WorkerLost(3001, "Worker lost.")
   // [4000,5000) Alluxio meta master events.
   // [5000,6000) Alluxio table master events.
+  ;
 
   // logger.
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEvent.class);
