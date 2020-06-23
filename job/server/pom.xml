@@ -31,6 +31,11 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>br.com.simbiose</groupId>
+      <artifactId>debug_log</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+    <dependency>
       <groupId>com.github.oshi</groupId>
       <artifactId>oshi-core</artifactId>
       <version>${oshi.version}</version>
@@ -149,6 +154,24 @@
             <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
           </apiSource>
         </apiSources>
+      </configuration>
+    </plugin>
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>aspectj-maven-plugin</artifactId>
+      <version>1.11</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>compile</goal>       <!-- use this goal to weave all your main classes -->
+<!--        <goal>test-compile</goal> use this goal to weave all your test classes -->
+          </goals>
+        </execution>
+      </executions>
+      <configuration>
+        <source>1.8</source>
+        <target>1.8</target>
+        <complianceLevel>1.8</complianceLevel>
       </configuration>
     </plugin>
   </plugins>
