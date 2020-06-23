@@ -18,14 +18,12 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.google.protobuf.ByteString;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
