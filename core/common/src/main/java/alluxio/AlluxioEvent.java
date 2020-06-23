@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,28 +23,28 @@ import java.util.stream.Collectors;
  */
 public enum AlluxioEvent {
   // [1000,2000) Alluxio process events.
-  MasterProcessCreated(1000, "Alluxio master process created."),
-  JournalSystemStarted(1001, "Journal system started."),
-  JournalSystemStopped(1002, "Journal system stopped."),
-  JournalSystemGainedPrimacy(1003, "Journal system gained primacy."),
-  JournalSystemLostPrimacy(1004, "Journal system lost primacy."),
-  MasterRpcServerStarted(1005, "Alluxio master RPC server started."),
-  MasterRpcServerStopped(1006, "Alluxio master RPC server stopped."),
-  MasterIsTransitioning(1007, "Alluxio master process is transitioning."),
+  MasterProcessCreated(1000),
+  JournalSystemStarted(1001),
+  JournalSystemStopped(1002),
+  JournalSystemGainedPrimacy(1003),
+  JournalSystemLostPrimacy(1004),
+  MasterRpcServerStarted(1005),
+  MasterRpcServerStopped(1006),
+  MasterIsTransitioning(1007),
   // [2000,3000) Alluxio fs master events.
-  ActiveSyncStarted(2000, "Active sync started."),
-  ActiveSyncProcessedSyncPoint(2001, "The active sync processed a sync-point."),
-  ActiveSyncFailed(2002, "The active sync failed."),
-  ActiveSyncFinished(2003, "Active sync finished."),
+  ActiveSyncStarted(2000),
+  ActiveSyncProcessedSyncPoint(2001),
+  ActiveSyncFailed(2002),
+  ActiveSyncFinished(2003),
   // [3000,4000) Alluxio block master events.
-  WorkerRegistered(3000, "Worker registered."),
-  WorkerLost(3001, "Worker lost."),
+  WorkerRegistered(3000),
+  WorkerLost(3001),
   // [4000,5000) Alluxio meta master events.
-  BackupRequested(4000, "The backup requested."),
-  BackupStarted(4001, "The backup started."),
-  BackupSubmitted(4002, "The backup is submitted."),
-  BackupFailed(4003, "The backup is failed."),
-  BackupFinished(4004, "The backup is finished."),
+  BackupRequested(4000),
+  BackupStarted(4001),
+  BackupSubmitted(4002),
+  BackupFailed(4003),
+  BackupFinished(4004),
   // [5000,6000) Alluxio table master events.
   ;
 
@@ -52,18 +53,14 @@ public enum AlluxioEvent {
 
   /** The unique event id. */
   private final int mId;
-  /** The message string format. */
-  private final String mMessage;
 
   /**
    * Creates new Alluxio event type.
    *
    * @param eventId the unique event id
-   * @param message the event message
    */
-  AlluxioEvent(int eventId, String message) {
+  AlluxioEvent(int eventId) {
     mId = eventId;
-    mMessage = message;
   }
 
   /**
@@ -74,21 +71,22 @@ public enum AlluxioEvent {
   }
 
   /**
-   * @return the event message
-   */
-  public String getMessage() {
-    return mMessage;
-  }
-
-  /**
    * Fires the event.
    *
-   * @param additionalInfo additional information to include in the event
+   * It takes an optional list of pairs, each representing an argumentId-value pair.
+   *
+   * @param eventArguments additional event arguments to include in the event
    */
-  public void fire(Object... additionalInfo) {
-    String eventString = String.format("Id: %d, Name: %s, Message:%s, AdditionalInfo: %s",
-        mId, this.name(), mMessage,
-        Arrays.stream(additionalInfo).map(Object::toString).collect(Collectors.joining(",")));
-    LOG.info(eventString);
+  public void fire(Pair<String, Object>... eventArguments) {
+    StringBuilder eventStrBuilder = new StringBuilder();
+    eventStrBuilder.append(this.name());
+    eventStrBuilder.append(String.format("(%d)", mId));
+    if (eventArguments.length > 0) {
+      eventStrBuilder.append(" Event-Arguments: ");
+      eventStrBuilder.append(Arrays.stream(eventArguments)
+          .map((kv) -> String.format("%s=\"%s\"", kv.getFirst(), kv.getSecond()))
+          .collect(Collectors.joining(", ")));
+    }
+    LOG.info(eventStrBuilder.toString());
   }
 }

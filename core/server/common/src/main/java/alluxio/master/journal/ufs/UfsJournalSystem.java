@@ -13,6 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.AlluxioEvent;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
@@ -92,7 +93,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
     }
-    AlluxioEvent.JournalSystemGainedPrimacy.fire(getClass().getSimpleName());
+    AlluxioEvent.JournalSystemGainedPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override
@@ -110,7 +111,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
-    AlluxioEvent.JournalSystemLostPrimacy.fire(getClass().getSimpleName());
+    AlluxioEvent.JournalSystemLostPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override

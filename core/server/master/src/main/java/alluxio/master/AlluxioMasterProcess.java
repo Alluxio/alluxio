@@ -16,6 +16,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.AlluxioEvent;
+import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -335,9 +336,9 @@ public class AlluxioMasterProcess extends MasterProcess {
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
-      AlluxioEvent.MasterRpcServerStarted.fire(mRpcConnectAddress);
+      AlluxioEvent.MasterRpcServerStarted.fire(new Pair<>("RpcConnectAddress", mRpcConnectAddress));
       mGrpcServer.awaitTermination();
-      AlluxioEvent.MasterRpcServerStopped.fire(mRpcConnectAddress);
+      AlluxioEvent.MasterRpcServerStopped.fire(new Pair<>("RpcConnectAddress", mRpcConnectAddress));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
