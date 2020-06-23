@@ -112,17 +112,11 @@ public class AlluxioFramework {
       return null;
     }
 
-    try {
-      Protos.Credential.Builder credentialBuilder = Protos.Credential.newBuilder()
-          .setPrincipal(ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)).setSecret(
-              ByteString.copyFrom(
-                  ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_SECRET).getBytes("UTF-8")));
+    Protos.Credential.Builder credentialBuilder = Protos.Credential.newBuilder()
+        .setPrincipal(ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)).setSecret(
+            ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_SECRET));
 
-      return credentialBuilder.build();
-    } catch (UnsupportedEncodingException ex) {
-      LOG.error("Failed to encode secret when creating Credential.", ex);
-    }
-    return null;
+    return credentialBuilder.build();
   }
 
   /**
