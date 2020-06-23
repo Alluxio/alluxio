@@ -33,7 +33,7 @@ public enum AlluxioEvent {
   // [2000,3000) Alluxio fs master events.
   ActiveSyncStarted(2000, "Active sync started."),
   ActiveSyncProcessedSyncPoint(2001, "The active sync processed a sync-point."),
-  ActiveSyncFailed(2002,"The active sync failed."),
+  ActiveSyncFailed(2002, "The active sync failed."),
   ActiveSyncFinished(2003, "Active sync finished."),
   // [3000,4000) Alluxio block master events.
   WorkerRegistered(3000, "Worker registered."),
