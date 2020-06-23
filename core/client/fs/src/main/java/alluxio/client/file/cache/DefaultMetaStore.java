@@ -11,6 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageStoreType;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.HashMap;
@@ -28,6 +31,16 @@ public class DefaultMetaStore implements MetaStore {
   private final AtomicLong mBytes = new AtomicLong(0);
   /** The number of pages stored. */
   private final AtomicLong mPages = new AtomicLong(0);
+  private final PageStoreType mStoreType;
+  private final long mPageSize;
+
+  /**
+   * @param conf Conf
+   */
+  public DefaultMetaStore(AlluxioConfiguration conf) {
+    mStoreType = conf.getEnum(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
+    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+  }
 
   @Override
   public boolean hasPage(PageId pageId) {
@@ -37,7 +50,11 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
-    mBytes.addAndGet(pageInfo.getPageSize());
+    if (mStoreType == PageStoreType.MEMORY) {
+      mBytes.addAndGet(mPageSize);
+    } else {
+      mBytes.addAndGet(pageInfo.getPageSize());
+    }
     mPages.incrementAndGet();
   }
 
@@ -55,7 +72,11 @@ public class DefaultMetaStore implements MetaStore {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
-    mBytes.addAndGet(-pageInfo.getPageSize());
+    if (mStoreType == PageStoreType.MEMORY) {
+      mBytes.addAndGet(-mPageSize);
+    } else {
+      mBytes.addAndGet(-pageInfo.getPageSize());
+    }
     mPages.decrementAndGet();
   }
 

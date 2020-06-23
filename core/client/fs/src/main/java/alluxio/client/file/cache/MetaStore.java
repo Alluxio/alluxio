@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 /**
@@ -21,8 +22,8 @@ public interface MetaStore {
   /**
    * @return an instance of MetaStore
    */
-  static MetaStore create() {
-    return new DefaultMetaStore();
+  static MetaStore create(AlluxioConfiguration conf) {
+    return new DefaultMetaStore(conf);
   }
 
   /**
