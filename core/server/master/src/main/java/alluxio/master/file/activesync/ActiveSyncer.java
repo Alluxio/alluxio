@@ -14,6 +14,7 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioEvent;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -104,7 +105,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
         for (AlluxioURI ufsUri : ufsSyncPoints) {
           tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
             processSyncPoint(ufsUri, syncInfo);
-            AlluxioEvent.ActiveSyncProcessedSyncPoint.fire(ufsUri);
+            AlluxioEvent.ActiveSyncProcessedSyncPoint.fire(new Pair<>("UfsUri", ufsUri));
             return syncInfo.getTxId();
           }, mSyncManager.getExecutor()));
         }
