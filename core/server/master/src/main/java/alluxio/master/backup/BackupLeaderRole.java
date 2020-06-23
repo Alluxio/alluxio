@@ -153,6 +153,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
   @Override
   public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
       throws AlluxioException {
+    AlluxioEvent.BackupRequested.fire(request);
     // Whether to delegate remote to a standby master.
     boolean delegateBackup;
     // Will be populated with initiated id if no back-up in progress.
@@ -198,8 +199,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
     } else {
       scheduleLocalBackup(request, stateLockOptions);
     }
-    AlluxioEvent.BackupSubmitted.fire(backupId,
-        (delegateBackup) ? mRemoteBackupConnection : "localhost");
+    AlluxioEvent.BackupSubmitted.fire(backupId, request,
+        String.format("BackupWorker: %s", (delegateBackup) ? mRemoteBackupConnection : "local"));
 
     // Return immediately if async is requested.
     if (request.getOptions().getRunAsync()) {

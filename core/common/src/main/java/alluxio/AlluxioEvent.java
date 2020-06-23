@@ -39,10 +39,11 @@ public enum AlluxioEvent {
   WorkerRegistered(3000, "Worker registered."),
   WorkerLost(3001, "Worker lost."),
   // [4000,5000) Alluxio meta master events.
-  BackupStarted(4000, "The backup started."),
-  BackupSubmitted(4001, "The backup is submitted."),
-  BackupFailed(4002, "The backup is failed."),
-  BackupFinished(4003, "The backup is finished."),
+  BackupRequested(4000, "The backup requested."),
+  BackupStarted(4001, "The backup started."),
+  BackupSubmitted(4002, "The backup is submitted."),
+  BackupFailed(4003, "The backup is failed."),
+  BackupFinished(4004, "The backup is finished."),
   // [5000,6000) Alluxio table master events.
   ;
 
