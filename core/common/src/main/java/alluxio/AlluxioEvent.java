@@ -37,8 +37,12 @@ public enum AlluxioEvent {
   ActiveSyncFinished(2003, "Active sync finished."),
   // [3000,4000) Alluxio block master events.
   WorkerRegistered(3000, "Worker registered."),
-  WorkerLost(3001, "Worker lost.")
+  WorkerLost(3001, "Worker lost."),
   // [4000,5000) Alluxio meta master events.
+  BackupStarted(4000, "The backup started."),
+  BackupSubmitted(4001, "The backup is submitted."),
+  BackupFailed(4002, "The backup is failed."),
+  BackupFinished(4003, "The backup is finished."),
   // [5000,6000) Alluxio table master events.
   ;
 

@@ -11,6 +11,7 @@
 
 package alluxio.master.backup;
 
+import alluxio.AlluxioEvent;
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
@@ -221,8 +222,10 @@ public class BackupTracker {
 
     if (mBackupStatus.isCompleted()) {
       mCompletion.set(null);
+      AlluxioEvent.BackupFinished.fire(mBackupStatus.getBackupId());
     } else if (mBackupStatus.isFailed()) {
       mCompletion.setException(mBackupStatus.getError());
+      AlluxioEvent.BackupFailed.fire(mBackupStatus.getBackupId());
     }
   }
 }

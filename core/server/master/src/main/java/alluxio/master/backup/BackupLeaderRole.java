@@ -11,6 +11,7 @@
 
 package alluxio.master.backup;
 
+import alluxio.AlluxioEvent;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
@@ -183,6 +184,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Store backup id to query later for async requests.
       backupId = mBackupTracker.getCurrentStatus().getBackupId();
     }
+    AlluxioEvent.BackupStarted.fire(backupId);
     // Initiate the backup.
     if (delegateBackup) {
       // Fail the backup if delegation failed.
@@ -196,6 +198,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
     } else {
       scheduleLocalBackup(request, stateLockOptions);
     }
+    AlluxioEvent.BackupSubmitted.fire(backupId,
+        (delegateBackup) ? mRemoteBackupConnection : "localhost");
 
     // Return immediately if async is requested.
     if (request.getOptions().getRunAsync()) {
