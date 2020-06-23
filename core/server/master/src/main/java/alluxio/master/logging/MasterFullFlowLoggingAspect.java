@@ -10,9 +10,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Aspect
-public class ServerFlowLoggingAspect extends BaseAspect {
+public class MasterFullFlowLoggingAspect extends BaseAspect {
 
-    private static final String FLOW_NAME = "ServerFlow";
+    private static final String FLOW_NAME = "WorkerFullFlow";
 
     private static final String START_METHOD = "execution(* alluxio.master.AlluxioMaster.main(..))";
 

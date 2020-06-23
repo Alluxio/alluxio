@@ -119,6 +119,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>br.com.simbiose</groupId>
+          <artifactId>debug_log</artifactId>
+          <version>0.0.1</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>
@@ -148,6 +154,24 @@
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/worker/swagger-ui</swaggerDirectory>
             </apiSource>
           </apiSources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <version>1.11</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>       <!-- use this goal to weave all your main classes -->
+<!--          <goal>test-compile</goal> use this goal to weave all your test classes -->
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <complianceLevel>1.8</complianceLevel>
         </configuration>
       </plugin>
     </plugins>
