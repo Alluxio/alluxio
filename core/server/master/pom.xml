@@ -29,6 +29,11 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>br.com.simbiose</groupId>
+      <artifactId>debug_log</artifactId>
+      <version>0.0.1</version>
+    </dependency>
     <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -169,6 +174,25 @@
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/master/swagger-ui</swaggerDirectory>
             </apiSource>
           </apiSources>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <version>1.11</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>       <!-- use this goal to weave all your main classes -->
+              <!--              <goal>test-compile</goal> use this goal to weave all your test classes -->
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <complianceLevel>1.8</complianceLevel>
         </configuration>
       </plugin>
     </plugins>

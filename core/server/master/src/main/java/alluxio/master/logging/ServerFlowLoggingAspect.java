@@ -1,32 +1,23 @@
-package alluxio.logging;
+package alluxio.master.logging;
 
 import br.com.simbiose.debug_log.BaseAspect;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-
-/**
- * This class is responsible to execute all debug logs inside ColumnCreationFlux.
- *
- * <p>For each method that contains StartCreateSchemaFlowLoggable, FinishCreateSchemaFlowLoggable,
- * or CreateSchemaFlowLoggable this class uses the {@link
- * BaseAspect#printDebugLogForMethod(ProceedingJoinPoint, long)} to writes inside the log file, a
- * set of important information about methods execution.
- */
 @Aspect
 public class ServerFlowLoggingAspect extends BaseAspect {
 
     private static final String FLOW_NAME = "ServerFlow";
 
-    private static final String START_METHOD = "execution(* alluxio..*(..))";
+    private static final String START_METHOD = "execution(* alluxio.master.AlluxioMaster.main(..))";
 
     private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(alluxio.logging..*(..))";
+            + "!within(alluxio.master.logging..*)";
 
     private static final String FINISH_METHOD = "execution(* alluxio.master.BackupManager.backup(..))";
 
