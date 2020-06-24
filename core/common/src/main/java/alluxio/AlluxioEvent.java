@@ -50,6 +50,10 @@ public enum AlluxioEvent {
   //   [1400,1500) Alluxio Table events.
   // [2000,3000) Alluxio worker process events.
   //   [2000,2100) Alluxio tier-management events.
+  TierManagementTaskStarted(2000),
+  TierManagementTaskFinished(2001),
+  TierManagementTaskFailed(2002),
+  BlockStoreEvictionFailed(2003)
   // [3000,4000) Alluxio job-master process events.
   // [4000,5000) Alluxio job-worker process events.
   // [5000,6000) Alluxio proxy process events.

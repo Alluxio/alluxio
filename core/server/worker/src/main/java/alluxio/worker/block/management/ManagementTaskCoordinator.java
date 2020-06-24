@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.management;
 
+import alluxio.AlluxioEvent;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.ThreadFactoryUtils;
@@ -178,20 +180,29 @@ public class ManagementTaskCoordinator implements Closeable {
 
         // Submit and wait for the task.
         currentTask = nextTask;
-        LOG.debug("Running task of type:{}", currentTask.getClass().getSimpleName());
+        String taskTypeName = currentTask.getClass().getSimpleName();
+        // Log and fire event.
+        LOG.debug("Running task of type:{}", taskTypeName);
+        AlluxioEvent.TierManagementTaskStarted.fire(new Pair<>("TaskType", taskTypeName));
         // Run the current task on coordinator thread.
         try {
           BlockManagementTaskResult result = currentTask.run();
-          LOG.info("{} finished with result: {}", currentTask.getClass().getSimpleName(), result);
+          // Log and fire event.
+          LOG.info("{} finished with result: {}", taskTypeName, result);
+          AlluxioEvent.TierManagementTaskFinished.fire(new Pair<>("TaskType", taskTypeName));
 
           if (result.noProgress()) {
+            // Log and fire event.
             LOG.debug("Task made no progress due to failures/back-offs. Sleeping {}ms",
                 mLoadDetectionCoolDownMs);
             Thread.sleep(mLoadDetectionCoolDownMs);
           }
         } catch (Exception e) {
-          LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
+          LOG.error("Management task failed: {}. Error: {}", taskTypeName,
               e);
+          AlluxioEvent.TierManagementTaskFailed.fire(
+              new Pair<>("TaskType", taskTypeName),
+              new Pair<>("Error", e));
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

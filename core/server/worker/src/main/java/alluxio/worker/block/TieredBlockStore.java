@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioEvent;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -805,9 +807,20 @@ public class TieredBlockStore implements BlockStore {
 
     if (!contiguousSpaceFound || !availableBytesFound) {
       LOG.error(
-          "Failed to free space. Min contiguous requested: {}, Min available requested: {}, "
+          "Failed to free space in session: {}. "
+              + "Min contiguous requested: {}, Min available requested: {}, "
               + "Blocks iterated: {}, Blocks removed: {}, " + "Space freed: {}",
-          minContiguousBytes, minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed);
+          sessionId, minContiguousBytes, minAvailableBytes,
+          blocksIterated, blocksRemoved, spaceFreed);
+
+      AlluxioEvent.BlockStoreEvictionFailed.fire(
+          new Pair<>("SessionId", sessionId),
+          new Pair<>("MinContiguousBytes", minContiguousBytes),
+          new Pair<>("MinAvailableBytes", minAvailableBytes),
+          new Pair<>("BlocksIterated", blocksIterated),
+          new Pair<>("BlocksRemoved", blocksRemoved),
+          new Pair<>("SpaceFreed", spaceFreed)
+      );
 
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
           .getMessage(minAvailableBytes, location.tierAlias()));
