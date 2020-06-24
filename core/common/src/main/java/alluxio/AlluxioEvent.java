@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
  */
 public enum AlluxioEvent {
   // [1000,2000) Alluxio master process events.
-  //   [1000,1100) Alluxio process events
   MasterProcessCreated(1000),
   JournalSystemStarted(1001),
   JournalSystemStopped(1002),
@@ -34,26 +33,26 @@ public enum AlluxioEvent {
   MasterRpcServerStopped(1006),
   MasterIsTransitioning(1007),
   //   [1100,1200) Alluxio FileSystemMaster events.
-  ActiveSyncStarted(2000),
-  ActiveSyncProcessedSyncPoint(2001),
-  ActiveSyncFailed(2002),
-  ActiveSyncFinished(2003),
+  ActiveSyncStarted(1100),
+  ActiveSyncProcessedSyncPoint(1101),
+  ActiveSyncFailed(1102),
+  ActiveSyncFinished(1103),
   //   [1200,1300) Alluxio BlockMaster events.
-  WorkerRegistered(3000),
-  WorkerLost(3001),
+  WorkerRegistered(1200),
+  WorkerLost(1201),
   //   [1300,1400) Alluxio MetaMaster events.
-  BackupRequested(4000),
-  BackupStarted(4001),
-  BackupSubmitted(4002),
-  BackupFailed(4003),
-  BackupFinished(4004),
+  BackupRequested(1300),
+  BackupStarted(1301),
+  BackupSubmitted(1302),
+  BackupFailed(1303),
+  BackupFinished(1304),
   //   [1400,1500) Alluxio Table events.
   // [2000,3000) Alluxio worker process events.
-  //   [2000,2100) Alluxio tier-management events.
-  TierManagementTaskStarted(2000),
-  TierManagementTaskFinished(2001),
-  TierManagementTaskFailed(2002),
-  BlockStoreEvictionFailed(2003)
+  //   [2100,2200) Alluxio tier-management events.
+  TierManagementTaskStarted(2100),
+  TierManagementTaskFinished(2101),
+  TierManagementTaskFailed(2102),
+  BlockStoreEvictionFailed(2103)
   // [3000,4000) Alluxio job-master process events.
   // [4000,5000) Alluxio job-worker process events.
   // [5000,6000) Alluxio proxy process events.
