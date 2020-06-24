@@ -23,7 +23,7 @@ latency especially when data is remote or network is slow or congested.
 ## Using Presto with the Alluxio Catalog Service
 Currently, there are 2 ways to enable Presto to interact with Alluxio:
 * Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
-* Presto interacts with the Hive Metastore (with table definitions updated to use Alluxio paths)
+* Presto interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
 
 The primary benefits for using Presto with the Alluxio Catalog Service are simpler deployments
 of Alluxio with Presto (no modifications to the Hive Metastore), and enabling schema-aware
@@ -33,7 +33,7 @@ However, currently, the catalog service is limited to read-only workloads.
 For more details and instructions on how to use the Alluxio Catalog Service with Presto, please
 visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
 
-The rest of this page discusses the alternative approach of Presto interacting with the
+The rest of this page discusses the alternative approach of Presto directly interacting with the
 Hive Metastore.
 
 ## Prerequisites
@@ -45,7 +45,7 @@ This guide is tested with `presto-315`.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](https://www.alluxio.io/download).
-* Make sure that Hive metastore is running to serve metadata information of Hive tables.
+* Make sure that Hive Metastore is running to serve metadata information of Hive tables.
 
 ## Basic Setup
 
@@ -111,9 +111,9 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_presto_table_in_alluxio.png' | relativize_url }})
 
-### Start Hive metastore
+### Start Hive Metastore
 
-Ensure your Hive metastore service is running. Hive metastore listens on port `9083` by
+Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
 default. If it is not running,
 
 ```console
@@ -232,7 +232,7 @@ For later Alluxio versions, this is no longer an issue because of Alluxio's asyn
 
 ### Avoid Presto timeout reading large files
 
-It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
+It is recommended to increase `alluxio.user.streaming.data.timeout` to a bigger value (e.g
 `10min`) to avoid a timeout
  failure when reading large files from remote workers.
 
@@ -240,8 +240,8 @@ It is recommended to increase `alluxio.user.network.data.timeout` to a bigger va
 
 ### Error message "No FileSystem for scheme: alluxio" on queries
 
-When you see error messages like the following, it is likely that Alluxio client jar is not put
-into the classpath of Presto worker. Please follow [instructions](#distribute-the-alluxio-client-jar-to-all-presto-servers)
+When you see error messages like the following, it is likely that Alluxio client jar is not
+on the classpath of the Presto worker. Please follow [instructions](#distribute-the-alluxio-client-jar-to-all-presto-servers)
 to fix this issue.
 
 ```
