@@ -39,11 +39,11 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   //    Compiled with protoc 2.5.0
   //    From source with checksum d0fda26633fa762bff87ec759ebe689c
   //    This command was run using /tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar
-  private final static Pattern sHadoopPattern =
+  private static final Pattern HADOOP_PATTERN =
           Pattern.compile("Hadoop\\s+(?<version>([0-9]\\.)+[0-9]+)");
   // An example Hadoop version for CDH distribution is
   // Hadoop 2.6.0-cdh5.16.2
-  private final static Pattern sCdhPattern =
+  private static final Pattern CDH_PATTERN =
           Pattern.compile("cdh(?<cdhVersion>([0-9]+\\.)+[0-9]+)");
 
   /**
@@ -61,7 +61,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   protected String parseVersion(String output) {
-    Matcher cdhMatcher = sCdhPattern.matcher(output);
+    Matcher cdhMatcher = CDH_PATTERN.matcher(output);
     // Use CDH version if it is CDH
     if (cdhMatcher.find()) {
       String cdhVersion = cdhMatcher.group("cdhVersion");
@@ -69,7 +69,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     }
     // Use Hadoop version otherwise
     String version = "";
-    Matcher matcher = sHadoopPattern.matcher(output);
+    Matcher matcher = HADOOP_PATTERN.matcher(output);
     if (matcher.find()) {
       version = matcher.group("version");
     }
