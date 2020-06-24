@@ -31,6 +31,21 @@ import java.util.regex.Pattern;
 public class HdfsVersionValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
 
+  // An example output from "hadoop version" command:
+  //    Hadoop 2.7.2
+  //    Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git
+  //      -r b165c4fe8a74265c792ce23f546c64604acf0e41
+  //    Compiled by jenkins on 2016-01-26T00:08Z
+  //    Compiled with protoc 2.5.0
+  //    From source with checksum d0fda26633fa762bff87ec759ebe689c
+  //    This command was run using /tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar
+  private static final Pattern HADOOP_PATTERN =
+          Pattern.compile("Hadoop\\s+(?<version>([0-9]\\.)+[0-9]+)");
+  // An example Hadoop version for CDH distribution is
+  // Hadoop 2.6.0-cdh5.16.2
+  private static final Pattern CDH_PATTERN =
+          Pattern.compile("cdh(?<cdhVersion>([0-9]+\\.)+[0-9]+)");
+
   /**
    * Creates a new instance of {@link HdfsVersionValidationTask}
    * for validating HDFS version.
@@ -46,18 +61,15 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   protected String parseVersion(String output) {
-    // An example output from "hadoop version" command:
-    //    Hadoop 2.7.2
-    //    Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git
-    //      -r b165c4fe8a74265c792ce23f546c64604acf0e41
-    //    Compiled by jenkins on 2016-01-26T00:08Z
-    //    Compiled with protoc 2.5.0
-    //    From source with checksum d0fda26633fa762bff87ec759ebe689c
-    //    This command was run using /tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar
-    String regex = "Hadoop\\s+(?<version>([0-9]\\.)+[0-9])";
-    Pattern pattern = Pattern.compile(regex);
-    Matcher matcher = pattern.matcher(output);
+    Matcher cdhMatcher = CDH_PATTERN.matcher(output);
+    // Use CDH version if it is CDH
+    if (cdhMatcher.find()) {
+      String cdhVersion = cdhMatcher.group("cdhVersion");
+      return "cdh" + cdhVersion;
+    }
+    // Use Hadoop version otherwise
     String version = "";
+    Matcher matcher = HADOOP_PATTERN.matcher(output);
     if (matcher.find()) {
       version = matcher.group("version");
     }
