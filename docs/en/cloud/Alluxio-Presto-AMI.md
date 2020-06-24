@@ -59,6 +59,8 @@ and among the 2 selections, choose the one with the shorter name.
 The AMI with the longer name is derived from the shorter one but is constrained by the limitations imposed by AWS Marketplace.
 
 Among the large table of instance types and their specifications, scroll down to search for the `r4.4xlarge` instance type.
+If `r4.4xlarge` does not appear on the page, you may need to change the filters immediately above the table of instance types
+from `Current generation` to `All generations`.
 
 > **Warning:** `r4.4xlarge` is provisioned with the minimum amount of resources needed to run this AMI.
 Choosing a different instance type may result in unexpected errors.
@@ -268,6 +270,8 @@ wsr as
 Copy the above query, paste it into the Presto prompt, and hit enter to execute.
 The query will likely take at least 5 minutes to finish,
 so it would be a good time to grab a drink from the fridge.
+This may take longer depending on where your instance's region is relative to us-east-1,
+which is where the s3 bucket hosting the raw data is located.
 
 An output table is shown when done; the following is a sample of the first few rows:
 ```console
@@ -326,3 +330,5 @@ To terminate the SSH session, type `exit` in the SSH terminal prompt.
 
   {% endcollapsible %}
 {% endaccordion %}
+
+When complete, terminate the instance to prevent further charges to your AWS account.
