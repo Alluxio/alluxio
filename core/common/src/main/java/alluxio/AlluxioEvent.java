@@ -52,8 +52,7 @@ public enum AlluxioEvent {
   // **[2100,2200) Alluxio tier-management events.
   TierManagementTaskStarted(2100),
   TierManagementTaskFinished(2101),
-  TierManagementTaskFailed(2102),
-  BlockStoreEvictionFailed(2103)
+  TierManagementTaskFailed(2102)
   // *[3000,4000) Alluxio job-master process events.
   // *[4000,5000) Alluxio job-worker process events.
   // *[5000,6000) Alluxio proxy process events.
