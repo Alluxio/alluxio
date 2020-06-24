@@ -17,9 +17,11 @@ public class WorkerFullFlowLoggingAspect extends BaseAspect {
     private static final String START_METHOD = "execution(* alluxio.worker.AlluxioWorker.main(..))";
 
     private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(alluxio.worker.logging..*)";
+            + "!within(alluxio.worker.logging..*) && "
+            + "!within(alluxio.master..*) && "
+            + "!within(alluxio.proxy..*)";
 
-    private static final String FINISH_METHOD = "execution(* alluxio.worker.SessionCleaner.close())";
+    private static final String FINISH_METHOD = "execution(* java.lang.System.exit(..))";
 
     protected final Map<Long, Integer> threadIdToStep = new ConcurrentHashMap<>();
     protected final Map<Long, Long> threadIdToDebugLogId = new ConcurrentHashMap<>();

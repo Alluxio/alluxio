@@ -17,9 +17,11 @@ public class MasterFullFlowLoggingAspect extends BaseAspect {
     private static final String START_METHOD = "execution(* alluxio.master.AlluxioMaster.main(..))";
 
     private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(alluxio.master.logging..*)";
+            + "!within(alluxio.master.logging..*) && "
+            + "!within(alluxio.worker..*) && "
+            + "!within(alluxio.proxy..*)";
 
-    private static final String FINISH_METHOD = "execution(* alluxio.master.BackupManager.backup(..))";
+    private static final String FINISH_METHOD = "execution(* java.lang.System.exit(..))";
 
     protected final Map<Long, Integer> threadIdToStep = new ConcurrentHashMap<>();
     protected final Map<Long, Long> threadIdToDebugLogId = new ConcurrentHashMap<>();

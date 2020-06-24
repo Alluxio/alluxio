@@ -18,7 +18,7 @@ public class JobMasterFullFlowLoggingAspect extends BaseAspect {
 
     private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
             + "!within(alluxio.master.logging..*) && "
-            + "!within(alluxio.worker.logging..*)";
+            + "!within(alluxio.worker..*)";
 
     private static final String FINISH_METHOD = "execution(* java.lang.System.exit(..))";
 
