@@ -48,6 +48,7 @@ public enum AlluxioEvent {
   BackupFinished(1304),
   //   [1400,1500) Alluxio Table events.
   // [2000,3000) Alluxio worker process events.
+  WorkerProcessCreated(2000),
   //   [2100,2200) Alluxio tier-management events.
   TierManagementTaskStarted(2100),
   TierManagementTaskFinished(2101),
