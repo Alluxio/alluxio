@@ -37,6 +37,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
@@ -673,7 +674,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public String toString() {
-    return String.format("RaftJournalSystem, in quorum: {%s}", mConf.getClusterAddresses().stream()
-        .map(Object::toString).collect(Collectors.joining(",")));
+    return MoreObjects.toStringHelper(this)
+        .add("Quorum-Members", mConf.getClusterAddresses().stream()
+            .map(Object::toString).collect(Collectors.joining(", ")))
+        .toString();
   }
 }

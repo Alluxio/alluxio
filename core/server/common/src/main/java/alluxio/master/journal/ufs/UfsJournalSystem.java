@@ -23,6 +23,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -219,6 +221,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public String toString() {
-    return String.format("UfsJournalSystem, based at %s", mBase.toString());
+    return MoreObjects.toStringHelper(this)
+        .add("Ufs-Uri", mBase)
+        .toString();
   }
 }
