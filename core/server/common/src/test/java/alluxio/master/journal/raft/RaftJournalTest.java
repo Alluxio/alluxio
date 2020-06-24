@@ -20,6 +20,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.After;
@@ -50,6 +51,9 @@ public class RaftJournalTest {
 
   private JournalSystem mLeaderJournalSystem;
   private JournalSystem mFollowerJournalSystem;
+
+  // A 30sec wait-options object for use by the test.
+  private WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
 
   @Before
   public void before() throws Exception {
@@ -119,7 +123,8 @@ public class RaftJournalTest {
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
-    CommonUtils.waitFor("full state acquired", () -> countingMaster.getApplyCount() == entryCount);
+    CommonUtils.waitFor("full state acquired", () -> countingMaster.getApplyCount() == entryCount,
+        mWaitOptions);
 
     // Write more entries and validate they are replicated to follower.
     try (JournalContext journalContext =
@@ -131,7 +136,7 @@ public class RaftJournalTest {
               .build());
     }
     CommonUtils.waitFor("full state acquired after resume",
-        () -> countingMaster.getApplyCount() == entryCount + 1);
+        () -> countingMaster.getApplyCount() == entryCount + 1, mWaitOptions);
   }
 
   // Raft journal receives leader knowledge in chunks.
@@ -238,7 +243,7 @@ public class RaftJournalTest {
     // Gain primacy in follower journal and validate it catches up.
     mFollowerJournalSystem.gainPrimacy();
     CommonUtils.waitFor("full state acquired after resume",
-        () -> countingMaster.getApplyCount() == entryCount);
+        () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
 
     // Resuming should fail after becoming primary.
     mThrown.expect(IllegalStateException.class);
@@ -278,7 +283,7 @@ public class RaftJournalTest {
     // Gain primacy in follower journal and validate it catches up.
     mFollowerJournalSystem.gainPrimacy();
     CommonUtils.waitFor("full state acquired after resume",
-        () -> countingMaster.getApplyCount() == entryCount);
+        () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
 
     // Resuming should fail after becoming primary.
     mThrown.expect(IllegalStateException.class);
@@ -321,15 +326,17 @@ public class RaftJournalTest {
     });
 
     // Wait until advancing starts.
-    CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0);
+    CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0,
+        mWaitOptions);
 
     // Gain primacy in follower journal and validate it catches up.
     mFollowerJournalSystem.gainPrimacy();
     // Can't use countingMaster because Raft stops applying entries for primary journals.
     // Using JournalSystem#getCurrentSequences() API instead.
-    CommonUtils.waitFor("full state acquired after resume",
-        () -> mFollowerJournalSystem.getCurrentSequenceNumbers().values().stream().distinct()
-            .collect(Collectors.toList()).get(0) == entryCount - 1);
+    CommonUtils.waitFor(
+        "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
+            .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
+        mWaitOptions);
 
     // Resuming should fail after becoming primary.
     mThrown.expect(IllegalStateException.class);
