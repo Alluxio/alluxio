@@ -102,7 +102,7 @@ public class HmsTests {
     String metastoreUri = cmd.getOptionValue(METASTORE_URI_OPTION_NAME);
     String database = cmd.getOptionValue(DATABASE_OPTION_NAME, "");
     String tables = cmd.getOptionValue(TABLES_OPTION_NAME, "");
-    int socketTimeout = Integer.parseInt(cmd.getOptionValue(SOCKET_TIMEOUT_OPTION_NAME, "-1"));
+    String socketTimeout = cmd.getOptionValue(SOCKET_TIMEOUT_OPTION_NAME, "-1");
 
     ValidationToolRegistry registry
         = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
