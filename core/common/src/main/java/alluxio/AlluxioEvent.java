@@ -23,7 +23,8 @@ import java.util.stream.Collectors;
  * Defines and Manages well-known Alluxio events.
  */
 public enum AlluxioEvent {
-  // [1000,2000) Alluxio process events.
+  // [1000,2000) Alluxio master process events.
+  //   [1000,1100) Alluxio process events
   MasterProcessCreated(1000),
   JournalSystemStarted(1001),
   JournalSystemStopped(1002),
@@ -32,21 +33,26 @@ public enum AlluxioEvent {
   MasterRpcServerStarted(1005),
   MasterRpcServerStopped(1006),
   MasterIsTransitioning(1007),
-  // [2000,3000) Alluxio fs master events.
+  //   [1100,1200) Alluxio FileSystemMaster events.
   ActiveSyncStarted(2000),
   ActiveSyncProcessedSyncPoint(2001),
   ActiveSyncFailed(2002),
   ActiveSyncFinished(2003),
-  // [3000,4000) Alluxio block master events.
+  //   [1200,1300) Alluxio BlockMaster events.
   WorkerRegistered(3000),
   WorkerLost(3001),
-  // [4000,5000) Alluxio meta master events.
+  //   [1300,1400) Alluxio MetaMaster events.
   BackupRequested(4000),
   BackupStarted(4001),
   BackupSubmitted(4002),
   BackupFailed(4003),
   BackupFinished(4004),
-  // [5000,6000) Alluxio table master events.
+  //   [1400,1500) Alluxio Table events.
+  // [2000,3000) Alluxio worker process events.
+  //   [2000,2100) Alluxio tier-management events.
+  // [3000,4000) Alluxio job-master process events.
+  // [4000,5000) Alluxio job-worker process events.
+  // [5000,6000) Alluxio proxy process events.
   ;
 
   // logger.
