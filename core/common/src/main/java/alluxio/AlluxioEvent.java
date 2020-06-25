@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 /**
  * Defines and Manages well-known Alluxio events.
+ *
+ * TODO(ggezer): Add per-process log4j configuration before adding events to other processes.
  */
 public enum AlluxioEvent {
   // *[1000,2000) Alluxio master process events.
@@ -48,11 +50,6 @@ public enum AlluxioEvent {
   BackupFinished(1304),
   // **[1400,1500) Alluxio Table events.
   // *[2000,3000) Alluxio worker process events.
-  WorkerProcessCreated(2000),
-  // **[2100,2200) Alluxio tier-management events.
-  TierManagementTaskStarted(2100),
-  TierManagementTaskFinished(2101),
-  TierManagementTaskFailed(2102)
   // *[3000,4000) Alluxio job-master process events.
   // *[4000,5000) Alluxio job-worker process events.
   // *[5000,6000) Alluxio proxy process events.

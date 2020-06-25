@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.AlluxioEvent;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -168,7 +167,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    AlluxioEvent.WorkerProcessCreated.fire();
   }
 
   @Override
