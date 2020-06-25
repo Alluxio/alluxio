@@ -332,9 +332,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     Preconditions
         .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
             mId);
-    if (mContext != null) {
-      mContext.getSeekStats().add(pos - mPos);
-    }
     if (pos == mPos) {
       return;
     }

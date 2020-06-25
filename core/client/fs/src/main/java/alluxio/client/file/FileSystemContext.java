@@ -373,20 +373,6 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return stats of seek distance
-   */
-  public StatsAccumulator getSeekStats() {
-    return mSeekDistStats;
-  }
-
-  /**
-   * @return stats of seek distance
-   */
-  public StatsAccumulator getCacheStats() {
-    return mCacheStats;
-  }
-
-  /**
    * @return the unique ID of this context
    */
   public String getId() {
