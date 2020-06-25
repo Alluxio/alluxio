@@ -29,17 +29,19 @@ RUN cd /opt && \
 # Remove the UFS libraries from the container, as the fuse daemon doesn't need them
 RUN rm -rf /opt/alluxio/lib/*
 
-FROM ubuntu:16.04
+FROM cheyang/fuse2:ubuntu1604-customize-debug-20200514
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 
+COPY libjnifuse.so /usr/lib/
+
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-	openjdk-8-jdk openjdk-8-jre-headless fuse && \
+	openjdk-8-jdk openjdk-8-jre-headless && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
