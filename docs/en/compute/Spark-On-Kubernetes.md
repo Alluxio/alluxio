@@ -90,12 +90,36 @@ If a domain socket location was setup on hosts running the Alluxio worker proces
 configuration to mount `/tmp/alluxio-domain` to `/opt/domain` in the Spark executor pod.
 The `spark-submit` command in the following section includes these properties.
 
-```properties
-spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain
-spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true
-spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain
-spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory
-```
+The domain socket on the Alluxio worker can be a `hostPath` Volume or a `PersistententVolumeClaim`,
+depending on your setup.
+You can find more details on how to configure Alluxio worker to use short circuit 
+[here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url }}).
+The spark-submit arguments will be different for these two options.
+You can find more about how to mount volumes to Spark executors in Spark
+[documentation](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes).
+
+{% navtabs domainSocket %}
+  {% navtab hostPath %}
+  If you are using `hostPath` domain sockets, you should pass these properties to Spark:
+  
+  ```properties
+  spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain
+  spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true
+  spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain
+  spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory
+  ```
+  {% endnavtab %}
+  {% navtab PersistententVolumeClaim %}
+  If you are using `PersistententVolumeClaim` domain sockets, you should pass these properties to Spark:
+  
+  ```properties
+  spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.mount.path=/opt/domain \
+  spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.mount.readOnly=true \
+  spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.options.claimName=<domainSocketPVC name>
+  ```
+  
+  {% endnavtab %}
+{% endnavtabs %}
 
 Note: 
 - Volume support in Spark was added in version 2.4.0.
@@ -138,6 +162,8 @@ alluxio://<alluxio-master>:19998/LICENSE
 ```
 > Note: You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
 You can find more details in Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
+You should also using the properties corresponding to your 
+[domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
 ## Troubleshooting
 
