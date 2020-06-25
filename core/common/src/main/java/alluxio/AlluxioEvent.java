@@ -82,7 +82,7 @@ public enum AlluxioEvent {
     eventStrBuilder.append(this.name());
     eventStrBuilder.append(String.format("(%d)", mId));
     if (eventArguments.length > 0) {
-      eventStrBuilder.append(" Event-Arguments: ");
+      eventStrBuilder.append(" Arguments: ");
       eventStrBuilder.append(Arrays.stream(eventArguments)
           .map((kv) -> String.format("%s=\"%s\"", kv.getFirst(), kv.getSecond()))
           .collect(Collectors.joining(", ")));
