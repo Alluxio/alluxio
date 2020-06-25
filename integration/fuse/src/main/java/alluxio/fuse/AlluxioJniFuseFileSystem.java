@@ -193,7 +193,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       FileInStream is = mFileSystem.openFile(uri);
       mOpenFiles.put(fd, new OpenFileEntry(path, is));
       fi.fh.set(fd);
-      LOG.info("open(fd={},entries={})", fd, mOpenFiles.size());
+      if (fd % 100 == 1) {
+        LOG.info("open(fd={},entries={})", fd, mOpenFiles.size());
+      }
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -256,7 +258,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   public int release(String path, FuseFileInfo fi) {
     final OpenFileEntry oe;
     long fd = fi.fh.get();
-    LOG.info("release(fd={},entries={})", fd, mOpenFiles.size());
+    if (fd % 100 == 1) {
+      LOG.info("release(fd={},entries={})", fd, mOpenFiles.size());
+    }
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
