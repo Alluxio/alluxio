@@ -44,6 +44,7 @@ public class LocalCacheFileInStream extends FileInStream {
   protected final long mPageSize;
 
   private final byte[] mSingleByte = new byte[1];
+  private final byte[] mExternalPageBuffer;
   private final Closer mCloser = Closer.create();
 
   /** Local store to store pages. */
@@ -78,6 +79,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mOpenOptions = options;
     mExternalFs = externalFs;
     mCacheManager = cacheManager;
+    mExternalPageBuffer = new byte[(int) mPageSize];
     // Lazy init of status object
     mStatus = Suppliers.memoize(() -> {
       try {
@@ -104,6 +106,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mOpenOptions = options;
     mExternalFs = externalFs;
     mCacheManager = cacheManager;
+    mExternalPageBuffer = new byte[(int) mPageSize];
     // Lazy init of status object
     mStatus = status;
     Metrics.registerGauges();
@@ -311,7 +314,12 @@ public class LocalCacheFileInStream extends FileInStream {
     long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
-    byte[] page = new byte[pageSize];
+    byte[] page;
+    if (pageSize == mPageSize) {
+      page = mExternalPageBuffer;
+    } else {
+      page = new byte[pageSize];
+    }
     int totalBytesRead = 0;
     while (totalBytesRead < pageSize) {
       int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
