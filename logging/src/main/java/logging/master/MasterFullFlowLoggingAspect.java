@@ -1,4 +1,4 @@
-package alluxio.master.logging;
+package logging.master;
 
 import br.com.simbiose.debug_log.BaseAspect;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,14 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Aspect
 public class MasterFullFlowLoggingAspect extends BaseAspect {
 
-    private static final String FLOW_NAME = "WorkerFullFlow";
+    private static final String FLOW_NAME = "MasterFullFlow";
 
     private static final String START_METHOD = "execution(* alluxio.master.AlluxioMaster.main(..))";
 
     private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(alluxio.master.logging..*) && "
-            + "!within(alluxio.worker..*) && "
-            + "!within(alluxio.proxy..*)";
+            + "!within(logging..*)";
 
     private static final String FINISH_METHOD = "execution(* java.lang.System.exit(..))";
 
@@ -42,7 +40,7 @@ public class MasterFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(START_METHOD)
     public Object startFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = -1;
 
         threadIdToStep.put(threadId, 0);
         threadIdToDebugLogId.compute(
@@ -66,7 +64,7 @@ public class MasterFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(WHITE_AND_BLACK_LIST)
     public Object around(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = -1;
 
         return printDebugLogForMethod(point, threadId);
     }
@@ -88,7 +86,7 @@ public class MasterFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(FINISH_METHOD)
     public Object finishFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = -1;
 
         final Object resultFromMethod = printDebugLogForMethod(point, threadId);
 

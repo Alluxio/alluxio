@@ -243,6 +243,9 @@ public final class FileSystemMasterClientServiceHandler
     }, "Mount", "request=%s", responseObserver, request);
   }
 
+  private void finishMountFlow() {
+  }
+
   @Override
   public void updateMount(UpdateMountPRequest request,
       StreamObserver<UpdateMountPResponse> responseObserver) {

@@ -29,6 +29,12 @@
   </properties>
 
   <dependencies>
+    <!-- Makes it possible for AspectJ to act upon this module -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>logging</artifactId>
+      <version>2.2.1</version>
+    </dependency>
     <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -119,12 +125,6 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>br.com.simbiose</groupId>
-          <artifactId>debug_log</artifactId>
-          <version>0.0.1</version>
-          <scope>compile</scope>
-      </dependency>
   </dependencies>
 
   <build>
@@ -156,23 +156,43 @@
           </apiSources>
         </configuration>
       </plugin>
+
+<!-- AspectJ plugin adapted for a multiple module setup -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
         <version>1.11</version>
+        <configuration>
+          <complianceLevel>1.8</complianceLevel>
+          <source>1.8</source>
+          <target>1.8</target>
+
+          <showWeaveInfo>true</showWeaveInfo>
+          <verbose>true</verbose>
+
+          <weaveDependencies>
+            <weaveDependency>
+              <groupId>org.alluxio</groupId>
+              <artifactId>logging</artifactId>
+            </weaveDependency>
+          </weaveDependencies>
+
+        </configuration>
         <executions>
           <execution>
             <goals>
-              <goal>compile</goal>       <!-- use this goal to weave all your main classes -->
-<!--          <goal>test-compile</goal> use this goal to weave all your test classes -->
+              <goal>compile</goal>
+<!---         <goal>test-compile</goal> Commented for troubleshooting -->
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <complianceLevel>1.8</complianceLevel>
-        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.9.5</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

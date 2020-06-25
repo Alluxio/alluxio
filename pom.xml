@@ -123,6 +123,7 @@
   </repositories>
 
   <properties>
+    <aspectj.runtime.version>1.9.5</aspectj.runtime.version>
     <argLine />
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
@@ -175,10 +176,16 @@
     <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
+    <module>logging</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjrt</artifactId>
+        <version>1.9.5</version>
+      </dependency>
       <!-- Compile scope -->
       <dependency>
         <groupId>com.aliyun.oss</groupId>
