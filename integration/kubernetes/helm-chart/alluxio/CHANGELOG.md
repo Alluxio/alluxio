@@ -113,4 +113,7 @@
 - Increase the default memory limit to match the default xmx
 - Added HostPID for using Java profile
 
+0.6.6
+
+- Removed obsolete master journal formatting job configuration properties
 
