@@ -14,6 +14,7 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.AlluxioEvent;
 import alluxio.collections.Pair;
@@ -125,7 +126,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    AlluxioEvent.MasterProcessCreated.fire();
+    AlluxioEvent.MasterProcessCreated.fire(new Pair<>("Version", ProjectConstants.VERSION));
   }
 
   @Override
