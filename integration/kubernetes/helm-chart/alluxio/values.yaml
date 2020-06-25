@@ -126,16 +126,6 @@ journal:
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
-    job:
-      activeDeadlineSeconds: 30
-      ttlSecondsAfterFinished: 10
-    resources:
-      limits:
-        cpu: "1"
-        memory: "1G"
-      requests:
-        cpu: "1"
-        memory: "1G"
 
 
 # You can enable metastore to use ROCKS DB instead of Heap
