@@ -53,7 +53,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
 
   protected final void setState(State state) {
     AlluxioEvent.MasterIsTransitioning.fire(
-        new Pair<>("Old-State", mState), new Pair<>("New-State", state));
+        new Pair<>("OldState", mState), new Pair<>("NewState", state));
     try (LockResource lr = new LockResource(mStateLock)) {
       mState = state;
       mStateCond.signalAll();
