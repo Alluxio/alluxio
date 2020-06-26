@@ -32,7 +32,7 @@ $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 ```
 
 > Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
-You will need to mark the directory as a source folder for Eclipse to resolve the sources files.
+You will need to mark the directory as a source folder for Eclipse to resolve the source files.
 
 ### IntelliJ IDEA
 
@@ -47,10 +47,10 @@ You can do this by going to
 
 > `View > Tool Windows > Maven Projects`
 
-And then checking the box next to "developer" in the window pane. 
+And then check the box next to "developer" in the window pane. 
 
 > Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
-You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the sources files.
+You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the source files.
 
 ## Maven Targets and Plugins
 
@@ -179,7 +179,7 @@ $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
-The above unit tests will create a simulated HDFS service with the specific version.
+The above unit tests will create a simulated HDFS service with a specific version.
 To run more comprehensive tests on HDFS under storage using a real and running HDFS deployment:
 
 ```console
