@@ -42,6 +42,7 @@ public final class ValidationUtils {
 
     State mState = State.OK;
     String mName = "";
+    String mDesc = "";
     // Output stores stdout if test passed or stderr if error thrown
     String mOutput = "";
     String mAdvice = "";
@@ -57,6 +58,23 @@ public final class ValidationUtils {
     public TaskResult(State state, String name, String output, String advice) {
       mState = state;
       mName = name;
+      mOutput = output;
+      mAdvice = advice;
+    }
+
+    /**
+     * Creates a new {@link TaskResult}.
+     *
+     * @param state task state
+     * @param name task name
+     * @param desc task description
+     * @param output task output
+     * @param advice task advice
+     */
+    public TaskResult(State state, String name, String desc, String output, String advice) {
+      mState = state;
+      mName = name;
+      mDesc = desc;
       mOutput = output;
       mAdvice = advice;
     }
@@ -85,6 +103,17 @@ public final class ValidationUtils {
      */
     public TaskResult setName(String name) {
       mName = name;
+      return this;
+    }
+
+    /**
+     * Sets task name.
+     *
+     * @param desc description to set
+     * @return the task result
+     */
+    public TaskResult setDesc(String desc) {
+      mDesc = desc;
       return this;
     }
 
@@ -122,6 +151,13 @@ public final class ValidationUtils {
      */
     public String getName() {
       return mName;
+    }
+
+    /**
+     * @return task description
+     */
+    public String getDesc() {
+      return mDesc;
     }
 
     /**
