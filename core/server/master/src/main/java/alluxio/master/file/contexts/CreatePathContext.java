@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
  * @param <K> Context type (It must be either CreateFileContext or CreateDirectoryContext
  */
 public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>, K>
-    extends OperationContext<T> {
+    extends OperationContext<T, CreatePathContext> {
 
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
