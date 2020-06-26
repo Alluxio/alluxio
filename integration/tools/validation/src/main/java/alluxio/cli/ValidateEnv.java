@@ -105,16 +105,20 @@ public final class ValidateEnv {
     mConf = conf;
 
     // HDFS configuration validations
-    registerTask("ufs.hdfs.config.correctness", "validate HDFS configuration files",
+    registerTask("ufs.hdfs.config.correctness",
+            "This validates HDFS configuration files like core-site.xml and hdfs-site.xml.",
             new HdfsConfValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.parity",
-            "validate HDFS-related configurations",
+            "If a Hadoop config directory is specified, this compares the Hadoop config "
+                    + "directory with the HDFS configuration paths given to Alluxio, "
+                    + "and see if they are consistent.",
             new HdfsConfParityValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.proxyuser",
-            "validate proxyuser configuration in hdfs for alluxio",
+            "This validates proxy user configuration in HDFS for Alluxio. "
+                    + "This is needed to enable impersonation for Alluxio.",
             new HdfsProxyUserValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.version",
-            "validate version compatibility between alluxio and hdfs",
+            "This validates version compatibility between Alluxio and HDFS.",
             new HdfsVersionValidationTask(mConf), mCommonTasks);
 
     // port availability validations
@@ -141,10 +145,10 @@ public final class ValidateEnv {
 
     // security configuration validations
     registerTask("master.ufs.hdfs.security.kerberos",
-            "validate kerberos security configurations for masters",
+             "This validates kerberos security configurations for Alluxio masters.",
             new SecureHdfsValidationTask("master", mPath, mConf), mMasterTasks);
     registerTask("worker.ufs.hdfs.security.kerberos",
-            "validate kerberos security configurations for workers",
+             "This validates kerberos security configurations for Alluxio workers.",
             new SecureHdfsValidationTask("worker", mPath, mConf), mWorkerTasks);
 
     // ssh validations
@@ -154,10 +158,10 @@ public final class ValidateEnv {
 
     // UFS validations
     registerTask("ufs.path.accessible",
-            "validate the under file system location is accessible",
+            "This validates the under file system location is accessible to Alluxio.",
             new UfsDirectoryValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.path.superuser",
-            "validate Alluxio has super user privilege on the under file system",
+            "This validates Alluxio has super user privilege on the under file system.",
             new UfsSuperUserValidationTask(mPath, mConf), mCommonTasks);
 
     // RAM disk validations
@@ -182,7 +186,9 @@ public final class ValidateEnv {
             new ClusterConfConsistencyValidationTask(mConf), mClusterTasks);
 
     // java option validations
-    registerTask("java.native.libs", "validate java native lib paths",
+    registerTask("java.native.libs",
+            String.format("This validates if java native libraries defined at %s all exist.",
+                    NativeLibValidationTask.NATIVE_LIB_PATH),
             new NativeLibValidationTask(), mCommonTasks);
 
     mTargetTasks = initializeTargetTasks();
@@ -220,6 +226,15 @@ public final class ValidateEnv {
    * */
   public Map<ValidationTask, String> getTasks() {
     return Collections.unmodifiableMap(mTasks);
+  }
+
+  /**
+   * Gets the task descriptions.
+   *
+   * @return a map of task names mapping to their descriptions
+   * */
+  public Map<String, String> getDescription() {
+    return Collections.unmodifiableMap(mTaskDescriptions);
   }
 
   private boolean validateRemote(Collection<String> nodes, String target,
