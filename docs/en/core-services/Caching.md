@@ -21,7 +21,7 @@ overall I/O throughput from a user's perspective. Alluxio accomplishes this by s
 into two distinct categories.
 
 - **UFS (Under File Storage, also referred to as the under storage)**
-    - This storage is represented as the space which is not managed by Alluxio.
+    - This storage is represented as space which is not managed by Alluxio.
     UFS storage may come from an external file system, including HDFS or S3.
     Alluxio may connect to one or more of these UFSs and expose them within a single namespace.
     - Typically, UFS storage is aimed at storing large amounts of data persistently for extended
@@ -51,7 +51,7 @@ Due to the fact that Alluxio relies on the under file storage for a majority of 
 Alluxio does not need to keep copies of data that are not being used.
 
 Alluxio also supports tiered storage, which makes the system storage media aware, enabling data
-storage optimizations similar to L1/L2 cpu caches.
+storage optimizations similar to L1/L2 CPU caches.
 
 ## Configuring Alluxio Storage
 
@@ -70,7 +70,7 @@ Alluxio storage is configured through Alluxio's configuration in `alluxio-site.p
 [configuration settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for detailed
 information.
 
-A common modification to the default is to explicitly set the ramdisk size. For example, to set the
+A common modification to the default is to set the ramdisk size explicitly. For example, to set the
 ramdisk size to be 16GB on each worker:
 
 ```properties
@@ -88,14 +88,14 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
 
 Note that the ordering of the medium types must match with the ordering of the paths.
-Here, MEM and SSD are two types preconfigured in Alluxio.
+Here, MEM and SSD are two preconfigured types in Alluxio.
 `alluxio.master.tieredstore.global.mediumtype` is a configuration parameter that has a list of
 all available medium types and by default it is set to `MEM, SSD, HDD`. This list can be modified
 if the user has additional storage media types.
 
 The paths provided should point to paths in the local filesystem mounting the appropriate storage
 media. To enable short circuit operations, the permissions of these paths should be permissive for the
-client user to read, write, and execute on the path. For example, `770` permissions is needed for
+client user to read, write, and execute on the path. For example, `770` permissions are needed for
 the client user who is among the same group of the user that starts the Alluxio service.
 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
@@ -118,7 +118,7 @@ of the memory size if devices other than the default Alluxio provisioned ramdisk
 ### Multiple-Tier Storage
 
 It is typically recommended to use a single storage tier with heterogeneous storage media.
-In certain environments, workloads will benefit from explicit ordering of storage media based on
+In certain environments, workloads will benefit from the explicit ordering of storage media based on
 I/O speed. When tiered storage is enabled, the eviction process intelligently accounts for the
 ordering of tiers. Alluxio assumes that tiers are ordered from top to bottom based on I/O performance.
 For example, users often specify the following tiers:
@@ -198,7 +198,7 @@ alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
 alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
 ```
 
-There are no restrictions to how many tiers can be configured
+There are no restrictions on how many tiers can be configured
 but each tier must be identified with a unique alias.
 A typical configuration will have three tiers for Memory, SSD, and HDD.
 To use multiple hard drives in the HDD tier, specify multiple paths when configuring
@@ -212,7 +212,7 @@ volatile. Eviction is the mechanism that removes old data.
 Alluxio applies asynchronous eviction in the background. It relies on a periodic space
 reserver thread in each worker to evict data. When the worker storage utilization reaches a
 maximum threshold, it evicts data until the usage reaches a minimum threshold. The two thresholds
-are configurable, labeled as the high and low watermarks respectively. In the case where we have
+are configurable, labeled as the high and low watermarks, respectively. In the case where we have
 216 GB of storage on a worker, eviction can be triggered at about 200 GB to reduce storage
 utilization to 160 GB by setting the high watermark to 90% and the low watermark to 75%.
 
@@ -231,7 +231,7 @@ available Alluxio space.
 ### Eviction Policies
 
 Alluxio uses evictors to decide which blocks to remove from Alluxio storage.
-Users can specify different Alluxio evictors to better control the eviction process.
+Users can specify different Alluxio evictors to control the eviction process better.
 
 Out-of-the-box evictor implementations include:
 
@@ -259,7 +259,7 @@ available options are:
 - `alluxio.worker.block.evictor.PartialLRUEvictor`
 
 When using synchronous eviction, it is recommended to use smaller block sizes (around 64-128MB),
-to reduce the latency of block eviction. The block size has no effect for asynchronous eviction.
+to reduce the latency of block eviction. The block size has no effect on asynchronous eviction.
 
 Alluxio also supports custom evictors for more fine-grained control over the eviction behavior.
 Evictors must implement the
@@ -271,7 +271,7 @@ needs to be accessible and added to the Alluxio worker's java classpath.
 
 ## Managing the Data Lifecycle in Alluxio
 
-Users should understanding the following concepts to properly utilize available resources:
+Users should understand the following concepts to utilize available resources properly:
 
 - **free**: Freeing data means removing data from the Alluxio cache, but not the
 underlying UFS. Data is still available to users after a free operation, but performance may be
@@ -328,7 +328,7 @@ allows a user to push data from the Alluxio cache to a UFS.
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
-This command is useful if you have data which you loaded into Alluxio which did not originate from
+This command is useful if you have data that you loaded into Alluxio which did not originate from
 a configured UFS. Users should not need to worry about manually persisting data in most cases.
 
 ### Setting Time to Live (TTL)
@@ -342,7 +342,7 @@ files.
 Alluxio has TTL attributes associated with each file or directory. These attributes are saved as
 part of the journal and persist across cluster restarts. The active master node is responsible for
 holding the metadata in memory when Alluxio is serving. Internally, the master runs a background
-thread which periodically checks if files have reached their TTL expiration.
+thread that periodically checks if files have reached their TTL expiration.
 
 Note that the background thread runs on a configurable period, which is set to an hour by default.
 Data that has reached its TTL expiration immediately after a check will not be removed until the
@@ -371,7 +371,7 @@ SetTTL(path, duration, action)
 `path`          the path in the Alluxio namespace
 `duration`      the number of milliseconds before the TTL action goes into effect, this overrides
                 any previous value
-`action`        the action to take when duration has elapsed. `FREE` will cause the file to be
+`action`        the action to take when the duration has elapsed. `FREE` will cause the file to be
                 evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
                 file to be deleted from the Alluxio namespace and under store.
                 NOTE: `DELETE` is the default for certain commands and will cause the file to be
