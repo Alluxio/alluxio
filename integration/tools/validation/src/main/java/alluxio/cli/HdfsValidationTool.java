@@ -53,14 +53,20 @@ public class HdfsValidationTool implements ValidationTool {
     ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
 
     List<ValidationUtils.TaskResult> results = new ArrayList<>();
+    Map<String, String> desc = tasks.getDescription();
     for (Map.Entry<ValidationTask, String> entry : tasks.getTasks().entrySet()) {
       ValidationTask task = entry.getKey();
+      String taskName = entry.getValue();
       Class clazz = task.getClass();
       if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
         ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
         if (type.value() == ApplicableUfsType.Type.HDFS
                 || type.value() == ApplicableUfsType.Type.ALL) {
-          results.add(task.validate(validateOpts));
+          ValidationUtils.TaskResult result = task.validate(validateOpts);
+          if (desc.containsKey(taskName)) {
+            result.setDesc(desc.get(taskName));
+          }
+          results.add(result);
         }
       }
     }
@@ -81,17 +87,6 @@ public class HdfsValidationTool implements ValidationTool {
   public String runTests() throws InterruptedException {
     // Run validateEnv
     List<ValidationUtils.TaskResult> results = validateUfs(mUfsPath, mUfsConf);
-
-    // Run runUfsTests
-    if (mUfsConf.isReadOnly()) {
-      LOG.debug("Ufs operations are skipped because the path is readonly.");
-      results.add(new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED,
-              UnderFileSystemContractTest.TASK_NAME,
-              String.format("UFS path %s is readonly, skipped UFS operation tests.", mUfsPath),
-              ""));
-    } else {
-      results.add(runUfsTests(mUfsPath, new InstancedConfiguration(mUfsConf)));
-    }
 
     // group by state
     Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> map = new HashMap<>();
