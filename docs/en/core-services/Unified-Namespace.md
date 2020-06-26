@@ -83,7 +83,8 @@ Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
 The `mount` command attaches a UFS to the file system tree in the Alluxio namespace.
 
 ### Root Mount Point
-The root mount point of the Alluxio namespace can be specified in `conf/alluxio-site.properties`.
+The root mount point of the Alluxio namespace is configured in `conf/alluxio-site.properties`
+on the masters.
 The following line is an example configuration where an HDFS path is mounted to the root of the
 Alluxio namespace.
 
@@ -91,7 +92,7 @@ Alluxio namespace.
 alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
-Mount options for the root mount point can be configured using the configuration prefix:
+Mount options for the root mount point are configured using the configuration prefix:
 
 `alluxio.master.mount.table.root.option.<some alluxio property>`
 
@@ -112,12 +113,15 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
 ### Nested Mount Points
-In addition to the root mount point, other under file systems can be mounted into Alluxio namespace
-by using the mount command. The `--option` flag allows the user to pass additional parameters
+In addition to the root mount point, other under file systems can be mounted into Alluxio namespace.
+These additional mount points are added to Alluxio at runtime, via the `mount` command.
+The `--option` flag allows the user to pass additional parameters
 to the mount operation, such as credentials.
 
 ```console
+# the following command mounts an hdfs path to the Alluxio path `/mnt/hdfs`
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+# the following command mounts an s3 path to the Alluxio path `/mnt/s3` with additional options specifying the credentials
 $ ./bin/alluxio fs mount \
   --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
@@ -315,7 +319,7 @@ $ ./bin/alluxio fs stopSync /syncdir
 > If run as the Alluxio superuser, `stopSync` will interrupt any full scans which have not yet ended.
 > If run as any other user, `stopSync` will wait for the full scan to finish before completing.
 
-You can also examine which directories are currently under active sync.
+You can also examine which directories are currently under active sync, with the following command.
 
 ```console
 $ ./bin/alluxio fs getSyncPathList
