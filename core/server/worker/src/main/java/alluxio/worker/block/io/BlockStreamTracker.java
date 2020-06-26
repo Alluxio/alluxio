@@ -13,17 +13,15 @@ package alluxio.worker.block.io;
 
 import alluxio.worker.block.BlockStoreLocation;
 
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Used to emit block reader/writer open/close events.
  */
 public class BlockStreamTracker {
   /** List of listeners for this tracker. */
-  private static List<BlockClientListener> sListeners =
-      Collections.synchronizedList(new LinkedList<>());
+  private static List<BlockClientListener> sListeners = new CopyOnWriteArrayList<>();
 
   /**
    * Register a new listener.
