@@ -204,7 +204,8 @@ public class InodeSyncStream {
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
    */
   public InodeSyncStream(LockingScheme rootPath, DefaultFileSystemMaster fsMaster,
-      RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
+      RpcContext rpcContext, DescendantType descendantType,
+      FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
@@ -246,8 +247,8 @@ public class InodeSyncStream {
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly) {
-    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
-        isGetFileInfo, forceSync, loadOnly);
+    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null, isGetFileInfo,
+        forceSync, loadOnly);
   }
   /**
    * Sync the metadata according the the root path the stream was created with.
@@ -311,6 +312,10 @@ public class InodeSyncStream {
     while (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
+        break;
+      }
+      if (mRpcContext.getOperationContext().getCancelledTrackers().size() > 0) {
+        LOG.warn("Metadata syncing was cancelled before completion; {}", toString());
         break;
       }
       // There are still paths to process
@@ -528,9 +533,10 @@ public class InodeSyncStream {
               // Only set group if not empty
               builder.setGroup(group);
             }
-            mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs,
-                SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-                    .setMode(new Mode(mode).toProto())).setUfsFingerprint(ufsFingerprint));
+            SetAttributeContext ctx = SetAttributeContext
+                .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode(mode).toProto()))
+                .setUfsFingerprint(ufsFingerprint);
+            mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
           }
         }
 
@@ -632,6 +638,7 @@ public class InodeSyncStream {
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
+    mRpcContext.throwIfCancelled();
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
