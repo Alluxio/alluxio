@@ -109,11 +109,12 @@ public final class ValidateEnv {
             "This validates HDFS configuration files like core-site.xml and hdfs-site.xml.",
             new HdfsConfValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.parity",
-            "If the Hadoop config directory is specified, this validates if that is "
-                    + "consistent with the HDFS configuration given to Alluxio.",
+            "If a Hadoop config directory is specified, this compares the Hadoop config "
+                    + "directory with the HDFS configuration paths given to Alluxio, "
+                    + "and see if they are consistent.",
             new HdfsConfParityValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.proxyuser",
-            "This validate proxy user configuration in HDFS for Alluxio. "
+            "This validates proxy user configuration in HDFS for Alluxio. "
                     + "This is needed to enable impersonation for Alluxio.",
             new HdfsProxyUserValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.hdfs.config.version",
