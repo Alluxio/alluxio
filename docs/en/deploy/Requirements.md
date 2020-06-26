@@ -83,6 +83,18 @@ The proxy process provides a REST based client:
 * Allow the following ports and protocols:
   * Inbound TCP 39999 - Used by clients to access the proxy.
 
+### Fuse Requirements
+
+There are Alluxio-specific requirements for nodes running the fuse process.
+
+Note that these are bare minimum requirements to run the software.
+Running Alluxio Fuse under high load will increase these requirements.
+
+* Minimum 1 CPU core
+* minimum 1 GB memory
+* libfuse 2.9.3 or newer for Linux
+* osxfuse 3.7.1 or newer for MacOS
+
 ## Additional Requirements
 
 Alluxio can also aggregate logs into a remote server to view in a unified place.
