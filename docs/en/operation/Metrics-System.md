@@ -44,7 +44,7 @@ and guidance of how to specify each property.
 
 By default, `MetricsServlet` is enabled in Alluxio leading master and workers. 
 
-You can send a HTTP request to `/metrics/json/` of the Alluxio leading master to get a snapshot of all metrics in JSON format. 
+You can send an HTTP request to `/metrics/json/` of the Alluxio leading master to get a snapshot of all metrics in JSON format. 
 Metrics on the Alluxio leading master contains its own instance metrics and a summary of the cluster-wide aggregated metrics.
 
 ```console
@@ -55,7 +55,7 @@ $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/json
 $ curl 127.0.0.1:19999/metrics/json/
 ```
 
-Send a HTTP request to `/metrics/json/` of the active Alluxio workers to get per-worker metrics.
+Send an HTTP request to `/metrics/json/` of the active Alluxio workers to get per-worker metrics.
 
 ```console
 # Get the metrics in JSON format from an active Alluxio worker
@@ -111,7 +111,7 @@ sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
 Restart the Alluxio servers to activate new configuration changes.
 
-You can send a HTTP request to `/metrics/prometheus/` of the Alluxio leading master or workers to get a snapshot of metrics in Prometheus format. 
+You can send an HTTP request to `/metrics/prometheus/` of the Alluxio leading master or workers to get a snapshot of metrics in Prometheus format. 
 
 ```console
 # Get the metrics in JSON format from Alluxio leading master or workers
@@ -123,7 +123,7 @@ $ curl 127.0.0.1:19999/metrics/prometheus/
 $ curl 127.0.0.1:30000/metrics/prometheus/
 ```
 
-Then configure `prometheus.yml` pointing to those endpoints to get Alluxio metrics
+Then configure `prometheus.yml` pointing to those endpoints to get Alluxio metrics.
 
 ```
 scrape_configs:
@@ -155,7 +155,7 @@ users can view more human-readable metrics stored in the leading master via lead
 
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
-The nick name and original metric name corresponding are shown:
+The nickname and original metric name corresponding are shown:
 
 | Nick Name | Original Metric Name |
 |-----------------------------------|------------------------------|
