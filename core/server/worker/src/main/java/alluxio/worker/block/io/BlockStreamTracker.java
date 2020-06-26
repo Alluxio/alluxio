@@ -11,13 +11,11 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Used to emit block reader/writer open/close events.
