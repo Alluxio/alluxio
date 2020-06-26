@@ -21,14 +21,14 @@ import java.util.Set;
  */
 public class BlockStreamTracker {
   /** List of listeners for this tracker. */
-  private static Set<BlockStreamListener> sListeners = new ConcurrentHashSet<>();
+  private static Set<BlockClientListener> sListeners = new ConcurrentHashSet<>();
 
   /**
    * Register a new listener.
    *
    * @param listener listener
    */
-  public static void registerListener(BlockStreamListener listener) {
+  public static void registerListener(BlockClientListener listener) {
     sListeners.add(listener);
   }
 
@@ -37,7 +37,7 @@ public class BlockStreamTracker {
    *
    * @param listener listener
    */
-  public static void unregisterListener(BlockStreamListener listener) {
+  public static void unregisterListener(BlockClientListener listener) {
     sListeners.remove(listener);
   }
 
@@ -48,8 +48,8 @@ public class BlockStreamTracker {
    * @param location location of read
    */
   public static void readerOpened(BlockReader reader, BlockStoreLocation location) {
-    for (BlockStreamListener listener : sListeners) {
-      listener.readerOpened(reader, location);
+    for (BlockClientListener listener : sListeners) {
+      listener.clientOpened(reader, location);
     }
   }
 
@@ -60,8 +60,8 @@ public class BlockStreamTracker {
    * @param location location of read
    */
   public static void readerClosed(BlockReader reader, BlockStoreLocation location) {
-    for (BlockStreamListener listener : sListeners) {
-      listener.readerClosed(reader, location);
+    for (BlockClientListener listener : sListeners) {
+      listener.clientClosed(reader, location);
     }
   }
 
@@ -72,8 +72,8 @@ public class BlockStreamTracker {
    * @param location location of write
    */
   public static void writerOpened(BlockWriter writer, BlockStoreLocation location) {
-    for (BlockStreamListener listener : sListeners) {
-      listener.writerOpened(writer, location);
+    for (BlockClientListener listener : sListeners) {
+      listener.clientOpened(writer, location);
     }
   }
 
@@ -84,8 +84,8 @@ public class BlockStreamTracker {
    * @param location location of write
    */
   public static void writerClosed(BlockWriter writer, BlockStoreLocation location) {
-    for (BlockStreamListener listener : sListeners) {
-      listener.writerClosed(writer, location);
+    for (BlockClientListener listener : sListeners) {
+      listener.clientClosed(writer, location);
     }
   }
 }

@@ -15,7 +15,6 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -25,7 +24,7 @@ import java.nio.channels.WritableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockWriter extends Closeable {
+public interface BlockWriter extends BlockClient {
   /**
    * Appends data to the end of a block from an input {@link ByteBuffer}.
    *

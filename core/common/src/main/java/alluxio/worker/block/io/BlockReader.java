@@ -13,7 +13,6 @@ package alluxio.worker.block.io;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -23,7 +22,7 @@ import java.nio.channels.ReadableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockReader extends Closeable {
+public interface BlockReader extends BlockClient {
 
   /**
    * Reads data from the block.
