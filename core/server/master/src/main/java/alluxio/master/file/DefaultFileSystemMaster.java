@@ -3888,6 +3888,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
+              ufs.setOwner(tempUfsPath, inode.getOwner(), inode.getGroup());
+              ufs.setMode(tempUfsPath, inode.getMode());
               if (!ufsPath.equals(tempUfsPath)) {
                 // Make rename only when tempUfsPath is different from final ufsPath. Note that,
                 // on object store, we take the optimization to skip the rename by having
@@ -3897,8 +3899,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
                 }
               }
-              ufs.setOwner(ufsPath, inode.getOwner(), inode.getGroup());
-              ufs.setMode(ufsPath, inode.getMode());
               builder.setUfsFingerprint(ufs.getFingerprint(ufsPath));
             }
 
