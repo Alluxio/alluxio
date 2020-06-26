@@ -1,4 +1,4 @@
-package logging.commands;
+package logging.commands.fs;
 
 import br.com.simbiose.debug_log.BaseAspect;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,20 +9,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static logging.commands.list.LoggingAspectBoundaries.*;
+
 @Aspect
-public class FsMountCommandFlowLoggingAspect extends BaseAspect {
+public class FsDistributedMvCommandFlowLoggingAspect extends BaseAspect {
 
-    private static final String FLOW_NAME = "FsMountCommandFlow";
+    private static final String FLOW_NAME = "FsDistributedMvCommandFlow";
 
-    private static final String START_METHOD = "execution(* alluxio.master.file.DefaultFileSystemMaster.unmount(..))";
+    private static final String START_METHOD = "execution(* alluxio.cli.fs.command.DistributedMvCommand.run(..))";
 
-    private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(logging..*) && "
-            + "!within(alluxio.clock..*) && "
-            + "!within(alluxio.alluxio.client.metrics..*) && "
-            + "!within(alluxio.heartbeat..*)";
+    private static final String WHITE_AND_BLACK_LIST = whitelist + " && " + blacklist;
 
-    private static final String FINISH_METHOD = "execution(* alluxio.security.authentication.onCompleted(..))";
+    private static final String FINISH_METHOD = finish;
 
     protected final Map<Long, Integer> threadIdToStep = new ConcurrentHashMap<>();
     protected final Map<Long, Long> threadIdToDebugLogId = new ConcurrentHashMap<>();
@@ -43,7 +41,7 @@ public class FsMountCommandFlowLoggingAspect extends BaseAspect {
      */
     @Around(START_METHOD)
     public Object startFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = artificialThreadId;
 
         threadIdToStep.put(threadId, 0);
         threadIdToDebugLogId.compute(
@@ -67,7 +65,7 @@ public class FsMountCommandFlowLoggingAspect extends BaseAspect {
      */
     @Around(WHITE_AND_BLACK_LIST)
     public Object around(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = artificialThreadId;
 
         return printDebugLogForMethod(point, threadId);
     }
@@ -89,7 +87,7 @@ public class FsMountCommandFlowLoggingAspect extends BaseAspect {
      */
     @Around(FINISH_METHOD)
     public Object finishFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = Thread.currentThread().getId();
+        final long threadId = artificialThreadId;
 
         final Object resultFromMethod = printDebugLogForMethod(point, threadId);
 

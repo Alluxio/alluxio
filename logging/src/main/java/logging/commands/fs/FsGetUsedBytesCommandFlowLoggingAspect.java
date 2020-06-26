@@ -1,4 +1,4 @@
-package logging.worker;
+package logging.commands.fs;
 
 import br.com.simbiose.debug_log.BaseAspect;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,17 +9,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static logging.commands.list.LoggingAspectBoundaries.*;
+
 @Aspect
-public class WorkerFullFlowLoggingAspect extends BaseAspect {
+public class FsGetUsedBytesCommandFlowLoggingAspect extends BaseAspect {
 
-    private static final String FLOW_NAME = "WorkerFullFlow";
+    private static final String FLOW_NAME = "FsGetUsedBytesCommandFlow";
 
-    private static final String START_METHOD = "execution(* alluxio.worker.AlluxioWorker.main(..))";
+    private static final String START_METHOD = "execution(* alluxio.cli.fs.command.GetUsedBytesCommand.run(..))";
 
-    private static final String WHITE_AND_BLACK_LIST = "execution(* alluxio..*(..)) && "
-            + "!within(logging..*)";
+    private static final String WHITE_AND_BLACK_LIST = whitelist + " && " + blacklist;
 
-    private static final String FINISH_METHOD = "execution(* java.lang.System.exit(..))";
+    private static final String FINISH_METHOD = finish;
 
     protected final Map<Long, Integer> threadIdToStep = new ConcurrentHashMap<>();
     protected final Map<Long, Long> threadIdToDebugLogId = new ConcurrentHashMap<>();
@@ -40,7 +41,7 @@ public class WorkerFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(START_METHOD)
     public Object startFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = -1;
+        final long threadId = artificialThreadId;
 
         threadIdToStep.put(threadId, 0);
         threadIdToDebugLogId.compute(
@@ -64,7 +65,7 @@ public class WorkerFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(WHITE_AND_BLACK_LIST)
     public Object around(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = -1;
+        final long threadId = artificialThreadId;
 
         return printDebugLogForMethod(point, threadId);
     }
@@ -86,7 +87,7 @@ public class WorkerFullFlowLoggingAspect extends BaseAspect {
      */
     @Around(FINISH_METHOD)
     public Object finishFlux(final ProceedingJoinPoint point) throws Throwable {
-        final long threadId = -1;
+        final long threadId = artificialThreadId;
 
         final Object resultFromMethod = printDebugLogForMethod(point, threadId);
 
