@@ -122,7 +122,7 @@ Presto 服务器日志：
 
 ```bash
 ...
--Xbootclasspath/p:<path-to-alluxio-conf>
+-Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 或者，你可以将这些属性添加到 Hadoop 配置文件（`core-site.xml`，`hdfs-site.xml`）中，并使用文件`$presto/etc/catalog/hive.properties`中的 Presto 属性`hive.config.resources`来为每个 Presto worker 指明文件位置。
