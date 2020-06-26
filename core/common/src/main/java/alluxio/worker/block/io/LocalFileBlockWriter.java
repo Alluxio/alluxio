@@ -102,6 +102,7 @@ public class LocalFileBlockWriter extends AbstractBlockClient implements BlockWr
     }
     mClosed = true;
 
+    super.close();
     mCloser.close();
     mPosition = -1;
   }

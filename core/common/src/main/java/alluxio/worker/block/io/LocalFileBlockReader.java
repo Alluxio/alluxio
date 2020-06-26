@@ -106,6 +106,7 @@ public class LocalFileBlockReader extends AbstractBlockClient implements BlockRe
 
   @Override
   public void close() throws IOException {
+    super.close();
     Preconditions.checkState(mUsageCount == 0);
     if (mClosed) {
       return;

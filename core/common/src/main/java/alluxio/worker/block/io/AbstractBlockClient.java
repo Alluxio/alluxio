@@ -12,13 +12,18 @@
 package alluxio.worker.block.io;
 
 import com.google.common.base.MoreObjects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Provides basic tracking and representation for block reader/writer clients.
  */
 public abstract class AbstractBlockClient implements BlockClient {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractBlockClient.class);
+
   /** Used to keep unique client ids. */
   private static AtomicInteger sNextClientId = new AtomicInteger(0);
 
@@ -35,6 +40,7 @@ public abstract class AbstractBlockClient implements BlockClient {
   public AbstractBlockClient(Type clientType) {
     mClientId = sNextClientId.getAndIncrement();
     mClientType = clientType;
+    LOG.debug("BlockClient created: {}.", this);
   }
 
   @Override
@@ -42,13 +48,19 @@ public abstract class AbstractBlockClient implements BlockClient {
     return MoreObjects.toStringHelper(this)
         .add("Id", mClientId)
         .add("Type", mClientType.name())
+        .add("Class", getClass().getName())
         .toString();
+  }
+
+  @Override
+  public void close() throws IOException {
+    LOG.debug("BlockClient closed: {}.", this);
   }
 
   /**
    * Block client type.
    */
-  enum Type {
+  public enum Type {
     READER, WRITER
   }
 }
