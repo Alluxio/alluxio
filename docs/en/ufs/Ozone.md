@@ -84,6 +84,53 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
+Possible `core-site.xml` and `ozone-site.xml`
+- `core-site.xml`
+
+```xml
+<configuration>
+  <property>
+    <name>fs.o3fs.impl</name>
+    <value>org.apache.hadoop.fs.ozone.BasicOzoneFileSystem</value>
+  </property>
+  <property>
+    <name>fs.AbstractFileSystem.o3fs.impl</name>
+    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
+  </property>
+</configuration>
+```
+
+- `ozone-site.xml`
+
+```xml
+<configuration>
+  <property>
+    <name>ozone.scm.names</name>
+    <value>localhost</value>
+  </property>
+  <property>
+    <name>scm.container.client.max.size</name>
+    <value>256</value>
+  </property>
+  <property>
+    <name>scm.container.client.idle.threshold</name>
+    <value>10s</value>
+  </property>
+  <property>
+    <name>hdds.ratis.raft.client.rpc.request.timeout</name>
+    <value>60s</value>
+  </property>
+  <property>
+    <name>hdds.ratis.raft.client.async.outstanding-requests.max</name>
+    <value>32</value>
+  </property>
+  <property>
+    <name>hdds.ratis.raft.client.rpc.watch.request.timeout</name>
+    <value>180s</value>
+  </property>
+</configuration>
+```
+
 Make sure the related config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
