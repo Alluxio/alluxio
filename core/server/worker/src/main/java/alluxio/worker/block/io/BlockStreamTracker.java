@@ -14,6 +14,9 @@ package alluxio.worker.block.io;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.worker.block.BlockStoreLocation;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -21,7 +24,8 @@ import java.util.Set;
  */
 public class BlockStreamTracker {
   /** List of listeners for this tracker. */
-  private static Set<BlockClientListener> sListeners = new ConcurrentHashSet<>();
+  private static List<BlockClientListener> sListeners =
+      Collections.synchronizedList(new LinkedList<>());
 
   /**
    * Register a new listener.
