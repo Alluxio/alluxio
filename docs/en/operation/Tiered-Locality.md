@@ -69,7 +69,7 @@ INFO  TieredIdentityFactory - Initialized tiered identity TieredIdentity(node=ho
 ```
 
 If the log entry does not appear, try running the locality script directly to check its output and
-ensure it is executable by the user that luanched the Alluxio server.
+ensure it is executable by the user that launched the Alluxio server.
 
 ## Advanced
 
@@ -94,7 +94,7 @@ If other locality tiers are left unset, they will not be used to inform locality
 #### Option A: shell script
 
 By default, Alluxio clients and servers search the classpath for a script named `alluxio-locality.sh`.
-Output format of this script is a comma-separated list of `tierName=tierValue` pairs.
+The output format of this script is a comma-separated list of `tierName=tierValue` pairs.
 
 For example, suppose Alluxio workers are spread across multiple availability zones within EC2.
 To configure tiered locality with availability zones:
@@ -153,7 +153,7 @@ obtaining its value, from highest priority to lowest priority, is as follows:
 1. From `node=...` in the output of the script, whose name is configured by
 `alluxio.locality.script`
 
-In order to supply a default value for a particular `node` tier, above list is followed by two more
+In order to supply a default value for a particular `node` tier, the above list is followed by two more
 sources, from highest to lowest priority:
 
 1. From `alluxio.worker.hostname` on a worker, `alluxio.master.hostname` on a master, or
