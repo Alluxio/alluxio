@@ -77,7 +77,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       }
       return result;
     } finally {
-      if (pool != null){
+      if (pool != null) {
         pool.shutdownNow();
         pool.awaitTermination(30, TimeUnit.SECONDS);
       }

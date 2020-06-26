@@ -143,12 +143,12 @@ public final class ValidateEnv {
             mCommonTasks);
 
     // security configuration validations
-     registerTask("master.ufs.hdfs.security.kerberos",
+    registerTask("master.ufs.hdfs.security.kerberos",
              "This validates kerberos security configurations for Alluxio masters.",
-             new SecureHdfsValidationTask("master", mPath, mConf), mMasterTasks);
-     registerTask("worker.ufs.hdfs.security.kerberos",
+            new SecureHdfsValidationTask("master", mPath, mConf), mMasterTasks);
+    registerTask("worker.ufs.hdfs.security.kerberos",
              "This validates kerberos security configurations for Alluxio workers.",
-             new SecureHdfsValidationTask("worker", mPath, mConf), mWorkerTasks);
+            new SecureHdfsValidationTask("worker", mPath, mConf), mWorkerTasks);
 
     // ssh validations
     registerTask("ssh.nodes.reachable",
