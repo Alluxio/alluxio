@@ -84,8 +84,8 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-Possible core-site.xml and ozone-site.xml
-- core-site.xml
+Possible `core-site.xml` and `ozone-site.xml`
+- `core-site.xml`
 
 ```xml
 <configuration>
@@ -97,25 +97,13 @@ Possible core-site.xml and ozone-site.xml
     <name>fs.AbstractFileSystem.o3fs.impl</name>
     <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
   </property>
-  <property>
-    <name>fs.defaultFS</name>
-    <value>o3fs://mybucket.myvol</value>
-  </property>
 </configuration>
 ```
 
-- ozone-site.xml
+- `ozone-site.xml`
 
 ```xml
 <configuration>
-  <property>
-    <name>ozone.replication</name>
-    <value>1</value>
-  </property>
-  <property>
-    <name>ozone.metadata.dirs</name>
-    <value>metadata.dir</value>
-  </property>
   <property>
     <name>ozone.scm.names</name>
     <value>localhost</value>
