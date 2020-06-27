@@ -84,10 +84,10 @@ also go to the log server.
 SSH to the machine on which log server is running.
 
 Go to the directory where the log server has been configured to store logs received from
-other Alluxio servers. In the above example, the directory is `/tmp/alluxio_remote_logs`.
+other Alluxio servers. The default logs directory is `${ALLUXIO_HOME}/logs`.
 
 ```console
-$ cd /tmp/alluxio_remote_logs
+$ cd ${ALLUXIO_HOME}/logs
 $ ls
 master          proxy           secondary_master    worker
 $ ls -l master/
