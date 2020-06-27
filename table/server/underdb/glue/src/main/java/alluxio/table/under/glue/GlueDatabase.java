@@ -29,6 +29,7 @@ import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -148,6 +149,15 @@ public class GlueDatabase implements UnderDatabase {
   protected static AWSGlueAsync createAsyncGlueClient(UdbConfiguration config) {
     ClientConfiguration clientConfig = new ClientConfiguration()
         .withMaxConnections(config.getInt(Property.MAX_GLUE_CONNECTION));
+
+    if (config.getBoolean(Property.AWS_ENABLE_PROXY)) {
+      clientConfig.withProxyProtocol(getProtocol(config.get(Property.AWS_PROXY_PROTOCOL)))
+          .withProxyHost(config.get(Property.AWS_PROXY_HOST))
+          .withProxyPort(config.getInt(Property.AWS_PROXY_PORT))
+          .withProxyUsername(config.get(Property.AWS_PROXY_USER_NAME))
+          .withProxyPassword(config.get(Property.AWS_PROXY_PASSWORD));
+    }
+
     AWSGlueAsyncClientBuilder asyncClientBuilder = AWSGlueAsyncClientBuilder
         .standard()
         .withClientConfiguration(clientConfig);
@@ -157,14 +167,6 @@ public class GlueDatabase implements UnderDatabase {
       asyncClientBuilder.setRegion(config.get(Property.GLUE_REGION));
     } else {
       LOG.warn("GlueDatabase: Please setup the AWS region.");
-    }
-
-    if (config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()) {
-      LOG.warn("GlueDatabase: Please setup the AWS access key id.");
-    }
-
-    if (config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
-      LOG.warn("GlueDatabase: Please setup the AWS access secret key.");
     }
 
     asyncClientBuilder.setCredentials(getAWSCredentialsProvider(config));
@@ -182,6 +184,18 @@ public class GlueDatabase implements UnderDatabase {
           config.get(Property.AWS_GLUE_SECRET_KEY)));
     }
     return DefaultAWSCredentialsProviderChain.getInstance();
+  }
+
+  private static Protocol getProtocol(String protocol) {
+    if (protocol.equals("HTTP")) {
+      return Protocol.HTTP;
+    } else if (protocol.equals("HTTPS")) {
+      return Protocol.HTTPS;
+    } else {
+      LOG.warn("Invalid protocol type {}."
+          + "Avaiable proxy protocol type HTTP and HTTPS.", protocol);
+    }
+    return null;
   }
 
   @Override

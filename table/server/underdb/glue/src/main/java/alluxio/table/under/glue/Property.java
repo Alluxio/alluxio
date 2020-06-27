@@ -173,6 +173,42 @@ public class Property extends UdbProperty {
           .setDescription("The secret key to access the aws glue.")
           .build();
 
+  public static final Property AWS_ENABLE_PROXY =
+      new Builder(Name.AWS_ENABLE_PROXY)
+          .setDefaultValue("")
+          .setDescription("Enable proxy setting for glue client.")
+          .build();
+
+  public static final Property AWS_PROXY_PROTOCOL =
+        new Builder(Name.AWS_PROXY_PROTOCOL)
+      .setDefaultValue("HTTP")
+      .setDescription("The Protocol to use for connecting to the proxy.")
+      .build();
+
+  public static final Property AWS_PROXY_HOST =
+      new Builder(Name.AWS_PROXY_HOST)
+          .setDefaultValue("")
+          .setDescription("The proxy host the client will connect through.")
+          .build();
+
+  public static final Property AWS_PROXY_PORT =
+      new Builder(Name.AWS_PROXY_PORT)
+          .setDefaultValue("")
+          .setDescription("The proxy port the client will connect through.")
+          .build();
+
+  public static final Property AWS_PROXY_USER_NAME =
+      new Builder(Name.AWS_PROXY_USER_NAME)
+          .setDefaultValue("")
+          .setDescription("The proxy user name.")
+          .build();
+
+  public static final Property AWS_PROXY_PASSWORD =
+      new Builder(Name.AWS_PROXY_PASSWORD)
+          .setDefaultValue("")
+          .setDescription("The proxy password.")
+          .build();
+
   /**
    * @return the name of alluxio.table.under.glue.Property
    */
@@ -208,5 +244,11 @@ public class Property extends UdbProperty {
     public static final String CATALOG_ID = "aws.catalog.id";
     public static final String AWS_GLUE_ACCESS_KEY = "aws.accesskey";
     public static final String AWS_GLUE_SECRET_KEY = "aws.secretkey";
+    public static final String AWS_ENABLE_PROXY = "aws.enable.proxy";
+    public static final String AWS_PROXY_PROTOCOL = "aws.proxy.protocol";
+    public static final String AWS_PROXY_HOST = "aws.proxy.host";
+    public static final String AWS_PROXY_PORT = "aws.proxy.port";
+    public static final String AWS_PROXY_USER_NAME = "aws.proxy.username";
+    public static final String AWS_PROXY_PASSWORD = "aws.proxy.password";
   }
 }
