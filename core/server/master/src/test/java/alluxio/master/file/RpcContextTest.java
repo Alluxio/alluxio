@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.journal.JournalContext;
 
 import org.junit.Before;
@@ -34,11 +35,12 @@ import java.util.List;
 public final class RpcContextTest {
   private BlockDeletionContext mMockBDC = mock(BlockDeletionContext.class);
   private JournalContext mMockJC = mock(JournalContext.class);
+  private OperationContext mMockOC = mock(OperationContext.class);
   private RpcContext mRpcContext;
 
   @Before
   public void before() {
-    mRpcContext = new RpcContext(mMockBDC, mMockJC);
+    mRpcContext = new RpcContext(mMockBDC, mMockJC, mMockOC);
   }
 
   @Test
