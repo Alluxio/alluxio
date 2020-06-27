@@ -148,8 +148,8 @@ public final class FileSystemMasterClientServiceHandler
     CreateDirectoryPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      mFileSystemMaster.createDirectory(pathUri, (CreateDirectoryContext) CreateDirectoryContext
-          .create(options.toBuilder()).withTracker(new GrpcCallTracker(responseObserver)));
+      mFileSystemMaster.createDirectory(pathUri, CreateDirectoryContext.create(options.toBuilder())
+          .withTracker(new GrpcCallTracker(responseObserver)));
       return CreateDirectoryPResponse.newBuilder().build();
     }, "CreateDirectory", "request=%s", responseObserver, request);
   }
@@ -161,7 +161,7 @@ public final class FileSystemMasterClientServiceHandler
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
-              (CreateFileContext) CreateFileContext.create(request.getOptions().toBuilder())
+              CreateFileContext.create(request.getOptions().toBuilder())
                   .withTracker(new GrpcCallTracker(responseObserver)))))
           .build();
     }, "CreateFile", "request=%s", responseObserver, request);
