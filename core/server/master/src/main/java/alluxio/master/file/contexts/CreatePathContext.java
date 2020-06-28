@@ -38,8 +38,8 @@ import javax.annotation.Nullable;
  * @param <T> Proto Builder type
  * @param <K> Context type (It must be either CreateFileContext or CreateDirectoryContext
  */
-public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>, K extends OperationContext>
-    extends OperationContext<T, K> {
+public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
+    K extends OperationContext> extends OperationContext<T, K> {
 
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
