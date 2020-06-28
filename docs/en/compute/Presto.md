@@ -163,7 +163,7 @@ have all the Alluxio properties set within the same file of `alluxio-site.proper
 
 ```bash
 ...
--Xbootclasspath/p:<path-to-alluxio-conf>
+-Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 Alternatively, one can add them to the Hadoop conf files

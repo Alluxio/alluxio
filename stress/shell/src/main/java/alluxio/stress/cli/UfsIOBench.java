@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.UfsIOParameters;
@@ -51,26 +52,40 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   @Override
   public IOTaskResult runLocal() throws Exception {
+    // UfsIOBench is invoked from the job worker then runs in a standalone process
+    // The process type should be set to keep consistent
+    alluxio.util.CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
+
     LOG.debug("Running locally with {} threads", mParameters.mThreads);
-    ExecutorService pool =
-            ExecutorServiceFactories.fixedThreadPool("bench-io-thread", mParameters.mThreads)
-                    .create();
+    ExecutorService pool = null;
+    IOTaskResult result = null;
+    try {
+      pool = ExecutorServiceFactories.fixedThreadPool("bench-io-thread", mParameters.mThreads)
+                      .create();
 
-    IOTaskResult result = runIOBench(pool);
-    LOG.debug("IO benchmark finished with result: {}", result);
-
-    pool.shutdownNow();
-    pool.awaitTermination(30, TimeUnit.SECONDS);
-
-    // Aggregate the task results
-    return result;
+      result = runIOBench(pool);
+      LOG.debug("IO benchmark finished with result: {}", result);
+      // Aggregate the task results
+      return result;
+    } catch (Exception e) {
+      if (result == null) {
+        LOG.error("Failed run UFS IO benchmark on path {}", mParameters.mPath, e);
+        result = new IOTaskResult();
+        result.setParameters(mParameters);
+        result.setBaseParameters(mBaseParameters);
+        result.addError(ValidationUtils.getErrorInfo(e));
+      }
+      return result;
+    } finally {
+      if (pool != null) {
+        pool.shutdownNow();
+        pool.awaitTermination(30, TimeUnit.SECONDS);
+      }
+    }
   }
 
   @Override
-  public void prepare() {
-    // Parse the IO size, an IllegalArgumentException will be thrown if the size is not parsable
-    FormatUtils.parseSpaceSize(mParameters.mDataSize);
-  }
+  public void prepare() {}
 
   /**
    * @param args command-line arguments
@@ -105,16 +120,18 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private IOTaskResult read(ExecutorService pool)
-          throws IOException, InterruptedException, ExecutionException {
-    // Use multiple threads to saturate the bandwidth of this worker
-    int numThreads = mParameters.mThreads;
-    // This parse is guarded in prepare()
-    long ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
-
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-            .createMountSpecificConf(mHdfsConf);
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
+          throws InterruptedException, ExecutionException {
+    UnderFileSystemConfiguration ufsConf;
+    UnderFileSystem ufs;
+    int numThreads;
+    long ioSizeBytes;
     try {
+      // Use multiple threads to saturate the bandwidth of this worker
+      numThreads = mParameters.mThreads;
+      ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
+      ufsConf = UnderFileSystemConfiguration.defaults(mConf)
+              .createMountSpecificConf(mHdfsConf);
+      ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
       if (!ufs.exists(mParameters.mPath)) {
         // If the directory does not exist, there's no point proceeding
         throw new IOException(String.format("The target directory %s does not exist!",
@@ -126,7 +143,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
       result.setBaseParameters(mBaseParameters);
-      result.addError(e.getMessage());
+      result.addError(ValidationUtils.getErrorInfo(e));
       return result;
     }
 
@@ -160,7 +177,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
           LOG.debug("Read task finished {}", p);
         } catch (Exception e) {
           LOG.error("Failed to read {}", filePath, e);
-          result.addError(e.getMessage());
+          result.addError(ValidationUtils.getErrorInfo(e));
         } finally {
           if (inStream != null) {
             try {
@@ -189,16 +206,18 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private IOTaskResult write(ExecutorService pool)
-          throws IOException, InterruptedException, ExecutionException {
-    // Use multiple threads to saturate the bandwidth of this worker
-    int numThreads = mParameters.mThreads;
-    // This parse is guarded in prepare()
-    long ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
-
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-            .createMountSpecificConf(mHdfsConf);
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
+          throws InterruptedException, ExecutionException {
+    UnderFileSystemConfiguration ufsConf;
+    UnderFileSystem ufs;
+    int numThreads;
+    long ioSizeBytes;
     try {
+      // Use multiple threads to saturate the bandwidth of this worker
+      numThreads = mParameters.mThreads;
+      ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
+      ufsConf = UnderFileSystemConfiguration.defaults(mConf)
+              .createMountSpecificConf(mHdfsConf);
+      ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
       if (!ufs.exists(mParameters.mPath)) {
         LOG.debug("Prepare directory {}", mParameters.mPath);
         ufs.mkdirs(mParameters.mPath);
@@ -209,7 +228,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
       result.setBaseParameters(mBaseParameters);
-      result.addError(e.getMessage());
+      result.addError(ValidationUtils.getErrorInfo(e));
       return result;
     }
 
