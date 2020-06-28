@@ -204,8 +204,7 @@ public class InodeSyncStream {
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
    */
   public InodeSyncStream(LockingScheme rootPath, DefaultFileSystemMaster fsMaster,
-      RpcContext rpcContext, DescendantType descendantType,
-      FileSystemMasterCommonPOptions options,
+      RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
@@ -247,8 +246,8 @@ public class InodeSyncStream {
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       boolean isGetFileInfo, boolean forceSync, boolean loadOnly) {
-    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null, isGetFileInfo,
-        forceSync, loadOnly);
+    this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
+        isGetFileInfo, forceSync, loadOnly);
   }
   /**
    * Sync the metadata according the the root path the stream was created with.
@@ -314,7 +313,7 @@ public class InodeSyncStream {
         LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
         break;
       }
-      if (mRpcContext.getOperationContext().getCancelledTrackers().size() > 0) {
+      if (mRpcContext.isCancelled()) {
         LOG.warn("Metadata syncing was cancelled before completion; {}", toString());
         break;
       }

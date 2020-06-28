@@ -95,7 +95,7 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
   }
 
   /**
-   * Throws {@link RuntimeException} if the RPC is cancelled by any tracker.
+   * Throws {@link RuntimeException} if the RPC was cancelled by any tracker.
    */
   public void throwIfCancelled() {
     List<CallTracker> cancelledTrackers = mOperationContext.getCancelledTrackers();
@@ -103,6 +103,13 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
       throw new RuntimeException(String.format("Call cancelled by trackers: %s", cancelledTrackers
           .stream().map((t) -> t.getType().name()).collect(Collectors.joining(", "))));
     }
+  }
+
+  /**
+   * @return {@code true} if the operation was cancelled
+   */
+  public boolean isCancelled() {
+    return mOperationContext.getCancelledTrackers().size() > 0;
   }
 
   @Override
