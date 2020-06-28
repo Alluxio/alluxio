@@ -175,15 +175,15 @@ public class Property extends UdbProperty {
 
   public static final Property AWS_ENABLE_PROXY =
       new Builder(Name.AWS_ENABLE_PROXY)
-          .setDefaultValue("")
+          .setDefaultValue("false")
           .setDescription("Enable proxy setting for glue client.")
           .build();
 
   public static final Property AWS_PROXY_PROTOCOL =
-        new Builder(Name.AWS_PROXY_PROTOCOL)
-      .setDefaultValue("HTTP")
-      .setDescription("The Protocol to use for connecting to the proxy.")
-      .build();
+      new Builder(Name.AWS_PROXY_PROTOCOL)
+          .setDefaultValue("HTTP")
+          .setDescription("The Protocol to use for connecting to the proxy.")
+          .build();
 
   public static final Property AWS_PROXY_HOST =
       new Builder(Name.AWS_PROXY_HOST)
