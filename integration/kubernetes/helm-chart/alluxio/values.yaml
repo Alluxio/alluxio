@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.3.0-SNAPSHOT
+imageTag: 2.3.0
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -258,7 +258,7 @@ shortCircuit:
 
 fuse:
   image: alluxio/alluxio-fuse
-  imageTag: 2.3.0-SNAPSHOT
+  imageTag: 2.3.0
   imagePullPolicy: IfNotPresent
   # Change both to true to deploy FUSE
   enabled: false
