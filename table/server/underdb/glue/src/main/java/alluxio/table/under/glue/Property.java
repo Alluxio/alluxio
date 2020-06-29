@@ -173,12 +173,6 @@ public class Property extends UdbProperty {
           .setDescription("The secret key to access the aws glue.")
           .build();
 
-  public static final Property AWS_ENABLE_PROXY =
-      new Builder(Name.AWS_ENABLE_PROXY)
-          .setDefaultValue("false")
-          .setDescription("Enable proxy setting for glue client.")
-          .build();
-
   public static final Property AWS_PROXY_PROTOCOL =
       new Builder(Name.AWS_PROXY_PROTOCOL)
           .setDefaultValue("HTTP")
@@ -244,7 +238,6 @@ public class Property extends UdbProperty {
     public static final String CATALOG_ID = "aws.catalog.id";
     public static final String AWS_GLUE_ACCESS_KEY = "aws.accesskey";
     public static final String AWS_GLUE_SECRET_KEY = "aws.secretkey";
-    public static final String AWS_ENABLE_PROXY = "aws.enable.proxy";
     public static final String AWS_PROXY_PROTOCOL = "aws.proxy.protocol";
     public static final String AWS_PROXY_HOST = "aws.proxy.host";
     public static final String AWS_PROXY_PORT = "aws.proxy.port";

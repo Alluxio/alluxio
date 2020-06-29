@@ -150,7 +150,7 @@ public class GlueDatabase implements UnderDatabase {
     ClientConfiguration clientConfig = new ClientConfiguration()
         .withMaxConnections(config.getInt(Property.MAX_GLUE_CONNECTION));
 
-    if (config.getBoolean(Property.AWS_ENABLE_PROXY)) {
+    if (!config.get(Property.AWS_PROXY_HOST).isEmpty()) {
       clientConfig.withProxyProtocol(getProtocol(config.get(Property.AWS_PROXY_PROTOCOL)))
           .withProxyHost(config.get(Property.AWS_PROXY_HOST))
           .withProxyPort(config.getInt(Property.AWS_PROXY_PORT))
