@@ -51,9 +51,9 @@ The following is a checklist to run through to address common problems when tuni
 1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
    This could indicate that the client is timing out when communicating with the Alluxio worker.
-   To increase the timeout, configure `alluxio.user.network.data.timeout`, which has a default of `30s`.
+   To increase the timeout, configure `alluxio.user.streaming.data.timeout`, which has a default of `30s`.
 
-   If write operations are timing out, configure `alluxio.user.network.writer.close.timeout`,
+   If write operations are timing out, configure `alluxio.user.streaming.writer.close.timeout`,
    which has a default of `30m`. This is especially important when writing large files to object stores
    with a slow network connection. The entire object is uploaded at once upon closing the file.
 
