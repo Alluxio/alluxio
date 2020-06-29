@@ -213,7 +213,7 @@ and additions in the UDB tables.
 
 ## Using Alluxio Structured Data with Presto
 
-PrestoSQL version 332 or above and PrestoDB version 0.232 or above has built-in support for the Alluxio Catalog Service in their hive-hadoop2 connector.
+PrestoSQL version above 332 and PrestoDB version above 0.232 has built-in support for the Alluxio Catalog Service in their hive-hadoop2 connector.
 For instructions to setup Alluxio Catalog Service with those versions of PrestoSQL or PrestoDB,
 please consult PrestoSQL's [documentation](https://prestosql.io/docs/current/connector/hive.html#alluxio-configuration) 
 or PrestoDB's [documentation](https://prestodb.io/docs/current/connector/hive.html#alluxio-configuration).
@@ -255,7 +255,7 @@ Creating the `catalog_alluxio.properties` file means a new catalog named `catalo
 to Presto.
 Setting `connector.name=hive-alluxio` sets the connector type to the name of the
 new Alluxio connector for Presto, which is `hive-alluxio`.
-If you are using PrestoSQL version 332 or above and PrestoDB version 0.232 or above, support for Alluxio Catalog Service is built into
+If you are using PrestoSQL version above 332 and PrestoDB version above 0.232, support for Alluxio Catalog Service is built into
 the hive-hadoop2 connector, so you should set `connector.name=hive-hadoop2` here.
 The `hive.metastore=alluxio` means Hive metastore connection will use the `alluxio` type, in order
 to communicate with the Alluxio Catalog service.
