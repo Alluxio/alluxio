@@ -81,6 +81,18 @@ public final class MountCommand extends AbstractFileSystemCommand {
         .addOption(OPTION_OPTION);
   }
 
+  /**
+   * Runs the "mount" command for creating a new bucket.
+   * @param   cl the parsed command line for the arguments
+   * @return  an integer representing the exit code.  If
+   *          the return value is 0, the command was finished
+   *          successfully; otherwise, an exception will be
+   *          thrown.
+   * @throws AlluxioException If an unpredictable exception
+   *                          happens during the execution.
+   * @throws IOException      If the command is out of bounds
+   *                          or receives invalid arguments.
+   */
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();

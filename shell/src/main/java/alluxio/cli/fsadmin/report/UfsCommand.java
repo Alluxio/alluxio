@@ -48,7 +48,6 @@ public class UfsCommand {
 
   /**
    * Prints mount information for a mount table.
-   *
    * @param mountTable the mount table to get information from
    */
   public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
