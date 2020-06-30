@@ -2505,8 +2505,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final AccessControlContext ACC = contextWithPermissions(
             // new RuntimePermission("setContextClassLoader"), // java9-concurrent-backport changed
             new RuntimePermission("getClassLoader"));
-    // Thread id counter.
-    private static final AtomicLong sThreadId = new AtomicLong(0);
+    // ForkJoinWorkerThread index counter.
+    private static final AtomicLong sThreadIndex = new AtomicLong(0);
     // Thread properties.
     private final String mNameFormat;
     private final boolean mIsDaemon;
@@ -2527,7 +2527,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         public ForkJoinWorkerThread run() {
           ForkJoinWorkerThread th =
               new ForkJoinWorkerThread(pool, ClassLoader.getSystemClassLoader());
-          th.setName(String.format(mNameFormat, sThreadId.getAndIncrement()));
+          th.setName(String.format(mNameFormat, sThreadIndex.getAndIncrement()));
           th.setDaemon(mIsDaemon);
           return th;
         }
