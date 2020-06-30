@@ -47,15 +47,13 @@ by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source
 
 ## Basic Setup
 
-The Alluxio client jar must be distributed across the nodes where Spark drivers
+The Alluxio client jar must be distributed across the all nodes where Spark drivers
 or executors are running.
-Specifically, put the client jar on the same local path (e.g.
-`{{site.ALLUXIO_CLIENT_JAR_PATH}}`) on each node.
+Place the client jar on the same local path (e.g. `{{site.ALLUXIO_CLIENT_JAR_PATH}}`) on each node.
 
-The Alluxio client jar must be in the classpath of Spark drivers and executors
+The Alluxio client jar must be in the classpath of all Spark drivers and executors
 in order for Spark applications to access Alluxio.
-Specifically, add the following line to `spark/conf/spark-defaults.conf` on
-every node running Spark.
+Add the following line to `spark/conf/spark-defaults.conf` on every node running Spark.
 Also, make sure the client jar is copied to **every node running Spark**.
 
 ```
@@ -103,7 +101,7 @@ Put a file `Input_HDFS` into HDFS:
 $ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
-At this point, Alluxio does not know about this file.
+At this point, Alluxio does not know about this file since it was added to HDFS directly.
 You can verify this by going to the web UI.
 Run the following commands from `spark-shell` assuming Alluxio Master is running
 on `localhost`:
@@ -125,9 +123,10 @@ system space.
 ### Configure Spark to find Alluxio cluster in HA mode
 
 When connecting to the Alluxio HA cluster using internal leader election,
-add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark
+set the `alluxio.master.rpc.addresses` property via the Java options in
+`${SPARK_HOME}/conf/spark-defaults.conf` so Spark
 applications know which Alluxio masters to connect to and how to identify the
-leader.
+leader. For example:
 
 ```
 spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
@@ -168,7 +167,8 @@ $ spark-submit \
 To customize Alluxio client-side properties for a Spark job, see
 [how to configure Spark Jobs]({{ '/en/operation/Configuration.html' | relativize_url }}#spark).
 
-Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`
+Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`
+instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`
 (see [explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).
 
 ## Advanced Usage
@@ -176,7 +176,7 @@ Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.
 ### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
-you can write URIs using the `alluxio://` scheme without specifying cluster
+you can write URIs using the `alluxio:///` scheme without specifying cluster
 information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served
 by the internal leader election or by the configured Zookeeper service.
@@ -254,7 +254,6 @@ The Spark documentation explains
 
 If you are using YARN then there is a separate section which explains
 [how to configure logging with YARN for a Spark application.](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)
-
 
 ### Check Spark is Correctly Set Up
 
