@@ -37,6 +37,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -306,7 +307,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mRPCExecutor = new ForkJoinPool(
           ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
-          ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+          ThreadFactoryUtils.buildFjp("master-rpc-pool-thread-%d", true),
           null,
           true,
           ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE),
