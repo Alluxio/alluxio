@@ -95,7 +95,7 @@ check_mount_mode() {
     SudoMount);;
     NoMount)
       local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local tier_path 
+      local tier_path
       get_ramdisk_array
       if [[ ${tier_alias} != "MEM" ]]; then
         # if the top tier is not MEM, skip check
@@ -455,8 +455,7 @@ main() {
       start_proxies
       ;;
     local)
-      local master_hostname=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS}\
-                              alluxio.master.hostname)
+      local master_hostname=$(${BIN}/alluxio getConf alluxio.master.hostname)
       local is_master_set_and_local=false
       if [[ -n ${master_hostname} ]]; then
         local local_addresses=( "localhost" "127.0.0.1" $(hostname -s) $(hostname -f) )
