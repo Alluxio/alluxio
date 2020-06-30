@@ -120,7 +120,7 @@ $ bin/alluxio collectInfo [--local] [--max-threads threadNum]
     [collectConfig <outputPath>]
     [collectEnv <outputPath>]
     [collectJvmInfo <outputPath>]
-    [collectLogs <outputPath>]
+    [collectLog <outputPath>]
     [collectMetrics <outputPath>]
 ```
 
