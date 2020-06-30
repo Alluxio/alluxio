@@ -49,18 +49,6 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
   }
 
   /**
-   * Used to transfer trackers of a context to this instance.
-   * This is required when creating internal contexts.
-   *
-   * @param context the source context
-   * @return the updated instance
-   */
-  public C withTracker(OperationContext context) {
-    mCallTrackers = context.mCallTrackers;
-    return (C) this;
-  }
-
-  /**
    * Updates this context with a new tracker.
    *
    * @param tracker the new call tracker
