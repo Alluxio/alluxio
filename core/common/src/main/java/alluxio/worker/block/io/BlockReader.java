@@ -13,17 +13,23 @@ package alluxio.worker.block.io;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
 /**
- * A reader interface to access the data of a block stored in managed storage.
+ * An abstract reader class to access the data of a block stored in managed storage.
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockReader extends Closeable {
+public abstract class BlockReader extends BlockClient {
+
+  /**
+   * Default constructor for the abstract reader implementations.
+   */
+  public BlockReader() {
+    super(Type.READER);
+  }
 
   /**
    * Reads data from the block.
@@ -32,21 +38,21 @@ public interface BlockReader extends Closeable {
    * @param length the length of data to read in bytes, -1 for the rest of the block
    * @return {@link ByteBuffer} the data that was read
    */
-  ByteBuffer read(long offset, long length) throws IOException;
+  public abstract ByteBuffer read(long offset, long length) throws IOException;
 
   /**
    * Gets the length of the block in bytes.
    *
    * @return the length of the block in bytes
    */
-  long getLength();
+  public abstract long getLength();
 
   /**
    * Returns a readable byte channel of the block.
    *
    * @return channel
    */
-  ReadableByteChannel getChannel();
+  public abstract ReadableByteChannel getChannel();
 
   /**
    * Transfers data (up to buf.writableBytes()) from this reader to the buffer.
@@ -54,10 +60,10 @@ public interface BlockReader extends Closeable {
    * @param buf the byte buffer
    * @return the number of bytes transferred, -1 if the end of the block is reached
    */
-  int transferTo(ByteBuf buf) throws IOException;
+  public abstract int transferTo(ByteBuf buf) throws IOException;
 
   /**
    * @return true if this reader is closed
    */
-  boolean isClosed();
+  public abstract boolean isClosed();
 }
