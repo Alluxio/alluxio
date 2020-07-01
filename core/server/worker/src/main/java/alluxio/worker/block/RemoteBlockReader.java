@@ -15,7 +15,6 @@ import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.io.AbstractBlockClient;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
@@ -30,7 +29,7 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Reads a block from a remote worker node. This should only be used for reading entire blocks.
  */
-public class RemoteBlockReader extends AbstractBlockClient implements BlockReader {
+public class RemoteBlockReader extends BlockReader {
   private final long mBlockId;
   private final long mBlockSize;
   private final InetSocketAddress mDataSource;
@@ -53,7 +52,6 @@ public class RemoteBlockReader extends AbstractBlockClient implements BlockReade
   public RemoteBlockReader(FileSystemContext fsContext, long blockId, long blockSize,
       InetSocketAddress dataSource,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    super(Type.READER);
     mBlockId = blockId;
     mBlockSize = blockSize;
     mDataSource = dataSource;

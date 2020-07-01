@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class provides read access to a block data file locally stored in managed storage.
  */
 @NotThreadSafe
-public class LocalFileBlockReader extends AbstractBlockClient implements BlockReader {
+public class LocalFileBlockReader extends BlockReader {
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -42,7 +42,6 @@ public class LocalFileBlockReader extends AbstractBlockClient implements BlockRe
    * @param path file path of the block
    */
   public LocalFileBlockReader(String path) throws IOException {
-    super(Type.READER);
     mFilePath = Preconditions.checkNotNull(path, "path");
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
     mFileSize = mLocalFile.length();

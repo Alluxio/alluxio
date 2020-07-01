@@ -27,7 +27,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
-import alluxio.worker.block.io.AbstractBlockClient;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -49,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * optionally cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
-public final class UnderFileSystemBlockReader extends AbstractBlockClient implements BlockReader {
+public final class UnderFileSystemBlockReader extends BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
 
   /** An object storing the mapping of tier aliases to ordinals. */
@@ -120,7 +119,6 @@ public final class UnderFileSystemBlockReader extends AbstractBlockClient implem
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
       BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
       throws IOException {
-    super(Type.READER);
     mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;

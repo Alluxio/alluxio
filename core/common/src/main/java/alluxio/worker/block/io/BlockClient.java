@@ -11,10 +11,57 @@
 
 package alluxio.worker.block.io;
 
+import com.google.common.base.MoreObjects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Base interface for block reader/writers.
+ * Provides basic tracking and representation for block reader/writer clients.
  */
-public interface BlockClient extends Closeable {
+public abstract class BlockClient implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockClient.class);
+
+  /** Used to keep unique client ids. */
+  private static AtomicInteger sNextClientId = new AtomicInteger(0);
+
+  /** Internal client id. */
+  private int mClientId;
+  /** the client type. */
+  private Type mClientType;
+
+  /**
+   * Creates an abstract block reader/writer.
+   *
+   * @param clientType the block client type
+   */
+  public BlockClient(Type clientType) {
+    mClientId = sNextClientId.getAndIncrement();
+    mClientType = clientType;
+    LOG.debug("BlockClient created: {}.", this);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("Id", mClientId)
+        .add("Type", mClientType.name())
+        .add("Class", getClass().getName())
+        .toString();
+  }
+
+  @Override
+  public void close() throws IOException {
+    LOG.debug("BlockClient closed: {}.", this);
+  }
+
+  /**
+   * Block client type.
+   */
+  public enum Type {
+    READER, WRITER
+  }
 }

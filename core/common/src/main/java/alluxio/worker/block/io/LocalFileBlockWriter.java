@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class provides write access to a temp block data file locally stored in managed storage.
  */
 @NotThreadSafe
-public class LocalFileBlockWriter extends AbstractBlockClient implements BlockWriter {
+public class LocalFileBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileBlockWriter.class);
 
   private final String mFilePath;
@@ -49,7 +49,6 @@ public class LocalFileBlockWriter extends AbstractBlockClient implements BlockWr
    * @param path file path of the block
    */
   public LocalFileBlockWriter(String path) throws IOException {
-    super(Type.WRITER);
     mFilePath = Preconditions.checkNotNull(path, "path");
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
