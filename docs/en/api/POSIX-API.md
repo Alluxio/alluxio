@@ -71,7 +71,7 @@ When `<alluxio_path>` is not given, the value defaults to the root (`/`).
 Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
-You can create multiple Alluxio to mount points.
+Multiple Alluxio FUSE mount points can be created in the same node.
 All the `AlluxioFuse` processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
 
