@@ -26,7 +26,7 @@ public abstract class BlockClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockClient.class);
 
   /** Used to keep unique client ids. */
-  private static final AtomicInteger sNextClientId = new AtomicInteger(0);
+  private static final AtomicInteger NEXT_CLIENT_ID = new AtomicInteger(0);
 
   /** Internal client id. */
   private final int mClientId;
@@ -39,7 +39,7 @@ public abstract class BlockClient implements Closeable {
    * @param clientType the block client type
    */
   public BlockClient(Type clientType) {
-    mClientId = sNextClientId.getAndIncrement();
+    mClientId = NEXT_CLIENT_ID.getAndIncrement();
     mClientType = clientType;
     LOG.debug("BlockClient created: {}.", this);
   }
