@@ -16,12 +16,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockStreamListener;
+import alluxio.worker.block.io.BlockClient;
+import alluxio.worker.block.io.BlockClientListener;
 import alluxio.worker.block.io.BlockStreamTracker;
-import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,9 +36,11 @@ import java.util.concurrent.TimeUnit;
  *
  * TODO(ggezer): Add a safety net against close calls not being called.
  */
-public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamListener {
+public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockClientListener {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultStoreLoadTracker.class);
+
   /** Used to keep reference to stream readers/writers per location. */
-  private final ConcurrentHashMap<BlockStoreLocation, Set<Object>> mStreamsPerLocation;
+  private final ConcurrentHashMap<BlockStoreLocation, Set<BlockClient>> mBlockClientsPerLocation;
   /** Used for delayed removing of streams in order to emulate activity cool-down. */
   private final ScheduledExecutorService mScheduler;
   /** For how long, an activity will remain active on load state. */
@@ -47,7 +50,7 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamLis
    * Creates the default load tracker instance.
    */
   public DefaultStoreLoadTracker() {
-    mStreamsPerLocation = new ConcurrentHashMap<>();
+    mBlockClientsPerLocation = new ConcurrentHashMap<>();
     mScheduler = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("load-tracker-thread-%d", true));
     mLoadDetectionCoolDownMs =
@@ -60,10 +63,10 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamLis
   @Override
   public boolean loadDetected(BlockStoreLocation... locations) {
     for (BlockStoreLocation location : locations) {
-      for (BlockStoreLocation trackedLocation : mStreamsPerLocation.keySet()) {
+      for (BlockStoreLocation trackedLocation : mBlockClientsPerLocation.keySet()) {
         if (trackedLocation.belongsTo(location)) {
-          Set<Object> streamsPerLocation = mStreamsPerLocation.get(trackedLocation);
-          if (streamsPerLocation != null && streamsPerLocation.size() > 0) {
+          Set<BlockClient> clientsPerLocation = mBlockClientsPerLocation.get(trackedLocation);
+          if (clientsPerLocation != null && clientsPerLocation.size() > 0) {
             return true;
           }
         }
@@ -73,49 +76,27 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamLis
   }
 
   @Override
-  public void readerOpened(BlockReader reader, BlockStoreLocation location) {
-    streamOpened(reader, location);
-  }
-
-  @Override
-  public void readerClosed(BlockReader reader, BlockStoreLocation location) {
-    streamClosed(reader, location);
-  }
-
-  @Override
-  public void writerOpened(BlockWriter writer, BlockStoreLocation location) {
-    streamOpened(writer, location);
-  }
-
-  @Override
-  public void writerClosed(BlockWriter writer, BlockStoreLocation location) {
-    streamClosed(writer, location);
-  }
-
-  /**
-   * Used to activate stream reader/writer for load tracking.
-   */
-  private void streamOpened(Object stream, BlockStoreLocation location) {
+  public void clientOpened(BlockClient blockClient, BlockStoreLocation location) {
+    LOG.debug("BlockClient: {} opened at {}", blockClient, location);
     Preconditions.checkState(locationValid(location));
-    mStreamsPerLocation.compute(location, (k, streamSet) -> {
+    mBlockClientsPerLocation.compute(location, (k, streamSet) -> {
       if (streamSet == null) {
         streamSet = new ConcurrentHashSet<>();
       }
-      streamSet.add(stream);
+      streamSet.add(blockClient);
       return streamSet;
     });
   }
 
-  /**
-   * Used to deactivate stream reader/writer for load tracking.
-   */
-  private void streamClosed(Object stream, BlockStoreLocation location) {
+  @Override
+  public void clientClosed(BlockClient blockClient, BlockStoreLocation location) {
+    LOG.debug("BlockClient: {} closed at {}", blockClient, location);
     Preconditions.checkState(locationValid(location));
     mScheduler.schedule(() -> {
-      mStreamsPerLocation.compute(location, (k, streamSet) -> {
+      mBlockClientsPerLocation.compute(location, (k, streamSet) -> {
         Preconditions.checkState(streamSet != null && !streamSet.isEmpty(),
             "Unexpected load tracker state");
-        streamSet.remove(stream);
+        streamSet.remove(blockClient);
         return streamSet;
       });
     }, mLoadDetectionCoolDownMs, TimeUnit.MILLISECONDS);

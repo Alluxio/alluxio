@@ -48,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * optionally cache the block to the Alluxio worker if the whole block it is read.
  */
 @NotThreadSafe
-public final class UnderFileSystemBlockReader implements BlockReader {
+public final class UnderFileSystemBlockReader extends BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
 
   /** An object storing the mapping of tier aliases to ordinals. */
@@ -261,6 +261,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       return;
     }
 
+    super.close();
     try {
       // This aborts the block if the block is not fully read.
       updateBlockWriter(mBlockMeta.getBlockSize());
