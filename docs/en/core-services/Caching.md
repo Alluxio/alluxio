@@ -200,10 +200,6 @@ Annotation policy defines an order for blocks across tiers and is consulted duri
 The eviction, that happens in-line with writes, will attempt to remove blocks based on the order enforced by the block annotation policy.
 The last block in annotated order is the first candidate for eviction regardless of which tier it's sitting on.
 
-`The old eviction policies are now deprecated and Alluxio provided implementations are replaced with appropriate annotation policies.
-Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
-an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.`
-
 Out-of-the-box annotation implementations include:
 
 - **LRUAnnotator**: Annotates the blocks based on least-recently-used order.
@@ -222,6 +218,17 @@ available options are:
 
 - `alluxio.worker.block.annotator.LRUAnnotator`
 - `alluxio.worker.block.annotator.LRFUAnnotator`
+
+#### Evictor Emulation
+The old eviction policies are now deprecated and Alluxio provided implementations are replaced with appropriate annotation policies.
+Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
+an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
+
+The old evictor configurations should be changes as below. (Failing to change the lef-over configuration will cause class load exceptions as old evictor implementations are deleted.)
+- LRUEvictor -> LRUAnnotator
+- GreedyEvictor -> LRUAnnotator
+- PartialLRUEvictor -> LRUAnnotator
+- LRFUEvictor -> LRFUAnnotator
 
 ### Tiered Storage Management
 As block allocation/eviction no longer enforces a particular tier for new writes, a new block could end up in any configured tier.
