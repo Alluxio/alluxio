@@ -26,12 +26,12 @@ public abstract class BlockClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockClient.class);
 
   /** Used to keep unique client ids. */
-  private static AtomicInteger sNextClientId = new AtomicInteger(0);
+  private static final AtomicInteger sNextClientId = new AtomicInteger(0);
 
   /** Internal client id. */
-  private int mClientId;
+  private final int mClientId;
   /** the client type. */
-  private Type mClientType;
+  private final Type mClientType;
 
   /**
    * Creates an abstract block reader/writer.
