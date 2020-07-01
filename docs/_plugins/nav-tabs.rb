@@ -6,7 +6,7 @@ module Jekyll
       def initialize(tag_name, markup, tokens)
         super
         # allow spaces in the NavTabs identifier
-        id = markup.strip.sub(' ', '__')
+        id = markup.strip.gsub(' ', '__')
         @navID = "nav-#{id}"
       end
       def render(context)
@@ -14,19 +14,19 @@ module Jekyll
         environment['navtabs'] = {} # reset each time
         super
 
-        # key.sub(' ', '__') in the template string allows for spaces in the NavTab name
+        # key.gsub(' ', '__') in the template string allows for spaces in the NavTab name
         # this could cause a conflict in the unlikely scenario where someone has the two tabs: "some thing" and "some__thing"
         template = ERB.new <<-EOF
 <ul class="nav nav-tabs nav-tab-margin" id="<%= @navID %>" role="tablist">
 <% environment['navtabs'].each_with_index do |(key, _), index| %>
   <li class="nav-item">
-    <a <%= index == 0 ? 'class="nav-link active"' : 'class="nav-link"'%> id="<%= key.sub(' ', '__') %>-tab-<%= @navID %>" data-toggle="tab" href="#<%= key.sub(' ', '__') %>-<%= @navID %>" role="tab" aria-controls="<%= key.sub(' ', '__') %>-<%= @navID %>" <%= index == 0 ? 'aria-selected="true"' : 'aria-selected="false"'%>><%= key %></a>
+    <a <%= index == 0 ? 'class="nav-link active"' : 'class="nav-link"'%> id="<%= key.gsub(' ', '__') %>-tab-<%= @navID %>" data-toggle="tab" href="#<%= key.gsub(' ', '__') %>-<%= @navID %>" role="tab" aria-controls="<%= key.gsub(' ', '__') %>-<%= @navID %>" <%= index == 0 ? 'aria-selected="true"' : 'aria-selected="false"'%>><%= key %></a>
   </li>
 <% end %>
 </ul>
 <div class="tab-content" id="<%= @navID %>-content">
 <% environment['navtabs'].each_with_index do |(key, value), index| %>
-  <div <%= index == 0 ? 'class="tab-pane fade show active"' : 'class="tab-pane fade"'%> id="<%= key.sub(' ', '__') %>-<%= @navID %>" role="tabpanel" aria-labelledby="<%= key.sub(' ', '__') %>-tab-<%= @navID %>"><%= value %></div>
+  <div <%= index == 0 ? 'class="tab-pane fade show active"' : 'class="tab-pane fade"'%> id="<%= key.gsub(' ', '__') %>-<%= @navID %>" role="tabpanel" aria-labelledby="<%= key.gsub(' ', '__') %>-tab-<%= @navID %>"><%= value %></div>
 <% end %>
 </div>
 <hr/>
