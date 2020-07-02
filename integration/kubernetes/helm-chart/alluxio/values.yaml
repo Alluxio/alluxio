@@ -286,8 +286,8 @@ fuse:
       cpu: "0.5"
       memory: "1G"
     limits:
-      cpu: "1"
-      memory: "1G"
+      cpu: "4"
+      memory: "4G"
 
 
 ##  Secrets ##
