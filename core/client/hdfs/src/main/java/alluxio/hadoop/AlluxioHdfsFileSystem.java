@@ -107,8 +107,8 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI alluxioURI, ListStatusPOptions options)
       throws IOException {
-    return Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI))).map(HadoopUtils::toUriStatus)
-        .collect(Collectors.toList());
+    return Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI)))
+        .map(HadoopUtils::toUriStatus).collect(Collectors.toList());
   }
 
   @Override

@@ -20,38 +20,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
-
-import javax.annotation.Nullable;
 
 /**
  * Interface for managing cached pages.
  */
 public interface CacheManager extends AutoCloseable  {
-
   /**
    * Factory class to get or create a CacheManager.
    */
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
-    private static Optional<CacheManager> sCacheManager = null;
+    private static CacheManager sCacheManager = null;
 
     /**
      * @param conf the Alluxio configuration
      * @return current CacheManager, creating a new one if it doesn't yet exist
      */
-    @Nullable
     public static synchronized CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (sCacheManager == null) {
-        try {
-          sCacheManager = Optional.of(create(conf));
-        } catch (IOException e) {
-          sCacheManager = Optional.empty();
-          throw e;
-        }
+        sCacheManager = create(conf);
       }
-      return sCacheManager.orElse(null);
+      return sCacheManager;
     }
 
     /**
