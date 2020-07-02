@@ -1,37 +1,54 @@
 ---
 layout: global
-title: Running Alluxio on ACK
+title: Running Alluxio on Alibaba Cloud ACK
 nickname: Alibaba Cloud ACK
 group: Cloud Native
-priority: 3
 ---
 
-This guide describes how to configure Alluxio to run on [Alibaba Cloud ACK](https://cs.console.aliyun.com).
+This guide describes how to configure and install Alluxio on [Alibaba Cloud ACK](https://cs.console.aliyun.com).
 
-# Install Alluxio in ACK
+* Table of Contents
+{:toc}
 
-Alluxio is an open source, memory-based distributed storage system suitable for data orchestration solutions for big data and AI/ML on the cloud.
-## 1. Prerequisites
+## Prerequisites
 * ack version  >= 1.12.6
-## 2. Label the nodes to be installed with Alluxio components
+
+## Install Alluxio in ACK
+
+This section introduces how to install Alluxio on Alibaba Cloud ACK in a few steps.
+
+### Specify Which Nodes to Install Alluxio
 Before installing Alluxio components, you need to label the k8s node with "alluxio=true", the steps are as follows:
-(1) [Login to Container Service - Kubernetes Console](https://cs.console.aliyun.com/#/k8s/cluster/list).
-(2) Under the Kubernetes menu, click "**Clusters**" > "**Nodes**" in the left navigation bar to enter the node list page.
-(3) Select the desired cluster and click the "**Manage Labels**" in the upper right corner of the page.
- 
+
+{% accordion lable %}
+  {% collapsible Select cluster %}
+Login to [Container Service - Kubernetes Console](https://cs.console.aliyun.com/#/k8s/cluster/list).
+Under the Kubernetes menu, click "**Clusters**" > "**Nodes**" in the left navigation bar to enter the node list page.
+Select the specific cluster and click the "**Manage Labels**" in the upper right corner of the page.
   ![](http://application-catalog-hk.oss-cn-hongkong.aliyuncs.com/alluxio/images/image-1.jpg)
-(4) In the node list, select nodes in batches, and then click "**Add Label**".
+  {% endcollapsible %}
+
+  {% collapsible Select nodes %}
+In the node list, select nodes in batches, and then click "**Add Label**".
   ![](http://application-catalog-hk.oss-cn-hongkong.aliyuncs.com/alluxio/images/image-2.jpg)
-(5) Fill in the label name and value (the name is alluxio, the value is true), and click "**OK**".
+  {% endcollapsible %}
+
+  {% collapsible Add label %}
+Fill in the label name as "alluxio" and the value as "true", click "**OK**".
   ![](http://application-catalog-hk.oss-cn-hongkong.aliyuncs.com/alluxio/images/image-3.jpg)
-## 3. Install Alluxio components
-The installation steps of Alluxio components are as follows:
-(1) [Login to Container Service - Kubernetes Console](https://cs.console.aliyun.com/#/k8s/cluster/list).
-(2) Select "**Marketplace**" > "**App Catalog**" on the left navigation bar, and select alluxio on the right.
-(3) On the "**App Catalog**" -> "**alluxio**" page, select the cluster and namespace created in the prerequisites in the creation panel on the right, and click Create.
-## 4. Verify that the alluxio component is installed successfully
-Use kubectl to check whether the pods related to the alluxio component are running:
-```
+  {% endcollapsible %}
+{% endaccordion %}
+
+### Install Alluxio Using App Catalog
+
+Login to [Container Service - Kubernetes Console](https://cs.console.aliyun.com/#/k8s/cluster/list).
+Select "**Marketplace**" > "**App Catalog**" on the left navigation bar, and select alluxio on the right.
+On the "**App Catalog**" -> "**alluxio**" page, select the cluster and namespace created in the prerequisites in the creation panel on the right, and click Create.
+
+### Verify Installation
+Use `kubectl` to check whether the Alluxio pods are running:
+
+```console
 # kubectl get po -n alluxio
 NAME READY STATUS RESTARTS AGE
 alluxio-fuse-pjw5x 1/1 Running 0 83m
@@ -40,8 +57,10 @@ alluxio-master-0 2/2 Running 0 83m
 alluxio-worker-8lcpb 2/2 Running 0 83m
 alluxio-worker-hqv8l 2/2 Running 0 83m
 ```
-Then use kubectl to log in to the alluxio master pod and check whether the alluxio components are healthy:
-```
+
+Use `kubectl` to log in to the Alluxio master pod and check the health of this Alluxio cluster:
+
+```console
 # kubectl exec -ti alluxio-master-0 -n alluxio bash
 
 bash-4.4# alluxio fsadmin report capacity
@@ -61,53 +80,64 @@ Worker Name      Last Heartbeat   Storage       MEM
                                   used          0B (0%)
 ```
 
-## 5. Running Spark on Alluxio in Kubernetes
-### 5.1 Install spark-operator
-Go to [Container Service Application Catalog](https://cs.console.aliyun.com/#/k8s/catalog/list) search for "ack-spark-operator" in the search box in the upper right:
+## Example: Running Spark Jobs
+
+{% accordion Spark %}
+  {% collapsible Install spark-operator %}
+Go to [Container Service Application Catalog](https://cs.console.aliyun.com/#/k8s/catalog/list),
+search for "ack-spark-operator" in the search box in the upper right:
 ![image-4.png](http://application-catalog-hk.oss-cn-hongkong.aliyuncs.com/alluxio/images/image-4.jpg)
 
 Choose to install ack-spark-operator on the target cluster (the cluster in this document is "ack-create-by-openapi-1"), and then click "**create**", as shown in the figure:
 ![image-5.png](http://application-catalog-hk.oss-cn-hongkong.aliyuncs.com/alluxio/images/image-5.jpg)
+  {% endcollapsible %}
 
-### 5.2 Build spark docker image
-Download the required spark version from [spark download page](https://spark.apache.org/downloads.html). The saprk version selected in this document is 2.4.6. Run the following command to download spark:
-```
+  {% collapsible Build Spark docker image %}
+Download the required Spark version from [Spark download page](https://spark.apache.org/downloads.html). The Spark version selected in this document is 2.4.6.
+Run the following command to download Spark:
+
+```console
 $ cd /root
 $ wget https://mirror.bit.edu.cn/apache/spark/spark-2.4.6/spark-2.4.6-bin-hadoop2.7.tgz
 ```
-After the download is complete, unzip the package and set env "SPARK_HOME":
-```
+
+After the download is complete, unzip the package and set env "`SPARK_HOME`":
+```console
 $ tar -xf spark-2.4.6-bin-hadoop2.7.tgz
 $ export SPARK_HOME=$(pwd)/spark-2.4.6-bin-hadoop2.7
 ```
 The spark docker image is the image we used when submitting the spark task. This image needs to include the alluxio client jar package. Use the following command to obtain the alluxio client jar package:
-```
+```console
 $ id=$(docker create alluxio/alluxio-enterprise:2.2.1-1.4)
 $ docker cp $id:/opt/alluxio/client/alluxio-enterprise-2.2.1-1.4-client.jar \
 	$SPARK_HOME/jars/alluxio-enterprise-2.2.1-1.4-client.jar
 $ docker rm -v $id 1>/dev/null
 ```
 After the alluxio client jar package is ready, start building the image:
-```
-$ docker build -t spark-alluxio:2.4.6 -f $SPARK_HOME/kubernetes/dockerfiles/spark/Dockerfile $SPARK_HOME
+```console
+$ docker build -t \
+  spark-alluxio:2.4.6 -f $SPARK_HOME/kubernetes/dockerfiles/spark/Dockerfile $SPARK_HOME
 ```
 After the image is built, there are two ways to process the image:
 
 * If there is a private image warehouse, push the image to the private image warehouse, and ensure that the k8s cluster node can pull the image.
 * If there is no private image warehouse, you need to use the docker save command to export the image, and then scp to each node of the k8s cluster, use the docker load command on each node to import the image, so that you can ensure that each node exists The mirror.
+ {% endcollapsible %}
 
-### 5.3 Upload files to Alluxio
-As mentioned at the beginning of the document: This experiment is to submit a spark job to k8s and the goal of the spark job is to count the number of occurrences of each word for a certain file. Now you need to upload the file to the alluxio storage. Here, for convenience, you can directly upload the file /opt/alluxio-2.3.0-SNAPSHOT/LICENSE in the alluxio master (the file path may be slightly different due to the alluxio version) to alluxio.
+ {% collapsible Upload files to Alluxio %}
+As mentioned at the beginning of the document: This experiment is to submit a spark job to k8s and the goal of the spark job is to count the number of occurrences of each word for a certain file. Now you need to upload the file to the alluxio storage. Here, for convenience, you can directly upload the file `/opt/alluxio-{{site.ALLUXIO_VERSION_STRING}}/LICENSE` in the alluxio master (the file path may be slightly different due to the alluxio version) to alluxio.
 
+Use `kubectl exec` to enter the alluxio master pod, and upload the LICENSE file in the current directory to the root directory of alluxio:
 
-Use "kubectl exec" to enter the alluxio master pod, and upload the LICENSE file in the current directory to the root directory of alluxio:
-```
+```console
 $ kubectl exec -ti alluxio-master-0 -n alluxio bash
 //The following steps are executed in the alluxio-master-0 pod
 bash-4.4# alluxio fs copyFromLocal LICENSE /
 ```
-Then check which workers store the blocks of LICENSE file.
-```
+
+Then check which workers store the blocks of `LICENSE` file.
+
+```console
 $ kubectl exec -ti alluxio-master-0 -n alluxio bash
 //The following steps are executed in the alluxio-master-0 pod
 
@@ -117,26 +147,33 @@ FileInfo{fileId=33554431, fileIdentifier=null, name=LICENSE, path=/LICENSE, ufsP
 Containing the following blocks:
 BlockInfo{id=16777216, length=27040, locations=[BlockLocation{workerId=8217561227881498090, address=WorkerNetAddress{host=192.168.8.17, containerHost=, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity (node=192.168.8.17, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 ```
-You can see that the LICENSE file has only one block (id is 16777216), which is placed on the k8s node with the ip of **192.168.8.17**. We use kubectl to check that the node name is **cn-beijing.192.168.8.17**:
-```
+
+As shown, this `LICENSE` file has only one block whose id is 16777216,  placed on the k8s node of **192.168.8.17**.
+
+We use `kubectl` to find out that the node name is **cn-beijing.192.168.8.17**:
+
+```console
 $ kubectl get nodes -o wide | awk '{print $1,$6}'
-NAME  INTERNAL-IP 
-cn-beijing.192.168.8.12  192.168.8.12 
-cn-beijing.192.168.8.13  192.168.8.13 
-cn-beijing.192.168.8.14  192.168.8.14 
-cn-beijing.192.168.8.15  192.168.8.15 
-cn-beijing.192.168.8.16  192.168.8.16 
+NAME  INTERNAL-IP
+cn-beijing.192.168.8.12  192.168.8.12
+cn-beijing.192.168.8.13  192.168.8.13
+cn-beijing.192.168.8.14  192.168.8.14
+cn-beijing.192.168.8.15  192.168.8.15
+cn-beijing.192.168.8.16  192.168.8.16
 cn-beijing.192.168.8.17  192.168.8.17
 ```
-### 5.4 Submit spark job
-The following steps will submit a spark job to the k8s cluster. The job is mainly to count the number of occurrences of each word in the /LICENSE file in alluxio.
+  {% endcollapsible %}
+
+  {% collapsible Submit Spark job %}
+The following steps will submit a spark job to the k8s cluster. The job is mainly to count the number of occurrences of each word in the `/LICENSE` file in alluxio.
 
 In step 5.3, we obtained that the blocks contained in the LICENSE file are all on the node cn-beijing.192.168.8.17. In this experiment, we specified the node selector to let the spark driver and spark executor run on the node cn-beijing. 192.168.8.17, verify that the communication between spark executor and alluxio worker is completed through the domain socket when alluxio's short-circuit function is turned on.
 
-* **Description: **If alluxio's short-circuit function is enabled, and the block of the spark executor and the file it wants to access (this experiment is /LICENSE) is on the same k8s node, then spark executor The communication between the alluxio client and the alluxio worker on the k8s node is done through domain socket.
+* **Description**: If Alluxio short-circuit operations is enabled, and the block of the spark executor and the file it wants to access (this experiment is `/LICENSE`) is on the same k8s node, then spark executor The communication between the alluxio client and the alluxio worker on the k8s node is done through domain socket.
 
-First generate the yaml file for submitting the spark job:
-```
+First generate a yaml file for submitting the Spark job:
+
+```console
 $ export SPARK_ALLUXIO_IMAGE="spark-alluxio:2.4.6"
 $ export ALLUXIO_MASTER="alluxio-master-0"
 $ export TARGET_NODE="cn-beijing.192.168.8.17"
@@ -196,22 +233,27 @@ spec:
         mountPath: "/opt/domain"
 EOF
 ```
-Then, use sparkctl to submit the spark job:
-```
+
+Then, use `sparkctl` to submit the spark job:
+```console
 $ sparkctl create /tmp/spark-example.yaml
 ```
-* **Description: ** if sparkctl is not installed,please refer the  [sparkctl](https://github.com/GoogleCloudPlatform/spark-on-k8s-operator/tree/master/sparkctl) to install it.
 
+* **Description**: if sparkctl is not installed,please refer the  [sparkctl](https://github.com/GoogleCloudPlatform/spark-on-k8s-operator/tree/master/sparkctl) to install it.
+  {% endcollapsible %}
 
-### 5.5 Experimental Results
+  {% collapsible Check Experimental Results %}
 After submitting the task, use kubectl to get the spark driver status:
-```
+
+```console
 $ kubectl get po -l spark-role=driver
 NAME                               READY STATUS    RESTARTS   AGE
 spark-alluxio-1592296972094-driver 0/1   Completed 0          4h33m
 ```
-view the spark driver log:
-```
+
+Read the spark driver log:
+
+```console
 $ kubectl logs spark-alluxio-1592296972094-driver --tail 20
 
 USE,: 3
@@ -235,8 +277,10 @@ mechanical: 1
 20/06/16 13:14:28 INFO ShutdownHookManager: Deleting directory /var/data/spark-2f619243-59b2-4258-ba5e-69b8491123a6/spark-3d70294a-291a-423a-b034-8fc779244f40
 20/06/16 13:14:28 INFO ShutdownHookManager: Deleting directory /tmp/spark-054883b4-15d3-43ee-94c3-5810a8a6cdc7
 ```
+
 Finally, we login to the alluxio master and check the statistics of relevant indicators:
-```
+
+```console
 $ kubectl exec -ti alluxio-master-0 -n alluxio bash
 
 bash-4.4# alluxio fsadmin report metrics
@@ -246,4 +290,8 @@ Cluster.BytesReadDomain  (Type: COUNTER, Value: 237.66KB)
 Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 47.53KB/MIN)
 ......
 ```
-**BytesReadAlluxio** and **BytesReadAlluxioThroughput** represent data transmission from the network stack; **BytesReadDomain** and **BytesReadDomainThroughput** represent data transmission from the domain socket. You can see that all data is transferred from the domain socket. 
+
+In above logs,
+**BytesReadAlluxio** and **BytesReadAlluxioThroughput** represent data transmission from the network stack; **BytesReadDomain** and **BytesReadDomainThroughput** represent data transmission from the domain socket. You can see that all data is transferred from the domain socket.
+  {% endcollapsible %}
+{% endaccordion %}
