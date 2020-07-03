@@ -17,6 +17,7 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
 
+import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCallStreamObserver;
@@ -28,7 +29,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -53,6 +56,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private boolean mCompleted = false;
   private boolean mClosed = false;
   private boolean mCanceled = false;
+  private SettableFuture<Void> mCompletedFuture;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -80,6 +84,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     mResponseObserver = new ResponseStreamObserver();
     mRequestObserver = (ClientCallStreamObserver) rpcFunc.apply(mResponseObserver);
     mDescription = description;
+    mCompletedFuture = SettableFuture.create();
   }
 
   /**
@@ -205,8 +210,16 @@ public class GrpcBlockingStream<ReqT, ResT> {
     if (mCompleted || mCanceled) {
       return;
     }
-    while (receive(timeoutMs) != null) {
-      // wait until inbound stream is closed from server.
+    try {
+      mCompletedFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while waiting for stream to complete.");
+    } catch (TimeoutException e) {
+      throw new DeadlineExceededException(
+          formatErrorMessage("Timeout waiting for stream to complete %dms.", timeoutMs));
+    } catch (ExecutionException e) {
+      throw new IOException("Failed to wait for stream to complete", e.getCause());
     }
   }
 
@@ -296,13 +309,10 @@ public class GrpcBlockingStream<ReqT, ResT> {
 
     @Override
     public void onCompleted() {
-      try {
-        LOG.debug("Received completed event for stream ({})", mDescription);
-        mResponses.put(this);
-        mClosedFromRemote = true;
-      } catch (InterruptedException e) {
-        handleInterruptedException(e);
-      }
+      LOG.debug("Received completed event for stream ({})", mDescription);
+      mCompletedFuture.set(null);
+      mResponses.offer(this);
+      mClosedFromRemote = true;
     }
 
     @Override
@@ -333,6 +343,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
       if (mError == null || mError == e) {
         mError = e;
         mResponses.offer(e);
+        mCompletedFuture.setException(e);
       } else {
         mError.addSuppressed(e);
       }

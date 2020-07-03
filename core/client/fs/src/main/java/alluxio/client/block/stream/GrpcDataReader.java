@@ -168,7 +168,6 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
     } finally {
       mMarshaller.close();
       mClient.close();
