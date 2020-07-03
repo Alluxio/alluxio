@@ -1,11 +1,11 @@
 ---
 layout: global
-title: Running Alluxio on Alibaba Cloud ACK
+title: Running Alluxio on Alibaba Cloud Kubernetes (ACK)
 nickname: Alibaba Cloud ACK
 group: Cloud Native
 ---
 
-This guide describes how to configure and install Alluxio on [Alibaba Cloud ACK](https://cs.console.aliyun.com).
+This guide describes how to install and configure Alluxio on [Alibaba Cloud ACK](https://cs.console.aliyun.com).
 
 * Table of Contents
 {:toc}
