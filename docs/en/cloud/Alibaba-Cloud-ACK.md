@@ -1,11 +1,11 @@
 ---
 layout: global
-title: Running Alluxio on Alibaba Cloud Kubernetes (ACK)
+title: Running Alluxio on Alibaba Cloud Container Service for Kubernetes (ACK)
 nickname: Alibaba Cloud ACK
 group: Cloud Native
 ---
 
-This guide describes how to install and configure Alluxio on [Alibaba Cloud ACK](https://cs.console.aliyun.com).
+This guide describes how to install and configure Alluxio on [Alibaba Cloud Container Service for Kubernetes (ACK)](https://www.alibabacloud.com/product/kubernetes).
 
 * Table of Contents
 {:toc}
@@ -15,7 +15,7 @@ This guide describes how to install and configure Alluxio on [Alibaba Cloud ACK]
 
 ## Install Alluxio in ACK
 
-This section introduces how to install Alluxio on Alibaba Cloud ACK in a few steps.
+This section introduces how to install Alluxio on Alibaba Cloud Container Service for Kubernetes (ACK) in a few steps.
 
 ### Specify Which Nodes to Install Alluxio
 Before installing Alluxio components, you need to label the k8s node with "alluxio=true", the steps are as follows:
@@ -143,7 +143,7 @@ $ kubectl exec -ti alluxio-master-0 -n alluxio bash
 
 bash-4.4# alluxio fs stat /LICENSE
 /LICENSE is a file path.
-FileInfo{fileId=33554431, fileIdentifier=null, name=LICENSE, path=/LICENSE, ufsPath=/opt/alluxio-2.3.0-SNAPSHOT/underFSStorage/LICENSE, length=27040, blockSizeBytes=67108864, creationTimeMs=1592381889733, completed= true, folder=false, pinned=false, pinnedlocation=[], cacheable=true, persisted=false, blockIds=[16777216], inMemoryPercentage=100, lastModificationTimesMs=1592381890390, ttl=-1, lastAccessTimesMs=1592381890390, ttlAction=DELETE, owner=root, group=root, mode=420, persistenceState=TO_BE_PERSISTED, mountPoint=false, replicationMax=-1, replicationMin=0, fileBlockInfos=[FileBlockInfo{blockInfo=BlockInfo{id=16777216, length=27040, locations=[BlockLocation {workerId=8217561227881498090, address=WorkerNetAddress{host=192.168.8.17, containerHost=, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=192.168.8.17, rack=null)}, tierAlias =MEM, mediumType=MEM}]}, offset=0, ufsLocations=[]}], mountId=1, inAlluxioPercentage=100, ufsFingerprint= , acl=user::rw-,group::r--,other::r--, defaultAcl=}
+FileInfo{fileId=33554431, fileIdentifier=null, name=LICENSE, path=/LICENSE, ufsPath=/opt/alluxio/underFSStorage/LICENSE, length=27040, blockSizeBytes=67108864, creationTimeMs=1592381889733, completed= true, folder=false, pinned=false, pinnedlocation=[], cacheable=true, persisted=false, blockIds=[16777216], inMemoryPercentage=100, lastModificationTimesMs=1592381890390, ttl=-1, lastAccessTimesMs=1592381890390, ttlAction=DELETE, owner=root, group=root, mode=420, persistenceState=TO_BE_PERSISTED, mountPoint=false, replicationMax=-1, replicationMin=0, fileBlockInfos=[FileBlockInfo{blockInfo=BlockInfo{id=16777216, length=27040, locations=[BlockLocation {workerId=8217561227881498090, address=WorkerNetAddress{host=192.168.8.17, containerHost=, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=192.168.8.17, rack=null)}, tierAlias =MEM, mediumType=MEM}]}, offset=0, ufsLocations=[]}], mountId=1, inAlluxioPercentage=100, ufsFingerprint= , acl=user::rw-,group::r--,other::r--, defaultAcl=}
 Containing the following blocks:
 BlockInfo{id=16777216, length=27040, locations=[BlockLocation{workerId=8217561227881498090, address=WorkerNetAddress{host=192.168.8.17, containerHost=, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity (node=192.168.8.17, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 ```
