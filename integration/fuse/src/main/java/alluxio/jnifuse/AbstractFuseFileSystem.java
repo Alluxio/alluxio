@@ -132,27 +132,49 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int openCallback(String path, ByteBuffer buf) {
-    FuseFileInfo fi = new FuseFileInfo(buf);
-    return open(path, fi);
+    try {
+      return open(path, FuseFileInfo.wrap(buf));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int readCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fibuf) {
-    FuseFileInfo fi = new FuseFileInfo(fibuf);
-    return read(path, buf, size, offset, fi);
+    try {
+      return read(path, buf, size, offset, FuseFileInfo.wrap(fibuf));
+    } catch (Exception e) {
+     e.printStackTrace();
+     return -ErrorCodes.EIO();
+    }
   }
 
   public int getattrCallback(String path, ByteBuffer buf) {
-    FileStat stat = new FileStat(buf);
-    return getattr(path, stat);
+    try {
+      return getattr(path, FileStat.wrap(buf));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
       ByteBuffer fi) {
-    return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+    try {
+      return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int unlinkCallback(String path) {
-    return unlink(path);
+    try {
+      return unlink(path);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int flushCallback(String path, ByteBuffer fi) {
