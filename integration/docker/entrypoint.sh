@@ -158,8 +158,6 @@ function main {
     export MOUNT_POINT='/mnt/alluxio-fuse'
   fi
 
-
-
   cd ${ALLUXIO_HOME}
 
   writeConf
