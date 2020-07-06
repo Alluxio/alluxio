@@ -51,6 +51,10 @@ properties:
 master:
   count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
   replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
+  env:
+    # Extra environment variables for the master pod
+    # Example:
+    # JAVA_HOME: /opt/java
   args: # Arguments to Docker entrypoint
     - master-only
     - --no-format
@@ -144,6 +148,10 @@ journal:
 ## Worker ##
 
 worker:
+  env:
+    # Extra environment variables for the worker pod
+    # Example:
+    # JAVA_HOME: /opt/java
   args:
     - worker-only
     - --no-format
@@ -257,6 +265,10 @@ shortCircuit:
 ## FUSE ##
 
 fuse:
+  env:
+    # Extra environment variables for the fuse pod
+    # Example:
+    # JAVA_HOME: /opt/java
   image: alluxio/alluxio-fuse
   imageTag: 2.4.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
