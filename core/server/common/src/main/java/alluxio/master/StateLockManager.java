@@ -130,9 +130,7 @@ public class StateLockManager {
    * @throws InterruptedException
    */
   public LockResource lockShared() throws InterruptedException {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
-    }
+    LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
     if (exclusiveOnlyRemainingMs > 0) {
