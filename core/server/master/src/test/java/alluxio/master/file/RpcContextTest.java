@@ -26,7 +26,9 @@ import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.journal.JournalContext;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +42,9 @@ public final class RpcContextTest {
   private JournalContext mMockJC = mock(JournalContext.class);
   private OperationContext mMockOC = mock(OperationContext.class);
   private RpcContext mRpcContext;
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() {
@@ -139,13 +144,9 @@ public final class RpcContextTest {
     RpcContext rpcCtx = new RpcContext(mMockBDC, mMockJC, opCtx);
     // Verify the RPC is cancelled due to tracker that's always cancelled.
     assertTrue(rpcCtx.isCancelled());
-    try {
-      // Verify cancellation throws.
-      rpcCtx.throwIfCancelled();
-      fail("Call should have been cancelled.");
-    } catch (RuntimeException e) {
-      // expected.
-    }
+    // Verify cancellation throws.
+    mException.expect(RuntimeException.class);
+    rpcCtx.throwIfCancelled();
   }
 
   /*
