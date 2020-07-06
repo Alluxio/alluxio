@@ -221,7 +221,9 @@ available options are:
 
 #### Evictor Emulation
 The old eviction policies are now deprecated and Alluxio provided implementations are replaced with appropriate annotation policies.
-Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
+Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
+
+However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
 an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
 
 The old evictor configurations should be changes as below. (Failing to change the lef-over configuration will cause class load exceptions as old evictor implementations are deleted.)
