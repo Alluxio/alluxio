@@ -12,9 +12,10 @@ priority: 2
 ## Overview
 
 This section describes the basic setup to run Alluxio with a single master in a cluster.
-This is the simplest way to deploy Alluxio on a cluster, meanwhile this single master may also 
-become the single point of failure (SPOF) in an Alluxio cluster.
-If that machine or process becomes unavailable, the cluster as a whole would become unavailable.
+This is the simplest way to deploy Alluxio on a cluster.
+Deploying with only a single master also allows it to become the single point of failure (SPOF) in
+an Alluxio cluster.
+If the master machine or process becomes unavailable, the entire cluster would become unavailable.
 To deploy Alluxio in production, we highly recommend running Alluxio masters in
 [High Availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode.
 
@@ -180,7 +181,8 @@ On any master node, format the Alluxio journal with the following command:
 $ ./bin/alluxio formatMaster
 ```
 
-Formatting the journal will delete all metadata from Alluxio. However, the data in under storage will be untouched.
+Formatting the journal will delete all metadata from Alluxio.
+However, the data in under storage will be untouched.
 
 ### Add/Remove Workers Dynamically
 
@@ -218,5 +220,6 @@ and then [restart the service](#restart-alluxio).
 
 If you only need to update some local configuration for a worker (e.g., change the mount
 of storage capacity allocated to this worker or update the storage directory), the master node does
-not need to be stopped and restarted. One can simply stop the local worker, update the configuration
-(e.g., `conf/alluxio-site.properties`) file on this worker, and then restart the worker.
+not need to be stopped and restarted.
+Simply stop the desired worker, update the configuration
+(e.g., `conf/alluxio-site.properties`) file on that node, and then restart the process.
