@@ -637,7 +637,6 @@ public class InodeSyncStream {
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
-    mRpcContext.throwIfCancelled();
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
