@@ -15,6 +15,7 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
+MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
@@ -151,11 +152,6 @@ function main {
     # Docker will set this tmpfs up by default. Its size is configurable through the
     # --shm-size argument to docker run
     export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
-  fi
-
-   # Only set MOUNT_POINT if it isn't explicitly set by user
-  if [[ -z "${MOUNT_POINT}" ]]; then
-    export MOUNT_POINT='/mnt/alluxio-fuse'
   fi
 
   cd ${ALLUXIO_HOME}
