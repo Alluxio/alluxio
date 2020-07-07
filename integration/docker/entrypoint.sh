@@ -15,7 +15,7 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
-MOUNT_POINT='/mnt/alluxio-fuse'
+MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
