@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -137,11 +138,11 @@ public class UfsStatusCache {
    *
    * @param path the path the retrieve
    * @param mountTable the Alluxio mount table
-   * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
+   * @return The corresponding {@link UfsStatus}
+   * @throws java.io.FileNotFoundException if the status can't be retrieved from the UFS
    */
-  @Nullable
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
+      throws InvalidPathException, FileNotFoundException {
     UfsStatus status = mStatuses.get(path);
     if (status != null) {
       return status;
@@ -152,7 +153,7 @@ public class UfsStatusCache {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
       if (ufsStatus == null) {
-        return null;
+        throw new FileNotFoundException("fetched status is null for: " + ufsUri);
       }
       ufsStatus.setName(path.getName());
       addStatus(path, ufsStatus);
@@ -160,7 +161,7 @@ public class UfsStatusCache {
     } catch (IllegalArgumentException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
     }
-    return null;
+    throw new FileNotFoundException("Failed to fetch status of " + ufsUri);
   }
 
   /**
