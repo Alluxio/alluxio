@@ -111,10 +111,12 @@ $ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=w
 ```
 
 You can also update the log level at a package level.
-For example, you can update the log level of all classes in `alluxio.heartbeat` with the following command:
+For example, you can update the log level of all classes in `alluxio.heartbeat` package with the following command:
 ```console
 $ ./bin/alluxio logLevel --logName=alluxio.heartbeat --target=workers --level=DEBUG
 ```
+This works because log4j loggers will inherit the log level from their ancestors.
+In this case `alluxio.heartbeat.HeartbeatContext` inherits the log level if it is set on `alluxio.heartbeat`.
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
 in a running cluster, and turn it off when you are done.
