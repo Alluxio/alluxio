@@ -110,6 +110,22 @@ And the following command returns the log level of the class `alluxio.heartbeat.
 $ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
 
+You can also update the log level at a package level.
+For example, you can update the log level of all classes in `alluxio.heartbeat` with the following command:
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.heartbeat --target=workers --level=DEBUG
+```
+
+Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
+in a running cluster, and turn it off when you are done.
+```console
+# Turn on Alluxio debug logging and start debugging
+$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=DEBUG
+
+# Turn off Alluxio debug logging when you are done
+$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=INFO
+```
+
 For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
 
 ## Enabling Advanced Logging
