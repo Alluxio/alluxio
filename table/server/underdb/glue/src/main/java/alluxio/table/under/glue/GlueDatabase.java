@@ -118,8 +118,11 @@ public class GlueDatabase implements UnderDatabase {
           .withName(mGlueDbName);
       GetDatabaseResult dbResult = mGlueClient.getDatabase(dbRequest);
       Database glueDatabase = dbResult.getDatabase();
-      String glueDbLocation = glueDatabase.getLocationUri();
-      String glueDbDescription = glueDatabase.getDescription();
+      // Glue database location, description and parameters could be null
+      String glueDbLocation = glueDatabase.getLocationUri() == null
+          ? "" : glueDatabase.getLocationUri();
+      String glueDbDescription = glueDatabase.getDescription() == null
+          ? "" : glueDatabase.getDescription();
       Map<String, String> glueParameters = new HashMap<>();
       Map<String, String> parameters = glueDatabase.getParameters();
       if (parameters != null) {
@@ -305,6 +308,7 @@ public class GlueDatabase implements UnderDatabase {
     // Glue doesn't support column statistics infomation
     Map<String, List<ColumnStatisticsInfo>> statsMap = new HashMap<>();
     try {
+      List<Column> partitionColumns;
       GetTableRequest tableRequest = new GetTableRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
           .withDatabaseName(mGlueDbName)
@@ -316,13 +320,16 @@ public class GlueDatabase implements UnderDatabase {
 
       // Glue does not provide column statistic information
       List<ColumnStatisticsInfo> columnStatisticsData = new ArrayList<>();
+      Map<String, String> tableParameters = table.getParameters() == null
+          ? new HashMap<>() : table.getParameters();
 
       PartitionInfo partitionInfo = PartitionInfo.newBuilder()
+          // Database name is not required for glue table, use mGlueDbName
           .setDbName(mGlueDbName)
           .setTableName(tableName)
           .addAllDataCols(GlueUtils.toProto(table.getStorageDescriptor().getColumns()))
           .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
-          .putAllParameters(table.getParameters())
+          .putAllParameters(tableParameters)
           .build();
 
       Layout layout = Layout.newBuilder()
@@ -330,12 +337,16 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutData(partitionInfo.toByteString())
           .build();
 
-      List<Column> partitionColumns = table.getPartitionKeys();
+      if (table.getPartitionKeys() == null) {
+        partitionColumns = new ArrayList<>();
+      } else {
+        partitionColumns = table.getPartitionKeys();
+      }
 
       List<UdbPartition> udbPartitions = new ArrayList<>();
       if (partitionColumns.isEmpty()) {
         PartitionInfo.Builder partitionInfoBuilder = PartitionInfo.newBuilder()
-            .setDbName(mUdbContext.getDbName())
+            .setDbName(getUdbContext().getDbName())
             .setTableName(tableName)
             .addAllDataCols(GlueUtils.toProto(table.getStorageDescriptor().getColumns()))
             .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
