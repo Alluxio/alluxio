@@ -26,7 +26,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
-import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -585,12 +584,4 @@ public interface FileSystemMaster extends Master {
    * @return the owner of the root inode, null if the inode tree is not initialized
    */
   String getRootInodeOwner();
-
-  /**
-   * Composes an FSM call-tracker over given transport tracker.
-   *
-   * @param transportTracker the transport level call-tracker
-   * @return a composed call-tracker
-   */
-  CallTracker composeCallTracker(CallTracker transportTracker);
 }

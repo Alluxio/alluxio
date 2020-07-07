@@ -12,6 +12,9 @@
 package alluxio.master.file;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.file.contexts.CallTracker;
+import alluxio.master.file.contexts.InternalOperationContext;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -19,7 +22,9 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import com.google.common.base.Throwables;
 
 import java.io.Closeable;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,12 +38,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RpcContext implements Closeable, Supplier<JournalContext> {
-  public static final RpcContext NOOP =
-      new RpcContext(NoopBlockDeletionContext.INSTANCE, NoopJournalContext.INSTANCE);
+  public static final RpcContext NOOP = new RpcContext(NoopBlockDeletionContext.INSTANCE,
+      NoopJournalContext.INSTANCE, new InternalOperationContext());
 
   @Nullable
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
+  private final OperationContext mOperationContext;
 
   // Used during close to keep track of thrown exceptions.
   private Throwable mThrown = null;
@@ -49,10 +55,13 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    *
    * @param blockDeleter block deletion context
    * @param journalContext journal context
+   * @param operationContext the operation context
    */
-  public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext) {
+  public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
+      OperationContext operationContext) {
     mBlockDeletionContext = blockDeleter;
     mJournalContext = journalContext;
+    mOperationContext = operationContext;
   }
 
   /**
@@ -76,6 +85,31 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    */
   public BlockDeletionContext getBlockDeletionContext() {
     return mBlockDeletionContext;
+  }
+
+  /**
+   * @return the operation context
+   */
+  public OperationContext getOperationContext() {
+    return mOperationContext;
+  }
+
+  /**
+   * Throws {@link RuntimeException} if the RPC was cancelled by any tracker.
+   */
+  public void throwIfCancelled() {
+    List<CallTracker> cancelledTrackers = mOperationContext.getCancelledTrackers();
+    if (cancelledTrackers.size() > 0) {
+      throw new RuntimeException(String.format("Call cancelled by trackers: %s", cancelledTrackers
+          .stream().map((t) -> t.getType().name()).collect(Collectors.joining(", "))));
+    }
+  }
+
+  /**
+   * @return {@code true} if the operation was cancelled
+   */
+  public boolean isCancelled() {
+    return mOperationContext.getCancelledTrackers().size() > 0;
   }
 
   @Override

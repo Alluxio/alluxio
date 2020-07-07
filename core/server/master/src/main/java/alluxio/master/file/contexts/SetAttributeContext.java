@@ -21,7 +21,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link SetAttributePOptions}.
  */
-public class SetAttributeContext extends OperationContext<SetAttributePOptions.Builder> {
+public class SetAttributeContext
+    extends OperationContext<SetAttributePOptions.Builder, SetAttributeContext> {
 
   private long mOperationTimeMs;
   private String mUfsFingerprint;
@@ -30,11 +31,9 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
-   * @param callTracker client call tracker
    */
-  private SetAttributeContext(SetAttributePOptions.Builder optionsBuilder,
-      CallTracker callTracker) {
-    super(optionsBuilder, callTracker);
+  private SetAttributeContext(SetAttributePOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -44,17 +43,7 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * @return the instance of {@link SetAttributeContext} with the given options
    */
   public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder) {
-    return new SetAttributeContext(optionsBuilder, CallTracker.NOOP_TRACKER);
-  }
-
-  /**
-   * @param optionsBuilder Builder for proto {@link SetAttributePOptions}
-   * @param callTracker client call tracker
-   * @return the instance of {@link SetAttributeContext} with the given options
-   */
-  public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder,
-      CallTracker callTracker) {
-    return new SetAttributeContext(optionsBuilder, callTracker);
+    return new SetAttributeContext(optionsBuilder);
   }
 
   /**
