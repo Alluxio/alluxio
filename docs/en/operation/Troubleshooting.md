@@ -310,8 +310,8 @@ A: Alluxio accelerates your system performance by leveraging temporal or spatial
 Alluxio can be configured under a variety of modes, in different production environments.
 Please make sure the Alluxio version being deployed is update-to-date and supported.
 
-When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users) or Slack channel,
-please attach the full environment information, including
+When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users)
+or [Slack channel](https://slackin.alluxio.io/), please attach the full environment information, including
 - Alluxio version
 - OS version
 - Java version
