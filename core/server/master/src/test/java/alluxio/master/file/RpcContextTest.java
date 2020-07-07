@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -19,10 +20,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.file.contexts.CallTracker;
+import alluxio.master.file.contexts.InternalOperationContext;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.journal.JournalContext;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,11 +40,15 @@ import java.util.List;
 public final class RpcContextTest {
   private BlockDeletionContext mMockBDC = mock(BlockDeletionContext.class);
   private JournalContext mMockJC = mock(JournalContext.class);
+  private OperationContext mMockOC = mock(OperationContext.class);
   private RpcContext mRpcContext;
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() {
-    mRpcContext = new RpcContext(mMockBDC, mMockJC);
+    mRpcContext = new RpcContext(mMockBDC, mMockJC, mMockOC);
   }
 
   @Test
@@ -101,6 +111,42 @@ public final class RpcContextTest {
     Exception jcException = new UnavailableException("journal context exception");
     doThrow(jcException).when(mMockJC).close();
     checkClose(jcException);
+  }
+
+  @Test
+  public void testCallTrackers() throws Throwable {
+    InternalOperationContext opCtx = new InternalOperationContext();
+    // Add a call tracker that's always cancelled.
+    opCtx = opCtx.withTracker(new CallTracker() {
+      @Override
+      public boolean isCancelled() {
+        return true;
+      }
+
+      @Override
+      public Type getType() {
+        return Type.GRPC_CLIENT_TRACKER;
+      }
+    });
+    // Add a call tracker that's never cancelled.
+    opCtx = opCtx.withTracker(new CallTracker() {
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+
+      @Override
+      public Type getType() {
+        return Type.STATE_LOCK_TRACKER;
+      }
+    });
+    // Create RPC context.
+    RpcContext rpcCtx = new RpcContext(mMockBDC, mMockJC, opCtx);
+    // Verify the RPC is cancelled due to tracker that's always cancelled.
+    assertTrue(rpcCtx.isCancelled());
+    // Verify cancellation throws.
+    mException.expect(RuntimeException.class);
+    rpcCtx.throwIfCancelled();
   }
 
   /*

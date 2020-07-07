@@ -23,7 +23,8 @@ import javax.annotation.Nullable;
 /**
  * Used to merge and wrap {@link LoadMetadataPOptions}.
  */
-public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.Builder> {
+public class LoadMetadataContext
+    extends OperationContext<LoadMetadataPOptions.Builder, LoadMetadataContext> {
 
   private UfsStatus mUfsStatus;
 

@@ -69,15 +69,16 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
-import alluxio.master.file.contexts.CompositeCallTracker;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.InternalOperationContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -440,7 +441,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
         ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
         : Collections.emptyList();
 
-    mStateLockCallTracker = () -> masterContext.getStateLockManager().interruptCycleTicking();
+    mStateLockCallTracker = new CallTracker() {
+      @Override
+      public boolean isCancelled() {
+        return masterContext.getStateLockManager().interruptCycleTicking();
+      }
+
+      @Override
+      public Type getType() {
+        return Type.STATE_LOCK_TRACKER;
+      }
+    };
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
@@ -801,7 +812,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     long opTimeMs = System.currentTimeMillis();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
 
@@ -932,7 +943,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
@@ -1046,10 +1057,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
       ResultStream<FileInfo> resultStream, int depth) throws FileDoesNotExistException,
       UnavailableException, AccessControlException, InvalidPathException {
-    // Fail if the client has cancelled the rpc.
-    if (context.isCancelled()) {
-      throw new RuntimeException("Call cancelled.");
-    }
+    rpcContext.throwIfCancelled();
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -1152,7 +1160,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("checkConsistency", path, null, null)) {
 
@@ -1261,7 +1269,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       UnavailableException {
     Metrics.COMPLETE_FILE_OPS.inc();
     // No need to syncMetadata before complete.
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("completeFile", path, null, inodePath.getInodeOrNull())) {
@@ -1427,7 +1435,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("createFile", path, null, null)) {
 
@@ -1582,7 +1590,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
@@ -1703,10 +1711,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
-        // Fail if the client has cancelled the rpc.
-        if (deleteContext.isCancelled()) {
-          throw new RuntimeException("Call cancelled.");
-        }
+        rpcContext.throwIfCancelled();
         Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
         Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
@@ -2037,7 +2042,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
     Metrics.CREATE_DIRECTORIES_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mkdir", path, null, null)) {
 
@@ -2134,7 +2139,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.RENAME_PATH_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("rename", srcPath, dstPath, null)) {
 
@@ -2463,7 +2468,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE);
          FileSystemMasterAuditContext auditContext =
              createAuditContext("free", path, null, inodePath.getInodeOrNull())) {
@@ -2669,7 +2674,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     LockingScheme lockingScheme = createLockingScheme(alluxioPath,
         context.getOptions().getCommonOptions(), LockPattern.WRITE_EDGE);
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         LockedInodePath inodePath = mInodeTree
             .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
         FileSystemMasterAuditContext auditContext = createAuditContext(
@@ -2695,7 +2700,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
 
@@ -2874,7 +2879,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       SetAclContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     Metrics.SET_ACL_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("setAcl", path, null, null)) {
 
@@ -3033,10 +3038,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
-          // Fail if the client has cancelled the rpc.
-          if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled.");
-          }
+          rpcContext.throwIfCancelled();
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
       }
@@ -3076,7 +3078,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } else {
       commandName = "setAttribute";
     }
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext(commandName, path, null, null)) {
 
@@ -3157,10 +3159,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
-          // Fail if the client has cancelled the rpc.
-          if (context.isCancelled()) {
-            throw new RuntimeException("Call cancelled.");
-          }
+          rpcContext.throwIfCancelled();
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }
       }
@@ -3171,7 +3170,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
       throws AlluxioException, UnavailableException {
-    try (RpcContext rpcContext = createRpcContext();
+    try (RpcContext rpcContext = createRpcContext(context);
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
       scheduleAsyncPersistenceInternal(inodePath, context, rpcContext);
     }
@@ -4323,17 +4322,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
     throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
   }
 
-  @Override
-  public CallTracker composeCallTracker(CallTracker transportTracker) {
-    return new CompositeCallTracker(transportTracker, mStateLockCallTracker);
-  }
-
   /**
    * @return a context for executing an RPC
    */
   @VisibleForTesting
   public RpcContext createRpcContext() throws UnavailableException {
-    return new RpcContext(createBlockDeletionContext(), createJournalContext());
+    return createRpcContext(new InternalOperationContext());
+  }
+
+  /**
+   * @param operationContext the operation context
+   * @return a context for executing an RPC
+   */
+  @VisibleForTesting
+  public RpcContext createRpcContext(OperationContext operationContext)
+      throws UnavailableException {
+    return new RpcContext(createBlockDeletionContext(), createJournalContext(),
+        operationContext.withTracker(mStateLockCallTracker));
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,

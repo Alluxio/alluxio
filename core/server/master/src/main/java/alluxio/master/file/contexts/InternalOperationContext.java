@@ -11,25 +11,18 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+
 /**
- * An interface for RPC level call tracking.
+ * Used for wiring call-tracking to non-rpc requests.
  */
-public interface CallTracker {
-  /**
-   * @return {@code true} if call is cancelled by the client
-   */
-  boolean isCancelled();
+public class InternalOperationContext
+    extends OperationContext<FileSystemMasterCommonPOptions.Builder, InternalOperationContext> {
 
   /**
-   * @return the type of call tracker
+   * Creates a new internal operation context.
    */
-  Type getType();
-
-  /**
-   * Defines call-tracker types.
-   */
-  enum Type {
-    GRPC_CLIENT_TRACKER,
-    STATE_LOCK_TRACKER
+  public InternalOperationContext() {
+    super(null);
   }
 }
