@@ -36,10 +36,10 @@ import javax.annotation.Nullable;
  * data.
  *
  * @param <T> Proto Builder type
- * @param <K> Context type (It must be either CreateFileContext or CreateDirectoryContext
+ * @param <K> Path context type
  */
-public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>, K>
-    extends OperationContext<T> {
+public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
+    K extends CreatePathContext<?, ?>> extends OperationContext<T, K> {
 
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
@@ -152,7 +152,14 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     return mTtlAction;
   }
 
-  protected abstract K getThis();
+  /**
+   * Note: This is safe as 'K' extends {@link CreatePathContext}.
+   *
+   * @return the object's type
+   */
+  protected K getThis() {
+    return (K) this;
+  }
 
   /**
    * @param operationTimeMs the operation time to use

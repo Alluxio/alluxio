@@ -20,15 +20,15 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link DeletePOptions}.
  */
-public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
+public class DeleteContext extends OperationContext<DeletePOptions.Builder, DeleteContext> {
 
   /**
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
    */
-  private DeleteContext(DeletePOptions.Builder optionsBuilder, CallTracker callTracker) {
-    super(optionsBuilder, callTracker);
+  private DeleteContext(DeletePOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
   }
 
   /**
@@ -36,17 +36,7 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
    * @return the instance of {@link DeleteContext} with given options
    */
   public static DeleteContext create(DeletePOptions.Builder optionsBuilder) {
-    return new DeleteContext(optionsBuilder, CallTracker.NOOP_TRACKER);
-  }
-
-  /**
-   * @param optionsBuilder Builder for proto {@link DeletePOptions}
-   * @param callTracker the call tracker
-   * @return the instance of {@link DeleteContext} with given options
-   */
-  public static DeleteContext create(DeletePOptions.Builder optionsBuilder,
-      CallTracker callTracker) {
-    return new DeleteContext(optionsBuilder, callTracker);
+    return new DeleteContext(optionsBuilder);
   }
 
   /**

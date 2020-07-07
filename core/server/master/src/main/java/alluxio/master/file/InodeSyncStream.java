@@ -313,6 +313,10 @@ public class InodeSyncStream {
         LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
         break;
       }
+      if (mRpcContext.isCancelled()) {
+        LOG.warn("Metadata syncing was cancelled before completion; {}", toString());
+        break;
+      }
       // There are still paths to process
       // First, remove any futures which have completed. Add to the sync path count if they sync'd
       // successfully
@@ -528,9 +532,10 @@ public class InodeSyncStream {
               // Only set group if not empty
               builder.setGroup(group);
             }
-            mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs,
-                SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-                    .setMode(new Mode(mode).toProto())).setUfsFingerprint(ufsFingerprint));
+            SetAttributeContext ctx = SetAttributeContext
+                .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode(mode).toProto()))
+                .setUfsFingerprint(ufsFingerprint);
+            mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
           }
         }
 
