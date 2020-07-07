@@ -16,6 +16,8 @@ import alluxio.grpc.table.PrincipalType;
 import com.google.common.base.MoreObjects;
 
 import javax.annotation.Nullable;
+
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -47,7 +49,11 @@ public class DatabaseInfo {
     mOwnerName = ownerName;
     mOwnerType = ownerType;
     mComment = comment;
-    mParameters = params;
+    if (params == null) {
+      mParameters = Collections.emptyMap();
+    } else {
+      mParameters = params;
+    }
   }
 
   /**
