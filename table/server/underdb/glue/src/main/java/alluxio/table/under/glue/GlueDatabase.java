@@ -306,9 +306,8 @@ public class GlueDatabase implements UnderDatabase {
     Table table;
     List<Partition> partitions;
     // Glue doesn't support column statistics infomation
-    Map<String, List<ColumnStatisticsInfo>> statsMap = new HashMap<>();
+    Map<String, List<ColumnStatisticsInfo>> statsMap = Collections.emptyMap();
     try {
-      List<Column> partitionColumns;
       GetTableRequest tableRequest = new GetTableRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
           .withDatabaseName(mGlueDbName)
@@ -319,9 +318,9 @@ public class GlueDatabase implements UnderDatabase {
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
 
       // Glue does not provide column statistic information
-      List<ColumnStatisticsInfo> columnStatisticsData = new ArrayList<>();
+      List<ColumnStatisticsInfo> columnStatisticsData = Collections.emptyList();
       Map<String, String> tableParameters = table.getParameters() == null
-          ? new HashMap<>() : table.getParameters();
+          ? Collections.emptyMap() : table.getParameters();
 
       PartitionInfo partitionInfo = PartitionInfo.newBuilder()
           // Database name is not required for glue table, use mGlueDbName
@@ -337,8 +336,9 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutData(partitionInfo.toByteString())
           .build();
 
+      List<Column> partitionColumns;
       if (table.getPartitionKeys() == null) {
-        partitionColumns = new ArrayList<>();
+        partitionColumns = Collections.emptyList();
       } else {
         partitionColumns = table.getPartitionKeys();
       }
