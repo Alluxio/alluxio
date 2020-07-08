@@ -239,4 +239,9 @@ public class S3AUnderFileSystemTest {
     Assert.assertEquals(UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
   }
+
+  @Test
+  public void stripPrefixIfPresent() throws Exception {
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://bucket"));
+  }
 }
