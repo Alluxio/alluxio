@@ -242,6 +242,6 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void stripPrefixIfPresent() throws Exception {
-    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://bucket"));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME));
   }
 }
