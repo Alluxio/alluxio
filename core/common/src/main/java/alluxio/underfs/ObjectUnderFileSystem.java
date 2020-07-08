@@ -1116,13 +1116,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the path to strip
    * @return the path without the bucket prefix
    */
-  protected String stripPrefixIfPresent(String path) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(path,
+  @VisibleForTesting
+  public String stripPrefixIfPresent(String path) {
+    final String normalizedPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    String stripedKey = CommonUtils.stripPrefixIfPresent(
+        normalizedPath,
         PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
-    if (!stripedKey.equals(path)) {
+    if (!stripedKey.equals(normalizedPath)) {
       return stripedKey;
     }
-    return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
+    return CommonUtils.stripPrefixIfPresent(normalizedPath, PATH_SEPARATOR);
   }
 
   /**
