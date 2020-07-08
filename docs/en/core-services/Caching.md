@@ -130,8 +130,12 @@ For example, users often specify the following tiers:
 
 When a user writes a new block, it is written to the top tier by default. If the top tier does not have enough free space,
 then the next tier is tried. If no space is found on all tiers, Alluxio frees up space for new data as its storage is designed to be volatile.
-Eviction will start attempting to evict blocks from the worker, based on the block annotation policy.
+Eviction will start attempting to evict blocks from the worker, based on the block annotation policy. [block annotation policies](#block-annotation-policies).
 If eviction cannot free up new space, then the write will fail.
+
+**Note:** The new eviction model is synchronous and is executed on behalf of the client that requires a free space for the block it is writing.
+This synchronized mode is not expected to incur performance hit as ordered list of blocks are always available with the help of block annotation policies.
+However, `alluxio.worker.tieredstore.free.ahead.bytes`(Default: 0) can be configured to free up more bytes than necessary per eviction attempt.
 
 The user can also specify the tier that the data will be written to via
 [configuration settings](#configuring-tiered-storage).
@@ -195,7 +199,7 @@ To use multiple hard drives in the HDD tier, specify multiple paths when configu
 Alluxio uses block annotation policies, starting v2.3, to maintain strict ordering of blocks in storage. 
 Annotation policy defines an order for blocks across tiers and is consulted during:
 - Eviction
-- Dynamic Block Placement
+- [Dynamic Block Placement](#block-aligning-dynamic-block-placement).
 
 The eviction, that happens in-line with writes, will attempt to remove blocks based on the order enforced by the block annotation policy.
 The last block in annotated order is the first candidate for eviction regardless of which tier it's sitting on.
@@ -220,8 +224,11 @@ available options are:
 - `alluxio.worker.block.annotator.LRFUAnnotator`
 
 #### Evictor Emulation
-The old eviction policies are now deprecated and Alluxio provided implementations are replaced with appropriate annotation policies.
+The old eviction policies are now removed and Alluxio provided implementations are replaced with appropriate annotation policies.
 Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
+Also, the old watermark based configuration is invalidated. So below configuration options are ineffective:
+- `alluxio.worker.tieredstore.levelX.watermark.low.ratio`
+- `alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 
 However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
 an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
@@ -234,6 +241,7 @@ The old evictor configurations should be changes as below. (Failing to change th
 
 ### Tiered Storage Management
 As block allocation/eviction no longer enforces a particular tier for new writes, a new block could end up in any configured tier.
+This allows writing data bigger than Alluxio storage capacity. However, it also requires Alluxio to dynamically manage block placement.
 To enforce the assumption that tiers are configured from fastest to slowest, Alluxio now moves blocks around tiers based on block annotation policies.
 
 Below configuration is honoured by each individual tier management task:
@@ -244,10 +252,11 @@ Below configuration is honoured by each individual tier management task:
 Alluxio will dynamically move blocks across tiers in order to have block composition that is in line with the configured block annotation policy.
 
 To compensate this, Alluxio watches the I/O pattern and reorganize blocks across tiers to make sure
-`the lowest block of a higher tier has higher order than the highest block of a tier below`.
+**the lowest block of a higher tier has higher order than the highest block of a tier below**.
 
 This is achieved by `align` management task. This task, upon detecting tiers are out of order, swaps blocks among tiers
 in order to eliminate disorder among blocks and effectively align the tiers to configured annotation policy.
+See [Management Task Back-Off](#management-task-back-off) section for how to control the effect of these new background tasks to user I/O.
 
 To control tier aligning:
 - `alluxio.worker.management.tier.align.enabled`: Whether tier aligning task is enabled. (Default:`true`)
@@ -272,11 +281,11 @@ This behaviour is to make sure internal management doesn't have negative effect 
 
 There are two back-off types available, `ANY` and `DIRECTORY`, that can be set in `alluxio.worker.management.backoff.strategy` property.
 
-- ANY; management tasks will backoff from worker when there is any user I/O. 
+- `ANY`; management tasks will backoff from worker when there is any user I/O. 
 This mode will ensure low management task overhead in order to favor immediate user I/O performance.
 However, making progress on management tasks will require quite periods on the worker.
 
-- DIRECTORY; management tasks will backoff from directories with ongoing user I/O.
+- `DIRECTORY`; management tasks will backoff from directories with ongoing user I/O.
 This mode will give better chance of making progress on management tasks
 However, immediate user I/O throughput might be decreased due to increased management task activity.
 
