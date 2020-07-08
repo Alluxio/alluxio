@@ -8,11 +8,7 @@ priority: 5
 
 * 内容列表
 {:toc}
-## 1. Overview
-
-### 什么是Alluxio
-
-Alluxio 是世界上第一个面向基于云的数据分析和人工智能的开源的[数据编排技术](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)。 它为数据驱动型应用和存储系统构建了桥梁, 将数据从存储层移动到距离数据驱动型应用更近的位置从而能够更容易被访问。 这还使得应用程序能够通过一个公共接口连接到许多存储系统。 Alluxio内存至上的层次化架构使得数据的访问速度能比现有方案快几个数量级[1]。
+## Overview
 
 ### 什么是FUSE
 
@@ -22,14 +18,14 @@ FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.
 
 注意：我们正在持续解决和优化AlluxioFuse的稳定性和速度等问题，因此，现在提供的并不是正式版，而是实验版本，欢迎试用并提出建议。
 
-## 2. 在Docker上单机部署
+## 在Docker上单机部署
 
-### 2.1 前提条件
+### 前提条件
 
 - [Docker](https://www.docker.com/)
 - Aluxio Docker镜像
 
-其中，Alluxio Docker镜像直接使用阿里云镜像，镜像信息如下表所示：
+其中，Alluxio Docker镜像直接从阿里云镜像仓库获取，镜像信息如下表所示。Alluxio master和Alluxio worker使用下表中第一个镜像，而Alluxio fuse则使用第二个镜像。Alluxio fuse运行环境与Alluxio master等有差异，它还额外依赖于`libfuse`库，所以它们使用不同的镜像。
 
 <table class="table table-striped">
     <tr>
@@ -45,11 +41,9 @@ FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.
         <td>2.3.0-SNAPSHOT-b7629dc</td>
     </tr>
 </table>
+### 单机部署
 
-
-### 2.2 单机部署
-
-#### 2.2.1 设置底层存储系统
+#### 设置底层存储系统
 
 在主机上创建文件夹`underStorage`作为Alluxio的底层存储系统
 
@@ -57,17 +51,19 @@ FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.
 $ mkdir underStorage
 ```
 
-#### 2.2.2 设置RAMFS
+#### 设置RAMFS
 
 在主机上创建文件夹`/mnt/ramdisk`，并挂载为`ramfs`，注意添加ramfs的读写权限
 
-``` console
+```console
 $ sudo mkdir /mnt/ramdisk
 $ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
 $ sudo chmod a+w /mnt/ramdisk
 ```
 
-#### 2.2.3 启动Alluxio master
+在这个示例中，`ramfs`的大小设置为了`1G`，也可以根据实验环境设置为其他数值。
+
+#### 启动Alluxio master
 
 在主机上启动alluxio-master
 
@@ -76,40 +72,53 @@ $ docker run -d \
     --name=alluxio-master \
     -u=0 \
     --net=host \
-    -v underStorage:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage -Dalluxio.user.metrics.collection.enabled=true -Dalluxio.worker.data.server.domain.socket.as.uuid=true " \
+    -v $PWD/underStorage:/opt/alluxio/underFSStorage \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio:2.3.0-SNAPSHOT-b7629dc master
 ```
 
-#### 2.2.4 启动Alluxio worker
+命令参数说明：
+
+- `-u=0`表示以`root`身份运行
+- `--net=host`指定容器共享主机的network namespace
+- `-v $PWD/underStorage:/opt/alluxio/underFSStoragee`表示宿主机和Docker容器共享底层存储层文件夹
+- `-e ALLUXIO_JAVA_OPTS`中设置Alluxio的配置项，其中`alluxio.master.mount.table.root.ufs`设置了底层存储系统文件夹
+
+#### 启动Alluxio worker
 
 在主机上启动alluxio-worker
 
-``` console
+```console
 $ docker run -d \
     --name=alluxio-worker \
     -u=0 \
     --net=host \
     --shm-size=1G \
     -v /mnt/ramdisk:/opt/ramdisk \
-    -v underStorage:/opt/alluxio/underFSStorage \
+    -v $PWD/underStorage:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.hostname=localhost -Dalluxio.master.hostname=localhost -Dalluxio.worker.memory.size=1G -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
     -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio:2.3.0-SNAPSHOT-b7629dc worker
 ```
 
-#### 2.2.5 设置AlluxioFuse挂载路径
+命令参数说明：
+
+- `--shm-size=1G`：设置容器的共享内存大小，与`alluxio.worker.memory.size`（`ALLUXIO_JAVA_OPTS`中设置）和RAMFS的大小（`1G`）保持一致
+- `-v /mnt/ramdisk:/opt/ramdisk`：和Docker容器共享主机的ramdisk
+- `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`：通知worker如何定位ramdisk
+
+#### 设置AlluxioFuse挂载路径
 
 在主机上创建文件夹`/mnt/alluxio-fuse`，AlluxioFuse会数据集挂载在这个路径下：
 
-``` console
+```console
 $ mkdir /mnt/alluxio-fuse
-$ sudo chmod a+w /mnt/alluxio-fuse
+$ sudo chmod a+r /mnt/alluxio-fuse
 ```
 
-#### 2.2.6 启动Alluxio fuse
+#### 启动Alluxio fuse
 
-在主机上启动alluxio-fuse，注意挂载路径是`/mnt`。
+在主机上启动alluxio-fuse，注意容器挂载路径是`/mnt`（而不是`/mnt/alluxio-fuse`）。
 
 ```console
 $ docker run -d \
@@ -117,21 +126,27 @@ $ docker run -d \
     -u=0 \
     --net=host \
     -v /mnt/ramdisk:/opt/ramdisk \
-    --mount type=bind,source=/mnt,target=/mnt,bind-propagation=rshared \
+    -v /mnt:/mnt:rshared \
     --cap-add SYS_ADMIN \
-    --privileged \
-    --security-opt=seccomp:unconfined \
     --device /dev/fuse \
     -e ALLUXIO_JAVA_OPTS=" -Dalluxio.fuse.jnifuse.enabled=true " \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio-fuse:2.3.0-SNAPSHOT-b7629dc fuse \
     --fuse-opts=kernel_cache
 ```
 
-### 2.3 测试Alluxio集群
+命令参数说明：
+
+- `-v /mnt:/mnt:rshared`：容器共享宿主机的`/mnt`文件夹，Alluxio中的数据将会挂载到`/mnt/alluxio-fuse`
+- `--cap-add SYS_ADMIN`：赋予容器`SYS_ADMIN`权限
+- `--device /dev/fuse`：容器共享宿主机的设备`/dev/fuse`
+- `--fuse-opts=kernel_cache`：设置FUSE参数，`kernel_cache`表示使用`page cahce`
+- `ALLUXIO_JAVA_OPTS`中设置了`alluxio.fuse.jnifuse.enabled=true`，表示使用`jnifuse`，这将在本文第三部分调优中详细解释
+
+### 测试Alluxio集群
 
 在alluxio-master容器里往Alluxio添加文件
 
-``` console
+```console
 $ docker exec -it alluxio-master bash
 $ alluxio fs copyFromLocal LICENSE  /
 ```
@@ -145,11 +160,11 @@ LICENSE
 
 可在主机上通过挂载点直接访问Alluxio中的文件，说明Alluxio集群已成功部署。
 
-## 3. AlluxioFuse调优
+## AlluxioFuse调优
 
 在FUSE层和Alluxio层都能进一步调优，下面分别介绍。
 
-### 3.1 FUSE层优化配置项
+### FUSE层优化配置项
 
 <table class="table table-striped">
     <tr>
@@ -174,7 +189,7 @@ LICENSE
         <td>max_read=N</td>
         <td>131072</td>
         <td>131072</td>
-        <td>FUSE单次request能读取文件的大小上限。在kernel 4.19中，这个值是32个pages，在i386上，为131072，或者说128kbytes。</td>
+        <td>FUSE单次request能读取文件的大小上限。这个值在kernel被设置为32个pages，在i386上，为131072，或者说128kbytes。</td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>
@@ -196,11 +211,11 @@ LICENSE
     </tr>
 </table>
 
-### 3.2 AlluxioFuse相关优化配置项
+### AlluxioFuse相关优化配置项
 
 除了一些通用的Alluxio调优手段外，针对AlluxioFuse，我们增加了额外的配置项进行优化。AlluxioFuse优化主要分为两部分。
 
-#### 3.2.1 jnifuse
+#### jnifuse
 
 初始的Alluxio基于[jnr-fuse](https://github.com/SerCeMan/jnr-fuse)实现AlluxioFuse，为解决性能和稳定性问题，我们基于`jni-fuse`实现了`AlluxioJniFuse`，可支持`kernel_cache`模式。通过设置`alluxio.fuse.jnifuse.enabled  `在两者间切换，建议设置为`true`。
 
@@ -221,7 +236,7 @@ LICENSE
     </tr>
 </table>
 
-#### 3.2.2 client端缓存
+#### client端缓存
 
 在高并发和`kernel_cache`模式下，由于kernel的prefetch机制和FUSE的daemon多线程并发访问机制，可能破坏文件的顺序读特性，导致Alluxio产生频繁的seek gRPC请求，进而大幅降低性能。启用client端缓存可一定程度解决这个问题。
 
@@ -260,11 +275,11 @@ LICENSE
     </tr>
 </table>
 
-## 4. 应用实践：在阿里云上基于Kubernets集群搭建四机八卡深度学习环境
+## 应用实践：在阿里云上基于Kubernets集群搭建四机八卡深度学习环境
 
 在阿里云平台基于k8s集群搭建了4机八卡深度学习训练环境，优化深度学习训练的IO性能。
 
-### 4.1 实验环境说明
+### 实验环境说明
 
 #### 硬件环境
 
@@ -279,30 +294,30 @@ LICENSE
 
 - 数据集存储在[Aliyun OSS](https://cn.aliyun.com/product/oss)，Alluxio将OSS作为底层存储系统，模型训练程序通过AlluxioFuse读取数据
 
-### 4.2 部署流程
+### 部署流程
 
-#### 4.2.1 前提条件
+#### 前提条件
 
 - Kubernets集群（version >= 1.8）
 - [helm](https://helm.sh/docs/)（version >= 3.0）
 - Alluxio Docker镜像（由阿里云提供）
 
-#### 4.2.2 设置虚拟内存文件系统
+#### 设置虚拟内存文件系统
 
 若设置RAMFS的挂载路径为`/ram/alluxio`，则需在Kubernets集群的每台机器上，挂载RAMFS：
 
-``` console
+```console
 $ mkdir -p /alluxio/ram
 $ mount -t ramfs -o size=260G ramfs /alluxio/ram
 ```
 
 RAMFS的size具体大小，应视机器配置和训练任务需求而定。
 
-#### 4.2.3 设置底层文件系统
+#### 设置底层文件系统
 
 集群使用[Aliyun OSS](https://cn.aliyun.com/product/oss)作为Alluxio的底层文件系统，详细配置过程参见[在OSS上配置Alluxio](https://docs.alluxio.io/os/user/stable/cn/ufs/OSS.html)。
 
-#### 4.2.4 下载helm-chart
+#### 下载helm-chart
 
 使用[helm](https://helm.sh/docs/)部署Alluxio集群，需要先下载helm chart，我们使用0.14.0版，若使用其他更老版本可能存在适配问题：
 
@@ -310,7 +325,7 @@ RAMFS的size具体大小，应视机器配置和训练任务需求而定。
 $ wget http://kubeflow.oss-cn-beijing.aliyuncs.com/alluxio-0.14.0.tgz
 ```
 
-#### 4.2.5 配置Alluxio集群（基础版）
+#### 配置Alluxio集群（基础版）
 
 在配置中，至少应指定Alluxio和Alluxio-fuse的镜像（直接使用阿里云镜像），Alluxio的底层文件系统（阿里云OSS）和Alluxio的RAMFS。如下的`config.yaml`文件是未使用任何参数优化情况下，部署Alluxio集群所需最简配置。
 
@@ -346,17 +361,17 @@ fuse:
     - --fuse-opts=kernel_cache
 ```
 
-#### 4.2.6 启动Alluxio集群
+#### 启动Alluxio集群
 
 helm安装Alluxio集群时，指定前述的集群配置文件`config.yaml`和helm chart压缩包`alluxio-0.14.0.tgz`。
 
-``` console
+```console
 $ helm install alluxio -f config.yaml alluxio-0.14.0.tgz
 ```
 
 等待Alluxio集群部署一定时间后，查看Kubernets pod：
 
-``` console
+```console
 $ kubectl get po
 NAME                                                         READY   STATUS      RESTARTS   AGE
 alluxio-fuse-5ttjt                                           1/1     Running     0          7s
@@ -374,18 +389,19 @@ alluxio-worker-t6wzj                                         2/2     Running    
 
 在集群任意一台机器查看alluxio-fuse挂载路径：
 
-``` console
+```console
 $ ls /mnt/alluxio-fuse/
 train  validation
 ```
 
 可见OSS云端数据集已成功挂载到这台机器。之后，用户便可像操作本地文件一样，在挂载数据集上运行深度学习等任务。
 
-#### 4.2.7 配置Alluxio集群（进阶版）
+#### 配置Alluxio集群（进阶版）
 
 如果直接使用上述最简配置，alluxio-fuse读取性能难以满足深度学习训练需求。在此实例中，我们基于这个深度学习训练环境，全面优化了Alluxio集群的配置，如下所示：
 
 ```yaml
+# config.yaml
 image: registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio
 imageTag: "2.3.0-SNAPSHOT-b7629dc"
 imagePullPolicy: Always
