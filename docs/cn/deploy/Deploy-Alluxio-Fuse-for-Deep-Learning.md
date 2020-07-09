@@ -11,14 +11,19 @@ priority: 5
 
 ## 概述
 
-本指南介绍读者如何使用基于JNI(Java Native Interface)的实验版的AlluxioFuse来优化机器学习任务的IO性能。
-当前指南里提供的是实验版本，我们正在持续解决兼容性和优化稳定性和速度等问题。欢迎试用并提出建议。
+本指南介绍读者如何使用基于JNI(Java Native Interface)的实验版的AlluxioFuse来优化机器学习任务的云端IO性能。
+该实验版AlluxioFuse同默认Alluxio发行版中的基于JNR实现的AlluxioFuse相比还有一些局限性。 
+我们正在持续解决兼容性和优化稳定性和速度等问题。欢迎试用并提出建议。
+本实验版AlluxioFuse当前仅通过容器镜像交付。
 
-### 什么是FUSE
+### 什么是FUSE和AlluxioFuse
 
 用户空间文件系统（**F**ilesystem in **Use**rspace， 简称**FUSE**）是一个面向类Unix系统的软件接口，它使得普通用户无需更改内核代码就能创建自己的文件系统[2]。
+FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.com/libfuse/libfuse)。libfuse库提供了一套标准的文件系统接口。
 
-FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.com/libfuse/libfuse)。libfuse库提供了一套标准的文件系统接口，Alluxio基于这套文件系统接口实现了简单易用的**AlluxioFuse**。AlluxioFuse给予了Alluxio更多易用性和灵活性，使得Alluxio能够扩展到更多场景。
+Alluxio基于这套文件系统接口实现了简单易用的**AlluxioFuse**。AlluxioFuse给予了Alluxio更多易用性和灵活性，使得Alluxio能够扩展到更多场景。
+由于libfuse基于C，而Alluxio基于Java，我们可以采用JNI或者JNR等不同方式使Alluxio对接libfuse。
+本实验版本是使用JNI来直接对接Alluxio和libfuse，而不是Alluxio发行版默认的JNR。
 
 ## 在Docker上单机部署AlluxioFuse
 
