@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 用AlluxioFuse加速深度学习训练（试验）
-nickname: 用AlluxioFuse加速深度学习训练（试验）
+title: 使用Docker部署AlluxioFuse加速深度学习训练（试验）
+nickname: 在Docker上运行AlluxioFuse（试验）
 group: Install Alluxio
 priority: 5
 ---
@@ -12,7 +12,7 @@ priority: 5
 ## 概述
 
 本指南介绍读者如何使用基于JNI(Java Native Interface)的实验版的AlluxioFuse来优化机器学习任务的云端IO性能。
-该实验版AlluxioFuse同默认Alluxio发行版中的基于JNR实现的AlluxioFuse相比还有一些局限性。 
+该实验版AlluxioFuse同默认Alluxio发行版中的基于JNR实现的AlluxioFuse相比还有一些局限性。
 我们正在持续解决兼容性和优化稳定性和速度等问题。欢迎试用并提出建议。
 本实验版AlluxioFuse当前仅通过容器镜像交付。
 
@@ -359,7 +359,7 @@ tieredstore:
     level: 0
     type: hostPath
     path: /alluxio/ram
-    
+
 fuse:
   enaabled: true
   clientEnabled: true
@@ -516,4 +516,3 @@ fuse:
 [2] wikipedia: FUSE, https://zh.wikipedia.org/wiki/FUSE.
 
 [3] 阿里云容器平台：阿里云容器服务团队实践——Alluxio 优化数倍提升云上 Kubernetes 深度学习训练性能, https://www.infoq.cn/article/FLMjB7A7jD2aAWvg6Xjb.
-
