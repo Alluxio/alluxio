@@ -1,14 +1,18 @@
 ---
 layout: global
-title: 用AlluxioFuse加速深度学习训练（Experimental）
-nickname: 用AlluxioFuse加速深度学习训练（Experimental）
+title: 用AlluxioFuse加速深度学习训练（试验）
+nickname: 用AlluxioFuse加速深度学习训练（试验）
 group: Install Alluxio
 priority: 5
 ---
 
 * 内容列表
 {:toc}
-## Overview
+
+## 概述
+
+本指南介绍读者如何使用基于JNI(Java Native Interface)的实验版的AlluxioFuse来优化机器学习任务的IO性能。
+当前指南里提供的是实验版本，我们正在持续解决兼容性和优化稳定性和速度等问题。欢迎试用并提出建议。
 
 ### 什么是FUSE
 
@@ -16,16 +20,12 @@ priority: 5
 
 FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.com/libfuse/libfuse)。libfuse库提供了一套标准的文件系统接口，Alluxio基于这套文件系统接口实现了简单易用的**AlluxioFuse**。AlluxioFuse给予了Alluxio更多易用性和灵活性，使得Alluxio能够扩展到更多场景。
 
-注意：我们正在持续解决和优化AlluxioFuse的稳定性和速度等问题，因此，现在提供的并不是正式版，而是实验版本，欢迎试用并提出建议。
-
-## 在Docker上单机部署
+## 在Docker上单机部署AlluxioFuse
 
 ### 前提条件
 
-- [Docker](https://www.docker.com/)
-- Aluxio Docker镜像
-
-其中，Alluxio Docker镜像直接从阿里云镜像仓库获取，镜像信息如下表所示。Alluxio master和Alluxio worker使用下表中第一个镜像，而Alluxio fuse则使用第二个镜像。Alluxio fuse运行环境与Alluxio master等有差异，它还额外依赖于`libfuse`库，所以它们使用不同的镜像。
+- 安装[Docker](https://www.docker.com/)
+- 下载预生成的Aluxio Docker镜像：镜像信息如下表所示。Alluxio master和Alluxio worker使用下表中第一个镜像，而Alluxio fuse则使用第二个镜像。Alluxio fuse运行环境与Alluxio master等有差异，它还额外依赖于`libfuse`库，所以它们使用不同的镜像。
 
 <table class="table table-striped">
     <tr>
@@ -41,6 +41,7 @@ FUSE包括kernel提供的内核模块和用户态的[libfuse库](https://github.
         <td>2.3.0-SNAPSHOT-b7629dc</td>
     </tr>
 </table>
+
 ### 单机部署
 
 #### 设置底层存储系统
@@ -62,10 +63,11 @@ $ sudo chmod a+w /mnt/ramdisk
 ```
 
 在这个示例中，`ramfs`的大小设置为了`1G`，也可以根据实验环境设置为其他数值。
+此后在Worker的设置中，交给Worker管理的堆外内存大小需要与其一致。
 
 #### 启动Alluxio master
 
-在主机上启动alluxio-master
+在主机上启动`alluxio-master`
 
 ```console
 $ docker run -d \
@@ -73,7 +75,8 @@ $ docker run -d \
     -u=0 \
     --net=host \
     -v $PWD/underStorage:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost \
+        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio:2.3.0-SNAPSHOT-b7629dc master
 ```
 
@@ -86,7 +89,7 @@ $ docker run -d \
 
 #### 启动Alluxio worker
 
-在主机上启动alluxio-worker
+在主机上启动`alluxio-worker`
 
 ```console
 $ docker run -d \
@@ -96,7 +99,10 @@ $ docker run -d \
     --shm-size=1G \
     -v /mnt/ramdisk:/opt/ramdisk \
     -v $PWD/underStorage:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.hostname=localhost -Dalluxio.master.hostname=localhost -Dalluxio.worker.memory.size=1G -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.hostname=localhost \
+        -Dalluxio.master.hostname=localhost \
+        -Dalluxio.worker.memory.size=1G \
+        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
     -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio:2.3.0-SNAPSHOT-b7629dc worker
 ```
@@ -116,9 +122,9 @@ $ mkdir /mnt/alluxio-fuse
 $ sudo chmod a+r /mnt/alluxio-fuse
 ```
 
-#### 启动Alluxio fuse
+#### 启动AlluxioFuse
 
-在主机上启动alluxio-fuse，注意容器挂载路径是`/mnt`（而不是`/mnt/alluxio-fuse`）。
+在宿主机上启动`alluxio-fuse`，注意容器挂载路径是`/mnt`（而不是`/mnt/alluxio-fuse`）。
 
 ```console
 $ docker run -d \
@@ -144,14 +150,14 @@ $ docker run -d \
 
 ### 测试Alluxio集群
 
-在alluxio-master容器里往Alluxio添加文件
+在`alluxio-master`容器里往Alluxio添加文件
 
 ```console
 $ docker exec -it alluxio-master bash
 $ alluxio fs copyFromLocal LICENSE  /
 ```
 
-查看alluxio-fuse挂载点`/mnt/alluxio-fuse`
+查看`alluxio-fuse`容器的挂载点`/mnt/alluxio-fuse`
 
 ```console
 $ ls /mnt/alluxio-fuse/
@@ -174,40 +180,40 @@ LICENSE
         <td>描述</td>
     </tr>
     <tr>
-        <td>direct_io</td>
+        <td>`direct_io`</td>
         <td></td>
         <td>不要设置</td>
-        <td>开启direct_io模式，内核不会主动缓存和预读；direct_io模式下存在稳定性问题：当IO负载压力特别高时，direct_io模式可能导致数据不一致。</td>
+        <td>开启`direct_io`模式，内核不会主动缓存和预读；当IO负载压力特别高时，`direct_io`模式下可能存在稳定性问题。</td>
     </tr>
     <tr>
-        <td>kernel_cache</td>
+        <td>`kernel_cache`</td>
         <td></td>
         <td>建议启用</td>
-        <td>开启page_cache，使用更多的系统缓存，同时提升文件读取速度。</td>
+        <td>开启`kernel_cache`，使用更多的系统缓存，同时提升文件读取速度。</td>
     </tr>
     <tr>
-        <td>max_read=N</td>
+        <td>`max_read=N`</td>
         <td>131072</td>
-        <td>131072</td>
+        <td>使用默认值</td>
         <td>FUSE单次request能读取文件的大小上限。这个值在kernel被设置为32个pages，在i386上，为131072，或者说128kbytes。</td>
     </tr>
     <tr>
-        <td>attr_timeout=N</td>
+        <td>`attr_timeout=N`</td>
         <td>1.0</td>
         <td>7200</td>
         <td>设置文件属性（struct inode）被缓存的时间（单位：second）。增加inode缓存时间可减少FUSE文件元数据操作，提升性能。</td>
     </tr>
     <tr>
-        <td>entry_timeout=N</td>
+        <td>`entry_timeout=N`</td>
         <td>1.0</td>
         <td>7200</td>
         <td>设置文件项（struct dentry）被缓存的时间（单位：second）。增加entry缓存时间可减少FUSE文件元数据操作，提升性能。</td>
     </tr>
     <tr>
-        <td>max_idle_threads</td>
+        <td>`max_idle_threads`</td>
         <td>10</td>
         <td>视任务而定</td>
-        <td>libfuse用户态daemon线程的最大闲置数量。在高并发下，这个属性过小会导致FUSE频繁创建销毁线程。建议视用户进程的IO活跃度配置。注意：libfuse 2并未提供这个参数，我们修改了libfuse代码，并通过环境变量的方式修改这个参数。</td>
+        <td>libfuse用户态daemon线程的最大闲置数量。在高并发下，这个属性过小会导致FUSE频繁创建销毁线程。建议视用户进程的IO活跃度配置。注意：libfuse 2并未提供这个参数，在alluxio-fuse容器镜像中，我们修改了libfuse代码，并通过环境变量的方式修改这个参数。</td>
     </tr>
 </table>
 
@@ -217,7 +223,7 @@ LICENSE
 
 #### jnifuse
 
-初始的Alluxio基于[jnr-fuse](https://github.com/SerCeMan/jnr-fuse)实现AlluxioFuse，为解决性能和稳定性问题，我们基于`jni-fuse`实现了`AlluxioJniFuse`，可支持`kernel_cache`模式。通过设置`alluxio.fuse.jnifuse.enabled  `在两者间切换，建议设置为`true`。
+初始的Alluxio基于[jnr-fuse](https://github.com/SerCeMan/jnr-fuse)实现AlluxioFuse，为解决性能和稳定性问题，我们基于`jni-fuse`实现了`AlluxioJniFuse`，可支持`kernel_cache`模式。通过设置`alluxio.fuse.jnifuse.enabled`在两者间切换，建议设置为`true`。
 
 注意：目前AlluxioJniFuse正处于实验阶段，不支持写入，只支持读取。
 
@@ -229,7 +235,7 @@ LICENSE
         <td>描述</td>
     </tr>
     <tr>
-        <td>alluxio.fuse.jnifuse.enabled</td>
+        <td>`alluxio.fuse.jnifuse.enable`d</td>
         <td>false</td>
         <td>true</td>
         <td>使用jnifuse(true)，否则使用jnrfuse(false)。</td>
@@ -240,7 +246,7 @@ LICENSE
 
 在高并发和`kernel_cache`模式下，由于kernel的prefetch机制和FUSE的daemon多线程并发访问机制，可能破坏文件的顺序读特性，导致Alluxio产生频繁的seek gRPC请求，进而大幅降低性能。启用client端缓存可一定程度解决这个问题。
 
-配置项`alluxio.user.client.cache.enabled`决定了是否启用client端缓存，建议仅在IO压力特别大的情况下启用。若启用client端cache，还有其他配套参数可以调整，包括cache的类型、cache的存储目录、页大小和容量上限。在深度学习任务中，比较通用的配置是将cache类型设置为`MEMORY`，页大小设置为`2MB`，容量上限设置为`1800MB`，然后通过观测cache的命中率（通过alluxio-fuse日志查看）和JVM的GC情况来适当调整页大小和cache容量。
+配置项`alluxio.user.client.cache.enabled`决定了是否启用client端缓存，建议仅在IO压力特别大的情况下启用。若启用client端cache，还有其他配套参数可以调整，包括cache的类型、cache的存储目录、页大小和容量上限。在深度学习任务中，比较通用的配置是将cache类型设置为`MEMORY`，页大小设置为`2MB`，容量上限设置为`2000MB`，然后通过观测cache的命中率（通过alluxio-fuse日志查看）和JVM的GC情况来适当调整页大小和cache容量。
 
 <table class="table table-striped">
     <tr>
@@ -249,27 +255,27 @@ LICENSE
         <td>描述</td>
     </tr>
     <tr>
-        <td>alluxio.user.client.cache.enabled</td>
+        <td>`alluxio.user.client.cache.enabled`</td>
         <td>false</td>
         <td>是否启用client端cache。因为会产生额外的资源消耗，建议仅在IO压力特别高的场景下启用。</td>
     </tr>
     <tr>
-        <td>alluxio.user.client.cache.store.type</td>
+        <td>`alluxio.user.client.cache.store.type`</td>
         <td>LOCAL</td>
-        <td>LOCAL设置client端cache的页存储类型，可选：{LOCAL, MEMORY, ROCKS}。LOCAL表示所有页存储在一个目录（通过alluxio.user.client.cache.dir指定）；ROCKS使用rocksDB来持久化数据；MEMORY将所有页存储在Java堆内存中。推荐使用MEMORY。</td>
+        <td>LOCAL设置client端cache的页存储类型，可选：{LOCAL, MEMORY, ROCKS}。LOCAL表示所有页存储在一个目录（通过`alluxio.user.client.cache.dir`指定）；ROCKS使用rocksDB来持久化数据；MEMORY将所有页存储在Java堆内存中。推荐使用MEMORY。</td>
     </tr>
     <tr>
-        <td>alluxio.user.client.cache.dir</td>
+        <td>`alluxio.user.client.cache.dir`</td>
         <td>/tmp/alluxio_cache</td>
         <td>client端cache存储目录（在LOCAL和ROCKS下有效）。一般将这个目录挂载为ramfs，提升cache访问速度。</td>
     </tr>
     <tr>
-        <td>alluxio.user.client.cache.page.size</td>
+        <td>`alluxio.user.client.cache.page.size`</td>
         <td>1MB</td>
         <td>client端cache的页大小。在调优时，可优先尝试2MB，4MB和8MB。注意：页大小设置过大可能导致JVM频繁GC；而太小则可能导致cache命中率过低。建议调优时，通过观察GC情况和cache命中率适当调整。</td>
     </tr>
     <tr>
-        <td>alluxio.user.client.cache.size</td>
+        <td>`alluxio.user.client.cache.size`</td>
         <td>512MB</td>
         <td>client端cache的容量上限。MEMORY模式下，建议设置在1800MB以内。</td>
     </tr>
