@@ -43,6 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -371,18 +372,26 @@ public class UfsStatusCacheTest {
   @Test
   public void testFetchSingleStatusNonExistingPath() throws Exception {
     spyUfs();
-    UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    try {
+      UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+      fail("Should have thrown FileNotFoundException");
+    } catch (FileNotFoundException e) {
+      // ignored
+    }
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
-    assertNull(fetched);
   }
 
   @Test
   public void testFetchSingleStatusThrowsException() throws Exception {
     spyUfs();
     doThrow(new IOException("test exception")).when(mUfs).getStatus(any(String.class));
-    UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    try {
+      UfsStatus fetched = mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+      fail("Should have thrown FileNotFoundException");
+    } catch (FileNotFoundException e) {
+      // ignored
+    }
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
-    assertNull(fetched);
   }
 
   /**
