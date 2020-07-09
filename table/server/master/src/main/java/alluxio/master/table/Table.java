@@ -72,7 +72,7 @@ public class Table {
 
     mName = udbTable.getName();
     mSchema = udbTable.getSchema();
-    mOwner = udbTable.getOwner();
+    mOwner = udbTable.getOwner() == null ? "" : udbTable.getOwner();
     mStatistics = udbTable.getStatistics();
     mParameters = new HashMap<>(udbTable.getParameters());
 
