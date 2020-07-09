@@ -625,6 +625,9 @@ public class InodeSyncStream {
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
 
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
+    if (status == null) {
+      return;
+    }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
             .setCommonOptions(NO_TTL_OPTION)

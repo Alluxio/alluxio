@@ -138,8 +138,7 @@ public class UfsStatusCache {
    *
    * @param path the path the retrieve
    * @param mountTable the Alluxio mount table
-   * @return The corresponding {@link UfsStatus}
-   * @throws java.io.FileNotFoundException if the status can't be retrieved from the UFS
+   * @return The corresponding {@link UfsStatus}, or null if it couldn't be fetched
    */
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InvalidPathException, FileNotFoundException {
@@ -161,7 +160,7 @@ public class UfsStatusCache {
     } catch (IllegalArgumentException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
     }
-    throw new FileNotFoundException("Failed to fetch status of " + ufsUri);
+    return null;
   }
 
   /**
