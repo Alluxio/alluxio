@@ -11,6 +11,9 @@
 
 package alluxio.hadoop;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -35,10 +38,12 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 
@@ -54,6 +59,24 @@ import java.util.stream.Collectors;
  */
 public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
   private final org.apache.hadoop.fs.FileSystem mFileSystem;
+
+  /**
+   * @param status Hadoop file status
+   * @return corresponding Alluxio uri status instance
+   */
+  private static URIStatus toAlluxioUriStatus(FileStatus status) {
+    // FilePath is a unique identifier for a file, however it can be a long string
+    // hence using md5 hash of the file path as the identifier in the cache.
+    // We don't set fileId because fileId is Alluxio specific
+    FileInfo info = new FileInfo();
+    info.setFileIdentifier(md5().hashString(status.getPath().toString(), UTF_8).toString());
+    info.setLength(status.getLen()).setPath(status.getPath().toString());
+    info.setFolder(status.isDirectory()).setBlockSizeBytes(status.getBlockSize());
+    info.setLastModificationTimeMs(status.getModificationTime())
+        .setLastAccessTimeMs(status.getAccessTime());
+    info.setOwner(status.getOwner()).setGroup(status.getGroup());
+    return new URIStatus(info);
+  }
 
   /**
    * @param fileSystem file system
@@ -101,14 +124,14 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI alluxioURI, GetStatusPOptions options) throws IOException {
-    return HadoopUtils.toUriStatus(mFileSystem.getFileStatus(HadoopUtils.toPath(alluxioURI)));
+    return toAlluxioUriStatus(mFileSystem.getFileStatus(HadoopUtils.toPath(alluxioURI)));
   }
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI alluxioURI, ListStatusPOptions options)
       throws IOException {
     return Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI)))
-        .map(HadoopUtils::toUriStatus).collect(Collectors.toList());
+        .map(AlluxioHdfsFileSystem::toAlluxioUriStatus).collect(Collectors.toList());
   }
 
   @Override
