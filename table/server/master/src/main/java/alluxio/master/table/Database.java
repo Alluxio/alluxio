@@ -246,8 +246,9 @@ public class Database implements Journaled {
             }
           }
         } catch (Exception e) {
+          LOG.error(String.format("Sync thread failed for %s.%s", thisDb.mName, tableName), e);
           synchronized (builder) {
-            builder.putTablesErrors(tableName, e.getMessage());
+            builder.putTablesErrors(tableName, e.toString());
           }
         } finally {
           int syncedTables = tablesSynced.incrementAndGet();
@@ -288,7 +289,7 @@ public class Database implements Journaled {
     try {
       CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
     } catch (Exception e) {
-      throw new IOException("Failed to sync database " + mName + ". error: " + e.getMessage(), e);
+      throw new IOException("Failed to sync database " + mName + ". error: " + e.toString(), e);
     } finally {
       // shutdown the thread pool
       service.shutdownNow();
