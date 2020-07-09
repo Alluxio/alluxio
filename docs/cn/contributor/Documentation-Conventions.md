@@ -17,12 +17,12 @@ priority: 4
 1. 正确 (Correctness)
 2. 简洁 (Conciseness)
 3. 一致(Consistency)
-4. 正式(Formality)
+4. 正式(Ceremonialism)
 
 
 ### 正确性 = 没有错误
 
-不正确的文件还不如没有文件。
+不正确的文档还不如没有文件。
 
 * 传达准确信息
 * U使用拼写检查器修正拼写错误
@@ -71,7 +71,7 @@ priority: 4
 * 以Alluxio开头的术语，例如命名空间，缓存或存储，应以“ the”开头，以区别于常用术语，但如果不是专有名词，则保持小写
     * 例如数据将被复制到 the Alluxio 存储中。... 
     * 例如当新文件添加到 the Alluxio 命名空间后，...
-    * 例如The Alluxio主站从不直接读取或写入数据 ...
+    * 例如The Alluxio master从不直接读取或写入数据 ...
 
 ### 正式 = 不要听起来像是随意的对话
 
@@ -88,7 +88,7 @@ priority: 4
 
 ## 术语表
 
-| C正确术语 | 非精准术语 |
+| 正确术语 | 非精准术语 |
 |-------------------------|-----------------------------------------------------|
 | File system | Filesystem |
 | Leading master | Leader, lead master, primary master |
@@ -101,10 +101,12 @@ priority: 4
 
 ## 换行
 
-每个句子都另起一行，以方便查看差异。 对于文档文件，我们没有针对文档的每行字符数限制，但是建议随时将句子分行以方便阅读，避免读者在阅读时做不必要的水平滚动。
+每个句子都另起一行，以方便查看差异。 
+对于文档文件，我们没有针对文档的每行字符数限制，但是建议随时将句子分行以方便阅读，避免读者在阅读时做不必要的水平滚动。
+
 
 ## 资源
 
 * [技术写作风格准则](https://en.wikiversity.org/wiki/Technical_writing_style)
 * [不同情绪的样例](https://en.oxforddictionaries.com/grammar/moods)
-* [A主动与被动语气样例](https://writing.wisc.edu/Handbook/CCS_activevoice.html)
+* [主动与被动语气样例](https://writing.wisc.edu/Handbook/CCS_activevoice.html)
