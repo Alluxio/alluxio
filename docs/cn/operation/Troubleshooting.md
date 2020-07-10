@@ -61,16 +61,6 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 - 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
 - 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
-### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
-
-解决办法: 可按照[EC2上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-EC2.html' | relativize_url }})提示操作。
-
-典型问题:
-
-- 请确定 AWS access keys 和 Key Pairs 已安装
-- 如果底层文件存储系统是S3，检查 `ufs.yml`文件中的S3 bucket名称是否为已存在的bucket的名称，不包括`s3://` 、`s3a://`或者`s3n://`前缀
-- 如果不能访问UI，检查安全组是否限制了端口19999
-
 ## ALLuxio使用常见问题
 
 ### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
