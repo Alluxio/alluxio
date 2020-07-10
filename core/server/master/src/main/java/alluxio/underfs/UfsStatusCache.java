@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -138,10 +137,11 @@ public class UfsStatusCache {
    *
    * @param path the path the retrieve
    * @param mountTable the Alluxio mount table
-   * @return The corresponding {@link UfsStatus}, or null if it couldn't be fetched
+   * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
+  @Nullable
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException, FileNotFoundException {
+      throws InvalidPathException {
     UfsStatus status = mStatuses.get(path);
     if (status != null) {
       return status;
@@ -152,7 +152,7 @@ public class UfsStatusCache {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
       if (ufsStatus == null) {
-        throw new FileNotFoundException("fetched status is null for: " + ufsUri);
+        return null;
       }
       ufsStatus.setName(path.getName());
       addStatus(path, ufsStatus);

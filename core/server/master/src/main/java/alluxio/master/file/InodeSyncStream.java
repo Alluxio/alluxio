@@ -625,9 +625,6 @@ public class InodeSyncStream {
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
 
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
-    if (status == null) {
-      return;
-    }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
             .setCommonOptions(NO_TTL_OPTION)
@@ -642,10 +639,8 @@ public class InodeSyncStream {
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      if (context.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
+    try {
+      if (context.getUfsStatus() == null) {
         // uri does not exist in ufs
         Inode inode = inodePath.getInode();
         if (inode.isFile()) {
@@ -657,13 +652,8 @@ public class InodeSyncStream {
         mInodeTree.setDirectChildrenLoaded(mRpcContext, inode.asDirectory());
         return;
       }
-      boolean isFile;
-      if (context.getUfsStatus() != null) {
-        isFile = context.getUfsStatus().isFile();
-      } else {
-        isFile = ufs.isFile(ufsUri.toString());
-      }
-      if (isFile) {
+
+      if (context.getUfsStatus().isFile()) {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
         loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
