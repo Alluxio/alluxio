@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class RocksBlockStoreTest {
   @Rule
@@ -58,5 +59,25 @@ public class RocksBlockStoreTest {
       assertEquals(i, block.getMeta().getLength());
     }
     assertFalse(iter.hasNext());
+  }
+
+  @Test
+  public void blockLocations() throws Exception {
+    final int blockCount = 5;
+    final int workerIdStart = 100000;
+    RocksBlockStore blockStore = new RocksBlockStore(mFolder.newFolder().getAbsolutePath());
+    // create blocks and locations
+    for (int i = 0; i < blockCount; i++) {
+      blockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      blockStore
+          .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
+    }
+
+    // validate locations
+    for (int i = 0; i < blockCount; i++) {
+      List<Block.BlockLocation> locations = blockStore.getLocations(i);
+      assertEquals(1, locations.size());
+      assertEquals(workerIdStart + i, locations.get(0).getWorkerId());
+    }
   }
 }
