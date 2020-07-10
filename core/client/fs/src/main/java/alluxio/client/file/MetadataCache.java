@@ -127,7 +127,7 @@ public final class MetadataCache {
    */
   public void put(AlluxioURI dir, List<URIStatus> statuses) {
     try {
-      CachedItem item = mCache.get(dir.getPath(),()-> new CachedItem());
+      CachedItem item = mCache.get(dir.getPath(), () -> new CachedItem());
       item.setDirStatuses(statuses);
       for (URIStatus status : statuses) {
         put(status.getPath(), status);
