@@ -634,6 +634,10 @@ public class InodeSyncStream {
     loadMetadata(inodePath, ctx);
   }
 
+  /**
+  * This method creates inodes containing the metadata from the UFS. The {@link UfsStatus} object must be
+  * set in the {@link LoadMetadataContext} in order to successfully create the inodes.
+  */
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
