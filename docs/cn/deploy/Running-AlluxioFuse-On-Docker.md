@@ -309,7 +309,7 @@ LICENSE
 
 #### 前提条件
 
-- Kubernets集群（version >= 1.8）
+- Kubernetes集群（version >= 1.8）
 - [helm](https://helm.sh/docs/)（version >= 3.0）
 - Alluxio Docker镜像（由阿里云提供）
 
