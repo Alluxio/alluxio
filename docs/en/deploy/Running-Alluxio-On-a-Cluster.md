@@ -216,7 +216,7 @@ and then [restart the service](#restart-alluxio).
 
 ### Update Worker-side Configuration
 
-If you only need to update some local configuration for a worker (e.g., change the mount
+If you only need to update some local configuration for a worker (e.g., change the amount of
 storage capacity allocated to this worker or update the storage directory), the master node does
 not need to be stopped and restarted. One can simply stop the local worker, update the configuration
 (e.g., `conf/alluxio-site.properties`) file on this worker, and then restart the worker.
