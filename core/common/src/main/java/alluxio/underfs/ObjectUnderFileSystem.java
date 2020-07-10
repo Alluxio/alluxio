@@ -1118,14 +1118,25 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @VisibleForTesting
   public String stripPrefixIfPresent(String path) {
-    final String normalizedPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
     String stripedKey = CommonUtils.stripPrefixIfPresent(
-        normalizedPath,
+        path,
         PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
-    if (!stripedKey.equals(normalizedPath)) {
+    if (!stripedKey.equals(path)) {
       return stripedKey;
     }
-    return CommonUtils.stripPrefixIfPresent(normalizedPath, PATH_SEPARATOR);
+
+    // See if adding a PATH_SEPARATOR makes a difference in stripping prefix
+    final String normalizedPath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    if (!path.equals(normalizedPath)) {
+      stripedKey = CommonUtils.stripPrefixIfPresent(
+          normalizedPath,
+          PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
+      if (!stripedKey.equals(normalizedPath)) {
+        return stripedKey;
+      }
+    }
+
+    return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
   }
 
   /**
