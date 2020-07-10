@@ -115,7 +115,7 @@ public final class MetadataCache {
       CachedItem item = mCache.get(path, () -> new CachedItem());
       item.setStatus(status);
     } catch (ExecutionException e) {
-        LOG.error("Failed to put meta into client cache for " + path, e);
+      LOG.error("Failed to put meta into client cache for file {}", path, e);
     }
   }
 
@@ -133,8 +133,7 @@ public final class MetadataCache {
         put(status.getPath(), status);
       }
     } catch (ExecutionException e) {
-        LOG.error("Failed to put meta into client cache for dir " + dir.getPath(),
-                e);
+      LOG.error("Failed to put meta into client cache for dir {}", dir.getPath(),  e);
     }
   }
 
