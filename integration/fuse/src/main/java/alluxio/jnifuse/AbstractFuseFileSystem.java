@@ -17,6 +17,9 @@ import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
@@ -34,6 +37,8 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   static {
     System.loadLibrary("jnifuse");
   }
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
 
   private static final int TIMEOUT = 2000; // ms
 
@@ -132,70 +137,147 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int openCallback(String path, ByteBuffer buf) {
-    FuseFileInfo fi = new FuseFileInfo(buf);
-    return open(path, fi);
+    try {
+      return open(path, FuseFileInfo.wrap(buf));
+    } catch (Exception e) {
+      LOG.error("Failed to open {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int readCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fibuf) {
-    FuseFileInfo fi = new FuseFileInfo(fibuf);
-    return read(path, buf, size, offset, fi);
+    try {
+      return read(path, buf, size, offset, FuseFileInfo.wrap(fibuf));
+    } catch (Exception e) {
+      LOG.error("Failed to read {}, size {}, offset {}: ", path, size, offset, e);
+     return -ErrorCodes.EIO();
+    }
   }
 
   public int getattrCallback(String path, ByteBuffer buf) {
-    FileStat stat = new FileStat(buf);
-    return getattr(path, stat);
+    try {
+      return getattr(path, FileStat.wrap(buf));
+    } catch (Exception e) {
+      LOG.error("Failed to getattr {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
       ByteBuffer fi) {
-    return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+    try {
+      return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+    } catch (Exception e) {
+      LOG.error("Failed to readdir {}, offset {}: ", path, offset, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int unlinkCallback(String path) {
-    return unlink(path);
+    try {
+      return unlink(path);
+    } catch (Exception e) {
+      LOG.error("Failed to unlink {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int flushCallback(String path, ByteBuffer fi) {
-    return flush(path, FuseFileInfo.wrap(fi));
+    try {
+      return flush(path, FuseFileInfo.wrap(fi));
+    } catch (Exception e) {
+      LOG.error("Failed to flush {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int releaseCallback(String path, ByteBuffer fi) {
-    return release(path, FuseFileInfo.wrap(fi));
+    try {
+      return release(path, FuseFileInfo.wrap(fi));
+    } catch (Exception e) {
+      LOG.error("Failed to release {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int chmodCallback(String path, long mode) {
-    return chmod(path, mode);
+    try {
+      return chmod(path, mode);
+    } catch (Exception e) {
+      LOG.error("Failed to chmod {}, mode {}: ", path, mode, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int chownCallback(String path, long uid, long gid) {
-    return chown(path, uid, gid);
+    try {
+      return chown(path, uid, gid);
+    } catch (Exception e) {
+      LOG.error("Failed to chown {}, uid {}, gid {}: ", path, uid, gid, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int createCallback(String path, long mode, ByteBuffer fi) {
-    return create(path, mode, FuseFileInfo.wrap(fi));
+    try {
+      return create(path, mode, FuseFileInfo.wrap(fi));
+    } catch (Exception e) {
+      LOG.error("Failed to create {}, mode {}: ", path, mode, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int mkdirCallback(String path, long mode) {
-    return mkdir(path, mode);
+    try {
+      return mkdir(path, mode);
+    } catch (Exception e) {
+      LOG.error("Failed to mkdir {}, mode {}: ", path, mode, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int renameCallback(String oldPath, String newPath) {
-    return rename(oldPath, newPath);
+    try {
+      return rename(oldPath, newPath);
+    } catch (Exception e) {
+      LOG.error("Failed to rename {}, newPath {}: ", oldPath, newPath, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int rmdirCallback(String path) {
-    return rmdir(path);
+    try {
+      return rmdir(path);
+    } catch (Exception e) {
+      LOG.error("Failed to rmdir {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int statfsCallback(String path, ByteBuffer stbuf) {
-    return statfs(path, Statvfs.wrap(stbuf));
+    try {
+      return statfs(path, Statvfs.wrap(stbuf));
+    } catch (Exception e) {
+      LOG.error("Failed to statfs {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int truncateCallback(String path, long size) {
-    return truncate(path, size);
+    try {
+      return truncate(path, size);
+    } catch (Exception e) {
+      LOG.error("Failed to truncate {}, size {}: ", path, size, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
-    return write(path, buf, size, offset, FuseFileInfo.wrap(fi));
+    try {
+      return write(path, buf, size, offset, FuseFileInfo.wrap(fi));
+    } catch (Exception e) {
+      LOG.error("Failed to write {}, size {}, offset {}: ", path, size, offset, e);
+      return -ErrorCodes.EIO();
+    }
   }
 }
