@@ -154,6 +154,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mLocalAlluxioCluster.start();
   }
 
+  /**
+   * Explicitly stops the {@link LocalAlluxioCluster}.
+   */
+  public void stop() throws Exception {
+    mLocalAlluxioCluster.stop();
+  }
+
   @Override
   public Statement apply(final Statement statement, Description description) {
     return new Statement() {
@@ -187,7 +194,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
           try {
             statement.evaluate();
           } finally {
-            mLocalAlluxioCluster.stop();
+            stop();
           }
         } finally {
           IntegrationTestUtils.releaseMasterPorts();
