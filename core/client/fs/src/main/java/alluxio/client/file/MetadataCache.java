@@ -16,10 +16,13 @@ import alluxio.AlluxioURI;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MetadataCache {
+  private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
   private class CachedItem {
     private URIStatus mStatus = null;
     private List<URIStatus> mDirStatuses = null;
@@ -50,7 +54,7 @@ public final class MetadataCache {
     }
 
     /**
-     *  put the status into cache
+     *  Puts the status into cache
      *
      *  @param status the metadata of the path
      */
@@ -59,7 +63,7 @@ public final class MetadataCache {
     }
 
     /**
-     *  put the directory status into cache
+     *  Puts the directory status into cache
      *
      *  @param statuses the metadata list
      */
@@ -76,9 +80,9 @@ public final class MetadataCache {
    */
   public MetadataCache(int maxSize, long expirationTimeMs) {
     mCache = CacheBuilder.newBuilder()
-            .maximumSize(maxSize)
-            .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
-            .build();
+        .maximumSize(maxSize)
+        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
+        .build();
   }
 
   /**
@@ -108,15 +112,10 @@ public final class MetadataCache {
    */
   public void put(String path, URIStatus status) {
     try {
-      CachedItem item = mCache.get(path, new Callable<CachedItem>() {
-        @Override
-        public CachedItem call() throws Exception {
-          return new CachedItem();
-        }
-      });
+      CachedItem item = mCache.get(path, ()-> new CachedItem());
       item.setStatus(status);
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (ExecutionException e) {
+        LOG.error("Failed to put meta into client cache for " + path, e);
     }
   }
 
@@ -128,18 +127,14 @@ public final class MetadataCache {
    */
   public void put(AlluxioURI dir, List<URIStatus> statuses) {
     try {
-      CachedItem item = mCache.get(dir.getPath(), new Callable<CachedItem>() {
-        @Override
-        public CachedItem call() throws Exception {
-          return new CachedItem();
-        }
-      });
+      CachedItem item = mCache.get(dir.getPath(),()-> new CachedItem());
       item.setDirStatuses(statuses);
       for (URIStatus status : statuses) {
         put(status.getPath(), status);
       }
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (ExecutionException e) {
+        LOG.error("Failed to put meta into client cache for " + dir.getPath(),
+                e);
     }
   }
 
