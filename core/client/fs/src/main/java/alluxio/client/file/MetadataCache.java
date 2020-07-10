@@ -112,7 +112,7 @@ public final class MetadataCache {
    */
   public void put(String path, URIStatus status) {
     try {
-      CachedItem item = mCache.get(path, ()-> new CachedItem());
+      CachedItem item = mCache.get(path, () -> new CachedItem());
       item.setStatus(status);
     } catch (ExecutionException e) {
         LOG.error("Failed to put meta into client cache for " + path, e);
