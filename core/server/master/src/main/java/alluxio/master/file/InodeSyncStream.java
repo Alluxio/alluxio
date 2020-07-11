@@ -634,15 +634,17 @@ public class InodeSyncStream {
     loadMetadata(inodePath, ctx);
   }
 
+  /**
+  * This method creates inodes containing the metadata from the UFS. The {@link UfsStatus} object
+  * must be set in the {@link LoadMetadataContext} in order to successfully create the inodes.
+  */
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      if (context.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
+    try {
+      if (context.getUfsStatus() == null) {
         // uri does not exist in ufs
         Inode inode = inodePath.getInode();
         if (inode.isFile()) {
@@ -654,13 +656,8 @@ public class InodeSyncStream {
         mInodeTree.setDirectChildrenLoaded(mRpcContext, inode.asDirectory());
         return;
       }
-      boolean isFile;
-      if (context.getUfsStatus() != null) {
-        isFile = context.getUfsStatus().isFile();
-      } else {
-        isFile = ufs.isFile(ufsUri.toString());
-      }
-      if (isFile) {
+
+      if (context.getUfsStatus().isFile()) {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
         loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
