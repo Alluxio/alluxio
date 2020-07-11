@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
@@ -33,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MetadataCache {
   private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
+  
   private class CachedItem {
     private URIStatus mStatus = null;
     private List<URIStatus> mDirStatuses = null;
@@ -54,7 +54,7 @@ public final class MetadataCache {
     }
 
     /**
-     *  Puts the status into cache
+     *  Puts the status into cache.
      *
      *  @param status the metadata of the path
      */
@@ -63,7 +63,7 @@ public final class MetadataCache {
     }
 
     /**
-     *  Puts the directory status into cache
+     *  Puts the directory status into cache.
      *
      *  @param statuses the metadata list
      */
