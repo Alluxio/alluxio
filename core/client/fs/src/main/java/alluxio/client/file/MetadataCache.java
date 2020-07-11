@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MetadataCache {
   private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
-  
+
   private class CachedItem {
     private URIStatus mStatus = null;
     private List<URIStatus> mDirStatuses = null;
