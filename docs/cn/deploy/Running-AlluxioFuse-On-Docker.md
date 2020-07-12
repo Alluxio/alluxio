@@ -286,7 +286,7 @@ LICENSE
     </tr>
 </table>
 
-## 应用实践：在阿里云上基于Kubernets集群搭建四机八卡深度学习环境
+## 应用实践：在阿里云上基于kubernetes集群搭建四机八卡深度学习环境
 
 在阿里云平台基于k8s集群搭建了4机八卡深度学习训练环境，优化深度学习训练的IO性能。
 
@@ -315,7 +315,7 @@ LICENSE
 
 #### 设置虚拟内存文件系统
 
-若设置RAMFS的挂载路径为`/ram/alluxio`，则需在Kubernets集群的每台机器上，挂载RAMFS：
+若设置RAMFS的挂载路径为`/ram/alluxio`，则需在kubernetes集群的每台机器上，挂载RAMFS：
 
 ```console
 $ mkdir -p /alluxio/ram
@@ -380,7 +380,7 @@ helm安装Alluxio集群时，指定前述的集群配置文件`config.yaml`和he
 $ helm install alluxio -f config.yaml alluxio-0.14.0.tgz
 ```
 
-等待Alluxio集群部署一定时间后，查看Kubernets pod：
+等待Alluxio集群部署一定时间后，查看kubernetes pod：
 
 ```console
 $ kubectl get po
@@ -396,7 +396,7 @@ alluxio-worker-qp69q                                         2/2     Running    
 alluxio-worker-t6wzj                                         2/2     Running     0          7s
 ```
 
-在配置为四机八卡的Kubernets集群上，应该有1个alluxio-master、4个alluxio-worker和4个alluxio-fuse在运行。
+在配置为四机八卡的kubernetes集群上，应该有1个alluxio-master、4个alluxio-worker和4个alluxio-fuse在运行。
 
 在集群任意一台机器查看alluxio-fuse挂载路径：
 
@@ -505,7 +505,7 @@ fuse:
 
 ## 总结与展望
 
-在本文中，我们介绍了Alluxio和FUSE的技术背景，以及AlluxioFuse的应用价值，接着我们介绍了如何通过Docker镜像的方式在单机上快速部署AlluxioFuse，然后从FUSE和Alluxio层分别分析了AlluxioFuse调优方法，最后在阿里云上基于Kubernets集群部署四机八卡深度学习训练环境，提升深度学习训练速度。
+在本文中，我们介绍了Alluxio和FUSE的技术背景，以及AlluxioFuse的应用价值，接着我们介绍了如何通过Docker镜像的方式在单机上快速部署AlluxioFuse，然后从FUSE和Alluxio层分别分析了AlluxioFuse调优方法，最后在阿里云上基于kubernetes集群部署四机八卡深度学习训练环境，提升深度学习训练速度。
 
 为进一步提升AlluxioFuse性能，我们还在持续优化AlluxioFuse，欢迎各位尝试目前提供的阿里云实验版本镜像！
 
