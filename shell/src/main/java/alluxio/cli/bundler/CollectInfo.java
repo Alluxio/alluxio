@@ -66,7 +66,7 @@ public class CollectInfo extends AbstractShell {
           + "about your Alluxio cluster.\nIn the end of the run, "
           + "the collected information will be written to files and bundled into one tarball.\n"
           + "COMMAND can be one of the following values:\n"
-          + "all:                means running all the commands.\n"
+          + "all:                runs all the commands below.\n"
           + "collectAlluxioInfo: runs a set of Alluxio commands to collect information about "
           + "the Alluxio cluster.\n"
           + "collectConfig:      collects the configuration files under ${ALLUXIO_HOME}/config/.\n"
