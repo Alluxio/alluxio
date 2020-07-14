@@ -5609,8 +5609,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * should have a {@link DisplayType} of CREDENTIALS.
    */
   private static final String[] CUSTOM_CREDENTIAL_NAME_SUBSTR = new String[]{
-    Name.S3A_ACCESS_KEY,
-    Name.S3A_SECRET_KEY
+      "accessKeyId",
+      "secretKey"
   };
 
   /**
