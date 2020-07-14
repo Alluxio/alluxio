@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -147,7 +148,8 @@ public interface FileSystem extends Closeable {
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
           && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
         try {
-          return new LocalCacheFileSystem(fs, conf);
+          CacheManager cacheManager = CacheManager.Factory.get(conf);
+          return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
           LOG.error("Fallback without client caching: ", e);
         }
