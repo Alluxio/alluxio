@@ -57,6 +57,9 @@ public class GlueUtils {
    */
   public static List<alluxio.grpc.table.FieldSchema> toProto(List<Column> glueCloumns) {
     List<alluxio.grpc.table.FieldSchema> list = new ArrayList<>();
+    if (glueCloumns == null) {
+      return Collections.emptyList();
+    }
     for (Column column:glueCloumns) {
       alluxio.grpc.table.FieldSchema.Builder builder = alluxio.grpc.table.FieldSchema.newBuilder()
           .setName(column.getName())

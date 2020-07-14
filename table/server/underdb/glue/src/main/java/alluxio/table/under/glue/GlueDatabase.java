@@ -299,7 +299,7 @@ public class GlueDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     Table table;
     List<Partition> partitions;
-    // Glue doesn't support column statistics infomation
+    // Glue doesn't support column statistics information
     Map<String, List<ColumnStatisticsInfo>> statsMap = Collections.emptyMap();
     try {
       GetTableRequest tableRequest = new GetTableRequest()
