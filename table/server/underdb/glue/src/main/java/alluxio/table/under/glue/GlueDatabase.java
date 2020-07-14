@@ -124,11 +124,8 @@ public class GlueDatabase implements UnderDatabase {
       String glueDbDescription = glueDatabase.getDescription() == null
           ? "" : glueDatabase.getDescription();
       Map<String, String> glueParameters = new HashMap<>();
-      Map<String, String> parameters = glueDatabase.getParameters();
-      if (parameters != null) {
-        for (Map.Entry parameter : parameters.entrySet()) {
-          glueParameters.put(parameter.getKey().toString(), parameter.getValue().toString());
-        }
+      if (glueDatabase.getParameters() != null) {
+        glueParameters.putAll(glueDatabase.getParameters());
       }
       return new DatabaseInfo(
           glueDbLocation,
@@ -303,10 +300,9 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
+    // TODO(shouwei): update glue client to 1.11.820 to support columnstatistics
     Table table;
     List<Partition> partitions;
-    // Glue doesn't support column statistics infomation
-    Map<String, List<ColumnStatisticsInfo>> statsMap = Collections.emptyMap();
     try {
       GetTableRequest tableRequest = new GetTableRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
@@ -346,29 +342,30 @@ public class GlueDatabase implements UnderDatabase {
       List<UdbPartition> udbPartitions = new ArrayList<>();
       if (partitionColumns.isEmpty()) {
         PartitionInfo.Builder partitionInfoBuilder = PartitionInfo.newBuilder()
-            .setDbName(getUdbContext().getDbName())
+            .setDbName(mGlueDbName)
             .setTableName(tableName)
             .addAllDataCols(GlueUtils.toProto(table.getStorageDescriptor().getColumns()))
             .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
             .setPartitionName(tableName)
-            .putAllParameters(table.getParameters());
+            .putAllParameters(tableParameters);
         udbPartitions.add(new GluePartition(
             new HiveLayout(partitionInfoBuilder.build(), Collections.emptyList())));
       } else {
         for (Partition partition : partitions) {
           String partName = GlueUtils.makePartitionName(partitionColumns, partition.getValues());
-          PartitionInfo.Builder pib = PartitionInfo.newBuilder()
-              .setDbName(getUdbContext().getDbName())
+          PartitionInfo.Builder partitionInfoBuilder = PartitionInfo.newBuilder()
+              .setDbName(mGlueDbName)
               .setTableName(tableName)
               .addAllDataCols(GlueUtils.toProto(partition.getStorageDescriptor().getColumns()))
               .setStorage(GlueUtils.toProto(partition.getStorageDescriptor(), pathTranslator))
               .setPartitionName(partName)
-              .putAllParameters(partition.getParameters());
+              .putAllParameters(partition.getParameters() == null
+                  ? Collections.emptyMap() : partition.getParameters());
           if (partition.getValues() != null) {
-            pib.addAllValues(partition.getValues());
+            partitionInfoBuilder.addAllValues(partition.getValues());
           }
-          udbPartitions.add(new GluePartition(new HiveLayout(pib.build(),
-              statsMap.getOrDefault(partName, Collections.emptyList()))));
+          udbPartitions.add(new GluePartition(new HiveLayout(partitionInfoBuilder.build(),
+              Collections.emptyList())));
         }
       }
 
