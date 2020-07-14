@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -122,8 +123,10 @@ public class GlueDatabase implements UnderDatabase {
           ? "" : glueDatabase.getLocationUri();
       String glueDbDescription = glueDatabase.getDescription() == null
           ? "" : glueDatabase.getDescription();
-      Map<String, String> glueParameters = glueDatabase.getParameters() == null
-          ? Collections.emptyMap() : glueDatabase.getParameters();
+      Map<String, String> glueParameters = new HashMap<>();
+      if (glueDatabase.getParameters() != null) {
+        glueParameters.putAll(glueDatabase.getParameters());
+      }
       return new DatabaseInfo(
           glueDbLocation,
           mOwnerName,
@@ -297,10 +300,9 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
+    // TODO(shouwei): update glue client to 1.11.820 to support columnstatistics
     Table table;
     List<Partition> partitions;
-    // Glue doesn't support column statistics information
-    Map<String, List<ColumnStatisticsInfo>> statsMap = Collections.emptyMap();
     try {
       GetTableRequest tableRequest = new GetTableRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
@@ -363,7 +365,7 @@ public class GlueDatabase implements UnderDatabase {
             partitionInfoBuilder.addAllValues(partition.getValues());
           }
           udbPartitions.add(new GluePartition(new HiveLayout(partitionInfoBuilder.build(),
-              statsMap.getOrDefault(partName, Collections.emptyList()))));
+              Collections.emptyList())));
         }
       }
 
