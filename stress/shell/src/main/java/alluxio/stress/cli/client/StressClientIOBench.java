@@ -285,8 +285,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     private final byte[] mBuffer;
     private final ByteBuffer mByteBuffer;
     private final int mThreadId;
-    private final int mFileSize;
-    private final int mMaxOffset;
+    private final long mFileSize;
+    private final long mMaxOffset;
     private final Random mRandom = new Random();
     private final long mBlockSize;
 
@@ -295,7 +295,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     private FSDataInputStream mInStream = null;
     private FSDataOutputStream mOutStream = null;
-    private int mCurrentOffset;
+    private long mCurrentOffset;
 
     private BenchThread(BenchContext context, FileSystem fs, int threadId) {
       mContext = context;
@@ -314,7 +314,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       Arrays.fill(mBuffer, (byte) 'A');
       mByteBuffer = ByteBuffer.wrap(mBuffer);
 
-      mFileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+      mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
       mCurrentOffset = mFileSize;
       mMaxOffset = mFileSize - mBuffer.length;
       mBlockSize = FormatUtils.parseSpaceSize(mParameters.mBlockSize);
@@ -377,7 +377,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           mInStream = mFs.open(mFilePath);
         }
         if (mParameters.mReadRandom) {
-          mCurrentOffset = mRandom.nextInt(mMaxOffset);
+          mCurrentOffset = mRandom.nextLong() % mMaxOffset;
           if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
             // must seek if not a positioned read
             mInStream.seek(mCurrentOffset);
