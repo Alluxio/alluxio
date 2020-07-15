@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.Scope;
+
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
@@ -24,14 +26,25 @@ import javax.annotation.concurrent.ThreadSafe;
 public class PageInfo {
   private final PageId mPageId;
   private final long mPageSize;
+  private final Scope mScope;
 
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
    */
   public PageInfo(PageId pageId, long pageSize) {
+    this(pageId, pageSize, Scope.GLOBAL);
+  }
+
+  /**
+   * @param pageId page id
+   * @param pageSize page size in bytes
+   * @param scope scope of this page
+   */
+  public PageInfo(PageId pageId, long pageSize, Scope scope) {
     mPageId = pageId;
     mPageSize = pageSize;
+    mScope = scope;
   }
 
   /**
@@ -48,6 +61,13 @@ public class PageInfo {
     return mPageSize;
   }
 
+  /**
+   * @return scope of this page
+   */
+  public Scope getScope() {
+    return mScope;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -57,12 +77,13 @@ public class PageInfo {
       return false;
     }
     PageInfo pageInfo = (PageInfo) o;
-    return mPageSize == pageInfo.mPageSize && Objects.equals(mPageId, pageInfo.mPageId);
+    return mPageSize == pageInfo.mPageSize && Objects.equals(mPageId, pageInfo.mPageId)
+        && mScope == pageInfo.mScope;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mPageId, mPageSize);
+    return Objects.hash(mPageId, mPageSize, mScope);
   }
 
   @Override
@@ -70,6 +91,7 @@ public class PageInfo {
     return MoreObjects.toStringHelper(this)
         .add("PageId", mPageId)
         .add("PageSize", mPageSize)
+        .add("Scope", mScope)
         .toString();
   }
 }

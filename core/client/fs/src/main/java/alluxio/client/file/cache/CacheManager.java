@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.Scope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -77,20 +79,21 @@ public interface CacheManager extends AutoCloseable  {
    * @param page page data
    * @return true if the put was successful, false otherwise
    */
-  boolean put(PageId pageId, byte[] page);
+  default boolean put(PageId pageId, byte[] page) {
+    return put(pageId, page, Scope.GLOBAL, CacheQuota.UNLIMITED);
+  }
 
   /**
-   * Reads the entire page if the queried page is found in the cache, stores the result in buffer.
+   * Puts a page into the cache manager with scope and quota respected. This method is best effort.
+   * It is possible that this put operation returns without page written.
    *
    * @param pageId page identifier
-   * @param bytesToRead number of bytes to read in this page
-   * @param buffer destination buffer to write
-   * @param offsetInBuffer offset in the destination buffer to write
-   * @return number of bytes read, 0 if page is not found, -1 on errors
+   * @param page page data
+   * @param scope scope of this request
+   * @param cacheQuota cache quota
+   * @return true if the put was successful, false otherwise
    */
-  default int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
-    return get(pageId, 0, bytesToRead, buffer, offsetInBuffer);
-  }
+  boolean put(PageId pageId, byte[] page, Scope scope, CacheQuota cacheQuota);
 
   /**
    * Reads a part of a page if the queried page is found in the cache, stores the result in

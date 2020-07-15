@@ -11,7 +11,10 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.evictor.ScopedCacheEvictor;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.Scope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
@@ -44,6 +47,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -85,6 +89,7 @@ public class LocalCacheManager implements CacheManager {
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mAsyncCacheExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
+  private final boolean mQuotaEnabled;
 
   /**
    * Restores a page store a the configured location, updating meta store and evictor.
@@ -132,8 +137,8 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
-    MetaStore metaStore = MetaStore.create();
-    CacheEvictor evictor = CacheEvictor.create(conf);
+    MetaStore metaStore = MetaStore.create(conf);
+    CacheEvictor evictor = CacheEvictor.create(conf, metaStore);
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore = null;
     boolean restored = false;
@@ -183,6 +188,7 @@ public class LocalCacheManager implements CacheManager {
                 conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60,
                 TimeUnit.SECONDS, new SynchronousQueue<>())
             : null;
+    mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
@@ -223,11 +229,31 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
+  /**
+   * @return which scope to evict a page or null otherwise
+   */
+  @Nullable
+  private Scope checkSpace(int pageSize, Scope scope, CacheQuota quota) {
+    if (mQuotaEnabled) {
+      // Check quota usage for each scope
+      for (Scope currentScope = scope; currentScope != null; currentScope = currentScope.parent()) {
+        if (mMetaStore.bytes(currentScope) + pageSize > quota.getQuota(scope)) {
+          return currentScope;
+        }
+      }
+    }
+    // Check cache space usage
+    if (mMetaStore.bytes() + pageSize > mCacheSize) {
+      return Scope.GLOBAL;
+    }
+    return null;
+  }
+
   @Override
-  public boolean put(PageId pageId, byte[] page) {
+  public boolean put(PageId pageId, byte[] page, Scope scope, CacheQuota quota) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     if (!mAsyncWrite) {
-      boolean inserted = putInternal(pageId, page);
+      boolean inserted = putInternal(pageId, page, scope, quota);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, inserted);
       return inserted;
     }
@@ -238,7 +264,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       mAsyncCacheExecutor.submit(() -> {
         try {
-          putInternal(pageId, page);
+          putInternal(pageId, page, scope, quota);
         } finally {
           mPendingRequests.remove(pageId);
         }
@@ -255,11 +281,11 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private boolean putInternal(PageId pageId, byte[] page) {
+  private boolean putInternal(PageId pageId, byte[] page, Scope scope, CacheQuota quota) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
-    boolean enoughSpace;
+    Scope victimScope;
 
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
@@ -268,14 +294,18 @@ public class LocalCacheManager implements CacheManager {
           LOG.debug("{} is already inserted before", pageId);
           return false;
         }
-        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
-        if (enoughSpace) {
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+        victimScope = checkSpace(page.length, scope, quota);
+        if (victimScope == null) {
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         } else {
-          victim = mEvictor.evict();
+          if (mQuotaEnabled) {
+            victim = ((ScopedCacheEvictor) mEvictor).evict(victimScope);
+          } else {
+            victim = mEvictor.evict();
+          }
         }
       }
-      if (enoughSpace) {
+      if (victimScope == null) {
         boolean ret = addPage(pageId, page);
         if (!ret) {
           // something is wrong to add this page, let's remove it from meta store
@@ -310,8 +340,8 @@ public class LocalCacheManager implements CacheManager {
           LOG.error("Page store is missing page {}: {}", victim, e);
           return false;
         }
-        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
-        if (enoughSpace) {
+        victimScope = checkSpace(page.length, scope, quota);
+        if (victimScope == null) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
       }
@@ -319,7 +349,7 @@ public class LocalCacheManager implements CacheManager {
         LOG.debug("Failed to evict page: {}", victim);
         return false;
       }
-      if (enoughSpace) {
+      if (victimScope == null) {
         boolean ret = addPage(pageId, page);
         if (!ret) {
           // something is wrong to add this page, let's remove it from meta store

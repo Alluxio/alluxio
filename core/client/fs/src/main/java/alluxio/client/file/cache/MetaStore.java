@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.Scope;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 /**
@@ -19,10 +21,11 @@ import alluxio.exception.PageNotFoundException;
 public interface MetaStore {
 
   /**
+   * @param conf the alluxio configuration
    * @return an instance of MetaStore
    */
-  static MetaStore create() {
-    return new DefaultMetaStore();
+  static MetaStore create(AlluxioConfiguration conf) {
+    return new DefaultMetaStore(conf);
   }
 
   /**
@@ -56,6 +59,12 @@ public interface MetaStore {
    * @return the total size of pages stored in bytes
    */
   long bytes();
+
+  /**
+   * @param scope scope to query
+   * @return the total size of pages stored in bytes
+   */
+  long bytes(Scope scope);
 
   /**
    * @return the number of pages stored

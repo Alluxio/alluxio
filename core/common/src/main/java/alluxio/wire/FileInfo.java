@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Constants;
+import alluxio.client.quota.CacheQuota;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -73,7 +74,7 @@ public final class FileInfo implements Serializable {
   private int mReplicationMin;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-
+  private CacheQuota mCacheQuota;
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
   private Map<String, byte[]> mXAttr;
@@ -316,6 +317,13 @@ public final class FileInfo implements Serializable {
    */
   public DefaultAccessControlList getDefaultAcl() {
     return mDefaultAcl;
+  }
+
+  /**
+   * @return the cache quota
+   */
+  public CacheQuota getCacheQuota() {
+    return mCacheQuota;
   }
 
   /**
@@ -665,6 +673,15 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param cacheQuota the cache quota
+   * @return the updated {@link FileInfo}
+   */
+  public FileInfo setCacheQuota(CacheQuota cacheQuota) {
+    mCacheQuota = cacheQuota;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -691,7 +708,8 @@ public final class FileInfo implements Serializable {
         && Objects.equal(getFileIdentifier(), that.getFileIdentifier())
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
-        && Objects.equal(mMediumTypes, that.mMediumTypes);
+        && Objects.equal(mMediumTypes, that.mMediumTypes)
+        && Objects.equal(mCacheQuota, that.mCacheQuota);
   }
 
   @Override
@@ -701,7 +719,7 @@ public final class FileInfo implements Serializable {
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
         mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
-        getFileIdentifier());
+        getFileIdentifier(), mCacheQuota);
   }
 
   @Override
@@ -726,6 +744,7 @@ public final class FileInfo implements Serializable {
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())
         .add("defaultAcl", mDefaultAcl.toString())
+        .add("cacheQuota", mCacheQuota)
         .toString();
   }
 }

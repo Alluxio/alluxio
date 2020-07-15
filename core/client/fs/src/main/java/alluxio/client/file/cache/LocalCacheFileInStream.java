@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.quota.CacheQuota;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
@@ -51,7 +52,7 @@ public class LocalCacheFileInStream extends FileInStream {
   /** External storage system. */
   private final FileSystem mExternalFs;
   /** Path of the file. */
-  private final AlluxioURI mPath;
+  private final CacheQuota mCacheQuota;
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final OpenFilePOptions mOpenOptions;
@@ -73,20 +74,15 @@ public class LocalCacheFileInStream extends FileInStream {
    */
   public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem externalFs,
       CacheManager cacheManager) {
-    mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mPath = path;
-    mOpenOptions = options;
-    mExternalFs = externalFs;
-    mCacheManager = cacheManager;
-    // Lazy init of status object
-    mStatus = Suppliers.memoize(() -> {
-      try {
-        return externalFs.getStatus(mPath);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }).get();
-    Metrics.registerGauges();
+    this(
+        Suppliers.memoize(() -> {
+          try {
+            return externalFs.getStatus(path);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }).get(),
+        options, externalFs, cacheManager);
   }
 
   /**
@@ -100,12 +96,11 @@ public class LocalCacheFileInStream extends FileInStream {
   public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem externalFs,
       CacheManager cacheManager) {
     mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mPath = new AlluxioURI(status.getPath());
     mOpenOptions = options;
     mExternalFs = externalFs;
     mCacheManager = cacheManager;
-    // Lazy init of status object
     mStatus = status;
+    mCacheQuota = status.getCacheQuota();
     Metrics.registerGauges();
   }
 

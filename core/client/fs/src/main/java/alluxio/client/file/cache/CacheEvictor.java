@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.evictor.ScopedCacheEvictor;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -27,12 +28,22 @@ public interface CacheEvictor {
 
   /**
    * @param conf the alluxio configuration
-   * @return a CacheEvictor instance
+   * @return a single, non-scoped CacheEvictor instance
    */
-  static CacheEvictor create(AlluxioConfiguration conf) {
+  static CacheEvictor createSingleEvictor(AlluxioConfiguration conf) {
     return CommonUtils.createNewClassInstance(
         conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS),
         new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+  }
+
+  /**
+   * @param conf the alluxio configuration
+   * @param metaStore the metastore
+   * @return a CacheEvictor instance
+   */
+  static CacheEvictor create(AlluxioConfiguration conf, MetaStore metaStore) {
+    return conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)
+        ? new ScopedCacheEvictor(conf, metaStore) : CacheEvictor.createSingleEvictor(conf);
   }
 
   /**

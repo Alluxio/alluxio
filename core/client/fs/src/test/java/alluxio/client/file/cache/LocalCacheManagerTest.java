@@ -73,7 +73,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
-    mMetaStore = MetaStore.create();
+    mMetaStore = MetaStore.create(mConf);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
     mEvictor = new FIFOEvictor(mMetaStore);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
@@ -90,7 +90,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putNew() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
-    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
 
@@ -98,7 +98,7 @@ public final class LocalCacheManagerTest {
   public void putExist() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE2));
-    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
 
@@ -109,8 +109,8 @@ public final class LocalCacheManagerTest {
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE2, mBuf);
   }
 
@@ -130,7 +130,7 @@ public final class LocalCacheManagerTest {
     for (int i = 0; i < numPages; i++) {
       PageId id = pageId(i, 0);
       byte[] buf = new byte[smallPageLen];
-      assertEquals(smallPageLen, mCacheManager.get(id, smallPageLen, buf, 0));
+      assertEquals(smallPageLen, mCacheManager.get(id, 0, smallPageLen, buf, 0));
       assertArrayEquals(page(i, smallPageLen), buf);
     }
   }
@@ -152,9 +152,9 @@ public final class LocalCacheManagerTest {
       byte[] buf = new byte[smallPageLen];
       PageId id = pageId(i, 0);
       if (i == 0) {
-        assertEquals(0, mCacheManager.get(id, smallPageLen, buf, 0));
+        assertEquals(0, mCacheManager.get(id, 0, smallPageLen, buf, 0));
       } else {
-        assertEquals(smallPageLen, mCacheManager.get(id, smallPageLen, buf, 0));
+        assertEquals(smallPageLen, mCacheManager.get(id, 0, smallPageLen, buf, 0));
         assertArrayEquals(page(i, smallPageLen), buf);
       }
     }
@@ -178,7 +178,7 @@ public final class LocalCacheManagerTest {
     }
     assertTrue(mCacheManager.put(bigPageId, bigPage));
     byte[] buf = new byte[PAGE_SIZE_BYTES];
-    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(bigPageId, PAGE_SIZE_BYTES, buf, 0));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(bigPageId, 0, PAGE_SIZE_BYTES, buf, 0));
     assertArrayEquals(bigPage, buf);
   }
 
@@ -206,7 +206,7 @@ public final class LocalCacheManagerTest {
       byte[] pageData = page(0, size);
       assertTrue(mCacheManager.put(pageId, pageData));
       byte[] buf = new byte[size];
-      assertEquals(size, mCacheManager.get(pageId, size, buf, 0));
+      assertEquals(size, mCacheManager.get(pageId, 0, size, buf, 0));
       assertArrayEquals(pageData, buf);
     }
   }
@@ -220,8 +220,8 @@ public final class LocalCacheManagerTest {
       if (i >= cacheSize) {
         PageId id = new PageId("3", i - cacheSize + 1);
         assertEquals(0,
-            mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
-        assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, PAGE_SIZE_BYTES, mBuf, 0));
+            mCacheManager.get(new PageId("3", i - cacheSize), 0, PAGE_SIZE_BYTES, mBuf, 0));
+        assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, 0, PAGE_SIZE_BYTES, mBuf, 0));
         assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
       }
     }
@@ -235,7 +235,7 @@ public final class LocalCacheManagerTest {
       for (long pageIndexId : pageIndexArray) {
         PageId largeId = new PageId("0", pageIndexId);
         mCacheManager.put(largeId, PAGE1);
-        assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(largeId, PAGE1.length, mBuf, 0));
+        assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(largeId, 0, PAGE1.length, mBuf, 0));
         assertArrayEquals(PAGE1, mBuf);
       }
     }
@@ -244,13 +244,13 @@ public final class LocalCacheManagerTest {
   @Test
   public void getExist() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
-    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
 
   @Test
   public void getNotExist() throws Exception {
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
   }
 
   @Test
@@ -269,14 +269,14 @@ public final class LocalCacheManagerTest {
   public void getNotEnoughSpaceException() throws Exception {
     byte[] buf = new byte[PAGE1.length - 1];
     mThrown.expect(IllegalArgumentException.class);
-    mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0);
+    mCacheManager.get(PAGE_ID1, 0, PAGE1.length, buf, 0);
   }
 
   @Test
   public void deleteExist() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
     mCacheManager.delete(PAGE_ID1);
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
   }
 
   @Test
@@ -291,9 +291,9 @@ public final class LocalCacheManagerTest {
     mCacheManager.put(pageUuid, PAGE2);
     mCacheManager.close();
     mCacheManager = LocalCacheManager.create(mConf);
-    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
-    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE2, mBuf);
   }
 
@@ -307,8 +307,8 @@ public final class LocalCacheManagerTest {
         mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(pageUuid, 0, PAGE2.length, mBuf, 0));
   }
 
   @Test
@@ -362,14 +362,14 @@ public final class LocalCacheManagerTest {
     // a failed put
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     // no state left after previous failed put
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     // can ask to put same page again without exception
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     // still no state left
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     pageStore.setFaulty(false);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
-    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
 

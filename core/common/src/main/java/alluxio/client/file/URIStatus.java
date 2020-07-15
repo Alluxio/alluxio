@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.client.quota.CacheQuota;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -305,6 +306,13 @@ public class URIStatus {
    */
   public Map<String, byte[]> getXAttr() {
     return mInfo.getXAttr();
+  }
+
+  /**
+   * @return the cache quota
+   */
+  public CacheQuota getCacheQuota() {
+    return mInfo.getCacheQuota();
   }
 
   /**

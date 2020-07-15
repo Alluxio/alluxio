@@ -11,10 +11,14 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.Scope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -28,6 +32,16 @@ public class DefaultMetaStore implements MetaStore {
   private final AtomicLong mBytes = new AtomicLong(0);
   /** The number of pages stored. */
   private final AtomicLong mPages = new AtomicLong(0);
+  /** Track the number of bytes on each scope. */
+  private final Map<Scope, Long> mBytesInScope = new ConcurrentHashMap<>();
+  private final boolean mQuotaEnabled;
+
+  /**
+   * @param conf configuration
+   */
+  public DefaultMetaStore(AlluxioConfiguration conf) {
+    mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
+  }
 
   @Override
   public boolean hasPage(PageId pageId) {
@@ -39,6 +53,12 @@ public class DefaultMetaStore implements MetaStore {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     mPages.incrementAndGet();
+    if (mQuotaEnabled) {
+      for (Scope scope = pageInfo.getScope(); scope != null; scope = scope.parent()) {
+        mBytesInScope.compute(scope,
+            (k, v) -> (v == null) ? pageInfo.getPageSize() : v + pageInfo.getPageSize());
+      }
+    }
   }
 
   @Override
@@ -57,11 +77,25 @@ public class DefaultMetaStore implements MetaStore {
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
     mPages.decrementAndGet();
+    if (mQuotaEnabled) {
+      for (Scope scope = pageInfo.getScope(); scope != null; scope = scope.parent()) {
+        mBytesInScope.computeIfPresent(scope, (k, v) -> v - pageInfo.getPageSize());
+      }
+    }
   }
 
   @Override
   public long bytes() {
     return mBytes.get();
+  }
+
+  @Override
+  public long bytes(Scope scope) {
+    if (mQuotaEnabled) {
+      return mBytesInScope.get(scope);
+    } else {
+      return bytes();
+    }
   }
 
   @Override
@@ -74,5 +108,6 @@ public class DefaultMetaStore implements MetaStore {
     mPages.set(0);
     mBytes.set(0);
     mPageMap.clear();
+    mBytesInScope.clear();
   }
 }

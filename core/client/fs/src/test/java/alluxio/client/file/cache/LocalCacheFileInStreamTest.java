@@ -17,6 +17,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.Scope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -372,7 +374,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page) {
+    public boolean put(PageId pageId, byte[] page, Scope scope, CacheQuota cacheQuota) {
       mPages.put(pageId, page);
       mPagesCached++;
       return true;
