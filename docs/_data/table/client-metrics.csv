@@ -9,10 +9,13 @@ Client.CacheBytesReadCache,METER
 Client.CacheBytesReadExternal,METER
 Client.CacheBytesRequestedExternal,METER
 Client.CacheBytesWrittenCache,METER
+Client.CacheCreateErrors,COUNTER
 Client.CacheDeleteErrors,COUNTER
 Client.CacheGetErrors,COUNTER
+Client.CacheGetFailedReadErrors,COUNTER
 Client.CacheHitRate,GAUGE
 Client.CachePagesEvicted,METER
 Client.CachePutErrors,COUNTER
+Client.CachePutFailedWriteErrors,COUNTER
 Client.CacheSpaceAvailable,GAUGE
 Client.CacheSpaceUsed,GAUGE
