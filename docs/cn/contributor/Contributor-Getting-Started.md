@@ -103,12 +103,12 @@ Alluxio事件表具有多个级别。级别为：**新贡献者**，**初学者*
 看一些在“打开”状态的[“新的Contributor Alluxio任务”](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如/ assign @yourUserName，以表明您正在处理该问题。在开始解决问题单之前，您应该将问题单分配给自己，以便社区中的其他人知道您正在处理和完成问题单。
 
 Github上所有新的贡献者级别的问题均分配有一个编号。可以在问题标题后找到该数字，例如"问题＃123"。创建拉取请求以解决问题时，应将链接/指针添加回问题本身。为此，必须在拉取请求描述中添加特定描述。例如，如果您的问题编号为＃123，则应在拉取请求说明中包括以下内容之一：
-  * `修复Alluxio / new-contributor-tasks＃123`
-  * `修复了Alluxio / new-contributor-tasks＃123`
-  * `修复Alluxio / new-contributor-tasks＃123`
-  * `关闭Alluxio /新贡献者任务＃123`
-  * `已关闭Alluxio / new-contributor-tasks＃123`
-  * `关闭Alluxio / new-contributor-tasks＃123`
+  * `Fixes Alluxio/new-contributor-tasks#123`
+  * `Fixed Alluxio/new-contributor-tasks#123`
+  * `Fix Alluxio/new-contributor-tasks#123`
+  * `Closes Alluxio/new-contributor-tasks#123`
+  * `Closed Alluxio/new-contributor-tasks#123`
+  * `Close Alluxio/new-contributor-tasks#123`
 
 ### 在克隆中创建分支
 
