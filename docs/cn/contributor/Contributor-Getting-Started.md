@@ -129,7 +129,7 @@ $ git checkout master
 $ git pull upstream master
 ```
 
-这会将所有更改从上游代码仓库的master分支拉到本地master分支。在此示例中，上游代码仓库就是Alluxio开源项目。
+这将会从`upstream`仓库的`master`分支中获取到所有的更新，并合并到你的本地`master`分支里。
 
 现在，您可以创建一个新分支来处理您之前领取的**New Contributor**任务。创建分支名称为**awesome_feature**s，运行：
 
