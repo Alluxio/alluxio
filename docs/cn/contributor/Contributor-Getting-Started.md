@@ -31,7 +31,7 @@ priority: 1
 
 您需要有一个GitHub帐户才能向Alluxio代码仓库贡献代码。
 
-您需要知道您的GitHub电子邮件地址才能进行贡献。 您可以在个人资料电子邮件设置中找到你的邮件地址。
+您需要知道您的GitHub电子邮件地址才能进行贡献。 您可以在[个人资料电子邮件设置](https://github.com/settings/emails)中找到你的邮件地址。
 
 ### 配置您的Git电子邮件
 
