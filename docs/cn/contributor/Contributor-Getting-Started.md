@@ -64,7 +64,7 @@ $ git remote add upstream https://github.com/Alluxio/alluxio.git
 $ git remote -v
 ```
 
-这会显示远程代码仓库的URL，包括您的分叉和上游代码仓库（Alluxio原始代码仓库）。
+这会显示远程代码仓库的URL，包括`origin`（您的分叉）和`upstream`（Alluxio原始代码仓库）。
 
 ## 编译Alluxio
 
