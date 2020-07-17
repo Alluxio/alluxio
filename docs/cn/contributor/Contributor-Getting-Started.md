@@ -58,7 +58,7 @@ $ cd alluxio
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
-这将创建一个称为上游的远程代码仓库指向Alluxio原始代码仓库。 您可以用以下命令查看远程代码仓库的URL: 
+这将创建一个称为`upstream`的远程代码仓库指向Alluxio原始代码仓库。 您可以用以下命令查看远程代码仓库的URL: 
 
 ```console
 $ git remote -v
