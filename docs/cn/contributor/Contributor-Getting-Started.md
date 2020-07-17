@@ -94,21 +94,16 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 
 ## 领取一个新贡献者任务
 
-Alluxio事件表具有多个级别。级别为：**新贡献者**，**初学者**，**中级**，**高级**。
-在接收更多高级任务之前，Alluxio的新贡献者应该首先接收两个**新贡献者**级别的任务。
-新的贡献者级任务很容易解决，不需要对相应的程序上下文了解太多。初学者任务通常只需要修改一个文件。中间任务通常需要修改多个文件，但是要在同一程序包中。**高级**用户通常需要修改多个包中的多个文件。
+Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributor**、**Beginner**、**Intermediate**、 **Advanced**。新的开发者应该在进行更高级的任务之前先完成两个**New Contributor**任务。**New Contributor**任务非常容易，不需要了解过多的关于代码的细节；**Beginner**任务通常只需要修改一个文件；**Intermediate**任务通常需要修改多个文件，但都在同一个包下；**Advanced**任务通常需要修改多个包下的多个文件。
+
 
 我们建议所有新的贡献者在执行更高级的任务之前，先解决两个**新的贡献者**任务。这是使自己熟悉为Alluxio项目做贡献的整个过程的好方法。
 
 看一些在“打开”状态的[“新的Contributor Alluxio任务”](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如/ assign @yourUserName，以表明您正在处理该问题。在开始解决问题单之前，您应该将问题单分配给自己，以便社区中的其他人知道您正在处理和完成问题单。
 
-Github上所有新的贡献者级别的问题均分配有一个编号。可以在问题标题后找到该数字，例如"问题＃123"。创建拉取请求以解决问题时，应将链接/指针添加回问题本身。为此，必须在拉取请求描述中添加特定描述。例如，如果您的问题编号为＃123，则应在拉取请求说明中包括以下内容之一：
-  * `Fixes Alluxio/new-contributor-tasks#123`
-  * `Fixed Alluxio/new-contributor-tasks#123`
-  * `Fix Alluxio/new-contributor-tasks#123`
-  * `Closes Alluxio/new-contributor-tasks#123`
-  * `Closed Alluxio/new-contributor-tasks#123`
-  * `Close Alluxio/new-contributor-tasks#123`
+注意所有Github Issue都有一个对应的数字。当你创建一个拉取请求的时候，请在该Issue的描述中加入\
+"Fixes Alluxio/new-contributor-tasks#123"，"Fixed Alluxio/new-contributor-tasks#123"，"Fix Alluxio/new-contributor-tasks#123"，"Closes Alluxio/new-contributor-tasks#123"，"Closed Alluxio/new-contributor-tasks#123" 或者 "Close Alluxio/new-contributor-tasks#123"。
+
 
 ### 在克隆中创建分支
 
@@ -117,7 +112,7 @@ Github上所有新的贡献者级别的问题均分配有一个编号。可以�
 
 为了提交更改给Alluxio，最佳实践是在一个独有分支中完成对针对一个问题您的所有更改。因此，以下内容将向您介绍如何创建分支。
 
-首先，确保您在您克隆的master分支中。运行以下命令切换到master分支：
+首先，确保您在您克隆的'master'分支中。运行以下命令切换到'master'分支：
 
 ```console
 $ git checkout master
@@ -142,13 +137,15 @@ $ git checkout -b awesome_feature
 
 ### 创建本地提交
 
-A在解决问题单时，您可以创建代码的本地提交。 当您完成一部分很明确的阶段性修改后，这将很有用。 您可以使用以下命令将文件添加到准备提交阶段：
+
+在你处理该任务时，您可以创建代码的本地提交。 当您完成一部分很明确的阶段性修改后，这将很有用。 运行以下命令将一个文件标记为准备提交阶段：
+
 
 ```console
 $ git add <file to stage>
 ```
 
-在所有合适的文件都准备好提交之后，您可以使用以下方法，创建这些可修改的本地提交：
+在所有合适的文件都准备好提交之后，可以运行以下命令提交包含这些修改的一个commit：
 
 ```console
 $ git commit -m "<concise but descriptive commit message>"
@@ -171,7 +168,7 @@ $ git push origin awesome_feature
 
 这会将您在本地分支**awesome_feature**中的所有新提交，推送到您的Alluxio分支中的GitHub中的**awesome_feature**分支中。
 
-将所有更改推送到分支后，请访问您的Alluxio的GitHub分支。通常，Github会显示您的哪个分支最近已更新，但如果未更新，直接选择要提交拉取请求的分支（在本示例中为**awesome_feature**），然后按New Pull Request按钮。
+将所有更改推送到分支后，请访问您的Alluxio的GitHub分支。通常，Github会显示您的哪个分支最近已更新，但如果未更新，直接选择要提交拉取请求的分支（在本示例中为**awesome_feature**），然后按新拉取请求按钮。
 
 在提交新拉取请求页面中，基础分支应为Alluxio / alluxio，基础分支应为master。头分支将是您的分支，而compare分支应是您要提交拉取请求的分支（在此示例中为awesome_feature）。
 
