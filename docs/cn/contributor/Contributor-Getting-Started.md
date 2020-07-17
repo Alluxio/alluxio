@@ -50,7 +50,7 @@ $ git clone https://github.com/YOUR-USERNAME/alluxio.git
 $ cd alluxio
 ```
 
-这将在alluxio/目录下创建克隆。
+这将在`alluxio/`目录下创建克隆。
 
 要将更改从开源Alluxio原始代码库提取到克隆中，您需要创建一个指向Alluxio原始代码库的新远程代码存储库。 要添加新的远程代码存储库，请在新创建的克隆目录中运行：
 
