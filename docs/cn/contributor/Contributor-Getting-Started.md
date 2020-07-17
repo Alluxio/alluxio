@@ -40,7 +40,7 @@ priority: 1
 
 ## 分叉Alluxio代码仓库
 
-为了向Alluxio贡献代码，您先需要叉Alluxio代码仓库（repo）。 如果您还没分叉代码仓库，您可以访问[Alluxio代码仓库](https://github.com/Alluxio/alluxio)并按页面右上角的Fork按钮。 之后，您将拥有自己的Alluxio代码仓库分支。
+为了向Alluxio贡献代码，您先需要分叉Alluxio代码仓库。 如果您还没分叉代码仓库，您可以访问[Alluxio代码仓库](https://github.com/Alluxio/alluxio)并按页面右上角的Fork按钮。 之后，您将拥有自己的Alluxio代码仓库分支。
 
 
 分叉Alluxio代码仓库之后，应创建分叉代码仓库的本地克隆。 这会将您分叉的文件复制到您的计算机上。 您可以使用以下命令克隆您的分叉：
