@@ -377,7 +377,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           mInStream = mFs.open(mFilePath);
         }
         if (mParameters.mReadRandom) {
-          mCurrentOffset = mRandom.nextLong() % mMaxOffset;
+          mCurrentOffset = Math.abs(mRandom.nextLong()) % mMaxOffset;
           if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
             // must seek if not a positioned read
             mInStream.seek(mCurrentOffset);
