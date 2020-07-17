@@ -16,7 +16,7 @@ priority: 1
 最基本的需要是一台安装了Mac OS X或Linux的电脑，目前版本的Alluxio尚未对Windows系统提供支持。
 
 我们建议您先按照基于源码编译Alluxio
-[指南克隆并编译Alluxio源代码。]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
+[指南克隆并编译Alluxio源代码]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 
 ### 软件要求
 
