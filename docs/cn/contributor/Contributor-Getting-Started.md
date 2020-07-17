@@ -6,7 +6,8 @@ group: Contributor Resources
 priority: 1
 ---
 
-欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区和并且对社区做贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
+欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区并且对社区做贡献。
+本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
 
 * 目录
 {:toc}
@@ -74,7 +75,7 @@ $ git remote -v
 
 
 ```console
-$ man clean install
+$ mvn clean install
 ```
 
 这将编译所有的Alluxio，并运行所有测试。取决于您的硬件，这可能需要几分钟到半小时才能完成。
@@ -92,17 +93,25 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 这里有更多
 [编译Alluxio源代码的细节]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 
-## 领取一个新贡献者任务
+## 领取一个New Contributor任务
 
-Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributor**、**Beginner**、**Intermediate**、 **Advanced**。新的开发者应该在进行更高级的任务之前先完成两个**New Contributor**任务。**New Contributor**任务非常容易，不需要了解过多的关于代码的细节；**Beginner**任务通常只需要修改一个文件；**Intermediate**任务通常需要修改多个文件，但都在同一个包下；**Advanced**任务通常需要修改多个包下的多个文件。
+Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributor**、**Beginner**、**Intermediate**、 **Advanced**。
+新的开发者应该在进行更高级的任务之前先完成两个**New Contributor**任务。
+**New Contributor**任务非常容易，不需要了解过多的关于代码的细节；**Beginner**任务通常只需要修改一个文件；**Intermediate**任务通常需要修改多个文件，但都在同一个package下；**Advanced**任务通常需要修改多个package下的多个文件。
 
 
-我们建议所有新的贡献者在执行更高级的任务之前，先解决两个**新的贡献者**任务。这是使自己熟悉为Alluxio项目做贡献的整个过程的好方法。
+我们建议所有新的贡献者在执行更高级的任务之前，先解决两个**New Contributor**任务。这是使自己熟悉为Alluxio项目做贡献的整个过程的好方法。
 
-看一些在“打开”状态的[“新的Contributor Alluxio任务”](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如/ assign @yourUserName，以表明您正在处理该问题。在开始解决问题单之前，您应该将问题单分配给自己，以便社区中的其他人知道您正在处理和完成问题单。
+看一些在“Open”状态的[“新的Contributor Alluxio任务”](https://github.com/Alluxio/new-contributor-tasks/issues)，然后找一个没分配的任务。为了自我分配或接收调查表，请在问题中留下评论，例如`/assign @yourUserName`，以表明您正在处理该问题。
+在开始解决问题单之前，您应该将问题单分配给自己，以便社区中的其他人知道您正在处理和完成问题单。
 
-注意所有Github Issue都有一个对应的数字。当你创建一个拉取请求的时候，请在该Issue的描述中加入\
-"Fixes Alluxio/new-contributor-tasks#123"，"Fixed Alluxio/new-contributor-tasks#123"，"Fix Alluxio/new-contributor-tasks#123"，"Closes Alluxio/new-contributor-tasks#123"，"Closed Alluxio/new-contributor-tasks#123" 或者 "Close Alluxio/new-contributor-tasks#123"。
+注意所有Github Issue都有一个对应的数字。当你创建一个Pull Request的时候，请在该Issue的描述中加入如下某一种描述
+ * "Fixes Alluxio/new-contributor-tasks#123"，
+ * "Fixed Alluxio/new-contributor-tasks#123"，
+ * "Fix Alluxio/new-contributor-tasks#123"，
+ * "Closes Alluxio/new-contributor-tasks#123"，
+ * "Closed Alluxio/new-contributor-tasks#123" 
+ * "Close Alluxio/new-contributor-tasks#123"。
 
 
 ### 在克隆中创建分支
@@ -110,9 +119,9 @@ Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributo
 找到一个任务后，回到终端并转到本地克隆的目录下。 
 您可以开始解决问题了！
 
-为了提交更改给Alluxio，最佳实践是在一个独有分支中完成对针对一个问题您的所有更改。因此，以下内容将向您介绍如何创建分支。
+为了提交更改给Alluxio，最佳实践是在一个单独分支中完成对您针对一个问题的所有更改。以下内容介绍如何创建分支。
 
-首先，确保您在您克隆的'master'分支中。运行以下命令切换到'master'分支：
+首先，确保您在您克隆的`master`分支中。运行以下命令切换到`master`分支：
 
 ```console
 $ git checkout master
@@ -156,9 +165,9 @@ $ git commit -m "<concise but descriptive commit message>"
  
 如果您想要更多有关创建提交的信息，请访问有关如何创建提交的[说明](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)。
 
-### 提交一个拉取请求
+### 提交一个Pull Request (PR)
 
-完成所有解决问题所需修改后，您可以向Alluxio项目提交拉取请求了！这是[有关提交拉取请求的详细说明](https://help.github.com/articles/using-pull-requests/)，但是以下是通常做法。
+完成所有解决问题所需修改后，您可以向Alluxio项目提交Pull Request了！这是[有关提交Pull Request的详细说明](https://help.github.com/articles/using-pull-requests/)，但是以下是通常做法。
 
 创建所有必要的本地提交后，可以将所有提交推送到你在GitHub中的代码仓库中。针对您的**awesome_feature**分支，可以使用以下命令推送到GitHub：
 
@@ -166,15 +175,15 @@ $ git commit -m "<concise but descriptive commit message>"
 $ git push origin awesome_feature
 ```
 
-这会将您在本地分支**awesome_feature**中的所有新提交，推送到您的Alluxio分支中的GitHub中的**awesome_feature**分支中。
+这会将您在本地分支**awesome_feature**中的所有新commit，推送到您的Alluxio分支中的GitHub中的**awesome_feature**分支中。
 
-将所有更改推送到分支后，请访问您的Alluxio的GitHub分支。通常，Github会显示您的哪个分支最近已更新，但如果未更新，直接选择要提交拉取请求的分支（在本示例中为**awesome_feature**），然后按新拉取请求按钮。
+将所有更改推送到分支后，请访问您的Alluxio的GitHub分支。通常，Github会显示您的哪个分支最近已更新，但如果未更新，直接选择要提交Pull Request的分支（在本示例中为**awesome_feature**），然后按新Pull Request按钮。
 
-在提交新拉取请求页面中，基础分支应为Alluxio / alluxio，基础分支应为master。头分支将是您的分支，而compare分支应是您要提交拉取请求的分支（在此示例中为awesome_feature）。
+在提交新Pull Request页面中，基础分支应为Alluxio/alluxio，基础分支应为`master`。头分支将是您的分支，而compare分支应是您要提交Pull Request的分支（在此示例中为awesome_feature）。
 
-#### 拉取请求标题
+#### Pull Request标题
 
-使用有效的拉取请求标题很重要。这里有一些非常好的PR标题的提示和惯例。这些提示和窍门是从现有非常好的
+使用有效的Pull Request标题很重要。这里有一些非常好的PR标题的提示和惯例。这些提示和窍门是从现有非常好的
 [提交信息规则中改编而成的。](https://chris.beams.io/posts/git-commit/#seven-rules)
 
 * 标题不能太长（<〜50个字符），也不能太短（描述清楚）
@@ -191,7 +200,7 @@ $ git push origin awesome_feature
 * **[SMALLFIX]**：用于很小不会更改任何逻辑的PRs修改，例如拼写错误
   * 示例：‘**[SMALLFIX]**修复AlluxioProcess中的错字’，‘**[SMALLFIX]**改进GlusterFSUnderFileSystem中的注释格式’
 
-#### 拉取请求说明
+#### Pull Request说明
 
 写一个好的PR描述也很重要。 以下是有关非常好的PR描述的一些提示和惯例，这些提示和窍门是从现有非常好的
 [提交信息规则中改编而成的](https://chris.beams.io/posts/git-commit/#seven-rules)。
@@ -199,22 +208,22 @@ $ git push origin awesome_feature
 * 描述此PR更改的内容以及更改原因
 * 描述应包括此更改的任何正面和负面影响
 * 描述中的各段应以空白行分隔
-* 如果此拉取请求解决一个Github问题，请在描述框的**最后**一行添加指回该问题的链接。
-  * 如果此PR解决了Github问题＃1234，则在拉取请求描述的最后包括'Fixes＃1234'，'Fixed＃1234'，'Fix＃1234'，'Closes＃1234'，'Closed＃1234'或'Close＃1234'。
+* 如果此Pull Request解决一个Github问题，请在描述框的**最后**一行添加指回该问题的链接。
+  * 如果此PR解决了Github问题＃1234，则在Pull Request描述的最后包括'Fixes＃1234'，'Fixed＃1234'，'Fix＃1234'，'Closes＃1234'，'Closed＃1234'或'Close＃1234'。
   * 如果问题来自New Contributor任务，请在版本号＃1234之前添加代码仓名称'Alluxio / new-contributor-tasks'，例如'Fixes Alluxio / new-contributor-tasks＃1234。'
 
-完成所有操作后，单击**“创建拉取请求”**按钮。 恭喜你！ 您对Alluxio的第一个拉取请求已提交！
+完成所有操作后，单击**“创建Pull Request”**按钮。 恭喜你！ 您对Alluxio的第一个Pull Request已提交！
 
-### 审阅拉取请求
+### 审阅Pull Request
 
-拉取请求提交后，您可以在Alluxio代码仓库的[拉取请求](https://github.com/Alluxio/alluxio/pulls)页面上找到它。
+Pull Request提交后，您可以在Alluxio代码仓库的[Pull Request](https://github.com/Alluxio/alluxio/pulls)页面上找到它。
 
 
-提交后，社区中的其他开发人员将审核您的拉取请求。 其他人可能会在您的拉取请求中添加评论或问题。
+提交后，社区中的其他开发人员将审核您的Pull Request。 其他人可能会在您的Pull Request中添加评论或问题。
 
 在代码审阅期间，请回复审阅者留下的所有评论，以便审阅者知道已解决了哪些评论以及每个评论是如何解决的。
 
-在此过程中，有些人可能会要求修改部分拉取请求。 为此，您只需要在用于该拉取请求的分支中进行更改，创建一个新的本地提交，推送到您的远程分支，该拉取请求将自动更新。 详细步骤：
+在此过程中，有些人可能会要求修改部分Pull Request。 为此，您只需要在用于该Pull Request的分支中进行更改，创建一个新的本地提交，推送到您的远程分支，该Pull Request将自动更新。 详细步骤：
 
 ```console
 $ git add <modified files>
@@ -222,7 +231,7 @@ $ git commit -m "<another commit message>"
 $ git push origin awesome_feature
 ```
 
-在拉取请求处理和解决了所有评论和问题后，审阅者将为您的拉取请求**LGTM**回复并批准拉取请求。 在至少一个批准后，一个维护人员将把您的拉取请求合并到Alluxio代码库中。
+在Pull Request处理和解决了所有评论和问题后，审阅者将为您的Pull Request**LGTM**回复并批准Pull Request。 在至少一个批准后，一个维护人员将把您的Pull Request合并到Alluxio代码库中。
 
 恭喜你！ 您已成功为Alluxio做出了贡献！ 感谢您加入社区！
 
@@ -236,11 +245,11 @@ $ git push origin awesome_feature
 
 1. 在[Alluxio代码仓库](https://github.com/Alluxio/alluxio/issues)中创建有关您的特性的Github问题。 
 1. 在Github问题中遵循这个[模板]({{ '/resources/templates/Design-Document-Template.md' | relativize_url }})附加特性设计文档。设计文档应遵循模板，并提供有关每个部分的信息。我们建议使用公开的Google文档，以进行更有效的协作和讨论。如果您不希望使用Google文档，则可以选择附加Markdown文件或PDF文件设计文档。
-1. 标记您的问题为'type-feature'。 Alluxio成员定期检查所有未解决的问题，并将分配审阅者们来审阅设计文档。社区用户无权在Alluxio代码仓库中分配问题。因此，如果您想启动审阅过程，则可以创建一个占位拉取请求，链接到该问题，附加特性设计文档，并在那里向Alluxio成员请求审阅。
-1. 审阅者（相应的Github问题的责任人或拉取请求的审阅者）将审阅特性设计文档，并提供反馈或迭代修改请求。如果您不确定特定的设计决策，请随时提出问题并寻求审阅者和社区成员的帮助。还请列出该特性的可能选项以及相应的利弊。
+1. 标记您的问题为'type-feature'。 Alluxio成员定期检查所有未解决的问题，并将分配审阅者们来审阅设计文档。社区用户无权在Alluxio代码仓库中分配问题。因此，如果您想启动审阅过程，则可以创建一个占位Pull Request，链接到该问题，附加特性设计文档，并在那里向Alluxio成员请求审阅。
+1. 审阅者（相应的Github问题的责任人或Pull Request的审阅者）将审阅特性设计文档，并提供反馈或迭代修改请求。如果您不确定特定的设计决策，请随时提出问题并寻求审阅者和社区成员的帮助。还请列出该特性的可能选项以及相应的利弊。
 1. 在对设计文档进行几次迭代修改之后，审阅者将为设计文档提供LGTM。此功能就可以进入实施阶段。
-1. 如上一节所述，创建一个Fork Alluxio代码仓库，实现您的特性并创建一个拉取请求。另请在您的拉取请求中链接到问题和设计文档。在拉取请求中，您还应该将有关特性的文档添加到[Alluxio文档中](https://docs.alluxio.io/)。
-1. 在您的拉取请求被审核且合并后，您已向Alluxio提供了新特性。干杯祝贺!
+1. 如上一节所述，创建一个Fork Alluxio代码仓库，实现您的特性并创建一个Pull Request。另请在您的Pull Request中链接到问题和设计文档。在Pull Request中，您还应该将有关特性的文档添加到[Alluxio文档中](https://docs.alluxio.io/)。
+1. 在您的Pull Request被审核且合并后，您已向Alluxio提供了新特性。干杯祝贺!
 
 ## 下一步
 
@@ -248,12 +257,11 @@ $ git push origin awesome_feature
 
 1.  [本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 1.  [在集群上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
-1.  读 [配置设置和命令行界面]({{ '/cn/operation/Configuration.html' | relativize_url }}) 和
+1.  读[配置设置和命令行界面]({{ '/cn/operation/Configuration.html' | relativize_url }}) 和
 [命令行界面]({{ '/cn/operation/User-CLI.html' | relativize_url }})
 1.  读[代码示例](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 1.  [从源代码编译Alluxio]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
-1.  
-分叉存储库，为一个或两个文件添加单元测试或javadoc，提交拉取请求。也欢迎您在我们的Github问题中解决问题。这里是尚未分配的[新贡献者任务的列表](https://github.com/Alluxio/new-contributor-tasks/issues)。每个New Contributer请限制在2个任务。然后，尝试一些Beginner/Intermediate任务，或在[用户邮件论坛中询问](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)。相关教程，请参阅有关[分叉代码仓](https://help.github.com/articles/fork-a-repo)和[发送拉取请求的GitHub指南](https://help.github.com/articles/using-pull-requests)。
+1.  分叉存储库，为一个或两个文件添加单元测试或javadoc，提交Pull Request。也欢迎您在我们的Github问题中解决问题。这里是尚未分配的[新贡献者任务的列表](https://github.com/Alluxio/new-contributor-tasks/issues)。每个New Contributer请限制在2个任务。然后，尝试一些Beginner/Intermediate任务，或在[用户邮件论坛中询问](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)。相关教程，请参阅有关[分叉代码仓](https://help.github.com/articles/fork-a-repo)和[发送Pull Request的GitHub指南](https://help.github.com/articles/using-pull-requests)。
 
 
 ## 欢迎来到Alluxio社区！
