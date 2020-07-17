@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Contribution Guide
-nickname: Contribution Guide
+title: 开发指南
+nickname: 开发指南
 group: Contributor Resources
 priority: 1
 ---
