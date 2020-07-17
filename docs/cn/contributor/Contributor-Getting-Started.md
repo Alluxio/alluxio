@@ -90,7 +90,7 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 此编译所花时间应少于1分钟。
 
 这里有更多
-[细节编译Alluxio源代码。]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
+[编译Alluxio源代码的细节]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 
 ## 领取一个新贡献者任务
 
