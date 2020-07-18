@@ -28,6 +28,7 @@ import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.io.PathUtils;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -40,6 +41,7 @@ import com.amazonaws.services.glue.model.AWSGlueException;
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Database;
 import com.amazonaws.services.glue.model.EntityNotFoundException;
+import com.amazonaws.services.glue.model.GetColumnStatisticsForTableRequest;
 import com.amazonaws.services.glue.model.GetDatabaseRequest;
 import com.amazonaws.services.glue.model.GetDatabaseResult;
 import com.amazonaws.services.glue.model.GetPartitionsRequest;
@@ -61,6 +63,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * Glue database implementation.
@@ -298,6 +302,24 @@ public class GlueDatabase implements UnderDatabase {
     }
   }
 
+  private List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
+      GetColumnStatisticsForTableRequest getColumnStatisticsForTableRequest) {
+    try {
+      return getClient().getColumnStatisticsForTableAsync(getColumnStatisticsForTableRequest).get()
+          .getColumnStatisticsList().stream().map(GlueUtils::toProto).collect(Collectors.toList());
+    } catch (AmazonClientException e) {
+      LOG.warn("Cannot get the table column statistics info for table {}.{} with error {}.",
+          dbName, tableName, e.getMessage());
+    } catch (InterruptedException e) {
+      LOG.warn("Cannot get the table column statistics info for table {}.{}, {}",
+          dbName, tableName, e.getMessage());
+    } catch (ExecutionException e) {
+      LOG.warn("Cannot get the table column statistics info for table {}.{}, {}",
+          dbName, tableName, e.getMessage());
+    }
+    return Collections.emptyList();
+  }
+
   @Override
   public UdbTable getTable(String tableName) throws IOException {
     // TODO(shouwei): update glue client to 1.11.820 to support columnstatistics
@@ -313,8 +335,18 @@ public class GlueDatabase implements UnderDatabase {
       partitions = batchGetPartitions(getClient(), tableName);
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
 
-      // Glue does not provide column statistic information
-      List<ColumnStatisticsInfo> columnStatisticsData = Collections.emptyList();
+      // Get column statistics info for table
+      List<String> columnNames = table.getStorageDescriptor()
+          .getColumns().stream().map(Column::getName).collect(Collectors.toList());
+      GetColumnStatisticsForTableRequest getColumnStatisticsForTableRequest =
+          new GetColumnStatisticsForTableRequest()
+          .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+          .withDatabaseName(mGlueDbName)
+          .withTableName(tableName)
+          .withColumnNames(columnNames);
+      List<ColumnStatisticsInfo> columnStatisticsData = getTableColumnStatistics(
+          mGlueDbName, tableName, getColumnStatisticsForTableRequest);
+
       Map<String, String> tableParameters = table.getParameters() == null
           ? Collections.emptyMap() : table.getParameters();
 
