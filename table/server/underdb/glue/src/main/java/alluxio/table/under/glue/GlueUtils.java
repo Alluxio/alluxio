@@ -100,66 +100,77 @@ public class GlueUtils {
     columnStatisticsInfoBuilder.setColName(glueColumnStatistic.getColumnName())
         .setColType(glueColumnStatistic.getColumnType());
 
-    String columnType = glueColumnStatistic.getStatisticsData().getType();
-    com.amazonaws.services.glue.model.ColumnStatisticsData glueColumnStatisticsData =
-        glueColumnStatistic.getStatisticsData();
+    if (glueColumnStatistic.getStatisticsData() != null) {
+      com.amazonaws.services.glue.model.ColumnStatisticsData glueColumnStatisticsData =
+          glueColumnStatistic.getStatisticsData();
+      String columnType = glueColumnStatistic.getStatisticsData().getType();
+      if (columnType != null) {
+        if (columnType.equals("BOOLEAN")
+            && glueColumnStatisticsData.getBooleanColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.BooleanColumnStatisticsData booleanData =
+              glueColumnStatisticsData.getBooleanColumnStatisticsData();
+          if (booleanData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setBooleanStats(toProto(booleanData)).build());
+          }
+        }
+        if (columnType.equals("DATE")
+            && glueColumnStatisticsData.getDateColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.DateColumnStatisticsData dateData =
+              glueColumnStatisticsData.getDateColumnStatisticsData();
+          if (dateData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setDateStats(toProto(dateData)).build());
+          }
+        }
+        if (columnType.equals("DECIMAL")
+            && glueColumnStatisticsData.getDecimalColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.DecimalColumnStatisticsData decimalData =
+              glueColumnStatisticsData.getDecimalColumnStatisticsData();
+          if (decimalData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setDecimalStats(toProto(decimalData)).build());
+          }
+        }
+        if (columnType.equals("DOUBLE")
+            && glueColumnStatisticsData.getDoubleColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.DoubleColumnStatisticsData doubleData =
+              glueColumnStatisticsData.getDoubleColumnStatisticsData();
+          if (doubleData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setDoubleStats(toProto(doubleData)).build());
+          }
+        }
+        if (columnType.equals("LONG")
+            && glueColumnStatisticsData.getLongColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.LongColumnStatisticsData longData =
+              glueColumnStatisticsData.getLongColumnStatisticsData();
+          if (longData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setLongStats(toProto(longData)).build());
+          }
+        }
+        if (columnType.equals("STRING")
+            && glueColumnStatisticsData.getStringColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.StringColumnStatisticsData stringData =
+              glueColumnStatisticsData.getStringColumnStatisticsData();
+          if (stringData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setStringStats(toProto(stringData)).build());
+          }
+        }
+        if (columnType.equals("BINARY")
+            && glueColumnStatisticsData.getBinaryColumnStatisticsData() != null) {
+          com.amazonaws.services.glue.model.BinaryColumnStatisticsData binaryData =
+              glueColumnStatisticsData.getBinaryColumnStatisticsData();
+          if (binaryData != null) {
+            columnStatisticsInfoBuilder.setData(
+                ColumnStatisticsData.newBuilder().setBinaryStats(toProto(binaryData)).build());
+          }
+        }
+      }
+    }
 
-    if (columnType.equals("BOOLEAN")) {
-      com.amazonaws.services.glue.model.BooleanColumnStatisticsData booleanData =
-          glueColumnStatisticsData.getBooleanColumnStatisticsData();
-      if (booleanData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setBooleanStats(toProto(booleanData)).build());
-      }
-    }
-    if (columnType.equals("DATE")) {
-      com.amazonaws.services.glue.model.DateColumnStatisticsData dateData =
-          glueColumnStatisticsData.getDateColumnStatisticsData();
-      if (dateData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setDateStats(toProto(dateData)).build());
-      }
-    }
-    if (columnType.equals("DECIMAL")) {
-      com.amazonaws.services.glue.model.DecimalColumnStatisticsData decimalData =
-          glueColumnStatisticsData.getDecimalColumnStatisticsData();
-      if (decimalData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setDecimalStats(toProto(decimalData)).build());
-      }
-    }
-    if (columnType.equals("DOUBLE")) {
-      com.amazonaws.services.glue.model.DoubleColumnStatisticsData doubleData =
-          glueColumnStatisticsData.getDoubleColumnStatisticsData();
-      if (doubleData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setDoubleStats(toProto(doubleData)).build());
-      }
-    }
-    if (columnType.equals("LONG")) {
-      com.amazonaws.services.glue.model.LongColumnStatisticsData longData =
-          glueColumnStatisticsData.getLongColumnStatisticsData();
-      if (longData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setLongStats(toProto(longData)).build());
-      }
-    }
-    if (columnType.equals("STRING")) {
-      com.amazonaws.services.glue.model.StringColumnStatisticsData stringData =
-          glueColumnStatisticsData.getStringColumnStatisticsData();
-      if (stringData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setStringStats(toProto(stringData)).build());
-      }
-    }
-    if (columnType.equals("BINARY")) {
-      com.amazonaws.services.glue.model.BinaryColumnStatisticsData binaryData =
-          glueColumnStatisticsData.getBinaryColumnStatisticsData();
-      if (binaryData != null) {
-        columnStatisticsInfoBuilder.setData(
-            ColumnStatisticsData.newBuilder().setBinaryStats(toProto(binaryData)).build());
-      }
-    }
     return columnStatisticsInfoBuilder.build();
   }
 
@@ -168,7 +179,7 @@ public class GlueUtils {
     BooleanColumnStatsData.Builder builder = BooleanColumnStatsData.newBuilder();
     builder.setNumNulls(booleanData.getNumberOfNulls())
         .setNumTrues(booleanData.getNumberOfTrues())
-        .setNumFalses(booleanData.getNumberOfNulls());
+        .setNumFalses(booleanData.getNumberOfFalses());
     return builder.build();
   }
 
@@ -195,11 +206,13 @@ public class GlueUtils {
         .setNumDistincts(decimalData.getNumberOfDistinctValues());
     if (decimalData.getMaximumValue() != null) {
       builder.setHighValue(Decimal.newBuilder().setScale(decimalData.getMaximumValue().getScale())
-              .setUnscaled(ByteString.copyFrom(decimalData.getMaximumValue().getUnscaledValue())));
+              .setUnscaled(
+                  ByteString.copyFrom(decimalData.getMaximumValue().getUnscaledValue().array())));
     }
     if (decimalData.getMinimumValue() != null) {
       builder.setLowValue(Decimal.newBuilder().setScale(decimalData.getMinimumValue().getScale())
-          .setUnscaled(ByteString.copyFrom(decimalData.getMinimumValue().getUnscaledValue())));
+          .setUnscaled(
+              ByteString.copyFrom(decimalData.getMinimumValue().getUnscaledValue().array())));
     }
     return builder.build();
   }
@@ -241,7 +254,7 @@ public class GlueUtils {
       builder.setAvgColLen(stringData.getAverageLength());
     }
     if (stringData.getMaximumLength() != null) {
-      builder.setMaxColLen(stringData.getMaximumLength());
+      builder.setMaxColLen(stringData.getMaximumLength().longValue());
     }
     return builder.build();
   }
