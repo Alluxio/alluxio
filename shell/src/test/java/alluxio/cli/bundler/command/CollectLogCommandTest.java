@@ -11,6 +11,8 @@
 
 package alluxio.cli.bundler.command;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -23,6 +25,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -367,11 +371,28 @@ public class CollectLogCommandTest {
     verifyAllFiles(subDir);
   }
 
+  class DatetimeMatcher extends TypeSafeMatcher<LocalDateTime> {
+    private LocalDateTime datetime;
+
+    public DatetimeMatcher setDatetime(LocalDateTime datetime) {
+      this.datetime = datetime;
+      return this;
+    }
+
+    @Override
+    protected boolean matchesSafely(LocalDateTime s) {
+      return datetime.isEqual(s);
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendText("only digits");
+    }
+  }
+
   @Test
   public void inferDateFromLog() throws Exception {
-
-    // TODO(jiacheng): refactor using assertThat
-    // more formats
+    // Yarn application log default format
     String yarnAppLog = "\n" +
             "Logged in as: user\n" +
             "Application\n" +
@@ -397,18 +418,22 @@ public class CollectLogCommandTest {
     File yarnAppLogFile = new File(mTestDir, "yarn-application.log");
     writeToFile(yarnAppLogFile, yarnAppLog);
     LocalDateTime yarnAppDatetime = CollectLogCommand.inferFileStartTime(yarnAppLogFile);
-    assertTrue(LocalDateTime.of(2020, 5, 18, 16, 11, 18).isEqual(yarnAppDatetime));
+    LocalDateTime expectedDatetime = LocalDateTime.of(2020, 5, 18, 16, 11, 18);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, yarnAppDatetime),
+            yarnAppDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
+    // Yarn log default format
     String yarnLog = "2020-05-16 02:02:25,855 INFO org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerImpl: container_e103_1584954066020_230169_01_000004 Container Transitioned from ALLOCATED to ACQUIRED\n" +
             "2020-05-16 02:02:25,909 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.AppSchedulingInfo: checking for deactivate... \n" +
             "2020-05-16 02:02:26,006 INFO org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerImpl: container_e103_1584954066020_230168_01_000047 Container Transitioned from ALLOCATED to ACQUIRED";
     File yarnLogFile = new File(mTestDir, "yarn-rm.log");
     writeToFile(yarnLogFile, yarnLog);
     LocalDateTime yarnDatetime = CollectLogCommand.inferFileStartTime(yarnLogFile);
-    System.out.println("yarn date time " + yarnDatetime);
-    System.out.println("expected datetime " + LocalDateTime.of(2020, 5, 16, 2, 2, 25, 855 * 1_000_000));
-    assertTrue(LocalDateTime.of(2020, 5, 16, 2, 2, 25, 855 * 1_000_000).isEqual(yarnDatetime));
+    expectedDatetime = LocalDateTime.of(2020, 5, 16, 2, 2, 25, 855 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, yarnDatetime),
+            yarnDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
+    // ZK log default format
     String zkLog = "2020-05-14 21:05:53,822 WARN org.apache.zookeeper.server.NIOServerCnxn: caught end of stream exception\n" +
             "EndOfStreamException: Unable to read additional data from client sessionid 0x471fa7133c193e4, likely client has closed socket\n" +
             "\tat org.apache.zookeeper.server.NIOServerCnxn.doIO(NIOServerCnxn.java:241)\n" +
@@ -423,24 +448,32 @@ public class CollectLogCommandTest {
     File zkLogFile = new File(mTestDir, "zk.log");
     writeToFile(zkLogFile, zkLog);
     LocalDateTime zkDatetime = CollectLogCommand.inferFileStartTime(zkLogFile);
-    assertTrue(LocalDateTime.of(2020, 5, 14, 21, 5, 53, 822 * 1_000_000).isEqual(zkDatetime));
+    expectedDatetime = LocalDateTime.of(2020, 5, 14, 21, 5, 53, 822 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, zkDatetime),
+            zkDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
+    // HDFS log default format
     String hdfsLog = "2020-05-15 22:02:27,878 INFO BlockStateChange: BLOCK* addStoredBlock: blockMap updated: 10.64.23.184:1025 is added to blk_1126197354_52572663{blockUCState=UNDER_CONSTRUCTION, primaryNodeIndex=-1, replicas=[ReplicaUnderConstruction[[DISK]DS-46e3eb6e-7109-4a13-92dd-31b53658bfcf:NORMAL:10.64.23.124:1025|FINALIZED], ReplicaUnderConstruction[[DISK]DS-f2e3f3b1-73f7-4a75-b22d-e1067317469e:NORMAL:10.64.23.184:1025|FINALIZED]]} size 0\n" +
             "2020-05-15 22:02:27,878 INFO BlockStateChange: BLOCK* addStoredBlock: blockMap updated: 10.70.22.117:1025 is added to blk_1126197354_52572663{blockUCState=UNDER_CONSTRUCTION, primaryNodeIndex=-1, replicas=[ReplicaUnderConstruction[[DISK]DS-46e3eb6e-7109-4a13-92dd-31b53658bfcf:NORMAL:10.64.23.124:1025|FINALIZED], ReplicaUnderConstruction[[DISK]DS-f2e3f3b1-73f7-4a75-b22d-e1067317469e:NORMAL:10.64.23.184:1025|FINALIZED], ReplicaUnderConstruction[[DISK]DS-2ba9205e-24e7-4730-9c6c-6777d9e4bcdd:NORMAL:10.70.22.117:1025|FINALIZED]]} size 0";
     File hdfsLogFile = new File(mTestDir, "hdfs.log");
     writeToFile(hdfsLogFile, hdfsLog);
     LocalDateTime hdfsDatetime = CollectLogCommand.inferFileStartTime(hdfsLogFile);
-    assertTrue(LocalDateTime.of(2020, 5, 15, 22, 2, 27, 878 * 1_000_000).isEqual(hdfsDatetime));
+    expectedDatetime = LocalDateTime.of(2020, 5, 15, 22, 2, 27, 878 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, hdfsDatetime),
+            hdfsDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
+    // Presto log default format
     String prestoLog = "2020-05-16T00:00:01.059+0800\tINFO\tdispatcher-query-7960\tio.prestosql.event.QueryMonitor\tTIMELINE: Query 20200515_155959_06700_6r6b4 :: Transaction:[4d30e960-c319-439c-84dd-022ddab6fa5e] :: elapsed 1208ms :: planning 0ms :: waiting 0ms :: scheduling 1208ms :: running 0ms :: finishing 1208ms :: begin 2020-05-15T23:59:59.850+08:00 :: end 2020-05-16T00:00:01.058+08:00\n" +
             "2020-05-16T00:00:01.083+0800\tINFO\tdispatcher-query-7960\tcom.bluetalon.presto.authorization.BtStatementAccessControl\tStatementRewriteContext: FullStatementRewriteContext{queryId=20200515_160001_06701_6r6b4, principal=Optional[edsfuser@SVCS.DBS.COM], user=edsfuser, source=presto-jdbc, catalog=Optional[hive], schema=Optional[default], startTime=1589558401082, remoteUserAddress=10.70.23.171}\n" +
             "2020-05-16T00:00:01.083+0800\tINFO\tdispatcher-query-7960\tcom.bluetalon.presto.authorization.BtStatementAccessControl\tBtStatementAccessControl.getModifiedQuery() entering: user=edsfuser,principal=Optional[edsfuser@SVCS.DBS.COM],query=CREATE OR REPLACE VIEW P_S_SG.S_ADA_CASP_DATAPOST_MCASTMT_4_view_ns AS SELECT \"businessdate\",\"camstmfl_brch\",\"camstmfl_category_ident\",\"camstmfl_ccy\",\"camstmfl_ccy_desc\",\"camstmfl_chkdgt\",\"camstmfl_conv_currency\",\"camstmfl_conv_rate\",\"camstmfl_dept\",\"camstmfl_filehdr_sysid\",\"camstmfl_product_code\",\"camstmfl_rchq_reason\",\"camstmfl_rchq_reason_desc\",\"camstmfl_request_type\",\"camstmfl_reversal_ind\",\"camstmfl_sector_code\",\"camstmfl_serial\",\"camstmfl_serial_day\",\"camstmfl_serial_month\",\"camstmfl_serial_product\",\"camstmfl_serial_ref\",\"camstmfl_stmt_code\",\"camstmfl_stmt_date\",\"camstmfl_suffix\",\"camstmfl_summary_sysid\",\"camstmfl_suppress_ind\",\"camstmfl_total_records\",\"camstmfl_trans_amount\",\"camstmfl_trans_amount_dec\",\"camstmfl_trans_amount_sign\",\"camstmfl_trans_balance\",\"camstmfl_trans_balance_dec\",\"camstmfl_trans_balance_sign\",\"camstmfl_trans_date\",\"camstmfl_trans_dd\",\"camstmfl_trans_mm\",\"camstmfl_trans_type\",\"camstmfl_trans_yy\",\"camstmfl_value_date\",\"camstmfl_value_dd\",\"camstmfl_value_mm\",\"camstmfl_value_yy\",\"rowid\",\"rowmd5\",\"rowkey\",\"business_date\" FROM S_SG.S_ADA_CASP_DATAPOST_MCASTMT_4,catalog=hive,schema=default";
     File prestoLogFile = new File(mTestDir, "presto.log");
     writeToFile(prestoLogFile, prestoLog);
     LocalDateTime prestoDatetime = CollectLogCommand.inferFileStartTime(prestoLogFile);
-    System.out.println("Expected " + LocalDateTime.of(2020, 5, 16, 0, 1, 59));
-    assertTrue(LocalDateTime.of(2020, 5, 16, 0, 0, 1, 59 * 1_000_000).isEqual(prestoDatetime));
+    expectedDatetime = LocalDateTime.of(2020, 5, 16, 0, 0, 1, 59 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, prestoDatetime),
+            prestoDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
+    // ParNew/CMS GC log default format
     String gcLog = "Java HotSpot(TM) 64-Bit Server VM (25.151-b12) for linux-amd64 JRE (1.8.0_151-b12), built on Sep  5 2017 19:20:58 by \"java_re\" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)\n" +
             "Memory: 4k page, physical 197920016k(194009624k free), swap 33279996k(33279996k free)\n" +
             "CommandLine flags: -XX:CMSInitiatingOccupancyFraction=65 -XX:InitialHeapSize=154618822656 -XX:MaxDirectMemorySize=103079215104 -XX:MaxHeapSize=154618822656 -XX:MaxNewSize=32212254720 -XX:MaxTenuringThreshold=6 -XX:MetaspaceSize=536870912 -XX:NewSize=32212254720 -XX:OldPLABSize=16 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseConcMarkSweepGC -XX:+UseParNewGC \n" +
@@ -448,7 +481,8 @@ public class CollectLogCommandTest {
     File gcLogFile = new File(mTestDir, "gc.log");
     writeToFile(gcLogFile, gcLog);
     LocalDateTime gcDatetime = CollectLogCommand.inferFileStartTime(gcLogFile);
-    assertTrue(LocalDateTime.of(2020, 5, 7, 10, 1, 11, 409 * 1_000_000).isEqual(gcDatetime));
+    expectedDatetime = LocalDateTime.of(2020, 5, 7, 10, 1, 11, 409 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, gcDatetime),
+            gcDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
   }
-
 }
