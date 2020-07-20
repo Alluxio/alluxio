@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -37,9 +38,23 @@ public class InfoCollectorTestUtils {
   }
 
   public static File createFileInDir(File dir, String fileName) throws IOException {
-    File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
+    File newFile = new File(Paths.get(dir.getCanonicalPath(), fileName).toUri());
     newFile.createNewFile();
     return newFile;
+  }
+
+  public static File createFileInDir(File dir, String fileName, String content) throws IOException {
+    File newFile = new File(Paths.get(dir.getCanonicalPath(), fileName).toUri());
+    newFile.createNewFile();
+    FileWriter writer = new FileWriter(newFile);
+    writer.write(content);
+    return newFile;
+  }
+
+  public static File createDirInDir(File dir, String dirName) throws IOException {
+    File newDir = new File(Paths.get(dir.getCanonicalPath(), dirName).toUri());
+    newDir.mkdir();
+    return newDir;
   }
 
   public static void create() {

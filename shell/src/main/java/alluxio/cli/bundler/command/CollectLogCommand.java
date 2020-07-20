@@ -11,17 +11,42 @@
 
 package alluxio.cli.bundler.command;
 
+import alluxio.cli.bundler.CollectInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 
+import alluxio.util.CommonUtils;
+import jline.internal.Nullable;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Command to collect Alluxio logs.
@@ -29,6 +54,52 @@ import java.io.IOException;
 public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectLog";
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
+  public static final Set<String> FILE_NAMES = Stream.of(
+          "master.log",
+          "master.out",
+          "job_master.log",
+          "job_master.out",
+          "master_audit.log",
+          "worker.log",
+          "worker.out",
+          "job_worker.log",
+          "job_worker.out",
+          "proxy.log",
+          "proxy.out",
+          "task.log",
+          "task.out",
+          "user"
+  ).collect(Collectors.toSet());
+
+  private String mLogDirPath;
+  private File mLogDir;
+  private URI mLogDirUri;
+  private Set<String> mIncludedPrefix;
+  private Set<String> mExcludedPrefix;
+  private LocalDateTime mStartTime;
+  private LocalDateTime mEndTime;
+
+  // TODO(jiacheng): load these with reflection?
+  // CollectLogCommand
+  public static final String INCLUDE_OPTION_NAME = "include-logs";
+  private static final Option INCLUDE_OPTION =
+          Option.builder().required(false).argName("i").longOpt(INCLUDE_OPTION_NAME).hasArg(true)
+                  .desc("extra log file names to include in ${ALLUXIO_HOME}/logs").build();
+  public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
+  private static final Option EXCLUDE_OPTION =
+          Option.builder().required(false).argName("x").longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
+                  .desc("extra log file names to exclude in ${ALLUXIO_HOME}/logs").build();
+  public static final String START_OPTION_NAME = "start-time";
+  private static final Option START_OPTION =
+          Option.builder().required(false).argName("s").longOpt(START_OPTION_NAME).hasArg(true)
+                  .desc("").build();
+  public static final String END_OPTION_NAME = "end-time";
+  private static final Option END_OPTION =
+          Option.builder().required(false).argName("e").longOpt(END_OPTION_NAME).hasArg(true)
+                  .desc("").build();
+  private static final Options OPTIONS =
+          new Options().addOption(EXCLUDE_OPTION).addOption(INCLUDE_OPTION)
+                  .addOption(START_OPTION).addOption(END_OPTION);
 
   /**
    * Creates a new instance of {@link CollectLogCommand}.
@@ -37,6 +108,10 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
    * */
   public CollectLogCommand(FileSystemContext fsContext) {
     super(fsContext);
+    mLogDirPath = fsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
+    System.out.println("Log dir path: " + mLogDirPath);
+    mLogDir = new File(mLogDirPath);
+    mLogDirUri = mLogDir.toURI();
   }
 
   @Override
@@ -53,13 +128,158 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
-    String logDir = mFsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
     // TODO(jiacheng): phase 2 components option
-    FileUtils.copyDirectory(new File(logDir), new File(mWorkingDirPath), true);
+    mIncludedPrefix = new HashSet<>(FILE_NAMES);
+    // Define whitelist and blacklist
+    if (cl.hasOption(CollectInfo.INCLUDE_OPTION_NAME)) {
+      Set<String> toInclude = parseFileNames(cl.getOptionValue(CollectInfo.INCLUDE_OPTION_NAME));
+      System.out.println("Include the following filename prefixes: " + toInclude);
+      mIncludedPrefix.addAll(toInclude);
+    }
+    if (cl.hasOption(CollectInfo.EXCLUDE_OPTION_NAME)) {
+      mExcludedPrefix = parseFileNames(cl.getOptionValue(CollectInfo.EXCLUDE_OPTION_NAME));
+      System.out.println("Exclude the following filename prefixes: " + mExcludedPrefix);
+    }
+    System.out.println("Target file names: " + mIncludedPrefix);
+
+    // Check file timestamps
+    boolean checkTimeStamp = false;
+    if (cl.hasOption(CollectInfo.START_OPTION_NAME)) {
+      String startTimeStr = cl.getOptionValue(CollectInfo.START_OPTION_NAME);
+      mStartTime = parseDateTime(startTimeStr);
+      checkTimeStamp = true;
+    }
+    if (cl.hasOption(CollectInfo.END_OPTION_NAME)) {
+      String endTimeStr = cl.getOptionValue(CollectInfo.END_OPTION_NAME);
+      mEndTime = parseDateTime(endTimeStr);
+      checkTimeStamp = true;
+    }
+
+    // TODO(jiacheng): need an identical function
+//    FileUtils.copyDirectory(new File(logDir), new File(mWorkingDirPath), true);
+    if (!mLogDir.exists()) {
+      // TODO(jiacheng): Log?
+      return -1;
+    }
+
+    copyDir(mLogDir, checkTimeStamp);
 
     return 0;
+  }
+
+  private void copyDir(File sourceDir, boolean checkTimeStamp) throws IOException {
+    File[] files = sourceDir.listFiles();
+    for (File f : files) {
+      System.out.println("File " + f.getCanonicalPath());
+      if (f.isDirectory()) {
+        System.out.println("File " + f.getCanonicalPath() + " is a directory");
+        copyDir(f, checkTimeStamp);
+        continue;
+      }
+
+      // Copy file
+      String relativePath = getRelativePathToLogDir(f);
+      System.out.println("Relative path against log dir: " + relativePath);
+      if (!shouldCopy(f, relativePath, checkTimeStamp)) {
+        continue;
+      }
+      File targetFile = new File(mWorkingDirPath, relativePath);
+      FileUtils.copyFile(f, targetFile, true);
+    }
+  }
+
+  private String getRelativePathToLogDir(File f) {
+    return mLogDirUri.relativize(f.toURI()).getPath();
+  }
+
+  private boolean shouldCopy(File f, String relativePath, boolean checkTimeStamp) {
+    if (!fileNameIsWanted(relativePath)) {
+      System.out.format("File %s is not wanted.%n", relativePath);
+      return false;
+    }
+    if (checkTimeStamp) {
+      System.out.println("Filter file by timestamp");
+      if (!fileTimeStampIsWanted(f)) {
+        System.out.println("File timestamp is out of range.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean fileNameIsWanted(String fileName) {
+    if (mExcludedPrefix != null) {
+      for (String x : mExcludedPrefix) {
+        if (fileName.startsWith(x)) {
+          return false;
+        }
+      }
+    }
+    for (String s : mIncludedPrefix) {
+      if (fileName.startsWith(s)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean fileTimeStampIsWanted(File f) {
+    long timestamp = f.lastModified();
+    LocalDateTime fileEndTime =
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+    System.out.println("File last modified time is " + fileEndTime);
+
+    LocalDateTime fileStartTime = inferFileStartTime(f);
+    if (fileStartTime == null) {
+      fileStartTime = LocalDateTime.MIN;
+    }
+    System.out.format("File has start time %s and end time %s%n", fileStartTime, fileEndTime);
+
+    // The file is earlier than the desired interval
+    if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
+      System.out.format("Wanted interval starts at %s, later than file last modified time %s%n", mStartTime, fileEndTime);
+      return false;
+    }
+    // The file is later than the desired interval
+    if (mEndTime != null && mEndTime.isBefore(fileStartTime)) {
+      System.out.format("Wanted interval ends at %s, earlier than file first entry time %s%n", mEndTime, fileStartTime);
+      return false;
+    }
+    return true;
+  }
+
+  public static LocalDateTime inferFileStartTime(File f) {
+    int r = 0;
+    try (Scanner scanner = new Scanner(f)){
+      while (scanner.hasNextLine() && r < 30) {
+        String line = scanner.nextLine();
+        LocalDateTime datetime = parseDateTime(line);
+        if (datetime != null) {
+          System.out.format("Identified datetime %s on line %s%n", datetime, r);
+          return datetime;
+        }
+        r++;
+      }
+    } catch (FileNotFoundException e) {
+      // TODO(jiacheng)
+      e.printStackTrace();
+    }
+    System.out.format("Datetime not found after %d rows.%n", r);
+    return null;
+  }
+
+  private String getLoggers() {
+    org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
+    rootLogger.getAllAppenders();
+    return "";
+  }
+
+  private Set<String> parseFileNames(String input) {
+    Set<String> names = new HashSet<>();
+    names.addAll(Stream.of(input.split(",")).map(String::trim).collect(Collectors.toList()));
+    return names;
   }
 
   @Override
@@ -70,5 +290,40 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   @Override
   public String getDescription() {
     return "Collect Alluxio log files";
+  }
+
+
+  public static String[] formats = new String[]{
+          "yyyy-MM-dd HH:mm:ss,SSS", // "2020-05-15 09:21:52,359"
+          "yy/MM/dd HH:mm:ss", // "20/05/18 16:11:18"
+          "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-05-16T00:00:01.084+0800"
+          "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
+          "yyyy-MM-dd HH:mm",
+          "yyyy-MM-dd",
+  };
+
+  @Nullable
+  public static LocalDateTime parseDateTime(String s) {
+    for (String f : formats) {
+      DateTimeFormatter fmt = DateTimeFormatter.ofPattern(f);
+      try {
+        int len = f.length();
+        if (f.endsWith("XX")) {
+          len += 1; // "XX" in the format parses to timezone offset like "+0800"
+          System.out.format("Format %s has len %s%n", f, len);
+        }
+        if (s.length() < len) {
+          continue;
+        }
+        String datePart = s.substring(0, len);
+        LocalDateTime datetime = LocalDateTime.parse(datePart, fmt);
+        return datetime;
+      } catch (DateTimeParseException e) {
+        continue;
+      }
+    }
+    // Unknown format here
+    LOG.debug("Unknown date format in {}", s.length() > 50 ? s.substring(0, 50) : s);
+    return null;
   }
 }
