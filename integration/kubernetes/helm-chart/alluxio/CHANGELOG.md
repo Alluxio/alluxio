@@ -123,3 +123,7 @@
 
 - Add environment variables to master, worker, fuse
 
+0.6.8
+
+- Fixed parsing issue with multiple medium types for tiered storage #11778
+
