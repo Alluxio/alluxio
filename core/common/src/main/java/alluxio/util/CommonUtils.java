@@ -35,6 +35,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
@@ -828,16 +829,18 @@ public final class CommonUtils {
     }
   }
 
-  public static final String[] VALID_DATE_FORMATS = new String[]{
-          "yyyy-mm-dd HH:mm:ss,SSS", // "2020-03-19 11:57:58,883"
-          "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // 2020-06-23T23:52:23.970+0800
-          "yyyy/MM/dd HH:mm:ss",
-          "dd MMM yyyy HH:mm:ss",
-          "MM-dd-yyyy HH:mm:ss",
-          "yyyy/MM/dd",
-          "dd MMM yyyy",
-          "MM-dd-yyyy"
-  };
+  public static List<File> recursiveListDir(File dir) {
+    File[] files = dir.listFiles();
+    List<File> result = new ArrayList<>(files.length);
+    for (File f : files) {
+      if (f.isDirectory()) {
+        result.addAll(recursiveListDir(f));
+        continue;
+      }
+      result.add(f);
+    }
+    return result;
+  }
 
   private CommonUtils() {} // prevent instantiation
 }

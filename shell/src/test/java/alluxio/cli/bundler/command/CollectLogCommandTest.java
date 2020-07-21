@@ -11,8 +11,6 @@
 
 package alluxio.cli.bundler.command;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,15 +22,13 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 
+import alluxio.util.CommonUtils;
 import org.apache.commons.cli.CommandLine;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.cglib.core.Local;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -42,10 +38,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -93,7 +85,7 @@ public class CollectLogCommandTest {
     InfoCollectorTestUtils.createFileInDir(userLogDir, "user_root.out");
 
     // Set up expectation
-    Set<String> createdFiles = getAllFileNamesRelative(testLogDir, testLogDir);
+    Set<String> createdFiles = InfoCollectorTestUtils.getAllFileNamesRelative(testLogDir, testLogDir);
     mExpectedFiles = createdFiles;
 
     return testLogDir;
@@ -113,54 +105,8 @@ public class CollectLogCommandTest {
     // Files will be copied to sub-dir of target dir
     File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
 
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
-
-  private void verifyAllFiles(File targetDir) throws IOException {
-    Set<String> copiedFiles = getAllFileNamesRelative(targetDir, targetDir);
-
-    System.out.println("Expected");
-    System.out.println(mExpectedFiles);
-    System.out.println("Copied");
-    System.out.println(copiedFiles);
-    Set<String> missing = new HashSet<>(mExpectedFiles);
-    missing.removeAll(copiedFiles);
-    System.out.println("Missing:");
-    System.out.println(missing);
-    Set<String> extra = new HashSet<>(copiedFiles);
-    extra.removeAll(mExpectedFiles);
-    System.out.println("Extra:");
-    System.out.println(extra);
-    assertTrue(mExpectedFiles.containsAll(copiedFiles));
-    assertTrue(copiedFiles.containsAll(mExpectedFiles));
-  }
-
-  private Set<String> getAllFileNamesRelative(File dir, File baseDir) throws IOException {
-    if (!dir.isDirectory()) {
-      throw new IOException(String.format("Expected a directory but found a file at %s%n", dir.getCanonicalPath()));
-    }
-    Set<String> fileSet = new HashSet<>();
-    List<File> allFiles = recursiveListDir(dir);
-    for (File f : allFiles) {
-      String relativePath = baseDir.toURI().relativize(f.toURI()).toString();
-      fileSet.add(relativePath);
-    }
-    return fileSet;
-  }
-
-  private List<File> recursiveListDir(File dir) {
-    File[] files = dir.listFiles();
-    List<File> result = new ArrayList<>(files.length);
-    for (File f : files) {
-      if (f.isDirectory()) {
-        result.addAll(recursiveListDir(f));
-        continue;
-      }
-      result.add(f);
-    }
-    return result;
-  }
-
 
   @Test
   public void irrelevantFileIgnored() throws Exception {
@@ -179,7 +125,7 @@ public class CollectLogCommandTest {
     // Files will be copied to sub-dir of target dir
     File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
 
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
 
   @Test
@@ -203,7 +149,7 @@ public class CollectLogCommandTest {
     mExpectedFiles.remove("worker.out");
     mExpectedFiles.remove("worker.log.backup");
 
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
 
   @Test
@@ -230,7 +176,7 @@ public class CollectLogCommandTest {
     mExpectedFiles.add("alluxio_gc.log.1");
     mExpectedFiles.add("alluxio_gc.log.2");
 
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
 
   @Test
@@ -243,7 +189,7 @@ public class CollectLogCommandTest {
     // Other logs all end before this issue
     LocalDateTime logEnd = issueEnd.minusHours(1);
     long logEndTimestamp = logEnd.toEpochSecond(ZoneOffset.UTC);
-    for (File f : recursiveListDir(mTestDir)) {
+    for (File f : CommonUtils.recursiveListDir(mTestDir)) {
       f.setLastModified(logEndTimestamp);
     }
 
@@ -295,7 +241,7 @@ public class CollectLogCommandTest {
     // Files will be copied to sub-dir of target dir
     File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
     mExpectedFiles.remove("master.log");
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
 
   private void writeToFile(File f, String content) throws IOException {
@@ -314,7 +260,7 @@ public class CollectLogCommandTest {
     // Other logs all end before this issue
     LocalDateTime logEnd = issueEnd.minusHours(1);
     long logEndTimestamp = logEnd.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-    for (File f : recursiveListDir(mTestDir)) {
+    for (File f : CommonUtils.recursiveListDir(mTestDir)) {
       f.setLastModified(logEndTimestamp);
     }
 
@@ -368,7 +314,7 @@ public class CollectLogCommandTest {
     mExpectedFiles = new HashSet<>();
     mExpectedFiles.add("master.log");
     mExpectedFiles.add("master.log.1");
-    verifyAllFiles(subDir);
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
 
   class DatetimeMatcher extends TypeSafeMatcher<LocalDateTime> {

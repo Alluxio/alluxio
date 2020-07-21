@@ -22,9 +22,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,15 +29,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -70,6 +63,15 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
           "task.out",
           "user"
   ).collect(Collectors.toSet());
+
+  public static final String[] TIME_FORMATS = new String[]{
+          "yyyy-MM-dd HH:mm:ss,SSS", // "2020-05-15 09:21:52,359"
+          "yy/MM/dd HH:mm:ss", // "20/05/18 16:11:18"
+          "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-05-16T00:00:01.084+0800"
+          "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
+          "yyyy-MM-dd HH:mm",
+          "yyyy-MM-dd",
+  };
 
   private String mLogDirPath;
   private File mLogDir;
@@ -157,28 +159,13 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       checkTimeStamp = true;
     }
 
-    // TODO(jiacheng): need an identical function
-//    FileUtils.copyDirectory(new File(logDir), new File(mWorkingDirPath), true);
     if (!mLogDir.exists()) {
       // TODO(jiacheng): Log?
       return -1;
     }
 
-    copyDir(mLogDir, checkTimeStamp);
-
-    return 0;
-  }
-
-  private void copyDir(File sourceDir, boolean checkTimeStamp) throws IOException {
-    File[] files = sourceDir.listFiles();
-    for (File f : files) {
-      System.out.println("File " + f.getCanonicalPath());
-      if (f.isDirectory()) {
-        System.out.println("File " + f.getCanonicalPath() + " is a directory");
-        copyDir(f, checkTimeStamp);
-        continue;
-      }
-
+    List<File> allFiles = CommonUtils.recursiveListDir(mLogDir);
+    for (File f : allFiles) {
       // Copy file
       String relativePath = getRelativePathToLogDir(f);
       System.out.println("Relative path against log dir: " + relativePath);
@@ -188,6 +175,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       File targetFile = new File(mWorkingDirPath, relativePath);
       FileUtils.copyFile(f, targetFile, true);
     }
+
+    return 0;
   }
 
   private String getRelativePathToLogDir(File f) {
@@ -270,12 +259,6 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return null;
   }
 
-  private String getLoggers() {
-    org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
-    rootLogger.getAllAppenders();
-    return "";
-  }
-
   private Set<String> parseFileNames(String input) {
     Set<String> names = new HashSet<>();
     names.addAll(Stream.of(input.split(",")).map(String::trim).collect(Collectors.toList()));
@@ -292,19 +275,9 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return "Collect Alluxio log files";
   }
 
-
-  public static String[] formats = new String[]{
-          "yyyy-MM-dd HH:mm:ss,SSS", // "2020-05-15 09:21:52,359"
-          "yy/MM/dd HH:mm:ss", // "20/05/18 16:11:18"
-          "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-05-16T00:00:01.084+0800"
-          "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
-          "yyyy-MM-dd HH:mm",
-          "yyyy-MM-dd",
-  };
-
   @Nullable
   public static LocalDateTime parseDateTime(String s) {
-    for (String f : formats) {
+    for (String f : TIME_FORMATS) {
       DateTimeFormatter fmt = DateTimeFormatter.ofPattern(f);
       try {
         int len = f.length();
