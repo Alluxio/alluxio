@@ -85,7 +85,7 @@ with the following refinements:
 
 ```java
 /** The number of logical bytes used. */
-private final AtomicLong mBytes = new AtomicLong(0);
+public final AtomicLong mBytes = new AtomicLong(0);
 ```
 
 - All public methods (including constructors) should use the following format. For example
