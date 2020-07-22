@@ -829,6 +829,12 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Recursively lists a dir and all its subdirs and return all the files.
+   *
+   * @param dir the directory
+   * @return a list of all the files
+   * */
   public static List<File> recursiveListDir(File dir) {
     File[] files = dir.listFiles();
     List<File> result = new ArrayList<>(files.length);
