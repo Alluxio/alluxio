@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -285,9 +286,9 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     private final byte[] mBuffer;
     private final ByteBuffer mByteBuffer;
     private final int mThreadId;
-    private final int mFileSize;
-    private final int mMaxOffset;
-    private final Random mRandom = new Random();
+    private final long mFileSize;
+    private final long mMaxOffset;
+    private final Iterator<Long> mLongs;
     private final long mBlockSize;
 
     private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
@@ -295,7 +296,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     private FSDataInputStream mInStream = null;
     private FSDataOutputStream mOutStream = null;
-    private int mCurrentOffset;
+    private long mCurrentOffset;
 
     private BenchThread(BenchContext context, FileSystem fs, int threadId) {
       mContext = context;
@@ -314,10 +315,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       Arrays.fill(mBuffer, (byte) 'A');
       mByteBuffer = ByteBuffer.wrap(mBuffer);
 
-      mFileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+      mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
       mCurrentOffset = mFileSize;
       mMaxOffset = mFileSize - mBuffer.length;
       mBlockSize = FormatUtils.parseSpaceSize(mParameters.mBlockSize);
+
+      mLongs = new Random().longs(0, mMaxOffset).iterator();
     }
 
     @Override
@@ -377,7 +380,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           mInStream = mFs.open(mFilePath);
         }
         if (mParameters.mReadRandom) {
-          mCurrentOffset = mRandom.nextInt(mMaxOffset);
+          mCurrentOffset = mLongs.next();
           if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
             // must seek if not a positioned read
             mInStream.seek(mCurrentOffset);
