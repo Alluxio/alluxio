@@ -304,6 +304,7 @@ public class GlueDatabase implements UnderDatabase {
 
   private List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
       GetColumnStatisticsForTableRequest getColumnStatisticsForTableRequest) {
+    // TODO(shouwei): Add Async support for table column statistics
     try {
       return getClient().getColumnStatisticsForTable(getColumnStatisticsForTableRequest)
           .getColumnStatisticsList().stream().map(GlueUtils::toProto).collect(Collectors.toList());
@@ -316,6 +317,7 @@ public class GlueDatabase implements UnderDatabase {
 
   private List<ColumnStatisticsInfo> getPartitionColumnStatistics(String dbName, String tableName,
       GetColumnStatisticsForPartitionRequest getColumnStatisticsForPartitionRequest) {
+    // TODO(shouwei): Add Async support for partition column statistics
     try {
       List<ColumnStatisticsInfo> partColumnStatistic = getClient()
           .getColumnStatisticsForPartition(getColumnStatisticsForPartitionRequest)
@@ -330,7 +332,6 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    // TODO(shouwei): update glue client to 1.11.820 to support columnstatistics
     Table table;
     List<Partition> partitions;
     try {
