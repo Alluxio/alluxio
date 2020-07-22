@@ -19,7 +19,9 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.io.FileUtils;
@@ -35,11 +37,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.ArrayUtils;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -105,10 +110,34 @@ public class CollectInfo extends AbstractShell {
   private static final Option HELP_OPTION =
           Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
                   .desc("shows the help message").build();
-  private static final Options OPTIONS = new Options()
+  private static final Options OPTIONS = loadOptions(new Options()
           .addOption(THREAD_NUM_OPTION)
           .addOption(LOCAL_OPTION)
-          .addOption(HELP_OPTION);
+          .addOption(HELP_OPTION));
+
+  private static Options loadOptions(Options options) {
+    Reflections reflections = new Reflections(Command.class.getPackage().getName());
+    for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
+      try {
+        for (Field f : cls.getDeclaredFields()) {
+          if (f.getName().equals("OPTIONS")) {
+            System.out.format("Class %s found OPTIONS %n", cls.getName());
+            Options clsOptions = ((Options) f.get(null));
+            if (clsOptions == null) {
+              continue;
+            }
+            for (Option o : clsOptions.getOptions()) {
+              System.out.format("Found option %s from class %s%n", o, cls.getName());
+              options.addOption(o);
+            }
+          }
+        }
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+    }
+    return options;
+  }
 
   private static final String TARBALL_NAME = "alluxio-info.tar.gz";
 
@@ -168,6 +197,7 @@ public class CollectInfo extends AbstractShell {
     CommandLine cmd;
     try {
       cmd = parser.parse(OPTIONS, argv, true /* stopAtNonOption */);
+      System.out.format("Parsed options %s%n", Arrays.toString(cmd.getOptions()));
     } catch (ParseException e) {
       return;
     }
@@ -358,27 +388,38 @@ public class CollectInfo extends AbstractShell {
       for (Command cmd : getCommands()) {
         System.out.format("Executing %s%n", cmd.getCommandName());
 
-        // TODO(jiacheng): phase 2 handle argv difference?
         // Replace the action with the command to execute
         childArgs[0] = cmd.getCommandName();
-        int childRet = executeAndAddFile(childArgs, filesToCollect);
-
-        // If any of the commands failed, treat as failed
-        if (ret == 0 && childRet != 0) {
-          System.err.format("Command %s failed%n", cmd.getCommandName());
-          ret = childRet;
+        // Do the best effort to finish all other commands if one fails
+        try {
+          int childRet = executeAndAddFile(childArgs, cmdLine, filesToCollect);
+          // If any of the commands failed, treat as failed
+          if (ret == 0 && childRet != 0) {
+            System.err.format("Command %s failed%n", cmd.getCommandName());
+            ret = childRet;
+          }
+        } catch (AlluxioException e) {
+          System.err.format("Command %s failed with exception:%n", cmd.getCommandName());
+          e.printStackTrace(System.err);
         }
       }
     } else {
       // Case 2. Execute a single command
-      int childRet = executeAndAddFile(args, filesToCollect);
-      if (ret == 0 && childRet != 0) {
-        ret = childRet;
+      try {
+        int childRet = executeAndAddFile(args, cmdLine, filesToCollect);
+        if (ret == 0 && childRet != 0) {
+          ret = childRet;
+        }
+      } catch (AlluxioException e) {
+        System.err.format("Command failed with exception:%n");
+        e.printStackTrace(System.err);
+        return 1;
       }
     }
 
     // TODO(jiacheng): phase 2 add an option to disable bundle
     // Generate bundle
+    System.out.format("Files to collect: %s%n", filesToCollect);
     System.out.format("Archiving dir %s%n", targetDirPath);
 
     String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
@@ -392,10 +433,11 @@ public class CollectInfo extends AbstractShell {
     return ret;
   }
 
-  private int executeAndAddFile(String[] argv, List<File> filesToCollect) throws IOException {
+  private int executeAndAddFile(String[] argv, CommandLine cmdLine, List<File> filesToCollect) throws IOException, AlluxioException {
     // The argv length has been validated
     String subCommand = argv[0];
     String targetDirPath = argv[1];
+    System.out.format("subcommand %s targetDir %s%n", subCommand, targetDirPath);
 
     AbstractCollectInfoCommand cmd = this.findCommand(subCommand);
 
@@ -404,7 +446,7 @@ public class CollectInfo extends AbstractShell {
       printHelp(String.format("%s is an unknown command.%n", subCommand));
       return 1;
     }
-    int ret = run(argv);
+    int ret = cmd.run(cmdLine);
 
     // File to collect
     File infoCmdOutputFile = cmd.generateOutputFile(targetDirPath,

@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -81,8 +82,6 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   private LocalDateTime mStartTime;
   private LocalDateTime mEndTime;
 
-  // TODO(jiacheng): load these with reflection?
-  // CollectLogCommand
   public static final String INCLUDE_OPTION_NAME = "include-logs";
   private static final Option INCLUDE_OPTION =
           Option.builder().required(false).argName("i").longOpt(INCLUDE_OPTION_NAME).hasArg(true)
@@ -91,17 +90,16 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   private static final Option EXCLUDE_OPTION =
           Option.builder().required(false).argName("x").longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file names to exclude in ${ALLUXIO_HOME}/logs").build();
-  public static final String START_OPTION_NAME = "start-time";
+  private static final String START_OPTION_NAME = "start-time";
   private static final Option START_OPTION =
           Option.builder().required(false).argName("s").longOpt(START_OPTION_NAME).hasArg(true)
                   .desc("").build();
-  public static final String END_OPTION_NAME = "end-time";
+  private static final String END_OPTION_NAME = "end-time";
   private static final Option END_OPTION =
           Option.builder().required(false).argName("e").longOpt(END_OPTION_NAME).hasArg(true)
                   .desc("").build();
-  private static final Options OPTIONS =
-          new Options().addOption(EXCLUDE_OPTION).addOption(INCLUDE_OPTION)
-                  .addOption(START_OPTION).addOption(END_OPTION);
+  public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION).addOption(EXCLUDE_OPTION)
+          .addOption(START_OPTION).addOption(END_OPTION);
 
   /**
    * Creates a new instance of {@link CollectLogCommand}.
@@ -130,37 +128,40 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
+    System.out.println("Target dir is " + mWorkingDirPath);
+
+    System.out.format("Found options in CollectLogCommand: %s%n", Arrays.toString(cl.getOptions()));
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
     // TODO(jiacheng): phase 2 components option
     mIncludedPrefix = new HashSet<>(FILE_NAMES);
     // Define whitelist and blacklist
-    if (cl.hasOption(CollectInfo.INCLUDE_OPTION_NAME)) {
-      Set<String> toInclude = parseFileNames(cl.getOptionValue(CollectInfo.INCLUDE_OPTION_NAME));
+    if (cl.hasOption(INCLUDE_OPTION_NAME)) {
+      Set<String> toInclude = parseFileNames(cl.getOptionValue(INCLUDE_OPTION_NAME));
       System.out.println("Include the following filename prefixes: " + toInclude);
       mIncludedPrefix.addAll(toInclude);
     }
-    if (cl.hasOption(CollectInfo.EXCLUDE_OPTION_NAME)) {
-      mExcludedPrefix = parseFileNames(cl.getOptionValue(CollectInfo.EXCLUDE_OPTION_NAME));
+    if (cl.hasOption(EXCLUDE_OPTION_NAME)) {
+      mExcludedPrefix = parseFileNames(cl.getOptionValue(EXCLUDE_OPTION_NAME));
       System.out.println("Exclude the following filename prefixes: " + mExcludedPrefix);
     }
     System.out.println("Target file names: " + mIncludedPrefix);
 
     // Check file timestamps
     boolean checkTimeStamp = false;
-    if (cl.hasOption(CollectInfo.START_OPTION_NAME)) {
-      String startTimeStr = cl.getOptionValue(CollectInfo.START_OPTION_NAME);
+    if (cl.hasOption(START_OPTION_NAME)) {
+      String startTimeStr = cl.getOptionValue(START_OPTION_NAME);
       mStartTime = parseDateTime(startTimeStr);
       checkTimeStamp = true;
     }
-    if (cl.hasOption(CollectInfo.END_OPTION_NAME)) {
-      String endTimeStr = cl.getOptionValue(CollectInfo.END_OPTION_NAME);
+    if (cl.hasOption(END_OPTION_NAME)) {
+      String endTimeStr = cl.getOptionValue(END_OPTION_NAME);
       mEndTime = parseDateTime(endTimeStr);
       checkTimeStamp = true;
     }
 
     if (!mLogDir.exists()) {
-      // TODO(jiacheng): Log?
+      System.err.format("ERROR: Alluxio log directory %s does not exist!%n", mLogDirPath);
       return -1;
     }
 
@@ -173,6 +174,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
         continue;
       }
       File targetFile = new File(mWorkingDirPath, relativePath);
+      System.out.format("Copy %s to %s%n", f.getCanonicalPath(), targetFile.getCanonicalPath());
       FileUtils.copyFile(f, targetFile, true);
     }
 
