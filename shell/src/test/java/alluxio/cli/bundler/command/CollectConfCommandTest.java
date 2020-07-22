@@ -91,12 +91,12 @@ public class CollectConfCommandTest {
     Assert.assertEquals(0, ret);
 
     // Files will be copied to sub-dir of target dir
-    File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
+    File subDir = new File(Paths.get(targetDir.getAbsolutePath(),
+            cmd.getCommandName()).toString());
 
     // alluxio-site.properties will be filtered since it contains unmasked credentials
     mExpectedFiles.remove("alluxio-site.properties");
     mExpectedFiles.remove("alluxio-site.properties.template");
     InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
   }
-
 }

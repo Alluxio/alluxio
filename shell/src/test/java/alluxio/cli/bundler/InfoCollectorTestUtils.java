@@ -11,21 +11,21 @@
 
 package alluxio.cli.bundler;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.util.CommonUtils;
+
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 public class InfoCollectorTestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(InfoCollectorTestUtils.class);
@@ -66,7 +66,8 @@ public class InfoCollectorTestUtils {
 
   public static Set<String> getAllFileNamesRelative(File dir, File baseDir) throws IOException {
     if (!dir.isDirectory()) {
-      throw new IOException(String.format("Expected a directory but found a file at %s%n", dir.getCanonicalPath()));
+      throw new IOException(String.format("Expected a directory but found a file at %s%n",
+              dir.getCanonicalPath()));
     }
     Set<String> fileSet = new HashSet<>();
     List<File> allFiles = CommonUtils.recursiveListDir(dir);

@@ -21,7 +21,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.io.FileUtils;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -433,7 +431,8 @@ public class CollectInfo extends AbstractShell {
     return ret;
   }
 
-  private int executeAndAddFile(String[] argv, CommandLine cmdLine, List<File> filesToCollect) throws IOException, AlluxioException {
+  private int executeAndAddFile(String[] argv, CommandLine cmdLine, List<File> filesToCollect)
+          throws IOException, AlluxioException {
     // The argv length has been validated
     String subCommand = argv[0];
     String targetDirPath = argv[1];

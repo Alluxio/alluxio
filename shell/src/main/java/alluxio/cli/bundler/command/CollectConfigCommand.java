@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-
 import alluxio.util.CommonUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

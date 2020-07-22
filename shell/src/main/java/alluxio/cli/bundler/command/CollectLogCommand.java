@@ -11,12 +11,11 @@
 
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.bundler.CollectInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-
 import alluxio.util.CommonUtils;
+
 import jline.internal.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -49,31 +48,35 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectLog";
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
   public static final Set<String> FILE_NAMES = Stream.of(
-          "master.log",
-          "master.out",
-          "job_master.log",
-          "job_master.out",
-          "master_audit.log",
-          "worker.log",
-          "worker.out",
-          "job_worker.log",
-          "job_worker.out",
-          "proxy.log",
-          "proxy.out",
-          "task.log",
-          "task.out",
-          "user"
+      "master.log",
+      "master.out",
+      "job_master.log",
+      "job_master.out",
+      "master_audit.log",
+      "worker.log",
+      "worker.out",
+      "job_worker.log",
+      "job_worker.out",
+      "proxy.log",
+      "proxy.out",
+      "task.log",
+      "task.out",
+      "user"
   ).collect(Collectors.toSet());
+  // We tolerate the beginning of a log file to contain some rows that are not timestamped.
+  // 30 is chosen because a YARN application log can have >20 rows in the beginning for
+  // general information about a job.
+  // The timestamped log entries start after this general information block.
+  private static final int TRY_PARSE_LOG_ROWS = 30;
 
   public static final String[] TIME_FORMATS = new String[]{
-          "yyyy-MM-dd HH:mm:ss,SSS", // "2020-05-15 09:21:52,359"
-          "yy/MM/dd HH:mm:ss", // "20/05/18 16:11:18"
-          "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-05-16T00:00:01.084+0800"
-          "yyyy-MM-dd'T'HH:mm:ss", // "2020-05-16T00:00:01.084
-          "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
-          "yyyy-MM-dd HH:mm",
-          "yyyy-MM-dd",
-          "MMM dd, yyyyy hh:mm:ss a" // "Jul 07, 2020 6:42:43 PM"
+      "yyyy-MM-dd HH:mm:ss,SSS", // "2020-06-27 11:58:53,084"
+      "yy/MM/dd HH:mm:ss", // "20/06/27 11:58:53"
+      "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-06-27T11:58:53.084+0800"
+      "yyyy-MM-dd'T'HH:mm:ss", // "2020-06-27T11:58:53.084
+      "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
+      "yyyy-MM-dd HH:mm", // "2020-06-27 11:58"
+      "yyyy-MM-dd" // // "2020-06-27"
   };
 
   private String mLogDirPath;
@@ -100,8 +103,9 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   private static final Option END_OPTION =
           Option.builder().required(false).argName("e").longOpt(END_OPTION_NAME).hasArg(true)
                   .desc("").build();
-  public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION).addOption(EXCLUDE_OPTION)
-          .addOption(START_OPTION).addOption(END_OPTION);
+  // Class specific options are aggregated into CollectInfo with reflection
+  public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION)
+          .addOption(EXCLUDE_OPTION).addOption(START_OPTION).addOption(END_OPTION);
 
   /**
    * Creates a new instance of {@link CollectLogCommand}.
@@ -169,15 +173,18 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
     List<File> allFiles = CommonUtils.recursiveListDir(mLogDir);
     for (File f : allFiles) {
-      // Copy file
       String relativePath = getRelativePathToLogDir(f);
       System.out.println("Relative path against log dir: " + relativePath);
-      if (!shouldCopy(f, relativePath, checkTimeStamp)) {
-        continue;
+      try {
+        if (!shouldCopy(f, relativePath, checkTimeStamp)) {
+          continue;
+        }
+        File targetFile = new File(mWorkingDirPath, relativePath);
+        System.out.format("Copy %s to %s%n", f.getCanonicalPath(), targetFile.getCanonicalPath());
+        FileUtils.copyFile(f, targetFile, true);
+      } catch (FileNotFoundException e) {
+        System.err.format("ERROR: file %s not found %s%n", f.getCanonicalPath(), e.getMessage());
       }
-      File targetFile = new File(mWorkingDirPath, relativePath);
-      System.out.format("Copy %s to %s%n", f.getCanonicalPath(), targetFile.getCanonicalPath());
-      FileUtils.copyFile(f, targetFile, true);
     }
 
     return 0;
@@ -187,7 +194,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return mLogDirUri.relativize(f.toURI()).getPath();
   }
 
-  private boolean shouldCopy(File f, String relativePath, boolean checkTimeStamp) {
+  private boolean shouldCopy(File f, String relativePath, boolean checkTimeStamp)
+          throws FileNotFoundException {
     if (!fileNameIsWanted(relativePath)) {
       System.out.format("File %s is not wanted.%n", relativePath);
       return false;
@@ -218,7 +226,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return false;
   }
 
-  private boolean fileTimeStampIsWanted(File f) {
+  private boolean fileTimeStampIsWanted(File f) throws FileNotFoundException {
     long timestamp = f.lastModified();
     LocalDateTime fileEndTime =
             LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
@@ -232,21 +240,30 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
     // The file is earlier than the desired interval
     if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
-      System.out.format("Wanted interval starts at %s, later than file last modified time %s%n", mStartTime, fileEndTime);
+      System.out.format("Wanted interval starts at %s, later than file last modified time %s%n",
+              mStartTime, fileEndTime);
       return false;
     }
     // The file is later than the desired interval
     if (mEndTime != null && mEndTime.isBefore(fileStartTime)) {
-      System.out.format("Wanted interval ends at %s, earlier than file first entry time %s%n", mEndTime, fileStartTime);
+      System.out.format("Wanted interval ends at %s, earlier than file first entry time %s%n",
+              mEndTime, fileStartTime);
       return false;
     }
     return true;
   }
 
-  public static LocalDateTime inferFileStartTime(File f) {
+  /**
+   * Infer the starting time of a log file by parsing the log entries from the beginning.
+   * It will try the first certain lines with various known datetime patterns.
+   *
+   * @param f log file
+   * @return the parsed datetime
+   * */
+  public static LocalDateTime inferFileStartTime(File f) throws FileNotFoundException {
     int r = 0;
-    try (Scanner scanner = new Scanner(f)){
-      while (scanner.hasNextLine() && r < 30) {
+    try (Scanner scanner = new Scanner(f)) {
+      while (scanner.hasNextLine() && r < TRY_PARSE_LOG_ROWS) {
         String line = scanner.nextLine();
         LocalDateTime datetime = parseDateTime(line);
         if (datetime != null) {
@@ -255,9 +272,6 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
         }
         r++;
       }
-    } catch (FileNotFoundException e) {
-      // TODO(jiacheng)
-      e.printStackTrace();
     }
     System.out.format("Datetime not found after %d rows.%n", r);
     return null;
@@ -279,10 +293,17 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return "Collect Alluxio log files";
   }
 
+  /**
+   * Identifies the datetime from a certain piece of log by trying various known patterns.
+   * Returns null if unable to identify a datetime.
+   *
+   * @param s a log entry
+   * @return identified datetime
+   * */
   @Nullable
   public static LocalDateTime parseDateTime(String s) {
     for (String f : TIME_FORMATS) {
-      System.out.format("Format %s%n", f);
+      // Prepare the formatters
       DateTimeFormatter fmt = DateTimeFormatter.ofPattern(f);
       try {
         int len = f.length();
