@@ -363,25 +363,30 @@ public class GlueDatabase implements UnderDatabase {
               .withDatabaseName(mGlueDbName)
               .withTableName(tableName)
               .withColumnNames(columnNames);
-      List<ColumnStatisticsInfo> columnStatisticsTableData = getTableColumnStatistics(
-          mGlueDbName, tableName, getColumnStatisticsForTableRequest);
+      List<ColumnStatisticsInfo> columnStatisticsTableData = new ArrayList<>();
+      if (mGlueConfiguration.getBoolean(Property.TABLE_COLUMN_STATISTICS_ENABLE)) {
+        columnStatisticsTableData = getTableColumnStatistics(
+            mGlueDbName, tableName, getColumnStatisticsForTableRequest);
+      }
 
       // Get column statistics info for partitions
       // potential expensive call
       Map<String, List<ColumnStatisticsInfo>> statsMap = new HashMap<>();
-      for (Partition partition : partitions) {
-        List<String> partitionValue = partition.getValues();
-        if (partitionValue != null) {
-          GetColumnStatisticsForPartitionRequest getColumnStatisticsForPartitionRequest =
-              new GetColumnStatisticsForPartitionRequest()
-                  .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
-                  .withDatabaseName(mGlueDbName)
-                  .withTableName(tableName)
-                  .withColumnNames(columnNames)
-                  .withPartitionValues(partitionValue);
-          String partName = GlueUtils.makePartitionName(partitionColumns, partition.getValues());
-          statsMap.put(partName, getPartitionColumnStatistics(
-              mGlueDbName, tableName, getColumnStatisticsForPartitionRequest));
+      if (mGlueConfiguration.getBoolean(Property.PARTITION_COLUMN_STATISTICS_ENABLE)) {
+        for (Partition partition : partitions) {
+          List<String> partitionValue = partition.getValues();
+          if (partitionValue != null) {
+            GetColumnStatisticsForPartitionRequest getColumnStatisticsForPartitionRequest =
+                new GetColumnStatisticsForPartitionRequest()
+                    .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+                    .withDatabaseName(mGlueDbName)
+                    .withTableName(tableName)
+                    .withColumnNames(columnNames)
+                    .withPartitionValues(partitionValue);
+            String partName = GlueUtils.makePartitionName(partitionColumns, partition.getValues());
+            statsMap.put(partName, getPartitionColumnStatistics(
+                mGlueDbName, tableName, getColumnStatisticsForPartitionRequest));
+          }
         }
       }
 
@@ -425,7 +430,7 @@ public class GlueDatabase implements UnderDatabase {
             partitionInfoBuilder.addAllValues(partition.getValues());
           }
           udbPartitions.add(new GluePartition(new HiveLayout(partitionInfoBuilder.build(),
-              Collections.emptyList())));
+              statsMap.getOrDefault(partName, Collections.emptyList()))));
         }
       }
 
