@@ -69,9 +69,11 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
           "yyyy-MM-dd HH:mm:ss,SSS", // "2020-05-15 09:21:52,359"
           "yy/MM/dd HH:mm:ss", // "20/05/18 16:11:18"
           "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-05-16T00:00:01.084+0800"
+          "yyyy-MM-dd'T'HH:mm:ss", // "2020-05-16T00:00:01.084
           "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
           "yyyy-MM-dd HH:mm",
           "yyyy-MM-dd",
+          "MMM dd, yyyyy hh:mm:ss a" // "Jul 07, 2020 6:42:43 PM"
   };
 
   private String mLogDirPath;
@@ -280,16 +282,20 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   @Nullable
   public static LocalDateTime parseDateTime(String s) {
     for (String f : TIME_FORMATS) {
+      System.out.format("Format %s%n", f);
       DateTimeFormatter fmt = DateTimeFormatter.ofPattern(f);
       try {
         int len = f.length();
         if (f.endsWith("XX")) {
-          len += 1; // "XX" in the format parses to timezone offset like "+0800"
-          System.out.format("Format %s has len %s%n", f, len);
+          len += 3; // "XX" in the format parses to timezone offset like "+0800"
+        }
+        if (f.contains("'T'")) {
+          len -= 2; // the extra two single quotes are not in the datetime string
         }
         if (s.length() < len) {
           continue;
         }
+
         String datePart = s.substring(0, len);
         LocalDateTime datetime = LocalDateTime.parse(datePart, fmt);
         return datetime;

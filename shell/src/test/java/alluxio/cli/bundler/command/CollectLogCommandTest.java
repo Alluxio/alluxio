@@ -97,7 +97,7 @@ public class CollectLogCommandTest {
 
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
@@ -117,7 +117,7 @@ public class CollectLogCommandTest {
     CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
@@ -134,6 +134,7 @@ public class CollectLogCommandTest {
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
+            cmd.getCommandName(),
             targetDir.getAbsolutePath()
     };
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -162,6 +163,7 @@ public class CollectLogCommandTest {
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
+            cmd.getCommandName(),
             targetDir.getAbsolutePath()
     };
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -230,6 +232,7 @@ public class CollectLogCommandTest {
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
+            cmd.getCommandName(),
             targetDir.getAbsolutePath()
     };
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -301,6 +304,7 @@ public class CollectLogCommandTest {
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{
+            cmd.getCommandName(),
             targetDir.getAbsolutePath()
     };
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -338,6 +342,17 @@ public class CollectLogCommandTest {
 
   @Test
   public void inferDateFromLog() throws Exception {
+    // Alluxio logs
+    String alluxioLog = "2020-03-19 11:58:10,104 WARN  ServerConfiguration - Reloaded properties\n" +
+            "2020-03-19 11:58:10,106 WARN  ServerConfiguration - Loaded hostname localhost\n" +
+            "2020-03-19 11:58:10,591 WARN  RetryUtils - Failed to load cluster default configuration with master (attempt 1): alluxio.exception.status.UnavailableException: Failed to handshake with master localhost:19998 to load cluster default configuration values: UNAVAILABLE: io exception";
+    File alluxioLogFile = new File(mTestDir, "alluxio-worker.log");
+    writeToFile(alluxioLogFile, alluxioLog);
+    LocalDateTime alluxioLogDatetime = CollectLogCommand.inferFileStartTime(alluxioLogFile);
+    LocalDateTime expectedDatetime = LocalDateTime.of(2020, 3, 19, 11, 58, 10, 104 * 1_000_000);
+    assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, alluxioLogDatetime),
+            alluxioLogDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
+
     // Yarn application log default format
     String yarnAppLog = "\n" +
             "Logged in as: user\n" +
@@ -364,7 +379,7 @@ public class CollectLogCommandTest {
     File yarnAppLogFile = new File(mTestDir, "yarn-application.log");
     writeToFile(yarnAppLogFile, yarnAppLog);
     LocalDateTime yarnAppDatetime = CollectLogCommand.inferFileStartTime(yarnAppLogFile);
-    LocalDateTime expectedDatetime = LocalDateTime.of(2020, 5, 18, 16, 11, 18);
+    expectedDatetime = LocalDateTime.of(2020, 5, 18, 16, 11, 18);
     assertThat(String.format("Expected datetime is %s but inferred %s from file%n", expectedDatetime, yarnAppDatetime),
             yarnAppDatetime, new DatetimeMatcher().setDatetime(expectedDatetime));
 
