@@ -837,6 +837,10 @@ public final class CommonUtils {
    * */
   public static List<File> recursiveListDir(File dir) {
     File[] files = dir.listFiles();
+    // File#listFiles can return null when the path is invalid
+    if (files == null) {
+      return new ArrayList<>();
+    }
     List<File> result = new ArrayList<>(files.length);
     for (File f : files) {
       if (f.isDirectory()) {
