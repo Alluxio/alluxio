@@ -1,10 +1,10 @@
 
 ---
-布局：全局
-标题：在Kubernetes上部署Alluxio
-别名：Kubernetes
-组：安装Alluxio
-优先级：4
+Layout：global
+Title：在Kubernetes上部署Alluxio
+nickname：Kubernetes上的Alluxio
+group：Install Alluxio
+Priority：4
 ---
 
 Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像或`helm`中包含的规范在Kubernetes上运行Alluxio
