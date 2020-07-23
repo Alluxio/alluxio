@@ -72,8 +72,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public static final String[] TIME_FORMATS = new String[]{
       "yyyy-MM-dd HH:mm:ss,SSS", // "2020-06-27 11:58:53,084"
       "yy/MM/dd HH:mm:ss", // "20/06/27 11:58:53"
-      "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // "2020-06-27T11:58:53.084+0800"
-      "yyyy-MM-dd'T'HH:mm:ss", // "2020-06-27T11:58:53.084
+      "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // 2020-06-27T11:58:53.084+0800
+      "yyyy-MM-dd'T'HH:mm:ss", // 2020-06-27T11:58:53.084
       "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
       "yyyy-MM-dd HH:mm", // "2020-06-27 11:58"
       "yyyy-MM-dd" // // "2020-06-27"
@@ -89,20 +89,28 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
   public static final String INCLUDE_OPTION_NAME = "include-logs";
   private static final Option INCLUDE_OPTION =
-          Option.builder().required(false).argName("i").longOpt(INCLUDE_OPTION_NAME).hasArg(true)
-                  .desc("extra log file names to include in ${ALLUXIO_HOME}/logs").build();
+          Option.builder().required(false).argName("filename-prefixes")
+                  .longOpt(INCLUDE_OPTION_NAME).hasArg(true)
+                  .desc("extra log file name prefixes to include in ${ALLUXIO_HOME}/logs. "
+                          + "The files that start with the prefix will be included.").build();
   public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
   private static final Option EXCLUDE_OPTION =
-          Option.builder().required(false).argName("x").longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
-                  .desc("extra log file names to exclude in ${ALLUXIO_HOME}/logs").build();
+          Option.builder().required(false).argName("filename-prefixes").
+                  longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
+                  .desc("extra log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
+                          + "The files that start with the prefix will be excluded.").build();
   private static final String START_OPTION_NAME = "start-time";
   private static final Option START_OPTION =
-          Option.builder().required(false).argName("s").longOpt(START_OPTION_NAME).hasArg(true)
-                  .desc("").build();
+          Option.builder().required(false).argName("datetime")
+                  .longOpt(START_OPTION_NAME).hasArg(true)
+                  .desc("logs that do not contain entries after this time will be ignored")
+                  .build();
   private static final String END_OPTION_NAME = "end-time";
   private static final Option END_OPTION =
-          Option.builder().required(false).argName("e").longOpt(END_OPTION_NAME).hasArg(true)
-                  .desc("").build();
+          Option.builder().required(false).argName("datetime")
+                  .longOpt(END_OPTION_NAME).hasArg(true)
+                  .desc("logs that do not contain entries before this time will be ignored")
+                  .build();
   // Class specific options are aggregated into CollectInfo with reflection
   public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION)
           .addOption(EXCLUDE_OPTION).addOption(START_OPTION).addOption(END_OPTION);
@@ -115,7 +123,6 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public CollectLogCommand(FileSystemContext fsContext) {
     super(fsContext);
     mLogDirPath = fsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
-    System.out.println("Log dir path: " + mLogDirPath);
     mLogDir = new File(mLogDirPath);
     mLogDirUri = mLogDir.toURI();
   }
@@ -134,23 +141,19 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
-    System.out.println("Target dir is " + mWorkingDirPath);
-
-    System.out.format("Found options in CollectLogCommand: %s%n", Arrays.toString(cl.getOptions()));
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
     mIncludedPrefix = new HashSet<>(FILE_NAMES);
     // Define include list and exclude list
     if (cl.hasOption(INCLUDE_OPTION_NAME)) {
       Set<String> toInclude = parseFileNames(cl.getOptionValue(INCLUDE_OPTION_NAME));
-      System.out.println("Include the following filename prefixes: " + toInclude);
+      System.out.format("Include the following filename prefixes: %s%n", toInclude);
       mIncludedPrefix.addAll(toInclude);
     }
     if (cl.hasOption(EXCLUDE_OPTION_NAME)) {
       mExcludedPrefix = parseFileNames(cl.getOptionValue(EXCLUDE_OPTION_NAME));
-      System.out.println("Exclude the following filename prefixes: " + mExcludedPrefix);
+      System.out.format("Exclude the following filename prefixes: %s%n", mExcludedPrefix);
     }
-    System.out.println("Target file names: " + mIncludedPrefix);
 
     // Check file timestamps
     boolean checkTimeStamp = false;
@@ -173,13 +176,11 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     List<File> allFiles = CommonUtils.recursiveListDir(mLogDir);
     for (File f : allFiles) {
       String relativePath = getRelativePathToLogDir(f);
-      System.out.println("Relative path against log dir: " + relativePath);
       try {
         if (!shouldCopy(f, relativePath, checkTimeStamp)) {
           continue;
         }
         File targetFile = new File(mWorkingDirPath, relativePath);
-        System.out.format("Copy %s to %s%n", f.getCanonicalPath(), targetFile.getCanonicalPath());
         FileUtils.copyFile(f, targetFile, true);
       } catch (FileNotFoundException e) {
         System.err.format("ERROR: file %s not found %s%n", f.getCanonicalPath(), e.getMessage());
@@ -196,13 +197,10 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   private boolean shouldCopy(File f, String relativePath, boolean checkTimeStamp)
           throws FileNotFoundException {
     if (!fileNameIsWanted(relativePath)) {
-      System.out.format("File %s is not wanted.%n", relativePath);
       return false;
     }
     if (checkTimeStamp) {
-      System.out.println("Filter file by timestamp");
       if (!fileTimeStampIsWanted(f)) {
-        System.out.println("File timestamp is out of range.");
         return false;
       }
     }
@@ -229,24 +227,19 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     long timestamp = f.lastModified();
     LocalDateTime fileEndTime =
             LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
-    System.out.println("File last modified time is " + fileEndTime);
 
+    // Infer file start time by parsing the first bunch of rows
     LocalDateTime fileStartTime = inferFileStartTime(f);
     if (fileStartTime == null) {
       fileStartTime = LocalDateTime.MIN;
     }
-    System.out.format("File has start time %s and end time %s%n", fileStartTime, fileEndTime);
 
     // The file is earlier than the desired interval
     if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
-      System.out.format("Wanted interval starts at %s, later than file last modified time %s%n",
-              mStartTime, fileEndTime);
       return false;
     }
     // The file is later than the desired interval
     if (mEndTime != null && mEndTime.isBefore(fileStartTime)) {
-      System.out.format("Wanted interval ends at %s, earlier than file first entry time %s%n",
-              mEndTime, fileStartTime);
       return false;
     }
     return true;
@@ -266,13 +259,11 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
         String line = scanner.nextLine();
         LocalDateTime datetime = parseDateTime(line);
         if (datetime != null) {
-          System.out.format("Identified datetime %s on line %s%n", datetime, r);
           return datetime;
         }
         r++;
       }
     }
-    System.out.format("Datetime not found after %d rows.%n", r);
     return null;
   }
 
@@ -324,7 +315,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       }
     }
     // Unknown format here
-    LOG.debug("Unknown date format in {}", s.length() > 50 ? s.substring(0, 50) : s);
+    LOG.warn("Unknown date format in {}", s.length() > 50 ? s.substring(0, 50) : s);
     return null;
   }
 }

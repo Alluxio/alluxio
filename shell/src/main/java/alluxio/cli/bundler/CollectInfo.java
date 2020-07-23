@@ -64,7 +64,9 @@ import java.util.stream.Collectors;
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
   private static final String USAGE =
-      "USAGE: collectInfo [--max-threads <threadNum>] [--local] [--help] COMMAND <outputPath>\n\n"
+      "USAGE: collectInfo [--max-threads <threadNum>] [--local] [--help] "
+          + "[--exclude-logs <filename-prefixes>] [--include-logs <filename-prefixes>] "
+          + "[--start-time <datetime>] [--end-time <datetime>] COMMAND <outputPath>\n\n"
           + "collectInfo runs a set of sub-commands which collect information "
           + "about your Alluxio cluster.\nIn the end of the run, "
           + "the collected information will be written to files and bundled into one tarball.\n"
@@ -78,6 +80,8 @@ public class CollectInfo extends AbstractShell {
           + "collectJvmInfo:     collects jstack from the JVMs.\n"
           + "collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.\n"
           + "collectMetrics:     collects Alluxio system metrics.\n\n"
+          + "<filename-prefixes> filename prefixes, separated by comma\n"
+          + "<datetime>          a datetime string like 2020-06-27T11:58:53\n"
           + "<outputPath>        the directory you want the collected tarball to be in\n\n"
           + "WARNING: This command MAY bundle credentials. To understand the risks refer "
           + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
@@ -90,9 +94,10 @@ public class CollectInfo extends AbstractShell {
   // CMD_ALIAS map.
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.of();
 
+  private static final String TARBALL_NAME = "alluxio-info.tar.gz";
+  private ExecutorService mExecutor;
+
   private static final String MAX_THREAD_OPTION_NAME = "max-threads";
-  private static final String LOCAL_OPTION_NAME = "local";
-  private static final String HELP_OPTION_NAME = "help";
   private static final Option THREAD_NUM_OPTION =
           Option.builder().required(false).longOpt(MAX_THREAD_OPTION_NAME).hasArg(true)
                   .desc("the number of threads this command uses\n"
@@ -100,46 +105,45 @@ public class CollectInfo extends AbstractShell {
                           + "Use a smaller number to constrain the network IO when "
                           + "transmitting tarballs.")
                   .build();
+  private static final String LOCAL_OPTION_NAME = "local";
   private static final Option LOCAL_OPTION =
           Option.builder().required(false).longOpt(LOCAL_OPTION_NAME).hasArg(false)
                   .desc("specifies this command should only collect information "
                           + "about the localhost")
                   .build();
+  private static final String HELP_OPTION_NAME = "help";
   private static final Option HELP_OPTION =
           Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
                   .desc("shows the help message").build();
+  // Build the options for collectInfo, then aggregate local options for each sub-command
   private static final Options OPTIONS = loadOptions(new Options()
           .addOption(THREAD_NUM_OPTION)
           .addOption(LOCAL_OPTION)
           .addOption(HELP_OPTION));
 
+  // Load the options defined in each sub-command class
   private static Options loadOptions(Options options) {
     Reflections reflections = new Reflections(Command.class.getPackage().getName());
     for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
       try {
         for (Field f : cls.getDeclaredFields()) {
           if (f.getName().equals("OPTIONS")) {
-            System.out.format("Class %s found OPTIONS %n", cls.getName());
             Options clsOptions = ((Options) f.get(null));
             if (clsOptions == null) {
               continue;
             }
             for (Option o : clsOptions.getOptions()) {
-              System.out.format("Found option %s from class %s%n", o, cls.getName());
               options.addOption(o);
             }
           }
         }
       } catch (IllegalAccessException e) {
-        e.printStackTrace();
+        LOG.warn("Failed to load OPTIONS from class {}: {}",
+                cls.getCanonicalName(), e.getMessage());
       }
     }
     return options;
   }
-
-  private static final String TARBALL_NAME = "alluxio-info.tar.gz";
-
-  private ExecutorService mExecutor;
 
   /**
    * Creates a new instance of {@link CollectInfo}.
@@ -195,7 +199,6 @@ public class CollectInfo extends AbstractShell {
     CommandLine cmd;
     try {
       cmd = parser.parse(OPTIONS, argv, true /* stopAtNonOption */);
-      System.out.format("Parsed options %s%n", Arrays.toString(cmd.getOptions()));
     } catch (ParseException e) {
       return;
     }
@@ -316,7 +319,7 @@ public class CollectInfo extends AbstractShell {
         String fromPath = Paths.get(targetDir, CollectInfo.TARBALL_NAME)
                 .toAbsolutePath().toString();
         String toPath = tarballFromHost.getAbsolutePath();
-        LOG.debug("Copying %s:%s to %s", host, fromPath, toPath);
+        LOG.debug("Copying {}:{} to {}", host, fromPath, toPath);
 
         try {
           CommandReturn cr =
@@ -324,7 +327,7 @@ public class CollectInfo extends AbstractShell {
           return cr;
         } catch (IOException e) {
           // An unexpected error occurred that caused this IOException
-          LOG.error("Execution failed %s", e);
+          LOG.error("Execution failed on {}", e);
           return new CommandReturn(1, e.toString());
         }
       }, mExecutor);
@@ -405,7 +408,7 @@ public class CollectInfo extends AbstractShell {
       // Case 2. Execute a single command
       try {
         int childRet = executeAndAddFile(args, cmdLine, filesToCollect);
-        if (ret == 0 && childRet != 0) {
+        if (childRet != 0) {
           ret = childRet;
         }
       } catch (AlluxioException e) {
@@ -533,11 +536,10 @@ public class CollectInfo extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
-    Map<String, Command> commands = CommandUtils.loadCommands(
+    return CommandUtils.loadCommands(
             CollectInfo.class.getPackage().getName(),
             new Class[] {FileSystemContext.class},
             new Object[] {FileSystemContext.create(mConfiguration)});
-    return commands;
   }
 
   @Override
