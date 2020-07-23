@@ -33,7 +33,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -95,8 +94,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
                           + "The files that start with the prefix will be included.").build();
   public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
   private static final Option EXCLUDE_OPTION =
-          Option.builder().required(false).argName("filename-prefixes").
-                  longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
+          Option.builder().required(false).argName("filename-prefixes")
+                  .longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
                           + "The files that start with the prefix will be excluded.").build();
   private static final String START_OPTION_NAME = "start-time";
