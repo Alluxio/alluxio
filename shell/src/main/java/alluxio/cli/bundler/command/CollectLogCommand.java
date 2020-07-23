@@ -33,8 +33,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,15 +71,20 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   // The timestamped log entries start after this general information block.
   private static final int TRY_PARSE_LOG_ROWS = 30;
 
-  static final String[] TIME_FORMATS = new String[]{
-      "yyyy-MM-dd HH:mm:ss,SSS",        // "2020-06-27 11:58:53,084"
-      "yy/MM/dd HH:mm:ss",              // "20/06/27 11:58:53"
-      "yyyy-MM-dd'T'HH:mm:ss.SSSXX",    // 2020-06-27T11:58:53.084+0800
-      "yyyy-MM-dd'T'HH:mm:ss",          // 2020-06-27T11:58:53.084
-      "yyyy-MM-dd HH:mm:ss",            // "2020-06-27 11:58:53"
-      "yyyy-MM-dd HH:mm",               // "2020-06-27 11:58"
-      "yyyy-MM-dd"                      // "2020-06-27"
+  // Preserves the order of iteration, we try the longer pattern before the shorter one
+  private static final Map<String, Integer> FORMAT_TO_LEN = new LinkedHashMap<String, Integer>(){
+    {
+      put("yyyy-MM-dd HH:mm:ss,SSS", 23);
+      put("yyyy-MM-dd HH:mm:ss", 19);
+      put("yyyy-MM-dd HH:mm", 16);
+      put("yy/MM/dd HH:mm:ss", 17);
+      put("yy/MM/dd HH:mm", 14);
+      put("yyyy-MM-dd'T'HH:mm:ss.SSSXX", 28);
+      put("yyyy-MM-dd'T'HH:mm:ss", 19);
+      put("yyyy-MM-dd'T'HH:mm", 16);
+    }
   };
+  private static final Map<String, DateTimeFormatter> STRING_TO_FORMATTER = initFormatters();
 
   private String mLogDirPath;
   private File mLogDir;
@@ -113,6 +121,14 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   // Class specific options are aggregated into CollectInfo with reflection
   public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION)
           .addOption(EXCLUDE_OPTION).addOption(START_OPTION).addOption(END_OPTION);
+
+  private static Map<String, DateTimeFormatter> initFormatters() {
+    Map<String, DateTimeFormatter> strToFormatters = new HashMap<>();
+    for (String s : FORMAT_TO_LEN.keySet()) {
+      strToFormatters.put(s, DateTimeFormatter.ofPattern(s));
+    }
+    return strToFormatters;
+  }
 
   /**
    * Creates a new instance of {@link CollectLogCommand}.
@@ -159,12 +175,18 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     if (cl.hasOption(START_OPTION_NAME)) {
       String startTimeStr = cl.getOptionValue(START_OPTION_NAME);
       mStartTime = parseDateTime(startTimeStr);
+      System.out.format("Time window start: %s%n", mStartTime);
       checkTimeStamp = true;
     }
     if (cl.hasOption(END_OPTION_NAME)) {
       String endTimeStr = cl.getOptionValue(END_OPTION_NAME);
       mEndTime = parseDateTime(endTimeStr);
+      System.out.format("Time window end: %s%n", mEndTime);
       checkTimeStamp = true;
+    }
+    if (mStartTime != null && mEndTime != null && mStartTime.isAfter(mEndTime)) {
+      System.err.format("ERROR: Start time %s is later than end time %s!%n",
+              mStartTime, mEndTime);
     }
 
     if (!mLogDir.exists()) {
@@ -232,6 +254,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     if (fileStartTime == null) {
       fileStartTime = LocalDateTime.MIN;
     }
+    System.out.format("File %s [%s, %s]%n", f.getCanonicalPath(), fileStartTime, fileEndTime);
 
     // The file is earlier than the desired interval
     if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
@@ -295,25 +318,19 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
    * */
   @Nullable
   public static LocalDateTime parseDateTime(String s) {
-    for (String f : TIME_FORMATS) {
-      // Prepare the formatters
-      DateTimeFormatter fmt = DateTimeFormatter.ofPattern(f);
+    for (Map.Entry<String, Integer> entry : FORMAT_TO_LEN.entrySet()) {
+      String f = entry.getKey();
+      int len = entry.getValue();
+      DateTimeFormatter fmt = STRING_TO_FORMATTER.get(f);
       try {
-        int len = f.length();
-        if (f.endsWith("XX")) {
-          len += 3; // "XX" in the format parses to timezone offset like "+0800"
-        }
-        if (f.contains("'T'")) {
-          len -= 2; // the extra two single quotes are not in the datetime string
-        }
         if (s.length() < len) {
           continue;
         }
-
         String datePart = s.substring(0, len);
         LocalDateTime datetime = LocalDateTime.parse(datePart, fmt);
         return datetime;
       } catch (DateTimeParseException e) {
+        // It just means the string is not in this format
         continue;
       }
     }

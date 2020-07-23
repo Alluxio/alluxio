@@ -85,7 +85,7 @@ public class CollectConfCommandTest {
 
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     int ret = cmd.run(mockCommandLine);
     Assert.assertEquals(0, ret);

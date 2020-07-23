@@ -239,6 +239,22 @@ public class CollectInfo extends AbstractShell {
     System.exit(ret);
   }
 
+  // Convert the command line back to a list of arguments
+  private List<String> cmdLineToArgs(CommandLine cmd) {
+    List<String> args = new ArrayList<>();
+    for (Option opt : cmd.getOptions()) {
+      if (opt.equals(LOCAL_OPTION) || opt.equals(THREAD_NUM_OPTION)) {
+        continue;
+      }
+      args.add("--" + opt.getLongOpt());
+      if (opt.hasArg()) {
+        args.add(opt.getValue());
+      }
+    }
+    args.addAll(cmd.getArgList());
+    return args;
+  }
+
   /**
    * Finds all nodes in the cluster.
    * Then invokes collectInfo with --local option on each of them locally.
@@ -279,7 +295,9 @@ public class CollectInfo extends AbstractShell {
 
         String[] collectInfoArgs =
                 (String[]) ArrayUtils.addAll(
-                        new String[]{alluxioBinPath, "collectInfo", "--local"}, args);
+                        new String[]{alluxioBinPath, "collectInfo", "--local"},
+                        cmdLineToArgs(cmdLine).toArray(new String[0]));
+        System.out.format("Invoking command %s%n", Arrays.toString(collectInfoArgs));
         try {
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, collectInfoArgs);
           return cr;

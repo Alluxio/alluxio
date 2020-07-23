@@ -38,7 +38,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class CollectLogCommandTest {
@@ -478,27 +480,37 @@ public class CollectLogCommandTest {
             expectedDatetime, gcDatetime),
             gcDatetime,
             new DatetimeMatcher().setDatetime(expectedDatetime));
+  }
 
+  @Test
+  public void commandLineDatetime() throws Exception {
+    Map<String, LocalDateTime> stringToDatetime = new HashMap<>();
+    stringToDatetime.put("2020-06-27 11:58:53,084",
+            LocalDateTime.of(2020, 6, 27, 11, 58, 53, 84 * MILLISEC_TO_NANOSEC));
+    stringToDatetime.put("2020-06-27 11:58:53",
+            LocalDateTime.of(2020, 6, 27, 11, 58, 53));
+    stringToDatetime.put("2020-06-27 11:58",
+            LocalDateTime.of(2020, 6, 27, 11, 58));
+    stringToDatetime.put("20/06/27 11:58:53",
+            LocalDateTime.of(2020, 6, 27, 11, 58, 53));
+    stringToDatetime.put("20/06/27 11:58",
+            LocalDateTime.of(2020, 6, 27, 11, 58));
+    stringToDatetime.put("2020-06-27T11:58:53.084+0800",
+            LocalDateTime.of(2020, 6, 27, 11, 58, 53, 84 * MILLISEC_TO_NANOSEC));
+    stringToDatetime.put("2020-06-27T11:58:53",
+            LocalDateTime.of(2020, 6, 27, 11, 58, 53));
+    stringToDatetime.put("2020-06-27T11:58",
+            LocalDateTime.of(2020, 6, 27, 11, 58));
 
-    String proxyLog = "2020-07-23 04:22:44,573 INFO  ProcessUtils - Starting Alluxio Proxy.\n" +
-            "2020-07-23 04:22:44,586 INFO  log - Logging initialized @335ms to org.eclipse.jetty.util.log.Slf4jLog\n" +
-            "2020-07-23 04:22:44,765 INFO  TieredIdentityFactory - Initialized tiered identity TieredIdentity(node=FsmetaV2SmallFileASYNC-THROUGH-585-masters-1, rack=null)\n" +
-            "2020-07-23 04:22:44,773 INFO  WebServer - Alluxio Proxy Web service starting @ /0.0.0.0:39999\n" +
-            "2020-07-23 04:22:44,775 INFO  Server - jetty-9.4.28.v20200408; built: 2020-04-08T17:49:39.557Z; git: ab228fde9e55e9164c738d7fa121f8ac5acd51c9; jvm 1.8.0_242-b08\n" +
-            "2020-07-23 04:22:44,795 WARN  SecurityHandler - ServletContext@o.e.j.s.ServletContextHandler@448ff1a8{/,null,STARTING} has uncovered http methods for path: /\n" +
-            "2020-07-23 04:22:50,799 INFO  ContextHandler - Started o.e.j.s.ServletContextHandler@448ff1a8{/,null,AVAILABLE}\n" +
-            "2020-07-23 04:22:50,810 INFO  AbstractConnector - Started ServerConnector@2b98378d{HTTP/1.1, (http/1.1)}{0.0.0.0:39999}\n" +
-            "2020-07-23 04:22:50,811 INFO  Server - Started @6560ms\n" +
-            "2020-07-23 04:22:50,811 INFO  WebServer - Alluxio Proxy Web service started @ /0.0.0.0:39999";
-    File proxyLogFile = new File(mTestDir, "proxy.log");
-    writeToFile(proxyLogFile, proxyLog);
-    LocalDateTime proxyDatetime = CollectLogCommand.inferFileStartTime(proxyLogFile);
-    expectedDatetime = LocalDateTime.of(2020, 7, 23, 4, 22, 44,
-            573 * MILLISEC_TO_NANOSEC);
-    assertThat(String.format("Expected datetime is %s but inferred %s from file%n",
-            expectedDatetime, proxyDatetime),
-            proxyDatetime,
-            new DatetimeMatcher().setDatetime(expectedDatetime));
+    for (Map.Entry<String, LocalDateTime> entry : stringToDatetime.entrySet()) {
+      String key = entry.getKey();
+      LocalDateTime expectedDatetime = entry.getValue();
+      LocalDateTime parsedDatetime = CollectLogCommand.parseDateTime(key);
+      assertThat(String.format("Expected datetime is %s but parsed %s from string %s%n",
+              expectedDatetime, parsedDatetime, key),
+              parsedDatetime,
+              new DatetimeMatcher().setDatetime(expectedDatetime));
+    }
   }
 
   private void writeToFile(File f, String content) throws IOException {
