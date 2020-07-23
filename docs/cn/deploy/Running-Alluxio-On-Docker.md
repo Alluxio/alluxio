@@ -55,11 +55,11 @@ $ exit
 
 Alluxio容器用host volume或named volume都可以。出于测试目的话，建议使用host volume，因为它是最容易使用的volume，并且性能非常好。更重要的是，你知道在主机文件系统中所引用数据的位置，并且可以在容器外部直接和很容易的做针对文件的操作。
 
-因此，我们将使用host volume并将host目录 '/ alluxio_ufs'挂载到容器路径 '/ opt / alluxio / underFSStorage'，这是Alluxio docker镜像中Alluxio UFS root挂载点的默认设置：
+因此，我们将使用host volume并将host目录 `/ alluxio_ufs`挂载到容器路径 `/ opt / alluxio / underFSStorage`，这是Alluxio docker镜像中Alluxio UFS root挂载点的默认设置：
   ```console
   $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
   ```
-当然，您可以选择安装到其他路径来代替 '/ alluxio_ufs'。从2.1版本开始，Alluxio Docker镜像默认以'alluxio'用户运行。UID为1000和GID1000。确保运行Docker镜像的用户可写该文件。
+当然，您可以选择安装到其他路径来代替 `/ alluxio_ufs`。从2.1版本开始，Alluxio Docker镜像默认以`alluxio`用户运行。UID为1000和GID1000。确保运行Docker镜像的用户可写该文件。
 
 ## 启动Alluxio Master和Worker容器
 
@@ -105,11 +105,11 @@ $ docker run -d --rm \
 
 注意：
 
-  1. 参数 'net = host' 告诉Docker使用主机网络。在这种设置下，容器直接使用主机的网络适配器。
-所有容器都将具有与Docker主机相同的主机名和IP地址，并且所有主机的端口也都直接映射到容器。因此，所有必需的容器端口 '19999、19998、29999、30000' 都通过Docker主机允许客户端访问。[在此处](https://docs.docker.com/network/host/)可以找到有关此设置的更多详细信息。
-  1. 参数 '-e ALLUXIO_JAVA_OPTS =“-Dalluxio.worker.memory.size = 1G -Dalluxio.master.hostname = $（hostname -I）”' 分配worker的内存容量并绑定master地址。使用'host'网络驱动程序时，不能通过master容器名来引用'alluxio-master'，否则将报 “No Alluxio worker available” 错误。而是应通过主机IP地址引用它。 '$（hostname -i' 要改用Docker主机的名称。
-  1. 参数'--shm-size = 1G'将为workers分配 '1G' tmpfs存储Alluxio数据。
-  1. 参数 '-v / alluxio_ufs：/ opt / alluxio / underFSStorage' 指引Docker使用host volume并将Alluxio UFS根数据保留在主机目录 '/ alluxio_ufs'中，如上文在Docker volume部分所述。
+  1. 参数 `net = host` 告诉Docker使用主机网络。在这种设置下，容器直接使用主机的网络适配器。
+所有容器都将具有与Docker主机相同的主机名和IP地址，并且所有主机的端口也都直接映射到容器。因此，所有必需的容器端口 `19999、19998、29999、30000` 都通过Docker主机允许客户端访问。[在此处](https://docs.docker.com/network/host/)可以找到有关此设置的更多详细信息。
+  1. 参数 `-e ALLUXIO_JAVA_OPTS =“-Dalluxio.worker.memory.size = 1G -Dalluxio.master.hostname = $（hostname -I）”` 分配worker的内存容量并绑定master地址。使用`host`网络驱动程序时，不能通过master容器名来引用`alluxio-master`，否则将报 “No Alluxio worker available” 错误。而是应通过主机IP地址引用它。 `$（hostname -i` 要改用Docker主机的名称。
+  1. 参数`--shm-size = 1G`将为workers分配 `1G` tmpfs存储Alluxio数据。
+  1. 参数 `-v / alluxio_ufs：/ opt / alluxio / underFSStorage` 指引Docker使用host volume并将Alluxio UFS根数据保留在主机目录 `/ alluxio_ufs`中，如上文在Docker volume部分所述。
 
 ### 选项B：启动使用用户自定义网络Docker Alluxio容器
 
@@ -153,16 +153,16 @@ $ docker run -d --rm \
 
 Notes:
 
-  1. 参数 'net = alluxio_network' 告诉Docker使用用户自定义桥接网络 'alluxio_network'。所有容器都将使用其自己的容器ID作为其主机名，每个容器在网络subnet中具有不同的IP地址。除非定义了防火墙策略，否则连接到相同用户定义桥接网络的容器可以有效地将所有端口对彼此开放。可以[在此处](https://docs.docker.com/network/bridge/)找到有关桥接网络驱动程序的更多详细信息 。 
-  1. 仅指定的端口（'-p' 选项）公开给客户端所在外部网络。命令 '-p <host-port>：<container-port>' 会将容器端口映射到主机端口。因此，必须明确开放master容器两个端口19999和19998和worker容器端口29999和30000。否则，客户端将无法与master和worker进行通信。
-  1. 如果所有通信都在docker网络内部（例如，没有在docker网络外部客户端），可以通过容器名称（'alluxio-master' for master容器， 'alluxio-worker' for worker容器）或通过Docker主机的IP地址$ {'hostname -i'）主机来引用容器 。否则，就必须指定客户端可以访问的master和worker的docker主机IP（例如, 通过'-Dalluxio.worker.hostname = $（hostname -I'））。这是docker网络外部客户端与master/worker通信所必需的。否则，客户端将无法连接到worker，因为它们无法识别worker的容器ID。将触发以下错误：
+  1. 参数 `net = alluxio_network` 告诉Docker使用用户自定义桥接网络 `alluxio_network`。所有容器都将使用其自己的容器ID作为其主机名，每个容器在网络subnet中具有不同的IP地址。除非定义了防火墙策略，否则连接到相同用户定义桥接网络的容器可以有效地将所有端口对彼此开放。可以[在此处](https://docs.docker.com/network/bridge/)找到有关桥接网络驱动程序的更多详细信息 。 
+  1. 仅指定的端口（`-p` 选项）公开给客户端所在外部网络。命令 `-p <host-port>：<container-port>` 会将容器端口映射到主机端口。因此，必须明确开放master容器两个端口19999和19998和worker容器端口29999和30000。否则，客户端将无法与master和worker进行通信。
+  1. 如果所有通信都在docker网络内部（例如，没有在docker网络外部客户端），可以通过容器名称（`alluxio-master` for master容器， `alluxio-worker` for worker容器）或通过Docker主机的IP地址$ {`hostname -i`）主机来引用容器 。否则，就必须指定客户端可以访问的master和worker的docker主机IP（例如, 通过`-Dalluxio.worker.hostname = $（hostname -I`））。这是docker网络外部客户端与master/worker通信所必需的。否则，客户端将无法连接到worker，因为它们无法识别worker的容器ID。将触发以下错误：
      ```
      Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
 
 ## 验证集群
 
-要验证服务是否已启动，运行 'docker ps'。应该看到类似如下信息
+要验证服务是否已启动，运行 `docker ps`。应该看到类似如下信息
 ```console
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
@@ -170,9 +170,9 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
 ```
 
-如果你看不到容器，针对容器 ids 运行 'docker logs' 查看发生了什么。容器ID可以通过运行 'docker run' 命令来找到，也可以通过'docker ps -a' 命令。
+如果你看不到容器，针对容器 ids 运行 `docker logs` 查看发生了什么。容器ID可以通过运行 `docker run` 命令来找到，也可以通过`docker ps -a` 命令。
 
-访问 'instance-hostname'：19999 查看Alluxio Web UI。应该看到一个worker已连接并提供 '1024MB' 的空间。
+访问 `instance-hostname`：19999 查看Alluxio Web UI。应该看到一个worker已连接并提供 `1024MB` 的空间。
 
 如要运行测试，先进入worker容器执行
 
@@ -216,10 +216,10 @@ for line in textFile_RDD.collect():
 如果属性值包含空格，则必须使用单引号将其转义。
 
 ```
--e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2='value2 with spaces'"
+-e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2=`value2 with spaces`"
 ```
 
-镜像启动时Alluxio环境变量将被复制到 'conf / alluxio-env.sh'。如果你没有看到某个属性生效，请确保容器'conf / alluxio-env.sh' 文件中此特性拼写正确。您可以使用以下命令来检查此文件内容。
+镜像启动时Alluxio环境变量将被复制到 `conf / alluxio-env.sh`。如果你没有看到某个属性生效，请确保容器`conf / alluxio-env.sh` 文件中此特性拼写正确。您可以使用以下命令来检查此文件内容。
 
 ```console
 $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
@@ -290,7 +290,7 @@ $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
 ```
 
-当启动workers和客户端时，增加以下参数运行docker容器 '-v / tmp / domain：/ opt / domain' 以共享domain socket目录。同时在启动worker容器时通过传递以下设置来配置'domain socket'属性 'alluxio.worker.data.server.domain.socket.address = / opt / domain' 和 'alluxio.worker.data.server.domain.socket.as.uuid = true'。
+当启动workers和客户端时，增加以下参数运行docker容器 `-v / tmp / domain：/ opt / domain` 以共享domain socket目录。同时在启动worker容器时通过传递以下设置来配置`domain socket`属性 `alluxio.worker.data.server.domain.socket.address = / opt / domain` 和 `alluxio.worker.data.server.domain.socket.as.uuid = true`。
 
 ```console
 $ docker run -d \
@@ -302,14 +302,14 @@ $ docker run -d \
 
 ### 重新启动Alluxio服务器
 
-重新启动Alluxio master时，请使用 '--no-format' 标志以避免重新格式化日志。日志仅应在第一次运行镜像时进行格式化。格式化日志会删除所有Alluxio元数据，并以全空白状态启动集群。
+重新启动Alluxio master时，请使用 `--no-format` 标志以避免重新格式化日志。日志仅应在第一次运行镜像时进行格式化。格式化日志会删除所有Alluxio元数据，并以全空白状态启动集群。
 
 ### 激活POSIX API访问
 
 
 使用 [alluxio / alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/)，您可以激活使用POSIX API对Alluxio的访问。
 
-启动具有[SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html) 权限功能的容器。以下命令在一个需要通过POSIX API访问Alluxio的客户端上启动FUSE daemon程序， 挂载访问路径为 '/ alluxio-fuse'。
+启动具有[SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html) 权限功能的容器。以下命令在一个需要通过POSIX API访问Alluxio的客户端上启动FUSE daemon程序， 挂载访问路径为 `/ alluxio-fuse`。
 
 ```console
 $ docker run -e \
@@ -322,4 +322,7 @@ $ docker run -e \
 ## 故障排除
 
 可以通过运行docker访问Alluxio服务器日志 logs $ container_id。通常，日志可以很好地指出什么地方出了问题。如果它们不足以诊断您的问题，则可以在[用户邮件列表](https://groups.google.com/forum/#!forum/alluxio-users).上获得帮助 。
+
+
+
 
