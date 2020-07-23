@@ -4616,15 +4616,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
       new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable start JVM monitor thread on master.")
+          .setDefaultValue(true)
+          .setDescription("Whether to enable start JVM monitor thread on the master. This will "
+              + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey WORKER_JVM_MONITOR_ENABLED =
       new Builder(Name.WORKER_JVM_MONITOR_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable start JVM monitor thread on worker.")
+          .setDefaultValue(true)
+          .setDescription("Whether to enable start JVM monitor thread on the worker. This will "
+              + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
