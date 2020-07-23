@@ -23,19 +23,19 @@ Alluxio服务的高可用性（HA）是通过在系统多个不同节点上运�
 ## 前提条件
 
 * 要部署Alluxio群集，首先 下载 预编译的Alluxio二进制文件，解压缩tarball文件并将解压的目录复制到所有节点（包括运行master和worker的所有节点）。
-* 激活不需要密码的从master节点到worker节点的SSH登录。 可以将主机的公共SSH密钥添加到'〜/ .ssh / authorized_keys'中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
+* 激活不需要密码的从master节点到worker节点的SSH登录。 可以将主机的公共SSH密钥添加到`〜/ .ssh / authorized_keys`中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
 * 开放所有节点之间的TCP通信。 对于基本功能，确保所有节点上RPC端口都是打开的（default：19998）。
 
 ## 基本配置
 ### 选项1：基于Raft的嵌入式日志
 
-HA集群的最小配置是将嵌入式日志地址提供给集群内的所有节点。在每个Alluxio节点上，依据模板创建 'conf / alluxio-site.properties' 配置文件。
+HA集群的最小配置是将嵌入式日志地址提供给集群内的所有节点。在每个Alluxio节点上，依据模板创建 `conf / alluxio-site.properties` 配置文件。
 
 ```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-将以下属性添加到 'conf / alluxio-site.properties' 文件：
+将以下属性添加到 `conf / alluxio-site.properties` 文件：
 
 ```properties
 alluxio.master.hostname=<MASTER_HOSTNAME> # 仅在master节点上需要
@@ -44,13 +44,13 @@ alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 ```
 
 说明:
-- 第一个属性'alluxio.master.hostname = <MASTER_HOSTNAME>' 每个master节点上必须是其自身外部可访问主机名。master quorum的每个单独组成部分都需要具有自己的地址集。在worker节点上，此参数将被忽略。示例包括 'alluxio.master.hostname = 1.2.3.4'， 'alluxio.master.hostname = node1.a.com'。
-- 第二个属性 'alluxio.master.mount.table.root.ufs = <STORAGE_URI>' 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括'alluxio.master.mount.table.root.ufs = hdfs：//1.2.3.4：9000 / alluxio / root /'或'alluxio.master.mount.table.root.ufs = s3：// bucket / dir /' 。
-- 第三个属性 'alluxio.master.embedded.journal.addresses' 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 '19200'。例如： 'alluxio.master.embedded.journal.addresses = master_hostname_1：19200，master_hostname_2：19200，master_hostname_3：19200'
+- 第一个属性`alluxio.master.hostname = <MASTER_HOSTNAME>` 每个master节点上必须是其自身外部可访问主机名。master quorum的每个单独组成部分都需要具有自己的地址集。在worker节点上，此参数将被忽略。示例包括 `alluxio.master.hostname = 1.2.3.4`， `alluxio.master.hostname = node1.a.com`。
+- 第二个属性 `alluxio.master.mount.table.root.ufs = <STORAGE_URI>` 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs = hdfs：//1.2.3.4：9000 / alluxio / root /`或`alluxio.master.mount.table.root.ufs = s3：// bucket / dir /` 。
+- 第三个属性 `alluxio.master.embedded.journal.addresses` 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 `19200`。例如： `alluxio.master.embedded.journal.addresses = master_hostname_1：19200，master_hostname_2：19200，master_hostname_3：19200`
 
 Note that embedded journal feature relies on  which has built-in leader election.
 The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match.
-Enabling embedded journal enables Alluxio's internal leader election.
+Enabling embedded journal enables Alluxio`s internal leader election.
 See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 for more details and alternative ways to set up HA cluster with internal leader election.
 
@@ -74,28 +74,28 @@ alluxio.master.journal.folder=<JOURNAL_URI>
 ```
 
 说明：
-- 属性 'alluxio .zookeeper.enabled = true masters'启用HA模式，并通知workers已启用HA模式。
-- 属性 'alluxio.zookeeper.address = <ZOOKEEPER_ADDRESS>' ，'alluxio.zookeeper.enabled' 启用时设置ZooKeeper地址 。 HA masters将使用ZooKeeper进行leader选举。可以使用逗号分隔来指定多个ZooKeeper地址。实例包括 'alluxio.zookeeper.address =1.2.3.4：2181'，'alluxio.zookeeper.address = ZK1：2181，ZK2：2181，ZK3：2181'
-- 属性 'alluxio.master.journal.type = UFS' 表示UFS被用来存放日志。注意，Zookeeper无法使用日志类型 EMBEDDED （使用masters中embedded日志）。
-- 属性 'alluxio.master.journal.folder = <JOURNAL_URI>' 设置共享日志位置的URI，以供Alluxio leading master写入日志，以及做为standby masters重播日志条目依据。所有主节点都必须可以访问此共享存储系统。示例包括 'alluxio.master.journal.folder = hdfs：//1.2.3.4：9000 / alluxio / journal /'
+- 属性 `alluxio .zookeeper.enabled = true masters`启用HA模式，并通知workers已启用HA模式。
+- 属性 `alluxio.zookeeper.address = <ZOOKEEPER_ADDRESS>` ，`alluxio.zookeeper.enabled` 启用时设置ZooKeeper地址 。 HA masters将使用ZooKeeper进行leader选举。可以使用逗号分隔来指定多个ZooKeeper地址。实例包括 `alluxio.zookeeper.address =1.2.3.4：2181`，`alluxio.zookeeper.address = ZK1：2181，ZK2：2181，ZK3：2181`
+- 属性 `alluxio.master.journal.type = UFS` 表示UFS被用来存放日志。注意，Zookeeper无法使用日志类型 EMBEDDED （使用masters中embedded日志）。
+- 属性 `alluxio.master.journal.folder = <JOURNAL_URI>` 设置共享日志位置的URI，以供Alluxio leading master写入日志，以及做为standby masters重播日志条目依据。所有主节点都必须可以访问此共享存储系统。示例包括 `alluxio.master.journal.folder = hdfs：//1.2.3.4：9000 / alluxio / journal /`
 
 
-确保所有master nodes和所有worker nodes都已正确配置了各自相应的 'conf / alluxio-site.properties' 配置文件。
+确保所有master nodes和所有worker nodes都已正确配置了各自相应的 `conf / alluxio-site.properties` 配置文件。
 
 一旦以上述方式配置了所有Alluxio masters和workers ，即可开始格式化和启动Alluxio。
 
 #### Zookeeper的高级设置
 对于具有较大规模名称空间的集群，leader上较大的CPU开销可能会导致Zookeeper客户端heartbeats延迟。因此，我们建议在名称空间大小超过几亿个文件的大型集群上将Zookeeper客户端session timeout设置为至少2分钟。
 - `alluxio.zookeeper.session.timeout=120s`
-  - Zookeeper服务器的最小/最大session timeout也必须配置为允许此timeout值。默认值要求timeout至少是的2倍 'tickTime' （如服务器配置中设置），最大是'tickTime'的20倍。也可以手动配置 'minSessionTimeout' 和 'maxSessionTimeout'。
+  - Zookeeper服务器的最小/最大session timeout也必须配置为允许此timeout值。默认值要求timeout至少是的2倍 `tickTime` （如服务器配置中设置），最大是`tickTime`的20倍。也可以手动配置 `minSessionTimeout` 和 `maxSessionTimeout`。
 
 Alluxio支持在Zookeeper leader选举中使用pluggable错误处理策略。
-- 'alluxio.zookeeper.leader.connection.error.policy' 指定如何处理连接错误。它可以是 'SESSION' 或 'STANDARD'。默认设置 为'SESSION' 。 
+- `alluxio.zookeeper.leader.connection.error.policy` 指定如何处理连接错误。它可以是 `SESSION` 或 `STANDARD`。默认设置 为`SESSION` 。 
 
- 'Session' 策略是利用Zookeeper sessions以确定leader状态是否健康。这意味着只要leader能够用同一session重新建立Zookeeper连接，暂停的连接不会直接触发目前leader退出。通过保持leader状态为系统提供了更好的稳定性。
+ `Session` 策略是利用Zookeeper sessions以确定leader状态是否健康。这意味着只要leader能够用同一session重新建立Zookeeper连接，暂停的连接不会直接触发目前leader退出。通过保持leader状态为系统提供了更好的稳定性。
 
 
-'STANDARD' 策略把任何对zookeeper服务器的中断都视为错误。因此，即使其内部Zookeeper session与Zookeeper服务器之间没有任何问题，leader也将因错过心跳而退出。它为防止Zookeeper设置本身的错误和问题提供了更高的安全性。
+`STANDARD` 策略把任何对zookeeper服务器的中断都视为错误。因此，即使其内部Zookeeper session与Zookeeper服务器之间没有任何问题，leader也将因错过心跳而退出。它为防止Zookeeper设置本身的错误和问题提供了更高的安全性。
 
 ## 启动具有HA的Alluxio集群
 
@@ -113,7 +113,7 @@ $ ./bin/alluxio format
 
 ### 启动Alluxio
 
-如使用提供的脚本来启动Alluxio集群，在所有master节点上，在 'conf/workers' 文件中列出所有workers主机名。这将允许启动脚本在相应的节点上启动相应的进程。
+如使用提供的脚本来启动Alluxio集群，在所有master节点上，在 `conf/workers` 文件中列出所有workers主机名。这将允许启动脚本在相应的节点上启动相应的进程。
 
 在主节点上，运行以下命令启动Alluxio群集：
 
@@ -121,7 +121,7 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh all SudoMount
 ```
 
-这将在'conf/masters'文件中指定的所有节点上启动 Alluxio master，并在'conf / workers'文件中指定的所有节点上启动所有workers。 'SudoMount'参数使workers可以尝试使用'sudo'特权来挂载RamFS，如果尚未挂载。
+这将在`conf/masters`文件中指定的所有节点上启动 Alluxio master，并在`conf / workers`文件中指定的所有节点上启动所有workers。 `SudoMount`参数使workers可以尝试使用`sudo`特权来挂载RamFS，如果尚未挂载。
 
 ### 验证Alluxio群集
 
@@ -131,7 +131,7 @@ $ ./bin/alluxio-start.sh all SudoMount
 $ ./bin/alluxio fs leader
 ```
 
-然后，访问 'http://<LEADER_HOSTNAME>:19999' 以查看Alluxio leading master的状态页面。
+然后，访问 `http://<LEADER_HOSTNAME>:19999` 以查看Alluxio leading master的状态页面。
 
 Alluxio带有一个简单的程序可以在Alluxio中读写示例文件。 使用以下命令运行示例程序：
 
@@ -145,7 +145,7 @@ $ ./bin/alluxio runTests
 
 ### 在配置参数中指定Alluxio服务
 
-用户可以在环境变量或站点属性中预先配置Alluxio HA集群的服务地址，然后使用Alluxio URI连接服务， 如'alluxio:/// path'其中连接HA集群所需详细信息已使用通过这些参数配置完成。例如，如果使用Hadoop，则可以在'core-site.xml'中配置属性，然后使用Hadoop CLI和Alluxio URI。
+用户可以在环境变量或站点属性中预先配置Alluxio HA集群的服务地址，然后使用Alluxio URI连接服务， 如`alluxio:/// path`其中连接HA集群所需详细信息已使用通过这些参数配置完成。例如，如果使用Hadoop，则可以在`core-site.xml`中配置属性，然后使用Hadoop CLI和Alluxio URI。
 
 ```console
 $ hadoop fs -ls alluxio:///directory
@@ -153,13 +153,13 @@ $ hadoop fs -ls alluxio:///directory
 
 根据实现HA的不同方法，需要设置不同的属性：
 
-- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性'alluxio.master.rpc.addresses'来确定要查询的节点地址。例如，
+- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如，
 ```
 alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
  master_hostname_3:19998`
 ```
 
-- 使用Zookeeper连接到Alluxio HA集群时，需要以下属性设置才能连接到Zookeeper以获取leading Master信息。注意，当启用'alluxio.zookeeper.enabled'时必须指定ZooKeeper地址（'alluxio.zookeeper.address'） ，反之亦然。可以通过用逗号间隔来指定多个ZooKeeper地址
+- 使用Zookeeper连接到Alluxio HA集群时，需要以下属性设置才能连接到Zookeeper以获取leading Master信息。注意，当启用`alluxio.zookeeper.enabled`时必须指定ZooKeeper地址（`alluxio.zookeeper.address`） ，反之亦然。可以通过用逗号间隔来指定多个ZooKeeper地址
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
@@ -169,12 +169,12 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
 
-- 使用嵌入式日志时，使用 'alluxio：// master_hostname_1：19998'，'master_hostname_2：19998，master_hostname_3：19998 / path'
-- 使用Zookeeper做leader选举时，使用 'alluxio：// zk @ <ZOOKEEPER_ADDRESS> / path'。
+- 使用嵌入式日志时，使用 `alluxio：// master_hostname_1：19998`，`master_hostname_2：19998，master_hostname_3：19998 / path`
+- 使用Zookeeper做leader选举时，使用 `alluxio：// zk @ <ZOOKEEPER_ADDRESS> / path`。
 
-对于许多应用程序（例如，Hadoop，HBase，Hive和Flink），可以使用逗号作为URI中多个地址的分隔符，例如 'alluxio：// master_hostname_1：19998，master_hostname_2：19998，master_hostname_3：19998 / path' 和 'alluxio ：// zk @ zkHost1：2181，zkHost2：2181，zkHost3：2181 / path'。
+对于许多应用程序（例如，Hadoop，HBase，Hive和Flink），可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio：// master_hostname_1：19998，master_hostname_2：19998，master_hostname_3：19998 / path` 和 `alluxio ：// zk @ zkHost1：2181，zkHost2：2181，zkHost3：2181 / path`。
 
-对于URL Authority内不接受逗号的其他一些应用程序（例如Spark），需要使用分号作为多个地址的分隔符，例如 'alluxio：// master_hostname_1：19998; master_hostname_2：19998; master_hostname_3：19998' 和 'alluxio： // zk @ zkHost1：2181; zkHost2：2181; zkHost3：2181 / path'。
+对于URL Authority内不接受逗号的其他一些应用程序（例如Spark），需要使用分号作为多个地址的分隔符，例如 `alluxio：// master_hostname_1：19998; master_hostname_2：19998; master_hostname_3：19998` 和 `alluxio： // zk @ zkHost1：2181; zkHost2：2181; zkHost3：2181 / path`。
 
 ## 常见操作
 
@@ -188,7 +188,7 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 $ ./bin/alluxio-stop.sh all
 ```
 
-这将停止'conf / workers'和'conf / masters'中列出的所有节点上的所有进程。
+这将停止`conf / workers`和`conf / masters`中列出的所有节点上的所有进程。
 
 可以使用以下命令仅停止master和worker：
 
@@ -197,7 +197,7 @@ $ ./bin/alluxio-stop.sh masters # 停止所有conf/masters 的 masters
 $ ./bin/alluxio-stop.sh workers # 停止所有conf/workers 的 workers  
 ```
 
-如果不想使用'ssh'登录所有节点来停止所有进程，可以在每个节点上运行命令以停止每个组件。 对于任何节点，可以使用以下命令停止master节点或worker节点：
+如果不想使用`ssh`登录所有节点来停止所有进程，可以在每个节点上运行命令以停止每个组件。 对于任何节点，可以使用以下命令停止master节点或worker节点：
 
 ```console
 $ ./bin/alluxio-stop.sh master # 停止 local master
@@ -219,7 +219,7 @@ $ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
 $ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
 
-如果不想使用'ssh'登录所有节点来启动所有进程，可以在每个节点上运行命令以启动每个组件。 对于任何节点，可以使用以下命令启动master节点或worker节点：
+如果不想使用`ssh`登录所有节点来启动所有进程，可以在每个节点上运行命令以启动每个组件。 对于任何节点，可以使用以下命令启动master节点或worker节点：
 
 ```console
 $ ./bin/alluxio-start.sh master # starts the local master
@@ -262,12 +262,12 @@ $ ./bin/alluxio-stop.sh worker # 停止 local worker
 
 ### 更新master侧配置
 
-为了更新master配置，必须首先 [停止服务](#stop-alluxio)，更新master节点上的 'conf / alluxio-site.properties' 文件，然后 [重新启动服务](#restart-alluxio)。注意，这种方法会导致Alluxio服务停机。
+为了更新master配置，必须首先 [停止服务](#stop-alluxio)，更新master节点上的 `conf / alluxio-site.properties` 文件，然后 [重新启动服务](#restart-alluxio)。注意，这种方法会导致Alluxio服务停机。
 作为替代方案，在HA模式下运行Alluxio的一个好处是可以使用滚动重启来最大程度地减少更新配置导致的停机时间：
 
 
 1. 在不重启任何master情况下更新所有master节点master配置。
-1. 重新启动leading master（可以通过运行 'bin / alluxio leader '确定当前leading master）。请注意，因为重启当前leading master, 新选出的leading master会保持服务连贯性。
+1. 重新启动leading master（可以通过运行 `bin / alluxio leader `确定当前leading master）。请注意，因为重启当前leading master, 新选出的leading master会保持服务连贯性。
 1. 等待先前的leading master成功作为standby master完成启动。
 1. 更新并重新启动所有剩余的standby masters
 1. 验证配置更新
@@ -275,4 +275,6 @@ $ ./bin/alluxio-stop.sh worker # 停止 local worker
 
 ### 更新worker侧配置
 
-如果只需要为worker节点更新某些本地配置（例如，更改分配给该worker的存储容量或更新存储路径），则无需停止并重新启动master节点。 可以只停止本地worker，更新此worker上的配置（例如'conf / alluxio-site.properties'）文件，然后重新启动此worker。
+如果只需要为worker节点更新某些本地配置（例如，更改分配给该worker的存储容量或更新存储路径），则无需停止并重新启动master节点。 可以只停止本地worker，更新此worker上的配置（例如`conf / alluxio-site.properties`）文件，然后重新启动此worker。
+
+
