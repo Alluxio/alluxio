@@ -15,7 +15,7 @@ set -e
 
 readonly ALLUXIO_DOWNLOAD_URL=${1}
 readonly DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-readonly SCRIPT="alluxio.sh"
+readonly SCRIPT="alluxio-dataproc.sh"
 
 mkdir -p ${DIR}/.generated
 cp ${DIR}/${SCRIPT} ${DIR}/.generated

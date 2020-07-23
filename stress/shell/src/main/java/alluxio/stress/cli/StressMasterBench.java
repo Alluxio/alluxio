@@ -30,7 +30,9 @@ import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -442,6 +444,19 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             throw new IOException(String
                 .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
                     mParameters.mFixedCount, files.length));
+          }
+          break;
+        case ListDirLocated:
+          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePath);
+          int listedFiles = 0;
+          while (it.hasNext()) {
+            it.next();
+            listedFiles++;
+          }
+          if (listedFiles != mParameters.mFixedCount) {
+            throw new IOException(String
+                .format("listing located `%s` expected %d files but got %d files", mFixedBasePath,
+                    mParameters.mFixedCount, listedFiles));
           }
           break;
         case OpenFile:

@@ -14,7 +14,6 @@ package alluxio.stress.cli.suite;
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.util.JsonSerializable;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchParameters;
@@ -24,6 +23,7 @@ import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.JsonSerializable;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
@@ -189,6 +189,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       case GetBlockLocations: // initial state requires createFile
       case GetFileStatus:     // initial state requires createFile
       case ListDir:           // initial state requires createFile
+      case ListDirLocated:    // initial state requires createFile
       case OpenFile:          // initial state requires createFile
         createFiles(mParameters.mFixedCount, args);
         break;
@@ -218,6 +219,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       case GetBlockLocations: // do nothing
       case GetFileStatus:     // do nothing
       case ListDir:           // do nothing
+      case ListDirLocated:    // do nothing
       case OpenFile:          // do nothing
       case CreateDir:         // do nothing
       default:

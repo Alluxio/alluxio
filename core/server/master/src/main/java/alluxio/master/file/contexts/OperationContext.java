@@ -11,19 +11,25 @@
 
 package alluxio.master.file.contexts;
 
+import com.google.protobuf.GeneratedMessageV3;
+
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Used as a base class for wrapping context around proto messages.
  *
  * @param <T> Proto message type
+ * @param <C> extended type
  */
 @NotThreadSafe
-public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.Builder<?>> {
+public class OperationContext<T extends GeneratedMessageV3.Builder, C extends OperationContext> {
   // Proto message that is being wrapped
   private T mOptionsBuilder;
   // Used to track client call status.
-  private CallTracker mCallTracker;
+  private List<CallTracker> mCallTrackers;
 
   /**
    * Creates an instance with given proto message.
@@ -31,20 +37,8 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    * @param optionsBuilder Internal proto message builder instance
    */
   public OperationContext(T optionsBuilder) {
-    this(optionsBuilder, null);
     mOptionsBuilder = optionsBuilder;
-    mCallTracker = CallTracker.DISABLED_TRACKER;
-  }
-
-  /**
-   * Creates an instance with given proto message.
-   *
-   * @param optionsBuilder Internal proto message builder instance
-   * @param callTracker client call tracker, or {@code null} if no tracking is desired
-   */
-  public OperationContext(T optionsBuilder, CallTracker callTracker) {
-    mOptionsBuilder = optionsBuilder;
-    mCallTracker = callTracker;
+    mCallTrackers = new LinkedList<>();
   }
 
   /**
@@ -55,9 +49,39 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
   }
 
   /**
-   * @return {@code true} if the call is cancelled by the client
+   * Updates this context with a new tracker.
+   *
+   * @param tracker the new call tracker
+   * @return the updated instance
    */
-  public boolean isCancelled() {
-    return mCallTracker.isCancelled();
+  public C withTracker(CallTracker tracker) {
+    mCallTrackers.add(tracker);
+    return (C) this;
+  }
+
+  /**
+   * @return the list of trackers that have cancelled this operation
+   */
+  public List<CallTracker> getCancelledTrackers() {
+    boolean trackerCancelled = false;
+    for (CallTracker tracker : mCallTrackers) {
+      if (tracker.isCancelled()) {
+        trackerCancelled = true;
+        break;
+      }
+    }
+
+    if (!trackerCancelled) {
+      return Collections.emptyList();
+    }
+
+    List<CallTracker> cancelledTrackers = new LinkedList<>();
+    for (CallTracker tracker : mCallTrackers) {
+      if (tracker.isCancelled()) {
+        cancelledTrackers.add(tracker);
+      }
+    }
+
+    return cancelledTrackers;
   }
 }

@@ -251,11 +251,11 @@ Note that this command will stop any Alluxio services running on the machine.
 The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore 
 which is an important component in compute workflows with Alluxio.
 
-`-h` provides detailed guidance.
-`-m <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
-`-d <databse_name>` the database to run tests against. Use `default` database if not provided.
-`-t` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
-`-st` socket timeout of hive metastore client in minutes.
+* `-h` provides detailed guidance.
+* `-m <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
+* `-d <databse_name>` the database to run tests against. Use `default` database if not provided.
+* `-t` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
+* `-st` socket timeout of hive metastore client in minutes.
 
 ```
 $ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales 
@@ -265,6 +265,77 @@ This tool is suggested to run from compute application environments and checks
 * if the given hive metastore uris are valid
 * if the hive metastore client connection can be established with the target server
 * if hive metastore client operations can be run against the given database and tables
+
+### runHdfsMountTests
+
+The `runHdfsMountTests` command aims to validate the configuration, connectivity and permissions of an HDFS path.
+It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues 
+before the path is mounted to Alluxio.
+This tool will validate a few criteria and return the feedback.
+If a test failed, advice will be given correspondingly on how the user can rectify the setup.
+
+Options:
+
+* `--help` provides detailed guidance.
+* `--readonly` specifies the mount point should be readonly in Alluxio.
+* `--shared` specifies the mount point should be accessible for all Alluxio users.
+* `--option <key>=<val>` passes an property to this mount point.
+* `<hdfs-path>` specifies the HDFS path you want to validate (then mount to Alluxio)
+
+The arguments to this command should be consistent to what you give to the 
+[Mount command](#mount), in order to validate the setup for the mount.
+
+```console
+# If this is your mount command
+$ bin/alluxio fs mount --readonly --option alluxio.underfs.version=2.7 \
+  --option alluxio.underfs.hdfs.configuration=/etc/hadoop/core-site.xml:/etc/hadoop/hdfs-site.xml \
+  <alluxio-path> hdfs://<hdfs-path>
+
+# Pass the same options to runHdfsMountTests
+$ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 \
+  --option alluxio.underfs.hdfs.configuration=/etc/hadoop/core-site.xml:/etc/hadoop/hdfs-site.xml \
+  hdfs://<hdfs-path>
+```
+
+> Note: This command DOES NOT mount the HDFS path to Alluxio.
+
+### runUfsIOTest
+
+The `runUfsIOTest` command measures the read/write IO throughput from Alluxio cluster to the target HDFS.
+
+Options:
+
+* `-h, --help` provides detailed guidance.
+* `--path <hdfs-path>` specifies the path to write/read temporary data in. This is a compulsory field.
+* `--io-size <io-size>` specifies the amount of data each thread writes/reads. It defaults to "4G".
+* `--threads <thread-num>` specifies the number of threads to concurrently use on each worker. It defaults to 4.
+* `--cluster` specifies the benchmark is run in the Alluxio cluster. If not specified, this benchmark will run locally.
+* `--cluster-limit <worker-num>` specifies how many Alluxio workers to run the benchmark concurrently.
+       If `>0`, it will only run on that number of workers. 
+       If `0`, it will run on all available cluster workers. 
+       If `<0`, will run on the workers from the end of the worker list. 
+       This flag is only used if `--cluster` is enabled.
+       This default to 0.
+* `--java-opt <java-opt>` The java options to add to the command line to for the task. 
+       This can be repeated. The options must be quoted and prefixed with a space. 
+       For example: `--java-opt " -Xmx4g" --java-opt " -Xms2g"`.
+
+Examples:
+```console
+# This runs the I/O benchmark to HDFS in your process locally
+$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
+
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data 
+$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
+
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 2 workers will be used
+# 2 threads will be created on each worker
+# Each thread is writing then reading 512m of data
+$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 \
+  --io-size 512m --threads 2
+```
 
 ### runMesosTest
 

@@ -21,5 +21,5 @@ public interface ValidationTool {
    *
    * @return a json string of the test results
    */
-  String runTests();
+  String runTests() throws InterruptedException;
 }

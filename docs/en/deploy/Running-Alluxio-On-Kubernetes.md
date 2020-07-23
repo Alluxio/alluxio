@@ -1034,8 +1034,8 @@ To verify short-circuit reads and writes monitor the metrics displayed under:
 
 ## Troubleshooting
 
-### Worker Host Unreachable
-
+{% accordion worker_host %}
+  {% collapsible Worker Host Unreachable %}
 Alluxio workers use host networking with the physical host IP as the hostname. Check the cluster
 firewall if an error such as the following is encountered:
 ```
@@ -1053,16 +1053,16 @@ Check access to the given port from a remote client using a network utility such
 ```console
 $ nc -zv <IP> 29999
 ```
+  {% endcollapsible %}
 
-### Permission Denied
-
+  {% collapsible Permission Denied %}
 From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with
 UID 1000 and GID 1000 by default.
 Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
 are only writable by root so you need to update the permission accordingly. 
+  {% endcollapsible %}
 
-### Enable Debug Logging
-
+  {% collapsible Enable Debug Logging %}
 To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
 follows:
 
@@ -1075,9 +1075,9 @@ From the master Pod, execute the following:
 ```console
 $ alluxio logLevel --level DEBUG --logName alluxio
 ```
+  {% endcollapsible %}
 
-### Accessing Logs
-
+  {% collapsible Accessing Logs %}
 The Alluxio master and job master run as separate containers of the master Pod. Similarly, the
 Alluxio worker and job worker run as separate containers of a worker Pod. Logs can be accessed for
 the individual containers as follows.
@@ -1101,9 +1101,9 @@ Job Worker:
 ```console
 $ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 ```
+  {% endcollapsible %}
 
-### POSIX API
-
+  {% collapsible POSIX API %}
 In order for an application container to mount the `hostPath` volume, the node running the container
 must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` runs as a DaemonSet,
 launching an Alluxio FUSE daemon on each node of the cluster.
@@ -1115,3 +1115,5 @@ If there are issues accessing Alluxio using the POSIX API:
 that node.
 1. Tail logs for the identified Pod to view any errors encountered:
 `kubectl logs -f alluxio-fuse-<id>`.
+  {% endcollapsible %}
+{% endaccordion %}

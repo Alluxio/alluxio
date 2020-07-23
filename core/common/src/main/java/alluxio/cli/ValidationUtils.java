@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.AlluxioURI;
+
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -40,6 +42,7 @@ public final class ValidationUtils {
 
     State mState = State.OK;
     String mName = "";
+    String mDesc = "";
     // Output stores stdout if test passed or stderr if error thrown
     String mOutput = "";
     String mAdvice = "";
@@ -55,6 +58,23 @@ public final class ValidationUtils {
     public TaskResult(State state, String name, String output, String advice) {
       mState = state;
       mName = name;
+      mOutput = output;
+      mAdvice = advice;
+    }
+
+    /**
+     * Creates a new {@link TaskResult}.
+     *
+     * @param state task state
+     * @param name task name
+     * @param desc task description
+     * @param output task output
+     * @param advice task advice
+     */
+    public TaskResult(State state, String name, String desc, String output, String advice) {
+      mState = state;
+      mName = name;
+      mDesc = desc;
       mOutput = output;
       mAdvice = advice;
     }
@@ -83,6 +103,17 @@ public final class ValidationUtils {
      */
     public TaskResult setName(String name) {
       mName = name;
+      return this;
+    }
+
+    /**
+     * Sets task name.
+     *
+     * @param desc description to set
+     * @return the task result
+     */
+    public TaskResult setDesc(String desc) {
+      mDesc = desc;
       return this;
     }
 
@@ -123,6 +154,13 @@ public final class ValidationUtils {
     }
 
     /**
+     * @return task description
+     */
+    public String getDesc() {
+      return mDesc;
+    }
+
+    /**
      * @return task result
      */
     public String getResult() {
@@ -152,5 +190,19 @@ public final class ValidationUtils {
     StringWriter errors = new StringWriter();
     t.printStackTrace(new PrintWriter(errors));
     return errors.toString();
+  }
+
+  /**
+   * Checks if a path is HDFS.
+   *
+   * @param path the UFS path
+   * @return true if the path is HDFS
+   * */
+  public static boolean isHdfsScheme(String path) {
+    String scheme = new AlluxioURI(path).getScheme();
+    if (scheme == null || !scheme.startsWith("hdfs")) {
+      return false;
+    }
+    return true;
   }
 }

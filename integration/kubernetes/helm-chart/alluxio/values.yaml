@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.3.0-SNAPSHOT
+imageTag: 2.3.1-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -60,9 +60,10 @@ master:
     # alluxio.master.metastore: ROCKS
     # alluxio.master.metastore.dir: /metastore
   resources:
+    # The default xmx is 8G
     limits:
-      cpu: "1"
-      memory: "1G"
+      cpu: "4"
+      memory: "8G"
     requests:
       cpu: "1"
       memory: "1G"
@@ -70,6 +71,7 @@ master:
     embedded: 19200
     rpc: 19998
     web: 19999
+  hostPID: false
   hostNetwork: false
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
@@ -86,8 +88,8 @@ jobMaster:
   properties:
   resources:
     limits:
-      cpu: "1"
-      memory: "1G"
+      cpu: "4"
+      memory: "8G"
     requests:
       cpu: "1"
       memory: "1G"
@@ -124,16 +126,6 @@ journal:
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
-    job:
-      activeDeadlineSeconds: 30
-      ttlSecondsAfterFinished: 10
-    resources:
-      limits:
-        cpu: "1"
-        memory: "1G"
-      requests:
-        cpu: "1"
-        memory: "1G"
 
 
 # You can enable metastore to use ROCKS DB instead of Heap
@@ -159,14 +151,16 @@ worker:
   properties:
   resources:
     limits:
-      cpu: "1"
-      memory: "2G"
+      cpu: "4"
+      memory: "4G"
     requests:
       cpu: "1"
       memory: "2G"
   ports:
     rpc: 29999
     web: 30000
+  # hostPID requires escalated privileges
+  hostPID: false
   hostNetwork: false
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
@@ -183,8 +177,8 @@ jobWorker:
   properties:
   resources:
     limits:
-      cpu: "1"
-      memory: "1G"
+      cpu: "4"
+      memory: "4G"
     requests:
       cpu: "1"
       memory: "1G"
@@ -264,7 +258,7 @@ shortCircuit:
 
 fuse:
   image: alluxio/alluxio-fuse
-  imageTag: 2.3.0-SNAPSHOT
+  imageTag: 2.3.1-SNAPSHOT
   imagePullPolicy: IfNotPresent
   # Change both to true to deploy FUSE
   enabled: false
@@ -276,6 +270,8 @@ fuse:
   jvmOptions:
     - "-XX:MaxDirectMemorySize=2g"
   hostNetwork: true
+  # hostPID requires escalated privileges
+  hostPID: true
   dnsPolicy: ClusterFirstWithHostNet
   user: 0
   group: 0

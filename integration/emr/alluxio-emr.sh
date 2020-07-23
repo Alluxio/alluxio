@@ -19,7 +19,7 @@ readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
 readonly AWS_SHUTDOWN_ACTIONS_DIR="/mnt/var/lib/instance-controller/public/shutdown-actions"
 readonly HADOOP_CONF="/etc/hadoop/conf"
-readonly ALLUXIO_VERSION="2.3.0-SNAPSHOT"
+readonly ALLUXIO_VERSION="2.3.1-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 
 ####################
@@ -679,11 +679,13 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
-
       if [[ "${backup_uri}" ]]; then
         register_backup_on_shutdown "${backup_uri}"
       fi
-
+      until ${ALLUXIO_HOME}/bin/alluxio fsadmin report
+      do
+        sleep 5
+      done
       if [[ "${sync_list}" ]]; then
         IFS="${delimiter}" read -ra paths <<< "${sync_list}"
         for path in "${paths[@]}"; do

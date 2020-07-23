@@ -16,6 +16,7 @@
 {{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
 {{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
 {{- $hostNetwork := .Values.master.hostNetwork }}
+{{- $hostPID := .Values.master.hostPID }}
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
@@ -92,6 +93,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           {{- end }}
           envFrom:
           - configMapRef:
@@ -147,6 +154,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           {{- end }}
           envFrom:
           - configMapRef:

@@ -168,7 +168,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMountPoints() throws Exception {
-    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountPointInfoSummary();
     Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
     assertEquals(mountTable.size(), mountPoints.size());
     for (Map.Entry<String, MountPointInfo> mountPoint : mountTable.entrySet()) {

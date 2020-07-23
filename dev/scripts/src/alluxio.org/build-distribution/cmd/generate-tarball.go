@@ -214,6 +214,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		fmt.Sprintf("lib/alluxio-table-server-underdb-glue-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-table-server-underdb-hive-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-integration-tools-hms-%v.jar", version),
+		fmt.Sprintf("lib/alluxio-integration-tools-validation-%v.jar", version),
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}

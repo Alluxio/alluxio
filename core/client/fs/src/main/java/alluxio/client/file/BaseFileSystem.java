@@ -107,11 +107,6 @@ public class BaseFileSystem implements FileSystem {
     mCloser.register(mFsContext);
   }
 
-  @Override
-  public FileSystemContext getFileSystemContext() {
-    return mFsContext;
-  }
-
   /**
    * Shuts down the FileSystem. Closes all thread pools and resources used to perform operations. If
    * any operations are called after closing the context the behavior is undefined.

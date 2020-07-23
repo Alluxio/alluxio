@@ -13,7 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.ProjectConstants;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
@@ -313,8 +312,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           mState.applyAndJournal(context, clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
-        if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
-            && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
+            && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),

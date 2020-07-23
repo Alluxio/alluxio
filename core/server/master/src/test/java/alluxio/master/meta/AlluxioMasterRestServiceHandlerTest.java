@@ -268,7 +268,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     Map<String, MountPointInfo> mountTable = new HashMap<>();
     mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
     FileSystemMaster mockMaster = mock(FileSystemMaster.class);
-    when(mockMaster.getMountTable()).thenReturn(mountTable);
+    when(mockMaster.getMountPointInfoSummary()).thenReturn(mountTable);
 
     AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
     when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);

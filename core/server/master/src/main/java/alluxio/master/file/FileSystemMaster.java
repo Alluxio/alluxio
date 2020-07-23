@@ -232,9 +232,9 @@ public interface FileSystemMaster extends Master {
       AccessControlException, UnavailableException;
 
   /**
-   * @return a copy of the current mount table
+   * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo>  getMountTable();
+  Map<String, MountPointInfo> getMountPointInfoSummary();
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.

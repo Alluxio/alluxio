@@ -239,4 +239,18 @@ public class S3AUnderFileSystemTest {
     Assert.assertEquals(UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
   }
+
+  @Test
+  public void stripPrefixIfPresent() throws Exception {
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME + "/"));
+    Assert.assertEquals("test/",
+        mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME + "/test/"));
+    Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("test"));
+    Assert.assertEquals("test/", mS3UnderFileSystem.stripPrefixIfPresent("test/"));
+    Assert.assertEquals("test/", mS3UnderFileSystem.stripPrefixIfPresent("/test/"));
+    Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("/test"));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent(""));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("/"));
+  }
 }

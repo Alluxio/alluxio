@@ -27,7 +27,7 @@ the pull requests.
 - We encourage you to break your work into small, single-purpose patches if possible. It is more
 difficult to merge in a large change with a lot of disjoint features.
 - We track issues and features in our [Github Issues](https://github.com/alluxio/alluxio/issues).
-Open a ticket detailing the proposed change and what purpose it serves.
+Open an issue detailing the proposed change or the bug description.
 - Submit the patch as a GitHub pull request.
 - If your pull request aims to solve an existing Github issue, please include a link to the Github
 issue in the last line of the description field of the pull request,
@@ -94,7 +94,7 @@ public MyClass {
 
 ### Use Parameterized Logging
 
-If applicable, logging should be parameterized, to provide good performance and consistent syle.
+If applicable, logging should be parameterized, to provide good performance and consistent style.
 
 ```java
 // Recommended: Parameterized logging

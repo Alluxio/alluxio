@@ -106,7 +106,7 @@ public class ValidationToolRegistry {
     }
 
     mFactories = map;
-    LOG.info("Registered UDBs: " + String.join(",", mFactories.keySet()));
+    LOG.info("Registered Factories: " + String.join(",", mFactories.keySet()));
   }
 
   /**

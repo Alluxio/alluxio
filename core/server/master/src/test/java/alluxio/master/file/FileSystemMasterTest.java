@@ -228,6 +228,7 @@ public final class FileSystemMasterTest {
   @After
   public void after() throws Exception {
     stopServices();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -2691,8 +2692,8 @@ public final class FileSystemMasterTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
-    mExecutorService = Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
+    mExecutorService = Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mInodeStore = mFileSystemMaster.getInodeStore();
@@ -2706,16 +2707,14 @@ public final class FileSystemMasterTest {
         new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
-        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB), ImmutableMap.of(),
+        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
-        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB), ImmutableMap.of(),
+        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

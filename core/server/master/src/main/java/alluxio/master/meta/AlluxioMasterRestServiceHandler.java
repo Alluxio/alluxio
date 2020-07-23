@@ -809,7 +809,8 @@ public final class AlluxioMasterRestServiceHandler {
   @VisibleForTesting
   boolean isMounted(String ufs) {
     ufs = PathUtils.normalizePath(ufs, AlluxioURI.SEPARATOR);
-    for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
+    for (Map.Entry<String, MountPointInfo> entry :
+        mFileSystemMaster.getMountPointInfoSummary().entrySet()) {
       String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
       escaped = PathUtils.normalizePath(escaped, AlluxioURI.SEPARATOR);
       if (escaped.equals(ufs)) {
@@ -1043,7 +1044,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
-    return mFileSystemMaster.getMountTable();
+    return mFileSystemMaster.getMountPointInfoSummary();
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {
@@ -1059,7 +1060,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Capacity getUfsCapacityInternal() {
-    MountPointInfo mountInfo = mFileSystemMaster.getMountTable().get(MountTable.ROOT);
+    MountPointInfo mountInfo = mFileSystemMaster.getMountPointInfoSummary().get(MountTable.ROOT);
     if (mountInfo == null) {
       return new Capacity().setTotal(-1).setUsed(-1);
     }
