@@ -139,9 +139,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     System.out.format("Found options in CollectLogCommand: %s%n", Arrays.toString(cl.getOptions()));
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
-    // TODO(jiacheng): phase 2 components option
     mIncludedPrefix = new HashSet<>(FILE_NAMES);
-    // Define whitelist and blacklist
+    // Define include list and exclude list
     if (cl.hasOption(INCLUDE_OPTION_NAME)) {
       Set<String> toInclude = parseFileNames(cl.getOptionValue(INCLUDE_OPTION_NAME));
       System.out.println("Include the following filename prefixes: " + toInclude);
