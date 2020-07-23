@@ -22,6 +22,7 @@ $ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
 *激活不需要密码的从master节点到worker节点的SSH登录。 可以将主机的公共SSH密钥添加到〜/.ssh/authorized_keys中。 有关更多详细信息，请参见本教程。
 
 *开放所有节点之间的TCP通信。 对于基本功能，确保所有节点上RPC端口都是打开的（默认值：19998）。
+
 *仅在期望Alluxio自动在worker节点上上安装RAMFS时才需要给将运行Allluxio的OS用户授予sudo特权。
 
 ## 基本配置
