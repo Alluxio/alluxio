@@ -68,14 +68,14 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   // The timestamped log entries start after this general information block.
   private static final int TRY_PARSE_LOG_ROWS = 30;
 
-  public static final String[] TIME_FORMATS = new String[]{
-      "yyyy-MM-dd HH:mm:ss,SSS", // "2020-06-27 11:58:53,084"
-      "yy/MM/dd HH:mm:ss", // "20/06/27 11:58:53"
-      "yyyy-MM-dd'T'HH:mm:ss.SSSXX", // 2020-06-27T11:58:53.084+0800
-      "yyyy-MM-dd'T'HH:mm:ss", // 2020-06-27T11:58:53.084
-      "yyyy-MM-dd HH:mm:ss", // "2020-06-27 11:58:53"
-      "yyyy-MM-dd HH:mm", // "2020-06-27 11:58"
-      "yyyy-MM-dd" // // "2020-06-27"
+  static final String[] TIME_FORMATS = new String[]{
+      "yyyy-MM-dd HH:mm:ss,SSS",        // "2020-06-27 11:58:53,084"
+      "yy/MM/dd HH:mm:ss",              // "20/06/27 11:58:53"
+      "yyyy-MM-dd'T'HH:mm:ss.SSSXX",    // 2020-06-27T11:58:53.084+0800
+      "yyyy-MM-dd'T'HH:mm:ss",          // 2020-06-27T11:58:53.084
+      "yyyy-MM-dd HH:mm:ss",            // "2020-06-27 11:58:53"
+      "yyyy-MM-dd HH:mm",               // "2020-06-27 11:58"
+      "yyyy-MM-dd"                      // "2020-06-27"
   };
 
   private String mLogDirPath;
@@ -181,7 +181,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
         }
         File targetFile = new File(mWorkingDirPath, relativePath);
         FileUtils.copyFile(f, targetFile, true);
-      } catch (FileNotFoundException e) {
+      } catch (IOException e) {
         System.err.format("ERROR: file %s not found %s%n", f.getCanonicalPath(), e.getMessage());
       }
     }
@@ -194,7 +194,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   }
 
   private boolean shouldCopy(File f, String relativePath, boolean checkTimeStamp)
-          throws FileNotFoundException {
+          throws IOException {
     if (!fileNameIsWanted(relativePath)) {
       return false;
     }
@@ -222,7 +222,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return false;
   }
 
-  private boolean fileTimeStampIsWanted(File f) throws FileNotFoundException {
+  private boolean fileTimeStampIsWanted(File f) throws IOException {
     long timestamp = f.lastModified();
     LocalDateTime fileEndTime =
             LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
@@ -235,10 +235,14 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
     // The file is earlier than the desired interval
     if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
+      System.out.format("File %s [%s, %s] is complete before start time %s%n",
+              f.getCanonicalPath(), fileStartTime, fileEndTime, mStartTime);
       return false;
     }
     // The file is later than the desired interval
     if (mEndTime != null && mEndTime.isBefore(fileStartTime)) {
+      System.out.format("File %s [%s, %s] is created after end time %s%n",
+              f.getCanonicalPath(), fileStartTime, fileEndTime, mEndTime);
       return false;
     }
     return true;
