@@ -46,15 +46,17 @@ If value `LOCAL` is provided, hdfs launched by the current dataproc cluster will
 * Properties must be specified using the metadata key **alluxio_site_properties** delimited using
 a semicolon (`;`).
 
+Example 1: use google cloud storage bucket as Alluxio root UFS
 ```console
-# Use google cloud storage bucket as Alluxio root UFS
 $ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata \
 alluxio_root_ufs_uri=gs://<my_bucket>,\
 alluxio_site_properties="fs.gcs.accessKeyId=<my_access_key>;fs.gcs.secretAccessKey=<my_secret_key>"
+```
 
-# Use dataproc internal hdfs as Alluxio root UFS
+Example 2: use Dataproc internal HDFS as Alluxio root UFS
+```console
 $ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata \
