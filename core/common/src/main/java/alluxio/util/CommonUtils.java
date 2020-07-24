@@ -830,21 +830,21 @@ public final class CommonUtils {
   }
 
   /**
-   * Recursively lists a dir and all its subdirs and return all the files.
+   * Recursively lists a local dir and all its subdirs and return all the files.
    *
    * @param dir the directory
    * @return a list of all the files
    * */
-  public static List<File> recursiveListDir(File dir) {
+  public static List<File> recursiveListLocalDir(File dir) {
     File[] files = dir.listFiles();
     // File#listFiles can return null when the path is invalid
     if (files == null) {
-      return new ArrayList<>();
+      return Collections.EMPTY_LIST;
     }
     List<File> result = new ArrayList<>(files.length);
     for (File f : files) {
       if (f.isDirectory()) {
-        result.addAll(recursiveListDir(f));
+        result.addAll(recursiveListLocalDir(f));
         continue;
       }
       result.add(f);

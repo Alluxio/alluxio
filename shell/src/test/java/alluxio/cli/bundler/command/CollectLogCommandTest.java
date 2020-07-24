@@ -195,7 +195,7 @@ public class CollectLogCommandTest {
     // Other logs all end before this issue
     LocalDateTime logEnd = issueEnd.minusHours(1);
     long logEndTimestamp = logEnd.toEpochSecond(ZoneOffset.UTC);
-    for (File f : CommonUtils.recursiveListDir(mTestDir)) {
+    for (File f : CommonUtils.recursiveListLocalDir(mTestDir)) {
       f.setLastModified(logEndTimestamp);
     }
 
@@ -263,7 +263,7 @@ public class CollectLogCommandTest {
     // Other logs all end before this issue
     LocalDateTime logEnd = issueEnd.minusHours(1);
     long logEndTimestamp = logEnd.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-    for (File f : CommonUtils.recursiveListDir(mTestDir)) {
+    for (File f : CommonUtils.recursiveListLocalDir(mTestDir)) {
       f.setLastModified(logEndTimestamp);
     }
 

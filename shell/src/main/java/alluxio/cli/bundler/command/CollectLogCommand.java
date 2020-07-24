@@ -194,7 +194,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       return -1;
     }
 
-    List<File> allFiles = CommonUtils.recursiveListDir(mLogDir);
+    List<File> allFiles = CommonUtils.recursiveListLocalDir(mLogDir);
     for (File f : allFiles) {
       String relativePath = getRelativePathToLogDir(f);
       try {

@@ -65,7 +65,7 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
     String confDirPath = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
 
     File confDir = new File(confDirPath);
-    List<File> allFiles = CommonUtils.recursiveListDir(confDir);
+    List<File> allFiles = CommonUtils.recursiveListLocalDir(confDir);
     for (File f : allFiles) {
       String relativePath = confDir.toURI().relativize(f.toURI()).getPath();
       // Ignore file prefixes to exclude

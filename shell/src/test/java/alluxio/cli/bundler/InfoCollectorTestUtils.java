@@ -55,10 +55,6 @@ public class InfoCollectorTestUtils {
     return newDir;
   }
 
-  public static void create() {
-    Files.createTempDir();
-  }
-
   public static void verifyAllFiles(File targetDir, Set<String> expectedFiles) throws IOException {
     Set<String> copiedFiles = getAllFileNamesRelative(targetDir, targetDir);
     assertEquals(expectedFiles, copiedFiles);
@@ -70,7 +66,7 @@ public class InfoCollectorTestUtils {
               dir.getCanonicalPath()));
     }
     Set<String> fileSet = new HashSet<>();
-    List<File> allFiles = CommonUtils.recursiveListDir(dir);
+    List<File> allFiles = CommonUtils.recursiveListLocalDir(dir);
     for (File f : allFiles) {
       String relativePath = baseDir.toURI().relativize(f.toURI()).toString();
       fileSet.add(relativePath);
