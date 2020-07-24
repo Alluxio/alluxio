@@ -19,7 +19,9 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -37,6 +39,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -46,6 +49,8 @@ import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,7 +63,10 @@ import java.util.stream.Collectors;
  * This class is only to be used internally and most methods are not implemented.
  */
 public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioHdfsFileSystem.class);
+
   private final org.apache.hadoop.fs.FileSystem mFileSystem;
+  private final AlluxioConfiguration mAlluxioConf;
 
   /**
    * @param status Hadoop file status
@@ -79,10 +87,21 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
   }
 
   /**
-   * @param fileSystem file system
+   * @param fileSystem hadoop file system
+   * @param conf hadoop configuration
    */
-  public AlluxioHdfsFileSystem(org.apache.hadoop.fs.FileSystem fileSystem) {
+  public AlluxioHdfsFileSystem(org.apache.hadoop.fs.FileSystem fileSystem,
+        org.apache.hadoop.conf.Configuration conf) {
     mFileSystem = Preconditions.checkNotNull(fileSystem, "fileSystem");
+    // Take hadoop configuration to merge to Alluxio configuration
+    Map<String, Object> hadoopConfProperties =
+        HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
+    LOG.info("Creating Alluxio configuration from Hadoop configuration {}", hadoopConfProperties);
+    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    // Merge relevant Hadoop configuration into Alluxio's configuration.
+    alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
+    // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
+    mAlluxioConf = new InstancedConfiguration(alluxioProps);
   }
 
   @Override
@@ -119,7 +138,7 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
 
   @Override
   public AlluxioConfiguration getConf() {
-    return InstancedConfiguration.defaults();
+    return mAlluxioConf;
   }
 
   @Override
