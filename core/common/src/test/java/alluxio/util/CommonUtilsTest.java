@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
@@ -646,7 +645,8 @@ public class CommonUtilsTest {
     assertEquals(allFiles, new HashSet<>(listedFiles));
   }
 
-  private void createFileOrDir(File dir, int index, Random rand, Set<File> files) throws IOException {
+  private void createFileOrDir(File dir, int index, Random rand, Set<File> files)
+          throws IOException {
     int childType = rand.nextInt(2);
     File child = new File(dir, index + "");
     if (childType == 1) {
