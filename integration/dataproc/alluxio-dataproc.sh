@@ -22,7 +22,7 @@ readonly ALLUXIO_LICENSE_BASE64="$(/usr/share/google/get_metadata_value attribut
 readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
-readonly PRESTO_HOME="${PRESTO_HOME:-"/usr/lib/presto"}"
+readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
 readonly ALLUXIO_VERSION="2.4.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
@@ -379,7 +379,7 @@ start_alluxio() {
     if [[ "${sync_list}" ]]; then
       IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
       for path in "${paths[@]}"; do
-        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
+        doas alluxio "${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}"
       done
     fi
   else
