@@ -1,10 +1,10 @@
 
 ---
-Layout：global
-Title：在Kubernetes上部署Alluxio
-nickname：Kubernetes上的Alluxio
-group：Install Alluxio
-Priority：4
+Layout: global
+Title: 在Kubernetes上部署Alluxio
+nickname: Kubernetes上的Alluxio
+group: Install Alluxio
+Priority: 4
 ---
 
 Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像或`helm`中包含的规范在Kubernetes上运行Alluxio
@@ -14,7 +14,8 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像
 
 ##先决条件
 
-一个Kubernetes集群(版本> = 1.8)。在默认规范下，Alluxio workers可以通过`sizeLimit`参数来使用有大小限制的`emptyDir`卷。这是Kubernetes 1.8版本中的一个Alpha特性。确保此功能已启用。
+一个Kubernetes集群(版本> = 1.8)。在默认规范下，Alluxio workers可以通过设置`sizeLimit`参数来决定`emptyDir`卷的大小。这是Kubernetes 1.8版本中的一个Alpha特性。在使用前请确保此功能已启用。
+
 一个Alluxio Docker镜像[alluxio / {{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/ {{site.ALLUXIO_DOCKER_IMAGE}} /)。如果使用私有Docker注册表，请参阅Kubernetes [documentation] (https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
 确保[Kubernetes网络策略](https://kubernetes.io/docs/concepts/services-networking/network-policies/)允许应用程序(Alluxio客户端)和Alluxio Pods之间在已定义端口上的连接。
 
@@ -23,7 +24,7 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像
 本教程介绍了在Kubernetes上的基本Alluxio安装。 Alluxio支持在Kubernetes上两种安装方法:使用[helm](https://helm.sh/docs/)图表或使用`kubectl`。如果可选，`helm`是首选安装Alluxio方法。如果没法使用`helm`安装或需要额外定制化部署，则可以直接通过原生Kubernetes资源规范使用`kubectl`。
 
 >注意：从Alluxio 2.3起，Alluxio仅支持helm 3。
->参阅如何从helm 2迁移到helm 3 [此处](https://helm.sh/docs/topics/v2_v3_migration/)。
+>参阅如何[从helm 2迁移到helm 3](https://helm.sh/docs/topics/v2_v3_migration/)。
 
 {% accordion setup %}
   {% collapsible (Optional) Extract Kubernetes Specifications %}
@@ -77,7 +78,7 @@ $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
 
 
-还有其他方法来创建持久卷如[这里]文档(https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+还有其他方法来创建持久卷如[文档](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
   {％endcollapsible％}
 {％endaccordionion％}
 
@@ -109,15 +110,13 @@ properties:
   alluxio.master.mount.table.root.ufs: "<under_storage_address>"
 ```
 
-
  >注意：必须修改底层文件系统地址。任何凭证都必须修改。
 
-要查看完整的支持属性列表，请运行 helm inspect 命令
+要查看完整的支持属性列表，请运行`helm inspect`命令
 
 ```console
 $ helm inspect values alluxio-charts/alluxio
 ```
-
 
 本节的剩余部分通过例子描述各种配置选项。
 
@@ -132,7 +131,6 @@ properties:
   alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
   alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
 ```
-
 
 {% endcollapsible %}
 
@@ -157,11 +155,9 @@ journal:
     - ReadWriteOnce
 ```
 
-  
 {% endcollapsible %}
 
-{% collapsible Example: Single Master and Journal in an emptyDir Volume %} 
-The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
+{% collapsible Example: 下方举例说明如何将一个持久卷挂载在本地master pod '/journal'位置来配置 [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
  将一个`emptyDir` 卷本地挂载在master Pod的位置`/journal`
 
 ```properties
@@ -271,8 +267,6 @@ secrets:
     alluxio-hdfs-config: hdfsConfig
 ```
 
-
-
 {% endcollapsible %}
 
 {% collapsible Example: Off-heap Metastore Management in Persistent Volumes %} 
@@ -312,7 +306,6 @@ metastore:
   # Attributes to use when the metastore is emptyDir
   medium: ""
 ```
-
 
 >注意：`emptyDir`卷的寿命与Pod寿命相同。 
 它不是持久性存储。
@@ -355,9 +348,7 @@ tieredstore:
     low: 0.7
 ```
 
-
 **内存和SSD存储多级**
-
 
 ```properties
 tieredstore:
@@ -407,8 +398,6 @@ tieredstore:
 
 >注意：每一层有一个PVC。 当PVC绑定到类型为`hostPath`或` local`的PV时，每个 worker Pod都将使用Node上的本地路径。`本地`卷需要`nodeAffinity`，并且使用此卷的Pod只能在`nodeAffinity`卷规则中指定的节点上运行。可以在[此处](https://kubernetes.io/docs/concepts/storage/volumes/#local)中找到更多详细信息。
 
-
-
 **内存和SSD存储 单级存储**
 
 可以在同一层上拥有多个卷。此配置将为每个卷创建一个`persistentVolumeClaim`。
@@ -437,7 +426,6 @@ tieredstore:
 $ helm install alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
-
 #### 卸载
 
 运行如下命令卸载Alluxio:
@@ -445,7 +433,6 @@ $ helm install alluxio -f config.yaml alluxio-charts/alluxio
 ```console
 $ helm delete alluxio
 ```
-
 
 #### 格式化日志
 
@@ -459,14 +446,12 @@ StatefulSet中的master Pods在启动是使用`initContainer`来格式化日志�
 $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
-
 > 注：'helm upgrade`将重新创建 master Pods。
 
 或者，可以在部署时触发日志格式化。
 ```console
 $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
-
 
 {％endnavtab％}
  {％navtab kubectl％}
@@ -492,7 +477,6 @@ $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 $ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
 ```
 
-
 按需要修改或添加任何配置属性。必须修改Alluxi底层文件系统地址。
 任何凭证都必须修改。
 添加到`ALLUXIO_JAVA_OPTS`：
@@ -500,7 +484,6 @@ $ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
 ```properties
 -Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 ```
-
 
 注：
 -用适当的URI替换`<under_storage_address>`，例如s3://my-bucket。如果使用要求凭据的底层存储不足，请确保也指定所需凭据。
@@ -521,7 +504,6 @@ $ kubectl create -f alluxio-configmap.yaml
 $ mv master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
 $ mv master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
 ```
-
 
 >注意：如果需要，`alluxio-master-statefulset.yaml`用`volumeClaimTemplates`为每个master定义日志卷.
 
@@ -552,7 +534,6 @@ spec:
     - "<namenode>"
 ```
 
-
 `alluxio-master-statefulset.yaml.template`和`alluxio-worker-daemonset.yaml.template`模板中StatefulSet或DaemonSet类型下,应该按如下所示将`hostAliases`部分添加到`spec.template.spec`的每个部分中。
 
 ```yaml
@@ -574,7 +555,6 @@ spec:
         - "hdfs-host"
 ```
 
-
 **步骤2：为HDFS配置文件创建Kubernetes Secret。**运行以下命令为HDFS客户端配置创建Kubernetes Secret。
 
 ```console
@@ -594,7 +574,6 @@ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}
 $ kubectl create -f ./master/
 $ kubectl create -f ./worker/
 ```
-
 
 ####卸载
 
@@ -653,7 +632,6 @@ containers:
   imagePullPolicy: IfNotPresent
   ...
 ```
-
 
 **第2步：停止运行Alluxio master和worker Pods**
 
@@ -714,7 +692,6 @@ $ kubectl get pods
 {% endnavtab %}
 {% endnavtabs %}
 
-
 ###访问Web UI
 
 可以使用端口转发从kubernetes集群外部访问Alluxio UI。
@@ -722,7 +699,6 @@ $ kubectl get pods
 ```console
 $ kubectl port-forward alluxio-master-$i 19999:19999
 ```
-
 
 注意：第一个master Pod `i = 0`。当运行多个masters时，转发每个主机的端口。仅首席maste为Web UI提供服务。
 
@@ -741,17 +717,12 @@ $ kubectl exec -ti alluxio-master-0 /bin/bash
 $ alluxio runTests
 ```
 
-
-
-
 (可选)如果Alluxio master使用持久卷，则卷的状态应更改为`CLAIMED`，卷声明的状态应为 `BOUNDED`。你可以验证其状态如下
 
 ```console
 $ kubectl get pv
 $ kubectl get pvc
 ```
-
-
 
 ##高级设置
 
@@ -841,7 +812,6 @@ shortCircuit:
   enabled: false
 ```
 
-
 {% endnavtab %}
 {% navtab kubectl %}
 
@@ -851,7 +821,6 @@ shortCircuit:
 ```properties
 -Dalluxio.user.short.circuit.enabled=false
 ```
-
 
 你还应该从Pod定义的卷中的`alluxio-domain`卷和每个容器中的`volumeMounts`，如果存在的话
 
@@ -878,7 +847,6 @@ shortCircuit:
   policy: local
 ```
 
-
 {％endnavtab％}
  {％navtab kubectl ％}
 
@@ -887,7 +855,6 @@ shortCircuit:
 ```properties
 -Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
-
 
 同时，你应该删除属性`-Dalluxio.worker.data.server.domain.socket.address`。
 
@@ -932,7 +899,6 @@ shortCircuit:
   storageClass: standard
 ```
 
-
 `shortCircuit.pvcName`字段定义域套接字的`PersistentVolumeClaim`名称。该PVC将作为`helm install`的一部分被创建。
 
 {％endnavtab％}
@@ -952,9 +918,6 @@ volumes:
     persistentVolumeClaim:
       claimName: "alluxio-worker-domain-socket"
 ```
-
-
-
 
 >注：计算应用程序容器**必须**将域套接字卷挂载到为Alluxio workers配置的相同路径
 (`/opt/domain`)。
@@ -1019,22 +982,17 @@ Alluxio worker使用以物理主机IP作为主机名的主机网络。检查集�
 Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Host is unreachable: <host>/<IP>:29999
 ```
 
-
-
-
 -检查`<host>`与物理主机地址匹配，而不是一个虚拟容器主机名。从远程客户端ping以检查地址是否可解析。
 
 ```console
 $ ping <host>
 ```
 
-
 -验证客户端可以按worker部署规范指定的端口上连接到workers。默认端口为`[29998，29999，29996，30001，30002，30003]`。使用网络工具如`ncat`来检查是否可以从远程客户端访问特定的端口：
 
 ```console
 $ nc -zv <IP> 29999
 ```
-
 
 {% endcollapsible %}
 
@@ -1053,13 +1011,11 @@ Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hos
 $ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
-
 从master Pod，执行以下命令：
 
 ```console
 $ alluxio logLevel --level DEBUG --logName alluxio
 ```
-
 
 {% endcollapsible %}
 
@@ -1072,20 +1028,17 @@ Master：
 $ kubectl logs -f alluxio-master-0 -c alluxio-master
 ```
 
-
 Worker:
 
 ```console
 $ kubectl logs -f alluxio-worker-<id> -c alluxio-worker
 ```
 
-
 Job Master:
 
 ```console
 $ kubectl logs -f alluxio-master-0 -c alluxio-job-master
 ```
-
 
 Job Worker:
 
