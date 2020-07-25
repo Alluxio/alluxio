@@ -1,7 +1,7 @@
 
 ---
-Layout:global
-title:在Kubernetes上部署Alluxio
+Layout: global
+title: 在Kubernetes上部署Alluxio
 nickname: Kubernetes上的Alluxio
 group: Install Alluxio
 priority: 4
