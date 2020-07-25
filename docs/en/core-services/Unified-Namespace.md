@@ -271,7 +271,7 @@ $ ./bin/alluxio fs mv /demo/hello2 /demo/world
 Renamed /demo/hello2 to /demo/world
 $ ls /tmp/alluxio-demo
 hello world
-```
+```/Users/andrewwang/Desktop/ALLUXIO/alluxio/docs/cn/deploy/Running-Alluxio-On-a-HA-Cluster.txt
 
 Delete a file in Alluxio and verify the file is also deleted in the underlying file system:
 
