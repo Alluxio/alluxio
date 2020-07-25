@@ -1,6 +1,6 @@
 
 ---
-Layout: global
+layout: global
 title: 在Kubernetes上部署Alluxio
 nickname: Kubernetes上的Alluxio
 group: Install Alluxio
