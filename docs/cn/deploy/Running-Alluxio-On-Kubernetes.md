@@ -41,10 +41,10 @@ $ cd kubernetes
 
  {% endcollapsible %}
   {% collapsible (Optional) Provision a Persistent Volume %}
-注意：[嵌入式日志]({ {'/en/operation/Journal.html'| relativize_url}}＃embedded-journal-configuration)
+注意：[嵌入式日志]({ {'/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)
 需要为每个要发放的 master Pod设置一个持久卷，这是Alluxio运行在kubernetes上的首选HA机制。一旦创建了该卷，即使master进程重启不会影响持久卷的内容。
 
-当使用[UFS日志]({{'/en/operation/Journal.html'|relativize_url}}＃ufs-journal-configuration)时，Alluxio master也可以配置为使用[持久卷](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+当使用[UFS日志]({{'/en/operation/Journal.html' | relativize_url}}＃ufs-journal-configuration)时，Alluxio master也可以配置为使用[持久卷](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 来存储日志。如果你在用UFS日志并使用外部日志存储位置(例如HDFS)，可以跳过此节所余部分。
 
 有多种创建持久卷的方法。
@@ -135,7 +135,7 @@ properties:
 {% endcollapsible %}
 
   {% collapsible Example: Single Master and Journal in a Persistent Volume %}
- The following configures [UFS Journal]({{'/en/operation/Journal.html'|relativize_url}}#ufs-journal-configuration) 将一个持久卷本地挂载在master Pod的位置 `/journal`。
+ The following configures [UFS Journal]({{'/en/operation/Journal.html' | relativize_url}}#ufs-journal-configuration) 将一个持久卷本地挂载在master Pod的位置 `/journal`。
 
 ```properties
 master:
@@ -157,7 +157,7 @@ journal:
 
 {% endcollapsible %}
 
-{% collapsible Example: 下方举例说明如何将一个持久卷挂载在本地master pod '/journal'位置来配置 [UFS Journal]({{'/en/operation/Journal.html'|relativize_url}}#ufs-journal-configuration)
+{% collapsible Example: 下方举例说明如何将一个持久卷挂载在本地master pod '/journal'位置来配置 [UFS Journal]({{'/en/operation/Journal.html' | relativize_url}}#ufs-journal-configuration)
  将一个`emptyDir` 卷本地挂载在master Pod的位置`/journal`
 
 ```properties
@@ -456,7 +456,7 @@ $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 规范目录下的子目录包含一组常见部署方案的YAML模板：
 *singleMaster-localJournal*, *singleMaster-hdfsJournal* and *multiMaster-embeddedJournal*.
 
->*singleMaster *意味者模板会产生一个 Alluxio master进程, *multiMaster*意味者 三个. *embedded*和*ufs*是两个[journal modes]({{'/en/operation/Journal.html'|relativize_url}}) Alluxio 支持.
+>*singleMaster *意味者模板会产生一个 Alluxio master进程, *multiMaster*意味者 三个. *embedded*和*ufs*是两个[journal modes]({{'/en/operation/Journal.html' | relativize_url}}) Alluxio 支持.
 
 -*singleMaster-localJournal *目录为你提供必要的Kubernetes ConfigMap，1个Alluxio master进程和一组Alluxio workers。Alluxio master将日志写入`volumeClaimTemplates`请求的日志卷中。
 -*multiMaster-EmbeddedJournal*目录为你提供Kubernetes ConfigMap，3个Alluxio masters和
@@ -635,10 +635,10 @@ $ kubectl delete statefulset -l app=alluxio
 
 看下Alluxio升级之指南关于是否要格式化Alluxio master日志。如果不需要格式化，则可以跳过本节的剩余部分直接跳到重新启动所有Alluxio master和worker Pod部分。
 
-您可以按照[formatting journal with kubectl]({{'/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1'|relativize_url}})
+您可以按照[formatting journal with kubectl]({{'/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url}})
 来格式化Alluxio日志。 
 
-如果你在使用[分层存储]({{'/en/core-services/Caching.html#multiple-tier-storage'| relativize_url}})来运行Alluxio workers，并且已为Alluxio配置了持久卷，则也要清除存储。您应该删除现有并重新创建新持久卷。
+如果你在使用[分层存储]({{'/en/core-services/Caching.html#multiple-tier-storage' | relativize_url}})来运行Alluxio workers，并且已为Alluxio配置了持久卷，则也要清除存储。您应该删除现有并重新创建新持久卷。
 
 一旦完成格式化所有日志和Alluxio存储后，就可以重新启动Alluxio master和worker Pods了。
 
@@ -662,7 +662,7 @@ $ kubectl create -f ./worker/
 $ kubectl get pods
 ```
 
-你可以根据以下文档做更全面的确认 [Verify Alluxio]({{'/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running'|relativize_url}}).  
+你可以根据以下文档做更全面的确认 [Verify Alluxio]({{'/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url}}).  
 {% endcollapsible %}
 {% endaccordion %}
 
@@ -703,7 +703,7 @@ $ kubectl get pvc
 
 ### POSIX API
 
-一旦Alluxio部署到Kubernetes上，客户端应用程序可以通过多种方式连接。对于使用[POSIX API]({{'/en/api/POSIX-API.html'|relativize_url}})的应用程序，应用程序容器可以通过挂载Alluxio FileSystem方式连接。
+一旦Alluxio部署到Kubernetes上，客户端应用程序可以通过多种方式连接。对于使用[POSIX API]({{'/en/api/POSIX-API.html' | relativize_url}})的应用程序，应用程序容器可以通过挂载Alluxio FileSystem方式连接。
 
 为了使用POSIX API，首先部署Alluxio FUSE守护程序。
 
@@ -727,7 +727,7 @@ fuse:
   mountPath: /mnt/alluxio-fuse
 ```
 
-然后按照以下步骤用helm安装Alluxio[此处]({{'/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm'| relativize_url}})。
+然后按照以下步骤用helm安装Alluxio[此处]({{'/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url}})。
 
 如果已经通过helm部署了Alluxio，现在想启用FUSE，则可以使用`helm upgrade`来添加FUSE守护程序。
 
@@ -936,8 +936,8 @@ volumes:
 
 ***验证。*** 要验证短路读取和写入，请监控以下显示的指标
 1. Web UI的指标`Domain Socket Alluxio Read` 和 `Domain Socket Alluxio`Write
-1.或[metrics json]({{'/en/operation/Metrics-System.html'|relativize_url}}) as `cluster.BytesReadDomain` 和 `cluster.BytesWrittenDomain`
-1.或the [fsadmin metrics CLI]({{'/en/operation/Admin-CLI.html'|relativize_url}}) as `Short-circuit Read (Domain Socket)` 和` Alluxio Write (Domain Socket)`
+1.或[metrics json]({{'/en/operation/Metrics-System.html' | relativize_url}}) as `cluster.BytesReadDomain` 和 `cluster.BytesWrittenDomain`
+1.或the [fsadmin metrics CLI]({{'/en/operation/Admin-CLI.html' | relativize_url}}) as `Short-circuit Read (Domain Socket)` 和` Alluxio Write (Domain Socket)`
 
 ##故障排除
 
