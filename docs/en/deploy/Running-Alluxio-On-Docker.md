@@ -315,7 +315,7 @@ A lone Alluxio master is a single point of failure. To guard against this, a pro
 cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
 There are two ways to enable HA mode in Alluxio, either with internal leader election and embedded journal, or external Zookeeper and a shared journal storage.
-Please read [running Alluxio with HA]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.htmll#overview' | relativize_url }}) for more details.
+Please read [running Alluxio with HA]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#overview' | relativize_url }}) for more details.
 It is recommended to use the second option for production use case.
 
 {% navtabs HA %}
