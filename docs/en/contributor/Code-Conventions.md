@@ -158,7 +158,7 @@ public class DefaultMetaStore implements MetaStore {
    *         in Alluxio Filesystem
 ```
 
-- It’s better to use <code> tags compared to `{@link ClassName}`.
+- It’s better to use `<code>ClassName</code>` tags compared to `{@link ClassName}`.
 
 ## Logging Conventions
 
