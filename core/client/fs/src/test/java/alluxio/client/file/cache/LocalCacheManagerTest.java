@@ -73,7 +73,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
-    mMetaStore = MetaStore.create(mConf);
+    mMetaStore = MetaStore.create();
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
     mEvictor = new FIFOEvictor(mMetaStore);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);

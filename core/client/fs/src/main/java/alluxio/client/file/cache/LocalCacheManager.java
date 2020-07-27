@@ -130,7 +130,7 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
-    MetaStore metaStore = MetaStore.create(conf);
+    MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = CacheEvictor.create(conf);
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore = null;

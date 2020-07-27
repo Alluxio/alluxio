@@ -117,7 +117,7 @@ public class MemoryPageStore implements PageStore {
   @Override
   public int get(PageId pageId, int offsetInPage, int bytesToRead, byte[] buffer,
       int offsetInBuffer) throws PageNotFoundException {
-    try (LockResource r1 = new LockResource(mLock.writeLock())) {
+    try (LockResource r1 = new LockResource(mLock.readLock())) {
       if (!mPageEntryMap.containsKey(pageId)) {
         throw new PageNotFoundException("Failed to get " + pageId + ": pageId not found");
       }
