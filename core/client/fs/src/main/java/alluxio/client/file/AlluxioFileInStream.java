@@ -270,7 +270,9 @@ public class AlluxioFileInStream extends FileInStream {
         len -= bytesRead;
         retry = mRetryPolicySupplier.get();
         lastException = null;
-        triggerAsyncCaching(mCachedPositionedReadStream);
+        if (mCachedPositionedReadStream.getSource() != BlockInStream.BlockInStreamSource.LOCAL) {
+          triggerAsyncCaching(mCachedPositionedReadStream);
+        }
       } catch (IOException e) {
         lastException = e;
         if (mCachedPositionedReadStream != null) {
