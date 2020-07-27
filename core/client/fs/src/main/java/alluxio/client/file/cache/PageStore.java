@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
@@ -23,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,9 +56,6 @@ public interface PageStore extends AutoCloseable {
         break;
       case ROCKS:
         pageStore = RocksPageStore.create(options.toOptions());
-        break;
-      case MEMORY:
-        pageStore = new MemoryPageStore(options.toOptions());
         break;
       default:
         throw new IllegalArgumentException(
@@ -137,46 +132,14 @@ public interface PageStore extends AutoCloseable {
   ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException, PageNotFoundException;
 
   /**
-   * Gets part of a page from the store to the destination channel.
-   *
-   * @param pageId page identifier to get
-   * @param offsetInPage within page, start offset to read
-   * @param bytesToRead number of bytes to read
-   * @param buffer destination buffer to write result
-   * @param offsetInBuffer within destination buffer, start offset to write
-   * @return the number of bytes read
-   * @throws IOException when the store fails to read this page
-   * @throws PageNotFoundException when the page isn't found in the store
-   * @throws IllegalArgumentException when the page offset exceeds the page size
-   */
-  default int get(PageId pageId, int offsetInPage, int bytesToRead, byte[] buffer,
-      int offsetInBuffer) throws IOException, PageNotFoundException {
-    int totalBytes = 0;
-    try (ReadableByteChannel chan = get(pageId, offsetInPage)) {
-      // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-      ByteBuffer buf = ByteBuffer.wrap(buffer);
-      buf.position(offsetInBuffer);
-      buf.limit(offsetInBuffer + bytesToRead);
-      // read data from cache
-      while (buf.position() != buf.limit()) {
-        int bytesRead = chan.read(buf);
-        if (bytesRead == -1) {
-          break;
-        }
-        totalBytes += bytesRead;
-      }
-    }
-    return totalBytes;
-  }
-
-  /**
    * Deletes a page from the store.
    *
    * @param pageId page identifier
+   * @param pageSize page size in bytes
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
    * Gets a stream of all pages from the page store. This stream needs to be closed as it may

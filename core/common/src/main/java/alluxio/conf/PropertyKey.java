@@ -3596,9 +3596,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
           .setDescription("The type of page store to use for client-side cache. Can be either "
-              + "`LOCAL`, `MEMORY` or `ROCKS`. The `LOCAL` page store stores all pages in a "
-              + "directory, the `ROCKS` page store utilizes rocksDB to persist the data and "
-              + "the `MEMORY` store saves all date in Java memory.")
+              + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
+              + "the `ROCKS` page store utilizes rocksDB to persist the data.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

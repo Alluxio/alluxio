@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -431,7 +433,7 @@ public class LocalCacheManager implements CacheManager {
    */
   private boolean deletePage(PageId pageId, PageInfo pageInfo) {
     try {
-      mPageStore.delete(pageId);
+      mPageStore.delete(pageId, pageInfo.getPageSize());
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to delete page {}: {}", pageId, e);
       Metrics.DELETE_ERRORS.inc();
@@ -443,16 +445,25 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private int getPage(PageId pageId, int offsetInPage, int bytesToRead, byte[] buffer,
+  private int getPage(PageId pageId, int offset, int bytesToRead, byte[] buffer,
       int offsetInBuffer) {
-    try {
-      int bytesRead = mPageStore.get(pageId, offsetInPage, bytesToRead, buffer, offsetInBuffer);
-      if (bytesRead != bytesToRead) {
+    try (ReadableByteChannel chan = mPageStore.get(pageId, offset)) {
+      // wrap return byte array in a bytebuffer and set the pos/limit for the page read
+      ByteBuffer buf = ByteBuffer.wrap(buffer);
+      buf.position(offsetInBuffer);
+      buf.limit(offsetInBuffer + bytesToRead);
+      // read data from cache
+      while (buf.position() != buf.limit()) {
+        if (chan.read(buf) == -1) {
+          break;
+        }
+      }
+      if (buf.position() != buf.limit()) {
         // data read from page store is inconsistent from the metastore
         Metrics.GET_ERRORS_FAILED_READ.inc();
         throw new IOException(String.format(
             "Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
-            pageId, bytesToRead, bytesRead));
+            pageId, bytesToRead, buf.position() - offsetInBuffer));
       }
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to get existing page {}: {}", pageId, e);

@@ -11,8 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
@@ -35,6 +35,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,19 +50,12 @@ import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
-  private static final int PAGE_SIZE_BYTES = 1024;
-  private static final int CACHE_SIZE_BYTES = 65536;
-  private static final PageId PAGE_ID1 = new PageId("0L", 0L);
-  private static final PageId PAGE_ID2 = new PageId("1L", 1L);
-  private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
-  private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {new RocksPageStoreOptions()},
-        {new LocalPageStoreOptions()},
-        {new MemoryPageStoreOptions()},
+        {new LocalPageStoreOptions()}
     });
   }
 
@@ -78,8 +72,8 @@ public class PageStoreTest {
 
   @Before
   public void before() throws Exception {
-    mOptions.setPageSize(PAGE_SIZE_BYTES);
-    mOptions.setCacheSize(CACHE_SIZE_BYTES);
+    mOptions.setPageSize(1024);
+    mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
     mPageStore = PageStore.create(mOptions, true);
@@ -91,101 +85,20 @@ public class PageStoreTest {
   }
 
   @Test
-  public void getNonExistance() throws Exception {
-    byte[] buf = new byte[PAGE1.length];
-    mThrown.expect(PageNotFoundException.class);
-    mPageStore.get(PAGE_ID1, 0, PAGE1.length, buf, 0);
-  }
-
-  @Test
-  public void getAfterPut() throws Exception {
-    mPageStore.put(PAGE_ID1, PAGE1);
-    byte[] buf = new byte[PAGE1.length];
-    assertEquals(PAGE1.length, mPageStore.get(PAGE_ID1, 0, PAGE1.length, buf, 0));
-    assertArrayEquals(PAGE1, buf);
-  }
-
-  @Test
-  public void getAfterPutTwice() throws Exception {
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.put(PAGE_ID1, PAGE2);
-    byte[] buf = new byte[PAGE2.length];
-    assertEquals(PAGE2.length, mPageStore.get(PAGE_ID1, 0, PAGE2.length, buf, 0));
-    assertArrayEquals(PAGE2, buf);
-  }
-
-  @Test
-  public void putSmallPages() throws Exception {
-    int[] sizeArray = {1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
-    for (int i = 0; i < sizeArray.length; i++) {
-      int pageSize = sizeArray[i];
-      PageId id = new PageId(String.valueOf(i), 0);
-      byte[] page = BufferUtils.getIncreasingByteArray(i, pageSize);
-      mPageStore.put(id, page);
-    }
-    for (int i = 0; i < sizeArray.length; i++) {
-      int pageSize = sizeArray[i];
-      PageId id = new PageId(String.valueOf(i), 0);
-      byte[] buf = new byte[pageSize];
-      assertEquals(pageSize, mPageStore.get(id, 0, pageSize, buf, 0));
-      assertArrayEquals(BufferUtils.getIncreasingByteArray(i, pageSize), buf);
-    }
-  }
-
-  @Test
-  public void putPagesUntilFull() throws Exception {
-    for (int i = 0; i < CACHE_SIZE_BYTES / PAGE_SIZE_BYTES; i++) {
-      PageId id = new PageId(String.valueOf(i), 0);
-      byte[] page = BufferUtils.getIncreasingByteArray(i, PAGE_SIZE_BYTES - i);
-      mPageStore.put(id, page);
-    }
-    for (int i = 0; i < CACHE_SIZE_BYTES / PAGE_SIZE_BYTES; i++) {
-      PageId id = new PageId(String.valueOf(i), 0);
-      byte[] buf = new byte[PAGE_SIZE_BYTES - i];
-      assertEquals(PAGE_SIZE_BYTES - i, mPageStore.get(id, 0, PAGE_SIZE_BYTES - i, buf, 0));
-      assertArrayEquals(BufferUtils.getIncreasingByteArray(i, PAGE_SIZE_BYTES - i), buf);
-    }
-  }
-
-  @Test
-  public void delete() throws Exception {
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.delete(PAGE_ID1);
-    mThrown.expect(PageNotFoundException.class);
-    byte[] buf = new byte[PAGE1.length];
-    mPageStore.get(PAGE_ID1, 0, PAGE1.length, buf, 0);
-  }
-
-  @Test
-  public void putDeleteRepeated() throws Exception {
-    // page store can reclaim resource after deletion
-    for (int run = 0; run < 3; run++) {
-      // able to add max number of pages
-      for (int i = 0; i < CACHE_SIZE_BYTES / PAGE_SIZE_BYTES; i++) {
-        PageId id = new PageId(String.valueOf(i), 0);
-        mPageStore.put(id, PAGE1);
-      }
-      // able to remove all added pages
-      for (int i = 0; i < CACHE_SIZE_BYTES / PAGE_SIZE_BYTES; i++) {
-        PageId id = new PageId(String.valueOf(i), 0);
-        mPageStore.delete(id);
-      }
-    }
-  }
-
-  @Test
   public void helloWorldTest() throws Exception {
     String msg = "Hello, World!";
     byte[] msgBytes = msg.getBytes();
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
-    byte[] buf = new byte[1024];
-    int len = mPageStore.get(id, 0, msgBytes.length, buf, 0);
-    String read = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(buf, 0, len)).toString();
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    mPageStore.get(id).read(buf);
+    buf.flip();
+    String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
-    mPageStore.delete(id);
+    mPageStore.delete(id, msgBytes.length);
     try {
-      mPageStore.get(id, 0, msgBytes.length, buf, 0);
+      buf.clear();
+      mPageStore.get(id).read(buf);
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -198,9 +111,12 @@ public class PageStoreTest {
     int offset = 3;
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
-    byte[] buf = new byte[len - offset];
-    assertEquals(len - offset, mPageStore.get(id, offset, len - offset, buf, 0));
-    assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset), buf);
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
+      channel.read(buf);
+    }
+    buf.flip();
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(offset, len - offset, buf));
   }
 
   @Test
@@ -209,9 +125,11 @@ public class PageStoreTest {
     int offset = 36;
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
-    byte[] buf = new byte[1024];
+    ByteBuffer buf = ByteBuffer.allocate(1024);
     mThrown.expect(IllegalArgumentException.class);
-    mPageStore.get(id, offset, len, buf, offset);
+    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
+      channel.read(buf);
+    }
   }
 
   @Test
