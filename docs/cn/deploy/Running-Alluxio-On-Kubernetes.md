@@ -1,20 +1,20 @@
 ---
 layout: global
-title: 在Kubernetes上部署Alluxio
+title: 在Kubernetes上运行Alluxio
 nickname: Kubernetes上的Alluxio
 group: Install Alluxio
 priority: 4
 ---
 
-Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像或`helm`中包含的规范在Kubernetes上运行Alluxio
+Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio Github库中的说明来在Kubernetes上运行Alluxio。
 
-*目录
-{:toc}
+# 基础教程
 
-##先决条件
+本教程将介绍Kubernetes上的基本Alluxio安装。
 
-一个Kubernetes集群(版本> = 1.8)。在默认规范下，Alluxio workers可以通过设置`sizeLimit`参数来决定`emptyDir`卷的大小。这是Kubernetes 1.8版本中的一个Alpha特性。在使用前请确保此功能已启用。
+## 前提条件
 
+<<<<<<< HEAD
 一个Alluxio Docker镜像[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)。如果使用私有Docker注册表，请参阅Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
 确保[Kubernetes网络策略](https://kubernetes.io/docs/concepts/services-networking/network-policies/)允许应用程序(Alluxio客户端)和Alluxio Pods之间在已定义端口上的连接。
 
@@ -29,15 +29,20 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像
   {% collapsible (Optional) Extract Kubernetes Specifications %}
 
 如果使用私有`helm` 仓库或使用原生Kubernetes规范，从Docker镜像中提取部署Alluxio所需的Kubernetes规范。
+=======
+- 一个Kubernetes集群 (版本 >= 1.8). Alluxio workers将使用`sizeLimit`参数来限制使用`emptyDir`卷的大小。这是Kubernetes 1.8的一个alpha特性。
+请确保该功能已启用。
+- 一个Alluxio Docker镜像。请参阅[用Docker运行Alluxio]({{ '/cn/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})了解如何构建镜像。该镜像必须可以从运行Alluxio进程的所有Kubernetes主机提取。这可以通过将镜像推送到可访问的Docker注册表来实现，或者将镜像单独推送到所有主机。如果使用私人Docker注册表，请参阅Kubernetes [文档](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
+
+## 克隆Alluxio库
+>>>>>>> upstream/master
 
 ```console
-$ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
-$ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
-$ docker rm -v $id 1>/dev/null
-$ tar -xvf kubernetes.tar
-$ cd kubernetes
+$ git clone https://github.com/Alluxio/alluxio.git
+$ cd integration/kubernetes
 ```
 
+<<<<<<< HEAD
  {% endcollapsible %}
   {% collapsible (Optional) Provision a Persistent Volume %}
 注意:[嵌入式日志]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)
@@ -71,8 +76,17 @@ spec:
 >注意:默认每个日志卷应至少1GI，因为每个alluxio master Pod将有一个请求1Gi存储的PersistentVolumeClaim。后面部分会介绍如何设置日志大小。
 
 然后使用`kubectl`来创建持久卷:
+=======
+可以在`integration/kubernetes`下找到部署Alluxio所需的Kubernetes说明。
 
+## 启用短路操作
+
+短路访问使客户端可以直接对worker的内存执行读取和写入操作，而不必经过worker进程。在所有有资格运行Alluxio worker进程的主机上设置一个域套接字来启用这种操作模式。
+>>>>>>> upstream/master
+
+在主机上，为共享域套接字创建一个目录。
 ```console
+<<<<<<< HEAD
 $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
 
@@ -321,18 +335,24 @@ metastore:
   {% collapsible Example: Multiple Secrets %} 
 
  可以将多个secrets同时挂载到master和workerPods。每个Pod区域的格式为`<secretName>:<mountPath>`
-
-```properties
-secrets:
-  master:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
-  worker:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
+=======
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
 ```
 
+如果不需要或不能设置短路访问，则可以跳过此步骤。要禁用此功能，请根据下面的配置部分中的说明设置属性 `alluxio.user.short.circuit.enabled=false`。
 
+默认情况下，如果客户端的 hostname 与 worker 的 hostname 一致，它们之间就会启用短路操作。但是若客户端运行在一个虚拟网络下的容器中，则短路操作不一定会启用。在这种情况下，需要设置以下属性来使用文件系统检查以启用短路操作。如果工作节点的UUID位于客户端文件系统上，短路写操作就可以启用。
+>>>>>>> upstream/master
+
+```properties
+alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
+```
+
+## 提供持久性卷
+
+<<<<<<< HEAD
 {％ endcollapsible ％}
   {% collapsible Examples: Alluxio Storage Management %} 
 
@@ -432,22 +452,22 @@ $ helm install alluxio -f config.yaml alluxio-charts/alluxio
 #### 卸载
 
 运行如下命令卸载Alluxio:
+=======
+Alluxio master可以配置为使用[持久性卷](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)来存储日志。一旦使用，在master进程的重启之间该卷将被持久化。
+>>>>>>> upstream/master
 
+从模板创建持久性卷。访问模式`ReadWriteMany`用于允许多个Alluxio master节点访问共享卷。
 ```console
-$ helm delete alluxio
+$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
-#### 格式化日志
+注意：提供的说明是使用`hostPath`卷在单节点部署上进行演示。对于多节点集群，可以选择使用NFS，AWSElasticBlockStore，GCEPersistentDisk或其他可用的持久性卷插件。
 
-StatefulSet中的master Pods在启动是使用`initContainer`来格式化日志。`initContainer`由`journal.format.runFormat = true`设置打开。 默认情况下，master启动时日志没有格式化。
-
-可以使用升级现有的helm部署来触发日志格式化
-`journal.format.runFormat = true`。
-
+创建持久性卷。
 ```console
-# Use the same config.yaml and switch on journal formatting
-$ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
+$ kubectl create -f alluxio-journal-volume.yaml
 ```
+<<<<<<< HEAD
 > 注:'helm upgrade`将重新创建 master Pods。
 
 或者，可以在部署时触发日志格式化。
@@ -474,11 +494,19 @@ $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 ####配置
 
 一旦部署选项确定，从相应子目录复制模板
+=======
 
+## 配置Alluxio属性
+Kubernetes中的Alluxio容器使用环境变量来设置Alluxio属性。有关`conf/alluxio-site.properties`中的Alluxio属性的相应环境变量名称，请参阅[用Docker运行Alluxio]({{ '/cn/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})。
+>>>>>>> upstream/master
+
+在一个文件中定义所有的环境变量。复制`integration/kubernetes/conf`中的属性模板，并根据需要修改或添加配置属性。
+请注意，在与主机联网运行Alluxio时，分配给Alluxio服务的端口不能事先被占用。
 ```console
-$ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
+$ cp conf/alluxio.properties.template conf/alluxio.properties
 ```
 
+<<<<<<< HEAD
 按需要修改或添加任何配置属性。必须修改Alluxi底层文件系统地址。
 任何凭证都必须修改。
 添加到`ALLUXIO_JAVA_OPTS`:
@@ -629,16 +657,27 @@ containers:
 **第2步:停止运行Alluxio master和worker Pods**
 
 通过删除其DaemonSet进行来终止所有正在运行的Alluxio worker Pods。
-
+=======
+创建一个ConfigMap。
 ```console
-$ kubectl delete daemonset -l app=alluxio
+$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
-然后通过终止每个StatefulSet和每个标签为`app=alluxio`的服务来终止所有正在运行的Alluxio master
 
+## 部署
+>>>>>>> upstream/master
+
+从模板准备Alluxio部署。 修改所需的参数，例如Docker映像的位置，以及Pod的CPU和内存要求。
 ```console
-$ kubectl delete service -l app=alluxio
-$ kubectl delete statefulset -l app=alluxio
+$ cp alluxio-master.yaml.template alluxio-master.yaml
+$ cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
+
+一旦所有的前提条件和配置已经建立，部署Alluxio。
+```console
+$ kubectl create -f alluxio-master.yaml
+$ kubectl create -f alluxio-worker.yaml
+```
+<<<<<<< HEAD
 确保在进行下一步之前所有Pods都已经终止。
 
 **步骤3:如有必要，格式化日志和Alluxio存储**
@@ -655,10 +694,12 @@ $ kubectl delete statefulset -l app=alluxio
 **步骤4:重新启动Alluxio master和worker Pods**
 
 现在Alluxio masters and worker容器都升级到所要的版本。可以重新启动运行了。
+=======
+>>>>>>> upstream/master
 
-从YAML文件中重新启动Alluxio master and worker Pods。
- 
+验证Alluxio部署的状态。
 ```console
+<<<<<<< HEAD
 $ kubectl create -f ./master/
 $ kubectl create -f ./worker/
 ```
@@ -966,10 +1007,17 @@ $ ping <host>
 
 -验证客户端可以按worker部署规范指定的端口上连接到workers。默认端口为`[29998，29999，29996，30001，30002，30003]`。使用网络工具如`ncat`来检查是否可以从远程客户端访问特定的端口:
 
-```console
-$ nc -zv <IP> 29999
+=======
+$ kubectl get pods
 ```
 
+如果为Alluxio master使用持久卷，卷的状态应该变为 `CLAIMED`。
+>>>>>>> upstream/master
+```console
+$ kubectl get pv alluxio-journal-volume
+```
+
+<<<<<<< HEAD
 {% endcollapsible %}
 
 {% collapsible Permission Denied %} 
@@ -982,11 +1030,16 @@ Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hos
 要更改Alluxio服务器(master and workers)的日志级别，使用CLI命令`logLevel`，如下所示:
 
 从master Pod访问Alluxio CLI。
+=======
+## 验证
+>>>>>>> upstream/master
 
+准备就绪后，从master pod 访问Alluxio CLI并运行基本的I/O测试。
 ```console
 $ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
+<<<<<<< HEAD
 从master Pod，执行以下命令:
 
 ```console
@@ -1006,21 +1059,28 @@ $ kubectl logs -f alluxio-master-0 -c alluxio-master
 
 Worker:
 
+=======
+从master pod执行以下操作：
+>>>>>>> upstream/master
 ```console
-$ kubectl logs -f alluxio-worker-<id> -c alluxio-worker
+$ cd /opt/alluxio
+$ ./bin/alluxio runTests
 ```
 
-Job Master:
+## 卸载
 
+卸载Alluxio：
 ```console
-$ kubectl logs -f alluxio-master-0 -c alluxio-job-master
+$ kubectl delete -f alluxio-worker.yaml
+$ kubectl delete -f alluxio-master.yaml
+$ kubectl delete configmaps alluxio-config
 ```
 
-Job Worker:
-
+执行以下命令来清理储存Alluxio journal数据的持久化卷。注意：Alluxio的元数据会丢失！
 ```console
-$ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
+$ kubectl delete -f alluxio-journal-volume.yaml
 ```
+<<<<<<< HEAD
 
 {％ endcollapsible ％}
 
@@ -1036,3 +1096,5 @@ $ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 `kubectl logs -f alluxio-fuse- <id>`。
   {％ endcollapsible ％}
 {％ endaccordion ％}
+=======
+>>>>>>> upstream/master

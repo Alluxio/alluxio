@@ -308,7 +308,7 @@ bootstrap_alluxio() {
   download_file "${download_url}"
   local tarball_name=${download_url##*/}
   tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
-  ln -s ${ALLUXIO_HOME}/client/alluxio-${ALLUXIO_VERSION}-client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
+  ln -s ${ALLUXIO_HOME}/client/*client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
 
   # Download files to /opt/alluxio/conf
   local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)

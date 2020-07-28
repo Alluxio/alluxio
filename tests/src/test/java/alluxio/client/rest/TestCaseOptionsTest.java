@@ -13,7 +13,7 @@ package alluxio.client.rest;
 
 import alluxio.test.util.CommonUtils;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
