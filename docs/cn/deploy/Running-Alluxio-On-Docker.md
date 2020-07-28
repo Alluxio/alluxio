@@ -6,7 +6,6 @@ group: Install Alluxio
 priority: 4
 ---
 
-
 Docker可用于简化Alluxio服务器的部署和管理。使用 Dockerhub上的[alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/) Docker镜像，只要运行几个`docker run`命令就可以从零到运行Alluxio集群。本文档提供了以本地磁盘作为底层存储的单个节点上运行Dockerized Alluxio的教程。我们也还将讨论更高级的主题以及如何解决遇到的问题。
 
 * Table of Contents
@@ -23,7 +22,6 @@ Docker可用于简化Alluxio服务器的部署和管理。使用 Dockerhub上的
 + 你的浏览器的IP地址端口19999:允许您访问Alluxio master Web UI。
 + Alluxio和客户端的CIDR范围内端口29999:允许客户端与Alluxio Worker RPC进程进行通信。
 + 你的浏览器的IP地址端口30000:允许您访问Alluxio worker Web UI。
-
 
 在发放实例后(后续称为Docker Host)运行以下命令来设置Docker
 
@@ -75,7 +73,7 @@ Alluxio集群中，同时要确保master和worker容器可以在[下面定义的
 
 有两种方法可以在Docker主机上启动Alluxio Docker容器:
 + A: 使用[主机网络](https://docs.docker.com/network/host/) 或
-+ B: 使用[用户自定义桥接网络。](https://docs.docker.com/network/bridge/)
++ B: 使用[用户自定义桥接网络](https://docs.docker.com/network/bridge/)。
 
 主机网络在容器和Docker主机之间共享ip地址和网络命名空间。用户自定义桥接网络允许在桥接网络内的容器互相通信，同时与未连接到该桥接网络的容器隔离。建议使用主机网络(选项A)进行测试。
 
@@ -103,7 +101,6 @@ $ docker run -d --rm \
        -Dalluxio.master.hostname=$(hostname -i)" \
     alluxio/alluxio worker
 ```
-
 注意:
 
   1. 参数`net = host`告诉Docker使用主机网络。在这种设置下，容器直接使用主机的网络适配器。
@@ -153,7 +150,6 @@ $ docker run -d --rm \
 ```
 
 Notes:
-
   1. 参数 `net = alluxio_network` 告诉Docker使用用户自定义桥接网络 `alluxio_network`。所有容器都将使用其自己的容器ID作为其主机名，每个容器在网络subnet中具有不同的IP地址。除非定义了防火墙策略，否则连接到相同用户定义桥接网络的容器可以有效地将所有端口对彼此开放。可以[在此处](https://docs.docker.com/network/bridge/)找到有关桥接网络驱动程序的更多详细信息 。 
   1. 仅指定的端口(`-p` 选项)公开给客户端所在外部网络。命令 `-p <host-port>:<container-port>` 会将容器端口映射到主机端口。因此，必须明确开放master容器两个端口19999和19998和worker容器端口29999和30000。否则，客户端将无法与master和worker进行通信。
   1. 如果所有通信都在docker网络内部(例如，没有在docker网络外部客户端)，可以通过容器名称(`alluxio-master` for master容器， `alluxio-worker` for worker容器)或通过Docker主机的IP地址$ {`hostname -i`)主机来引用容器 。否则，就必须指定客户端可以访问的master和worker的docker主机IP(例如, 通过`-Dalluxio.worker.hostname = $(hostname -I`))。这是docker网络外部客户端与master/worker通信所必需的。否则，客户端将无法连接到worker，因为它们无法识别worker的容器ID。将触发以下错误:
@@ -260,7 +256,6 @@ $ docker run -d \
 
 将他们指向共享日志并设置其Zookeeper配置。
 
-
 ```console
 $ docker run -d \
   ...:
@@ -306,7 +301,6 @@ $ docker run -d \
 
 ### 激活POSIX API访问
 
-
 使用 [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/)，您可以激活使用POSIX API对Alluxio的访问。
 
 启动具有[SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html) 权限功能的容器。以下命令在一个需要通过POSIX API访问Alluxio的客户端上启动FUSE daemon程序， 挂载访问路径为 `/alluxio-fuse`。
@@ -322,6 +316,3 @@ $ docker run -e \
 ## 故障排除
 
 可以通过运行docker访问Alluxio服务器日志 logs $ container_id。通常，日志可以很好地指出什么地方出了问题。如果它们不足以诊断您的问题，则可以在[用户邮件列表](https://groups.google.com/forum/#!forum/alluxio-users).上获得帮助 。
-
-
-
