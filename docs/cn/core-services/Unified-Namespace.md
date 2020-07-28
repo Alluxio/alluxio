@@ -69,7 +69,6 @@ Alluxio命名空间的根挂载点是在masters上’conf/alluxio-site.propertie
 下一行是一个配置样例，一个HDFS路径挂载到
 Alluxio命名空间根目录。
 
-
 ```
 alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
@@ -109,20 +108,19 @@ $ ./bin/alluxio fs mount \
 ```
 
 注意，挂载点也允许嵌套。 例如，如果将UFS挂载到
-`alluxio:/// path1`，可以在`alluxio:/// path1/path2`处挂载另一个UFS。
+`alluxio:///path1`，可以在`alluxio:///path1/path2`处挂载另一个UFS。
 
 ### 使用特定版本挂载UFS
 
 Alluxio支持挂载特定不同版本HDFS。
-因此，用户可以将不同版本的HDFS挂载到同一个Alluxio命名空间中。 有关更多详细信息，请参考[HDFS底层存储]({{'/en/ufs/HDFS.html'| relativize_url}})。
+因此，用户可以将不同版本的HDFS挂载到同一个Alluxio命名空间中。 有关更多详细信息，请参考[HDFS底层存储]({{ '/en/ufs/HDFS.html' | relativize_url}})。
 
 ## Alluxio和UFS命名空间之间的关系
 Alluxio提供了一个统一的命名空间，充当一个或多个底层文件存储系统的数据缓存层。 本节讨论Alluxio如何与底层文件系统交互来发现和通过Alluxio呈现这些文件。
 
 通过Alluxio访问UFS文件的与直接通过UFS访问文件的相同。
 如果UFS根目录是`s3://bucket/data`，则列出`alluxio:///`下内容应该与列出`s3://bucket/data`相同。
-在`alluxio:/// file`上运行cat的结果应与在`s3://bucket/data/file`上运行cat的结果相同。
-
+在`alluxio:///file`上运行cat的结果应与在`s3://bucket/data/file`上运行cat的结果相同。
 
 Alluxio按需从UFS加载元数据。
 在上面的示例中，Alluxio在启动时并没有有关`s3://bucket/data/file`的信息。
@@ -194,7 +192,7 @@ $ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/s
 仅扫描每个目录一次，而`NEVER`配置下Alluxio根本不会
 扫描新文件。
 
-*`alluxio fs ls -f / path`:`ls`的`-f`选项相当于设置
+*`alluxio fs ls -f /path`:`ls`的`-f`选项相当于设置
 `alluxio.user.file.metadata.load.type`为`ALWAYS`。它将发现新文件，但
 不检测修改或删除的UFS文件。
 要检测修改或删除的UFS文件的唯一方法是通过传递
@@ -213,9 +211,7 @@ $ cd /tmp
 $ mkdir alluxio-demo
 $ touch alluxio-demo/hello
 ```
-
 将创建的目录挂载到Alluxio命名空间中，并确认挂载后的目录在Alluxio中存在：
-
 
 ```console
 $ cd ${ALLUXIO_HOME}
@@ -226,7 +222,6 @@ $ ./bin/alluxio fs ls -R /
 ```
 
 验证对于不是通过Alluxio创建的内容，当第一次被访问时，其元数据被加载进入了Alluxio中:
-
 
 ```console
 $ ./bin/alluxio fs ls /demo/hello
@@ -314,7 +309,6 @@ $ ./bin/alluxio fs getSyncPathList
 系统保证如果目录“静默”或长时间未同步(超过最大期限)，我们将开始同步该目录。
 
 例如，以下设置
-
 
 ```
 alluxio.master.ufs.active.sync.interval=30secs
