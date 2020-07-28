@@ -80,8 +80,6 @@ public class CollectInfo extends AbstractShell {
           + "collectJvmInfo:     collects jstack from the JVMs.\n"
           + "collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.\n"
           + "collectMetrics:     collects Alluxio system metrics.\n\n"
-          + "<filename-prefixes> filename prefixes, separated by comma\n"
-          + "<datetime>          a datetime string like 2020-06-27T11:58:53\n"
           + "<outputPath>        the directory you want the collected tarball to be in\n\n"
           + "WARNING: This command MAY bundle credentials. To understand the risks refer "
           + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"

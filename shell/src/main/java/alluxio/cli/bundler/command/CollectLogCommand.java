@@ -106,25 +106,27 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
           Option.builder().required(false).argName("filename-prefixes")
                   .longOpt(INCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file name prefixes to include in ${ALLUXIO_HOME}/logs. "
-                          + "The files that start with the prefix will be included.").build();
+                          + "The files that start with the prefix will be included.\n"
+                          + "<filename-prefixes> filename prefixes, separated by comma").build();
   public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
   private static final Option EXCLUDE_OPTION =
           Option.builder().required(false).argName("filename-prefixes")
                   .longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
-                          + "The files that start with the prefix will be excluded.").build();
+                          + "The files that start with the prefix will be excluded.\n"
+                          + "<filename-prefixes> filename prefixes, separated by comma").build();
   private static final String START_OPTION_NAME = "start-time";
   private static final Option START_OPTION =
           Option.builder().required(false).argName("datetime")
                   .longOpt(START_OPTION_NAME).hasArg(true)
-                  .desc("logs that do not contain entries after this time will be ignored")
-                  .build();
+                  .desc("logs that do not contain entries after this time will be ignored\n"
+                          + "<datetime> a datetime string like 2020-06-27T11:58:53").build();
   private static final String END_OPTION_NAME = "end-time";
   private static final Option END_OPTION =
           Option.builder().required(false).argName("datetime")
                   .longOpt(END_OPTION_NAME).hasArg(true)
-                  .desc("logs that do not contain entries before this time will be ignored")
-                  .build();
+                  .desc("logs that do not contain entries before this time will be ignored\n"
+                          + "<datetime> a datetime string like 2020-06-27T11:58:53").build();
   // Class specific options are aggregated into CollectInfo with reflection
   public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION)
           .addOption(EXCLUDE_OPTION).addOption(START_OPTION).addOption(END_OPTION);
