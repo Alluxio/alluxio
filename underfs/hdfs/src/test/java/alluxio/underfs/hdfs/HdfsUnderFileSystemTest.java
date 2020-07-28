@@ -13,6 +13,7 @@ package alluxio.underfs.hdfs;
 
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.MOVEMENT_LIMIT;
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.SEQUENTIAL_READ_LIMIT;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -130,20 +131,20 @@ public final class HdfsUnderFileSystemTest {
     // because we skipped over more than MOVEMENT_LIMIT, we switched to pread mode, the next
     // three reads are preads
     verify(spyStream, times(SEQUENTIAL_READ_LIMIT)).read(
-        anyInt(), any(byte[].class), anyInt(), anyInt());
+        anyLong(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(6)).read(any(byte[].class), anyInt(), anyInt());
     // we performed more than SEQUENTIAL_READ_LIMIT reads without seeking beyond movement limit,
     // thus we switch back to sequential read mode
     checkDataValid(in.read(), readPos++);
     verify(spyStream, times(SEQUENTIAL_READ_LIMIT)).read(
-        anyInt(), any(byte[].class), anyInt(), anyInt());
+        anyLong(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(7)).read(any(byte[].class), anyInt(), anyInt());
     in.seek(MOVEMENT_LIMIT * 3);
     readPos = MOVEMENT_LIMIT * 3;
     checkDataValid(in.read(), readPos++);
     // we performed seek to a far location, we should switch back to pread mode
     verify(spyStream, times(SEQUENTIAL_READ_LIMIT + 1)).read(
-        anyInt(), any(byte[].class), anyInt(), anyInt());
+        anyLong(), any(byte[].class), anyInt(), anyInt());
     verify(spyStream, times(7)).read(any(byte[].class), anyInt(), anyInt());
     in.close();
   }

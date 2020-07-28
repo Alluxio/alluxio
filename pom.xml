@@ -143,7 +143,7 @@
     <metrics.version>3.1.2</metrics.version>
     <orc.version>1.6.2</orc.version>
     <oshi.version>4.2.0</oshi.version>
-    <powermock.version>1.6.2</powermock.version>
+    <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
     <guava.version>29.0-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
@@ -724,13 +724,13 @@
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.10.19</version>
+        <artifactId>mockito-core</artifactId>
+        <version>3.4.4</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
+        <artifactId>powermock-api-mockito2</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
@@ -823,12 +823,12 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
