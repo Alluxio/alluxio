@@ -76,6 +76,10 @@ spec:
               fieldRef:
                 fieldPath: status.podIP
           {{- end }}
+          {{- range $key, $value := .Values.worker.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+          {{- end }}
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -126,6 +130,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- end }}
+          {{- range $key, $value := .Values.jobWorker.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:

@@ -301,4 +301,21 @@ public final class PropertyKeyTest {
     assertTrue(PropertyKey.isDeprecated(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
     assertTrue(PropertyKey.isRemoved(RemovedKey.Name.TEST_REMOVED_KEY));
   }
+
+  @Test
+  public void testGetOrBuildCustom() throws Exception {
+    final PropertyKey workerHostName =
+        PropertyKey.getOrBuildCustom(PropertyKey.Name.WORKER_HOSTNAME);
+
+    // check reference equality
+    assertTrue(PropertyKey.WORKER_HOSTNAME == workerHostName);
+
+    final PropertyKey test = PropertyKey.getOrBuildCustom("test");
+    assertEquals(PropertyKey.DisplayType.DEFAULT, test.getDisplayType());
+    assertEquals("test", test.getName());
+    assertTrue(test == PropertyKey.getOrBuildCustom("test"));
+
+    final PropertyKey accessKey = PropertyKey.getOrBuildCustom("test.accessKeyId");
+    assertEquals(PropertyKey.DisplayType.CREDENTIALS, accessKey.getDisplayType());
+  }
 }

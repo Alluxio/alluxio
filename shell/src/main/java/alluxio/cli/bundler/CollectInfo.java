@@ -61,19 +61,24 @@ import java.util.stream.Collectors;
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
   private static final String USAGE =
-          "USAGE: collectInfo [--max-threads <threadNum>] [--local]\n\n"
-                  + "collectInfo runs a set of sub-commands which collect information"
-                  + "about your Alluxio cluster. In the end of the run, "
-                  + "the collected information will be written to files "
-                  + "and bundled into one tarball.\n"
-                  + "[--max-threads <threadNum>] controlls how many threads this command uses. "
-                  + "By default it allocates one thread for each host."
-                  + "Use a smaller number to constrain the network IO when transmitting tarballs.\n"
-                  + "[--local] specifies this command should only collect "
-                  + "information about the localhost.\n"
-                  + "WARNING: This command MAY bundle credentials. To understand the risks refer "
-                  + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
-                  + "Troubleshooting.html#collect-alluxio-cluster-information";
+      "USAGE: collectInfo [--max-threads <threadNum>] [--local] [--help] COMMAND <outputPath>\n\n"
+          + "collectInfo runs a set of sub-commands which collect information "
+          + "about your Alluxio cluster.\nIn the end of the run, "
+          + "the collected information will be written to files and bundled into one tarball.\n"
+          + "COMMAND can be one of the following values:\n"
+          + "all:                runs all the commands below.\n"
+          + "collectAlluxioInfo: runs a set of Alluxio commands to collect information about "
+          + "the Alluxio cluster.\n"
+          + "collectConfig:      collects the configuration files under ${ALLUXIO_HOME}/config/.\n"
+          + "collectEnv:         runs a set of linux commands to collect information about "
+          + "the cluster.\n"
+          + "collectJvmInfo:     collects jstack from the JVMs.\n"
+          + "collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.\n"
+          + "collectMetrics:     collects Alluxio system metrics.\n\n"
+          + "<outputPath>        the directory you want the collected tarball to be in\n\n"
+          + "WARNING: This command MAY bundle credentials. To understand the risks refer "
+          + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
+          + "Troubleshooting.html#collect-alluxio-cluster-information\n";
   private static final String FINAL_TARBALL_NAME =  "alluxio-cluster-info-%s.tar.gz";
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.of();
@@ -84,15 +89,26 @@ public class CollectInfo extends AbstractShell {
 
   private static final String MAX_THREAD_OPTION_NAME = "max-threads";
   private static final String LOCAL_OPTION_NAME = "local";
+  private static final String HELP_OPTION_NAME = "help";
   private static final Option THREAD_NUM_OPTION =
           Option.builder().required(false).longOpt(MAX_THREAD_OPTION_NAME).hasArg(true)
-                  .desc("the maximum number of threads to use for collecting information remotely")
+                  .desc("the number of threads this command uses\n"
+                          + "By default it allocates one thread for each host.\n"
+                          + "Use a smaller number to constrain the network IO when "
+                          + "transmitting tarballs.")
                   .build();
   private static final Option LOCAL_OPTION =
           Option.builder().required(false).longOpt(LOCAL_OPTION_NAME).hasArg(false)
-                  .desc("running only on localhost").build();
-  private static final Options OPTIONS =
-          new Options().addOption(THREAD_NUM_OPTION).addOption(LOCAL_OPTION);
+                  .desc("specifies this command should only collect information "
+                          + "about the localhost")
+                  .build();
+  private static final Option HELP_OPTION =
+          Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
+                  .desc("shows the help message").build();
+  private static final Options OPTIONS = new Options()
+          .addOption(THREAD_NUM_OPTION)
+          .addOption(LOCAL_OPTION)
+          .addOption(HELP_OPTION);
 
   private static final String TARBALL_NAME = "alluxio-info.tar.gz";
 
@@ -134,6 +150,7 @@ public class CollectInfo extends AbstractShell {
   public static void printHelp(String message) {
     System.err.println(message);
     HelpFormatter help = new HelpFormatter();
+    help.setWidth(200);
     help.printHelp(USAGE, OPTIONS);
   }
 
@@ -155,6 +172,12 @@ public class CollectInfo extends AbstractShell {
       return;
     }
     String[] args = cmd.getArgs();
+
+    // Print help message
+    if (cmd.hasOption(HELP_OPTION_NAME)) {
+      printHelp("");
+      System.exit(0);
+    }
 
     // Create the shell instance
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());

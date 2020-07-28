@@ -21,10 +21,15 @@ public interface CallTracker {
   boolean isCancelled();
 
   /**
-   * Used when call tracking is not desired.
-   * It will always return @{code false}.
-   *
-   * This tracker will be used during testing for service implementations that use tracking.
+   * @return the type of call tracker
    */
-  CallTracker NOOP_TRACKER = () -> false;
+  Type getType();
+
+  /**
+   * Defines call-tracker types.
+   */
+  enum Type {
+    GRPC_CLIENT_TRACKER,
+    STATE_LOCK_TRACKER
+  }
 }

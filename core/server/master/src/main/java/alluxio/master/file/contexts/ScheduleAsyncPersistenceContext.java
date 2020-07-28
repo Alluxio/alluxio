@@ -21,7 +21,8 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link ScheduleAsyncPersistencePOptions}.
  */
 public class ScheduleAsyncPersistenceContext
-    extends OperationContext<ScheduleAsyncPersistencePOptions.Builder> {
+    extends
+    OperationContext<ScheduleAsyncPersistencePOptions.Builder, ScheduleAsyncPersistenceContext> {
 
   private long mPersistenceWaitTime;
 

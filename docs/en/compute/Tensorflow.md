@@ -117,11 +117,11 @@ ls -l /mnt/fuse/imagenet/
 
 ### Run image recognition test
 
-Download the [image recognition script](https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py)
+Download the [image recognition script](https://raw.githubusercontent.com/tensorflow/models/v1.11/tutorials/image/imagenet/classify_image.py)
 and run it with the local folder which holds the training data.
 
 ```console
-$ curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py
+$ curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/models/v1.11/tutorials/image/imagenet/classify_image.py
 $ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 

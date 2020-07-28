@@ -137,7 +137,7 @@
     <java.version>1.8</java.version>
     <jersey.version>2.29.1</jersey.version>
     <jetty.version>9.4.28.v20200408</jetty.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13</junit.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
@@ -145,12 +145,12 @@
     <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>27.0.1-jre</guava.version>
-    <parquet.version>1.10.0</parquet.version>
+    <guava.version>29.0-jre</guava.version>
+    <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.11.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.11.1</jackson.version>
     <ozone.version>0.5.0-beta</ozone.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
@@ -273,7 +273,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
+        <version>2.7</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -410,7 +410,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.4</version>
+        <version>3.11</version>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
@@ -521,12 +521,12 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.3</version>
+        <version>4.5.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.6</version>
+        <version>4.4.13</version>
       </dependency>
       <dependency>
         <groupId>org.apache.orc</groupId>

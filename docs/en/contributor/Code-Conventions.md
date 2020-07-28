@@ -75,6 +75,91 @@ warnings are introduced:
 $ mvn checkstyle:checkstyle
 ```
 
+## JavaDoc Style
+
+This codebase follows the [Oracle JavaDoc style](http://www.oracle.com/technetwork/java/javase/documentation/index-137868.html)
+with the following refinements:
+
+- All public classes/interfaces should have a class/interface-level comment that describes the purpose of the class/interface.
+
+- All public members should have a member-level comment the describes the purpose of the member. For example,
+
+```java
+/** The number of logical bytes used. */
+public final AtomicLong mBytes = new AtomicLong(0);
+```
+
+- All public methods (including constructors) should use the following format. For example
+
+```java
+/**
+ * Does something. This is a method description that uses
+ * 3rd person (does something) as opposed to 2nd person (do
+ * something).
+ *
+ * @param param_1 description of 1st parameter
+ * ...
+ * @param param_n description of nth parameter
+ * @return description of return argument (if applicable)
+ * @throws exception_1 description of 1st exception case
+ * ...
+ * @throws exception_n description of nth exception case
+ */
+```
+
+- An exception to the above rule is that `@throws` doesn’t need to be provided for `@Test` methods,
+or for generic exceptions like IOException when there is nothing interesting to document.
+
+- Only write exception javadoc when you think it will be useful to the developer using the method. There are so many sources of `IOException` that it’s almost never useful to include javadoc for it.
+Do not write javadoc for unchecked exceptions like `RuntimeException` unless it is critical for this methd.
+
+- Getters and setters should omit the method description if it is redundant and only use `@param` and `@return` descriptions.
+For example,
+```java
+/**
+ * @return the number of pages stored
+ */
+long getPages();
+```
+- Sentences should start with a capital letter and end with a period.
+An exception to this style are isolated sentences in which case, a sentence does not have to start with a capital letter, but if that's the case, it should not end with a period. For example:
+    - GOOD: this is a short description
+    - GOOD: This is a short description.
+    - GOOD This is a slightly longer description. It has two sentences.
+    - BAD: this is a short description.
+    - BAD: This is a short description
+    - BAD: this is a slightly longer description. It has two sentences
+
+- When writing the description, the first sentence should be a concise summary of the class or method and the description should generally be implementation-independent. Also it is a good idea to write descriptions (not the first sentence) to include any significant performance implications.
+For example,
+
+```java
+/**
+ * The default implementation of a metadata store for pages stored in cache.
+ */
+public class DefaultMetaStore implements MetaStore {
+  ...
+}
+```
+
+- When the `@deprecated` annotation is added, it should also at least tell the user when the API was deprecated and what to use as a replacement with `@see` or `@link` tag.
+
+```java
+/**
+ * @deprecated  As of Alluxio 2.1, replaced by
+ *              {@link #newMethodName(int,int,int,int)}
+ */
+```
+
+- When descriptions of `@param`, `@return`, `@throw` exceed one line, the text align with the first argument after the tag. For example
+
+```java
+   * @throws FileAlreadyExistsException if there is already a file or directory at the given path
+   *         in Alluxio Filesystem
+```
+
+- It’s better to use `<code>ClassName</code>` tags compared to `{@link ClassName}`.
+
 ## Logging Conventions
 
 Alluxio uses [SLF4J](https://www.slf4j.org/) for logging with typical usage pattern of:

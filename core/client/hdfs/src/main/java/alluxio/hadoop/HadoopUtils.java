@@ -184,5 +184,13 @@ public final class HadoopUtils {
     }
   }
 
+  /**
+   * @param alluxioURI Alluxio uri
+   * @return corresponding Hadoop Path instance
+   */
+  public static Path toPath(AlluxioURI alluxioURI) {
+    return new Path(alluxioURI.toString());
+  }
+
   private HadoopUtils() {} // prevent instantiation
 }

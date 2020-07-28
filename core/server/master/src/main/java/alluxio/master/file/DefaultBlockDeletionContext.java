@@ -32,7 +32,7 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
    */
   public DefaultBlockDeletionContext(BlockDeletionListener... listeners) {
     mListeners = Arrays.asList(listeners);
-    mBlocks = new ArrayList<>();
+    mBlocks = new ArrayList<>(0);
   }
 
   @Override

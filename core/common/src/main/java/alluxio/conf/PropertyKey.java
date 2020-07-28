@@ -5605,6 +5605,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * list of substrings of a name where any custom PropertyKey with a name that contains it
+   * should have a {@link DisplayType} of CREDENTIALS.
+   */
+  private static final String[] CUSTOM_CREDENTIAL_NAME_SUBSTR = new String[]{
+      "accessKeyId",
+      "secretKey"
+  };
+
+  /**
    * A set of templates to generate the names of parameterized properties given
    * different parameters. E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
    */
@@ -5987,7 +5996,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static PropertyKey getOrBuildCustom(String name) {
     return DEFAULT_KEYS_MAP.computeIfAbsent(name,
-        (key) -> new Builder(key).setIsBuiltIn(false).buildUnregistered());
+        (key) -> {
+          final Builder propertyKeyBuilder = new Builder(key).setIsBuiltIn(false);
+          for (String customCredentialName : CUSTOM_CREDENTIAL_NAME_SUBSTR) {
+            if (name.contains(customCredentialName)) {
+              propertyKeyBuilder.setDisplayType(DisplayType.CREDENTIALS);
+            }
+          }
+          return propertyKeyBuilder.buildUnregistered();
+        });
   }
 
   @Override

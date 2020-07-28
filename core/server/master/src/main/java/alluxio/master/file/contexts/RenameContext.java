@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link RenamePOptions}.
  */
-public class RenameContext extends OperationContext<RenamePOptions.Builder> {
+public class RenameContext extends OperationContext<RenamePOptions.Builder, RenameContext> {
 
   private long mOperationTimeMs;
   private boolean mPersist;

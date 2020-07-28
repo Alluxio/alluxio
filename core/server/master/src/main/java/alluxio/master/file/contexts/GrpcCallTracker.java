@@ -40,4 +40,9 @@ public class GrpcCallTracker implements CallTracker {
   public boolean isCancelled() {
     return mStreamObserver.isCancelled();
   }
+
+  @Override
+  public Type getType() {
+    return Type.GRPC_CLIENT_TRACKER;
+  }
 }
