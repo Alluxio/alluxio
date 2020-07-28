@@ -18,7 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
