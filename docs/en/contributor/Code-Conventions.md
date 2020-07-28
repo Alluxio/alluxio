@@ -115,12 +115,14 @@ Do not write javadoc for unchecked exceptions like `RuntimeException` unless it 
 
 - Getters and setters should omit the method description if it is redundant and only use `@param` and `@return` descriptions.
 For example,
+
 ```java
 /**
  * @return the number of pages stored
  */
 long getPages();
 ```
+
 - Sentences should start with a capital letter and end with a period.
 An exception to this style are isolated sentences in which case, a sentence does not have to start with a capital letter, but if that's the case, it should not end with a period. For example:
     - GOOD: this is a short description
@@ -146,19 +148,19 @@ public class DefaultMetaStore implements MetaStore {
 
 ```java
 /**
- * @deprecated  As of Alluxio 2.1, replaced by
- *              {@link #newMethodName(int,int,int,int)}
+ * @deprecated as of Alluxio 2.1, replaced by
+ *             {@link #newMethodName(int,int,int,int)}
  */
 ```
 
 - When descriptions of `@param`, `@return`, `@throw` exceed one line, the text align with the first argument after the tag. For example
 
 ```java
-   * @throws FileAlreadyExistsException if there is already a file or directory at the given path
-   *         in Alluxio Filesystem
+@throws FileAlreadyExistsException if there is already a file or directory at the given path
+        in Alluxio Filesystem
 ```
 
-- It’s better to use `<code>ClassName</code>` tags compared to `{@link ClassName}`.
+- When reference a class name in javadoc, prefer `<code>ClassName</code>` tags to `{@link ClassName}`.
 
 ## Logging Conventions
 
