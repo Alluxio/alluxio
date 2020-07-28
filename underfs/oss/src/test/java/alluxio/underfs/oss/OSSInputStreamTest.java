@@ -71,15 +71,8 @@ public class OSSInputStreamTest {
     for (int i = 0; i < input.length; ++i) {
       final long pos = (long) i;
       mOssObject[i] = mock(OSSObject.class);
-      when(mOssClient.getObject(argThat(new ArgumentMatcher<GetObjectRequest>() {
-        @Override
-        public boolean matches(Object argument) {
-          if (argument instanceof  GetObjectRequest) {
-            return ((GetObjectRequest) argument).getRange()[0] == pos;
-          }
-          return false;
-        }
-      }))).thenReturn(mOssObject[i]);
+      when(mOssClient.getObject(argThat(argument -> argument.getRange()[0] == pos)))
+          .thenReturn(mOssObject[i]);
       byte[] mockInput = Arrays.copyOfRange(input, i, input.length);
       mInputStreamSpy[i] = spy(new ByteArrayInputStream(mockInput));
       when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);

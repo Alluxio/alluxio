@@ -151,7 +151,7 @@ public class FileOutStreamTest {
         any(OutStreamOptions.class))).thenAnswer(new Answer<TestBlockOutStream>() {
           @Override
           public TestBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
-            Long blockId = invocation.getArgumentAt(0, Long.class);
+            Long blockId = invocation.getArgument(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
                   new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);

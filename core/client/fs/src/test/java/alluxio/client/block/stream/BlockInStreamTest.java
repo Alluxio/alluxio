@@ -67,7 +67,7 @@ public class BlockInStreamTest {
     when(workerClient.openLocalBlock(any(StreamObserver.class)))
         .thenAnswer(new Answer() {
           public Object answer(InvocationOnMock invocation) {
-            mResponseObserver = invocation.getArgumentAt(0, StreamObserver.class);
+            mResponseObserver = invocation.getArgument(0, StreamObserver.class);
             return requestObserver;
           }
         });
