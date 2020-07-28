@@ -17,7 +17,7 @@ Alluxio服务的高可用性（HA）是通过在系统多个不同节点上运�
 
 - [方法1](#option1-raft-based-embedded-journal): 使用基于RAFT的内部复制状态机来存储文件系统日志和leading master的选举。这种方法是在Alluxio 2.0中引入的，不需要依赖任何外部服务。
 - [方法2](#option2-zookeeper-and-shared-journal-storage):
-利用外部Zookeeper服务做leading master选举和利用共享存储（例如，root UFS）来共享日志。请参阅[日志管理文档]({{'/en/operation/Journal.html' | relativize_url}})，以获取更多有关选择和配置Alluxio日记系统信息。
+利用外部Zookeeper服务做leading master选举和利用共享存储（例如，root UFS）来共享日志。请参阅[日志管理文档]({{ '/en/operation/Journal.html' | relativize_url}})，以获取更多有关选择和配置Alluxio日记系统信息。
 
 ## 前提条件
 
