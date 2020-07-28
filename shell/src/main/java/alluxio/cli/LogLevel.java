@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -192,13 +191,10 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    HttpUtils.post(uriBuilder.toString(), 5000, new HttpUtils.IProcessInputStream() {
-      @Override
-      public void process(InputStream inputStream) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
-        System.out.println(targetInfo.toString() + logInfo.toString());
-      }
+    HttpUtils.post(uriBuilder.toString(), 5000, inputStream -> {
+      ObjectMapper mapper = new ObjectMapper();
+      LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
+      System.out.println(targetInfo.toString() + logInfo.toString());
     });
   }
 
