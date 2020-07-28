@@ -73,13 +73,16 @@ the host volume is recommended, since it is the easiest type of volume
 to use and very performant. More importantly, you know where to refer to the data in the host
 file system and you can manipulate the files directly and easily outside the containers.
 
-Therefore, we will use the host volume and mount the host directory `/alluxio_ufs` to the
+Therefore, we will use the host volume and mount the host directory `/tmp/alluxio_ufs` to the
 container location `/opt/alluxio/underFSStorage`, which is the default setting for the
 Alluxio UFS root mount point in the Alluxio docker image:
-  ```console
-  $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
-  ```
-Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
+
+```console
+$ mkdir -p /tmp/alluxio_ufs
+$ docker run -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage   ...
+```
+
+Of course, you can choose to mount a different path instead of `/tmp/alluxio_ufs`.
 From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
 Please make sure it is writable by the user the Docker image is run as.
@@ -109,51 +112,57 @@ User-defined bridge network allows containers connected to communicate,
 while providing isolation from containers not connected to that bridge network.
 It is recommended to use host network, option A, for testing.
 
-### Option A: Launch Docker Alluxio Containers Using Host Network
+{% navtabs network %}
+{% navtab Using Host Network %}
+
+Launch the Alluxio Master
 
 ```console
-# Launch the Alluxio Master
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.master.hostname=$(hostname -i) \
+       -Dalluxio.master.hostname=localhost \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     alluxio/alluxio master
+```
 
-#Launch the Alluxio Worker
+Launch the Alluxio Worker
+
+```console
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-worker \
     --shm-size=1G \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.worker.memory.size=1G \
-       -Dalluxio.master.hostname=$(hostname -i)" \
+       -Dalluxio.master.hostname=localhost" \
     alluxio/alluxio worker
 ```
 
 Notes:
 
   1. The argument `--net=host ` tells Docker to use the host network.
-     Under this setup, the containers are directly using the host's network adapter.  
+     Under this setup, the containers are directly using the host's network adapter.
      All containers will have the same hostname and IP address as the Docker host,
      and all the host's ports are directly mapped to containers. Therefore, all the required container
      ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
      You can find more details about this setting [here](https://docs.docker.com/network/host/).
-  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
-     allocates the worker's memory capacity and bind the master address. 
+  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=localhost"`
+     allocates the worker's memory capacity and binds the master address.
      When using the `host` network driver, the master can't be referenced to by the master container name `alluxio-master` or
      it will throw `"No Alluxio worker available" ` error.
      Instead, it should be referenced to by the host IP address.
-     The substitution `$(hostname -i)` uses the docker host's name instead.
+     The substitution `localhost` uses the docker host's name instead.
   1. The argument  `--shm-size=1G` will allocate a `1G` tmpfs for the worker to store Alluxio data.
-  1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
-     and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, 
+  1. The argument `-v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
+     and persist the Alluxio UFS root data in the host directory `/tmp/alluxio_ufs`,
      as explained above in the Docker volume section.
 
-### Option B: Launch Docker Alluxio Containers Using User-Defined Network
+{% endnavtab %}
+{% navtab Using User-Defined Network %}
 
 Using host network is simple, but it has disadvantages. For example
 
@@ -164,11 +173,15 @@ Using host network is simple, but it has disadvantages. For example
 The better way is using the user-defined network, but we need to explicitly expose the required ports
 so that the external clients can reach out the containers' services:
 
-```console
-# Prepare the network
-$ docker network create alluxio_network
+Prepare the network
 
-# Launch the Alluxio master
+```console
+$ docker network create alluxio_network
+```
+
+Launch the Alluxio master
+
+```console
 $ docker run -d  --rm \
     -p 19999:19999 \
     -p 19998:19998 \
@@ -177,17 +190,19 @@ $ docker run -d  --rm \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
+```
 
-# Launch the Alluxio worker
+Launch the Alluxio worker
+```console
 $ docker run -d --rm \
     -p 29999:29999 \
     -p 30000:30000 \
     --net=alluxio_network \
     --name=alluxio-worker \
     --shm-size=1G \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.worker.memory.size=1G \
        -Dalluxio.master.hostname=alluxio-master \
@@ -201,10 +216,10 @@ Notes:
      All containers will use their own container IDs as their hostname, and each of them has a different IP
      address within the network's subnet.
      Containers connected to the same user-defined bridge network effectively expose all ports to each other,
-     unless firewall policies are defined. 
+     unless firewall policies are defined.
      You can find more details about the bridge network driver [here](https://docs.docker.com/network/bridge/).
   1. Only the specified ports (`-p` option) are exposed to the outside network, where the client may be run.
-     The command `-p <host-port>:<container-port>` maps the container port to a host port. 
+     The command `-p <host-port>:<container-port>` maps the container port to a host port.
      Therefore, you must explicitly expose the two ports 19999 and 19998 for the master container and the port
      29999 and 30000 for the worker container.
      Otherwise, the clients can't communicate with the master and worker.
@@ -219,6 +234,9 @@ Notes:
      ```
      Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Verify the Cluster
 
@@ -296,7 +314,12 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 A lone Alluxio master is a single point of failure. To guard against this, a production
 cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
-#### Option A: Internal Leader Election
+There are two ways to enable HA mode in Alluxio, either with internal leader election and embedded journal, or external Zookeeper and a shared journal storage.
+Please read [running Alluxio with HA]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#overview' | relativize_url }}) for more details.
+It is recommended to use the second option for production use case.
+
+{% navtabs HA %}
+{% navtab Internal Leader Election %}
 
 Alluxio uses internal leader election by default.
 
@@ -305,7 +328,9 @@ Provide the master embedded journal addresses and set the hostname of the curren
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 \
+    -Dalluxio.master.hostname=master-hostname-1" \
   alluxio master
 ```
 
@@ -314,13 +339,15 @@ Set the master rpc addresses for all the workers so that they can query the mast
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
   alluxio worker
 ```
 
 You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
 
-#### Option B: Zookeeper and Shared Journal Storage
+{% endnavtab %}
+{% navtab Zookeeper and Shared Journal Storage %}
 
 To run in HA mode with Zookeeper, Alluxio needs a shared journal directory
 that all masters have access to, usually either NFS or HDFS.
@@ -330,7 +357,11 @@ Point them to a shared journal and set their Zookeeper configuration.
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.journal.type=UFS \
+    -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal \
+    -Dalluxio.zookeeper.enabled=true \
+    -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio master
 ```
 
@@ -340,11 +371,16 @@ to discover the current leader.
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  -e ALLUXIO_JAVA_OPTS="
+    -Dalluxio.zookeeper.enabled=true \
+    -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio worker
 ```
 
 You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Enable short-circuit reads and writes
 
@@ -384,19 +420,28 @@ a fresh state.
 ### Enable POSIX API access
 
 Using the [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/), you can enable
-access to Alluxio using the POSIX API.
+access to Alluxio on Docker host using the POSIX API.
 
-Launch the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
-capability. This runs the FUSE daemon on a client node that needs to access Alluxio using the POSIX
-API with a mount accessible at `/alluxio-fuse`.
+For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
 ```console
-$ docker run -e \
-  ... \
-  --cap-add SYS_ADMIN \
-  --device /dev/fuse \
-  alluxio-fuse fuse \
+$ docker run --rm \
+    --net=host \
+    --name=alluxio-fuse \
+    -v /tmp/mnt:/mnt:rshared \
+    -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
+    --cap-add SYS_ADMIN \
+    --device /dev/fuse \
+    alluxio/alluxio-fuse fuse
 ```
+
+Notes
+- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
+To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability.
+- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
+
 
 ## Troubleshooting
 
