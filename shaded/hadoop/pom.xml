@@ -71,13 +71,10 @@
       </dependencies>
     </profile>
 
-    <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
+    <!-- Profile to build this UFS module connecting to hdfs 2 -->
     <profile>
       <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
       <id>ufs-hadoop-2</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -92,9 +89,12 @@
       </dependencies>
     </profile>
 
-    <!-- Profile to build this UFS module connecting to hdfs 3 -->
+    <!-- Profile to build this UFS module connecting to hdfs 3, this is the default profile -->
     <profile>
       <id>ufs-hadoop-3</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
