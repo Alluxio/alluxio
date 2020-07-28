@@ -62,7 +62,8 @@ public abstract class AbstractCollectInfoCommand implements Command {
     // mkdirs checks existence of the path
     File workingDir = new File(workingDirPath);
     if (!workingDir.exists()) {
-      System.out.format("Working path %s does not exist. mkdir first%n", workingDirPath);
+
+      System.out.format("Creating working directory: %s%n", workingDirPath);
       workingDir.mkdirs();
     }
     return workingDirPath;

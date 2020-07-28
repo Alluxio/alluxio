@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -26,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Command to collect Alluxio config files.
@@ -36,9 +35,8 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectConfig";
   private static final Logger LOG = LoggerFactory.getLogger(CollectConfigCommand.class);
 
-  private static final Set<String> EXCLUDED_FILES = Stream.of(
-          Constants.SITE_PROPERTIES
-  ).collect(Collectors.toSet());
+  private static final Set<String> EXCLUDED_FILE_PREFIXES = ImmutableSet.of(
+          Constants.SITE_PROPERTIES);
 
   /**
    * Creates a new instance of {@link CollectConfigCommand}.
@@ -67,10 +65,11 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
     File confDir = new File(confDirPath);
     List<File> allFiles = CommonUtils.recursiveListLocalDir(confDir);
     for (File f : allFiles) {
+      String filename = f.getName();
       String relativePath = confDir.toURI().relativize(f.toURI()).getPath();
       // Ignore file prefixes to exclude
-      for (String prefix : EXCLUDED_FILES) {
-        if (relativePath.startsWith(prefix)) {
+      for (String prefix : EXCLUDED_FILE_PREFIXES) {
+        if (filename.startsWith(prefix)) {
           continue;
         }
         File targetFile = new File(mWorkingDirPath, relativePath);
