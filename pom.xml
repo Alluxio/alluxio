@@ -145,7 +145,7 @@
     <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>29.0-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.11.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
