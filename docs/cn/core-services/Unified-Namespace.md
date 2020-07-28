@@ -3,7 +3,7 @@ layout: global
 title: 统一命名空间
 nickname: 统一命名空间
 group: 核心服务
-priority: 3
+priority: 1
 ---
 
 本页总结了如何在Alluxio文件系统名称空间中管理不同的底层存储系统。
