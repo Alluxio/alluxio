@@ -104,8 +104,8 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         }
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost method = new HttpPost(String
-            .format("http://%s:%d%s/%s///%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
-                Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX,
+            .format("http://%s:%d%s/%s/%s/%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
+                Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX, "%2f",
                 PathsRestServiceHandler.EXISTS));
         try {
           HttpResponse response = client.execute(method);

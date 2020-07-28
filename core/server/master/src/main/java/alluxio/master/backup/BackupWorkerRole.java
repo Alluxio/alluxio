@@ -96,9 +96,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     mLeaderConnectionIntervalMax =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
     // Submit a task to establish and maintain connection with the leader.
-    mExecutorService.submit(() -> {
-      establishConnectionToLeader();
-    });
+    mExecutorService.submit(this::establishConnectionToLeader);
   }
 
   @Override

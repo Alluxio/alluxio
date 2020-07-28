@@ -21,7 +21,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.io.Closer;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +102,7 @@ public final class MetricsDocGenerator {
               new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
           csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
           ymlFileWriter.append(String.format("%s:%n  '%s'%n",
-              key, StringEscapeUtils.escapeHtml(metricKey.getDescription().replace("'", "''"))));
+              key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
         } else {
           throw new IOException(String
               .format("The metric key starts with invalid instance type %s", components[0]));

@@ -119,3 +119,11 @@
 - Set hostPID default to false
 - Increase the default memory usage for Fuse
 
+0.6.7
+
+- Add environment variables to master, worker, fuse
+
+0.6.8
+
+- Fixed parsing issue with multiple medium types for tiered storage #11778
+

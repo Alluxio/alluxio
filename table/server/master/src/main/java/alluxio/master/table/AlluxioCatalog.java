@@ -129,6 +129,8 @@ public class AlluxioCatalog implements Journaled {
       } catch (Exception e) {
         // Failed to connect to and sync the udb.
         syncError = true;
+        // log the error and stack
+        LOG.error(String.format("Sync (during attach) failed for db '%s'.", dbName), e);
         throw new IOException(String
             .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
                 e.getMessage()), e);
@@ -153,6 +155,11 @@ public class AlluxioCatalog implements Journaled {
     try (LockResource l = getDbLock(dbName)) {
       Database db = getDatabaseByName(dbName);
       return db.sync(journalContext);
+    } catch (Exception e) {
+      // log the error and stack
+      LOG.error(String.format("Sync failed for db '%s'.", dbName), e);
+      throw new IOException(
+          String.format("Sync failed for db '%s'. error: %s", dbName, e.getMessage()), e);
     }
   }
 
@@ -209,7 +216,7 @@ public class AlluxioCatalog implements Journaled {
    * @param dbName database name
    * @return a database object
    */
-  public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
+  public alluxio.grpc.table.Database getDatabase(String dbName) throws IOException {
     Database db = getDatabaseByName(dbName);
     DatabaseInfo dbInfo = db.getDatabaseInfo();
 

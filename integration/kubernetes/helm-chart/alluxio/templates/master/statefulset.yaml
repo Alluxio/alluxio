@@ -100,6 +100,10 @@ spec:
               fieldRef:
                 fieldPath: status.podIP
           {{- end }}
+          {{- range $key, $value := .Values.master.env }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+          {{- end }}
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
@@ -160,6 +164,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- end }}
+          {{- range $key, $value := .Values.jobMaster.env }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:

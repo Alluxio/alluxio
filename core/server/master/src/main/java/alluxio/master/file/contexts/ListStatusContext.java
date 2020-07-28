@@ -20,16 +20,16 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link ListStatusPOptions}.
  */
-public class ListStatusContext extends OperationContext<ListStatusPOptions.Builder> {
+public class ListStatusContext
+    extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
 
   /**
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
-   * @param callTracker client call tracker
    */
-  private ListStatusContext(ListStatusPOptions.Builder optionsBuilder, CallTracker callTracker) {
-    super(optionsBuilder, callTracker);
+  private ListStatusContext(ListStatusPOptions.Builder optionsBuilder) {
+    super(optionsBuilder);
   }
 
   /**
@@ -37,17 +37,7 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * @return the instance of {@link ListStatusContext} with the given options
    */
   public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder) {
-    return new ListStatusContext(optionsBuilder, CallTracker.NOOP_TRACKER);
-  }
-
-  /**
-   * @param optionsBuilder Builder for proto {@link ListStatusPOptions}
-   * @param callTracker client call tracker
-   * @return the instance of {@link ListStatusContext} with the given options
-   */
-  public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder,
-      CallTracker callTracker) {
-    return new ListStatusContext(optionsBuilder, callTracker);
+    return new ListStatusContext(optionsBuilder);
   }
 
   /**

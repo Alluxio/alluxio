@@ -9,7 +9,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-# 前提条件
+## 前提条件
 
 这部分的前提条件是你安装了[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)(JDK 8或更高版本)。
 
@@ -24,8 +24,14 @@ priority: 1
 * 将`conf/alluxio-site.properties`中的`alluxio.master.mount.table.root.ufs`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.master.mount.table.root.ufs=/tmp`）。
 
 * 开启远程登录服务，确保`ssh localhost`能成功。为了避免重复输入密码，你可以将本机的ssh公钥添加到`~/.ssh/authorized_keys`文件中。更多细节请参考[该指南](http://www.linuxproblem.org/art_9.html)。
+## 挂载RAMFS文件系统
+运行以下命令以挂载RAMFS文件系统。
 
-# 第0步：格式化Alluxio文件系统
+```console
+$ ./bin/alluxio-mount.sh SudoMount
+```
+
+## 格式化Alluxio文件系统
 
 > 注意：这个步骤只有在第一次运行Alluxio系统时才需要执行。
 > 如果用户在已部署好的Alluxio集群上运行格式化命令，
@@ -36,11 +42,14 @@ priority: 1
 $ ./bin/alluxio format
 ```
 
-# 第1步：本地启动Alluxio文件系统
+## 本地启动Alluxio文件系统
 
 简单运行如下的命令来启动Alluxio文件系统。
 
 ```console
+# 如果您尚未挂载ramdisk或要重新挂载（如为了改变ramdisk大小）
+$ ./bin/alluxio-start.sh local SudoMount
+# 或者，如果已经安装了ramdisk
 $ ./bin/alluxio-start.sh local
 ```
 

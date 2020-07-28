@@ -119,8 +119,7 @@ of the memory size if devices other than the default Alluxio provisioned ramdisk
 
 It is typically recommended to use a single storage tier with heterogeneous storage media.
 In certain environments, workloads will benefit from the explicit ordering of storage media based on
-I/O speed. When tiered storage is enabled, the eviction process intelligently accounts for the
-ordering of tiers. Alluxio assumes that tiers are ordered from top to bottom based on I/O performance.
+I/O speed. Alluxio assumes that tiers are ordered from top to bottom based on I/O performance.
 For example, users often specify the following tiers:
 
  * MEM (Memory)
@@ -129,16 +128,17 @@ For example, users often specify the following tiers:
 
 #### Writing Data
 
-When a user writes a new block, it is written to the top tier by default. If eviction cannot free up
-space in the top tier, the write will fail. If the file size exceeds the size of the top tier, the
-write will also fail.
+When a user writes a new block, it is written to the top tier by default. If the top tier does not have enough free space,
+then the next tier is tried. If no space is found on all tiers, Alluxio frees up space for new data as its storage is designed to be volatile.
+Eviction will start attempting to evict blocks from the worker, based on the block annotation policy. [block annotation policies](#block-annotation-policies).
+If eviction cannot free up new space, then the write will fail.
+
+**Note:** The new eviction model is synchronous and is executed on behalf of the client that requires a free space for the block it is writing.
+This synchronized mode is not expected to incur performance hit as ordered list of blocks are always available with the help of block annotation policies.
+However, `alluxio.worker.tieredstore.free.ahead.bytes`(Default: 0) can be configured to free up more bytes than necessary per eviction attempt.
 
 The user can also specify the tier that the data will be written to via
 [configuration settings](#configuring-tiered-storage).
-
-When reading data with the `ReadType.CACHE` or `ReadType.CACHE_PROMOTE`,
-the data written into Alluxio is always written to the top tier.
-When writing data using the load command, the data is also written to the top tier.
 
 #### Reading Data
 
@@ -146,7 +146,7 @@ If the data is already in Alluxio, the client will simply read the block from wh
 If Alluxio is configured with multiple tiers, the block may not be necessarily read from the top tier,
 since it could have been moved to a lower tier transparently.
 
-Reading data with the `ReadType.CACHE_PROMOTE` will ensure the data is first transferred to the
+Reading data with the `ReadType.CACHE_PROMOTE` will attempt to first transfer the block to the
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
 
@@ -162,8 +162,6 @@ alluxio.worker.tieredstore.level{x}.alias
 alluxio.worker.tieredstore.level{x}.dirs.quota
 alluxio.worker.tieredstore.level{x}.dirs.path
 alluxio.worker.tieredstore.level{x}.dirs.mediumtype
-alluxio.worker.tieredstore.level{x}.watermark.high.ratio
-alluxio.worker.tieredstore.level{x}.watermark.low.ratio
 ```
 
 For example, if you wanted to configure Alluxio to have two tiers, memory and hard disk drive,
@@ -180,22 +178,14 @@ alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
 alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM
 # set the quota for the ramdisk to be `100GB`
 alluxio.worker.tieredstore.level0.dirs.quota=100GB
-# set the ratio of high watermark on top layer to be 90%
-alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
-# set the ratio of low watermark on top layer to be 70%
-alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
 # configure the second tier to be a hard disk tier
 alluxio.worker.tieredstore.level1.alias=HDD
 # configured 3 separate file paths for the second tier
 alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
 # defined HDD to be the medium type of the second tier
-alluxio.worker.tieredstore.level0.dirs.mediumtype=HDD,HDD,HDD
+alluxio.worker.tieredstore.level1.dirs.mediumtype=HDD,HDD,HDD
 # define the quota for each of the 3 file paths of the second tier
 alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
-# set the ratio of high watermark on the second layer to be 90%
-alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
-# set the ratio of low watermark on the second layer to be 70%
-alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
 ```
 
 There are no restrictions on how many tiers can be configured
@@ -204,70 +194,104 @@ A typical configuration will have three tiers for Memory, SSD, and HDD.
 To use multiple hard drives in the HDD tier, specify multiple paths when configuring
 `alluxio.worker.tieredstore.level{x}.dirs.path`.
 
-## Evicting Stale Data
+### Block Annotation Policies
 
-When Alluxio storage is full, Alluxio frees up space for new data as its storage is designed to be
-volatile. Eviction is the mechanism that removes old data.
+Alluxio uses block annotation policies, starting v2.3, to maintain strict ordering of blocks in storage. 
+Annotation policy defines an order for blocks across tiers and is consulted during:
+- Eviction
+- [Dynamic Block Placement](#block-aligning-dynamic-block-placement).
 
-Alluxio applies asynchronous eviction in the background. It relies on a periodic space
-reserver thread in each worker to evict data. When the worker storage utilization reaches a
-maximum threshold, it evicts data until the usage reaches a minimum threshold. The two thresholds
-are configurable, labeled as the high and low watermarks, respectively. In the case where we have
-216 GB of storage on a worker, eviction can be triggered at about 200 GB to reduce storage
-utilization to 160 GB by setting the high watermark to 90% and the low watermark to 75%.
+The eviction, that happens in-line with writes, will attempt to remove blocks based on the order enforced by the block annotation policy.
+The last block in annotated order is the first candidate for eviction regardless of which tier it's sitting on.
 
-```properties
-alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
-alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
-```
+Out-of-the-box annotation implementations include:
 
-Asynchronous eviction is particularly useful for write or read-cache heavy workloads compared to
-synchronous eviction used prior to Alluxio 2.0, which waits for a client to request more space than
-is currently available on the worker and then kicks off the eviction process to free up enough
-space to serve that request. This
-leads to many small eviction attempts, which is less efficient, but maximizes the utilization of
-available Alluxio space.
-
-### Eviction Policies
-
-Alluxio uses evictors to decide which blocks to remove from Alluxio storage.
-Users can specify different Alluxio evictors to control the eviction process better.
-
-Out-of-the-box evictor implementations include:
-
-- **LRUEvictor**: Evicts the least-recently-used blocks until the required space is freed.
-**This is Alluxio's default evictor**.
-- **GreedyEvictor**: Evicts arbitrary blocks until the required space is freed.
-- **LRFUEvictor**: Evicts blocks based on least-recently-used and least-frequently-used with a
+- **LRUAnnotator**: Annotates the blocks based on least-recently-used order.
+**This is Alluxio's default annotator**.
+- **LRFUAnnotator**: Annotates the blocks based on least-recently-used and least-frequently-used orders with a
 configurable weight.
     - If the weight is completely biased toward least-recently-used, the behavior will be the same
-    as the LRUEvictor.
-    - The applicable configuration properties are `alluxio.worker.evictor.lrfu.step.factor` and
-    `alluxio.worker.evictor.lrfu.attenuation.factor` which can be found in
-    [configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.evictor.lrfu.step.factor)
-- **PartialLRUEvictor** : Evicts based on a least-recently-used policy but will choose one configured
-storage directory on the local worker with maximum free space and only evict from that directory.
+    as the LRUAnnotator.
+    - The applicable configuration properties are `alluxio.worker.block.annotator.lrfu.step.factor` and
+    `alluxio.worker.block.annotator.lrfu.attenuation.factor`.
 
-The evictor utilized by workers is determined by the Alluxio property
-[`alluxio.worker.evictor.class`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.evictor.class).
+The annotator utilized by workers is determined by the Alluxio property
+[`alluxio.worker.block.annotator.class`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.block.annotator.class).
 The property should specify the fully qualified class name within the configuration. Currently
 available options are:
 
-- `alluxio.worker.block.evictor.LRUEvictor`
-- `alluxio.worker.block.evictor.GreedyEvictor`
-- `alluxio.worker.block.evictor.LRFUEvictor`
-- `alluxio.worker.block.evictor.PartialLRUEvictor`
+- `alluxio.worker.block.annotator.LRUAnnotator`
+- `alluxio.worker.block.annotator.LRFUAnnotator`
 
-When using synchronous eviction, it is recommended to use smaller block sizes (around 64-128MB),
-to reduce the latency of block eviction. The block size has no effect on asynchronous eviction.
+#### Evictor Emulation
+The old eviction policies are now removed and Alluxio provided implementations are replaced with appropriate annotation policies.
+Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
+Also, the old watermark based configuration is invalidated. So below configuration options are ineffective:
+- `alluxio.worker.tieredstore.levelX.watermark.low.ratio`
+- `alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 
-Alluxio also supports custom evictors for more fine-grained control over the eviction behavior.
-Evictors must implement the
-[Evictor interface](https://github.com/Alluxio/alluxio/blob/master/core/server/worker/src/main/java/alluxio/worker/block/evictor/Evictor.java).
-Sample evictor implementations can be found under the `alluxio.worker.block.evictor` package.
-For Alluxio to use the custom evictor, the fully qualified class name must be specified in the
-`alluxio.worker.evictor.class` property. After compiling the class to a JAR file, the JAR file
-needs to be accessible and added to the Alluxio worker's java classpath.
+However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
+an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
+
+The old evictor configurations should be changes as below. (Failing to change the lef-over configuration will cause class load exceptions as old evictor implementations are deleted.)
+- LRUEvictor -> LRUAnnotator
+- GreedyEvictor -> LRUAnnotator
+- PartialLRUEvictor -> LRUAnnotator
+- LRFUEvictor -> LRFUAnnotator
+
+### Tiered Storage Management
+As block allocation/eviction no longer enforces a particular tier for new writes, a new block could end up in any configured tier.
+This allows writing data bigger than Alluxio storage capacity. However, it also requires Alluxio to dynamically manage block placement.
+To enforce the assumption that tiers are configured from fastest to slowest, Alluxio now moves blocks around tiers based on block annotation policies.
+
+Below configuration is honoured by each individual tier management task:
+- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default:`CPU core count`)
+- `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. (Default:`CPU core count`/ 2)
+
+#### Block Aligning (Dynamic Block Placement)
+Alluxio will dynamically move blocks across tiers in order to have block composition that is in line with the configured block annotation policy.
+
+To compensate this, Alluxio watches the I/O pattern and reorganize blocks across tiers to make sure
+**the lowest block of a higher tier has higher order than the highest block of a tier below**.
+
+This is achieved by `align` management task. This task, upon detecting tiers are out of order, swaps blocks among tiers
+in order to eliminate disorder among blocks and effectively align the tiers to configured annotation policy.
+See [Management Task Back-Off](#management-task-back-off) section for how to control the effect of these new background tasks to user I/O.
+
+To control tier aligning:
+- `alluxio.worker.management.tier.align.enabled`: Whether tier aligning task is enabled. (Default:`true`)
+- `alluxio.worker.management.tier.align.range`: How many blocks to align in a single task run. (Default:`100`)
+- `alluxio.worker.management.tier.align.reserved.bytes`: The amount of space to reserve on all directories by default when multi-tier is configured. (Default:`1GB`)
+This is used for internal block movements.
+- `alluxio.worker.management.tier.swap.restore.enabled`: This controls a special task that is used to unblock tier alignment when internal reserved space was exhausted. (Default:`true`)
+Reserved space can get exhausted due to fact that Alluxio supports variable block sizes, so swapping blocks between tiers during aligning can decrease reserved space on a directory when block sizes don't match.
+
+#### Block Promotions
+When a higher tier has free space, blocks from a lower tier is moved up in order to better utilize faster disks as it's assumed the higher tiers are configured with faster disks.
+
+To control dynamic tier promotion:
+- `alluxio.worker.management.tier.promote.enabled` : Whether tier promition task is enabled. (Default:`true`)
+- `alluxio.worker.management.tier.promote.range`: How many blocks to promote in a single task run. (Default:`100`)
+- `alluxio.worker.management.tier.promote.quota.percent`: The max percentage of each tier that could be used for promotions.
+Promotions will be stopped to a tier once its used space go over this value. (0 means never promote, and, 100 means always promote.)
+
+#### Management Task Back-Off
+Tier management tasks (align/promote) are respectful to user I/O and backs off whenever worker/disk is under load.
+This behaviour is to make sure internal management doesn't have negative effect on user I/O performance.
+
+There are two back-off types available, `ANY` and `DIRECTORY`, that can be set in `alluxio.worker.management.backoff.strategy` property.
+
+- `ANY`; management tasks will backoff from worker when there is any user I/O. 
+This mode will ensure low management task overhead in order to favor immediate user I/O performance.
+However, making progress on management tasks will require quite periods on the worker.
+
+- `DIRECTORY`; management tasks will backoff from directories with ongoing user I/O.
+This mode will give better chance of making progress on management tasks
+However, immediate user I/O throughput might be decreased due to increased management task activity.
+
+An additional property that effects both back-off strategies is `alluxio.worker.management.load.detection.cool.down.time` that controls
+for how long a user I/O will be counted as a load on target directory/worker.
+
 
 ## Managing the Data Lifecycle in Alluxio
 
@@ -299,7 +323,7 @@ it is persisted to a UFS. For more information refer to the
 [command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#free)
 
 Note that a user typically should not need to manually free data from Alluxio as the
-configured [eviction policy](#eviction-policies) will take care of removing unused or old data.
+configured [annotation policy](#block-annotation-policies) will take care of removing unused or old data.
 
 ### Loading Data into Alluxio Storage
 
@@ -420,7 +444,7 @@ across the cluster. By default, Alluxio may adjust the replication level of diff
 automatically based on the workload and storage capacity. For example, Alluxio may
 create more replicas of a particular block when more clients request to read this block with read
 type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are used less
-often to reclaim the space for data that is accessed more often ([Evictor in Alluxio Storage](#eviction-policies)).
+often to reclaim the space for data that is accessed more often ([Block Annotation Policies](#block-annotation-policies)).
 It is possible that in the same file different blocks have a different number
 of replicas according to the popularity.
 
