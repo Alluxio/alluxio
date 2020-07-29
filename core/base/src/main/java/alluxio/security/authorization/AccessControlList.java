@@ -208,9 +208,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * Sets owning user.
-   *
-   * @param user the owning user
+   * @param user the new owning user to use for this access-control list (ACL)
    */
   public void setOwningUser(String user) {
     Preconditions.checkNotNull(user);
