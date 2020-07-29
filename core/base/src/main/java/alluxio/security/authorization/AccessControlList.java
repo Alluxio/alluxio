@@ -216,9 +216,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * Sets owning group.
-   *
-   * @param group the owning group
+   * @param group the new owning group to use for this access-control list (ACL)
    */
   public void setOwningGroup(String group) {
     Preconditions.checkNotNull(group);
