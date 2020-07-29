@@ -107,7 +107,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * @return the owning group
+   * @return the owning group for this access-control list (ACL)
    */
   public String getOwningGroup() {
     return mOwningGroup;
