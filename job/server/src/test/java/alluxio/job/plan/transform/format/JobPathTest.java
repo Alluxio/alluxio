@@ -55,37 +55,37 @@ public class JobPathTest {
 
     FileSystem fileSystem = jobPath.getFileSystem(conf);
 
-    verifyStatic(times(1));
+    verifyStatic(FileSystem.class, times(1));
     FileSystem.get(any(), any());
 
     assertEquals(fileSystem, jobPath.getFileSystem(conf));
-    verifyStatic(times(1));
+    verifyStatic(FileSystem.class, times(1));
     FileSystem.get(any(), any());
 
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.toString(), ReadType.NO_CACHE.toString());
     FileSystem newFileSystem = jobPath.getFileSystem(conf);
     assertNotEquals(fileSystem, newFileSystem);
-    verifyStatic(times(2));
+    verifyStatic(FileSystem.class, times(2));
     FileSystem.get(any(), any());
 
     conf.set("foo", "bar");
     assertEquals(newFileSystem, jobPath.getFileSystem(conf));
-    verifyStatic(times(2));
+    verifyStatic(FileSystem.class, times(2));
     FileSystem.get(any(), any());
 
     jobPath = new JobPath("foo", "bar", "/bar");
     assertEquals(newFileSystem, jobPath.getFileSystem(conf));
-    verifyStatic(times(2));
+    verifyStatic(FileSystem.class, times(2));
     FileSystem.get(any(), any());
 
     jobPath = new JobPath("foo", "baz", "/bar");
     assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
-    verifyStatic(times(3));
+    verifyStatic(FileSystem.class, times(3));
     FileSystem.get(any(), any());
 
     jobPath = new JobPath("bar", "bar", "/bar");
     assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
-    verifyStatic(times(4));
+    verifyStatic(FileSystem.class, times(4));
     FileSystem.get(any(), any());
   }
 }

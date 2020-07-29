@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
+import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.plan.PlanConfig;
@@ -48,7 +49,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -162,12 +162,13 @@ public final class JobMasterTest {
 
   @Test
   public void cancel() throws Exception {
-    PlanCoordinator coordinator = mock(PlanCoordinator.class);
-    long jobId = 1L;
-    PlanTracker tracker = new PlanTracker(10, 0, -1, mock(WorkflowTracker.class));
-    ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
-        .put(jobId, coordinator);
-    Whitebox.setInternalState(mJobMaster, "mPlanTracker", tracker);
+    PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
+    when(
+        PlanCoordinator.create(any(CommandManager.class),
+            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(null)))
+        .thenReturn(coordinator);
+    SleepJobConfig config = new SleepJobConfig(10000);
+    long jobId = mJobMaster.run(config);
     mJobMaster.cancel(jobId);
     verify(coordinator).cancel();
   }
