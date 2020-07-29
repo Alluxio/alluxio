@@ -560,8 +560,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param mode the file mode bits
-   * @return the file information
+   * @param mode the file mode bits to use
+   * @return this file information updated with
+   *         the provided mode bits
    */
   public FileInfo setMode(int mode) {
     mMode = mode;
