@@ -839,7 +839,7 @@ public final class CommonUtils {
     File[] files = dir.listFiles();
     // File#listFiles can return null when the path is invalid
     if (files == null) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     List<File> result = new ArrayList<>(files.length);
     for (File f : files) {

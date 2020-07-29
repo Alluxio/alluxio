@@ -68,13 +68,11 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
       String filename = f.getName();
       String relativePath = confDir.toURI().relativize(f.toURI()).getPath();
       // Ignore file prefixes to exclude
-      for (String prefix : EXCLUDED_FILE_PREFIXES) {
-        if (filename.startsWith(prefix)) {
-          continue;
-        }
-        File targetFile = new File(mWorkingDirPath, relativePath);
-        FileUtils.copyFile(f, targetFile, true);
+      if (EXCLUDED_FILE_PREFIXES.stream().anyMatch(filename::startsWith)) {
+        continue;
       }
+      File targetFile = new File(mWorkingDirPath, relativePath);
+      FileUtils.copyFile(f, targetFile, true);
     }
 
     return 0;

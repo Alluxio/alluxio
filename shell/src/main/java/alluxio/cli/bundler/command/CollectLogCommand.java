@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 public class CollectLogCommand  extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectLog";
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
-  public static final Set<String> FILE_NAMES = Stream.of(
+  public static final Set<String> FILE_NAMES_PREFIXES = Stream.of(
       "master.log",
       "master.out",
       "job_master.log",
@@ -65,12 +65,20 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       "user"
   ).collect(Collectors.toSet());
   // We tolerate the beginning of a log file to contain some rows that are not timestamped.
-  // 30 is chosen because a YARN application log can have >20 rows in the beginning for
+  // A YARN application log can have >20 rows in the beginning for
   // general information about a job.
   // The timestamped log entries start after this general information block.
-  private static final int TRY_PARSE_LOG_ROWS = 30;
+  private static final int TRY_PARSE_LOG_ROWS = 100;
 
-  // Preserves the order of iteration, we try the longer pattern before the shorter one
+  // Preserves the order of iteration, we try the longer pattern before the shorter one.
+  // The 1st field is the DateTimeFormatter of a specific pattern.
+  // The 2nd field is the length to take from the beginning of the log entry.
+  // The length of the format string can be different from the datetime string it parses to.
+  // For example, "yyyy-MM-dd'T'HH:mm:ss.SSSXX" has length of 27 but parses to
+  // "2020-10-12T12:11:10.055+0800".
+  // Note that the single quotes around 'T' are not in the real string,
+  // and "XX" parses to the timezone, which is "+0800".
+  // The datetime parsing works only when the string matches exactly to the format.
   private static final Map<DateTimeFormatter, Integer> FORMATTERS =
           new LinkedHashMap<DateTimeFormatter, Integer>(){
     {
@@ -107,6 +115,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
                   .longOpt(INCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file name prefixes to include in ${ALLUXIO_HOME}/logs. "
                           + "The files that start with the prefix will be included.\n"
+                          + "The included prefixes are checked after the excluded.\n"
                           + "<filename-prefixes> filename prefixes, separated by comma").build();
   public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
   private static final Option EXCLUDE_OPTION =
@@ -114,13 +123,15 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
                   .longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
                   .desc("extra log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
                           + "The files that start with the prefix will be excluded.\n"
+                          + "The excluded prefixes are checked before the included.\n"
                           + "<filename-prefixes> filename prefixes, separated by comma").build();
   private static final String START_OPTION_NAME = "start-time";
   private static final Option START_OPTION =
           Option.builder().required(false).argName("datetime")
                   .longOpt(START_OPTION_NAME).hasArg(true)
                   .desc("logs that do not contain entries after this time will be ignored\n"
-                          + "<datetime> a datetime string like 2020-06-27T11:58:53").build();
+                          + "<datetime> a datetime string like 2020-06-27T11:58:53 or "
+                          + "\"2020-06-27 11:58:53\"").build();
   private static final String END_OPTION_NAME = "end-time";
   private static final Option END_OPTION =
           Option.builder().required(false).argName("datetime")
@@ -159,7 +170,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     mWorkingDirPath = getWorkingDirectory(cl);
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
-    mIncludedPrefix = new HashSet<>(FILE_NAMES);
+    mIncludedPrefix = new HashSet<>(FILE_NAMES_PREFIXES);
     // Define include list and exclude list
     if (cl.hasOption(INCLUDE_OPTION_NAME)) {
       Set<String> toInclude = parseFileNames(cl.getOptionValue(INCLUDE_OPTION_NAME));
@@ -245,6 +256,15 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return false;
   }
 
+  /**
+   * Check if the file is wanted, based on the time window specified and the time of this file.
+   * We infer the end time from its last modified time, assuming that is the last log entry.
+   * We infer the start time by parsing the first number of log entries, trying to identify
+   * the timestamp on the log entry.
+   * If we are not able to infer the start time, we assume it is LocalDateTime.MIN.
+   * We assume we want the file unless we know the file is not wanted, based on the
+   * specified time window.
+   * */
   private boolean fileTimeStampIsWanted(File f) throws IOException {
     long timestamp = f.lastModified();
     LocalDateTime fileEndTime =
@@ -289,7 +309,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
     return null;
   }
 
-  private Set<String> parseFileNames(String input) {
+  private static Set<String> parseFileNames(String input) {
     Set<String> names = new HashSet<>();
     names.addAll(Stream.of(input.split(",")).map(String::trim).collect(Collectors.toList()));
     return names;

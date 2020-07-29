@@ -68,7 +68,7 @@ public class CollectLogCommandTest {
     // The dir path will contain randomness so will be different every time
     File testLogDir = InfoCollectorTestUtils.createTemporaryDirectory();
     // Prepare the normal log files that normal users will have
-    for (String s : CollectLogCommand.FILE_NAMES) {
+    for (String s : CollectLogCommand.FILE_NAMES_PREFIXES) {
       InfoCollectorTestUtils.createFileInDir(testLogDir, s);
     }
     // Create some extra log files
