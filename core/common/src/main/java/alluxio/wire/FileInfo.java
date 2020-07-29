@@ -619,8 +619,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param mountId the id of mount
-   * @return the file information
+   * @param mountId the ID of mount to use
+   * @return this file information with an updated mount ID
    */
   public FileInfo setMountId(long mountId) {
     mMountId = mountId;
