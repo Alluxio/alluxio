@@ -265,6 +265,7 @@
                     <resource>NOTICE.txt</resource>
                     <resource>NOTICE</resource>
                     <resource>LICENSE</resource>
+                    <resource>mozilla/public-suffix-list.txt</resource>
                   </resources>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
