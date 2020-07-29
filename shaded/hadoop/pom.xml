@@ -50,11 +50,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-    <!-- using older version to match dependency version from Hadoop -->
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>14.0.1</version>
-    </dependency>
   </dependencies>
 
   <profiles>
