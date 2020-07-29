@@ -4409,11 +4409,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.NONE)
           .build();
-  // Assumes that HDFS is the UFS and version is 2.7
+  // Assumes that HDFS is the UFS and version is 3.3
   // TODO(ns) Fix default value to handle other UFS types
   public static final PropertyKey UNDERFS_VERSION =
       new Builder(Name.UNDERFS_VERSION)
-          .setDefaultValue("2.7")
+          .setDefaultValue("3.3")
           .setIsHidden(true)
           .build();
 
