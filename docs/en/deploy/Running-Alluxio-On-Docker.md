@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Docker can be used to simplify the deployment and management of Alluxio servers.
-Using the [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/) Docker
+Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker
 image available on Dockerhub, you can go from
 zero to a running Alluxio cluster with a couple of `docker run` commands.
 This document provides a tutorial for running Dockerized Alluxio on a single node
@@ -125,7 +125,7 @@ $ docker run -d --rm \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.master.hostname=localhost \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
-    alluxio/alluxio master
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
 ```
 
 Launch the Alluxio Worker
@@ -139,7 +139,7 @@ $ docker run -d --rm \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.worker.memory.size=1G \
        -Dalluxio.master.hostname=localhost" \
-    alluxio/alluxio worker
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 Notes:
@@ -191,7 +191,7 @@ $ docker run -d  --rm \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
-    alluxio/alluxio master
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
 ```
 
 Launch the Alluxio worker
@@ -207,7 +207,7 @@ $ docker run -d --rm \
        -Dalluxio.worker.memory.size=1G \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.worker.hostname=alluxio-worker" \
-    alluxio/alluxio worker
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 Notes:
@@ -244,8 +244,8 @@ To verify that the services came up, check `docker ps`. You should see something
 ```console
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
-1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
-27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
+1fef7c714d25        alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
+27f92f702ac2        alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
 ```
 
 If you don't see the containers, run `docker logs` on their container ids to see what happened.
@@ -419,7 +419,7 @@ a fresh state.
 
 ### Enable POSIX API access
 
-Using the [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/), you can enable
+Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
 access to Alluxio on Docker host using the POSIX API.
 
 For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
@@ -432,7 +432,7 @@ $ docker run --rm \
     -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
-    alluxio/alluxio-fuse fuse
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
 
 Notes
