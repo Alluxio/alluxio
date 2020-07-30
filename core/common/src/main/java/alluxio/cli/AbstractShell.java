@@ -16,8 +16,8 @@ import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -145,7 +145,7 @@
     <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>27.0.1-jre</guava.version>
+    <guava.version>29.0-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.11.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -266,19 +266,9 @@
         <version>1.13</version>
       </dependency>
       <dependency>
-        <groupId>commons-httpclient</groupId>
-        <artifactId>commons-httpclient</artifactId>
-        <version>3.1</version>
-      </dependency>
-      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.7</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>2.6</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -521,12 +511,12 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.3</version>
+        <version>4.5.11</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.6</version>
+        <version>4.4.13</version>
       </dependency>
       <dependency>
         <groupId>org.apache.orc</groupId>
@@ -573,7 +563,14 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.8</version>
+        <!-- conflicts with netty-all -->
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>

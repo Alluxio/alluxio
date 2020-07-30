@@ -11,186 +11,179 @@ priority: 2
 
 ## 使用单个Master运行Alluxio
 
-在集群上部署Alluxio最简单的方法是使用单个master。但是，这个单个master在Alluxio集群中存在单点故障(SPOF)：如果该机器或进程不可用，整个集群将不可用。我们强烈建议在生产环境中使用具有[高可用性](#running-alluxio-with-high-availability)的模式来运行Alluxio masters。
+在集群上部署Alluxio最简单的方法是使用单个master。
+但是，这个单个master在Alluxio集群中存在单点故障(SPOF)：如果该机器或进程不可用，整个集群将不可用。
+我们强烈建议在生产环境中使用具有[高可用性](#running-alluxio-with-high-availability)的模式来运行Alluxio masters。
 
-### 下载Alluxio
+## 先决条件
 
-为了在集群上部署Alluxio，首先要在每个节点下载Alluxio tar文件并解压：
+* 要部署Alluxio群集，首先[下载](https://www.alluxio.io/download/) 预编译的Alluxio二进制文件，使用以下命令解压缩tarball，并将解压的目录复制到所有节点（包括运行master和worker的所有节点）
 
-为了在集群上部署Alluxio，首先 [下载](https://alluxio.io/download) Alluxio文件(.tar)，然后在每个节点上解压它。
+```console
+$ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
+```
 
-### 配置Alluxio
+*设置不需要密码的从master节点到worker节点的SSH登录。 
+可以将主机的公共SSH密钥添加到`〜/.ssh/authorized_keys`中。
+有关更多详细信息，请参见[本教程](http://www.linuxproblem.org/art_9.html)。
 
-在`${ALLUXIO_HOME}/conf`目录下，从模板创建`conf/alluxio-site.properties`配置文件。
+*开放所有节点之间的TCP通信。 对于基本功能，确保所有节点上RPC端口都是打开的（默认值：19998）。
+
+*仅在期望Alluxio自动在worker节点上上安装RAMFS时才需要给将运行Allluxio的OS用户授予sudo特权。
+
+## 基本配置
+
+在master节点上，参照模板创建`conf/alluxio-site.properties`配置文件。
 
 ```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。
-如果集群中存在多节点，你不可以使用本地文件系统作为Allxuio底层存储层。你需要在所有Alluxio服务端连接的节点启动共享存储，共享存储可以是
-网络文件系统（NFS），HDFS，S3等。例如。你可以参照[S3底层存储系统设置文档]({{ '/cn/ufs/S3.html' | relativize_url }})按照说明启动S3作为Alluxio底层存储。
+在配置文件（`conf/alluxio-site.properties`）中按如下配置：
 
-最后，同步所有信息到worker节点。你可以使用
-
-```console
-$ ./bin/alluxio copyDir <dirname>
+```
+alluxio.master.hostname=<MASTER_HOSTNAME>
+alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 ```
 
-来同步文件和文件夹到所有的`alluxio/conf/workers`中指定的主机。如果你只在Alluxio master节点上下载并解压了Alluxio压缩包，你可以使用`copyDir`命令同步worker节点下的Alluxio文件夹，你同样可以
-使用此命令同步`conf/alluxio-site.properties`中的变化到所有worker节点。
+- 第一个属性`alluxio.master.hostname`设置单个master节点的主机名。 示例包括`alluxio.master.hostname=1.2.3.4`或`alluxio.master.hostname=node1.a.com`。
+- 第二个属性`alluxio.master.mount.table.root.ufs`设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.master.mount.table.root.ufs=s3//bucket/dir/`。
 
-### 启动 Alluxio
-
-现在，你可以启动 Alluxio:
+接下来，将配置文件复制到所有其他Alluxio节点。 通过将所有work节点的IP地址或主机名添加到`conf/workers`文件中，操作员可以利用内置工具将配置文件复制到远程节点，如下所示。
 
 ```console
-$ cd alluxio
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
-# Notice: the Mount and SudoMount parameters will format the existing RamFS.
+$ ./bin/alluxio copyDir conf/
 ```
 
-为了确保Alluxio正在运行，访问 `http://<alluxio_master_hostname>:19999`，检查文件夹`alluxio/logs`下的日志，or 或者运行简单程序：
+此命令会将conf/目录复制到`conf/workers`文件中指定的所有worker节点。 
+成功执行此命令后，所有Alluxio节点都将被正确配置。
+这是启动Alluxio的最低配置，用户可以添加其他配置。
+
+
+## 启动一个Alluxio集群
+
+### 格式化Alluxio
+
+在首次启动Alluxio之前，必须先格式化日志。
+
+> 格式化日记将删除Alluxio中的所有元数据。 但是，格式化不会涉及底层存储的数据。
+
+在master节点上，使用以下命令格式化Alluxio：
+
+```console
+$ ./bin/alluxio formatMaster
+```
+
+### 启动Alluxio
+
+启动Alluxio集群，在master点上确保`conf/workers`文件中所有worker的主机名都是正确的。
+
+在master点上，运行以下命令启动Alluxio集群：
+
+```console
+$ ./bin/alluxio-start.sh all SudoMount
+```
+
+这将在此节点上启动master，并在`conf/workers`文件中指定的所有节点上启动所有workers。 `SudoMount`参数使workers可以尝试使用`sudo`特权（如果尚未挂载）来挂载RamFS。
+
+### 验证Alluxio集群是否在运行
+
+要验证Alluxio是否正在运行，请访问`http://<alluxio_master_hostname>:19999`以查看Alluxio master的状态页面。
+
+Alluxio带有一个简单的程序可以在Alluxio中读写示例文件。 
+使用以下命令运行示例程序：
 
 ```console
 $ ./bin/alluxio runTests
 ```
 
-**注意**：如果你使用EC2，确保master节点上的安全组设置允许来自alluxio web UI 端口的连接。
+## 常用操作
 
-## 运行Alluxio实现高可用性
+以下是在Alluxio集群上执行的常见操作。
 
-Alluxio的高可用性通过多master实现。同一时刻，系统中有多个master进程运行。其中一个被选举为leader，作为所有worker和
-client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
-leader失效时迅速接管leader的工作。
+### 停止Alluxio
 
-当前leader失效时，系统自动从可用的备用master中选举一个作为新的leader，Alluxio继续正常运行。但在切换到备用
-master时，客户端会有短暂的延迟或瞬态错误。
-
-### 前期准备
-
-搭建一个高可用性的Alluxio集群需要两方面的准备：
-
-* [ZooKeeper](http://zookeeper.apache.org/)
-* 用于存放日志的可靠的共享底层文件系统。
-
-Alluxio使用Zookeeper实现leader选举，可以保证在任何时间最多只有一个leader。
-
-Alluxio使用共享底层文件系统存放日志。共享文件系统必须可以被所有master访问，可以选择
-[HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})和
-[GlusterFS]({{ '/cn/ufs/GlusterFS.html' | relativize_url }})作为共享文件系统。leader master将日志写到共享文件
-系统，其它(备用) master持续地重播日志条目与leader的最新状态保持一致。
-
-#### ZooKeeper
-
-Alluxio使用Zookeeper实现master的高可用性。Alluxio master使用Zookeeper选举leader。Alluxio client使用
-Zookeeper查询当前leader的id和地址。
-
-ZooKeeper必须单独安装
-(见[ZooKeeper快速入门](http://zookeeper.apache.org/doc/r3.4.5/zookeeperStarted.html))。
-
-部署Zookeeper之后，记下其地址和端口，下面配置Alluxio时会用到。
-
-#### 存放日志的共享文件系统
-
-Alluxio使用共享文件系统存放日志。所有master必须能够从共享文件系统进行读写。只有leader master可以在任何时
-间写入日志，但所有master可以读取共享日志来重播Alluxio的系统状态。
-
-共享文件系统必须单独安装（不能通过Alluxio），并且要在Alluxio启动之前处于运行状态。
-
-举个例子，如果使用HDFS共享日志，记下NameNode的地址和端口，下面配置Alluxio时会用到。
-
-### 配置Alluxio
-Zookeeper和共享文件系统都正常运行时，需要在每个主机上配置好`alluxio-site.properties`。
-
-#### 外部可见地址
-
-下文中提到的“外部可见地址（externally visible address）”指的是机器上配置的接口地址，对Alluxio集群中其它节点可见。在EC2上，使用`ip-x-x-x-x`地址。而
-且不能使用`localhost`或`127.0.0.1`，否则其它节点无法访问该结点。
-
-#### 配置容错的Alluxio
-
-实现Alluxio上的高可用性，需要为Alluxio master，worker和client添加额外的配置。在`conf/alluxio-site.properties`中，以
-下java选项需要设置：
-
-<table class="table">
-<tr><th>属性名</th><th>属性值</th><th>含义</th></tr>
-{% for item in site.data.table.java-options-for-fault-tolerance %}
-<tr>
-  <td>{{item.PropertyName}}</td>
-  <td>{{item.Value}}</td>
-  <td>{{site.data.table.cn.java-options-for-fault-tolerance[item.PropertyName]}}</td>
-</tr>
-{% endfor %}
-</table>
-
-设置这些选项，可以在`conf/alluxio-site.properties`包含：
-
-    alluxio.zookeeper.enabled=true
-    alluxio.zookeeper.address=[zookeeper_hostname]:2181
-
-如果集群有多个ZooKeeper节点，指定多个地址时用逗号分割：
-
-    alluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
-
-#### Master配置
-
-除了以上配置，Alluxio master需要额外的配置。以下变量需在每一个Alluxio Master上的`conf/alluxio-site.properties`中正确设置：
-
-   alluxio.master.hostname=[externally visible address of this machine]
-
-同样，指定正确的日志文件夹需在`conf/alluxio-site.properties`中设置`alluxio.master.journal.folder`，举例而言，如果
-使用HDFS来存放日志，可以添加：
-
-    alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
-
-所有Alluxio master以这种方式配置后，都可以启动用于Alluxio的高可用性。其中一个成为leader，其余重播日志直到当
-前master失效。
-
-#### Worker配置
-
-只要以上参数配置正确，worker就可以咨询ZooKeeper，找到当前应当连接的master。所以，worker无需设置`alluxio.master.hostname`。
-
-#### Client配置
-
-无需为高可用性模式配置更多的参数，只要以下两项：
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
-```
-
-在client应用中正确设置，应用可以咨询ZooKeeper获取当前 leader master。
-
-#### HDFS API
-
-如果使用HDFS API与高可用性模式的Alluxio通信，确保客户端的zookeeper配置正确。使用`alluxio://`模式但主机名和端口可以省略。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
-
-```
-hadoop fs -ls alluxio:///directory
-```
-
-#### 自动故障处理
-
-要测试自动故障处理，请ssh登录至当前的Alluxio master leader，并使用以下命令查找`AlluxioMaster`进程的进程ID：
+停止一个Alluxio服务，运行：
 
 ```console
-$ jps | grep AlluxioMaster
+$ ./bin/alluxio-stop.sh all
 ```
 
-然后使用以下命令杀死leader：
+这将停止`conf/workers`和`conf/masters`中列出的所有节点上的所有进程。
+
+可以使用以下命令仅停止master和workers：
 
 ```console
-$ kill -9 <leader pid found via the above command>
+$ ./bin/alluxio-stop.sh masters # 停止所有conf/masters的masters
+$ ./bin/alluxio-stop.sh workers # 停止所有conf/workers的workers
 ```
 
-然后可以使用以下命令查看leader：
+如果不想使用ssh登录所有节点来停止所有进程，可以在每个节点上运行命令以停止每个组件。
+对于任何节点，可以使用以下命令停止master或worker：
 
 ```console
-$ ./bin/alluxio fs leader
+$ ./bin/alluxio-stop.sh master # 停止本地master
+$ ./bin/alluxio-stop.sh worker # 停止本地worker
 ```
 
-命令的输出应该显示新的leader。您可能需要一段时间以等待新的leader当选。
+### 重新启动Alluxio
 
-访问Alluxio网页界面`http://{NEW_LEADER_MASTER_IP}:{NEW_LEADER_MASTER_WEB_PORT}`。 点击导航栏中的`Browse`，你会看到所有的文件都在那里。
+与启动Alluxio类似。 如果已经配置了`conf/workers`和`conf/masters`，可以使用以下命令启动集群：
+
+```console
+$ ./bin/alluxio-start.sh all
+```
+
+可以使用以下命令仅启动masters或workers：
+
+```console
+$ ./bin/alluxio-start.sh masters # 启动conf/masters中全部的master
+$ ./bin/alluxio-start.sh workers # 启动conf/workers中全部的worker
+```
+
+如果不想使用`ssh`登录所有节点来启动所有进程，可以在每个节点上运行命令以启动每个组件。 对于任何节点，可以使用以下命令启动master或worker：
+
+```console
+$ ./bin/alluxio-start.sh master # 启动本地master
+$ ./bin/alluxio-start.sh worker # 启动本地worker
+```
+
+### 格式化日志
+
+
+在任何master节点上，运行以下命令格式化Alluxio日志：
+
+```console
+$ ./bin/alluxio formatMaster
+```
+
+格式化日记将删除Alluxio中的所有元数据。 但是，将不会触及底层存储的数据。
+
+### 动态添加/减少worker
+
+动态添加worker到Alluxio集群就像通过适当配置启动新Alluxio worker进程一样简单。
+在大多数情况下，新worker配置应与所有其他worker配置相同。
+在新worker上运行以下命令，以将其添加到集群。
+
+```console
+$ ./bin/alluxio-start.sh worker SudoMount # 启动本地 worker
+```
+
+一旦worker启动，它将在Alluxio master上注册，并成为Alluxio集群的一部分。
+
+减少worker只需要简单停止一个worker进程。
+
+```console
+$ ./bin/alluxio-stop.sh worker # 停止本地 worker
+```
+
+一旦worker被停止，master将在预定的超时值（通过master参数`alluxio.master.worker.timeout`配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+
+### 更新master配置
+
+为了更新master配置，必须首先停止服务，更新master节点上的`conf/alluxio-site.properties`文件，并将文件复制到所有节点（例如，使用`bin/alluxio copyDir conf/`），[然后重新启动服务](#restart-alluxio)。
+
+### 更新worker配置
+
+如果只需要为worker节点更新某些本地配置（例如，更改分配给该worker的存储容量或更新存储路径），则无需停止并重新启动master节点。
+可以只停止本地worker，更新此worker上的配置（例如`conf/alluxio-site.properties`）文件，然后重新启动此worker。

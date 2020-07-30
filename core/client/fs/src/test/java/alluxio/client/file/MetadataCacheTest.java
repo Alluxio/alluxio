@@ -23,18 +23,27 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Arrays;
+import java.util.List;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BaseFileSystem.class})
 public class MetadataCacheTest {
   private static final AlluxioURI FILE = new AlluxioURI("/file");
   private static final URIStatus FILE_STATUS =
       new URIStatus(new FileInfo().setPath(FILE.getPath()));
-  private static final AlluxioURI DIR = new AlluxioURI("/dir");
-  private static final URIStatus DIR_STATUS =
-      new URIStatus(new FileInfo().setPath(DIR.getPath()));
-  private static final AlluxioURI DIR_FILE = new AlluxioURI("/dir/file");
-  private static final URIStatus DIR_FILE_STATUS =
-      new URIStatus(new FileInfo().setPath(DIR_FILE.getPath()));
+  private static final AlluxioURI DIR1 = new AlluxioURI("/dir1");
+  private static final URIStatus DIR1_STATUS =
+      new URIStatus(new FileInfo().setPath(DIR1.getPath()));
+  private static final AlluxioURI DIR1_FILE = new AlluxioURI("/dir1/file");
+  private static final URIStatus DIR1_FILE_STATUS =
+      new URIStatus(new FileInfo().setPath(DIR1_FILE.getPath()));
+  private static final AlluxioURI DIR1_DIR2 = new AlluxioURI("/dir1/dir2");
+  private static final URIStatus DIR1_DIR2_STATUS =
+          new URIStatus(new FileInfo().setPath(DIR1_DIR2.getPath()));
+  private static final AlluxioURI DIR1_DIR2_FILE = new AlluxioURI("/dir1/dir2/file");
+  private static final URIStatus DIR1_DIR2_FILE_STATUS =
+          new URIStatus(new FileInfo().setPath(DIR1_DIR2_FILE.getPath()));
 
   private MetadataCache mCache;
 
@@ -47,16 +56,47 @@ public class MetadataCacheTest {
     assertEquals(1, mCache.size());
     assertContain(FILE);
 
-    mCache.put(DIR, DIR_STATUS);
+    mCache.put(DIR1, DIR1_STATUS);
     assertEquals(2, mCache.size());
     assertContain(FILE);
-    assertContain(DIR);
+    assertContain(DIR1);
 
-    mCache.put(DIR_FILE, DIR_FILE_STATUS);
+    mCache.put(DIR1_FILE, DIR1_FILE_STATUS);
     assertEquals(3, mCache.size());
     assertContain(FILE);
-    assertContain(DIR);
-    assertContain(DIR_FILE);
+    assertContain(DIR1);
+    assertContain(DIR1_FILE);
+  }
+
+  @Test
+  public void fileStatusAndDirStatus() {
+    mCache = new MetadataCache(100, Long.MAX_VALUE);
+    assertEquals(0, mCache.size());
+    // Puts dir and its children into cache.
+    // All of them (DIR1, DIR1_FILE, DIR1_DIR2) should be in cache.
+    mCache.put(DIR1, DIR1_STATUS);
+    List<URIStatus> childrenInDIR1 = Arrays.asList(DIR1_FILE_STATUS, DIR1_DIR2_STATUS);
+    mCache.put(DIR1, childrenInDIR1);
+    assertEquals(3, mCache.size());
+    assertNotNull(mCache.get(DIR1));
+    assertNotNull(mCache.get(DIR1_DIR2));
+    assertNotNull(mCache.get(DIR1_FILE));
+    List<URIStatus> listDIR1 = mCache.listStatus(DIR1);
+    assertEquals(childrenInDIR1, listDIR1);
+
+    // Adds DIR1_DIR2_FILE into cache.
+    List<URIStatus> childrenInDIR2 = Arrays.asList(DIR1_DIR2_FILE_STATUS);
+    mCache.put(DIR1_DIR2, childrenInDIR2);
+    assertEquals(4, mCache.size());
+    assertNotNull(mCache.get(DIR1_DIR2));
+    List<URIStatus> listDIR2 = mCache.listStatus(DIR1_DIR2);
+    assertEquals(childrenInDIR2, listDIR2);
+    // Checks parent directory
+    assertNotNull(mCache.get(DIR1));
+    assertNotNull(mCache.get(DIR1_DIR2));
+    assertNotNull(mCache.get(DIR1_FILE));
+    listDIR1 = mCache.listStatus(DIR1);
+    assertEquals(childrenInDIR1, listDIR1);
   }
 
   @Test
@@ -81,9 +121,9 @@ public class MetadataCacheTest {
     mCache.put(FILE, FILE_STATUS);
     assertContain(FILE);
 
-    assertNotContain(DIR_FILE);
-    mCache.put(DIR_FILE, DIR_FILE_STATUS);
-    assertContain(DIR_FILE);
+    assertNotContain(DIR1_FILE);
+    mCache.put(DIR1_FILE, DIR1_FILE_STATUS);
+    assertContain(DIR1_FILE);
     // FILE is evicted due to capacity limit.
     assertNotContain(FILE);
   }

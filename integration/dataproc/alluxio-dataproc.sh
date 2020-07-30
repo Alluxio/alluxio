@@ -22,7 +22,7 @@ readonly ALLUXIO_LICENSE_BASE64="$(/usr/share/google/get_metadata_value attribut
 readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
-readonly PRESTO_HOME="${PRESTO_HOME:-"/usr/lib/presto"}"
+readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
 readonly ALLUXIO_VERSION="2.4.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
@@ -308,7 +308,7 @@ bootstrap_alluxio() {
   download_file "${download_url}"
   local tarball_name=${download_url##*/}
   tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
-  ln -s ${ALLUXIO_HOME}/client/alluxio-${ALLUXIO_VERSION}-client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
+  ln -s ${ALLUXIO_HOME}/client/*client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
 
   # Download files to /opt/alluxio/conf
   local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)
@@ -379,7 +379,7 @@ start_alluxio() {
     if [[ "${sync_list}" ]]; then
       IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
       for path in "${paths[@]}"; do
-        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
+        doas alluxio "${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}"
       done
     fi
   else

@@ -28,7 +28,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.HttpUtils;
 
 import com.google.common.io.ByteStreams;
-import org.apache.commons.httpclient.Header;
+import org.apache.http.Header;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
