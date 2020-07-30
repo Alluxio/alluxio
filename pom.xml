@@ -544,18 +544,6 @@
         <version>${copycat.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.mesos</groupId>
-        <artifactId>mesos</artifactId>
-        <version>0.23.0</version>
-        <exclusions>
-          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
@@ -1302,13 +1290,6 @@
       </properties>
     </profile>
 
-    <profile>
-      <id>mesos</id>
-      <modules>
-        <module>integration/mesos</module>
-      </modules>
-    </profile>
-
     <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
       <id>yarn</id>
@@ -1352,7 +1333,6 @@
       <id>developer</id>
       <modules>
         <module>integration/yarn</module>
-        <module>integration/mesos</module>
       </modules>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>

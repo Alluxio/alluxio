@@ -96,7 +96,7 @@ func chdir(path string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos", "-Pno-webui-linter"}
+	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -197,12 +197,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/mesos/bin/alluxio-env-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-start.sh",
-		"integration/mesos/bin/alluxio-master-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-stop.sh",
-		"integration/mesos/bin/alluxio-worker-mesos.sh",
-		"integration/mesos/bin/common.sh",
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
