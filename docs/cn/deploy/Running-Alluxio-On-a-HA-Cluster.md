@@ -255,16 +255,12 @@ $ ./bin/alluxio-stop.sh worker # 停止 local worker
 为了更新master配置，必须首先 [停止服务](#stop-alluxio)，更新master节点上的 `conf/alluxio-site.properties` 文件，然后 [重新启动服务](#restart-alluxio)。注意，这种方法会导致Alluxio服务停机。
 作为替代方案，在HA模式下运行Alluxio的一个好处是可以使用滚动重启来最大程度地减少更新配置导致的停机时间:
 
-
 1. 在不重启任何master情况下更新所有master节点master配置。
 1. 重新启动leading master（可以通过运行 `bin/alluxio leader`确定当前leading master）。请注意，因为重启当前leading master, 新选出的leading master会保持服务连贯性。
 1. 等待先前的leading master成功作为standby master完成启动。
 1. 更新并重新启动所有剩余的standby masters
 1. 验证配置更新
 
-
 ### 更新worker侧配置
 
 如果只需要为worker节点更新某些本地配置（例如，更改分配给该worker的存储容量或更新存储路径），则无需停止并重新启动master节点。 可以只停止本地worker，更新此worker上的配置（例如`conf/alluxio-site.properties`）文件，然后重新启动此worker。
-
-
