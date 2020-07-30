@@ -36,6 +36,7 @@ var hadoopDistributions = map[string]version{
 	"hadoop-3.0": parseVersion("3.0.3"),
 	"hadoop-3.1": parseVersion("3.1.1"),
 	"hadoop-3.2": parseVersion("3.2.0"),
+	"hadoop-3.3": parseVersion("3.3.0"),
 	// This distribution type is built with 2.7.3, but doesn't include the hadoop version in the name.
 	"default": parseVersion("2.7.3"),
 }
@@ -58,6 +59,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.0": {"hadoop-3.0", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.2": {"hadoop-3.2", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3": {"hadoop-3.3", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
 }
 
 func validModules(modules map[string]module) []string {

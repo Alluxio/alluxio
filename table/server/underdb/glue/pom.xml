@@ -50,7 +50,7 @@
 
         <dependency>
             <groupId>org.apache.hive</groupId>
-            <artifactId>hive-metastore</artifactId>
+            <artifactId>hive-common</artifactId>
             <version>${hive-metastore.version}</version>
             <scope>compile</scope>
             <exclusions>
