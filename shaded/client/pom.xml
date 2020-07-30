@@ -187,6 +187,12 @@
                     <exclude>META-INF/*.RSA</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>mozilla/public-suffix-list.txt</exclude>
+                  </excludes>
+                </filter>
               </filters>
               <relocations>
                 <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
