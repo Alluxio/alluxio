@@ -26,7 +26,7 @@ import (
 
 const (
 	// The version of the hadoop client that the Alluxio client will be built for
-	defaultHadoopClient = "hadoop-2.7"
+	defaultHadoopClient = "hadoop-3.3"
 )
 
 var (
@@ -149,7 +149,7 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg = "2.7.3"
+		var versionMvnArg = "3.3.0"
 		for _, arg := range moduleMvnArgs {
 			if strings.Contains(arg, "ufs.hadoop.version") {
 				versionMvnArg = strings.Split(arg, "=")[1]
