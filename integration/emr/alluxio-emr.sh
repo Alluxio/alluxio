@@ -463,10 +463,10 @@ If a different Alluxio version is desired, see the -d option.
                     master will read and restore the backup.
 
   -l                A string containing a delimited list of Alluxio paths.
-                    Active sync will be enabled for the given paths. UFS metadata
-                    will be periodically synced with the Alluxio namespace.
-                    The delimiter by default is a semicolon ";". If a different
-                    delimiter is desired use the [-s] argument.
+                    Active sync will be enabled for the given paths. UFS
+                    metadata will be periodically synced with the Alluxio
+                    namespace. The delimiter by default is a semicolon ";". If a
+                    different delimiter is desired use the [-s] argument.
 
   -n                Automatically configure NVMe storage for Alluxio workers at
                     tier 0 instead of MEM. When present, the script will attempt
