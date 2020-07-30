@@ -296,6 +296,14 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
   }
 
+  /**
+   * Returns a version of the provided list of URI statuses sorted by field.
+   *
+   * @param statuses list of URI statuses to be sorted
+   * @param sortField string corresponding to the sort field comparator to use
+   * @param reverse whether sorting should be reversed ({@code true}) or not ({@code false})
+   * @return list of URI statuses sorted by field and ordered
+   */
   private List<URIStatus> sortByFieldAndOrder(
           List<URIStatus> statuses, String sortField, boolean reverse) throws IOException {
     Optional<Comparator<URIStatus>> sortToUse = Optional.ofNullable(
