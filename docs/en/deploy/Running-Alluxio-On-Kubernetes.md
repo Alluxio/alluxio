@@ -1116,4 +1116,38 @@ that node.
 1. Tail logs for the identified Pod to view any errors encountered:
 `kubectl logs -f alluxio-fuse-<id>`.
   {% endcollapsible %}
+  {% collapsible Filename too long %}
+Alluxio workers create a domain socket used for short-circuit access by default.
+On Mac OS X, Alluxio workers may fail to start if the location for this domain socket is a path
+which is longer than what the filesystem accepts.
+```
+2020-07-27 21:39:06,030 ERROR GrpcDataServer - Alluxio worker gRPC server failed to start on /opt/domain/1d6d7c85-dee0-4ac5-bbd1-86eb496a2a50
+java.io.IOException: Failed to bind
+	at io.grpc.netty.NettyServer.start(NettyServer.java:252)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:184)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:90)
+	at alluxio.grpc.GrpcServer.lambda$start$0(GrpcServer.java:77)
+	at alluxio.retry.RetryUtils.retry(RetryUtils.java:39)
+	at alluxio.grpc.GrpcServer.start(GrpcServer.java:77)
+	at alluxio.worker.grpc.GrpcDataServer.<init>(GrpcDataServer.java:107)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at alluxio.util.CommonUtils.createNewClassInstance(CommonUtils.java:273)
+	at alluxio.worker.DataServer$Factory.create(DataServer.java:47)
+	at alluxio.worker.AlluxioWorkerProcess.<init>(AlluxioWorkerProcess.java:162)
+	at alluxio.worker.WorkerProcess$Factory.create(WorkerProcess.java:46)
+	at alluxio.worker.WorkerProcess$Factory.create(WorkerProcess.java:38)
+	at alluxio.worker.AlluxioWorker.main(AlluxioWorker.java:72)
+Caused by: io.netty.channel.unix.Errors$NativeIoException: bind(..) failed: Filename too long
+```
+
+If this is the case, set the following properties to limit the path length:
+- `alluxio.worker.data.server.domain.socket.as.uuid=false`
+- `alluxio.worker.data.server.domain.socket.address=/opt/domain/d`
+
+> Note: You may see performance degradation due to lack of node locality.
+
+  {% endcollapsible %}
 {% endaccordion %}
