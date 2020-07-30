@@ -12,6 +12,7 @@
 package alluxio.cli.bundler.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -158,7 +159,35 @@ public class CollectLogCommandTest {
   }
 
   @Test
-  public void fileNameIncluded() throws Exception {
+  public void fileNameAdded() throws Exception {
+    InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log");
+    InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.1");
+    InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.2");
+
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
+    CommandLine mockCommandLine = mock(CommandLine.class);
+    String[] mockArgs = new String[]{
+            cmd.getCommandName(),
+            targetDir.getAbsolutePath()
+    };
+    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.hasOption(eq("additional-logs"))).thenReturn(true);
+    when(mockCommandLine.getOptionValue(eq("additional-logs"))).thenReturn("alluxio_gc");
+    int ret = cmd.run(mockCommandLine);
+    assertEquals(0, ret);
+
+    // Files will be copied to sub-dir of target dir
+    File subDir = new File(targetDir, cmd.getCommandName());
+    mExpectedFiles.add("alluxio_gc.log");
+    mExpectedFiles.add("alluxio_gc.log.1");
+    mExpectedFiles.add("alluxio_gc.log.2");
+
+    InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
+  }
+
+  @Test
+  public void fileNameReplaced() throws Exception {
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log");
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.1");
     InfoCollectorTestUtils.createFileInDir(mTestDir, "alluxio_gc.log.2");
@@ -172,17 +201,53 @@ public class CollectLogCommandTest {
     };
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("include-logs"))).thenReturn(true);
-    when(mockCommandLine.getOptionValue(eq("include-logs"))).thenReturn("alluxio_gc");
+    when(mockCommandLine.getOptionValue(eq("include-logs"))).thenReturn("alluxio_gc, master");
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
     // Files will be copied to sub-dir of target dir
     File subDir = new File(targetDir, cmd.getCommandName());
+    mExpectedFiles = new HashSet<>();
     mExpectedFiles.add("alluxio_gc.log");
     mExpectedFiles.add("alluxio_gc.log.1");
     mExpectedFiles.add("alluxio_gc.log.2");
+    mExpectedFiles.add("master.log");
+    mExpectedFiles.add("master.log.1");
+    mExpectedFiles.add("master.log.2");
+    mExpectedFiles.add("master.out");
+    mExpectedFiles.add("master_audit.log");
 
     InfoCollectorTestUtils.verifyAllFiles(subDir, mExpectedFiles);
+  }
+
+  @Test
+  public void illegalSelectorCombinations() throws Exception {
+    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(mConf));
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
+    String[] mockArgs = new String[]{
+            cmd.getCommandName(),
+            targetDir.getAbsolutePath()
+    };
+
+    // --include-logs will replace the wanted list
+    // It is ambiguous to use it with --exclude-logs
+    CommandLine includeExclude = mock(CommandLine.class);
+    when(includeExclude.getArgs()).thenReturn(mockArgs);
+    when(includeExclude.hasOption(eq("include-logs"))).thenReturn(true);
+    when(includeExclude.getOptionValue(eq("include-logs"))).thenReturn("alluxio_gc, master");
+    when(includeExclude.hasOption(eq("exclude-logs"))).thenReturn(true);
+    when(includeExclude.getOptionValue(eq("exclude-logs"))).thenReturn("master");
+    assertNotEquals(0, cmd.run(includeExclude));
+
+    // --include-logs will replace the wanted list
+    // It is ambiguous to use it with --additional-logs
+    CommandLine includeAddition = mock(CommandLine.class);
+    when(includeAddition.getArgs()).thenReturn(mockArgs);
+    when(includeAddition.hasOption(eq("include-logs"))).thenReturn(true);
+    when(includeAddition.getOptionValue(eq("include-logs"))).thenReturn("alluxio_gc, master");
+    when(includeAddition.hasOption(eq("additional-logs"))).thenReturn(true);
+    when(includeAddition.getOptionValue(eq("additional-logs"))).thenReturn("worker");
+    assertNotEquals(0, cmd.run(includeExclude));
   }
 
   @Test

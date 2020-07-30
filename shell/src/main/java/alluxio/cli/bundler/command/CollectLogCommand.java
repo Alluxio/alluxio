@@ -110,21 +110,35 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   private LocalDateTime mEndTime;
 
   public static final String INCLUDE_OPTION_NAME = "include-logs";
+  public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
+  public static final String ADDITIONAL_OPTION_NAME = "additional-logs";
   private static final Option INCLUDE_OPTION =
           Option.builder().required(false).argName("filename-prefixes")
                   .longOpt(INCLUDE_OPTION_NAME).hasArg(true)
-                  .desc("extra log file name prefixes to include in ${ALLUXIO_HOME}/logs. "
-                          + "The files that start with the prefix will be included.\n"
-                          + "The included prefixes are checked after the excluded.\n"
-                          + "<filename-prefixes> filename prefixes, separated by comma").build();
-  public static final String EXCLUDE_OPTION_NAME = "exclude-logs";
+                  .desc(String.format("extra log file name prefixes to include in "
+                          + "${ALLUXIO_HOME}/logs. "
+                          + "Only the files that start with the prefix will be included.%n"
+                          + "This option should not be given in combination with --%s or --%s.%n"
+                          + "<filename-prefixes> filename prefixes, separated by comma",
+                          EXCLUDE_OPTION_NAME, ADDITIONAL_OPTION_NAME)).build();
   private static final Option EXCLUDE_OPTION =
           Option.builder().required(false).argName("filename-prefixes")
                   .longOpt(EXCLUDE_OPTION_NAME).hasArg(true)
-                  .desc("extra log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
-                          + "The files that start with the prefix will be excluded.\n"
-                          + "The excluded prefixes are checked before the included.\n"
-                          + "<filename-prefixes> filename prefixes, separated by comma").build();
+                  .desc(String.format("log file name prefixes to exclude in ${ALLUXIO_HOME}/logs. "
+                          + "The files that start with the prefix will be excluded.%n"
+                          + "This will be checked before the additions defined in --%s.%n"
+                          + "<filename-prefixes> filename prefixes, separated by comma",
+                          ADDITIONAL_OPTION_NAME)).build();
+  private static final Option ADDITIONAL_OPTION =
+          Option.builder().required(false).argName("filename-prefixes")
+                  .longOpt(ADDITIONAL_OPTION_NAME).hasArg(true)
+                  .desc(String.format("extra log file name prefixes to include in "
+                          + "${ALLUXIO_HOME}/logs. "
+                          + "The files that start with the prefix will be included, "
+                          + "in addition to the rest of regular logs like master.log.%n"
+                          + "This will be checked after the exclusions defined in --%s.%n"
+                          + "<filename-prefixes> filename prefixes, separated by comma",
+                          EXCLUDE_OPTION_NAME)).build();
   private static final String START_OPTION_NAME = "start-time";
   private static final Option START_OPTION =
           Option.builder().required(false).argName("datetime")
@@ -140,7 +154,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
                           + "<datetime> a datetime string like 2020-06-27T11:58:53").build();
   // Class specific options are aggregated into CollectInfo with reflection
   public static final Options OPTIONS = new Options().addOption(INCLUDE_OPTION)
-          .addOption(EXCLUDE_OPTION).addOption(START_OPTION).addOption(END_OPTION);
+          .addOption(EXCLUDE_OPTION).addOption(ADDITIONAL_OPTION)
+          .addOption(START_OPTION).addOption(END_OPTION);
 
   /**
    * Creates a new instance of {@link CollectLogCommand}.
@@ -171,15 +186,32 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
     // TODO(jiacheng): phase 2 Copy intelligently find security risks
     mIncludedPrefix = new HashSet<>(FILE_NAMES_PREFIXES);
-    // Define include list and exclude list
+    boolean listReplaced = false;
+    // Update the list according to the options
     if (cl.hasOption(INCLUDE_OPTION_NAME)) {
       Set<String> toInclude = parseFileNames(cl.getOptionValue(INCLUDE_OPTION_NAME));
-      System.out.format("Include the following filename prefixes: %s%n", toInclude);
-      mIncludedPrefix.addAll(toInclude);
+      System.out.format("Only include the following filename prefixes: %s%n", toInclude);
+      mIncludedPrefix = toInclude;
+      listReplaced = true;
     }
     if (cl.hasOption(EXCLUDE_OPTION_NAME)) {
+      if (listReplaced) {
+        System.err.format("ERROR: Please do not use --%s when --%s is specified.%n",
+                EXCLUDE_OPTION_NAME, INCLUDE_OPTION_NAME);
+        return -1;
+      }
       mExcludedPrefix = parseFileNames(cl.getOptionValue(EXCLUDE_OPTION_NAME));
       System.out.format("Exclude the following filename prefixes: %s%n", mExcludedPrefix);
+    }
+    if (cl.hasOption(ADDITIONAL_OPTION_NAME)) {
+      if (listReplaced) {
+        System.err.format("ERROR: Please do not use --%s when --%s is specified.%n",
+                ADDITIONAL_OPTION_NAME, INCLUDE_OPTION_NAME);
+        return -1;
+      }
+      Set<String> toInclude = parseFileNames(cl.getOptionValue(ADDITIONAL_OPTION_NAME));
+      System.out.format("Additionally, include the following filename prefixes: %s%n", toInclude);
+      mIncludedPrefix.addAll(toInclude);
     }
 
     // Check file timestamps
