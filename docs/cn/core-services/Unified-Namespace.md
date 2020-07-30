@@ -8,7 +8,7 @@ priority: 1
 
 本页总结了如何在Alluxio文件系统名称空间中管理不同的底层存储系统。
 
-* 内容列表
+* Table of Contents
 {:toc}
 
 ## 介绍
@@ -200,7 +200,7 @@ $ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/s
 
 ## 示例
 
-以下示例假设Alluxio源代码在 `${ALLUXIO_HOME}` 文件夹下，并且有一个本地运行的Alluxio进程。
+以下示例假设Alluxio源代码在`${ALLUXIO_HOME}`文件夹下，并且有一个本地运行的Alluxio进程。
 
 ### 透明命名
 
