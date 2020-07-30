@@ -169,7 +169,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (int i = 0; i < numThreads; i++) {
       callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length], i));
     }
-    service.invokeAll(callables, 10, TimeUnit.MINUTES);
+    service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
+        TimeUnit.MILLISECONDS);
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
