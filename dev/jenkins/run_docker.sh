@@ -13,33 +13,27 @@
 set -ex
 
 function main {
-  if [ -z "${ALLUXIO_DOCKER_ID}" ]
-  then
+  if [ -z "${ALLUXIO_DOCKER_ID}" ]; then
     ALLUXIO_DOCKER_ID="$(id -u)"
   fi
-  if [ -z "${ALLUXIO_DOCKER_M2}" ]
-  then
+  if [ -z "${ALLUXIO_DOCKER_M2}" ]; then
     ALLUXIO_DOCKER_M2="${HOME}/.m2"
   fi
-  if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
-  then
+  if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]; then
     ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.4-jdk8"
   fi
 
   local run_args="--rm"
 
-  if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]
-  then
+  if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]; then
     run_args+=" -it"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
-  then
+  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]; then
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi
 
-  if [ -n "${ALLUXIO_SONAR_ARGS}" ]
-  then
+  if [ -n "${ALLUXIO_SONAR_ARGS}" ]; then
     # write out to a file, in case there are spaces in the args
     echo "ALLUXIO_SONAR_ARGS=${ALLUXIO_SONAR_ARGS}" > /tmp/.env
     run_args+=" --env-file /tmp/.env"
@@ -70,8 +64,7 @@ function main {
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
   # If target branch or remote exists, set to run relevant checks given the diff of the PR
-  if [ -n "${ghprbTargetBranch}" ]
-  then
+  if [ -n "${ghprbTargetBranch}" ]; then
     # this env var is defined by the github pull request builder jenkins plugin
     # see https://plugins.jenkins.io/ghprb/
     run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
