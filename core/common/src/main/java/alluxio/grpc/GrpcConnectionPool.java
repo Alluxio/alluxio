@@ -221,7 +221,9 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * Returns {@code true} if given managed channel is ready.
+   * Waits until it is known whether the connection is ready.
+   *
+   * @return whether the given managed channel is ready
    */
   private boolean waitForConnectionReady(ManagedChannel managedChannel, AlluxioConfiguration conf) {
     long healthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
