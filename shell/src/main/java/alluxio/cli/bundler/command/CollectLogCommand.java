@@ -290,31 +290,33 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
 
   /**
    * Check if the file is wanted, based on the time window specified and the time of this file.
+   * We assume we want the file unless we know the file is not wanted, based on the
+   * specified time window.
    * We infer the end time from its last modified time, assuming that is the last log entry.
    * We infer the start time by parsing the first number of log entries, trying to identify
    * the timestamp on the log entry.
    * If we are not able to infer the start time, we assume it is LocalDateTime.MIN.
-   * We assume we want the file unless we know the file is not wanted, based on the
-   * specified time window.
    * */
   private boolean fileTimeStampIsWanted(File f) throws IOException {
-    long timestamp = f.lastModified();
-    LocalDateTime fileEndTime =
-            LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
-
-    // Infer file start time by parsing the first bunch of rows
-    LocalDateTime fileStartTime = inferFileStartTime(f);
-    if (fileStartTime == null) {
-      fileStartTime = LocalDateTime.MIN;
+    if (mStartTime != null) {
+      long timestamp = f.lastModified();
+      LocalDateTime fileEndTime =
+              LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+      // The file is earlier than the desired interval
+      if (mStartTime.isAfter(fileEndTime)) {
+        return false;
+      }
     }
-
-    // The file is earlier than the desired interval
-    if (mStartTime != null && mStartTime.isAfter(fileEndTime)) {
-      return false;
-    }
-    // The file is later than the desired interval
-    if (mEndTime != null && mEndTime.isBefore(fileStartTime)) {
-      return false;
+    if (mEndTime != null) {
+      // Infer file start time by parsing the first bunch of rows
+      LocalDateTime fileStartTime = inferFileStartTime(f);
+      if (fileStartTime == null) {
+        fileStartTime = LocalDateTime.MIN;
+      }
+      // The file is later than the desired interval
+      if (mEndTime.isBefore(fileStartTime)) {
+        return false;
+      }
     }
     return true;
   }
