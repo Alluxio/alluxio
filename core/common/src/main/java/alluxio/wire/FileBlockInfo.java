@@ -48,7 +48,7 @@ public final class FileBlockInfo implements Serializable {
   }
 
   /**
-   * @return the offset
+   * @return the offset within a file block
    */
   public long getOffset() {
     return mOffset;
