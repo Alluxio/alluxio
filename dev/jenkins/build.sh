@@ -63,7 +63,7 @@ if [ "$RUN_MAVEN" == "true" ]; then
     ALLUXIO_BUILD_FORKCOUNT=4
   fi
 
-  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} --fail-at-end $@
+  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} -Dmaven.test.failure.ignore=true -fn --fail-at-end $@
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then
