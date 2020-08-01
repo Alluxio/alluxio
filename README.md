@@ -62,7 +62,7 @@ $ docker run -d --net=alluxio_nw \
     --shm-size=${ALLUXIO_WORKER_MEMORY_SIZE} \
     --name=alluxio-worker \
     -v ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE} -Dalluxio.master.hostname=alluxio-master" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_MEMORY_SIZE} -Dalluxio.master.hostname=alluxio-master" \
     alluxio/alluxio worker
 ```
 

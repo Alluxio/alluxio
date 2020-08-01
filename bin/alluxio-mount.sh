@@ -23,7 +23,7 @@ USAGE="Usage: alluxio-mount.sh [Mount|SudoMount|Umount|SudoUmount] [MACHINE]
 function init_env() {
   local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
   . ${libexec_dir}/alluxio-config.sh
-  MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
+  MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.ramdisk.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
   get_ramdisk_array
 }
@@ -32,7 +32,7 @@ function check_space_linux() {
   local total_mem=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
   if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
     echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
-    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
+    reduce alluxio.worker.ramdisk.size in alluxio-site.properties" >&2
     exit 1
   fi
 }
@@ -91,7 +91,7 @@ function check_space_freebsd() {
   local total_mem=$(sysctl -n hw.usermem)
   if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
     echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
-    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
+    reduce alluxio.worker.ramdisk.size in alluxio-site.properties" >&2
     exit 1
   fi
 }

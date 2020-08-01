@@ -2639,7 +2639,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MEMORY_SIZE =
-      new Builder(Name.WORKER_MEMORY_SIZE)
+      new Builder(Name.WORKER_RAMDISK_SIZE)
           .setDefaultSupplier(() -> {
             try {
               OperatingSystemMXBean operatingSystemMXBean =
@@ -2895,7 +2895,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_MEMORY_SIZE))
+          .setDefaultValue(String.format("${%s}", Name.WORKER_RAMDISK_SIZE))
           .setDescription("The capacity of the top storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -5201,7 +5201,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
-    public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
+    public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =

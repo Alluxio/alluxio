@@ -74,7 +74,7 @@ A common modification to the default is to set the ramdisk size explicitly. For 
 ramdisk size to be 16GB on each worker:
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
@@ -108,10 +108,10 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 Note that the ordering of the quotas must match with the ordering of the paths.
 
 
-There is a subtle difference between `alluxio.worker.memory.size` and
+There is a subtle difference between `alluxio.worker.ramdisk.size` and
 `alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
 provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. This ramdisk
-will have its size determined by `alluxio.worker.memory.size` regardless of the value set in
+will have its size determined by `alluxio.worker.ramdisk.size` regardless of the value set in
 `alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
 of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
 

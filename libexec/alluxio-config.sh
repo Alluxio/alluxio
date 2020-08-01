@@ -84,7 +84,7 @@ elif [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
 fi
 
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
 
 ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties"

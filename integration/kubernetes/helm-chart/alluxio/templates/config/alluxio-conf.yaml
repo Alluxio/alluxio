@@ -93,7 +93,7 @@
 {{- if .Values.worker.resources  }}
   {{- if .Values.worker.resources.requests }}
     {{- if .Values.worker.resources.requests.memory }}
-          {{- $workerJavaOpts = printf "-Dalluxio.worker.memory.size=%v" .Values.worker.resources.requests.memory | append $workerJavaOpts }}
+          {{- $workerJavaOpts = printf "-Dalluxio.worker.ramdisk.size=%v" .Values.worker.resources.requests.memory | append $workerJavaOpts }}
     {{- end}}
   {{- end}}
 {{- end}}
