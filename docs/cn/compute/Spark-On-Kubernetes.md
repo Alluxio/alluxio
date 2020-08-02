@@ -103,7 +103,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory
   ```
  
-{% endnavtab %}
+  {% endnavtab %}
   {% navtab PersistententVolumeClaim %}
   如果使用的是PersistententVolumeClaim域套接字，则应将以下属性传递给Spark:
   
@@ -114,7 +114,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
   ```
   
   {% endnavtabs %}
-{% endnavtabs %}
+  {% endnavtabs %}
 
 注意: 
 -Spark中的卷支持是在2.4.0版中添加的。
