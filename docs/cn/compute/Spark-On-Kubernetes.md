@@ -113,8 +113,8 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
   spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.options.claimName=<domainSocketPVC name>
   ```
   
-  {% endnavtabs %}
-  {% endnavtabs %}
+  {% endnavtab %}
+{% endnavtabs %}
 
 注意: 
 -Spark中的卷支持是在2.4.0版中添加的。
