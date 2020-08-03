@@ -61,9 +61,11 @@ public enum HdfsVersion {
   }
 
   /**
-   * @param versionA base version
-   * @param versionB version to compare
-   * @return if the two versions match explicitly or by pattern
+   * Compares two HDFS versions and returns whether they match.
+   *
+   * @param versionA base version to compare to {@code versionB}
+   * @param versionB version to compare to {@code versionA}
+   * @return whether both versions match explicitly or by pattern
    */
   public static boolean matches(String versionA, String versionB) {
     if (versionA.equals(versionB)) {
