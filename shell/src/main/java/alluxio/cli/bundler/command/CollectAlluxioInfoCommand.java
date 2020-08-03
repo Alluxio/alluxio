@@ -60,7 +60,10 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
   @Override
   protected void registerCommands() {
     // TODO(jiacheng): a command to find lost blocks?
+    // alluxio getConf will mask the credential fields
     registerCommand("getConf",
+            new AlluxioCommand(mAlluxioPath, "getConf"), null);
+    registerCommand("getConf master",
             new AlluxioCommand(mAlluxioPath, "getConf --master --source"), null);
     registerCommand("fsadmin",
             new AlluxioCommand(mAlluxioPath, "fsadmin report"), null);
@@ -74,6 +77,10 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
             new AlluxioCommand(mAlluxioPath, String.format("fs ls -R %s",
                     mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))),
             getListJournalCommand());
+    registerCommand("runTests",
+            new AlluxioCommand(mAlluxioPath, "runTests"), null);
+    registerCommand("validateConf",
+            new AlluxioCommand(mAlluxioPath, "validateConf"), null);
   }
 
   /**
