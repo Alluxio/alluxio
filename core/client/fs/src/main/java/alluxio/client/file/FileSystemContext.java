@@ -567,7 +567,7 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return if there is a local worker running the same machine
+   * @return whether there is a local worker running in this JVM
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
