@@ -210,7 +210,7 @@ for line in textFile_RDD.collect():
 
 多个属性应以空格分隔。
 
-如果属性值包含空格，则必须使用单引号将其转义。
+使用单引号来将带空格的字符串考虑为一个值。
 
 ```
 -e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2=`value2 with spaces`"
@@ -315,4 +315,4 @@ $ docker run -e \
 
 ## 故障排除
 
-可以通过运行docker访问Alluxio服务器日志 logs $ container_id。通常，日志可以很好地指出什么地方出了问题。如果它们不足以诊断您的问题，则可以在[用户邮件列表](https://groups.google.com/forum/#!forum/alluxio-users).上获得帮助 。
+可以通过运行`docker logs $container_id`来访问Alluxio 服务器日志。通常，日志可以很好地指出什么地方出了问题。如果它们不足以诊断您的问题，则可以在[用户邮件列表](https://groups.google.com/forum/#!forum/alluxio-users).上获得帮助 。
