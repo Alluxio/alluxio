@@ -4596,14 +4596,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
           .setDefaultValue("10sec")
-          .setDescription("Extra sleep time longer than this threshold, log WARN.")
+          .setDescription("When the JVM pauses for anything longer than this, log a WARN message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
           .setDefaultValue("1sec")
-          .setDescription("Extra sleep time longer than this threshold, log INFO.")
+          .setDescription("When the JVM pauses for anything longer than this, log an INFO message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();

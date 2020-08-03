@@ -68,8 +68,6 @@ public class JvmPauseMonitor {
     Preconditions.checkArgument(gcSleepIntervalMs > 0, "gc sleep interval must be > 0");
     Preconditions.checkArgument(warnThresholdMs > 0, "warn threshold must be > 0");
     Preconditions.checkArgument(infoThresholdMs > 0, "info threshold must be > 0");
-    Preconditions.checkArgument(infoThresholdMs > gcSleepIntervalMs,
-        "gc info threshold must be > gc sleep interval");
     Preconditions.checkArgument(warnThresholdMs > infoThresholdMs,
         "gc warn threshold must be > gc info threshold");
     mGcSleepIntervalMs = gcSleepIntervalMs;
