@@ -75,9 +75,9 @@ public class CompoundCheckpointFormat implements CheckpointFormat {
       if (mFirstCheckpoint) {
         mFirstCheckpoint = false;
       } else {
-        mStream.nextChunks();
+        mStream.nextChunk();
       }
-      if (mStream.eof()) {
+      if (mStream.end()) {
         return Optional.empty();
       }
       CheckpointName name = CheckpointName.valueOf(mStream.readString());

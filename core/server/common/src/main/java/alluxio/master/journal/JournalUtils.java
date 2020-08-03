@@ -131,7 +131,7 @@ public final class JournalUtils {
     for (Checkpointed component : components) {
       chunked.writeString(component.getCheckpointName().toString());
       component.writeToCheckpoint(chunked);
-      chunked.endChunks();
+      chunked.endChunk();
     }
     chunked.flush();
   }
