@@ -43,9 +43,12 @@ public class GrpcServerAddress {
   }
 
   /**
-   * @param hostName target host name
-   * @param socketAddress physical address
-   * @return created server address instance
+   * Instantiates a new gRPC server address with the provided host name and socket address.
+   *
+   * @param hostName target host name to use
+   * @param socketAddress physical address to use
+   * @return a new server address instance with the provided
+   *         {@code hostName} and {@code socketAddress}
    */
   public static GrpcServerAddress create(String hostName, SocketAddress socketAddress) {
     return new GrpcServerAddress(hostName, socketAddress);
