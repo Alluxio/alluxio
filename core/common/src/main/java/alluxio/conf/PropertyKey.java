@@ -4298,6 +4298,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Yarn related properties
   //
+  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_CPU =
+      new Builder(Name.INTEGRATION_MASTER_RESOURCE_CPU)
+          .setDefaultValue(1)
+          .setDescription("The number of CPUs to run an Alluxio master for YARN framework.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
+          .build();
+  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_MEM =
+      new Builder(Name.INTEGRATION_MASTER_RESOURCE_MEM)
+          .setDefaultValue("1024MB")
+          .setDescription("The amount of memory to run an Alluxio master for YARN framework.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
+          .build();
+  public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
+      new Builder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
+          .setDefaultValue(1)
+          .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
+          .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
@@ -4610,20 +4631,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.integration.master.resource.cpu";
     public static final String INTEGRATION_MASTER_RESOURCE_MEM =
         "alluxio.integration.master.resource.mem";
-    public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
-        "alluxio.integration.mesos.master.name";
-    public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
-        "alluxio.integration.mesos.master.node.count";
-    public static final String INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
-        "alluxio.integration.mesos.worker.name";
-    public static final String INTEGRATION_MESOS_ALLUXIO_JAR_URL =
-        "alluxio.integration.mesos.alluxio.jar.url";
-    public static final String INTEGRATION_MESOS_JDK_PATH = "alluxio.integration.mesos.jdk.path";
-    public static final String INTEGRATION_MESOS_JDK_URL = "alluxio.integration.mesos.jdk.url";
-    public static final String INTEGRATION_MESOS_PRINCIPAL = "alluxio.integration.mesos.principal";
-    public static final String INTEGRATION_MESOS_ROLE = "alluxio.integration.mesos.role";
-    public static final String INTEGRATION_MESOS_SECRET = "alluxio.integration.mesos.secret";
-    public static final String INTEGRATION_MESOS_USER = "alluxio.integration.mesos.user";
     public static final String INTEGRATION_WORKER_RESOURCE_CPU =
         "alluxio.integration.worker.resource.cpu";
     public static final String INTEGRATION_WORKER_RESOURCE_MEM =
