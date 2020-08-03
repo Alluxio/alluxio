@@ -152,6 +152,9 @@ public final class GrpcChannel extends Channel {
   private class ChannelResponseTracker implements ClientInterceptor {
     private boolean mChannelHealthy = true;
 
+    /**
+     * @return whether the channel is healthy
+     */
     public boolean isChannelHealthy() {
       return mChannelHealthy;
     }
