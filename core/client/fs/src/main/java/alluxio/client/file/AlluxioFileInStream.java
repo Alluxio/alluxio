@@ -372,7 +372,11 @@ public class AlluxioFileInStream extends FileInStream {
     }
   }
 
-  // Send an async cache request to a worker based on read type and passive cache options.
+  /**
+   * Sends an async cache request to a worker based on read type and passive cache options.
+   *
+   * @param stream the block instream to use
+   */
   private void triggerAsyncCaching(BlockInStream stream) throws IOException {
     boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
     boolean overReplicated = mStatus.getReplicationMax() > 0
