@@ -357,6 +357,9 @@ public class AlluxioFileInStream extends FileInStream {
     mBlockInStream.seek(offset);
   }
 
+  /**
+   * @param stream the block in stream to close
+   */
   private void closeBlockInStream(BlockInStream stream) throws IOException {
     if (stream != null) {
       BlockInStream.BlockInStreamSource blockSource = stream.getSource();
