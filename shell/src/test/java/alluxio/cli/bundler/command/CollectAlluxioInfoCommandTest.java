@@ -52,7 +52,7 @@ public class CollectAlluxioInfoCommandTest {
     // Write to temp dir
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
@@ -91,7 +91,7 @@ public class CollectAlluxioInfoCommandTest {
     // Write to temp dir
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
