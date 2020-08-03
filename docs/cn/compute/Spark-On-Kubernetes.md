@@ -73,8 +73,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 
 ###短路操作
 
-短路访问使Spark执行器中的Alluxio客户端可以直接访问
-主机上的Alluxio worker存储。
+短路访问使Spark执行器中的Alluxio客户端可以直接访问主机上的Alluxio worker存储。
 因为不通过网络堆栈来与Alluxio worker通信，这样可以提高性能。
 
 如果在部署Alluxio时未按照指令设置域套接字
@@ -82,13 +81,11 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 可以跳过将`hostPath`卷挂载到Spark执行器步骤。
 
 如果在运行Alluxio worker进程的主机上将域套接字位置设置为
-`/tmp/alluxio-domain`，并且Alluxio配置为
-`alluxio.worker.data.server.domain.socket.address=/opt/domain`，使用以下Spark
+`/tmp/alluxio-domain`，并且Alluxio配置为`alluxio.worker.data.server.domain.socket.address=/opt/domain`，使用以下Spark
 配置将`/tmp/alluxio-domain`挂载到Spark执行器pod中的`/opt/domain`。
 下一节中的`spark-submit`命令包含这些属性。
 
-取决于你的设置，Alluxio worker上的域套接字可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以在此处找到有关如何配置Alluxio worker以使用短路操作的更多详细信息 
-({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})。
+取决于你的设置，Alluxio worker上的域套接字可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
 这两个选项的spark-submit参数将有所不同。
 可以在以下Spark文档中找到有关如何将卷挂载到Spark执行器的更多[信息](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes)。
 
@@ -163,8 +160,7 @@ alluxio://<alluxio-master>:19998/LICENSE
 ###访问Alluxio客户端日志
 
 可在Spark驱动和执行器日志中找到Alluxio客户端日志。
-有关更多说明参考
-[Spark文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)
+有关更多说明参考[Spark文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)
 
 ### Kubernetes客户端上的HTTP 403
 
@@ -184,7 +180,7 @@ rm spark-2.4.4-bin-hadoop2.7/jars/kubernetes-client-*.jar
 wget https://repo1.maven.org/maven2/io/fabric8/kubernetes-client/4.4.2/kubernetes-client-4.4.2.jar 
 cp kubernetes-client-4.4.2.jar spark-2.4.4-bin-hadoop2.7/jars
 ```
-然后编译'spark-alluxio`镜像，并分发到所有节点。
+然后编译`spark-alluxio`镜像，并分发到所有节点。
 
 ###服务帐户没有访问权限
 
