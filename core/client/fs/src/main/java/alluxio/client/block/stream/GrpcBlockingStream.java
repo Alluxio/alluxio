@@ -240,6 +240,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
     return mCanceled;
   }
 
+  /**
+   * Throws the identified error as an {@link AlluxioStatusException}.
+   */
   private void checkError() throws IOException {
     try (LockResource lr = new LockResource(mLock)) {
       if (mError != null) {
