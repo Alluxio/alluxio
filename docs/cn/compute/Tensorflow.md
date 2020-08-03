@@ -59,7 +59,7 @@ $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 以上CLI命令产生了一个后台用户空间Java进程(`AlluxioFuse`)，该进程将在指定挂载点`/mnt/alluxio`把在`/training-data`中指定的Alluxio路径挂载到本地文件系统。 
-请参阅[POSIX API文档]({{'/en/api/POSIX-API.html'| relativize_url}})， 
+请参阅[POSIX API文档]({{ '/en/api/POSIX-API.html' | relativize_url}})， 
 以获取有关如何安装Alluxio-FUSE以及设置fuse相关选项的详细信息。 
 
 检查FUSE进程的状态
@@ -68,7 +68,7 @@ $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 $ ./integration/fuse/bin/alluxio-fuse stat
 ```
 
-挂载的`/ mnt / fuse`文件夹已经准备好可以为深度学习框架所用，深度学习框架可以视Alluxio存储为本地文件夹。 
+挂载的`/mnt/fuse`文件夹已经准备好可以为深度学习框架所用，深度学习框架可以视Alluxio存储为本地文件夹。 
 下一部分中Tensorflow将使用此文件夹进行训练。
 
 ##示例:图像识别
@@ -77,7 +77,7 @@ $ ./integration/fuse/bin/alluxio-fuse stat
 
 如果训练数据已经在远程数据存储中，则可以将其挂载为Alluxio`/training-data`目录下的一个文件夹。 这些数据对于在本地`/mnt/fuse/`上运行的应用程序是可见的。
 
-假设ImageNet数据存储在S3存储桶`s3:// alluxio-tensorflow-imagenet/`。
+假设ImageNet数据存储在S3存储桶`s3://alluxio-tensorflow-imagenet/`。
 运行以下命令将该S3存储桶挂载到Alluxio路径`/training-data/imagenet`:
 
 ```console
@@ -96,7 +96,7 @@ $ ./bin/alluxio fs mkdir /training-data/imagenet
 $ ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /training-data/imagenet 
 ```
 
-假设ImageNet数据存储在一个S3桶``s3:// alluxio-tensorflow-imagenet /''， 
+假设ImageNet数据存储在一个S3桶`s3://alluxio-tensorflow-imagenet/`， 
 以下三个命令将在两个挂载进程运行之后显示完全相同的数据:
 
 ```
