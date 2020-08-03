@@ -337,11 +337,6 @@ $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limi
   --io-size 512m --threads 2
 ```
 
-### runMesosTest
-
-The `runMesosTest` validates the Alluxio Mesos integration.
-Note that this command will stop any Alluxio services running on the machine.
-
 ### runUfsTests
 
 The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
