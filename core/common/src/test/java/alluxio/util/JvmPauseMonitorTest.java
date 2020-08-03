@@ -41,7 +41,6 @@ public final class JvmPauseMonitorTest {
   @Test
   public void pauseMonitorStartStopTest() {
     JvmPauseMonitor mon = new JvmPauseMonitor(100, 1000, 500);
-    int before = Thread.activeCount();
     mon.start();
     assertTrue(mon.isStarted());
     mon.stop();
@@ -90,12 +89,6 @@ public final class JvmPauseMonitorTest {
   public void testNegativeWarnThreshold() {
     mException.expect(IllegalArgumentException.class);
     new JvmPauseMonitor(100, -1, 500);
-  }
-
-  @Test
-  public void testTinyInfoThreshold() {
-    mException.expect(IllegalArgumentException.class);
-    new JvmPauseMonitor(100, 5000, 50);
   }
 
   @Test
