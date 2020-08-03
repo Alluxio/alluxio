@@ -352,7 +352,8 @@ public final class NetworkAddressUtils {
    * Gets the local hostname to be used by the client. If this isn't configured, a
    * non-loopback local hostname will be looked up.
    *
-   * @param conf Alluxio configuration
+   * @param conf Alluxio configuration from which to fetch the user hostname,
+   *        locality tier node, and timeout in milliseconds
    * @return the local hostname for the client
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
