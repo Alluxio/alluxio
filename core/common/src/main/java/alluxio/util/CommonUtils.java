@@ -35,6 +35,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
@@ -826,6 +827,29 @@ public final class CommonUtils {
     } catch (IOException e) {
       return false;
     }
+  }
+
+  /**
+   * Recursively lists a local dir and all its subdirs and return all the files.
+   *
+   * @param dir the directory
+   * @return a list of all the files
+   * */
+  public static List<File> recursiveListLocalDir(File dir) {
+    File[] files = dir.listFiles();
+    // File#listFiles can return null when the path is invalid
+    if (files == null) {
+      return Collections.emptyList();
+    }
+    List<File> result = new ArrayList<>(files.length);
+    for (File f : files) {
+      if (f.isDirectory()) {
+        result.addAll(recursiveListLocalDir(f));
+        continue;
+      }
+      result.add(f);
+    }
+    return result;
   }
 
   private CommonUtils() {} // prevent instantiation
