@@ -120,7 +120,7 @@ public final class InStreamOptions {
   }
 
   /**
-   * @return true, if the operation is using positioned read to a small buffer size
+   * @return whether the operation is using positioned read to a small buffer size
    */
   public boolean getPositionShort() {
     return mPositionShort;
