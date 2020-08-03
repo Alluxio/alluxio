@@ -508,6 +508,14 @@ public class FileSystemContext implements Closeable {
     }
   }
 
+  /**
+   * Acquires or instantiates a new block worker client if none is found in the client pool.
+   *
+   * @param workerNetAddress the network address of the channel
+   * @param context the client context to use
+   * @param userState the user state to use
+   * @return a closeable resource wrapping the corresponding block worker client
+   */
   private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
       final WorkerNetAddress workerNetAddress, final ClientContext context, UserState userState)
       throws IOException {
