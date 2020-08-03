@@ -20,6 +20,12 @@ then
   git clean -fdx
 fi
 
+local mvn_args=""
+if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
+then
+  mvn_args+=" -fn --fail-at-end"
+fi
+
 RUN_MAVEN="false"
 RUN_DOC_CHECK="false"
 if [ -z "${TARGET_BRANCH}" ]; then
@@ -63,7 +69,7 @@ if [ "$RUN_MAVEN" == "true" ]; then
     ALLUXIO_BUILD_FORKCOUNT=4
   fi
 
-  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
+  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then

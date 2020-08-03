@@ -38,6 +38,11 @@ function main {
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi
 
+  if [ -n "${ALLUXIO_DOCKER_MVN_RUNTOEND" ]
+  then
+    run_args+=" -e ALLUXIO_MVN_RUNTOEND=true"
+  fi
+
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then
     # write out to a file, in case there are spaces in the args
