@@ -20,7 +20,7 @@ then
   git clean -fdx
 fi
 
-local mvn_args=""
+mvn_args=""
 if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
 then
   mvn_args+=" -fn --fail-at-end"
