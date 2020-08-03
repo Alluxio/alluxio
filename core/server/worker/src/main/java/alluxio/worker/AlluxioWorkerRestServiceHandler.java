@@ -117,6 +117,10 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String LOG_ARGUMENT_NAME = "logName";
   public static final String LOG_ARGUMENT_LEVEL = "level";
 
+  // status
+  public static final String LIVE = "live";
+  public static final String READY = "ready";
+
   private final WorkerProcess mWorkerProcess;
   private final BlockStoreMeta mStoreMeta;
   private final BlockWorker mBlockWorker;
@@ -607,5 +611,21 @@ public final class AlluxioWorkerRestServiceHandler {
         return LogUtils.setLogLevel(logName, level);
       }
     }, ServerConfiguration.global());
+  }
+
+  @GET
+  @Path(LIVE)
+  public Response isLive() {
+    return Response.ok("Master is alive").build();
+  }
+
+  @GET
+  @Path(READY)
+  public Response isReady() {
+    if (AlluxioWorkerProcess.READY.get()) {
+      return Response.ok("Master is ready").build();
+    } else {
+      return Response.serverError().build();
+    }
   }
 }

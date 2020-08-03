@@ -47,6 +47,7 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,6 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
+  public static final AtomicBoolean READY = new AtomicBoolean(false);
 
   private final TieredIdentity mTieredIdentitiy;
 
@@ -164,6 +166,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         // Share domain socket so that clients can access it.
         FileUtils.changeLocalFileToFullPermission(domainSocketPath);
       }
+
+      // Set the worker to ready state
+      READY.set(true);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

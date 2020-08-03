@@ -52,6 +52,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -63,6 +64,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
+  public static final AtomicBoolean READY = new AtomicBoolean(false);
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
@@ -121,6 +123,8 @@ public class AlluxioMasterProcess extends MasterProcess {
           .setUfsManager(mUfsManager)
           .build();
       MasterUtils.createMasters(mRegistry, mContext);
+      // Set the master to ready
+      READY.set(true);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,6 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
+  public static final AtomicBoolean READY = new AtomicBoolean(false);
 
   /** FileSystem client for jobs. */
   private final FileSystem mFileSystem;
@@ -91,6 +93,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       // Create master.
       mJobMaster = new JobMaster(new MasterContext(mJournalSystem), mFileSystem, mFsContext,
           mUfsManager);
+      // Set the job master ready
+      READY.set(true);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);

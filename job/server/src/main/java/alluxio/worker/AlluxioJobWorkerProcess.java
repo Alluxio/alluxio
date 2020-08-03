@@ -41,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,6 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobWorkerProcess.class);
+  public static final AtomicBoolean READY = new AtomicBoolean(false);
 
   /** FileSystem client for jobs. */
   private final FileSystem mFileSystem;
@@ -121,6 +123,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
           ServerConfiguration.global());
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
           ServerConfiguration.global());
+
+      READY.set(true);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);

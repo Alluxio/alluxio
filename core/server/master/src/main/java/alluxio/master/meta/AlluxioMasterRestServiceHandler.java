@@ -150,6 +150,10 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String LOG_ARGUMENT_NAME = "logName";
   public static final String LOG_ARGUMENT_LEVEL = "level";
 
+  // status
+  public static final String LIVE = "live";
+  public static final String READY = "ready";
+
   private final AlluxioMasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
@@ -1080,5 +1084,21 @@ public final class AlluxioMasterRestServiceHandler {
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
+  }
+
+  @GET
+  @Path(LIVE)
+  public Response isLive() {
+    return Response.ok("Master is alive").build();
+  }
+
+  @GET
+  @Path(READY)
+  public Response isReady() {
+    if (AlluxioMasterProcess.READY.get()) {
+      return Response.ok("Master is ready").build();
+    } else {
+      return Response.serverError().build();
+    }
   }
 }

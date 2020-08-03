@@ -15,6 +15,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.AlluxioJobWorkerInfo;
 
@@ -49,6 +50,10 @@ public final class  AlluxioJobWorkerRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+
+  // status
+  public static final String LIVE = "live";
+  public static final String READY = "ready";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -107,5 +112,21 @@ public final class  AlluxioJobWorkerRestServiceHandler {
       }
     }
     return configuration;
+  }
+
+  @GET
+  @Path(LIVE)
+  public Response isLive() {
+    return Response.ok("Master is alive").build();
+  }
+
+  @GET
+  @Path(READY)
+  public Response isReady() {
+    if (AlluxioJobWorkerProcess.READY.get()) {
+      return Response.ok("Master is ready").build();
+    } else {
+      return Response.serverError().build();
+    }
   }
 }

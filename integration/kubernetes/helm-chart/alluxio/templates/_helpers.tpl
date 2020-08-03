@@ -272,32 +272,37 @@ resources:
 
 {{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  httpGet:
+    path: /api/v1/master/ready
+    port: 19999
 {{- end -}}
 
 {{- define "alluxio.jobMaster.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  httpGet:
+    path: /api/v1/job_master/ready
+    port: 20002
 {{- end -}}
 
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  httpGet:
+    path: /api/v1/worker/ready
+    port: 30000
 {{- end -}}
 
 {{- define "alluxio.jobWorker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  httpGet:
+    path: /api/v1/job_worker/ready
+    port: 30003
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  httpGet:
+    path: /api/v1/master/live
+    port: 19999
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -306,8 +311,9 @@ livenessProbe:
 
 {{- define "alluxio.jobMaster.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  httpGet:
+    path: /api/v1/job_master/live
+    port: 20002
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -316,8 +322,9 @@ livenessProbe:
 
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  httpGet:
+    path: /api/v1/worker/live
+    port: 30000
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -326,8 +333,9 @@ livenessProbe:
 
 {{- define "alluxio.jobWorker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  httpGet:
+    path: /api/v1/job_worker/live
+    port: 30003
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
