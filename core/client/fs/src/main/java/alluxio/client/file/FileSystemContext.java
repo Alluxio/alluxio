@@ -617,6 +617,9 @@ public class FileSystemContext implements Closeable {
     }
   }
 
+  /**
+   * Initializes the local worker.
+   */
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
