@@ -77,7 +77,9 @@ public final class GrpcChannel extends Channel {
 
   /**
    * Intercepts the channel with given interceptor.
-   * @param interceptor interceptor
+   *
+   * @param interceptor the client interceptor to intercept
+   *        this gRPC channel with
    */
   public void intercept(ClientInterceptor interceptor) {
     mTrackedChannel = ClientInterceptors.intercept(mTrackedChannel, interceptor);
