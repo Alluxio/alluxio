@@ -48,6 +48,13 @@ public final class BufferUtils {
     return b & 0xFF;
   }
 
+  /**
+   * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
+   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
+   * avoid huge memory occupation caused by memory map.
+   *
+   * @param buffer bytebuffer
+   */
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer is null");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
@@ -60,10 +67,6 @@ public final class BufferUtils {
   }
 
   /**
-   * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
-   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
-   * avoid huge memory occupation caused by memory map.
-   *
    * <p>
    * Note: This calls the cleaner method on jdk 9+.
    * See <a
@@ -78,7 +81,7 @@ public final class BufferUtils {
       if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
         try {
           sUnsafeClass = Class.forName("sun.misc.Unsafe");
-        } catch(Exception ex) {
+        } catch (Exception e) {
           // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
           // but that method should be added if sun.misc.Unsafe is removed.
           sUnsafeClass = Class.forName("jdk.internal.misc.Unsafe");
@@ -97,10 +100,6 @@ public final class BufferUtils {
   }
 
   /**
-   * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
-   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
-   * avoid huge memory occupation caused by memory map.
-   *
    * <p>
    * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
    * references are released and may lead to OutOfMemoryError. This function helps by calling the
