@@ -77,6 +77,8 @@ public final class CommonUtils {
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
 
+  private static final int sJavaMajorVersion = initMajorVersion();
+
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
    * interval of 2 seconds.
@@ -116,6 +118,13 @@ public final class CommonUtils {
    */
   public static long getCurrentMs() {
     return System.currentTimeMillis();
+  }
+
+  /**
+   * @return the current jvm major version, such as 1.8 or 11
+   */
+  public static int getJavaVersion() {
+    return sJavaMajorVersion;
   }
 
   /**
@@ -850,6 +859,19 @@ public final class CommonUtils {
       result.add(f);
     }
     return result;
+  }
+
+  private static int initMajorVersion() {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("1.")) {
+      version = version.substring(2, 3);
+    } else {
+      int dot = version.indexOf(".");
+      if (dot != -1) {
+        version = version.substring(0, dot);
+      }
+    }
+    return Integer.parseInt(version);
   }
 
   private CommonUtils() {} // prevent instantiation

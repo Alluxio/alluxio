@@ -11,6 +11,8 @@
 
 package alluxio.util.io;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ public final class BufferUtils {
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer is null");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
-    int javaVersion = Integer.parseInt(System.getProperty("java.version").split("\\D+")[0]);
+    int javaVersion = CommonUtils.getJavaVersion();
     if (javaVersion < 9) {
       cleanDirectBufferJava8(buffer);
     } else {
