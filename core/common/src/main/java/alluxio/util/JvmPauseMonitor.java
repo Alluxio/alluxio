@@ -54,7 +54,7 @@ public class JvmPauseMonitor {
   /** Times extra sleep time exceed INFO. */
   private final AtomicLong mInfoTimeExceeded = new AtomicLong();
   /** Total extra sleep time. */
-  private AtomicLong mTotalExtraTimeMs = new AtomicLong();
+  private final AtomicLong mTotalExtraTimeMs = new AtomicLong();
 
   private Thread mJvmMonitorThread;
 
