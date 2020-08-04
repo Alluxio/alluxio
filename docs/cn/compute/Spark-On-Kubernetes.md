@@ -11,25 +11,25 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环�
 * Table of Contents
 {:toc}
 
-##概述
+## 概述
 
 在Kubernetes上运行的Spark可以将Alluxio用作数据访问层。
 本指南介绍了Kubernetes环境下在Alluxio上运行Spark作业示例。
 本教程中使用的示例是一个计算一个文件中有多少行的作业。
 在下文中，我们将此作业称为 count。
 
-##先决条件
+## 先决条件
 
 -Kubernetes集群(版本> = 1.8)。
 -Alluxio已部署在Kubernetes集群上。有关如何部署Alluxio的说明，请参考
 [本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}})
 
-##基本设置
+## 基本设置
 
 首先，我们准备一个Spark Docker镜像，其中包括Alluxio客户端和任何其他必需的jar文件。
 在所有Kubernetes节点上都需提供此镜像。
 
-###下载二进制文件
+### 下载二进制文件
 
 [下载](https://spark.apache.org/downloads.html)所需的Spark版本。
 对于`spark-submit`命令和使用Alluxio所含的Dockerfile编译Docker镜像
@@ -40,7 +40,7 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环�
 $ tar -xf spark-2.4.4-bin-hadoop2.7.tgz
 $ cd spark-2.4.4-bin-hadoop2.7
 ```
-###编译Spark Docker镜像
+### 编译Spark Docker镜像
 
 从Alluxio Docker镜像中提取Alluxio客户端jar:
 
@@ -67,11 +67,11 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 >注意:确保所有节点(spark-driver和spark-executor pods将运行的所在节点) 
 都有该镜像。
 
-##示例
+## 示例
 
 本节说明如何使用编译的Docker镜像来发起一个以Alluxio作为数据源的Spark作业。
 
-###短路操作
+### 短路操作
 
 短路访问使Spark执行器中的Alluxio客户端可以直接访问主机上的Alluxio worker存储。
 因为不通过网络堆栈来与Alluxio worker通信，这样可以提高性能。
@@ -117,12 +117,12 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 -Spark中的卷支持是在2.4.0版中添加的。
 -当不通过域套接字使用短路访问时，可能会观察到性能下降。
 
-###运行Spark作业
+### 运行Spark作业
 
 以下命令在Alluxio位置`/LICENSE`运行一个计字数作业样例。
 可以在Spark驱动程序pod的日志中看到运行的输出和所花费的时间。更进一步[说明参考Spark](https://spark.apache.org/docs/latest/running-on-kubernetes.html)。
 
-####创建服务帐户(可选)
+#### 创建服务帐户(可选)
 
 如果没有可使用的服务帐户，可以按如下指令创建一个具有所需访问权限的服务账户来运行spark作业。
 
@@ -132,7 +132,7 @@ $ kubectl create clusterrolebinding spark-role --clusterrole=edit \
   --serviceaccount=default:spark --namespace=default
 ```
 
-####提交Spark作业
+#### 提交Spark作业
 
 从Spark发行版目录运行Spark作业
 
@@ -155,9 +155,9 @@ alluxio://<alluxio-master>:19998/LICENSE
 你应该使用与你的域套接字卷类型相应的属性 
 [域套接字卷类型]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
 
-##故障排除
+## 故障排除
 
-###访问Alluxio客户端日志
+### 访问Alluxio客户端日志
 
 可在Spark驱动和执行器日志中找到Alluxio客户端日志。
 有关更多说明参考[Spark文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)
@@ -182,7 +182,7 @@ cp kubernetes-client-4.4.2.jar spark-2.4.4-bin-hadoop2.7/jars
 ```
 然后编译`spark-alluxio`镜像，并分发到所有节点。
 
-###服务帐户没有访问权限
+### 服务帐户没有访问权限
 
 如果你看到类似以下某些操作被禁止的错误，这是因为用于Spark作业服务帐户没有足够的访问权限来执行操作引起的。
 
