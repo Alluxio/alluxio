@@ -271,33 +271,54 @@ resources:
 {{- end -}}
 
 {{- define "alluxio.master.readinessProbe" -}}
+{{- $masterCount := int .Values.master.count }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+  {{- if $isHaEmbedded }}
+    port: embedded
+  {{- else }}
+    port: rpc
+  {{- end }}
 {{- end -}}
 
 {{- define "alluxio.jobMaster.readinessProbe" -}}
+{{- $masterCount := int .Values.master.count }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+  {{- if $isHaEmbedded }}
+    port: job-embedded
+  {{- else }}
+    port: job-rpc
+  {{- end }}
 {{- end -}}
 
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
 {{- end -}}
 
 {{- define "alluxio.jobWorker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
+{{- $masterCount := int .Values.master.count }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+  {{- if $isHaEmbedded }}
+    port: embedded
+  {{- else }}
+    port: rpc
+  {{- end }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -305,9 +326,16 @@ livenessProbe:
 {{- end -}}
 
 {{- define "alluxio.jobMaster.livenessProbe" -}}
+{{- $masterCount := int .Values.master.count }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+  {{- if $isHaEmbedded }}
+    port: job-embedded
+  {{- else }}
+    port: job-rpc
+  {{- end }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -316,8 +344,8 @@ livenessProbe:
 
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -326,8 +354,8 @@ livenessProbe:
 
 {{- define "alluxio.jobWorker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5

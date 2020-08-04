@@ -130,3 +130,7 @@
 0.6.9
 
 - Pass alluxio.user.hostname via ALLUXIO_USER_JAVA_OPTS for FUSE
+
+0.6.10
+
+- Change liveness and readiness probes to TCP probes
