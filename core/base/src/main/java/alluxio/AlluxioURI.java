@@ -301,9 +301,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Tells if the {@link AlluxioURI} has authority or not.
-   *
-   * @return true if it has, false otherwise
+   * @return whether this Alluxio URI has authority
    */
   public boolean hasAuthority() {
     return !(mUri.getAuthority() instanceof NoAuthority);
