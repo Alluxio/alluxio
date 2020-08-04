@@ -976,7 +976,7 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12.2</version>
+          <version>4.0.4</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
