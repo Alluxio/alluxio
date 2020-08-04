@@ -315,9 +315,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Tells if this {@link AlluxioURI} has scheme or not.
-   *
-   * @return true if it has, false otherwise
+   * @return whether this AlluxioURI has scheme
    */
   public boolean hasScheme() {
     return mUri.getScheme() != null;
