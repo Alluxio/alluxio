@@ -1304,7 +1304,7 @@
         <jdk>11</jdk>
       </activation>
       <properties>
-        <java.version>11</java.version>
+        <java.version>1.8</java.version>
       </properties>
       <dependencyManagement>
         <dependencies>
