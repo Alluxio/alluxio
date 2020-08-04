@@ -20,16 +20,16 @@ priority: 1
 Alluxio在帮助统一跨各种平台用户数据的同时还有助于为用户提升总体I / O吞吐量。 
 Alluxio是通过把存储分为两个不同的类别来实现这一目标的。
 
--** UFS(底层文件存储，也称为底层存储)**
+- **UFS(底层文件存储，也称为底层存储)**
     -该存储空间代表不受Alluxio管理的空间。
     UFS存储可能来自外部文件系统，包括如HDFS或S3。
     Alluxio可能连接到一个或多个UFS并在一个命名空间中统一呈现这类底层存储。
     -通常，UFS存储旨在相当长一段时间持久存储大量数据。
--** Alluxio存储**
-    -Alluxio做为一个分布式缓存来管理Alluxio workers本地存储，包括内存。这个在用户应用程序与各种底层存储之间的快速数据层带来的是显著提高的I / O性能。
-    -Alluxio存储主要用于存储热数据，暂态数据，而不是长期持久数据存储。
-    -每个Alluxio节点要管理的存储量和类型由用户配置决定。
-    -即使数据当前不在Alluxio存储中，通过Alluxio连接的UFS​​中的文件仍然
+- **Alluxio存储**
+    - Alluxio做为一个分布式缓存来管理Alluxio workers本地存储，包括内存。这个在用户应用程序与各种底层存储之间的快速数据层带来的是显著提高的I / O性能。
+    - Alluxio存储主要用于存储热数据，暂态数据，而不是长期持久数据存储。
+    - 每个Alluxio节点要管理的存储量和类型由用户配置决定。
+    - 即使数据当前不在Alluxio存储中，通过Alluxio连接的UFS​​中的文件仍然
     对Alluxio客户可见。当客户端尝试读取仅可从UFS获得的文件时数据将被复制到Alluxio存储中。
 
 ![Alluxio存储图]({{ '/img/stack.png' | relativize_url }})
@@ -96,7 +96,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 `alluxio.worker.memory.size`和`alluxio.worker.tieredstore.level0.dirs.quota`之间有细微差别，默认配置为前者。Alluxio在通过`Mount`或`SudoMount`选项启动时，配置并挂载ramdisk。无论`alluxio.worker.tieredstore.level0.dirs.quota` 设置为何值，这个ramdisk大小是由`alluxio.worker.memory.size`确定的。 同样，如果要使用除默认Alluxio发放的ramdisk以外的设备，应该独立于内存大小来设置quota配置。
 
-###多层存储
+### 多层存储
 
 通常建议异构存储介质也使用单个存储层。
 在特定环境中，工作负载将受益于基于I/O速度存储介质明确排序。
@@ -120,7 +120,7 @@ Alluxio假定根据按I/O性能从高到低来对多层存储进行排序。
 
 用户还可以通过[configuration settings](#configuring-tiered-storage)来指定写入数据层。
 
-####读取数据
+#### 读取数据
 
 如果数据已经存在于Alluxio中，则客户端将简单地从已存储的数据块读取数据。
 如果将Alluxio配置为多层，则不一定是从顶层读取数据块，
@@ -130,7 +130,7 @@ Alluxio假定根据按I/O性能从高到低来对多层存储进行排序。
 顶层存储。也可以将其用作为一种数据管理策略
 明确地将热数据移动到更高层存储读取。
 
-####配置分层存储
+#### 配置分层存储
 
 可以使用以下方式在Alluxio中启用分层存储
 [配置参数]({{ '/en/operation/Configuration.html' | relativize_url}})。
@@ -173,7 +173,7 @@ alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 典型的配置将具有三层，分别是内存，SSD和HDD。
 要在HDD层中使用多个硬盘存储，需要在配置`alluxio.worker.tieredstore.level {x} .dirs.path`时指定多个路径。
 
-###块注释策略
+### 块注释策略
 
 Alluxio从v2.3开始使用块注释策略来维护存储中数据块的严格顺序。 
 注释策略定义了跨层块的顺序，并在以下操作过程中进行用来参考:
@@ -193,14 +193,14 @@ Alluxio从v2.3开始使用块注释策略来维护存储中数据块的严格顺
     `alluxio.worker.block.annotator.lrfu.attenuation.factor`。
 
 workers选择使用的注释策略由Alluxio属性
-[`alluxio.worker.block.annotator.class`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.worker.block.annotator.class)。
+[alluxio.worker.block.annotator.class]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.worker.block.annotator.class)决定。
 该属性应在配置中指定完全验证的策略名称。当前
 可用的选项有:
 
--`alluxio.worker.block.annotator.LRUAnnotator`
--`alluxio.worker.block.annotator.LRFUAnnotator`
+- `alluxio.worker.block.annotator.LRUAnnotator`
+- `alluxio.worker.block.annotator.LRFUAnnotator`
 
-####释放空间模拟
+#### 释放空间模拟
 旧的释放空间策略和Alluxio提供的实施现在已去掉了，并用适当的注释策略替换。
 配置旧的Alluxio释放空间策略将导致worker启动失败，并报错`java.lang.ClassNotFoundException`。
 同样，旧的基于水位标记配置已失效。因此，以下配置选项是无效的:
@@ -216,15 +216,15 @@ workers选择使用的注释策略由Alluxio属性
 -PartialLRUEvictor-> LRUAnnotator
 -LRFUEvictor-> LRFUAnnotator
 
-###分层存储管理
+### 分层存储管理
 因为块分配/释放不再强制新的写入必须写到特定存储层，新数据块可能最终被写到任何已配置的存储层中。这样允许写入超过Alluxio存储容量的数据。但是，这就需要Alluxio动态管理块放置。
 为了确保层配置为从最快到最慢的假设，Alluxio会基于块注释策略在各层存储之间移动数据块。
 
 每个单独层管理任务都遵循以下配置:
--`alluxio.worker.management.task.thread.count`:管理任务所用线程数。 (默认值:CPU核数)
--alluxio.worker.management.block.transfer.concurrency.limit`:可以同时执行多少个块传输。 (默认:`CPU核数`/2)
+- `alluxio.worker.management.task.thread.count`:管理任务所用线程数。 (默认值:CPU核数)
+- `alluxio.worker.management.block.transfer.concurrency.limit`:可以同时执行多少个块传输。 (默认:`CPU核数`/2)
 
-####块对齐(动态块放置)
+#### 块对齐(动态块放置)
 Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释策略一致。
 
 为辅助块对齐，Alluxio会监视I/O模式并会跨层重组数据块，以确保
@@ -236,13 +236,13 @@ Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释�
 
 用于控制层对齐:
 -`alluxio.worker.management.tier.align.enabled`:是否启用层对齐任务。 (默认:)
-true-alluxio.worker.management.tier.align.range`:单个任务运行中对齐多少个块。 (默认值:`100`)
+`true-alluxio.worker.management.tier.align.range`:单个任务运行中对齐多少个块。 (默认值:`100`)
 -`alluxio.worker.management.tier.align.reserved.bytes`:配置多层时，默认情况下在所有目录上保留的空间大小。 (默认:1GB)
 用于内部块移动。
 -`alluxio.worker.management.tier.swap.restore.enabled`:控制一个特殊任务，该任务用于在内部保留空间用尽时unblock层对齐。 (默认:true)
 由于Alluxio支持可变的块大小，因此保留空间可能会用尽，因此，当块大小不匹配时在块对齐期间在层之间块交换会导致一个目录保留空间的减少。
 
-####块升级
+#### 块升级
 当较高层具有可用空间时，低层的块将向上层移动，以便更好地利用较快的磁盘介质，因为假定较高的层配置了较快的磁盘介质。
 
 用于控制动态层升级:
@@ -251,7 +251,7 @@ true-alluxio.worker.management.tier.promote.range`:单个任务运行中升级�
 -`alluxio.worker.management.tier.promote.quota.percent`:每一层可以用于升级最大百分比。
 一旦其已用空间超过此值，向此层升级将停止。 (0表示永不升级，100表示​​总是升级。)
 
-####管理任务推后
+#### 管理任务推后
 层管理任务(对齐/升级)会考虑用户I/O并在worker/disk重载情况下推后运行。
 这是为了确保内部管理任务不会对用户I/O性能产生负面影响。
 
@@ -267,7 +267,7 @@ true-alluxio.worker.management.tier.promote.range`:单个任务运行中升级�
 
 影响这两种推后策略的另一个属性是`alluxio.worker.management.load.detection.cool.down.time`，控制多长时间的用户I/O计为在目标directory/worker上的一个负载。
 
-##Alluxio中数据生命周期管理
+## Alluxio中数据生命周期管理
 
 用户需要理解以下概念，以正确利用可用资源:
 
@@ -282,7 +282,7 @@ true-alluxio.worker.management.tier.promote.range`:单个任务运行中升级�
 在数据超过其生存时间时将它们从Alluxio空间中删除。还可以配置
 TTL来删除存储在UFS中的相应数据。
 
-###从Alluxio存储中释放数据
+### 从Alluxio存储中释放数据
 
 为了在Alluxio中手动释放数据，可以使用`./bin/alluxio`文件系统命令
 行界面。
@@ -313,7 +313,7 @@ $ ./bin/alluxio fs load ${PATH_TO_FILE}
 将写入类型设置为`MUST_CACHE`写入类型将不会将数据持久保存到UFS，
 而设置为`CACHE`和`CACHE_THROUGH`将会持久化保存。不建议手动加载数据，因为，当首次使用文件时Alluxio会自动将数据加载到Alluxio缓存中。
 
-###在Alluxio中持久化保留数据
+### 在Alluxio中持久化保留数据
 
 命令[`alluxio fs persist`]({{ '/en/operation/User-CLI.html' | relativize_url}}#persist)
 允许用户将数据从Alluxio缓存推送到UFS。
@@ -322,10 +322,10 @@ $ ./bin/alluxio fs load ${PATH_TO_FILE}
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
-如果您加载到Alluxio的数据不是来自已已配置的UFS，则上述命令很有用
-。在大多数情况下，用户不必担心手动来持久化保留数据。
+如果您加载到Alluxio的数据不是来自已已配置的UFS，则上述命令很有用。
+在大多数情况下，用户不必担心手动来持久化保留数据。
 
-###设置生存时间(TTL)
+### 设置生存时间(TTL)
 
 Alluxio支持命名空间中每个文件和目录的”生存时间(TTL)”设置。此
 功能可用于有效地管理Alluxio缓存，尤其是在严格
@@ -354,8 +354,8 @@ CN以获取有关设置Alluxio配置的更多详细信息。
 
 有两种设置路径的TTL属性的方法。
 
-1.通过Alluxio shell命令行
-1.每个元数据加载或文件创建被动设置
+1. 通过Alluxio shell命令行
+1. 每个元数据加载或文件创建被动设置
 
 TTL API如下:
 
@@ -364,10 +364,10 @@ SetTTL(path，duration，action)
 `path` 		Alluxio命名空间中的路径
 `duration`	TTL动作生效前的毫秒数，这会覆盖任何先前的设值
 `action`	生存时间过去后要执行的`action`。 `FREE`将导致文件
-                从Alluxio存储中删除释放，无论其目前钉状态如何。 `DELETE`将导致
-                文件从Alluxio命名空间和底层存储中删除。
-                注意:`DELETE`是某些命令的默认设置，它将导致文件被
-                永久删除。
+            从Alluxio存储中删除释放，无论其目前钉状态如何。 `DELETE`将导致
+            文件从Alluxio命名空间和底层存储中删除。
+            注意:`DELETE`是某些命令的默认设置，它将导致文件被
+            永久删除。
 ```
 
 ####命令行用法
@@ -384,9 +384,9 @@ Alluxio客户端可以配置为只要在Alluxio命名空间添加新文件时就
 
 被动TTL通过以下选项配置:
 
-*`alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
+* `alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
 默认情况下，未设置TTL持续时间。
-*`alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
+* `alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
 在Alluxio中。默认情况下，此操作为“DELETE”。
 
 TTL默认情况下处于不使用状态，仅当客户有严格数据访问模式才启用。
@@ -401,9 +401,9 @@ $ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
 对于这个例子，确保`alluxio.master.ttl.checker.interval`被设定为短
 间隔，例如一分钟，以便master能快速识别过期文件。
 
-##在Alluxio中管理数据复制
+## 在Alluxio中管理数据复制
 
-###被动复制
+### 被动复制
 
 与许多分布式文件系统一样，Alluxio中的每个文件都包含一个或多个分布在集群中存储的存储块。默认情况下，Alluxio可以根据工作负载和存储容量自动调整不同块的复制级别。例如，当更多的客户以类型`CACHE`或`CACHE_PROMOTE`请求来读取此块时Alluxio可能会创建此特定块更多副本。当较少使用现有副本时，Alluxio可能会删除一些不常用现有副本
 来为经常访问的数据征回空间([块注释策略](#block-annotation-policies))。
@@ -418,13 +418,13 @@ $ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
 界面供用户明确设置文件的复制级别目标范围。
 尤其是，用户可以在Alluxio中为文件配置以下两个属性:
 
-1.`alluxio.user.file.replication.min`是此文件的最小副本数。
+1. `alluxio.user.file.replication.min`是此文件的最小副本数。
 默认值为0，即在默认情况下，Alluxio可能会在文件变冷后从Alluxio管理空间完全删除该文件。
 通过将此属性设置为正整数，Alluxio
 将定期检查此文件中所有块的复制级别。当某些块
 的复制数不足时，Alluxio不会删除这些块中的任何一个，而是主动创建更多
 副本以恢复其复制级别。
-1.`alluxio.user.file.replication.max`是最大副本数。一旦文件该属性
+1. `alluxio.user.file.replication.max`是最大副本数。一旦文件该属性
 设置为正整数，Alluxio将检查复制级别并删除多余的
 副本。将此属性设置为-1为不设上限(默认情况)，设置为0以防止
 在Alluxio中存储此文件的任何数据。注意，`alluxio.user.file.replication.max`的值
@@ -502,6 +502,6 @@ $ ./bin/alluxio fs getUsedBytes
 $ ./bin/alluxio fs getCapacityBytes
 ```
 
-Alluxio master web界面为用户提供了集群的可视化总览包括已用多少存储空间。可以在`http:/{MASTER_IP}:${alluxio.master.web.port}/中找到。
+Alluxio master web界面为用户提供了集群的可视化总览包括已用多少存储空间。可以在`http:/{MASTER_IP}:${alluxio.master.web.port}/`中找到。
 有关Alluxio Web界面的更多详细信息可以在
-[中找到]({{ '/en/operation/Web-Interface.html' | relativize_url }})。
+[相关文档]({{ '/en/operation/Web-Interface.html' | relativize_url }}) 中找到。
