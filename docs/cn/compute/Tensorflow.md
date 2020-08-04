@@ -7,23 +7,23 @@ priority: 6
 ---
 本指南介绍如何在Alluxio POSIX API上运行[Tensorflow](https://www.tensorflow.org/)。
 
-*目录
+* 目录
 {:toc}
 
-##概述
+## 概述
 
 Tensorflow使开发人员可以快速轻松地开始使用深度学习。 
 [深度学习]({{ '/en/compute/Deep-Learning.html' | relativize_url}})部分介绍了深度学习的数据挑战 
 以及Alluxio如何帮助解决这些挑战。 
 本教程针对在Alluxio POSIX API之上运行Tensorflow提供一些动手实例和技巧。
 
-##先决条件
+## 先决条件
 
 *安装或刷新Java为Java 8 Update 60或更高版本(8u60 +)，64位。
 * Alluxio已设置并好并正常运行。
 *已安装[Tensorflow](https://www.tensorflow.org/install/pip)。本指南使用Tensorflow **v1.15**。
 
-##设置Alluxio POSIX API
+## 设置Alluxio POSIX API
 
 在本节中，我们将按照
 [POSIX API部分]({{ '/en/api/POSIX-API.html' | relativize_url}})中的介绍来设置Alluxio POSIX API
@@ -71,9 +71,9 @@ $ ./integration/fuse/bin/alluxio-fuse stat
 挂载的`/mnt/fuse`文件夹已经准备好可以为深度学习框架所用，深度学习框架可以视Alluxio存储为本地文件夹。 
 下一部分中Tensorflow将使用此文件夹进行训练。
 
-##示例:图像识别
+## 示例:图像识别
 
-###准备训练数据
+### 准备训练数据
 
 如果训练数据已经在远程数据存储中，则可以将其挂载为Alluxio`/training-data`目录下的一个文件夹。 这些数据对于在本地`/mnt/fuse/`上运行的应用程序是可见的。
 
@@ -131,7 +131,7 @@ custard apple (score = 0.00147)
 earthstar (score = 0.00117)
 ```
 
-##示例:Tensorflow基准
+## 示例:Tensorflow基准
 
 假设数据位于S3路径`s3://alluxio-tensorflow-imagenet/`，将S3存储桶中的ImageNet数据挂载到路径`/training-data/imagenet`。
 
@@ -146,9 +146,9 @@ $ ./bin/alluxio fs mount /training-data/imagenet/ \
 可以将路径`/mnt/fuse/imagenet`传递给基准脚本的参数`data_dir`
 [tf_cnn_benchmarsk.py](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py)。
 
-##提示
+## 提示
 
-###使用数据位置参数编写Tensorflow应用程序
+### 使用数据位置参数编写Tensorflow应用程序
 
 在HDFS，S3和其他底层存储之上运行Tensorflow可能需要不同的配置，进而
 使管理和集成Tensorflow应用和不同底层存储很难。 
@@ -160,7 +160,7 @@ $ ./bin/alluxio fs mount /training-data/imagenet/ \
 这大大简化了应用程序开发，避免了使用不同的集成设置和 
 为每个底层存储做凭证配置。
 
-###共置Tensorflow和Alluxio worker
+### 共置Tensorflow和Alluxio worker
 
 通过共置Tensorflow应用程序和Alluxio worker，Alluxio在本地缓存远程数据以供将来访问， 
 从而提供很好的数据局部性。 
@@ -169,7 +169,7 @@ $ ./bin/alluxio fs mount /training-data/imagenet/ \
 通过Alluxio POSIX API并设置具有内存空间的worker节点来承载所有培训数据可以使 
 性能提高近2倍。
 
-###配置Alluxio写入类型和读取类型
+### 配置Alluxio写入类型和读取类型
 
 许多Tensorflow应用程序在其工作流程期间会生成许多小的临时中间文件。 
 这些临时中间文件仅在短时间内有用，不需要持久存储在底层存储中。 
