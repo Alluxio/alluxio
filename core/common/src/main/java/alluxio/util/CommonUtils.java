@@ -77,7 +77,7 @@ public final class CommonUtils {
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
 
-  private static final int sJavaMajorVersion = initMajorVersion();
+  private static final int JAVA_MAJOR_VERSION = initMajorVersion();
 
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
@@ -124,7 +124,7 @@ public final class CommonUtils {
    * @return the current jvm major version, such as 1.8 or 11
    */
   public static int getJavaVersion() {
-    return sJavaMajorVersion;
+    return JAVA_MAJOR_VERSION;
   }
 
   /**
