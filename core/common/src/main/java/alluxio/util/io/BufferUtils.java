@@ -76,7 +76,7 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  private static void cleanDirectBufferJava11(ByteBuffer buffer) {
+  private synchronized static void cleanDirectBufferJava11(ByteBuffer buffer) {
     try {
       if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
         try {
@@ -109,7 +109,7 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  private static void cleanDirectBufferJava8(ByteBuffer buffer) {
+  private synchronized static void cleanDirectBufferJava8(ByteBuffer buffer) {
     try {
       if (sByteBufferCleanerMethod == null) {
         sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
