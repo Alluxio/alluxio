@@ -115,7 +115,7 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 }
 
 func includeYarnIntegration(hadoopVersion version) bool {
-	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4
+	return hadoopVersion.compare(2, 4, 0) >= 0
 }
 
 func getVersion() (string, error) {
