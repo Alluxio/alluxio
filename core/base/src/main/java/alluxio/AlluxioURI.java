@@ -330,7 +330,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash
-   * @return true if it is a windows path, false otherwise
+   * @return whether the provided {@code path} is a Windows path
    */
   public static boolean hasWindowsDrive(String path, boolean slashed) {
     int start = slashed ? 1 : 0;
