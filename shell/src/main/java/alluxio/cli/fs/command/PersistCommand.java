@@ -174,6 +174,12 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     return 0;
   }
 
+  /**
+   * Queues a non-persisted URI.
+   *
+   * @param status the URI status
+   * @param toPersist a queue with the Alluxio URI to persist
+   */
   private void queueNonPersistedRecursive(URIStatus status, Queue<AlluxioURI> toPersist)
       throws AlluxioException, IOException {
     AlluxioURI uri = new AlluxioURI(status.getPath());
