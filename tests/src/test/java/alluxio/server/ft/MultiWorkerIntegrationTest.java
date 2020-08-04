@@ -78,7 +78,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setNumWorkers(NUM_WORKERS)

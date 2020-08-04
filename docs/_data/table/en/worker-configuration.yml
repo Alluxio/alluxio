@@ -41,7 +41,7 @@ alluxio.worker.keytab.file:
 alluxio.worker.master.connect.retry.timeout:
   'Retry period before workers give up on connecting to master and exit.'
 alluxio.worker.ramdisk.size:
-  'Memory capacity of each worker node.'
+  'Ramdisk capacity of each worker node.'
 alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:

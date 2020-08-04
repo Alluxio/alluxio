@@ -41,7 +41,7 @@ public class FileInStreamRehydrationIntegrationTest extends AbstractFileOutStrea
 
   @Override
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    resource.setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
+    resource.setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_BYTES)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0");

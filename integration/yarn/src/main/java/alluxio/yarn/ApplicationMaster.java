@@ -176,7 +176,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mWorkerMemInMB =
         (int) (alluxioConf.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) (alluxioConf.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    mRamdiskMemInMB = (int) (alluxioConf.getBytes(PropertyKey.WORKER_RAMDISK_SIZE) / Constants.MB);
     mMaxWorkersPerHost = alluxioConf.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
