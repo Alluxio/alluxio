@@ -55,6 +55,8 @@ public class FileSystemOptions {
   }
 
   /**
+   * Creates default directory options based on the provided configuration.
+   *
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
