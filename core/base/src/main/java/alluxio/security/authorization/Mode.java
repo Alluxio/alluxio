@@ -185,6 +185,11 @@ public final class Mode {
     mOtherBits = bits;
   }
 
+  /**
+   * @param u the owner bits to use
+   * @param g the group bits to use
+   * @param o the other bits to use
+   */
   private void set(Bits u, Bits g, Bits o) {
     mOwnerBits = u;
     mGroupBits = g;
