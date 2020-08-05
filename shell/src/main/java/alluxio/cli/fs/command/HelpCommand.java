@@ -50,7 +50,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
         String.format("%s: %s", command.getCommandName(), command.getDescription());
     int width = 80;
     try {
-      width = TerminalBuilder.terminal().getWidth()
+      width = TerminalBuilder.terminal().getWidth();
     } catch (Exception e) {
       // In case the terminal builder failed to decide terminal type, use default width
     }
