@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
+import com.qiniu.common.QiniuException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class KodoUnderFileSystemTest {
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listFiles(Matchers.anyString(), Matchers.anyString(), Matchers.anyInt(),
-        Matchers.eq(null))).thenThrow(Exception.class);
+        Matchers.eq(null))).thenThrow(QiniuException.class);
 
     boolean result =
         mKodoUnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(false));
@@ -67,7 +68,7 @@ public class KodoUnderFileSystemTest {
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listFiles(Matchers.anyString(), Matchers.anyString(), Matchers.anyInt(),
-        Matchers.eq(null))).thenThrow(Exception.class);
+        Matchers.eq(null))).thenThrow(QiniuException.class);
     boolean result =
         mKodoUnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
@@ -79,7 +80,7 @@ public class KodoUnderFileSystemTest {
   @Test
   public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listFiles(Matchers.anyString(), Matchers.anyString(), Matchers.anyInt(),
-        Matchers.eq(null))).thenThrow(Exception.class);
+        Matchers.eq(null))).thenThrow(QiniuException.class);
 
     boolean result = mKodoUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);

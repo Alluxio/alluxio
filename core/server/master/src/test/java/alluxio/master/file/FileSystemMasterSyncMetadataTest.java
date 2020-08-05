@@ -116,7 +116,7 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.resolveUri(Mockito.eq(ufsMount), anyString()))
         .thenAnswer(invocation -> new AlluxioURI(ufsMount,
             PathUtils.concatPath(ufsMount.getPath(),
-                invocation.getArgumentAt(1, String.class)), false));
+                invocation.getArgument(1, String.class)), false));
 
     // Mock dir1 ufs path
     AlluxioURI dir1Path = ufsMount.join("dir1");
