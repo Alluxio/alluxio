@@ -339,22 +339,6 @@ And you can see the query results from console:
 
 ## Troubleshooting
 
-### Check Hive is Configured Correctly
-
-Before running Hive on Alluxio, you might want to make sure that your configuration has been
-setup correctly set up with Alluxio. The Hive integration checker can help you achieve this (Hive
- 2.x required).
-
-You can run the following command in the Alluxio project directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
-```
-
-You can use `-h` to display helpful information about the command, along with this detailed page on 
-[JDBC connection URLs](https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC) to specify the Hive URL.
-This command will report potential problems that might prevent you from running Hive on Alluxio.
-
 ### Logging Configuration
 
 If you wish to modify how your Hive client logs information, see the detailed page within the Hive

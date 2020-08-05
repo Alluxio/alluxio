@@ -192,23 +192,6 @@ If you simply wish to modify log levels then your can change `mapreduce.map.log.
 If you are using YARN then you may also wish to modify some of the `yarn.log.*` properties which
 can be found in [`yarn-site.xml`](https://hadoop.apache.org/docs/r2.7.6/hadoop-yarn/hadoop-yarn-common/yarn-default.xml)
 
-### Check MapReduce and Alluxio integration (Supports Hadoop 2.X)
-
-Before running MapReduce on Alluxio, you might want to make sure that your configuration has been
-setup correctly for integrating with Alluxio.
-The MapReduce integration checker can help you achieve this.
-
-When you have a running Hadoop cluster (or standalone), you can run the following command in the
-Alluxio installation directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh mapreduce
-```
-
-You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running MapReduce on
-Alluxio.
-
 ### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
 
 A: This error message is seen when your MapReduce application tries to access
