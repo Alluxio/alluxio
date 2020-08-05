@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementation of {@link Path} that has a cache for getting file system.
  */
 public class JobPath extends Path {
-
+  private static final long serialVersionUID = 1427341926575998813L;
   private static final ConcurrentHashMap<FileSystemKey, FileSystem> CACHE =
       new ConcurrentHashMap<>();
 
