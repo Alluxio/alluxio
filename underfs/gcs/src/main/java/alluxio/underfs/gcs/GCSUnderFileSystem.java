@@ -48,7 +48,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.login.LoginContext;
 
 /**
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
