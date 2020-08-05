@@ -81,18 +81,6 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 另一种选择，在你的Hadoop部署中，把这个jar包添加到`mapreduce.application.classpath`系统属性，确保jar包在classpath上。
 为了在每个节点上安装Alluxio，将客户端Jar包`mapreduce.application.classpath`，该方法要注意的是所有Jar包必须再次安装，因为每个Jar包都更新到了最新版本。另一方面，当该Jar包已经在每个节点上的时候，就没有必要使用`-libjars`命令行选项了。
 
-## 检查MapReduce与Alluxio的集成(支持Hadoop 2.X)
-
-在Alluxio上运行MapReduce之前，你需要确认你的配置已经正确设置集成了Alluxio。MapReduce集成检查器可以帮助你确认。
-
-当你运行Hadoop集群(或单机运行)时，你可以在Alluxio项目目录运行以下命令：
-
-```console
-$ integration/checker/bin/alluxio-checker.sh mapreduce
-```
-
-你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行MapReduce。
-
 ## 在本地模式的Alluxio上运行Hadoop wordcount
 
 为了方便，我们假设是伪分布式的集群，通过运行如下命令启动(根据hadoop的版本，你可能需要把`./bin`换成`./sbin`)：

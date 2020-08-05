@@ -107,10 +107,6 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
-	if hadoopVersion.major == 1 {
-		// checker requires hadoop 2+ to compile.
-		args = append(args, "-Dchecker.hadoop.version=2.2.0")
-	}
 	return args
 }
 
@@ -187,10 +183,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
-		"integration/checker/bin/alluxio-checker.sh",
-		"integration/checker/bin/hive-checker.sh",
-		"integration/checker/bin/mapreduce-checker.sh",
-		"integration/checker/bin/spark-checker.sh",
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
@@ -273,10 +265,6 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
-	// Update the checker jar paths
-	for _, file := range []string{"bin/hive-checker.sh", "bin/mapreduce-checker.sh", "bin/spark-checker.sh"} {
-		replace(filepath.Join("integration/checker", file), "target/alluxio-checker-${VERSION}-jar-with-dependencies.jar", "alluxio-checker-${VERSION}.jar")
-	}
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	if skipUI {
@@ -305,7 +293,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/checker", "integration/kubernetes", "logs/user",
+		"assembly", "client", "logs", "integration/fuse", "integration/kubernetes", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
 	}
@@ -317,7 +305,6 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
