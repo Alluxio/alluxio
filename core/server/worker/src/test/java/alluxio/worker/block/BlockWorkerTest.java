@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -180,7 +179,7 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyInt())).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
 
@@ -214,7 +213,7 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyInt())).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);

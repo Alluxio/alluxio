@@ -131,8 +131,8 @@ public class WorkflowTrackerTest {
     mPlanTracker.run(jobConfig, mCommandManager, mMockJobServerContext, mWorkers, 3);
 
     doAnswer(invocation -> {
-      PlanConfig config = invocation.getArgumentAt(0, PlanConfig.class);
-      long jobId = invocation.getArgumentAt(1, Long.class);
+      PlanConfig config = invocation.getArgument(0, PlanConfig.class);
+      long jobId = invocation.getArgument(1, Long.class);
 
       mPlanTracker.run(config, mCommandManager, mMockJobServerContext, mWorkers, jobId);
       return null;
