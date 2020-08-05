@@ -282,6 +282,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected ObjectStatus getObjectStatus(String key) throws IOException {
+    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
     try {
       GSObject meta = mClient.getObjectDetails(mBucketName, key);
       if (meta == null) {
@@ -294,6 +296,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
         return null;
       }
       throw new IOException(e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
   }
 
