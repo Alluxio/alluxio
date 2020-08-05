@@ -115,10 +115,9 @@ public final class JobContext implements Closeable  {
   }
 
   /**
-   * Acquires a job master client from the job master client pool. The resource is
-   * {@code Closeable}.
+   * Acquires a closeable job master client from the job master client pool.
    *
-   * @return the acquired job master client resource
+   * @return the acquired job master client closeable resource
    */
   public CloseableResource<JobMasterClient> acquireMasterClientResource() {
     return new CloseableResource<JobMasterClient>(mJobMasterClientPool.acquire()) {
