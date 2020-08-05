@@ -117,8 +117,8 @@ public final class JobMasterTest {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
     mockStatic(PlanCoordinator.class);
     when(
-        PlanCoordinator.create(any(CommandManager.class),
-            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -132,8 +132,8 @@ public final class JobMasterTest {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
     mockStatic(PlanCoordinator.class);
     when(
-        PlanCoordinator.create(any(CommandManager.class),
-            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
