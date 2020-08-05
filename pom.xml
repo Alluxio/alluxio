@@ -760,7 +760,7 @@
 
       <!-- Provided scope -->
       <!--
-         Dependency for FindBugs Plugin annotations.
+         Dependency for SpotBugs Plugin annotations.
          This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
          This library is a super set of com.google.code.findbugs:jsr305
          Note that this package can be unnecessary for runtime, and the
@@ -768,9 +768,9 @@
          but not be packaged into the jar.
        -->
       <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>annotations</artifactId>
-        <version>3.0.1</version>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-annotations</artifactId>
+        <version>4.0.4</version>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -779,10 +779,10 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- FindBugs and concurrency annotations. -->
+    <!-- Spotbugs and concurrency annotations. -->
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
     </dependency>
     <!-- System logging. -->
     <dependency>
@@ -981,7 +981,7 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12.2</version>
+          <version>4.0.4</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
