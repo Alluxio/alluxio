@@ -373,9 +373,9 @@
         <version>1.5.22</version>
       </dependency>
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.0.1</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>2.1.6</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -451,7 +451,7 @@
         <artifactId>hadoop-minicluster</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api -->
+          <!-- Excluded to avoid implementation conflict with jakarta.ws.rs:jakarta.ws.rs-api -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
@@ -625,7 +625,7 @@
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api -->
+          <!-- Excluded to avoid implementation conflict with jakarta.ws.rs:jakarta.ws.rs-api -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
