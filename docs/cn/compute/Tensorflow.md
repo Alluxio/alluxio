@@ -19,9 +19,9 @@ Tensorflow使开发人员可以快速轻松地开始使用深度学习。
 
 ## 先决条件
 
-*安装或刷新Java为Java 8 Update 60或更高版本(8u60 +)，64位。
+* 安装或刷新Java为Java 8 Update 60或更高版本(8u60 +)，64位。
 * Alluxio已设置并好并正常运行。
-*已安装[Tensorflow](https://www.tensorflow.org/install/pip)。本指南使用Tensorflow **v1.15**。
+* 已安装[Tensorflow](https://www.tensorflow.org/install/pip)。本指南使用Tensorflow **v1.15**。
 
 ## 设置Alluxio POSIX API
 
@@ -31,11 +31,11 @@ Tensorflow使开发人员可以快速轻松地开始使用深度学习。
 
 运行以下命令在Linux上安装FUSE
 
-```
+```console
 $ yum install fuse fuse-devel
 ```
 
-在MacOS上下载[osxfuse dmg文件(https://github.com/osxfuse/osxfuse/releases/download/ osxfuse-3.8.3 / osxfuse-3.8.3.dmg)，然后按照安装说明进行操作。
+在MacOS上下载[osxfuse dmg文件](https://github.com/osxfuse/osxfuse/releases/download/ osxfuse-3.8.3 / osxfuse-3.8.3.dmg)，然后按照安装说明进行操作。
 
 在Alluxio根目录下建立一个文件夹 
 
@@ -43,7 +43,7 @@ $ yum install fuse fuse-devel
 $ ./bin/alluxio fs mkdir /training-data
 ```
 
-创建一个文件夹`/ mnt / fuse`，改变文件夹的所有者为当前用户(`$(WHOAMI )`)， 
+创建一个文件夹`/mnt/fuse`，改变文件夹的所有者为当前用户(`$(WHOAMI )`)， 
 并改变其权限允许读取和写入
 
 ```console
@@ -120,7 +120,7 @@ $ curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/mode
 $ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
-这将使用/mnt/fuse/imagenet/inception-2015-12-05.tgz`中的输入数据来识别图像，并将一些中间数据写入`/mnt/fuse/imagenet` 
+这将使用`/mnt/fuse/imagenet/inception-2015-12-05.tgz`中的输入数据来识别图像，并将一些中间数据写入`/mnt/fuse/imagenet` 
 如果都成功运行，你将在命令提示符下看到:
 
 ```
