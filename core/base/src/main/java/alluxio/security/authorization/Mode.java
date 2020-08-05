@@ -153,8 +153,6 @@ public final class Mode {
   }
 
   /**
-   * Sets group bits.
-   *
    * @param bits the group bits to set
    */
   public void setGroupBits(Bits bits) {
