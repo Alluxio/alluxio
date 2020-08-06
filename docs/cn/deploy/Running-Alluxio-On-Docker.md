@@ -198,55 +198,7 @@ for line in textFile_RDD.collect():
 
 ## 操作介绍
 
-<<<<<<< HEAD
-```console
-# Launch an Alluxio worker container and save the container ID for later
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
-             -v /mnt/ramdisk:/opt/ramdisk \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
-             -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
-             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-             alluxio worker)
-```
-Details:
-- `-v /mnt/ramdisk:/opt/ramdisk`: 和Docker容器共享主机的ramdisk。
-- `-v $PWD/underStorage:/underStorage`: 和Docker容器共享底层文件系统的文件夹。
-- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 通知worker如何连接Master。
-- `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`: 通知worker如何定位ramdisk。
-- `-e ALLUXIO_WORKER_RAMDISK_SIZE=1GB`: 通知worker节点ramdisk可用空间。
-- `-e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage`: 通知worker将/underStorage作为底层文件系统。
-
-### 测试集群
-
-要测试该集群是否安装成功，首先进入worker Docker容器。
-||||||| 90b165e3b8
-```console
-# Launch an Alluxio worker container and save the container ID for later
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
-             -v /mnt/ramdisk:/opt/ramdisk \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-             alluxio worker)
-```
-Details:
-- `-v /mnt/ramdisk:/opt/ramdisk`: 和Docker容器共享主机的ramdisk。
-- `-v $PWD/underStorage:/underStorage`: 和Docker容器共享底层文件系统的文件夹。
-- `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 通知worker如何连接Master。
-- `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`: 通知worker如何定位ramdisk。
-- `-e ALLUXIO_WORKER_MEMORY_SIZE=1GB`: 通知worker节点ramdisk可用空间。
-- `-e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage`: 通知worker将/underStorage作为底层文件系统。
-
-### 测试集群
-
-要测试该集群是否安装成功，首先进入worker Docker容器。
-=======
 ### 服务器配置
->>>>>>> upstream/master
 
 配置更改需要停止Alluxio Docker镜像，然后使用新配置重新启动它们。
 
@@ -281,26 +233,10 @@ Alluxio默认使用内部Leader选举。
 提供master embedded 日志地址和把hostname设置为当前master:
 
 ```console
-<<<<<<< HEAD
-$ docker run -d --net=host --shm-size=1G \
-           -v $PWD/underStorage:/underStorage \
-           -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-           -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
-           -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-           alluxio worker
-||||||| 90b165e3b8
-$ docker run -d --net=host --shm-size=1G \
-           -v $PWD/underStorage:/underStorage \
-           -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-           -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-           -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-           alluxio worker
-=======
 $ docker run -d \
   ...
   -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1" \
   alluxio master
->>>>>>> upstream/master
 ```
 
 为所有worker设置master rpc地址，以便他们可以查询master节点找到leader master。
@@ -330,34 +266,10 @@ $ docker run -d \
 为workers设置相同的Zookeeper配置，以便他们可以查询Zookeeper发现当前leader。
 
 ```console
-<<<<<<< HEAD
-# This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
-             -v /tmp/domain:/opt/domain \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
-             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
-             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-             alluxio worker)
-||||||| 90b165e3b8
-# This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
-             -v /tmp/domain:/opt/domain \
-             -v $PWD/underStorage:/underStorage \
-             -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
-             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
-             alluxio worker)
-=======
 $ docker run -d \
   ...
   -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio worker
->>>>>>> upstream/master
 ```
 
 您可以在[此处]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url}})找到更多关于ZooKeeper和共享日志配置信息。
