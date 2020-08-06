@@ -174,7 +174,8 @@ public final class NettyUtils {
   }
 
   /**
-   * Get the proper channel class.
+   * Gets the proper channel class based on the provided property key and Alluxio configuration.
+   * <p>
    * Always returns {@link NioSocketChannel} NIO if EPOLL is not available.
    *
    * @param isDomainSocket whether this is for a domain channel
