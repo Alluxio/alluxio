@@ -128,7 +128,10 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     }
 
     /**
-     * @return the built retry mechanism
+     * Builds and returns a new exponential time-bounded retry mechanism.
+     *
+     * @return the built exponential time-bounded
+     *         retry mechanism
      */
     public ExponentialTimeBoundedRetry build() {
       return new ExponentialTimeBoundedRetry(
