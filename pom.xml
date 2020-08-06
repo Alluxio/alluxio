@@ -139,7 +139,7 @@
     <jersey.version>2.29.1</jersey.version>
     <jetty.version>9.4.28.v20200408</jetty.version>
     <junit.version>4.13</junit.version>
-    <log4j.version>1.2.17</log4j.version>
+    <log4j.version>2.13.3</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <orc.version>1.6.3</orc.version>
@@ -150,7 +150,7 @@
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.12.4</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <slf4j.version>1.7.2</slf4j.version>
+    <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
     <ozone.version>0.5.0-beta</ozone.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -394,8 +394,13 @@
         <version>2.14.6</version>
       </dependency>
       <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
@@ -679,9 +684,9 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
 
       <!-- Test scope -->
@@ -797,16 +802,20 @@
     </dependency>
     <!-- System logging. -->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
 
     <!-- Dependencies in the test scope. -->

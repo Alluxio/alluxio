@@ -61,7 +61,7 @@
           <artifactId>commons-logging</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>log4j</groupId>
+          <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
