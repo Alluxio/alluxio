@@ -36,6 +36,10 @@ Where component is one of:
 
 -h  display this help."
 
+DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
+ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+. ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+
 stop_job_master() {
   ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioJobMaster"
 }
