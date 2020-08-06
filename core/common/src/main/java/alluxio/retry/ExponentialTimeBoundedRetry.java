@@ -107,8 +107,10 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     }
 
     /**
+     * Defines the maximum sleep time for the returned new instance.
+     *
      * @param maxSleep maximum sleep interval between retries
-     * @return the builder
+     * @return this builder with the provided maximum sleep time
      */
     public Builder withMaxSleep(Duration maxSleep) {
       mMaxSleep = maxSleep;
