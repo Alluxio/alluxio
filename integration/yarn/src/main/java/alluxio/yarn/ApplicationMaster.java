@@ -468,7 +468,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       int ramdiskMemInMB) {
     Map<String, String> env = setupCommonEnvironment();
     env.put("ALLUXIO_MASTER_HOSTNAME", masterContainerNetAddress);
-    env.put("ALLUXIO_WORKER_MEMORY_SIZE",
+    env.put("ALLUXIO_WORKER_RAMDISK_SIZE",
         FormatUtils.getSizeFromBytes((long) ramdiskMemInMB * Constants.MB));
     if (UserGroupInformation.isSecurityEnabled()) {
       try {

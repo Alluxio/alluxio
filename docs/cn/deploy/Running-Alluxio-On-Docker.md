@@ -104,7 +104,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
+             -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
              -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
              alluxio worker)
 ```
@@ -113,7 +113,7 @@ Details:
 - `-v $PWD/underStorage:/underStorage`: 和Docker容器共享底层文件系统的文件夹。
 - `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 通知worker如何连接Master。
 - `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`: 通知worker如何定位ramdisk。
-- `-e ALLUXIO_WORKER_MEMORY_SIZE=1GB`: 通知worker节点ramdisk可用空间。
+- `-e ALLUXIO_WORKER_RAMDISK_SIZE=1GB`: 通知worker节点ramdisk可用空间。
 - `-e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage`: 通知worker将/underStorage作为底层文件系统。
 
 ### 测试集群
@@ -158,7 +158,7 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.i
 $ docker run -d --net=host --shm-size=1G \
            -v $PWD/underStorage:/underStorage \
            -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-           -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
+           -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
            -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
            alluxio worker
 ```
@@ -190,7 +190,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -v /tmp/domain:/opt/domain \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
+             -e ALLUXIO_WORKER_RAMDISK_SIZE=1GB \
              -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
              -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
              alluxio worker)
