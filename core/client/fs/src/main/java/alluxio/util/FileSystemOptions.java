@@ -187,6 +187,8 @@ public class FileSystemOptions {
   }
 
   /**
+   * Builds and returns a new set of options for the file system.
+   *
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
