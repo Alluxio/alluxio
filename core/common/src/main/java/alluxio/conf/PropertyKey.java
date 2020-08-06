@@ -2640,7 +2640,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_RAMDISK_SIZE =
       new Builder(Name.WORKER_RAMDISK_SIZE)
-          .setAlias(Name.WORKER_MEM_SIZE)
+          .setAlias(Name.WORKER_MEMORY_SIZE)
           .setDefaultSupplier(() -> {
             try {
               OperatingSystemMXBean operatingSystemMXBean =
@@ -5202,7 +5202,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
-    public static final String WORKER_MEM_SIZE = "alluxio.worker.memory.size";
+    public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
