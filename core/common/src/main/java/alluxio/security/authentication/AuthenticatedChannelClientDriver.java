@@ -82,9 +82,11 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
   }
 
   /**
-   * Sets the server's Sasl stream.
+   * Sets the server's Simple Authentication and Security Layer stream.
+   * <p>
+   * Defines the {@link #mRequestObserver}.
    *
-   * @param requestObserver server Sasl stream
+   * @param requestObserver server SASL stream
    */
   public void setServerObserver(StreamObserver<SaslMessage> requestObserver) {
     mRequestObserver = requestObserver;
