@@ -656,9 +656,11 @@ public final class GrpcUtils {
   }
 
   /**
+   * Checks if target enum is contained within the given source.
+   *
    * @param source source enum
    * @param target target enum
-   * @return true if target enum is contained within the source
+   * @return whether target enum is present in the provided {@code source}
    */
   public static boolean contains(Scope source, Scope target) {
     return (source.getNumber() | target.getNumber()) == source.getNumber();
