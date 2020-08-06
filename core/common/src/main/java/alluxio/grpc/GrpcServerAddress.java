@@ -33,6 +33,8 @@ public class GrpcServerAddress {
   }
 
   /**
+   * Creates a new gRPC server address.
+   *
    * @param socketAddress physical address
    * @return created server address instance
    */
