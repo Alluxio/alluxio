@@ -138,6 +138,10 @@ public final class NettyUtils {
     return sNettyEpollAvailable;
   }
 
+  /**
+   * @return whether EPOLL is
+   *         available
+   */
   private static boolean checkNettyEpollAvailable() {
     if (!Epoll.isAvailable()) {
       LOG.info("EPOLL is not available, will use NIO");
