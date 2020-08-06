@@ -154,7 +154,11 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * Creates a {@link ManagedChannel} by given pool key.
+   * Creates a managed Netty channel by given pool key.
+   *
+   * @param channelKey the unique identifier for the gRPC channel
+   * @param conf the Alluxio configuration
+   * @return a new managed channel
    */
   private ManagedChannel createManagedChannel(GrpcChannelKey channelKey,
       AlluxioConfiguration conf) {
