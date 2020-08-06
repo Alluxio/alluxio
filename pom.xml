@@ -451,11 +451,6 @@
         <artifactId>hadoop-minicluster</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with jakarta.ws.rs:jakarta.ws.rs-api -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
@@ -625,11 +620,6 @@
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with jakarta.ws.rs:jakarta.ws.rs-api -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
