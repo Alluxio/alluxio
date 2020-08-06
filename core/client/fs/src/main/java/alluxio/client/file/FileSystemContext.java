@@ -264,6 +264,9 @@ public class FileSystemContext implements Closeable {
     LOG.debug("Closed context with id: {}", mId);
   }
 
+  /**
+   * Closes this file system context.
+   */
   private synchronized void closeContext() throws IOException {
     if (!mClosed.get()) {
       // Setting closed should be the first thing we do because if any of the close operations
