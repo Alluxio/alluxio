@@ -48,6 +48,13 @@
             <version>${aws.java.jdk.version}</version>
         </dependency>
 
+        <!--aws sdk requires jaxb binding at runtime-->
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-common</artifactId>
