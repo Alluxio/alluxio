@@ -56,10 +56,11 @@ public class GrpcChannelKey {
   }
 
   /**
-   * Creates a {@link GrpcChannelKey}.
+   * Creates a unique identifier for a gRPC channel.
    *
    * @param conf the Alluxio configuration
-   * @return the created instance
+   * @return an instance of type GrpcChannelKey
+   *         with the specified configurations
    */
   public static GrpcChannelKey create(AlluxioConfiguration conf) {
     return new GrpcChannelKey(conf);
