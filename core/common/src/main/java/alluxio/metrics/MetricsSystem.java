@@ -259,7 +259,8 @@ public final class MetricsSystem {
    * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric
-   * @return the metric with instance and id tags
+   * @return the metric with instance and ID tags
+   * @throws IllegalStateException if the process type is unsupported
    */
   public static String getMetricName(String name) {
     if (name.startsWith(CLUSTER)) {
