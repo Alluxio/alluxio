@@ -153,13 +153,12 @@ public class ChannelAuthenticator {
   }
 
   /**
-   * Create Sasl level handler for client.
+   * Creates a Simple Authentication and Security Layer-level handler for the client.
    *
-   * @param serverAddress target server address
-   * @param authScheme authentication scheme to use
-   * @param subject the subject to use
-   * @return the created {@link SaslClientHandler} instance
-   * @throws UnauthenticatedException
+   * @param serverAddress the target gRPC server address
+   * @param authScheme    the channel authentication scheme to use
+   * @param subject       the subject to use
+   * @return the created SASL client handler
    */
   private SaslClientHandler createSaslClientHandler(GrpcServerAddress serverAddress,
       ChannelAuthenticationScheme authScheme, Subject subject) throws UnauthenticatedException {
