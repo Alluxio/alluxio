@@ -67,7 +67,7 @@ public class GrpcChannelKey {
   }
 
   /**
-   * @return unique identifier for the channel
+   * @return the channel unique identifier
    */
   public UUID getChannelId() {
     return mChannelId;
