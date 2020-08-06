@@ -62,10 +62,6 @@ public final class LoginModuleTest {
     // logout and verify the user is removed
     loginContext.logout();
     assertTrue(subject.getPrincipals(User.class).isEmpty());
-
-    // logout twice should be no-op.
-    loginContext.logout();
-    assertTrue(subject.getPrincipals(User.class).isEmpty());
   }
 
    /**
@@ -78,7 +74,6 @@ public final class LoginModuleTest {
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
-
     // login, add OS user into subject, and add corresponding Alluxio user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
         new LoginModuleConfiguration());
