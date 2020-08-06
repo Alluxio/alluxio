@@ -122,6 +122,9 @@ public abstract class AbstractClient implements Client {
    */
   protected abstract ServiceType getRemoteServiceType();
 
+  /**
+   * @return the remote service version
+   */
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
     return mVersionService
