@@ -83,6 +83,11 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
     mChannelAuthenticated = true;
   }
 
+  /**
+   * Closes the authenticated channel.
+   *
+   * @param signalOwner whether to signal owner
+   */
   private void closeAuthenticatedChannel(boolean signalOwner) {
     if (mChannelAuthenticated) {
       LOG.debug("Closing authenticated channel for {}", mChannelRef);
