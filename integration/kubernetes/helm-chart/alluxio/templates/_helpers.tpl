@@ -272,32 +272,32 @@ resources:
 
 {{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+    port: {{ index . "port" }}
 {{- end -}}
 
 {{- define "alluxio.jobMaster.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+    port: {{ index . "port" }}
 {{- end -}}
 
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
 {{- end -}}
 
 {{- define "alluxio.jobWorker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+    port: {{ index . "port" }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -306,8 +306,8 @@ livenessProbe:
 
 {{- define "alluxio.jobMaster.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+    port: {{ index . "port" }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -316,8 +316,8 @@ livenessProbe:
 
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -326,8 +326,8 @@ livenessProbe:
 
 {{- define "alluxio.jobWorker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
