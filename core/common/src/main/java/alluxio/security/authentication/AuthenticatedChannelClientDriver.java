@@ -168,6 +168,14 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     }
   }
 
+  /**
+   * Builds a Simple Authentication and Security Layer (SASL) message.
+   *
+   * @return the generated SASL message
+   * @throws SaslException if the SASL exchange has failed due to reasons
+   *         related to authentication, such as an invalid
+   *         identity, passphrase, or key
+   */
   private SaslMessage generateInitialMessage() throws SaslException {
     SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
     initialMsg.setClientId(mChannelKey.getChannelId().toString());
