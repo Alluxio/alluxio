@@ -77,7 +77,8 @@ public final class CommonUtils {
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
 
-  private static final int JAVA_MAJOR_VERSION = initMajorVersion();
+  private static final int JAVA_MAJOR_VERSION =
+      parseMajorVersion(System.getProperty("java.version"));
 
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
@@ -865,8 +866,7 @@ public final class CommonUtils {
    * @return the major version of the current JVM, 8 for 1.8, 11 for java 11
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
-  private static int initMajorVersion() {
-    String version = System.getProperty("java.version");
+  public static int parseMajorVersion(String version) {
     if (version.startsWith("1.")) {
       version = version.substring(2, 3);
     } else {
