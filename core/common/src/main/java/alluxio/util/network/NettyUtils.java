@@ -51,15 +51,16 @@ public final class NettyUtils {
   private NettyUtils() {}
 
   /**
-   * Creates a Netty {@link EventLoopGroup} based on {@link ChannelType}.
+   * Creates a Netty event loop group based on the channel type.
    *
-   * @param type Selector for which form of low-level IO we should use
+   * @param type selector for which form of low-level IO should be used
    * @param numThreads target number of threads
-   * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
-   *        threads.
-   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create daemon
-   *        threads.
-   * @return EventLoopGroup matching the ChannelType
+   * @param threadPrefix name pattern for each thread. Should contain '%d' to distinguish between
+   *        threads
+   * @param isDaemon boolean representing whether the {@link java.util.concurrent.ThreadFactory}
+   *        should create daemon threads
+   * @return an event loop group matching the channel type
+   * @throws IllegalStateException if the specified channel type is unsupported
    */
   public static EventLoopGroup createEventLoop(ChannelType type, int numThreads,
       String threadPrefix, boolean isDaemon) {
