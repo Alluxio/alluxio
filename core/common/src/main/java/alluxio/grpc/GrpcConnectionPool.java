@@ -180,7 +180,8 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * It updates and returns the given {@link NettyChannelBuilder} based on network group settings.
+   * Updates and returns the given netty channel builder based on network group settings.
+   * @return the provided netty channel builder with group defaults applied
    */
   private NettyChannelBuilder applyGroupDefaults(GrpcChannelKey key,
       NettyChannelBuilder channelBuilder, AlluxioConfiguration conf) {
