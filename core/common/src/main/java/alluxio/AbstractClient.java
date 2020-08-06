@@ -391,6 +391,17 @@ public abstract class AbstractClient implements Client {
     }
   }
 
+  /**
+   * Attempts to establish an RPC.
+   *
+   * @param rpc the RPC call to be executed
+   * @param onRetry the action to take on a retry
+   * @param <V> the return value of RPC call
+   * @return the RPC result
+   * @throws AlluxioStatusException if the client is closed or
+   *         the RPC connection fails more times than allowed
+   *         by the retry policy
+   */
   private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
       throws AlluxioStatusException {
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
