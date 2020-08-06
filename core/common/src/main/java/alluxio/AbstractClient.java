@@ -421,6 +421,12 @@ public abstract class AbstractClient implements Client {
         + " attempts: " + ex.toString(), ex);
   }
 
+  /**
+   * @param metricName the metric name from which to get the
+   *        qualified name
+   * @return a String with the qualified name for the provided
+   *         {@code metricName}
+   */
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
