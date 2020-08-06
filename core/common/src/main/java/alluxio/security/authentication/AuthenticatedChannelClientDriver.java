@@ -213,6 +213,11 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     }
   }
 
+  /**
+   * Closes the Simple Authentication and Security Layer (SASL) client handler.
+   *
+   * @param signalServer whether to signal server
+   */
   private void closeAuthenticatedChannel(boolean signalServer) {
     mSaslClientHandler.close();
     // Authentication failed either during or after handshake.
