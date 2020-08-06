@@ -54,7 +54,10 @@ public final class HelpCommand extends AbstractFileSystemCommand {
     } catch (Exception e) {
       // In case the terminal builder failed to decide terminal type, use default width
     }
-
+    // Use default value if terminal width is assigned 0
+    if (width == 0) {
+      width = 80;
+    }
     HELP_FORMATTER.printWrapped(pw, width, description);
     HELP_FORMATTER.printUsage(pw, width, command.getUsage());
     if (command.getOptions().getOptions().size() > 0) {
