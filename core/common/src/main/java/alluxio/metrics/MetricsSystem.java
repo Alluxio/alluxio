@@ -173,7 +173,10 @@ public final class MetricsSystem {
   }
 
   /**
-   * Constructs the source name of metrics in this {@link MetricsSystem}.
+   * Constructs the source name of metrics in this metrics system.
+   *
+   * @return a local hostname for the host this JVM is running on
+   *         with '.' replaced with '_' for metrics usage
    */
   private static String constructSourceName() {
     PropertyKey sourceKey = null;
