@@ -63,7 +63,9 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
   }
 
   /**
-   * @return a builder
+   * Creates and returns a new retry policy builder with exponential backoff.
+   *
+   * @return a builder for creating a new exponential time-bounded retry policy
    */
   public static Builder builder() {
     return new Builder();
