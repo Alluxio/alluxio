@@ -126,7 +126,7 @@ public class FileSystemOptions {
 
   /**
    * @param conf Alluxio configuration
-   * @return options based on the configuration
+   * @return default file system master options based on the configuration
    */
   public static FileSystemMasterCommonPOptions commonDefaults(
       AlluxioConfiguration conf) {
