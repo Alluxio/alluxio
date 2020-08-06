@@ -309,6 +309,12 @@ public class GrpcConnectionPool {
     }).get();
   }
 
+  /**
+   * Attempts to release network event loop for a provided gRPC channel key.
+   *
+   * @param channelKey the gRPC channel key from which the network group
+   *        will be provided
+   */
   private void releaseNetworkEventLoop(GrpcChannelKey channelKey) {
     mEventLoops.compute(channelKey.getNetworkGroup(), (key, ref) -> {
       Preconditions.checkNotNull(ref, "Cannot release nonexistent event-loop");
