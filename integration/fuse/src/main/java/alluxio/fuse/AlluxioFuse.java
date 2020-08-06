@@ -11,6 +11,8 @@
 
 package alluxio.fuse;
 
+import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -92,6 +94,7 @@ public final class AlluxioFuse {
     if (opts == null) {
       System.exit(1);
     }
+    LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
 
     try (final FileSystem fs = FileSystem.Factory.create(conf)) {
       final List<String> fuseOpts = opts.getFuseOpts();
