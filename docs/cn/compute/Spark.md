@@ -208,27 +208,6 @@ Spark 文档解释了
 如果你用的是 YARN，则有单独一节来解释
 [如何配置 YARN 下的 Spark 应用程序的日志](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)。
 
-
-### 检查是否正确设置 Spark
-
-为了确保 Spark 在运行前已经被正确配置，Alluxio v1.8 附带的工具可以帮助检查配置。
-
-如果运行的是 2.x 版的 Spark 集群（或 Spark standalone），则可以在 Alluxio 项目目录中运行以下命令：
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
-```
-
-例如，
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
-```
-
-此命令将报告可能阻止在 Alluxio 上运行 Spark 的潜在问题。
-
-可以使用`-h`显示有关该命令的有用信息。
-
 ### Spark 任务的数据本地性级别错误
 
 如果 Spark 任务的本地性级别是`ANY`（本应该是`NODE_LOCAL`），这可能是因为 Alluxio 和 Spark 使用不同的网络地址表示，可能其中一个使用主机名，而另一个使用 IP 地址。更多详情请参考 JIRA ticket [SPARK-10149](

@@ -131,23 +131,24 @@
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
     <netty.version>4.1.45.Final</netty.version>
-    <rocksdb.version>5.15.10</rocksdb.version>
+    <rocksdb.version>6.11.4</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
+    <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.29.1</jersey.version>
     <jetty.version>9.4.28.v20200408</jetty.version>
     <junit.version>4.13</junit.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
-    <metrics.version>3.1.2</metrics.version>
-    <orc.version>1.6.2</orc.version>
+    <metrics.version>4.1.11</metrics.version>
+    <orc.version>1.6.3</orc.version>
     <oshi.version>4.2.0</oshi.version>
-    <powermock.version>1.6.2</powermock.version>
+    <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
     <guava.version>29.0-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.11.0</protobuf.version>
+    <protobuf.version>3.12.4</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
@@ -201,7 +202,7 @@
       <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
-        <version>1.48</version>
+        <version>1.78</version>
       </dependency>
       <dependency>
         <groupId>com.esotericsoftware</groupId>
@@ -253,7 +254,12 @@
       <dependency>
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
-        <version>0.4</version>
+        <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>${jaxb.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
@@ -273,7 +279,7 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.1.1</version>
+        <version>1.2</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
@@ -293,6 +299,11 @@
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-json</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jmx</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
@@ -440,6 +451,11 @@
             <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${jaxb.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -645,7 +661,7 @@
       <dependency>
         <groupId>org.javaswift</groupId>
         <artifactId>joss</artifactId>
-        <version>0.9.10</version>
+        <version>0.10.4</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
@@ -712,13 +728,13 @@
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.10.19</version>
+        <artifactId>mockito-core</artifactId>
+        <version>3.4.4</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
+        <artifactId>powermock-api-mockito2</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
@@ -755,7 +771,7 @@
 
       <!-- Provided scope -->
       <!--
-         Dependency for FindBugs Plugin annotations.
+         Dependency for SpotBugs Plugin annotations.
          This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
          This library is a super set of com.google.code.findbugs:jsr305
          Note that this package can be unnecessary for runtime, and the
@@ -763,9 +779,9 @@
          but not be packaged into the jar.
        -->
       <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>annotations</artifactId>
-        <version>3.0.1</version>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-annotations</artifactId>
+        <version>4.0.4</version>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -774,10 +790,10 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- FindBugs and concurrency annotations. -->
+    <!-- Spotbugs and concurrency annotations. -->
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
     </dependency>
     <!-- System logging. -->
     <dependency>
@@ -811,12 +827,12 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -862,7 +878,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>2.9</version>
+          <version>4.0.rc1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -900,7 +916,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4</version>
+          <version>3.0.0-M3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -941,7 +957,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19.1</version>
+          <version>3.0.0-M5</version>
           <configuration>
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
@@ -974,9 +990,17 @@
           <version>1.4.0</version>
         </plugin>
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>2.7</version>
+          <configuration>
+            <generateBackupPoms>false</generateBackupPoms>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12.2</version>
+          <version>4.0.4</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1065,7 +1089,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
-        <version>1.4</version>
+        <version>3.0.0-M3</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -1304,7 +1328,7 @@
         <jdk>11</jdk>
       </activation>
       <properties>
-        <java.version>11</java.version>
+        <java.version>1.8</java.version>
       </properties>
       <dependencyManagement>
         <dependencies>
@@ -1335,7 +1359,7 @@
         <module>integration/yarn</module>
       </modules>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>3.3.0</hadoop.version>
       </properties>
     </profile>
 

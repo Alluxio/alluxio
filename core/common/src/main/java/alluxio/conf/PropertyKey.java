@@ -4297,7 +4297,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Mesos and Yarn related properties
+  // Yarn related properties
   //
   public static final PropertyKey INTEGRATION_MASTER_RESOURCE_CPU =
       new Builder(Name.INTEGRATION_MASTER_RESOURCE_CPU)
@@ -4311,82 +4311,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio master for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_JAR_URL =
-      new Builder(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
-          .setDefaultValue(String.format(
-              "http://downloads.alluxio.io/downloads/files/${%s}/alluxio-${%s}-bin.tar.gz",
-              Name.VERSION, Name.VERSION))
-          .setDescription("Url to download an Alluxio distribution from during Mesos deployment.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
-      new Builder(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME)
-          .setDefaultValue("AlluxioMaster")
-          .setDescription("The name of the master process to use within Mesos.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
-      new Builder(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)
-          .setDescription("The number of Alluxio master process to run within Mesos.")
-          .setDefaultValue(1)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
-      new Builder(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME)
-          .setDefaultValue("AlluxioWorker")
-          .setDescription("The name of the worker process to use within Mesos.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_JDK_PATH =
-      new Builder(Name.INTEGRATION_MESOS_JDK_PATH)
-          .setDefaultValue("jdk1.8.0_151")
-          .setDescription("If installing java from a remote URL during mesos deployment, this must "
-              + "be set to the directory name of the untarred jdk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
-      new Builder(Name.INTEGRATION_MESOS_JDK_URL)
-          .setDefaultValue(Constants.MESOS_LOCAL_INSTALL)
-          .setDescription("A url from which to install the jdk during Mesos deployment. Default to "
-              + "LOCAL which tells Mesos to use the local JDK on the system. When "
-              + "using this property, alluxio.integration.mesos.jdk.path must also be set "
-              + "correctly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_PRINCIPAL =
-      new Builder(Name.INTEGRATION_MESOS_PRINCIPAL)
-          .setDefaultValue("alluxio")
-          .setDescription("The Mesos principal for the Alluxio Mesos Framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_ROLE =
-      new Builder(Name.INTEGRATION_MESOS_ROLE)
-          .setDefaultValue("*")
-          .setDescription("Mesos role for the Alluxio Mesos Framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_SECRET =
-      new Builder(Name.INTEGRATION_MESOS_SECRET)
-          .setDescription("Secret token for authenticating with Mesos.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.NONE)
-          .setDisplayType(DisplayType.CREDENTIALS)
-          .build();
-  public static final PropertyKey INTEGRATION_MESOS_USER =
-      new Builder(Name.INTEGRATION_MESOS_USER)
-          .setDescription("The Mesos user for the Alluxio Mesos Framework. Defaults to the current "
-              + "user.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
@@ -4708,20 +4632,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.integration.master.resource.cpu";
     public static final String INTEGRATION_MASTER_RESOURCE_MEM =
         "alluxio.integration.master.resource.mem";
-    public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
-        "alluxio.integration.mesos.master.name";
-    public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT =
-        "alluxio.integration.mesos.master.node.count";
-    public static final String INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
-        "alluxio.integration.mesos.worker.name";
-    public static final String INTEGRATION_MESOS_ALLUXIO_JAR_URL =
-        "alluxio.integration.mesos.alluxio.jar.url";
-    public static final String INTEGRATION_MESOS_JDK_PATH = "alluxio.integration.mesos.jdk.path";
-    public static final String INTEGRATION_MESOS_JDK_URL = "alluxio.integration.mesos.jdk.url";
-    public static final String INTEGRATION_MESOS_PRINCIPAL = "alluxio.integration.mesos.principal";
-    public static final String INTEGRATION_MESOS_ROLE = "alluxio.integration.mesos.role";
-    public static final String INTEGRATION_MESOS_SECRET = "alluxio.integration.mesos.secret";
-    public static final String INTEGRATION_MESOS_USER = "alluxio.integration.mesos.user";
     public static final String INTEGRATION_WORKER_RESOURCE_CPU =
         "alluxio.integration.worker.resource.cpu";
     public static final String INTEGRATION_WORKER_RESOURCE_MEM =

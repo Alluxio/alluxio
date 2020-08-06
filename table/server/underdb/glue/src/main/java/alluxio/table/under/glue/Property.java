@@ -203,6 +203,18 @@ public class Property extends UdbProperty {
           .setDescription("The proxy password.")
           .build();
 
+  public static final Property TABLE_COLUMN_STATISTICS_ENABLE =
+      new Builder(Name.TABLE_COLUMN_STATISTICS_ENABLE)
+          .setDefaultValue("false")
+          .setDescription("Enable Glue table column statistics.")
+          .build();
+
+  public static final Property PARTITION_COLUMN_STATISTICS_ENABLE =
+      new Builder(Name.PARTITION_COLUMN_STATISTICS_ENABLE)
+          .setDefaultValue("false")
+          .setDescription("Enable Glue partition column statistics.")
+          .build();
+
   /**
    * @return the name of alluxio.table.under.glue.Property
    */
@@ -243,5 +255,7 @@ public class Property extends UdbProperty {
     public static final String AWS_PROXY_PORT = "aws.proxy.port";
     public static final String AWS_PROXY_USER_NAME = "aws.proxy.username";
     public static final String AWS_PROXY_PASSWORD = "aws.proxy.password";
+    public static final String TABLE_COLUMN_STATISTICS_ENABLE = "table.column.statistics";
+    public static final String PARTITION_COLUMN_STATISTICS_ENABLE = "partition.column.statistics";
   }
 }
