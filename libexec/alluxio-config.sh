@@ -87,6 +87,10 @@ if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
 
+if [[ -n "${ALLUXIO_WORKER_RAMDISK_SIZE}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_RAMDISK_SIZE}"
+fi
+
 ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties"
 ALLUXIO_JAVA_OPTS+=" -Dorg.apache.jasper.compiler.disablejsr199=true"
 ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
