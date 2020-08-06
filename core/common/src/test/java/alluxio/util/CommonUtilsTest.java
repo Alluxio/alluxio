@@ -645,6 +645,13 @@ public class CommonUtilsTest {
     assertEquals(allFiles, new HashSet<>(listedFiles));
   }
 
+  @Test
+  public void parseVersion() throws Exception {
+    assertEquals(8, CommonUtils.parseMajorVersion("1.8.0"));
+    assertEquals(11, CommonUtils.parseMajorVersion("11.0.1"));
+    assertEquals(9, CommonUtils.parseMajorVersion("9.0.1"));
+  }
+
   private void createFileOrDir(File dir, int index, Random rand, Set<File> files)
           throws IOException {
     int childType = rand.nextInt(2);
