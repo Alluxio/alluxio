@@ -863,6 +863,7 @@ public final class CommonUtils {
   }
 
   /**
+   * @param version the version string of the JVMgi
    * @return the major version of the current JVM, 8 for 1.8, 11 for java 11
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
