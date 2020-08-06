@@ -255,29 +255,6 @@ The Spark documentation explains
 If you are using YARN then there is a separate section which explains
 [how to configure logging with YARN for a Spark application.](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)
 
-### Check Spark is Correctly Set Up
-
-To ensure that your Spark installation can correctly communicate with Alluxio,
-a tool comes with Alluxio to help check the configuration.
-
-With a Spark cluster (or Spark standalone) of version 2.x, you can run the
-following command in the Alluxio project directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
-```
-
-For example,
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
-```
-
-This command will report potential problems that might prevent you from running
-Spark on Alluxio.
-
-You can use `-h` to display helpful information about the command.
-
 ### Incorrect Data Locality Level of Spark Tasks
 
 If Spark task locality is `ANY` while it should be `NODE_LOCAL`, it is probably
