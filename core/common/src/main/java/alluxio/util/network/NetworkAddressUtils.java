@@ -408,11 +408,9 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on.
-   *
-   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
-   *        reachable
-   * @return the local host name, which is not based on a loopback ip address
+   * @param timeoutMs the timeout in milliseconds to use for checking that a possible local host
+   *        is reachable
+   * @return the local host name, which is not based on a loopback IP address
    */
   public static synchronized String getLocalHostName(int timeoutMs) {
     if (sLocalHost != null) {
