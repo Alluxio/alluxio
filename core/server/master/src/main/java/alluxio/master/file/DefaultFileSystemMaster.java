@@ -4308,6 +4308,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
         blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
   }
 
+  /**
+   * Removes the provided blocks from the block master.
+   *
+   * @param blocks the list of blocks to be removed
+   */
   private void removeBlocks(List<Long> blocks) throws IOException {
     if (blocks.isEmpty()) {
       return;
