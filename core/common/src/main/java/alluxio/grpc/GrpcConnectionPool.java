@@ -284,6 +284,14 @@ public class GrpcConnectionPool {
     }
   }
 
+  /**
+   * Acquires event loop for the network group of a given gRPC channel key.
+   *
+   * @param channelKey the gRPC channel key from which to
+   *        get the network group
+   * @param conf Alluxio configuration
+   * @return the event loop group for the provided {@code channelKey}
+   */
   private EventLoopGroup acquireNetworkEventLoop(GrpcChannelKey channelKey,
       AlluxioConfiguration conf) {
     return mEventLoops.compute(channelKey.getNetworkGroup(), (key, v) -> {
