@@ -314,7 +314,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       File localDir = mTestFolder.newFolder("testDir");
       generateRelativeFileContent(localDir.getPath() + "/testFile",
               BufferUtils.getIncreasingByteArray(10));
-      int ret = sFsShell.runThrowException("copyFromLocal", "testDir/testFile", "/testFile");
+      int ret = sFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
       Assert.assertEquals(0, ret);
       Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
     }
