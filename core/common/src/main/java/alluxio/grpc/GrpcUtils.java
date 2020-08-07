@@ -91,8 +91,10 @@ public final class GrpcUtils {
   }
 
   /**
-   * @param pAcl the proto representation
-   * @return the {@link AccessControlList} instance created from the proto representation
+   * Creates an access-control list (ACL) from the provided protobuf representation.
+   *
+   * @param pAcl the protobuf representation of the ACL
+   * @return the {@link AccessControlList} instance created from the protobuf representation
    */
   public static AccessControlList fromProto(PAcl pAcl) {
     AccessControlList acl;
