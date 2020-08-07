@@ -20,12 +20,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
-import jline.internal.Nullable;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 /**
  * Class for validating HDFS-related configurations.
