@@ -529,8 +529,10 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
+   * @param ttlAction the TTL (time-to-live) action to use
+   *        for the file, or what should be done to the file once its TTL
+   *        expires - either delete it or free it
+   * @return this file information with an updated TTL action
    */
   public FileInfo setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
