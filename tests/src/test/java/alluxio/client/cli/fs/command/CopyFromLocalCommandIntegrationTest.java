@@ -32,6 +32,7 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -305,6 +306,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   }
 
   @Test
+  @Ignore("Breaks on Java 11 because of https://bugs.openjdk.java.net/browse/JDK-8202127")
   public void copyFromLocalRelativePath() throws Exception {
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
@@ -312,7 +314,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       File localDir = mTestFolder.newFolder("testDir");
       generateRelativeFileContent(localDir.getPath() + "/testFile",
               BufferUtils.getIncreasingByteArray(10));
-      int ret = sFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
+      int ret = sFsShell.runThrowException("copyFromLocal", "testDir/testFile", "/testFile");
       Assert.assertEquals(0, ret);
       Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
     }
