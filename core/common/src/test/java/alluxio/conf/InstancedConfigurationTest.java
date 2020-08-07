@@ -25,6 +25,7 @@ import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
 import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.util.ClassLoaderUtils;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -42,6 +43,7 @@ import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -906,8 +908,9 @@ public class InstancedConfigurationTest {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
       File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");
-      Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());
+      ClassLoaderUtils.addURL(dir.getCanonicalPath());
       File props = new File(dir, "alluxio-site.properties");
+
       try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {
         writer.write(String.format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
       }
