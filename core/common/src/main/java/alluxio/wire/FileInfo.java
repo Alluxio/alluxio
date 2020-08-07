@@ -453,8 +453,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param cacheable the cacheable flag value to use
-   * @return the file information
+   * @param cacheable whether the file is cacheable
+   * @return this file information updated
    */
   public FileInfo setCacheable(boolean cacheable) {
     mCacheable = cacheable;
