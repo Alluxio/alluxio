@@ -23,6 +23,10 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class ClassLoaderUtils {
+  /**
+   * Add a path to be loaded.
+   * @param path full path
+   */
   public static void addURL(String path) throws Exception {
     ClassLoader classLoader = ClassLoader.getSystemClassLoader();
     try {
@@ -30,8 +34,8 @@ public class ClassLoaderUtils {
       method.setAccessible(true);
       method.invoke(classLoader, new File(path).toURI().toURL());
     } catch (NoSuchMethodException e) {
-      Method method = classLoader.getClass().getDeclaredMethod("appendToClassPathForInstrumentation",
-          String.class);
+      Method method = classLoader.getClass().getDeclaredMethod(
+          "appendToClassPathForInstrumentation", String.class);
       method.setAccessible(true);
       method.invoke(classLoader, path);
     }
