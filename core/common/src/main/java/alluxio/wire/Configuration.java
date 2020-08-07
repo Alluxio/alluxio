@@ -43,7 +43,8 @@ public final class Configuration {
   private final String mPathConfHash;
 
   /**
-   * @return new configuration builder
+   * @return a new builder for cluster- and path-level
+   *         configuration
    */
   public static Builder newBuilder() {
     return new Builder();
