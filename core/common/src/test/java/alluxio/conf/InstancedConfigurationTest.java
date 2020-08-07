@@ -624,7 +624,7 @@ public class InstancedConfigurationTest {
     // site-properties file
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
-    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mConfiguration = ConfigurationTestUtils.defaults();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
@@ -916,7 +916,7 @@ public class InstancedConfigurationTest {
       }
       resetConf();
       assertEquals("test_hostname", mConfiguration.get(PropertyKey.MASTER_HOSTNAME));
-      assertEquals(Source.siteProperty(props.getPath()),
+      assertEquals(Source.siteProperty(props.getCanonicalPath()),
           mConfiguration.getSource(PropertyKey.MASTER_HOSTNAME));
       props.delete();
     }
