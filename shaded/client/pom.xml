@@ -52,8 +52,8 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -63,8 +63,12 @@
     </dependency>
     <!-- Move log4j to optional, since it is mainly used in test-->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
@@ -96,6 +100,12 @@
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
           <scope>compile</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-core</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
       </dependencies>
     </profile>

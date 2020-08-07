@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 
-import jline.internal.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -41,6 +40,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 /**
  * Command to collect Alluxio logs.
