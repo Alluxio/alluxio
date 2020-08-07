@@ -3300,20 +3300,20 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Sync metadata for an Alluxio path with the UFS.
+   * Syncs metadata for an Alluxio path with the UFS.
    *
-   * @param rpcContext the current RPC context
-   * @param path the path to sync
+   * @param rpcContext the current context for establishing an RPC
+   * @param path the path to sync with the UFS
    * @param options options included with the RPC
    * @param syncDescendantType how deep the sync should be performed
-   * @param auditContextSrcInodeFunc the src inode for the audit context, if null, no source inode
-   *                                 is set on the audit context
+   * @param auditContextSrcInodeFunc the source inode for the audit context, if {@code null},
+   *        no source inode is set on the audit context
    * @param permissionCheckOperation a consumer that accepts a locked inode path and a
-   *                                 {@link PermissionChecker}. The consumer is expected to call one
-   *                                 of the permission checkers functions with the given inode path.
-   *                                 If null, no permission checking is performed
-   * @param isGetFileInfo            true if syncing for a getFileInfo operation
-   * @return
+   *        permission checker, the consumer is expected to call one of the permission
+   *        checker functions with the given inode path, if null, no permission checking is
+   *        performed
+   * @param isGetFileInfo whether syncing is for a {@link #getFileInfo} operation
+   * @return whether at least one path was synced
    */
   private boolean syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
