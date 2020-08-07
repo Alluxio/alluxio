@@ -370,7 +370,7 @@
       <dependency>
         <groupId>io.swagger</groupId>
         <artifactId>swagger-annotations</artifactId>
-        <version>1.5.22</version>
+        <version>1.6.2</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -997,7 +997,7 @@
         <plugin>
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.1.7</version>
           <executions>
             <execution>
               <phase>compile</phase>
