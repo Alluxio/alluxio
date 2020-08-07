@@ -41,16 +41,27 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 ### Create a cluster
 
 There are several properties set as metadata labels which control the Alluxio Deployment. 
-* A required argument is the root UFS address configured using **alluxio_root_ufs_uri**.
+* A required argument is the root UFS address configured using **alluxio_root_ufs_uri**. 
+If value `LOCAL` is provided, hdfs launched by the current dataproc cluster will be used as Alluxio root UFS.
 * Properties must be specified using the metadata key **alluxio_site_properties** delimited using
 a semicolon (`;`).
 
+Example 1: use google cloud storage bucket as Alluxio root UFS
 ```console
 $ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata \
 alluxio_root_ufs_uri=gs://<my_bucket>,\
 alluxio_site_properties="fs.gcs.accessKeyId=<my_access_key>;fs.gcs.secretAccessKey=<my_secret_key>"
+```
+
+Example 2: use Dataproc internal HDFS as Alluxio root UFS
+```console
+$ gcloud dataproc clusters create <cluster_name> \
+--initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
+--metadata \
+alluxio_root_ufs_uri="LOCAL",\
+alluxio_site_properties="alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml"
 ```
 
 ### Customization
@@ -106,6 +117,7 @@ alluxio_ssd_capacity_usage="60",\
 {% endaccordion %}
 
 ## Next steps
+
 The status of the cluster deployment can be monitored using the CLI.
 ```console
 $ gcloud dataproc clusters list
@@ -116,10 +128,10 @@ $ gcloud compute ssh <cluster_name>-m
 ```
 Test that Alluxio is running as expected
 ```console
-$ alluxio runTests
+$ sudo runuser -l alluxio -c "alluxio runTests"
 ```
 
-Alluxio is installed in `/opt/alluxio/` by default.
+Alluxio is installed and configured in `/opt/alluxio/`. Alluxio services are started as `alluxio` user.
 
 ## Compute Applications
 
