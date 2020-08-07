@@ -207,6 +207,12 @@ public class SimpleInodeLockList implements InodeLockList {
     addLock(lock, mode);
   }
 
+  /**
+   * Creates a new inode lock and adds it to the list of locks.
+   *
+   * @param inode the inode to add to the list of inodes
+   * @param mode the lock mode to use (either READ or WRITE)
+   */
   private void lockAndAddInode(Inode inode, LockMode mode) {
     addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode, mUseTryLock));
   }
