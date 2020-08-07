@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(NetworkAddressUtils.class)
 public class HdfsProxyUserValidationTaskTest {
   private static File sTestDir;
   private InstancedConfiguration mConf;
