@@ -66,9 +66,11 @@ public final class UfsSyncPathCache {
   }
 
   /**
-   * The logic of shouldSyncPath need to consider the difference between file and directory,
-   * with the variable isGetFileInfo we just process getFileInfo specially.
-   *
+   * Checks whether a UFS path should be synced.
+   * <p>
+   * The logic of this method needs to consider the difference between file and directory,
+   * with the variable {@code isGetFileInfo} we just process {@code getFileInfo} specially.
+   * <p>
    * There are three cases needed to address:
    * 1. the ancestor directories
    * 2. the direct parent directory
