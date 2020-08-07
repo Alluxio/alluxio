@@ -4341,6 +4341,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
         operationContext.withTracker(mStateLockCallTracker));
   }
 
+  /**
+   * Creates a new locking scheme.
+   *
+   * @param path the Alluxio URI for the locking scheme
+   * @param options the file system master common options
+   * @param desiredLockMode the lock pattern to follow, which
+   *        is either READ, WRITE_INODE, or WRITE_EDGE
+   * @return a new locking scheme with the provided information
+   */
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
     return new LockingScheme(path, desiredLockMode, options, mUfsSyncPathCache, false);
