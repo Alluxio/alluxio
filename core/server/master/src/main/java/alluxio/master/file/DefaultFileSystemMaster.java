@@ -2083,11 +2083,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Implementation of directory creation for a given path.
+   * Creates a directory for the provided inode path.
    *
-   * @param rpcContext the rpc context
-   * @param inodePath the path of the directory
-   * @param context method context
+   * @param rpcContext the context for establishing an RPC
+   * @param inodePath the {@link LockedInodePath} of the directory
+   * @param context the method {@link CreateDirectoryContext} used to merge
+   *        and wrap the options for creating the directory
    * @return a list of created inodes
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
