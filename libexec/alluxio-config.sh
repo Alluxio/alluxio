@@ -83,6 +83,7 @@ elif [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
 fi
 
+# ALLUXIO_WORKER_MEMORY_SIZE is deprecated but kept for compatibility
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
