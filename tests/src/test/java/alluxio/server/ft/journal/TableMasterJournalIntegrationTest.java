@@ -56,7 +56,7 @@ public class TableMasterJournalIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
           .setNumWorkers(1).build();
 
   @ClassRule

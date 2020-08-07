@@ -2638,8 +2638,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1hour")
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MEMORY_SIZE =
-      new Builder(Name.WORKER_MEMORY_SIZE)
+  public static final PropertyKey WORKER_RAMDISK_SIZE =
+      new Builder(Name.WORKER_RAMDISK_SIZE)
+          .setAlias(Name.WORKER_MEMORY_SIZE)
           .setDefaultSupplier(() -> {
             try {
               OperatingSystemMXBean operatingSystemMXBean =
@@ -2895,7 +2896,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_MEMORY_SIZE))
+          .setDefaultValue(String.format("${%s}", Name.WORKER_RAMDISK_SIZE))
           .setDescription("The capacity of the top storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -5151,6 +5152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
+    public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =

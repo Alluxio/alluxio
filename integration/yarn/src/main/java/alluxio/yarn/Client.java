@@ -315,7 +315,7 @@ public final class Client {
     int workerMemInMB = (int) (mAlluxioConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (mAlluxioConf.getBytes(
-        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+        PropertyKey.WORKER_RAMDISK_SIZE) / Constants.MB);
 
     if ((workerMemInMB + ramdiskMemInMB) > maxMem) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES

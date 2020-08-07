@@ -26,7 +26,7 @@ Alluxio存储通过Alluxio的`alluxio-site.properties`配置。详细配置请�
 默认情况的一个常见修改是显式设置ramdisk的大小。例如，设置每个worker的ramdisk大小为16GB：
 
 ```
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 另一个常见设置是指定多个存储介质，如ramdisk和SSD。 我们需要更新`alluxio.worker.tieredstore.level0.dirs.path`来指定我们想要的每个存储介质作为存储目录。例如，要使用ramdisk（安装在`/mnt/ramdisk`）和两个
@@ -46,7 +46,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 请注意配额的序列必须与路径的序列相匹配。
 
-在`alluxio.worker.memory.size`和`alluxio.worker.tieredstore.level0.dirs.quota`（默认值等于前者）之间有一个微妙的区别。Alluxio在使用`Mount`或`SudoMount`选项启动时会提供并安装ramdisk。这个ramdisk无论在`alluxio.worker.tieredstore.level0.dirs.quota`中设置的值如何，其大小都由`alluxio.worker.memory.size`确定。 同样，如果要使用默认的Alluxio提供的ramdisk以外的其他设备，配额应该独立设置于内存大小。
+在`alluxio.worker.ramdisk.size`和`alluxio.worker.tieredstore.level0.dirs.quota`（默认值等于前者）之间有一个微妙的区别。Alluxio在使用`Mount`或`SudoMount`选项启动时会提供并安装ramdisk。这个ramdisk无论在`alluxio.worker.tieredstore.level0.dirs.quota`中设置的值如何，其大小都由`alluxio.worker.ramdisk.size`确定。 同样，如果要使用默认的Alluxio提供的ramdisk以外的其他设备，配额应该独立设置于内存大小。
 
 ## 回收
 
