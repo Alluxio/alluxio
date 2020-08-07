@@ -95,7 +95,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getCapacity();
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
@@ -193,7 +193,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
@@ -221,7 +221,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(1, workerInfos.size());
     WorkerInfo workerInfo = workerInfos.get(0);
     assertEquals(0, workerInfo.getUsedBytes());
-    long bytes = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long bytes = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 

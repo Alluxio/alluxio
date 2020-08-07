@@ -139,7 +139,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "-1",
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, TINY_BLOCK_SIZE,
       "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
@@ -179,7 +179,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
       PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "1min",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })
@@ -191,7 +191,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "-1",
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })

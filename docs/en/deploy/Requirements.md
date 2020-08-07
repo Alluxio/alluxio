@@ -68,7 +68,7 @@ By providing a different directory in `alluxio.worker.tieredstore.level%d.dirs.p
 setup Alluxio to use a different directory backed by a different storage medium.
 For users looking to get started with the defaults, run the command `./bin/alluxio-mount.sh 
 SudoMount workers` with any sudo privileged account.
-This should be run after setting `alluxio.worker.memory.size` in the `alluxio-site.properties` 
+This should be run after setting `alluxio.worker.ramdisk.size` in the `alluxio-site.properties` 
 file and adding all workers to the `conf/workers` file.
 
 ```console

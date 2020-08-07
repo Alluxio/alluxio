@@ -291,7 +291,7 @@ configure_alluxio_storage() {
   fi
 
   if [[ "${use_mem}" ]]; then
-    append_alluxio_property alluxio.worker.memory.size "${mem_size}"
+    append_alluxio_property alluxio.worker.ramdisk.size "${mem_size}"
     append_alluxio_property alluxio.worker.tieredstore.level0.alias "MEM"
     append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path "/mnt/ramdisk"
   fi

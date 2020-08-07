@@ -96,7 +96,7 @@ alluxio_download_files_list="gs://<my_bucket>/<my_file>;https://<server>/<file>"
 
   {% collapsible Tiered Storage %}
 The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
-If a specific value is desired, set `alluxio.worker.memory.size` in the provided
+If a specific value is desired, set `alluxio.worker.ramdisk.size` in the provided
 `alluxio-site.properties`.
 
 Alternatively, when volumes such as
