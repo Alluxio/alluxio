@@ -22,7 +22,7 @@ readonly ALLUXIO_LICENSE_BASE64="$(/usr/share/google/get_metadata_value attribut
 readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
-readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
+readonly PRESTO_HOME="${PRESTO_HOME:-"/usr/lib/presto"}"
 readonly ALLUXIO_VERSION="2.3.1-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
@@ -120,62 +120,24 @@ get_default_mem_size() {
 ####################
 # Task functions #
 ####################
-# Start the Alluxio server process
-start_alluxio() {
-  if [[ "${ROLE}" == "Master" ]]; then
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatMaster"
-    systemctl restart alluxio-master alluxio-job-master
 
-    local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
-    local path_delimiter=";"
-    if [[ "${sync_list}" ]]; then
-      IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
-      for path in "${paths[@]}"; do
-        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
-      done
-    fi
-  else
-    if [[ $(get_alluxio_property alluxio.worker.tieredstore.level0.alias) == "MEM" ]]; then
-      ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
-    fi
-    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatWorker"
-    systemctl restart alluxio-worker alluxio-job-worker
+# Configure client applications
+expose_alluxio_client_jar() {
+  sudo mkdir -p "${SPARK_HOME}/jars/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${SPARK_HOME}/jars/alluxio-client.jar"
+  sudo mkdir -p "${HIVE_HOME}/lib/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HIVE_HOME}/lib/alluxio-client.jar"
+  sudo mkdir -p "${HADOOP_HOME}/lib/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HADOOP_HOME}/lib/alluxio-client.jar"
+  if [[ "${ROLE}" == "Master" ]]; then
+    systemctl restart hive-metastore hive-server2
   fi
+  sudo mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
+  systemctl restart presto || echo "Presto service cannot be restarted"
 }
 
-# Download the Alluxio tarball and untar to ALLUXIO_HOME
-bootstrap_alluxio() {
-  # Download the Alluxio tarball
-  mkdir ${ALLUXIO_HOME}
-  local download_url="${ALLUXIO_DOWNLOAD_URL}"
-  if [ -n "${ALLUXIO_DOWNLOAD_PATH}" ]; then
-    download_url=${ALLUXIO_DOWNLOAD_PATH}
-  fi
-  download_file "${download_url}"
-  local tarball_name=${download_url##*/}
-  tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
-  ln -s ${ALLUXIO_HOME}/client/alluxio-${ALLUXIO_VERSION}-client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
-
-  # Download files to /opt/alluxio/conf
-  local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)
-  local download_delimiter=";"
-  IFS="${download_delimiter}" read -ra files_to_be_downloaded <<< "${download_files_list}"
-  if [ "${#files_to_be_downloaded[@]}" -gt "0" ]; then
-    local filename
-    for file in "${files_to_be_downloaded[@]}"; do
-      filename="$(basename "${file}")"
-      download_file "${file}"
-      mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
-    done
-  fi
-
-  # add alluxio user
-  id -u alluxio &>/dev/null || sudo useradd alluxio
-  # dataproc by default will install alluxio as user kafka
-  # change the user and group to alluxio
-  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}"
-
-  # Configure systemd services
+configure_alluxio_systemd_services() {
   if [[ "${ROLE}" == "Master" ]]; then
     # The master role runs 2 daemons: AlluxioMaster and AlluxioJobMaster
     # Service for AlluxioMaster JVM
@@ -240,28 +202,6 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
     systemctl enable alluxio-job-worker
-  fi
-  # Configure client applications
-  sudo mkdir -p "${SPARK_HOME}/jars/"
-  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${SPARK_HOME}/jars/alluxio-client.jar"
-  sudo mkdir -p "${HIVE_HOME}/lib/"
-  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HIVE_HOME}/lib/alluxio-client.jar"
-  sudo mkdir -p "${HADOOP_HOME}/lib/"
-  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HADOOP_HOME}/lib/alluxio-client.jar"
-  if [[ "${ROLE}" == "Master" ]]; then
-    systemctl restart hive-metastore hive-server2
-  fi
-  sudo mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
-  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
-  systemctl restart presto || echo "Presto service cannot be restarted"
-
-  # Allow bash/all users to execute alluxio command
-  echo -e '#!/bin/bash\nexec /opt/alluxio/bin/alluxio $@' | sudo tee /usr/bin/alluxio
-  sudo chmod 755 /usr/bin/alluxio
-
-  # Optionally configure license
-  if [ -n "${ALLUXIO_LICENSE_BASE64}" ]; then
-    echo "${ALLUXIO_LICENSE_BASE64}" | base64 -d > ${ALLUXIO_HOME}/license.json
   fi
 }
 
@@ -357,6 +297,50 @@ configure_alluxio_storage() {
   fi
 }
 
+# Download the Alluxio tarball and untar to ALLUXIO_HOME
+bootstrap_alluxio() {
+  # Download the Alluxio tarball
+  mkdir ${ALLUXIO_HOME}
+  local download_url="${ALLUXIO_DOWNLOAD_URL}"
+  if [ -n "${ALLUXIO_DOWNLOAD_PATH}" ]; then
+    download_url=${ALLUXIO_DOWNLOAD_PATH}
+  fi
+  download_file "${download_url}"
+  local tarball_name=${download_url##*/}
+  tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
+  ln -s ${ALLUXIO_HOME}/client/alluxio-${ALLUXIO_VERSION}-client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
+
+  # Download files to /opt/alluxio/conf
+  local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)
+  local download_delimiter=";"
+  IFS="${download_delimiter}" read -ra files_to_be_downloaded <<< "${download_files_list}"
+  if [ "${#files_to_be_downloaded[@]}" -gt "0" ]; then
+    local filename
+    for file in "${files_to_be_downloaded[@]}"; do
+      filename="$(basename "${file}")"
+      download_file "${file}"
+      mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
+    done
+  fi
+
+  # add alluxio user
+  id -u alluxio &>/dev/null || sudo useradd alluxio
+  # dataproc by default will install alluxio as user kafka
+  # change the user and group to alluxio
+  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}"
+  # Allow bash/all users to execute alluxio command
+  echo -e '#!/bin/bash\nexec /opt/alluxio/bin/alluxio $@' | sudo tee /usr/bin/alluxio
+  sudo chmod 755 /usr/bin/alluxio
+
+  configure_alluxio_systemd_services
+  expose_alluxio_client_jar
+
+  # Optionally configure license
+  if [ -n "${ALLUXIO_LICENSE_BASE64}" ]; then
+    echo "${ALLUXIO_LICENSE_BASE64}" | base64 -d > ${ALLUXIO_HOME}/license.json
+  fi
+}
+
 # Configure alluxio-site.properties
 configure_alluxio() {
   doas alluxio "cp ${ALLUXIO_HOME}/conf/alluxio-site.properties.template ${ALLUXIO_SITE_PROPERTIES}"
@@ -381,6 +365,29 @@ configure_alluxio() {
       local value=${property#*"="}
       append_alluxio_property "${key}" "${value}"
     done
+  fi
+}
+
+# Start the Alluxio server process
+start_alluxio() {
+  if [[ "${ROLE}" == "Master" ]]; then
+    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatMaster"
+    systemctl restart alluxio-master alluxio-job-master
+
+    local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
+    local path_delimiter=";"
+    if [[ "${sync_list}" ]]; then
+      IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
+      for path in "${paths[@]}"; do
+        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
+      done
+    fi
+  else
+    if [[ $(get_alluxio_property alluxio.worker.tieredstore.level0.alias) == "MEM" ]]; then
+      ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
+    fi
+    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatWorker"
+    systemctl restart alluxio-worker alluxio-job-worker
   fi
 }
 
