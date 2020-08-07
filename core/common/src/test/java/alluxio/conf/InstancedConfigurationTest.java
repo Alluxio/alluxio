@@ -25,7 +25,7 @@ import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
 import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
-import alluxio.util.ClassLoaderUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -906,7 +906,7 @@ public class InstancedConfigurationTest {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
       File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");
-      ClassLoaderUtils.addURL(dir.getCanonicalPath());
+      CommonUtils.classLoadURL(dir.getCanonicalPath());
       File props = new File(dir, "alluxio-site.properties");
 
       try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {

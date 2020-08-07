@@ -21,7 +21,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Template;
-import alluxio.util.ClassLoaderUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
@@ -83,7 +83,7 @@ public class TieredIdentityFactoryTest {
   public void fromScriptClasspath() throws Exception {
     String customScriptName = "my-alluxio-locality.sh";
     File dir = mFolder.newFolder("fromScriptClasspath");
-    ClassLoaderUtils.addURL(dir.getCanonicalPath());
+    CommonUtils.classLoadURL(dir.getCanonicalPath());
     File script = new File(dir, customScriptName);
     setupScript("node=myhost,rack=myrack,custom=mycustom", script);
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
