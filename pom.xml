@@ -1361,7 +1361,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>--add-opens java.base/jdk.internal.loader=ALL-UNNAMED</argLine>
+              <argLine>--add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.base/jdk.xml.internal=ALL-UNNAMED</argLine>
             </configuration>
           </plugin>
         </plugins>
