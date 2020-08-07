@@ -4300,6 +4300,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return auditContext;
   }
 
+  /**
+   * @return a new block deletion context for the unmount command
+   */
   private BlockDeletionContext createBlockDeletionContext() {
     return new DefaultBlockDeletionContext(this::removeBlocks,
         blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
