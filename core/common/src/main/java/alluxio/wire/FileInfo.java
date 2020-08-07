@@ -220,7 +220,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the {@link TtlAction}
+   * @return the TTL (time-to-live) action, or what Alluxio
+   *         should do with the file once its hop limit
+   *         exceeds - either delete it or free it
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
