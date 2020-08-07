@@ -167,13 +167,16 @@ public class InodeLockManager implements Closeable {
   }
 
   /**
-   * Acquires an edge lock.
+   * Acquires an edge lock resource.
+   * <p>
+   * This method differs from {@link #tryLockEdge(Edge, LockMode)} because it will block until
+   * the edge has been successfully locked.
    *
    * @param edge the edge to lock
-   * @param mode the mode to lock in
-   * @param useTryLock whether to acquire with {@link Lock#tryLock()} or {@link Lock#lock()}. This
-   *                   method differs from {@link #tryLockEdge(Edge, LockMode)} because it will
-   *                   block until the edge has been successfully locked.
+   * @param mode the mode to lock the {@code edge} with
+   * @param useTryLock whether to acquire the lock with {@link Lock#tryLock()}
+   *        instead of {@link Lock#lock()} in order to acquire the
+   *        lock
    * @return a lock resource which must be closed to release the lock
    * @see #tryLockEdge(Edge, LockMode)
    */
