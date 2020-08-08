@@ -123,7 +123,7 @@ public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSys
  
 ### 服务发现
  
-扩展JAR由Alluxio服务器在运行时动态加载，这使Alluxio能够无需重新启动就连接到新的底层存储。 Alluxio服务器使用Java [ServiceLoader]（https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html）来发现底层存储API具体实现。提供程序包括
+扩展JAR由Alluxio服务器在运行时动态加载，这使Alluxio能够无需重新启动就连接到新的底层存储。 Alluxio服务器使用Java [ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html)来发现底层存储API具体实现。提供程序包括
 `alluxio.underfs.UnderFileSystemFactory`接口的具体实现。具体实现的发布是通过在`META_INF/services`中包含一个文本文件，文件中一行指向实现上述接口的类实现。
  
 ### 依赖关系管理
@@ -134,4 +134,4 @@ public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSys
 
 ## 将你的底层Storage扩展贡献给Alluxio
  
-恭喜你！你已经为Alluxio开发了新的底层存储扩展。通过向Alluxio[代码库]（https://github.com/Alluxio/alluxio/blob/master/docs/en/ufs/Ufs-Extensions.md）提交编辑扩展列表部分[文档页面]（{{'/en/ufs/Ufs-Extensions.html'| relativize_url}}）拉取请求即可让社区了解。
+恭喜你！你已经为Alluxio开发了新的底层存储扩展。通过向Alluxio[代码库](https://github.com/Alluxio/alluxio/blob/master/docs/en/ufs/Ufs-Extensions.md）提交编辑扩展列表部分[文档页面]（{{ '/en/ufs/Ufs-Extensions.html' | relativize_url}})拉取请求即可让社区了解。
