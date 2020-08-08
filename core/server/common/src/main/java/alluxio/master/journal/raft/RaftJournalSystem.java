@@ -26,40 +26,57 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
-import alluxio.master.transport.GrpcMessagingProxy;
-import alluxio.master.transport.GrpcMessagingTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.net.HostAndPort;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.copycat.client.CopycatClient;
-import io.atomix.copycat.client.RecoveryStrategies;
-import io.atomix.copycat.client.ServerSelectionStrategies;
-import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.StateMachine;
-import io.atomix.copycat.server.cluster.Member;
-import io.atomix.copycat.server.state.ServerMember;
-import io.atomix.copycat.server.storage.Storage;
-import io.atomix.copycat.server.storage.StorageLevel;
+import org.apache.ratis.RaftConfigKeys;
+import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.client.RaftClientConfigKeys;
+import org.apache.ratis.conf.Parameters;
+import org.apache.ratis.conf.RaftProperties;
+import org.apache.ratis.grpc.GrpcConfigKeys;
+import org.apache.ratis.proto.RaftProtos;
+import org.apache.ratis.protocol.ClientId;
+import org.apache.ratis.protocol.GroupInfoReply;
+import org.apache.ratis.protocol.GroupInfoRequest;
+import org.apache.ratis.protocol.Message;
+import org.apache.ratis.protocol.RaftClientReply;
+import org.apache.ratis.protocol.RaftGroup;
+import org.apache.ratis.protocol.RaftGroupId;
+import org.apache.ratis.protocol.RaftPeer;
+import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.retry.ExponentialBackoffRetry;
+import org.apache.ratis.retry.RetryPolicy;
+import org.apache.ratis.rpc.SupportedRpcType;
+import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
+import org.apache.ratis.util.LifeCycle;
+import org.apache.ratis.util.SizeInBytes;
+import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -67,6 +84,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -129,8 +147,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
 
-  private static final String RAFTCLIENT_CLIENT_TYPE = "RaftClient";
-  private static final String RAFTSERVER_CLIENT_TYPE = "RaftServer";
+  private static final UUID RAFT_GROUP_ID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -159,7 +176,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   /**
    * Copycat server.
    */
-  private CopycatServer mServer;
+  private RaftServer mServer;
 
   /// Lifecycle: created when gaining primacy, destroyed when losing primacy.
 
@@ -174,6 +191,15 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * mode.
    */
   private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
+  private final ClientId mClientId = ClientId.randomId();
+  private RaftGroup mRaftGroup;
+  private RaftGroupId mRaftGroupId;
+  private RaftPeerId mPeerId;
+  private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
+
+  private static long nextCallId() {
+    return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
+  }
 
   /**
    * @param conf raft journal configuration
@@ -214,76 +240,99 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     return conf;
   }
 
-  private synchronized void initServer() {
+  private RaftPeerId getPeerId(Address address) {
+    return RaftPeerId.getRaftPeerId(address.host() + "_" + address.port());
+  }
+
+  private synchronized void initServer() throws IOException {
     LOG.debug("Creating journal with max segment size {}", mConf.getMaxLogSize());
-    Storage storage =
-        Storage.builder()
-            .withDirectory(mConf.getPath())
-            .withStorageLevel(StorageLevel.valueOf(mConf.getStorageLevel().name()))
-            // Minor compaction happens anyway after snapshotting. We only free entries when
-            // snapshotting, so there is no benefit to regular minor compaction cycles. We set a
-            // high value because infinity is not allowed. If we set this too high it will overflow.
-            .withMinorCompactionInterval(Duration.ofDays(200))
-            .withMaxSegmentSize((int) mConf.getMaxLogSize())
-            .build();
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
-    // Read external proxy configuration.
-    GrpcMessagingProxy serverProxy = new GrpcMessagingProxy();
-    if (mConf.getProxyAddress() != null) {
-      serverProxy.addProxy(getLocalAddress(mConf), new Address(mConf.getProxyAddress()));
-    }
-    mServer = CopycatServer.builder(getLocalAddress(mConf))
-        .withStorage(storage)
-        .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
-        .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
-        .withSnapshotAllowed(mSnapshotAllowed)
-        .withSerializer(createSerializer())
-        .withTransport(new GrpcMessagingTransport(
-            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE)
-                .withServerProxy(serverProxy))
-        // Copycat wants a supplier that will generate *new* state machines. We can't handle
-        // generating a new state machine here, so we will throw an exception if copycat tries to
-        // call the supplier more than once.
-        // TODO(andrew): Ensure that this supplier will really only be called once.
-        .withStateMachine(new OnceSupplier<>(mStateMachine))
-        .withAppenderBatchSize((int) ServerConfiguration
-            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE))
+    mStateMachine = new JournalStateMachine(mJournals, this);
+
+    List<Address> addresses = getClusterAddresses(mConf);
+    Address localAddress = getLocalAddress(mConf);
+    mPeerId = getPeerId(localAddress);
+    Set<RaftPeer> peers = addresses.stream().map(addr ->
+        new RaftPeer(getPeerId(addr), addr.socketAddress())
+    ).collect(Collectors.toSet());
+    mRaftGroupId = RaftGroupId.valueOf(RAFT_GROUP_ID);
+    mRaftGroup = RaftGroup.valueOf(mRaftGroupId, peers);
+
+    RaftProperties properties = new RaftProperties();
+
+    // TODO(feng): implement a custom RpcType to integrate with Alluxio authentication service
+    RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
+
+    // RPC port
+    GrpcConfigKeys.Server.setPort(properties, localAddress.port());
+
+    // storage path
+    RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(mConf.getPath()));
+
+    // segment size
+    RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
+        SizeInBytes.valueOf(mConf.getMaxLogSize()));
+
+    // election timeout, heartbeat timeout is automatically 1/2 of the value
+    final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
+        mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+    RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
+        leaderElectionMinTimeout);
+    long leaderElectionMaxTimeout = leaderElectionMinTimeout.toLong(
+        TimeUnit.MILLISECONDS) + 1000;
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
+        TimeDuration.valueOf(leaderElectionMaxTimeout, TimeUnit.MILLISECONDS));
+
+    // request timeout
+    RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
+        TimeDuration.valueOf(leaderElectionMaxTimeout, TimeUnit.MILLISECONDS));
+
+    // snapshot retention
+    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 5);
+
+    // snapshot interval
+    RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
+        properties, true);
+    long snapshotAutoTriggerThreshold =
+        ServerConfiguration.global().getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
+        snapshotAutoTriggerThreshold);
+
+    RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
+        properties, false);
+
+    long messageSize = ServerConfiguration.global().getBytes(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
+    GrpcConfigKeys.setMessageSizeMax(properties,
+        SizeInBytes.valueOf(messageSize));
+
+    // TODO(feng): clean up embedded journal configuration
+    // build server
+    mServer = RaftServer.newBuilder()
+        .setServerId(mPeerId)
+        .setGroup(mRaftGroup)
+        .setStateMachine(mStateMachine)
+        .setProperties(properties)
         .build();
-    mPrimarySelector.init(mServer);
   }
 
-  private CopycatClient createAndConnectClient() {
-    CopycatClient client = createClient();
-    try {
-      client.connect().get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_CONNECT.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
-      throw new RuntimeException(errorMessage, e.getCause());
-    }
-    return client;
-  }
-
-  private CopycatClient createClient() {
-    return CopycatClient.builder(getClusterAddresses(mConf))
-        .withRecoveryStrategy(RecoveryStrategies.RECOVER)
-        /*
-         * We use raft clients for journal writes and writes are only allowed on leader. Forcing
-         * client to connect to leader will improve performance by eliminating extra hops and will
-         * make transport level traces less confusing for investigation.
-         */
-        .withServerSelectionStrategy(ServerSelectionStrategies.LEADER)
-        .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
-            Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
-        .withTransport(new GrpcMessagingTransport(
-            ServerConfiguration.global(), ServerUserState.global(), RAFTCLIENT_CLIENT_TYPE))
-        .withSerializer(createSerializer())
+  private RaftClient createClient() {
+    RaftProperties properties = new RaftProperties();
+    RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
+        TimeDuration.valueOf(15, TimeUnit.SECONDS));
+    RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
+        .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
+        .setMaxAttempts(10)
+        .setMaxSleepTime(TimeDuration.ONE_SECOND)
+        .build();
+    return RaftClient.newBuilder()
+        .setRaftGroup(mRaftGroup)
+        .setLeaderId(null)
+        .setProperties(properties)
+        .setParameters(new Parameters())
+        .setRetryPolicy(retryPolicy)
         .build();
   }
 
@@ -314,12 +363,22 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    CopycatClient client = createAndConnectClient();
+    RaftClient client = createClient();
+    Runnable closeClient = () -> {
+      try {
+        client.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close raft client: {}", e.toString());
+      }
+    };
+
     try {
       catchUp(mStateMachine, client);
     } catch (TimeoutException e) {
+      closeClient.run();
       throw new RuntimeException(e);
     } catch (InterruptedException e) {
+      closeClient.run();
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
@@ -333,7 +392,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
-    if (!mServer.isRunning()) {
+    if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down copycat server
       return;
     }
@@ -349,26 +408,25 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
     LOG.info("Shutting down Raft server");
     try {
-      mServer.shutdown().get();
-    } catch (ExecutionException e) {
+      mServer.close();
+    } catch (IOException e) {
       LOG.error("Fatal error: failed to leave Raft cluster while stepping down", e);
       System.exit(-1);
       throw new IllegalStateException(e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted while leaving Raft cluster");
     }
     LOG.info("Shut down Raft server");
-    mSnapshotAllowed.set(true);
-    initServer();
+    try {
+      initServer();
+    } catch (IOException e) {
+      LOG.error("Fatal error: failed to init Raft cluster with addresses {} while stepping down",
+          getClusterAddresses(mConf), e);
+      System.exit(-1);
+    }
     LOG.info("Bootstrapping new Raft server");
     try {
-      mServer.bootstrap(getClusterAddresses(mConf)).get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Interrupted while rejoining Raft cluster");
-    } catch (ExecutionException e) {
-      LOG.error("Fatal error: failed to rejoin Raft cluster with addresses {} while stepping down",
+      mServer.start();
+    } catch (IOException e) {
+      LOG.error("Fatal error: failed to start Raft cluster with addresses {} while stepping down",
           getClusterAddresses(mConf), e);
       System.exit(-1);
     }
@@ -389,16 +447,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void suspend() throws IOException {
-    // Suspend copycat snapshots.
-    mSnapshotAllowed.set(false);
     mStateMachine.suspend();
   }
 
   @Override
   public synchronized void resume() throws IOException {
     mStateMachine.resume();
-    // Resume copycat snapshots.
-    mSnapshotAllowed.set(true);
   }
 
   @Override
@@ -410,19 +464,24 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     return mStateMachine.catchup(distinctSequences.get(0));
   }
 
+  static Message toRaftMessage(JournalEntry entry) {
+    return Message.valueOf(UnsafeByteOperations.unsafeWrap(
+        new JournalEntryCommand(entry).getSerializedJournalEntry()));
+  }
+
   @Override
   public synchronized void checkpoint() throws IOException {
-    try {
-      long start = System.currentTimeMillis();
-      mSnapshotAllowed.set(true);
-      CopycatClient client = createAndConnectClient();
+    // TODO(feng): remove this once we can automatically propagate snapshots from secondary master
+    long start = System.currentTimeMillis();
+    mSnapshotAllowed.set(true);
+    try (RaftClient client = createClient()) {
       LOG.info("Submitting empty journal entry to trigger snapshot");
       // New snapshot requires new segments (segment size is controlled by
       // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
       // If snapshot requirements are fulfilled, a snapshot will be triggered
       // after sending an empty journal entry to Copycat
-      CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
-          JournalEntry.getDefaultInstance()));
+      CompletableFuture<RaftClientReply> future = client.sendAsync(
+          toRaftMessage(JournalEntry.getDefaultInstance()));
       try {
         future.get(1, TimeUnit.MINUTES);
       } catch (TimeoutException | ExecutionException e) {
@@ -485,7 +544,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    *
    * The caller is responsible for detecting and responding to leadership changes.
    */
-  private void catchUp(JournalStateMachine stateMachine, CopycatClient client)
+  private void catchUp(JournalStateMachine stateMachine, RaftClient client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     // Wait for any outstanding snapshot to complete.
@@ -513,8 +572,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       long gainPrimacySN = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
       LOG.info("Performing catchup. Last applied SN: {}. Catchup ID: {}",
           lastAppliedSN, gainPrimacySN);
-      CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
-          JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
+      CompletableFuture<RaftClientReply> future = client.sendAsync(
+          toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
       try {
         future.get(5, TimeUnit.SECONDS);
       } catch (TimeoutException | ExecutionException e) {
@@ -558,8 +617,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         clusterAddresses, getLocalAddress(mConf));
     long startTime = System.currentTimeMillis();
     try {
-      mServer.bootstrap(clusterAddresses).get();
-    } catch (ExecutionException e) {
+      mServer.start();
+    } catch (IOException e) {
       String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
           .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
@@ -574,12 +633,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mRaftJournalWriter.close();
     }
     try {
-      mServer.shutdown().get(ServerConfiguration
-          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
-    } catch (ExecutionException e) {
+      mServer.close();
+    } catch (IOException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
-    } catch (TimeoutException e) {
-      LOG.info("Timed out shutting down raft server");
     }
     LOG.info("Journal shutdown complete");
   }
@@ -591,22 +647,54 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized List<QuorumServerInfo> getQuorumServerInfoList() {
     List<QuorumServerInfo> quorumMemberStateList = new LinkedList<>();
-    for (Member member : mServer.cluster().members()) {
-      NetAddress memberAddress = NetAddress.newBuilder().setHost(member.address().host())
-          .setRpcPort(member.address().port()).build();
+    RaftProtos.LeaderInfoProto leaderInfo = getRoleInfo().getLeaderInfo();
+    if (leaderInfo == null) {
+      return Collections.emptyList();
+    }
+    for (RaftProtos.ServerRpcProto member : leaderInfo.getFollowerInfoList()) {
+      HostAndPort hp = HostAndPort.fromString(member.getId().getAddress());
+      NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
+          .setRpcPort(hp.getPort()).build();
 
       quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
-          .setServerState(QuorumServerState.valueOf(member.status().name())).build());
+          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
+              ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
+    Address localAddress = getLocalAddress(mConf);
+    NetAddress self = NetAddress.newBuilder()
+        .setHost(localAddress.host())
+        .setRpcPort(localAddress.port())
+        .build();
+    quorumMemberStateList.add(QuorumServerInfo.newBuilder()
+        .setServerAddress(self)
+        .setServerState(QuorumServerState.AVAILABLE).build());
     return quorumMemberStateList;
+  }
+
+  private GroupInfoReply getGroupInfo() throws IOException {
+    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mClientId,
+        mPeerId, mRaftGroupId, nextCallId());
+    return mServer.getGroupInfo(groupInfoRequest);
+  }
+
+  private RaftProtos.RoleInfoProto getRoleInfo() {
+    GroupInfoReply groupInfo = null;
+    try {
+      groupInfo = getGroupInfo();
+    } catch (IOException e) {
+      LOG.warn("failed to get leadership info", e);
+    }
+    return groupInfo.getRoleInfoProto();
   }
 
   /**
    * @return {@code true} if this journal system is the leader
    */
   @VisibleForTesting
-  public synchronized boolean isLeader() {
-    return mServer != null && mServer.isRunning() && mServer.state() == CopycatServer.State.LEADER;
+  public boolean isLeader() {
+    return mServer != null
+        && mServer.getLifeCycleState() == LifeCycle.State.RUNNING
+        && mPrimarySelector.getState() == PrimarySelector.State.PRIMARY;
   }
 
   /**
@@ -619,20 +707,13 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
     Address serverAddress = new Address(InetSocketAddress
         .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort()));
-    try {
-      mServer.cluster()
-          .remove(new ServerMember(Member.Type.ACTIVE, serverAddress, serverAddress, Instant.MIN))
-          .get();
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(
-          "Interrupted while waiting for removal of server from raft quorum.");
-    } catch (ExecutionException ee) {
-      Throwable cause = ee.getCause();
-      if (cause instanceof IOException) {
-        throw (IOException) cause;
-      } else {
-        throw new IOException(ee.getMessage(), cause);
+    try (RaftClient client = createClient()) {
+      Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
+      RaftClientReply reply = client.setConfiguration(peers.stream()
+          .filter(peer -> !peer.getAddress().equals(serverAddress.toString()))
+          .toArray(RaftPeer[]::new));
+      if (reply.getException() != null) {
+        throw reply.getException();
       }
     }
   }
@@ -665,5 +746,14 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
+  }
+
+  /**
+   * Notifies the journal that the leadership state has changed.
+   * @param isLeader whether the local server is teh current leader
+   */
+  public void notifyLeadershipStateChanged(boolean isLeader) {
+    mPrimarySelector.notifyStateChanged(
+        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.SECONDARY);
   }
 }
