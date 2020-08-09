@@ -11,12 +11,13 @@
 
 package alluxio.client.cli.fs.command;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * Tests for lsPathInAlluxio command.
@@ -33,13 +34,16 @@ public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
             .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
 
     String workerHost = sLocalAlluxioCluster.getWorkerAddress().getHost();
-    String expected = "";
     String format = "%-25s %s\n";
 
+    String expected = "";
     sFsShell.run("lsInAlluxio", "/testRoot");
     expected += String.format(format, "Worker Host Name", "In Alluxio");
     expected += String.format(format, workerHost, 160);
 
+    assertEquals(expected, mOutput.toString());
+
+    expected = "";
     sFsShell.run("lsInAlluxio", "-h", "/testRoot");
     expected += String.format(format, "Worker Address", "In Alluxio");
     expected += String.format(format, workerHost, "160B");
