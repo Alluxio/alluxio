@@ -25,7 +25,7 @@ import org.junit.Test;
 public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
 
   @Test
-  public void lsInAlluxio() throws Exception {
+  public void lsPathInAlluxio() throws Exception {
     FileSystemTestUtils
             .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils
@@ -37,14 +37,14 @@ public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
     String format = "%-25s %s\n";
 
     String expected = "";
-    sFsShell.run("lsInAlluxio", "/testRoot");
+    sFsShell.run("lsPathInAlluxio", "/testRoot");
     expected += String.format(format, "Worker Host Name", "In Alluxio");
     expected += String.format(format, workerHost, 160);
 
     assertEquals(expected, mOutput.toString());
 
     expected = "";
-    sFsShell.run("lsInAlluxio", "-h", "/testRoot");
+    sFsShell.run("lsPathInAlluxio", "-h", "/testRoot");
     expected += String.format(format, "Worker Address", "In Alluxio");
     expected += String.format(format, workerHost, "160B");
 
