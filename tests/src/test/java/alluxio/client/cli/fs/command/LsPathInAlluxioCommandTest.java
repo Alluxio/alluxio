@@ -34,19 +34,18 @@ public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
             .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
 
     String workerHost = sLocalAlluxioCluster.getWorkerAddress().getHost();
-    String format = "%-25s %s\n";
 
     String expected = "";
     sFsShell.run("lsPathInAlluxio", "/testRoot");
-    expected += String.format(format, "Worker Host Name", "In Alluxio");
-    expected += String.format(format, workerHost, 160);
+    expected += String.format("%-25s %s\n", "Worker Host Name", "In Alluxio");
+    expected += String.format("%-25s %s", workerHost, 160);
 
     assertEquals(expected, mOutput.toString());
 
     expected = "";
     sFsShell.run("lsPathInAlluxio", "-h", "/testRoot");
-    expected += String.format(format, "Worker Host Name", "In Alluxio");
-    expected += String.format(format, workerHost, "160B");
+    expected += String.format("%-25s %s\n", "Worker Host Name", "In Alluxio");
+    expected += String.format("%-25s %s", workerHost, "160B");
 
     assertEquals(expected, mOutput.toString());
   }
