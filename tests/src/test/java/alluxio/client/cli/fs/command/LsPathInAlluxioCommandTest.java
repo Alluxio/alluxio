@@ -45,7 +45,7 @@ public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
 
     expected = "";
     sFsShell.run("lsPathInAlluxio", "-h", "/testRoot");
-    expected += String.format(format, "Worker Address", "In Alluxio");
+    expected += String.format(format, "Worker Host Name", "In Alluxio");
     expected += String.format(format, workerHost, "160B");
 
     assertEquals(expected, mOutput.toString());
