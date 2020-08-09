@@ -105,7 +105,7 @@ public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
    * @param inAlluxioMessage the in Alluxio size message to print
    */
   private static void printInfo(String workerHostName, String inAlluxioMessage) {
-    System.out.print(String.format("%-25s %s\n", workerHostName, inAlluxioMessage));
+    System.out.print(String.format("%-25s %s%n", workerHostName, inAlluxioMessage));
   }
 
   @Override

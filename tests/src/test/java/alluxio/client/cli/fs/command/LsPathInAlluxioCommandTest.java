@@ -34,7 +34,7 @@ public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
             .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
 
     String workerHost = sLocalAlluxioCluster.getWorkerAddress().getHost();
-    String format = "%-25s %s\n";
+    String format = "%-25s %s%n";
 
     String expected = "";
     sFsShell.run("lsPathInAlluxio", "/testRoot");
