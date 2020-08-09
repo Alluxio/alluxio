@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests for lsPathInAlluxio command.
  */
-public class LsPathInAlluxioTest extends AbstractFileSystemShellTest {
+public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
 
     @Test
     public void lsInAlluxio() throws Exception {
