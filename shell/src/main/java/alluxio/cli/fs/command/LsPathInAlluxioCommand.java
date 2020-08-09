@@ -34,7 +34,7 @@ import java.util.HashMap;
 import javax.annotation.Nullable;
 
 /**
- * Displays information for In-Alluxio data size under the path group by worker.
+ * Displays information for In-Alluxio data size under the path, grouped by worker.
  */
 public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
   private static final String READABLE_OPTION_NAME = "h";
@@ -47,7 +47,7 @@ public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
 
   /**
    * Constructs a new instance to display information for In-Alluxio data size under
-   * the path group by worker.
+   * the path, grouped by worker.
    *
    * @param fsContext the filesystem of Alluxio
    */
@@ -56,7 +56,7 @@ public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Displays information for In-Alluxio data size under the path group by worker.
+   * Displays information for In-Alluxio data size under the path, grouped by worker.
    *
    * @param path     The {@link AlluxioURI} path as the input of the command
    * @param readable whether to print info of human readable format
@@ -64,14 +64,17 @@ public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
   private void lsPathInAlluxio(AlluxioURI path, boolean readable)
           throws AlluxioException, IOException {
 
+    URIStatus pathStatus = mFileSystem.getStatus(path);
     Timer timer = new Timer();
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        System.out.println("Getting directory status of %s files or sub-directories "
-                + "may take a while.");
-      }
-    }, 10000);
+    if (pathStatus.isFolder()) {
+      timer.schedule(new TimerTask() {
+        @Override
+        public void run() {
+          System.out.printf("Getting directory status of %s files or sub-directories "
+                  + "may take a while.%n", pathStatus.getLength());
+        }
+      }, 10000);
+    }
     ListStatusPOptions.Builder optionsBuilder = ListStatusPOptions.newBuilder();
     optionsBuilder.setRecursive(true);
     List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
@@ -136,7 +139,7 @@ public class LsPathInAlluxioCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for In-Alluxio data size under the path group by worker.";
+    return "Displays information for In-Alluxio data size under the path, grouped by worker.";
   }
 
   @Override
