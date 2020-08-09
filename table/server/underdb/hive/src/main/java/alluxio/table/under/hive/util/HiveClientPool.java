@@ -36,7 +36,8 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("HiveClientPool-GC-%d", true));
 
-  private final CloseableMetaStoreClientFactory factory = new CloseableMetaStoreClientFactory();
+  private final CloseableMetaStoreClientFactory mClientFactory =
+      new CloseableMetaStoreClientFactory();
 
   private final long mGcThresholdMs;
   private final String mConnectionUri;
@@ -76,7 +77,7 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
       HiveConf conf = new HiveConf();
       conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
 
-      IMetaStoreClient client = factory.newInstance(conf, "hms");
+      IMetaStoreClient client = mClientFactory.newInstance(conf, "hms");
       if (!mDbExists) {
         synchronized (this) {
           // serialize the querying of the hive db
