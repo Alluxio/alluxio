@@ -23,27 +23,27 @@ import static org.junit.Assert.assertEquals;
  */
 public class LsPathInAlluxioCommandTest extends AbstractFileSystemShellTest {
 
-    @Test
-    public void lsInAlluxio() throws Exception {
-        FileSystemTestUtils
-                .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
-        FileSystemTestUtils
-                .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
-        FileSystemTestUtils
-                .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
+  @Test
+  public void lsInAlluxio() throws Exception {
+    FileSystemTestUtils
+            .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
+    FileSystemTestUtils
+            .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
+    FileSystemTestUtils
+            .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
 
-        String workerHost = sLocalAlluxioCluster.getWorkerAddress().getHost();
-        String expected = "";
-        String format = "%-25s %s\n";
+    String workerHost = sLocalAlluxioCluster.getWorkerAddress().getHost();
+    String expected = "";
+    String format = "%-25s %s\n";
 
-        sFsShell.run("lsInAlluxio", "/testRoot");
-        expected += String.format(format, "Worker Host Name", "In Alluxio");
-        expected += String.format(format, workerHost, 160);
+    sFsShell.run("lsInAlluxio", "/testRoot");
+    expected += String.format(format, "Worker Host Name", "In Alluxio");
+    expected += String.format(format, workerHost, 160);
 
-        sFsShell.run("lsInAlluxio", "-h", "/testRoot");
-        expected += String.format(format, "Worker Address", "In Alluxio");
-        expected += String.format(format, workerHost, "160B");
+    sFsShell.run("lsInAlluxio", "-h", "/testRoot");
+    expected += String.format(format, "Worker Address", "In Alluxio");
+    expected += String.format(format, workerHost, "160B");
 
-        assertEquals(expected, mOutput.toString());
-    }
+    assertEquals(expected, mOutput.toString());
+  }
 }
