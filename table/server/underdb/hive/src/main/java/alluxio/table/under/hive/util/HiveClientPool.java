@@ -16,11 +16,9 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClientFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
-import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.thrift.TException;
 
@@ -37,7 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> {
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("HiveClientPool-GC-%d", true));
-  private static final HiveMetaHookLoader NOOP_HOOK = table -> null;
+
+  private final CloseableMetaStoreClientFactory factory = new CloseableMetaStoreClientFactory();
 
   private final long mGcThresholdMs;
   private final String mConnectionUri;
@@ -77,8 +76,7 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
       HiveConf conf = new HiveConf();
       conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
 
-      IMetaStoreClient client =
-          RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName());
+      IMetaStoreClient client = factory.newInstance(conf, "hms");
       if (!mDbExists) {
         synchronized (this) {
           // serialize the querying of the hive db

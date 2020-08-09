@@ -26,8 +26,8 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-    <!-- 2.2.0 client works with a wide range of HMS, from 1.0 to 3.1 -->
-    <hive-metastore.version>2.2.0</hive-metastore.version>
+    <!-- use 2.3.7 to work with java 11 and match the version used in hcommon-hive-metastore library -->
+    <hive-metastore.version>2.3.7</hive-metastore.version>
   </properties>
 
   <dependencies>
@@ -36,6 +36,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>1.4.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
