@@ -20,8 +20,8 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环�
 
 ## 先决条件
 
--Kubernetes集群(版本> = 1.8)。
--Alluxio已部署在Kubernetes集群上。有关如何部署Alluxio的说明，请参考
+- Kubernetes集群(版本>=1.8)。
+- Alluxio已部署在Kubernetes集群上。有关如何部署Alluxio的说明，请参考
 [本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}})
 
 ## 基本设置
@@ -40,6 +40,7 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环�
 $ tar -xf spark-2.4.4-bin-hadoop2.7.tgz
 $ cd spark-2.4.4-bin-hadoop2.7
 ```
+
 ### 编译Spark Docker镜像
 
 从Alluxio Docker镜像中提取Alluxio客户端jar:
@@ -76,22 +77,22 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 短路访问使Spark执行器中的Alluxio客户端可以直接访问主机上的Alluxio worker存储。
 因为不通过网络堆栈来与Alluxio worker通信，这样可以提高性能。
 
-如果在部署Alluxio时未按照指令设置域套接字
-][本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}＃short-circuit-access)，则
+如果在部署Alluxio时未按照指令设置domain socket
+[本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}＃short-circuit-access)，则
 可以跳过将`hostPath`卷挂载到Spark执行器步骤。
 
-如果在运行Alluxio worker进程的主机上将域套接字位置设置为
+如果在运行Alluxio worker进程的主机上将domain socket位置设置为
 `/tmp/alluxio-domain`，并且Alluxio配置为`alluxio.worker.data.server.domain.socket.address=/opt/domain`，使用以下Spark
 配置将`/tmp/alluxio-domain`挂载到Spark执行器pod中的`/opt/domain`。
 下一节中的`spark-submit`命令包含这些属性。
 
-取决于你的设置，Alluxio worker上的域套接字可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
+取决于你的设置，Alluxio worker上的domain socket可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
 这两个选项的spark-submit参数将有所不同。
 可以在以下Spark文档中找到有关如何将卷挂载到Spark执行器的更多[信息](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes)。
 
 {% navtabs domainSocket %}
   {% navtab hostPath %}
-  如果使用的是hostPath域套接字，则应将以下属性传递给Spark:
+  如果使用的是`hostPath` domain socket，则应将以下属性传递给Spark:
   
   ```properties
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain
@@ -102,7 +103,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
  
   {% endnavtab %}
   {% navtab PersistententVolumeClaim %}
-  如果使用的是PersistententVolumeClaim域套接字，则应将以下属性传递给Spark:
+  如果使用的是`PersistententVolumeClaim` domain socket，则应将以下属性传递给Spark:
   
   ```properties
   spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.mount.path=/opt/domain \
@@ -114,8 +115,8 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 {% endnavtabs %}
 
 注意: 
--Spark中的卷支持是在2.4.0版中添加的。
--当不通过域套接字使用短路访问时，可能会观察到性能下降。
+- Spark中的卷支持是在2.4.0版中添加的。
+- 当不通过domain socket使用短路访问时，可能会观察到性能下降。
 
 ### 运行Spark作业
 
@@ -151,9 +152,9 @@ local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://<alluxio-master>:19998/LICENSE
 ```
 > 注意:可以通过运行`kubectl cluster-info`找到Kubernetes API服务器地址。
-您可以在Spark文档中找到更多详细信息。 [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode)
-你应该使用与你的域套接字卷类型相应的属性 
-[域套接字卷类型]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
+您可以在Spark[文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode)中找到更多详细信息。
+你应该使用与你的domain socket卷类型相应的属性 
+[domain socket卷类型]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
 
 ## 故障排除
 
