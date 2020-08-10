@@ -240,13 +240,6 @@
         <version>${guava.version}</version>
       </dependency>
       <dependency>
-        <!-- using older version to match dependency version from Hadoop -->
-        <groupId>com.google.inject</groupId>
-        <artifactId>guice</artifactId>
-        <version>3.0</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
