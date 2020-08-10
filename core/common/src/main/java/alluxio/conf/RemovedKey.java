@@ -36,6 +36,7 @@ public final class RemovedKey {
 
   private static final String V2_0_0 = "v2.0.0";
   private static final String V2_1_0 = "v2.1.0";
+  private static final String V2_4_0 = "v2.4.0";
 
   /**
    * @param version the version since which a property has been removed
@@ -132,6 +133,8 @@ public final class RemovedKey {
       put("alluxio.worker.file.persist.pool.size", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit.enabled", removedSince(V2_1_0));
+      put("alluxio.worker.memory.size", replacedSince(V2_4_0,
+          PropertyKey.Name.WORKER_RAMDISK_SIZE));
       put("alluxio.worker.network.netty.async.cache.manager.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.backlog", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.block.reader.threads.max", removedSince(V2_0_0));

@@ -17,9 +17,12 @@ import com.google.common.testing.EqualsTester;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -208,5 +211,23 @@ public final class CommonUtils {
       }
     }
     return fields;
+  }
+
+  /**
+   * Add a path to be loaded.
+   * @param path full path
+   */
+  public static void classLoadURL(String path) throws Exception {
+    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    try {
+      Method method = classLoader.getClass().getDeclaredMethod("addURL", URL.class);
+      method.setAccessible(true);
+      method.invoke(classLoader, new File(path).toURI().toURL());
+    } catch (NoSuchMethodException e) {
+      Method method = classLoader.getClass().getDeclaredMethod(
+          "appendToClassPathForInstrumentation", String.class);
+      method.setAccessible(true);
+      method.invoke(classLoader, path);
+    }
   }
 }

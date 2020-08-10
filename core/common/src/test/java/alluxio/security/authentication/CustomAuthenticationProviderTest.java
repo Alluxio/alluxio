@@ -52,8 +52,11 @@ public final class CustomAuthenticationProviderTest {
   public void classNotProvider() {
     String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
+    // Java 11 will add "class" prefix before the class names
+    // the following messages support both java 8 and java 11
     mThrown.expectMessage("alluxio.security.authentication.CustomAuthenticationProviderTest "
-        + "cannot be cast to alluxio.security.authentication.AuthenticationProvider");
+        + "cannot be cast to ");
+    mThrown.expectMessage("alluxio.security.authentication.AuthenticationProvider");
     new CustomAuthenticationProvider(notProviderClass);
   }
 

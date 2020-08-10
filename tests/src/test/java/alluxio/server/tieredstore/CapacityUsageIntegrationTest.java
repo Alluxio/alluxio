@@ -40,7 +40,7 @@ public class CapacityUsageIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, MEM_CAPACITY_BYTES / 2)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .setProperty(

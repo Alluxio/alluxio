@@ -32,18 +32,4 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
   </properties>
-  <profiles>
-    <profile>
-      <id>hadoop-2</id>
-      <modules>
-        <module>checker</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>hadoop-3</id>
-      <modules>
-        <module>checker</module>
-      </modules>
-    </profile>
-  </profiles>
 </project>

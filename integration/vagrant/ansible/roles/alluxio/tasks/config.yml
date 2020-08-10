@@ -42,7 +42,7 @@
 - name: set worker memory in alluxio-env.sh
   replace: >
     dest=/alluxio/conf/alluxio-env.sh
-    regexp='^ALLUXIO_WORKER_MEMORY_SIZE=.*'
-    replace='ALLUXIO_WORKER_MEMORY_SIZE={{ alluxio_memory }}'
+    regexp='^ALLUXIO_WORKER_RAMDISK_SIZE=.*'
+    replace='ALLUXIO_WORKER_RAMDISK_SIZE={{ alluxio_memory }}'
 
 # vim :set filetype=ansible.yaml:

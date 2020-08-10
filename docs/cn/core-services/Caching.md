@@ -50,20 +50,18 @@ Alluxio还支持让系统存储软件可感知的分层存储，使类似L1/L2 C
 
 配置Alluxio存储的最简单方法是使用默认的单层模式。
 
-请注意，此部分是讲本地存储，诸如`mount`之类的术语指在本地存储
-文件系统上挂载，不要与Alluxio的外部底层存储的`mount`概念混淆。
+请注意，此部分是讲本地存储，诸如`mount`之类的术语指在本地存储文件系统上挂载，不要与Alluxio的外部底层存储的`mount`概念混淆。
 
-在启动时，Alluxio将在每个worker节点上发放一个ramdisk并占用一定比例的
-系统的总内存。 此ramdisk将用作分配给每个Alluxio worker的唯一存储介质。
+在启动时，Alluxio将在每个worker节点上发放一个ramdisk并占用一定比例的系统的总内存。 
+此ramdisk将用作分配给每个Alluxio worker的唯一存储介质。
 
-通过Alluxio配置中的Alluxio-site.properties来配置Alluxio存储。 详细信息见
-[configuration settings]({{ '/en/operation/Configuration.html' | relativize_url}})。
+通过Alluxio配置中的`alluxio-site.properties`来配置Alluxio存储。
+详细信息见[configuration settings]({{ '/en/operation/Configuration.html' | relativize_url}})。
 
-对默认值的常见修改是明确设置ramdisk的大小。 例如，设置
-每个worker的ramdisk大小为16GB：
+对默认值的常见修改是明确设置ramdisk的大小。 例如，设置每个worker的ramdisk大小为16GB：
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 另一个常见更改是指定多个存储介质，例如ramdisk和SSD。 需要
@@ -78,8 +76,8 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 
 请注意，介质类型的顺序必须与路径的顺序相符。
 MEM和SSD是Alluxio中的两种预配置存储类型。
-`alluxio.master.tieredstore.global.mediumtype`是包含
-所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。 如果用户有额外存储介质类型可以通过修改这个配置来增加。
+`alluxio.master.tieredstore.global.mediumtype`是包含所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。 
+如果用户有额外存储介质类型可以通过修改这个配置来增加。
 
 提供的路径应指向挂载适当存储介质的本地文件系统中的路径。 
 为了实现短路操作，对于这些路径，应允许客户端用户在这些路径上进行读取，写入和执行。 
@@ -94,7 +92,11 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 注意存储空间配置的顺序一定与存储目录的配置相符。
 
-`alluxio.worker.memory.size`和`alluxio.worker.tieredstore.level0.dirs.quota`之间有细微差别，默认配置为前者。Alluxio在通过`Mount`或`SudoMount`选项启动时，配置并挂载ramdisk。无论`alluxio.worker.tieredstore.level0.dirs.quota` 设置为何值，这个ramdisk大小是由`alluxio.worker.memory.size`确定的。 同样，如果要使用除默认Alluxio发放的ramdisk以外的设备，应该独立于内存大小来设置quota配置。
+Alluxio在通过`Mount`或`SudoMount`选项启动时，配置并挂载ramdisk。
+这个ramdisk大小是由`alluxio.worker.memory.size`确定的。
+默认情况下，tier 0设置为MEM并且管理整个ramdisk。
+此时`alluxio.worker.tieredstore.level0.dirs.quota`的值同`alluxio.worker.ramdisk.size`一样。
+如果tier0要使用除默认的ramdisk以外的设备，应该显式地设置`alluxio.worker.tieredstore.level0.dirs.quota`选项。
 
 ### 多层存储
 
@@ -171,7 +173,7 @@ alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 可配置层数没有限制
 但是每个层都必须使用唯一的别名进行标识。
 典型的配置将具有三层，分别是内存，SSD和HDD。
-要在HDD层中使用多个硬盘存储，需要在配置`alluxio.worker.tieredstore.level {x} .dirs.path`时指定多个路径。
+要在HDD层中使用多个硬盘存储，需要在配置`alluxio.worker.tieredstore.level{x}.dirs.path`时指定多个路径。
 
 ### 块注释策略
 
@@ -235,29 +237,29 @@ Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释�
 有关如何控制这些新的后台任务对用户I/O的影响，参见[管理任务推后](#management-task-back-off)部分。
 
 用于控制层对齐:
--`alluxio.worker.management.tier.align.enabled`:是否启用层对齐任务。 (默认:)
-`true-alluxio.worker.management.tier.align.range`:单个任务运行中对齐多少个块。 (默认值:`100`)
--`alluxio.worker.management.tier.align.reserved.bytes`:配置多层时，默认情况下在所有目录上保留的空间大小。 (默认:1GB)
+- `alluxio.worker.management.tier.align.enabled`:是否启用层对齐任务。 (默认: `true`)
+- `alluxio.worker.management.tier.align.range`:单个任务运行中对齐多少个块。 (默认值:`100`)
+- `alluxio.worker.management.tier.align.reserved.bytes`:配置多层时，默认情况下在所有目录上保留的空间大小。 (默认:1GB)
 用于内部块移动。
--`alluxio.worker.management.tier.swap.restore.enabled`:控制一个特殊任务，该任务用于在内部保留空间用尽时unblock层对齐。 (默认:true)
+- `alluxio.worker.management.tier.swap.restore.enabled`:控制一个特殊任务，该任务用于在内部保留空间用尽时unblock层对齐。 (默认:true)
 由于Alluxio支持可变的块大小，因此保留空间可能会用尽，因此，当块大小不匹配时在块对齐期间在层之间块交换会导致一个目录保留空间的减少。
 
 #### 块升级
 当较高层具有可用空间时，低层的块将向上层移动，以便更好地利用较快的磁盘介质，因为假定较高的层配置了较快的磁盘介质。
 
 用于控制动态层升级:
--`alluxio.worker.management.tier.promote.enabled`:是否启用层升级任务。 (默认:)
-true-alluxio.worker.management.tier.promote.range`:单个任务运行中升级块数。 (默认值:`100`)
--`alluxio.worker.management.tier.promote.quota.percent`:每一层可以用于升级最大百分比。
-一旦其已用空间超过此值，向此层升级将停止。 (0表示永不升级，100表示​​总是升级。)
+- `alluxio.worker.management.tier.promote.enabled`:是否启用层升级任务。 (默认: `true`)
+- `alluxio.worker.management.tier.promote.range`:单个任务运行中升级块数。 (默认值:`100`)
+- `alluxio.worker.management.tier.promote.quota.percent`:每一层可以用于升级最大百分比。
+一旦其已用空间超过此值，向此层升级将停止。 (0表示永不升级，100表示总是升级。)
 
 #### 管理任务推后
 层管理任务(对齐/升级)会考虑用户I/O并在worker/disk重载情况下推后运行。
 这是为了确保内部管理任务不会对用户I/O性能产生负面影响。
 
-可以在`alluxio.worker.management.backoff.strategy'属性中设置两种可用的推后类型，分别是Any和DIRECTORY。
+可以在`alluxio.worker.management.backoff.strategy`属性中设置两种可用的推后类型，分别是Any和DIRECTORY。
 
--`ANY` ;;当有任何用户I/O时，worker管理任务将推后。 
+-`ANY`; 当有任何用户I/O时，worker管理任务将推后。 
 此模式将确保较低管理任务开销，以便提高即时用户I/O性能。
 但是，管理任务要取得进展就需要在worker上花更长的时间。
 
@@ -297,7 +299,7 @@ $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 注意，用户通常不需要手动从Alluxio释放数据，因为
 配置的[注释策略](#block-annotation-policies)将负责删除未使用或旧数据。
 
-###将数据加载到Alluxio存储中
+### 将数据加载到Alluxio存储中
 
 如果数据已经在UFS中，使用
 [`alluxio fs load`]({{ '/en/operation/User-CLI.html' | relativize_url}}#load)
@@ -305,7 +307,6 @@ $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 ```console
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
-
 
 要从本地文件系统加载数据，使用命令
 [`alluxio fs copyFromLocal`]({{ '/en/operation/User-CLI.html' | relativize_url}}#copyfromlocal)。
@@ -370,7 +371,7 @@ SetTTL(path，duration，action)
             永久删除。
 ```
 
-####命令行用法
+#### 命令行用法
 
 了解如何使用`setTtl`命令在Alluxio shell中修改TTL属性参阅详细的
 [命令行文档]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)。

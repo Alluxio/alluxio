@@ -41,11 +41,6 @@ public final class Constants {
 
   public static final String EXTENSION_JAR = ".jar";
 
-  public static final String MESOS_RESOURCE_CPUS = "cpus";
-  public static final String MESOS_RESOURCE_MEM = "mem";
-  public static final String MESOS_RESOURCE_DISK = "disk";
-  public static final String MESOS_RESOURCE_PORTS = "ports";
-
   public static final int MS_NANO = 1_000_000;
   public static final long SECOND_NANO = 1_000_000_000L;
   public static final int SECOND_MS = 1_000;
