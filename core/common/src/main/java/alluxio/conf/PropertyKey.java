@@ -4521,14 +4521,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
           .setDefaultValue("10sec")
-          .setDescription("Extra sleep time longer than this threshold, log WARN.")
+          .setDescription("When the JVM pauses for anything longer than this, log a WARN message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
           .setDefaultValue("1sec")
-          .setDescription("Extra sleep time longer than this threshold, log INFO.")
+          .setDescription("When the JVM pauses for anything longer than this, log an INFO message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -4541,15 +4541,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
       new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable start JVM monitor thread on master.")
+          .setDefaultValue(true)
+          .setDescription("Whether to enable start JVM monitor thread on the master. This will "
+              + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey WORKER_JVM_MONITOR_ENABLED =
       new Builder(Name.WORKER_JVM_MONITOR_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable start JVM monitor thread on worker.")
+          .setDefaultValue(true)
+          .setDescription("Whether to enable start JVM monitor thread on the worker. This will "
+              + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
