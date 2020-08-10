@@ -2,7 +2,7 @@
 layout: global
 title: 统一命名空间
 nickname: 统一命名空间
-group: 核心服务
+group: Core Services
 priority: 1
 ---
 
@@ -93,7 +93,7 @@ alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonati
 alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
-###嵌套挂载点
+### 嵌套挂载点
 除了根挂载点之外，其他底层文件系统也可以挂载到Alluxio命名空间中。
 这些额外的挂载点可以通过`mount`命令在运行时添加到Alluxio。
 `--option`选项允许用户传递挂载操作的附加参数，如凭证。
@@ -155,9 +155,9 @@ Alluxio按需从UFS加载元数据。
 元数据，然后重新加载更新文件的元数据。
 如果在UFS中添加或删除了文件，Alluxio还将更新对其命名空间中的元数据做出相应刷新。
 
-###用于管理UFS同步的方法
+### 用于管理UFS同步的方法
 
-####定期元数据同步
+#### 定期元数据同步
 
 如果UFS按计划的间隔更新，可以在更新后手动触发sync命令。
 运行以下命令将同步间隔设置为`0`：
@@ -165,7 +165,7 @@ Alluxio按需从UFS加载元数据。
 ```console
 $ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/sync
 ```
-####集中配置
+#### 集中配置
 
 对于使用来自频繁更新的UFS数据的集群作业，
 每个客户端指定一个同步间隔很不方便。
@@ -284,9 +284,9 @@ $ ./bin/alluxio fs startSync /syncdir
 $ ./bin/alluxio fs stopSync /syncdir
 ```
 
->注意：发布`startSync`时，就预定了对同步点进行完整扫描。
->如果以Alluxio超级用户身份运行，`stopSync`将中断所有尚未结束的完整扫描。
->如果以其他用户身份运行，`stopSync`将等待完整扫描完成后再执行。
+> 注意：发布`startSync`时，就预定了对同步点进行完整扫描。
+> 如果以Alluxio超级用户身份运行，`stopSync`将中断所有尚未结束的完整扫描。
+> 如果以其他用户身份运行，`stopSync`将等待完整扫描完成后再执行。
 
 可以使用以下命令检查哪些目录当前处于主动同步状态。
 
@@ -294,7 +294,7 @@ $ ./bin/alluxio fs stopSync /syncdir
 $ ./bin/alluxio fs getSyncPathList
 ```
 
-####主动同步的静默期
+#### 主动同步的静默期
 
 主动同步会尝试避免在目标目录被频繁使用时进行同步。
 它会试图在UFS活动期寻找一个静默期，再开始UFS和Alluxio空间之间同步，以避免UFS繁忙时使其过载。
@@ -362,5 +362,5 @@ $ ./bin/alluxio fs ls -R /
 
 ## 资源
 
--一篇博客文章，解释了[统一命名空间](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
--关于[优化以加快元数据操作速度]的博客文章(https://www.alluxio.io/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x/)
+- 一篇博客文章，解释了[统一命名空间](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
+- 关于[优化以加快元数据操作速度]的博客文章(https://www.alluxio.io/blog/how-to-speed-up-alluxio-metadata-operations-up-to-100x/)
