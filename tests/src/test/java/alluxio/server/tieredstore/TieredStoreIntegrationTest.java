@@ -54,7 +54,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
