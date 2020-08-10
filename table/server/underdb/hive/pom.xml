@@ -26,8 +26,8 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-    <!-- 2.2.0 client works with a wide range of HMS, from 1.0 to 3.1 -->
-    <hive-metastore.version>2.2.0</hive-metastore.version>
+    <!-- 2.3.7 client needs a compatibility layer to work with lower versions -->
+    <hive-metastore.version>2.3.7</hive-metastore.version>
   </properties>
 
   <dependencies>

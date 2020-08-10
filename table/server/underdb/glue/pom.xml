@@ -31,7 +31,7 @@
         <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
         <glue.version>1.11.820</glue.version>
         <aws.java.jdk.version>1.11.820</aws.java.jdk.version>
-        <hive-metastore.version>2.2.0</hive-metastore.version>
+        <hive-metastore.version>2.3.7</hive-metastore.version>
     </properties>
 
     <dependencies>
