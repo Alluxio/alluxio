@@ -1266,6 +1266,8 @@ For `glue` udb type, there are some additional properties with the `-o` options:
     * `aws.accesskey`: the aws access key id
     * `aws.secretkey`: the aws secret key
     * `aws.proxy.protocol`: The protocol(HTTP/HTTPS) to use for connecting to the proxy server
+    * `aws.proxy.host`: The proxy host the client will connect through
+    * `aws.proxy.port`: The proxy port the client will connect through
     * `aws.proxy.username`: The proxy user name
     * `aws.proxy.password`: The proxy password
     * `table.column.statistics`: Enable table column statistics
