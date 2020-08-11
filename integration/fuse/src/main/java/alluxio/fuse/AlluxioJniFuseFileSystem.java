@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -236,6 +238,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to get info of {}, path does not exist or is invalid", path);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable e) {
       LOG.error("Failed to getattr {}: ", path, e);
       return -ErrorCodes.EIO();
