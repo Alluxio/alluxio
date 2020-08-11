@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 
+import javax.annotation.Nullable;
+
 class HMSClientFactory {
   private static final Logger LOG = LoggerFactory.getLogger(HMSClientFactory.class);
 
@@ -30,7 +32,7 @@ class HMSClientFactory {
     return newInstance(delegate, compatibility);
   }
 
-  static IMetaStoreClient newInstance(IMetaStoreClient delegate, HMSShim compatibility) {
+  private static IMetaStoreClient newInstance(IMetaStoreClient delegate, @Nullable HMSShim compatibility) {
     ClassLoader classLoader = IMetaStoreClient.class.getClassLoader();
     Class<?>[] interfaces = new Class<?>[] { IMetaStoreClient.class };
     CompatibleMetastoreClient handler = new CompatibleMetastoreClient(delegate,

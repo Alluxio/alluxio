@@ -20,13 +20,15 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import javax.annotation.Nullable;
+
 class CompatibleMetastoreClient implements InvocationHandler {
   private static final Logger LOG = LoggerFactory.getLogger(CompatibleMetastoreClient.class);
 
   private final IMetaStoreClient mDelegate;
   private final HMSShim mCompat;
 
-  CompatibleMetastoreClient(IMetaStoreClient delegate, HMSShim compatibility) {
+  CompatibleMetastoreClient(IMetaStoreClient delegate, @Nullable HMSShim compatibility) {
     mDelegate = delegate;
     mCompat = compatibility;
   }
@@ -37,11 +39,10 @@ class CompatibleMetastoreClient implements InvocationHandler {
       return method.invoke(mDelegate, args);
     } catch (InvocationTargetException delegateException) {
       try {
-        LOG.info("Couldn't invoke method {}", method.toGenericString());
         if (mCompat != null
             && delegateException.getCause().getClass()
             .isAssignableFrom(TApplicationException.class)) {
-          LOG.info("Attempting to invoke with {}", mCompat.getClass().getName());
+          LOG.debug("Attempting to call hive metastore with {}", mCompat.getClass().getName());
           return invokeCompatibility(method, args);
         }
       } catch (InvocationTargetException compatibilityException) {

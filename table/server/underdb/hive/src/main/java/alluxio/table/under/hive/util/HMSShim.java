@@ -40,6 +40,7 @@ public class HMSShim implements HiveCompatibility {
    * @param client another client as delegate
    */
   public HMSShim(IMetaStoreClient client) {
+    // Because RetryingMetaStoreClient is itself a proxy, we need to get to the base class
     while (Proxy.isProxyClass(client.getClass())) {
       InvocationHandler handler = Proxy.getInvocationHandler(client);
       if (handler.getClass().isAssignableFrom(RetryingMetaStoreClient.class)) {
@@ -47,7 +48,7 @@ public class HMSShim implements HiveCompatibility {
         continue;
       }
       // Other handlers can be added here
-      throw new RuntimeException("Unknown InvocationHandler " + handler.getClass());
+      throw new RuntimeException("Unknown proxy handler for IMetaStoreClient");
     }
     mClient = getField(client, "client");
   }
@@ -66,7 +67,7 @@ public class HMSShim implements HiveCompatibility {
       return result;
     } catch (SecurityException | NoSuchFieldException
         | IllegalArgumentException | IllegalAccessException e) {
-      throw new RuntimeException("Unable to hack client", e);
+      throw new RuntimeException("Unable to access the client through reflection", e);
     }
   }
 
