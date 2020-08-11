@@ -48,6 +48,12 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalRelativePathDir() throws Exception {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("11")) {
+      // Breaks on Java 11+ because of https://bugs.openjdk.java.net/browse/JDK-8202127
+      return;
+    }
+
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
@@ -121,6 +127,12 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalRelativePath() throws Exception {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("11")) {
+      // Breaks on Java 11+ because of https://bugs.openjdk.java.net/browse/JDK-8202127
+      return;
+    }
+
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
