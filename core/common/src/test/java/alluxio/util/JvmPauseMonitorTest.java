@@ -57,8 +57,12 @@ public final class JvmPauseMonitorTest {
     Whitebox.setInternalState(mon, "mJvmMonitorThread", spied);
     mon.stop();
     assertTrue(Thread.currentThread().isInterrupted());
-    pmThread.interrupt();
-    pmThread.join();
+    try {
+      pmThread.interrupt();
+      pmThread.join();
+    } catch (InterruptedException e) {
+      // ok, join was a cleanup operation
+    }
   }
 
   @Test
