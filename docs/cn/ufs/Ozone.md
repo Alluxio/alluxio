@@ -132,4 +132,3 @@ $ ./bin/alluxio fs mount \
 ### 支持的Ozone版本
 
 当前，唯一经过与Alluxio测试Ozone版本是`0.5.0-beta`。
-
