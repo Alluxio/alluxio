@@ -30,7 +30,10 @@ each master restart or failover.
 
 The number of files in Alluxio impacts the following:
 * Size of heap required by the master - Each file takes approximately 1 - 2 kb. If RocksDB is used,
-the size of the heap impacts how many files’ metadata can be cached in heap.
+most file metadata is stored off-heap, and the size of the heap impacts how many files’ metadata can
+be cached on heap. See the
+[RocksDB section]({{ 'en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
+information.
 * Size of disk required for journal storage - Each file takes approximately 1 - 2 kb on disk.
 * Latency of journal replay - The journal replay, which is the majority of the cold startup time for
 a master, takes time proportional to the number of files in the system.
@@ -80,7 +83,8 @@ The number of concurrent clients to the master impacts the following
 * Number of cores required by the master - We recommend 8 clients per core, or to determine the
 number of cores based on required operation throughput.
 * Number of open files allowed on the master - We recommend about 4 open files per expected
-concurrent client. On Linux machines this can be set through the `ulimit` command.
+concurrent client. On Linux machines this can be set by modifying `/etc/security/limits.d` and
+checked with the `ulimit` command.
 
 ### Worker
 
@@ -172,8 +176,10 @@ Several parameters in the Linux kernel limit the number of threads that a proces
 - `kernel.pid_max`: Run `sysctl -w kernel.pid_max=<new value>` as root
 - `kernel.thread_max`: Run `sysctl -w kernel.thread_max=<new value>` as root
 - `vm.max_map_count`: Run command `sysctl -w vm.max_map_count=<new value>` as root
-- Max user process limit: Run `ulimit -u <new value>`
-- Max open files limit: Run `ulimit -n <new value>`
+- Max user process limit: Update `/etc/security/limits.d` with `[domain] [type] nproc [value]` for
+example, if Alluxio is run under user `alluxio`: `alluxio soft nproc 4096`.
+- Max open files limit: Update `/etc/security/limits.d` with `[domain] [type] nfile [value]` for
+example, if Alluxio is run under user `alluxio`: `alluxio soft nofile 4096`.
 - User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
 These limits are often set for the particular user that launch the Alluxio process.
