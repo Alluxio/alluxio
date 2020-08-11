@@ -1270,8 +1270,8 @@ For `glue` udb type, there are some additional properties with the `-o` options:
     * `aws.proxy.port`: The proxy port the client will connect through
     * `aws.proxy.username`: The proxy user name
     * `aws.proxy.password`: The proxy password
-    * `table.column.statistics`: Enable table column statistics
-    * `partition.column.statistics`: Enable partition column statistics
+    * `table.column.statistics`: Enable table column statistics(true/false)
+    * `partition.column.statistics`: Enable partition column statistics(true/false)
     
 You can supply the mount options for the `glue` as follows:
 
