@@ -50,7 +50,6 @@ set_java_opt() {
 }
 
 mount_fuse() {
-  echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
   local full_mount_option=""
@@ -64,13 +63,12 @@ mount_fuse() {
     # Assumes that the end of ALLUXIO_FUSE_JAVA_OPTS is -Dalluxio.logger.type=FUSE_LOGGER
     ALLUXIO_FUSE_JAVA_OPTS+=",Console"
   fi
-
   local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root}"
-
+  echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
   if [[ ${NO_DAEMON} -eq "1" ]]; then
     exec ${cmd}
   else
