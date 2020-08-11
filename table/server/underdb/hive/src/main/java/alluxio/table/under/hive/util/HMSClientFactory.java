@@ -32,7 +32,8 @@ class HMSClientFactory {
     return newInstance(delegate, compatibility);
   }
 
-  private static IMetaStoreClient newInstance(IMetaStoreClient delegate, @Nullable HMSShim compatibility) {
+  private static IMetaStoreClient newInstance(IMetaStoreClient delegate,
+      @Nullable HMSShim compatibility) {
     ClassLoader classLoader = IMetaStoreClient.class.getClassLoader();
     Class<?>[] interfaces = new Class<?>[] { IMetaStoreClient.class };
     CompatibleMetastoreClient handler = new CompatibleMetastoreClient(delegate,
