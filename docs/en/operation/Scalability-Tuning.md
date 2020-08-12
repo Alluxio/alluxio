@@ -24,9 +24,8 @@ configuration tuning for large scale deployments.
 ### Number of Files in Alluxio
 
 Files refers to files and directories. The number of files in Alluxio can be monitored through the
-metrics `Master.FilesCreated` plus `Master.DirectoriesCreated` minus `Master.PathsDeleted`. These
-metric will need to be aggregated by a third party metrics collector because the value will reset on
-each master restart or failover.
+metric `Master.TotalPaths`. A third party metrics collector can be used to monitor the rate of
+change of this metric to determine how the number of files are growing over time.
 
 The number of files in Alluxio impacts the following:
 * Size of heap required by the master - Each file takes approximately 1 - 2 kb. If RocksDB is used,
@@ -86,7 +85,7 @@ number of cores based on required operation throughput.
 concurrent client. On Linux machines this can be set by modifying `/etc/security/limits.d` and
 checked with the `ulimit` command.
 
-### Worker
+#### Worker
 
 Client connections to the worker are long lived, lasting the duration of a block read. Therefore,
 the number of concurrent clients should be used to estimate the resource requirements, as opposed to
