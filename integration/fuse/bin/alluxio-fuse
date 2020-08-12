@@ -65,11 +65,23 @@ mount_fuse() {
     ALLUXIO_FUSE_JAVA_OPTS+=",Console"
   fi
 
+  echo "Checking ALLUXIO_CLIENT_HOSTNAME"
+  echo ${ALLUXIO_CLIENT_HOSTNAME}
+  echo "Checking JAVA_OPTS"
+  echo ${JAVA_OPTS}
+  echo "Checking ALLUXIO_FUSE_JAVA_OPTS: "
+  echo ${ALLUXIO_FUSE_JAVA_OPTS}
+  echo "Checking ALLUXIO_USER_JAVA_OPTS: "
+  echo ${ALLUXIO_USER_JAVA_OPTS}
+
+
   local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root}"
+  echo "Starting FUSE now"
+  echo $cmd
 
   if [[ ${NO_DAEMON} -eq "1" ]]; then
     exec ${cmd}
