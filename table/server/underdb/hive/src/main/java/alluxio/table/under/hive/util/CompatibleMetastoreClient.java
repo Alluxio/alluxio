@@ -42,7 +42,7 @@ class CompatibleMetastoreClient implements InvocationHandler {
         if (mCompat != null
             && delegateException.getCause().getClass()
             .isAssignableFrom(TApplicationException.class)) {
-          LOG.debug("Attempting to call hive metastore with {}", mCompat.getClass().getName());
+          LOG.debug("Attempting to call hive metastore with compatibility client");
           return invokeCompatibility(method, args);
         }
       } catch (InvocationTargetException compatibilityException) {

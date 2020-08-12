@@ -67,7 +67,7 @@ public class HMSShim implements HiveCompatibility {
       return result;
     } catch (SecurityException | NoSuchFieldException
         | IllegalArgumentException | IllegalAccessException e) {
-      throw new RuntimeException("Unable to access the client through reflection", e);
+      throw new RuntimeException("Unable to access field " + fieldName + " through reflection", e);
     }
   }
 
@@ -81,10 +81,9 @@ public class HMSShim implements HiveCompatibility {
           "sendBase", String.class, TBase.class);
       sendBase.setAccessible(true);
       sendBase.invoke(mClient, methodName, args);
-      sendBase.setAccessible(false);
     } catch (NoSuchMethodException | SecurityException
         | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-      throw new RuntimeException("Unable to hack sendBase", e);
+      throw new RuntimeException("Unable to invoke sendBase", e);
     }
   }
 
@@ -98,7 +97,7 @@ public class HMSShim implements HiveCompatibility {
     } catch (NoSuchMethodException | SecurityException
         | IllegalAccessException | IllegalArgumentException
         | InvocationTargetException e) {
-      throw new RuntimeException("Unable to hack receiveBase", e);
+      throw new RuntimeException("Unable to invoke receiveBase", e);
     }
   }
 
