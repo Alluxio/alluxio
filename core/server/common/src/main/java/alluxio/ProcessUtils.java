@@ -32,6 +32,7 @@ public final class ProcessUtils {
   public static void run(Process process) {
     try {
       LOG.info("Starting {}.", process);
+      LOG.info("Running under Java {}", System.getProperty("java.version"));
       process.start();
       LOG.info("Stopping {}.", process);
       System.exit(0);
