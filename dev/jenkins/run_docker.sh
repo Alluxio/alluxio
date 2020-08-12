@@ -58,7 +58,7 @@ function main {
 
   # Run as the host jenkins user so that files written to .m2 are written as jenkins.
   # Use group 0 to get certain elevated permissions.
-  # run_args+=" --user ${ALLUXIO_DOCKER_ID}:0"
+  run_args+=" --user ${ALLUXIO_DOCKER_ID}:0"
 
   # Mount the local directory inside the docker container, and set it as the working directory
   run_args+=" -v $(pwd):/usr/src/alluxio"
@@ -83,9 +83,9 @@ function main {
   fi
 
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
-  run_args+=" --entrypoint=/bin/bash"
+  run_args+=" --entrypoint=dev/jenkins/build.sh"
 
-  docker run ${run_args} 3d9f57076ef4 $@
+  docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE} $@
 }
 
 main "$@"
