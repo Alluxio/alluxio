@@ -2263,8 +2263,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
-      throw new FileAlreadyExistsException(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstInodePath.getUri()));
+      throw new FileAlreadyExistsException(String
+          .format("Cannot rename because destination already exists. src: %s dst: %s",
+              srcInodePath.getUri(), dstInodePath.getUri()));
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
