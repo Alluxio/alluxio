@@ -93,6 +93,7 @@ ENV JAVA_HOME /usr/local/openjdk-11
 ENV PATH $JAVA_HOME/bin:$PATH
 
 # basic smoke test to see if the default is jdk 11
+RUN set -eux; \
 	javac -version; \
 	java -version
 
