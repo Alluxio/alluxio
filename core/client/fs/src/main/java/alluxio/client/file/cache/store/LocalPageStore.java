@@ -20,11 +20,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.ReadableByteChannel;
+import java.io.RandomAccessFile;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,23 +86,22 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
+  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
+    Preconditions.checkArgument(buffer.length >= bufferOffset, "page offset %s should be "
+        + "less or equal than buffer length %s", bufferOffset, buffer.length);
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
-    File f = p.toFile();
-    Preconditions.checkArgument(pageOffset <= f.length(),
-        "page offset %s exceeded page size %s", pageOffset, f.length());
-    FileInputStream fis = new FileInputStream(p.toFile());
-    try {
-      fis.skip(pageOffset);
-      return fis.getChannel();
-    } catch (Throwable t) {
-      fis.close();
-      throw t;
+    long fileLen = p.toFile().length();
+    Preconditions.checkArgument(pageOffset <= fileLen,
+        "page offset %s exceeded page size %s", pageOffset, fileLen);
+    try (RandomAccessFile localFile = new RandomAccessFile(p.toString(), "r")) {
+      localFile.skipBytes(pageOffset);
+      return localFile.read(buffer, bufferOffset, (int) Math.min(fileLen - pageOffset,
+          buffer.length - bufferOffset));
     }
   }
 

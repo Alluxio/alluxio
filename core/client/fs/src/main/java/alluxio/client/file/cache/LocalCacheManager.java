@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -445,25 +443,16 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private int getPage(PageId pageId, int offset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer) {
-    try (ReadableByteChannel chan = mPageStore.get(pageId, offset)) {
-      // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-      ByteBuffer buf = ByteBuffer.wrap(buffer);
-      buf.position(offsetInBuffer);
-      buf.limit(offsetInBuffer + bytesToRead);
-      // read data from cache
-      while (buf.position() != buf.limit()) {
-        if (chan.read(buf) == -1) {
-          break;
-        }
-      }
-      if (buf.position() != buf.limit()) {
+  private int getPage(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int bufferOffset) {
+    try {
+      int ret = mPageStore.get(pageId, pageOffset, buffer, bufferOffset);
+      if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
         Metrics.GET_ERRORS_FAILED_READ.inc();
         throw new IOException(String.format(
-            "Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
-            pageId, bytesToRead, buf.position() - offsetInBuffer));
+            "Failed to read page %s: supposed to read %s bytes, %s bytes actually read",
+            pageId, bytesToRead, ret));
       }
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to get existing page {}: {}", pageId, e);

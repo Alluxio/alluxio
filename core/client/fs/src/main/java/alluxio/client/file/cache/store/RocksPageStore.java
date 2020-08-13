@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -113,7 +111,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
+  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
@@ -123,9 +121,12 @@ public class RocksPageStore implements PageStore {
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      ByteArrayInputStream bais = new ByteArrayInputStream(page);
-      bais.skip(pageOffset);
-      return Channels.newChannel(bais);
+
+      try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
+        bais.skip(pageOffset);
+        return bais.read(buffer, bufferOffset,
+            Math.min(page.length - pageOffset, buffer.length - bufferOffset));
+      }
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }

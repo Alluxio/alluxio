@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,28 +107,32 @@ public interface PageStore extends AutoCloseable {
   void put(PageId pageId, byte[] page) throws IOException;
 
   /**
-   * Wraps a page from the store as a channel to read.
+   * Gets a page from the store to the destination buffer.
    *
    * @param pageId page identifier
+   * @param buffer destination buffer
    * @return the channel to read this page
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
-    return get(pageId, 0);
+  default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
+    return get(pageId, 0, buffer, 0);
   }
 
   /**
-   * Gets part of a page from the store to the destination channel.
+   * Gets part of a page from the store to the destination buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset within page
+   * @param buffer destination buffer
+   * @param bufferOffset offset in buffer
    * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException, PageNotFoundException;
+  int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset) throws IOException,
+      PageNotFoundException;
 
   /**
    * Deletes a page from the store.
