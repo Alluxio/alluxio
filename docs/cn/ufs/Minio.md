@@ -57,7 +57,6 @@ aws.secretKey=<MINIO_SECRET_KEY_ID>
 
 通过如下命令格式化并启动Alluxio
 
-
 ```console
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
@@ -90,13 +89,13 @@ t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e
         at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
+
 ### DNS解析-无法执行HTTP请求
 
 如果遇到这样的异常，则可能是Alluxio属性
 [`alluxio.underfs.s3.disable.dns.buckets`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.disable.dns.buckets)
 设置为`false`。
 为MinIO将此值设置为`true`将允许Alluxio解析正确的存储桶位置。
-
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: {{BUCKET_NAME}}) from the under file system
@@ -127,7 +126,6 @@ Alluxio master凭证配置不正确。
 检查[`aws.accessKeyId`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.accessKeyId)
 和[`aws.secretKey`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.secretKey)。
 如果出现此错误，请仔细检查这两个属性的设置是否正确。
-
 
 ```
 ERROR CliUtils - Exception running test: alluxio.examples.BasicNonByteBufferOperations@388526fb
