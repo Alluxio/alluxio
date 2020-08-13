@@ -228,7 +228,7 @@ public final class GrpcDataReaderTest {
         assertEquals(chunkSize, readRequest.getChunkSize());
       } else {
         assertTrue(readRequest.hasOffsetReceived());
-        assertTrue(readRequest.getOffsetReceived() > lastOffset);
+        assertTrue(readRequest.getOffsetReceived() >= lastOffset);
         assertTrue(readRequest.getOffsetReceived() <= length);
         lastOffset = readRequest.getOffsetReceived();
       }

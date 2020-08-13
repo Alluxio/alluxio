@@ -38,12 +38,10 @@ import alluxio.worker.block.io.BlockReader;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.FileChannel;
-import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -108,7 +106,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       openBlock(context);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+      ByteBuf buf = BufferAllocator.DEFAULT.buffer(len);
       try {
         while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
         }
@@ -206,16 +204,14 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
-   * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker the block worker
    * @param responseObserver the response observer of the gRPC stream
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether reading block over domain socket
    */
-  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo,
-      boolean domainSocketEnabled) {
-    super(executorService, responseObserver, userInfo);
+  public BlockReadHandler(BlockWorker blockWorker, StreamObserver<ReadResponse> responseObserver,
+      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
   }

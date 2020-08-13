@@ -26,6 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -145,6 +148,20 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public ResT receive(long timeoutMs) throws IOException {
+    return retryReceive(timeoutMs, null);
+  }
+
+  /**
+   * Receives a response from the server. Will wait until a response is received, or
+   * throw an exception if times out.
+   *
+   * @param timeoutMs maximum time to wait before giving up and throwing
+   *                  a {@link DeadlineExceededException}
+   * @param request   the request
+   * @return the response message, or null if the inbound stream is completed
+   * @throws IOException if any error occurs
+   */
+  public ResT retryReceive(long timeoutMs, ReqT request) throws IOException {
     if (mCompleted) {
       return null;
     }
@@ -152,7 +169,35 @@ public class GrpcBlockingStream<ReqT, ResT> {
       throw new CancelledException(formatErrorMessage("Stream is already canceled."));
     }
     try {
-      Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
+      Object response;
+      if (request == null) {
+        response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
+      } else {
+        Clock clock = Clock.systemUTC();
+        Duration maxWaitTime = Duration.ofSeconds(3);
+        Duration nextWaitTime = Duration.ofMillis(32);
+        Instant endTime = clock.instant().plus(Duration.ofMillis(timeoutMs));
+        while (true) {
+          response = mResponses.poll(nextWaitTime.toMillis(), TimeUnit.MILLISECONDS);
+          if (response != null) {
+            break;
+          } else {
+            Instant now = clock.instant();
+            if (now.isAfter(endTime) || now.equals(endTime)) {
+              break;
+            }
+            nextWaitTime = nextWaitTime.multipliedBy(2);
+            if (nextWaitTime.compareTo(maxWaitTime) > 0) {
+              nextWaitTime = maxWaitTime;
+            }
+            if (now.plus(nextWaitTime).isAfter(endTime)) {
+              nextWaitTime = Duration.between(now, endTime);
+            }
+            send(request);
+          }
+        }
+      }
+
       if (response == null) {
         checkError(); // The stream could have errored while we were waiting
         DeadlineExceededException e = new DeadlineExceededException(

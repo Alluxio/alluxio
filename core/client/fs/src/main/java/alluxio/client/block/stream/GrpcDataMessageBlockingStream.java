@@ -58,10 +58,15 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
 
   @Override
   public ResT receive(long timeoutMs) throws IOException {
+    return retryReceive(timeoutMs, null);
+  }
+
+  @Override
+  public ResT retryReceive(long timeoutMs, ReqT request) throws IOException {
     if (mResponseMarshaller == null) {
-      return super.receive(timeoutMs);
+      return super.retryReceive(timeoutMs, request);
     }
-    DataMessage<ResT, DataBuffer> message = receiveDataMessage(timeoutMs);
+    DataMessage<ResT, DataBuffer> message = retryReceiveDataMessage(timeoutMs, request);
     if (message == null) {
       return null;
     }
@@ -79,9 +84,25 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
    * @throws IOException if any error occurs
    */
   public DataMessage<ResT, DataBuffer> receiveDataMessage(long timeoutMs) throws IOException {
+    return retryReceiveDataMessage(timeoutMs, null);
+  }
+
+  /**
+   * Receives a response with data buffer from the server. Will wait until a response is received,
+   * or throw an exception if times out. Caller of this method must release the buffer after reading
+   * the data.
+   *
+   * @param timeoutMs maximum time to wait before giving up and throwing
+   *                  a {@link DeadlineExceededException}
+   * @param request   the request
+   * @return the response message with data buffer, or null if the inbound stream is completed
+   * @throws IOException if any error occurs
+   */
+  public DataMessage<ResT, DataBuffer> retryReceiveDataMessage(long timeoutMs, ReqT request)
+      throws IOException {
     Preconditions.checkNotNull(mResponseMarshaller,
         "Cannot retrieve data message without a response marshaller.");
-    ResT response = super.receive(timeoutMs);
+    ResT response = super.retryReceive(timeoutMs, request);
     if (response == null) {
       return null;
     }

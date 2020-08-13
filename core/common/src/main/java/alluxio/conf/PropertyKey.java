@@ -2777,6 +2777,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_READER_MAX_BUFFER_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_MAX_BUFFER_SIZE_BYTES)
+          .setDefaultValue("1GB")
+          .setDescription("When a client reads from a remote worker,"
+              + " The maximum amount of data allowed to be read into memory"
+              + " before the worker pauses sending more data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
       new Builder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
           .setDefaultValue("2MB")
@@ -5145,6 +5154,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.worker.threads";
     public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
         "alluxio.worker.network.reader.buffer.size";
+    public static final String WORKER_NETWORK_READER_MAX_BUFFER_SIZE_BYTES =
+        "alluxio.worker.network.reader.max.buffer.size";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =

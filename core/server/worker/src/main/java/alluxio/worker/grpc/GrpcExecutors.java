@@ -43,17 +43,11 @@ final class GrpcExecutors {
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
+      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true)));
-
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
-          ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
-          new ThreadPoolExecutor.CallerRunsPolicy()));
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
+          ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true)), true);
 
   public static final ExecutorService BLOCK_WRITER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
@@ -76,6 +70,13 @@ final class GrpcExecutors {
     private final ExecutorService mDelegate;
 
     public ImpersonateThreadPoolExecutor(ExecutorService service) {
+      mDelegate = service;
+    }
+
+    public ImpersonateThreadPoolExecutor(
+            ThreadPoolExecutor service,
+            boolean allowCoreThreadTimeOut) {
+      service.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
       mDelegate = service;
     }
 

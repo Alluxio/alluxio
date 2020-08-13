@@ -63,7 +63,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
   /** The executor for running write tasks asynchronously in the submission order. */
-  private final SerializingExecutor mSerializingExecutor;
+  private final SerializingExecutor mDataWriterExecutor;
   /** The semaphore to control the number of write tasks queued up in the executor.*/
   private final Semaphore mSemaphore = new Semaphore(
       ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES), true);
@@ -90,7 +90,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
-    mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    mDataWriterExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 
   /**
@@ -102,7 +102,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     if (!tryAcquireSemaphore()) {
       return;
     }
-    mSerializingExecutor.execute(() -> {
+    mDataWriterExecutor.execute(() -> {
       try {
         if (mContext == null) {
           LOG.debug("Received write request {}.", writeRequest);
@@ -165,7 +165,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     if (!tryAcquireSemaphore()) {
       return;
     }
-    mSerializingExecutor.execute(() -> {
+    mDataWriterExecutor.execute(() -> {
       try {
         writeData(buffer);
       } finally {
@@ -178,7 +178,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * Handles request complete event.
    */
   public void onCompleted() {
-    mSerializingExecutor.execute(() -> {
+    mDataWriterExecutor.execute(() -> {
       Preconditions.checkState(mContext != null);
       try {
         completeRequest(mContext);
@@ -196,7 +196,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * Handles request cancellation event.
    */
   public void onCancel() {
-    mSerializingExecutor.execute(() -> {
+    mDataWriterExecutor.execute(() -> {
       try {
         cancelRequest(mContext);
         replyCancel();
@@ -220,7 +220,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       // Cancellation is already handled.
       return;
     }
-    mSerializingExecutor.execute(() -> {
+    mDataWriterExecutor.execute(() -> {
       LogUtils.warnWithException(LOG, "Exception thrown while handling write request {}",
           mContext == null ? "unknown" : mContext.getRequest(), cause);
       abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
