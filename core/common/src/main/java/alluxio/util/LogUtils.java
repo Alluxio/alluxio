@@ -21,7 +21,6 @@ import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.log4j.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.impl.Log4jLoggerAdapter;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -54,15 +53,6 @@ public final class LogUtils {
         process(((Log4JLogger) log).getLogger(), level, result);
       } else if (log instanceof Jdk14Logger) {
         process(((Jdk14Logger) log).getLogger(), level, result);
-      } else if (logger instanceof Log4jLoggerAdapter) {
-        try {
-          Field field = Log4jLoggerAdapter.class.getDeclaredField("logger");
-          field.setAccessible(true);
-          org.apache.log4j.Logger log4jLogger = (org.apache.log4j.Logger) field.get(logger);
-          process(log4jLogger, level, result);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-          result.setMessage(e.getMessage());
-        }
       } else {
         result.setMessage("Sorry, " + log.getClass() + " not supported.");
       }
@@ -72,8 +62,7 @@ public final class LogUtils {
     return result;
   }
 
-  private static void process(org.apache.log4j.Logger log, String level, LogInfo result)
-      throws IOException {
+  private static void process(org.apache.log4j.Logger log, String level, LogInfo result) {
     if (log == null) {
       result.setMessage("log is null.");
       return;
