@@ -68,8 +68,14 @@ if [ "$RUN_MAVEN" == "true" ]; then
   then
     ALLUXIO_BUILD_FORKCOUNT=4
   fi
-
-  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
+  JAVA_HOME_BACKUP=${JAVA_HOME}
+  PATH_BACKUP=${PATH}
+  JAVA_HOME=/usr/local/openjdk-8 
+  PATH=$JAVA_HOME/bin:$PATH 
+  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
+  JAVA_HOME=${JAVA_HOME_BACKUP}
+  PATH=${PATH_BACKUP}
+  mvn -Duser.home=/home/jenkins -T 4C test -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then
