@@ -62,7 +62,8 @@ public final class LogUtils {
     return result;
   }
 
-  private static void process(org.apache.log4j.Logger log, String level, LogInfo result) {
+  private static void process(org.apache.log4j.Logger log, String level, LogInfo result)
+      throws IOException {
     if (log == null) {
       result.setMessage("log is null.");
       return;
