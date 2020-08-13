@@ -216,7 +216,8 @@ public final class InodeTreeTest {
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
-    mThrown.expectMessage("Not allowed to create existing directory: " + TEST_URI);
+    mThrown
+        .expectMessage("Not allowed to create directory because path already exists: " + TEST_URI);
     createPath(mTree, TEST_URI, CreateDirectoryContext
         .mergeFrom(CreateDirectoryPOptions.newBuilder().setAllowExists(false)));
   }
@@ -294,7 +295,8 @@ public final class InodeTreeTest {
       createPath(mTree, NESTED_URI, dirContext);
       fail("createPath should throw FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
-      assertEquals("Not allowed to create existing directory: " + NESTED_URI, e.getMessage());
+      assertEquals("Not allowed to create directory because path already exists: " + NESTED_URI,
+          e.getMessage());
     }
 
     // create a file
@@ -313,7 +315,8 @@ public final class InodeTreeTest {
       createPath(mTree, NESTED_FILE_URI, options);
       fail("createPath should throw FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
-      assertEquals("Not allowed to create existing file: " + NESTED_FILE_URI, e.getMessage());
+      assertEquals("Not allowed to create file because path already exists: " + NESTED_FILE_URI,
+          e.getMessage());
     }
   }
 

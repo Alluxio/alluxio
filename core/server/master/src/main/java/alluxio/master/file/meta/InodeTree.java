@@ -689,8 +689,8 @@ public class InodeTree implements DelegatingJournaled {
         if (context instanceof CreateDirectoryContext) {
           pathType = "directory";
         }
-        String errorMessage =
-            String.format("Not allowed to create existing %s: %s", pathType, path);
+        String errorMessage = String
+            .format("Not allowed to create %s because path already exists: %s", pathType, path);
         throw new FileAlreadyExistsException(errorMessage);
       }
     }
