@@ -13,6 +13,9 @@
 
 FROM maven:3.6.3-jdk-11
 
+# reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile 
+# we need jdk 8 in jdk 11 so that we can compile with jdk 8 and test with jdk 11
+
 ENV JAVA_HOME /usr/local/openjdk-8
 ENV PATH $JAVA_HOME/bin:$PATH
 
@@ -82,7 +85,14 @@ RUN set -eux; \
 	find "$JAVA_HOME/lib" -name '*.so' -exec dirname '{}' ';' | sort -u > /etc/ld.so.conf.d/docker-openjdk.conf; \
 	ldconfig; \
 	\
-# basic smoke test
+# basic smoke test to see if the default is jdk 8
+	javac -version; \
+	java -version
+
+ENV JAVA_HOME /usr/local/openjdk-11
+ENV PATH $JAVA_HOME/bin:$PATH
+
+# basic smoke test to see if the default is jdk 11
 	javac -version; \
 	java -version
 
