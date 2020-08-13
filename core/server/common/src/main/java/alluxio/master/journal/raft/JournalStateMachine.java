@@ -86,12 +86,14 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mLastPrimaryStartSequenceNumber = 0;
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
+  private volatile boolean mIsLeader = false;
+
   // The start time of the most recent snapshot
   private volatile long mLastSnapshotStartTime = 0;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
   private final SimpleStateMachineStorage mStorage = new SimpleStateMachineStorage();
-  private Object mRaftGroupId;
+  private RaftGroupId mRaftGroupId;
 
   /**
    * @param journals     master journals; these journals are still owned by the caller, not by the
@@ -157,7 +159,7 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public long takeSnapshot() {
-    if (mJournalSystem.isLeader()) {
+    if (mIsLeader) {
       // TODO(feng): if secondary master has a more recent snapshot, install it
       return RaftLog.INVALID_LOG_INDEX;
     } else {
@@ -198,6 +200,7 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void notifyNotLeader(Collection<TransactionContext> pendingEntries) {
+    mIsLeader = false;
     mJournalSystem.notifyLeadershipStateChanged(false);
   }
 
@@ -315,6 +318,16 @@ public class JournalStateMachine extends BaseStateMachine {
     }
   }
 
+  private File createTempSnapshotFile() throws IOException {
+    File tempDir = new File(mStorage.getSmDir().getParentFile(), "tmp");
+    if (!tempDir.isDirectory() && !tempDir.mkdir()) {
+      throw new IOException(
+          "Cannot create temporary snapshot directory at " + tempDir.getAbsolutePath());
+    }
+    return File.createTempFile("raft_snapshot_" + System.currentTimeMillis() + "_",
+        ".dat", tempDir);
+  }
+
   private long takeSnapshotInternal() {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
@@ -328,10 +341,9 @@ public class JournalStateMachine extends BaseStateMachine {
     TermIndex last = getLastAppliedTermIndex();
     File tempFile;
     try {
-      tempFile = File.createTempFile("raft_snapshot_" + System.currentTimeMillis() + "_",
-          ".dat", new File("/tmp/"));
+      tempFile = createTempSnapshotFile();
     } catch (IOException e) {
-      LOG.warn("Failed to create temp snapshot", e);
+      LOG.warn("Failed to create temp snapshot file", e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.info("Taking a snapshot to file {}", tempFile);
@@ -494,7 +506,8 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
     if (mRaftGroupId == groupMemberId.getGroupId()) {
-      mJournalSystem.notifyLeadershipStateChanged(groupMemberId.getPeerId() == raftPeerId);
+      mIsLeader = groupMemberId.getPeerId() == raftPeerId;
+      mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
     }
   }
 }

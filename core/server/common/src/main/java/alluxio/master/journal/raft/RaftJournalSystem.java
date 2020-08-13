@@ -683,6 +683,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       groupInfo = getGroupInfo();
     } catch (IOException e) {
       LOG.warn("failed to get leadership info", e);
+      return null;
     }
     return groupInfo.getRoleInfoProto();
   }
@@ -691,7 +692,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @return {@code true} if this journal system is the leader
    */
   @VisibleForTesting
-  public boolean isLeader() {
+  public synchronized boolean isLeader() {
     return mServer != null
         && mServer.getLifeCycleState() == LifeCycle.State.RUNNING
         && mPrimarySelector.getState() == PrimarySelector.State.PRIMARY;
