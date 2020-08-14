@@ -1340,8 +1340,8 @@
             <version>${powermock.version}</version>
             <exclusions>
               <exclusion>
-                <groupId>com.sun</groupId> 
-                <artifactId>tools</artifactId>
+                <groupId>jdk.tools</groupId>
+                <artifactId>jdk.tools</artifactId>
               </exclusion>
             </exclusions>
             <scope>test</scope>
