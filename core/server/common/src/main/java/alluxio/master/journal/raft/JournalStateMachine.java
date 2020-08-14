@@ -219,9 +219,7 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   /**
-   * Unpause the StateMachine, re-initialize the DoubleBuffer and update the
-   * lastAppliedIndex. This should be done after uploading new state to the
-   * StateMachine.
+   * Unpause the StateMachine. This should be done after uploading new state to the StateMachine.
    */
   public void unpause() {
     getLifeCycle().startAndTransition(() -> {
@@ -291,7 +289,7 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
-      justification = "All calls to applyJournalEntryCommand() are synchronized by copycat")
+      justification = "All calls to applyJournalEntryCommand() are synchronized by ratis")
   private void applySingleEntry(JournalEntry entry) {
     if (mClosed) {
       return;

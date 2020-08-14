@@ -35,8 +35,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.copycat.server.StateMachine;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.client.RaftClientConfigKeys;
@@ -93,16 +91,16 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * System for multiplexing many logical journals into a single raft-based journal.
  *
- * This class embeds a CopycatServer which implements the raft algorithm, replicating entries across
- * a majority of servers before applying them to the state machine. To make the Copycat system work
+ * This class embeds a RaftServer which implements the raft algorithm, replicating entries across
+ * a majority of servers before applying them to the state machine. To make the Ratis system work
  * as an Alluxio journal system, we implement two non-standard behaviors: (1) pre-applying
  * operations on the primary and (2) tightly controlling primary snapshotting.
  * <h1>Pre-apply</h1>
  * <p>
- * Unlike the Copycat framework, Alluxio updates state machine state *before* writing to the
+ * Unlike the Ratis framework, Alluxio updates state machine state *before* writing to the
  * journal. This lets us avoid journaling operations which do not result in state modification. To
- * make this work in the Copycat framework, we allow RPCs to modify state directly, then write an
- * entry to Copycat afterwards. Once the entry is journaled, Copycat will attempt to apply the
+ * make this work in the Ratis framework, we allow RPCs to modify state directly, then write an
+ * entry to Ratis afterwards. Once the entry is journaled, Ratis will attempt to apply the
  * journal entry to each master. The entry has already been applied on the primary, so we treat all
  * journal entries applied to the primary as no-ops to avoid double-application.
  *
@@ -130,7 +128,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <h1>Snapshot control</h1>
  * <p>
  * The way we apply journal entries to the primary makes it tricky to perform
- * primary state snapshots. Normally Copycat would decide when it wants a snapshot,
+ * primary state snapshots. Normally Ratis would decide when it wants a snapshot,
  * but with the pre-apply protocol we may be in the middle of modifying state
  * when the snapshot would happen. To manage this, we inject an AtomicBoolean into Copycat
  * which decides whether it will be allowed to take snapshots. Normally, snapshots
@@ -240,8 +238,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     return conf;
   }
 
-  private RaftPeerId getPeerId(Address address) {
-    return RaftPeerId.getRaftPeerId(address.host() + "_" + address.port());
+  private RaftPeerId getPeerId(InetSocketAddress address) {
+    return RaftPeerId.getRaftPeerId(address.getHostString() + "_" + address.getPort());
   }
 
   private synchronized void initServer() throws IOException {
@@ -251,12 +249,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
     mStateMachine = new JournalStateMachine(mJournals, this);
 
-    List<Address> addresses = getClusterAddresses(mConf);
-    Address localAddress = getLocalAddress(mConf);
+    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
+    InetSocketAddress localAddress = mConf.getLocalAddress();
     mPeerId = getPeerId(localAddress);
-    Set<RaftPeer> peers = addresses.stream().map(addr ->
-        new RaftPeer(getPeerId(addr), addr.socketAddress())
-    ).collect(Collectors.toSet());
+    Set<RaftPeer> peers = addresses.stream()
+        .map(addr -> new RaftPeer(getPeerId(addr), addr))
+        .collect(Collectors.toSet());
     mRaftGroupId = RaftGroupId.valueOf(RAFT_GROUP_ID);
     mRaftGroup = RaftGroup.valueOf(mRaftGroupId, peers);
 
@@ -266,7 +264,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
 
     // RPC port
-    GrpcConfigKeys.Server.setPort(properties, localAddress.port());
+    GrpcConfigKeys.Server.setPort(properties, localAddress.getPort());
 
     // storage path
     RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(mConf.getPath()));
@@ -336,18 +334,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .build();
   }
 
-  private static List<Address> getClusterAddresses(RaftJournalConfiguration conf) {
-    return conf.getClusterAddresses().stream()
-        .map(addr -> new Address(addr))
-        .collect(Collectors.toList());
-  }
-
-  private static Address getLocalAddress(RaftJournalConfiguration conf) {
-    return new Address(conf.getLocalAddress());
-  }
-
   /**
-   * @return the serializer for commands in the {@link StateMachine}
+   * @return the serializer for commands in the StateMachine
    */
   public static Serializer createSerializer() {
     return new Serializer().register(JournalEntryCommand.class, 1);
@@ -419,7 +407,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       initServer();
     } catch (IOException e) {
       LOG.error("Fatal error: failed to init Raft cluster with addresses {} while stepping down",
-          getClusterAddresses(mConf), e);
+          mConf.getClusterAddresses(), e);
       System.exit(-1);
     }
     LOG.info("Bootstrapping new Raft server");
@@ -427,7 +415,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mServer.start();
     } catch (IOException e) {
       LOG.error("Fatal error: failed to start Raft cluster with addresses {} while stepping down",
-          getClusterAddresses(mConf), e);
+          mConf.getClusterAddresses(), e);
       System.exit(-1);
     }
 
@@ -612,9 +600,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void startInternal() throws InterruptedException, IOException {
     LOG.info("Initializing Raft Journal System");
     initServer();
-    List<Address> clusterAddresses = getClusterAddresses(mConf);
+    List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
-        clusterAddresses, getLocalAddress(mConf));
+        clusterAddresses, mConf.getLocalAddress());
     long startTime = System.currentTimeMillis();
     try {
       mServer.start();
@@ -660,10 +648,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
           .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
-    Address localAddress = getLocalAddress(mConf);
+    InetSocketAddress localAddress = mConf.getLocalAddress();
     NetAddress self = NetAddress.newBuilder()
-        .setHost(localAddress.host())
-        .setRpcPort(localAddress.port())
+        .setHost(localAddress.getHostString())
+        .setRpcPort(localAddress.getPort())
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
         .setServerAddress(self)
@@ -706,12 +694,13 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException
    */
   public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
-    Address serverAddress = new Address(InetSocketAddress
-        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort()));
+    InetSocketAddress serverAddress = InetSocketAddress
+        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
+    RaftPeerId peerId = getPeerId(serverAddress);
     try (RaftClient client = createClient()) {
       Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
       RaftClientReply reply = client.setConfiguration(peers.stream()
-          .filter(peer -> !peer.getAddress().equals(serverAddress.toString()))
+          .filter(peer -> peer.getId() != peerId)
           .toArray(RaftPeer[]::new));
       if (reply.getException() != null) {
         throw reply.getException();
