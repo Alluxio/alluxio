@@ -121,11 +121,24 @@ public class RocksPageStore implements PageStore {
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-
       try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
-        bais.skip(pageOffset);
-        return bais.read(buffer, bufferOffset,
-            Math.min(page.length - pageOffset, buffer.length - bufferOffset));
+        int bytesSkipped = (int) bais.skip(pageOffset);
+        if (pageOffset != bytesSkipped) {
+          throw new IOException(
+              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
+                  pageOffset, bytesSkipped));
+        }
+        int bytesRead = 0;
+        int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+        while (bytesLeft >= 0) {
+          int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
+          if (bytes < 0) {
+            break;
+          }
+          bytesRead += bytes;
+          bytesLeft -= bytes;
+        }
+        return bytesRead;
       }
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);

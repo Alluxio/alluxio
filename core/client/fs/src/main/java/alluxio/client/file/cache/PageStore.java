@@ -111,7 +111,7 @@ public interface PageStore extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param buffer destination buffer
-   * @return the channel to read this page
+   * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
