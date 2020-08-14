@@ -242,9 +242,10 @@ public class RaftJournalTest {
     Assert.assertEquals(0, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
     mFollowerJournalSystem.gainPrimacy();
-    CommonUtils.waitFor("full state acquired after resume",
-        () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
-
+    CommonUtils.waitFor(
+        "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
+            .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
+        mWaitOptions);
     // Resuming should fail after becoming primary.
     mThrown.expect(IllegalStateException.class);
     mFollowerJournalSystem.resume();
