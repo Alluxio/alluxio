@@ -132,6 +132,14 @@
         <filtering>true</filtering>
       </resource>
     </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <excludes>
+          <exclude>mockito-extensions/**</exclude>
+        </excludes>
+      </testResource>
+    </testResources>
     <plugins>
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
