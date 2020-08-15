@@ -163,7 +163,7 @@ public class JournalStateMachine extends BaseStateMachine {
       // TODO(feng): if secondary master has a more recent snapshot, install it
       return RaftLog.INVALID_LOG_INDEX;
     } else {
-      return takeSnapshotInternal();
+      return takeLocalSnapshot();
     }
   }
 
@@ -326,7 +326,11 @@ public class JournalStateMachine extends BaseStateMachine {
         ".dat", tempDir);
   }
 
-  private long takeSnapshotInternal() {
+  /**
+   * Takes a snapshot of local state machine.
+   * @return the index of last included entry, or {@link RaftLog#INVALID_LOG_INDEX} if it fails
+   */
+  public long takeLocalSnapshot() {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
       return RaftLog.INVALID_LOG_INDEX;

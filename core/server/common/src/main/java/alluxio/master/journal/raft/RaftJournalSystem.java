@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -140,16 +139,17 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RaftJournalSystem extends AbstractJournalSystem {
+  public static final UUID RAFT_GROUP_ID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
+
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
 
-  private static final UUID RAFT_GROUP_ID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
-
   /// Lifecycle: constant from when the journal system is constructed.
 
   private final RaftJournalConfiguration mConf;
+
   /** Controls whether Copycat will attempt to take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
   /**
@@ -459,71 +459,19 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void checkpoint() throws IOException {
-    // TODO(feng): remove this once we can automatically propagate snapshots from secondary master
-    long start = System.currentTimeMillis();
-    mSnapshotAllowed.set(true);
+    // TODO(feng): consider removing this once we can automatically propagate
+    //             snapshots from secondary master
     try (RaftClient client = createClient()) {
-      LOG.info("Submitting empty journal entry to trigger snapshot");
-      // New snapshot requires new segments (segment size is controlled by
-      // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
-      // If snapshot requirements are fulfilled, a snapshot will be triggered
-      // after sending an empty journal entry to Copycat
-      CompletableFuture<RaftClientReply> future = client.sendAsync(
-          toRaftMessage(JournalEntry.getDefaultInstance()));
-      try {
-        future.get(1, TimeUnit.MINUTES);
-      } catch (TimeoutException | ExecutionException e) {
-        LOG.warn("Exception submitting entry to trigger snapshot: {}", e.toString());
-        throw new IOException("Exception submitting entry to trigger snapshot", e);
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
-        Thread.currentThread().interrupt();
-        throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
-      }
-      waitForSnapshotStart(mStateMachine, start);
-      waitForSnapshotting(mStateMachine);
-    } finally {
-      mSnapshotAllowed.set(false);
-    }
-  }
-
-  /**
-   * Waits for snapshotting to start.
-   *
-   * @param stateMachine the journal state machine
-   * @param start the start time to check
-   */
-  private void waitForSnapshotStart(JournalStateMachine stateMachine,
-      long start) throws IOException {
-    try {
-      CommonUtils.waitFor("snapshotting to start", () ->
-              stateMachine.getLastSnapshotStartTime() > start,
-          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
-      return;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CancelledException("Interrupted when waiting for snapshotting to start", e);
+      catchUp(mStateMachine, client);
+      mStateMachine.takeLocalSnapshot();
+      // TODO(feng): maybe prune logs after snapshot
     } catch (TimeoutException e) {
-      throw new IOException("A recent checkpoint already exists, not creating a new one");
-    }
-  }
-
-  /**
-   * Waits for snapshotting to finish.
-   *
-   * @param stateMachine the journal state machine
-   */
-  private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
-    try {
-      CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
-          WaitForOptions.defaults().setTimeoutMs((int) ServerConfiguration.getMs(
-              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)));
+      LOG.warn("Timeout while performing snapshot: {}", e.toString());
+      throw new IOException("Timeout while performing snapshot", e);
     } catch (InterruptedException e) {
+      LOG.warn("Interrupted while performing snapshot: {}", e.toString());
       Thread.currentThread().interrupt();
-      throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
-    } catch (TimeoutException e) {
-      LOG.warn("Timeout waiting for snapshotting to finish", e);
-      throw new DeadlineExceededException("Timeout waiting for snapshotting to finish", e);
+      throw new CancelledException("Interrupted while performing snapshot", e);
     }
   }
 
