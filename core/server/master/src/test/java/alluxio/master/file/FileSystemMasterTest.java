@@ -2065,8 +2065,9 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI, RenameContext.defaults());
       fail("Should not be able to overwrite existing file.");
     } catch (FileAlreadyExistsException e) {
-      assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
-          e.getMessage());
+      assertEquals(String
+          .format("Cannot rename because destination already exists. src: %s dst: %s",
+              NESTED_FILE_URI.getPath(), NESTED_URI.getPath()), e.getMessage());
     }
 
     // move a nested file to a root file

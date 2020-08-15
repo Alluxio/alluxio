@@ -469,8 +469,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"cp", "file://" +  testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
-    Assert.assertThat(mOutput.toString(),
-        containsString(alluxioFilePath.getPath() + " already exists"));
+    Assert.assertThat(mOutput.toString(), containsString(
+        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
