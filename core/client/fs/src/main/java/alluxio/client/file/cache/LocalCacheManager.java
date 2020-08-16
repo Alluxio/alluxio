@@ -271,7 +271,6 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
-          Metrics.PUT_EXISTING_PAGE_ERRORS.inc();
           return false;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
@@ -306,7 +305,6 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted by a racing thread", pageId);
-          Metrics.PUT_EXISTING_PAGE_ERRORS.inc();
           return false;
         }
         if (!mMetaStore.hasPage(victim)) {
@@ -522,9 +520,6 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when adding pages due to failed injection to async write queue. */
     private static final Counter PUT_ASYNC_REJECTION_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ASYNC_REJECTION_ERRORS.getName());
-    /** Errors when adding pages due to identical page cached already. */
-    private static final Counter PUT_EXISTING_PAGE_ERRORS =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_EXISTING_PAGE_ERRORS.getName());
     /** Errors when adding pages due to failed eviction. */
     private static final Counter PUT_EVICTION_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_EVICTION_ERRORS.getName());
