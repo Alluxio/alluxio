@@ -648,7 +648,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     try (RaftClient client = createClient()) {
       Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
       RaftClientReply reply = client.setConfiguration(peers.stream()
-          .filter(peer -> peer.getId() != peerId)
+          .filter(peer -> !peer.getId().equals(peerId))
           .toArray(RaftPeer[]::new));
       if (reply.getException() != null) {
         throw reply.getException();
