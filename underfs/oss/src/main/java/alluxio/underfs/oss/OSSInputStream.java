@@ -15,7 +15,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
 
 import com.aliyun.oss.OSS;
-import com.google.common.base.Throwables;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
@@ -98,22 +97,23 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     OSSException lastException = null;
+    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
         OSSObject ossObject = mOssClient.getObject(req);
         return new BufferedInputStream(ossObject.getObjectContent());
       } catch (OSSException e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-        LOG.warn("OSSException " + Throwables.getStackTraceAsString(e));
+        errorMessage = String
+            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
         if (!e.getErrorCode().equals("NoSuchKey")) {
-          throw new IOException(e);
+          throw new IOException(errorMessage, e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw new IOException(lastException);
+    throw new IOException(errorMessage, lastException);
   }
 }

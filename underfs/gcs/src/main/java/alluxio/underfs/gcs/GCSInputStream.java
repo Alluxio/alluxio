@@ -151,6 +151,7 @@ public final class GCSInputStream extends InputStream {
    */
   private void openStream() throws IOException {
     ServiceException lastException = null;
+    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
         GSObject object;
@@ -162,17 +163,18 @@ public final class GCSInputStream extends InputStream {
         mInputStream = new BufferedInputStream(object.getDataInputStream());
         return;
       } catch (ServiceException e) {
-        LOG.warn("Attempt {} to open key {} on position {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mPos, mBucketName, e.toString());
+        errorMessage = String
+            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
         if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
-          throw new IOException(e);
+          throw new IOException(errorMessage, e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw new IOException(lastException);
+    throw new IOException(errorMessage, lastException);
   }
 
   /**
