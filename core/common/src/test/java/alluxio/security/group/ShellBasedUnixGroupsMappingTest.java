@@ -13,21 +13,32 @@ package alluxio.security.group;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.eq;
 
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Unit test for {@link alluxio.security.group.provider.ShellBasedUnixGroupsMapping}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(CommonUtils.class)
 public final class ShellBasedUnixGroupsMappingTest {
+
+  private void setupShellMocks(String username, List<String> groups) throws IOException {
+    PowerMockito.mockStatic(CommonUtils.class);
+    PowerMockito.when(CommonUtils.getUnixGroups(eq(username))).thenReturn(groups);
+  }
 
   /**
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
@@ -40,18 +51,12 @@ public final class ShellBasedUnixGroupsMappingTest {
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    try (MockedStatic<CommonUtils> k = Mockito.mockStatic(CommonUtils.class,
-        (invocation) -> {
-          if (invocation.getMethod().getName().equals("getUnixGroups")) {
-            return userGroups;
-          } else {
-            return invocation.callRealMethod();
-          }
-      })) {
-      GroupMappingService groups = new ShellBasedUnixGroupsMapping();
-      assertNotNull(groups);
-      assertNotNull(groups.getGroups(userName));
-      assertEquals(groups.getGroups(userName).size(), 2);
-    }
+    setupShellMocks(userName, userGroups);
+
+    GroupMappingService groups = new ShellBasedUnixGroupsMapping();
+
+    assertNotNull(groups);
+    assertNotNull(groups.getGroups(userName));
+    assertEquals(groups.getGroups(userName).size(), 2);
   }
 }

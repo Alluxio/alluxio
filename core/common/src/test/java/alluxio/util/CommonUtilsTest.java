@@ -28,8 +28,11 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.mockito.MockedStatic;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +56,8 @@ import java.util.function.Supplier;
 /**
  * Tests the {@link CommonUtils} class.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({CommonUtils.class, ShellUtils.class, GroupMappingService.Factory.class})
 public class CommonUtilsTest {
 
   /**
@@ -229,6 +234,17 @@ public class CommonUtilsTest {
     }
   }
 
+  private void setupShellMocks(String username, List<String> groups) throws IOException {
+    PowerMockito.mockStatic(ShellUtils.class);
+    String shellResult = "";
+    for (String group: groups) {
+      shellResult = shellResult + " " + group;
+    }
+    PowerMockito.when(
+        ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(Mockito.eq(username))))
+        .thenReturn(shellResult);
+  }
+
   /**
    * Tests the {@link CommonUtils#getUnixGroups(String)} method.
    */
@@ -240,28 +256,14 @@ public class CommonUtilsTest {
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
+    setupShellMocks(userName, userGroups);
 
-    String shellResult = "";
-    for (String group: userGroups) {
-      shellResult = shellResult + " " + group;
-    }
-    final String ret = shellResult;
-    try (MockedStatic<ShellUtils> mock = Mockito.mockStatic(ShellUtils.class,
-        Mockito.withSettings().defaultAnswer((invocation) -> {
-          Class<?> rt = invocation.getMethod().getReturnType();
-          if (rt.isArray()) {
-            return new String[0];
-          }
-          return ret;
-        }))) {
-      mock.when(ShellUtils::execCommand).thenReturn(ret);
-      List<String> groups = CommonUtils.getUnixGroups(userName);
+    List<String> groups = CommonUtils.getUnixGroups(userName);
 
-      assertNotNull(groups);
-      assertEquals(groups.size(), 2);
-      assertEquals(groups.get(0), userGroup1);
-      assertEquals(groups.get(1), userGroup2);
-    }
+    assertNotNull(groups);
+    assertEquals(groups.size(), 2);
+    assertEquals(groups.get(0), userGroup1);
+    assertEquals(groups.get(1), userGroup2);
   }
 
   /**
@@ -278,18 +280,18 @@ public class CommonUtilsTest {
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    CachedGroupMapping cachedGroupService = Mockito.mock(CachedGroupMapping.class);
-    Mockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
+    CachedGroupMapping cachedGroupService = PowerMockito.mock(CachedGroupMapping.class);
+    PowerMockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(userGroup1, userGroup2));
-    try (MockedStatic<GroupMappingService.Factory> mock =
-        Mockito.mockStatic(GroupMappingService.Factory.class, (invocation) -> cachedGroupService)) {
-      List<String> groups = CommonUtils.getGroups(userName, conf);
-      assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
+    PowerMockito.mockStatic(GroupMappingService.Factory.class);
+    Mockito.when(GroupMappingService.Factory.get(conf)).thenReturn(cachedGroupService);
 
-      String primaryGroup = CommonUtils.getPrimaryGroupName(userName, conf);
-      assertNotNull(primaryGroup);
-      assertEquals(userGroup1, primaryGroup);
-    }
+    List<String> groups = CommonUtils.getGroups(userName, conf);
+    assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
+
+    String primaryGroup = CommonUtils.getPrimaryGroupName(userName, conf);
+    assertNotNull(primaryGroup);
+    assertEquals(userGroup1, primaryGroup);
   }
 
   /**
