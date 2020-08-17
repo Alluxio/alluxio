@@ -14,9 +14,9 @@ package alluxio.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 
 import alluxio.TestLoggerRule;
 
@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-import org.powermock.reflect.Whitebox;
 
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 public final class JvmPauseMonitorTest {
@@ -49,16 +49,28 @@ public final class JvmPauseMonitorTest {
 
   @Test
   public void interruptOnStop() throws Exception {
-    JvmPauseMonitor mon = Mockito.spy(new JvmPauseMonitor(1000, 900000, 90000));
+    JvmPauseMonitor mon = Mockito.spy(new JvmPauseMonitor(10000, 900000, 90000));
+    CyclicBarrier barrier = new CyclicBarrier(2);
+    doAnswer((Answer<Void>) invocation -> {
+      barrier.await();
+      invocation.callRealMethod();
+      return null;
+    }).when(mon).sleepMillis(any(Long.class));
+    Thread current = Thread.currentThread();
+    Thread t1 = new Thread(() -> {
+      try {
+        barrier.await();
+        current.interrupt();
+      } catch (InterruptedException | BrokenBarrierException e) {
+        fail("Failed to await on barrier");
+      }
+    });
+    t1.start();
     mon.start();
-    Thread pmThread = Whitebox.getInternalState(mon, "mJvmMonitorThread");
-    Thread spied = Mockito.spy(pmThread);
-    doThrow(InterruptedException.class).when(spied).join();
-    Whitebox.setInternalState(mon, "mJvmMonitorThread", spied);
+    barrier.await();
     mon.stop();
     assertTrue(Thread.currentThread().isInterrupted());
-    pmThread.interrupt();
-    pmThread.join();
+    t1.join();
   }
 
   @Test
