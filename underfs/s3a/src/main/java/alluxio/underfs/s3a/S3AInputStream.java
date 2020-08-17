@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -143,22 +144,24 @@ public class S3AInputStream extends InputStream {
       getReq.setRange(mPos);
     }
     AmazonS3Exception lastException = null;
+    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
         mIn = mClient.getObject(getReq).getObjectContent();
         return;
       } catch (AmazonS3Exception e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        errorMessage = String
+            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw new IOException(e);
+          throw new IOException(errorMessage, e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw new IOException(lastException);
+    throw new IOException(errorMessage, lastException);
   }
 
   /**
