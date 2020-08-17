@@ -302,7 +302,7 @@ public final class ValidateEnv {
       }
       System.out.format("Validating %s...%n", taskName);
       ValidationUtils.TaskResult result = task.validate(optionsMap);
-      results.put(result.mState, results.getOrDefault(result, 0) + 1);
+      results.put(result.mState, results.getOrDefault(result.mState, 0) + 1);
       switch (result.mState) {
         case OK:
           System.out.print(Constants.ANSI_GREEN);
