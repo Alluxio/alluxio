@@ -97,7 +97,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putExist() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE2));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
