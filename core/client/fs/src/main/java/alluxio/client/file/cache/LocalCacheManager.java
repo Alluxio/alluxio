@@ -271,7 +271,8 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
-          return false;
+          // TODO(binfan): we should return more informative result in the future
+          return true;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
@@ -305,7 +306,8 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted by a racing thread", pageId);
-          return false;
+          // TODO(binfan): we should return more informative result in the future
+          return true;
         }
         if (!mMetaStore.hasPage(victim)) {
           LOG.debug("{} is already evicted by a racing thread", pageId);
