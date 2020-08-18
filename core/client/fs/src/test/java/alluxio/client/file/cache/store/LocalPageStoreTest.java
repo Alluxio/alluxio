@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.client.file.cache.PageId;
@@ -21,11 +22,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class LocalPageStoreTest {
 
@@ -84,11 +83,8 @@ public class LocalPageStoreTest {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-    ByteBuffer buf = ByteBuffer.allocate(1024);
-    store.get(id).read(buf);
-    buf.flip();
-    String read = StandardCharsets.UTF_8.decode(buf).toString();
-    assertEquals(msg, read);
+    byte[] buf = new byte[1024];
+    assertEquals(msg.getBytes().length, store.get(id, buf));
+    assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }
