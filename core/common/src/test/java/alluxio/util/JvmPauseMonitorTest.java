@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -84,7 +86,7 @@ public final class JvmPauseMonitorTest {
    */
   @Test
   public void testMockedInfoPause() throws Exception {
-    JvmPauseMonitor mon = Mockito.spy(new JvmPauseMonitor(100, 500, 250));
+    JvmPauseMonitor mon = Mockito.spy(new JvmPauseMonitor(100, 1000, 250));
     CyclicBarrier before = new CyclicBarrier(2);
     doAnswer((Answer<Void>) invocation -> {
       Thread.sleep(250);
@@ -100,7 +102,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(1, mon.getInfoTimeExceeded());
     assertEquals(0, mon.getWarnTimeExceeded());
-    assertEquals(250, mon.getTotalExtraTime(), 25);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(250L));
     assertTrue(mLogRule.wasLoggedWithLevel("JVM paused.*\n.*\n.*", Level.INFO));
     assertEquals(1, mLogRule.logCount("JVM paused.*\n.*\n.*"));
     before.await(); // runs the monitor once
@@ -110,7 +112,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(2, mon.getInfoTimeExceeded());
     assertEquals(0, mon.getWarnTimeExceeded());
-    assertEquals(500, mon.getTotalExtraTime(), 50);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(500L));
     assertEquals(2, mLogRule.logCount("JVM paused.*\n.*\n.*"));
     before.await(); // runs the monitor once
     // wait until it reaches the barrier again
@@ -119,7 +121,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(3, mon.getInfoTimeExceeded());
     assertEquals(0, mon.getWarnTimeExceeded());
-    assertEquals(750, mon.getTotalExtraTime(), 75);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(750L));
     assertEquals(3, mLogRule.logCount("JVM paused.*\n.*\n.*"));
   }
 
@@ -145,7 +147,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(1, mon.getInfoTimeExceeded());
     assertEquals(1, mon.getWarnTimeExceeded());
-    assertEquals(250, mon.getTotalExtraTime(), 25);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(250L));
     assertTrue(mLogRule.wasLoggedWithLevel("JVM paused.*\n.*\n.*", Level.WARN));
     assertEquals(1, mLogRule.logCount("JVM paused.*\n.*\n.*"));
     before.await(); // runs the monitor once
@@ -155,7 +157,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(2, mon.getInfoTimeExceeded());
     assertEquals(2, mon.getWarnTimeExceeded());
-    assertEquals(500, mon.getTotalExtraTime(), 50);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(500L));
     assertEquals(2, mLogRule.logCount("JVM paused.*\n.*\n.*"));
     before.await(); // runs the monitor once
     // wait until it reaches the barrier again
@@ -164,7 +166,7 @@ public final class JvmPauseMonitorTest {
     }
     assertEquals(3, mon.getInfoTimeExceeded());
     assertEquals(3, mon.getWarnTimeExceeded());
-    assertEquals(750, mon.getTotalExtraTime(), 75);
+    assertThat(mon.getTotalExtraTime(), greaterThanOrEqualTo(750L));
     assertEquals(3, mLogRule.logCount("JVM paused.*\n.*\n.*"));
   }
 }
