@@ -31,7 +31,7 @@ The number of files in Alluxio impacts the following:
 * Size of heap required by the master - Each file takes approximately 1 - 2 kb. If RocksDB is used,
 most file metadata is stored off-heap, and the size of the heap impacts how many files’ metadata can
 be cached on heap. See the
-[RocksDB section]({{ 'en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
+[RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
 information.
 * Size of disk required for journal storage - Each file takes approximately 1 - 2 kb on disk.
 * Latency of journal replay - The journal replay, which is the majority of the cold startup time for
