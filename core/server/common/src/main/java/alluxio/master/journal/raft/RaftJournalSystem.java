@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -80,7 +81,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -143,6 +143,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
+  private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
 
@@ -150,8 +151,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   private final RaftJournalConfiguration mConf;
 
-  /** Controls whether Copycat will attempt to take snapshots. */
-  private final AtomicBoolean mSnapshotAllowed;
   /**
    * Listens to the copycat server to detect gaining or losing primacy. The lifecycle for this
    * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the copycat server
@@ -193,7 +192,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private RaftGroup mRaftGroup;
   private RaftGroupId mRaftGroupId;
   private RaftPeerId mPeerId;
-  private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
 
   private static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -205,7 +203,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private RaftJournalSystem(RaftJournalConfiguration conf) {
     mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
-    mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
   }
@@ -279,16 +276,19 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
         leaderElectionMinTimeout);
     long leaderElectionMaxTimeout = leaderElectionMinTimeout.toLong(
-        TimeUnit.MILLISECONDS) + 1000;
+        TimeUnit.MILLISECONDS) + 100;
     RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
         TimeDuration.valueOf(leaderElectionMaxTimeout, TimeUnit.MILLISECONDS));
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
-        TimeDuration.valueOf(leaderElectionMaxTimeout, TimeUnit.MILLISECONDS));
+        TimeDuration.valueOf(
+            ServerConfiguration.global()
+                .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS));
 
     // snapshot retention
-    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 5);
+    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 3);
 
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
@@ -350,7 +350,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
-    mSnapshotAllowed.set(false);
     RaftClient client = createClient();
     Runnable closeClient = () -> {
       try {
@@ -581,11 +580,22 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    *
    * @return list of information for participating servers in RAFT quorum
    */
-  public synchronized List<QuorumServerInfo> getQuorumServerInfoList() {
+  public synchronized List<QuorumServerInfo> getQuorumServerInfoList() throws IOException {
     List<QuorumServerInfo> quorumMemberStateList = new LinkedList<>();
-    RaftProtos.LeaderInfoProto leaderInfo = getRoleInfo().getLeaderInfo();
+    GroupInfoReply groupInfo = getGroupInfo();
+    if (groupInfo == null) {
+      throw new UnavailableException("Cannot get raft group info");
+    }
+    if (groupInfo.getException() != null) {
+      throw groupInfo.getException();
+    }
+    RaftProtos.RoleInfoProto roleInfo = groupInfo.getRoleInfoProto();
+    if (roleInfo == null) {
+      throw new UnavailableException("Cannot get server role info");
+    }
+    RaftProtos.LeaderInfoProto leaderInfo = roleInfo.getLeaderInfo();
     if (leaderInfo == null) {
-      return Collections.emptyList();
+      throw new UnavailableException("Cannot get server leader info");
     }
     for (RaftProtos.ServerRpcProto member : leaderInfo.getFollowerInfoList()) {
       HostAndPort hp = HostAndPort.fromString(member.getId().getAddress());
@@ -611,17 +621,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mClientId,
         mPeerId, mRaftGroupId, nextCallId());
     return mServer.getGroupInfo(groupInfoRequest);
-  }
-
-  private RaftProtos.RoleInfoProto getRoleInfo() {
-    GroupInfoReply groupInfo = null;
-    try {
-      groupInfo = getGroupInfo();
-    } catch (IOException e) {
-      LOG.warn("failed to get leadership info", e);
-      return null;
-    }
-    return groupInfo.getRoleInfoProto();
   }
 
   /**

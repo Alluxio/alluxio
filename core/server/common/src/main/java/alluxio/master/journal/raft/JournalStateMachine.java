@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.LogUtils;
 import alluxio.util.StreamUtils;
 
 import com.google.common.base.Preconditions;
@@ -47,6 +48,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
@@ -134,27 +136,25 @@ public class JournalStateMachine extends BaseStateMachine {
     unpause();
   }
 
-  private long loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
+  private void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
       LOG.info("No snapshot to load");
-      return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.info("Loading Snapshot {}", snapshot);
     final File snapshotFile = snapshot.getFile().getPath().toFile();
     if (!snapshotFile.exists()) {
       LOG.error("The snapshot {} does not exist", snapshot);
-      return RaftLog.INVALID_LOG_INDEX;
+      throw new FileNotFoundException(
+          String.format("The snapshot file %s does not exist", snapshotFile.getPath()));
     }
-
-    try (DataInputStream inputStream = new DataInputStream(new FileInputStream(snapshotFile))) {
+    try {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
-      install(inputStream);
+      install(snapshotFile);
     } catch (Exception e) {
       LOG.error("Failed to load snapshot {}", snapshot, e);
       throw e;
     }
-    return snapshot.getTermIndex().getIndex();
   }
 
   @Override
@@ -212,7 +212,7 @@ public class JournalStateMachine extends BaseStateMachine {
         suspend();
       }
     } catch (IOException e) {
-      LOG.warn("State machine pause failed", e);
+      LOG.error("State machine pause failed", e);
       throw new IllegalStateException(e);
     }
     getLifeCycle().transition(LifeCycle.State.PAUSED);
@@ -247,7 +247,7 @@ public class JournalStateMachine extends BaseStateMachine {
           commit.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
     } catch (Exception e) {
       ProcessUtils.fatalError(LOG, e,
-          "Encountered invalid journal entry in 'commit': %s.", commit);
+          "Encountered invalid journal entry in commit: %s.", commit);
       System.exit(-1);
       throw new IllegalStateException(e); // We should never reach here.
     }
@@ -345,7 +345,7 @@ public class JournalStateMachine extends BaseStateMachine {
     try {
       tempFile = createTempSnapshotFile();
     } catch (IOException e) {
-      LOG.warn("Failed to create temp snapshot file", e);
+      LogUtils.warnWithException(LOG, "Failed to create temp snapshot file", e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.info("Taking a snapshot to file {}", tempFile);
@@ -355,7 +355,7 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
     } catch (Exception e) {
       tempFile.delete();
-      LOG.warn("Failed to take snapshot: {}", snapshotId, e);
+      LogUtils.warnWithException(LOG, "Failed to take snapshot: {}", snapshotId, e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     try {
@@ -372,21 +372,21 @@ public class JournalStateMachine extends BaseStateMachine {
           System.currentTimeMillis() - mLastSnapshotStartTime);
     } catch (Exception e) {
       tempFile.delete();
-      LOG.warn("Failed to take snapshot: {}", snapshotId, e);
+      LogUtils.warnWithException(LOG, "Failed to take snapshot: {}", snapshotId, e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     try {
       mStorage.loadLatestSnapshot();
     } catch (Exception e) {
       snapshotFile.delete();
-      LOG.warn("Failed to refresh latest snapshot: {}", snapshotId, e);
+      LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     mSnapshotting = false;
     return last.getIndex();
   }
 
-  private void install(DataInputStream stream) {
+  private void install(File snapshotFile) {
     if (mClosed) {
       return;
     }
@@ -396,7 +396,7 @@ public class JournalStateMachine extends BaseStateMachine {
     }
 
     long snapshotId = 0L;
-    try {
+    try (DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotFile))) {
       snapshotId = stream.readLong();
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
     } catch (Exception e) {
