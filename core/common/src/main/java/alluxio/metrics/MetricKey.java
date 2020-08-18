@@ -895,13 +895,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_PUT_EXISTING_PAGE_ERRORS =
-      new Builder(Name.CLIENT_CACHE_PUT_EXISTING_PAGE_ERRORS)
-          .setDescription("Number of failures when putting cached data in the client cache due to"
-              + " identical page cached already.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey CLIENT_CACHE_PUT_EVICTION_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_EVICTION_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
@@ -1136,8 +1129,6 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
     public static final String CLIENT_CACHE_PUT_ASYNC_REJECTION_ERRORS =
         "Client.CachePutAsyncRejectionErrors";
-    public static final String CLIENT_CACHE_PUT_EXISTING_PAGE_ERRORS =
-        "Client.CachePutExistingPageErrors";
     public static final String CLIENT_CACHE_PUT_EVICTION_ERRORS =
         "Client.CachePutEvictionErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
