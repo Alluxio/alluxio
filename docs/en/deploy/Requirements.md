@@ -15,7 +15,7 @@ Listed below are the generic requirements to run Alluxio in local or cluster mod
 
 For large scale deployments and tuning suggestions, see
 [Scalability Tuning]({{ '/en/operation/Scalability-Tuning.html' | relativize_url }})
-and [Performance Tuning]({{ '/en/operation/Performance-Tuning' | relativize_url }}).
+and [Performance Tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}).
 
 * Cluster nodes should be running one of the following supported operating systems:
   * MacOS 10.10 or later
