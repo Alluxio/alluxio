@@ -299,3 +299,51 @@ to workers.
 You might want to enable it if you find that the Alluxio client is waiting a long time on dead
 workers.
 To enable it, set the property `alluxio.user.network.keepalive.time` to a desired interval.
+
+## Resource Sharing with Colocated Services
+
+In many cases, Alluxio is not the only resource intensive service running on a node.
+Frequently, our users choose to colocate the computation framework such as Presto or Spark with Alluxio,
+to fully take advantage of the data locality.
+Allocation of limited resources to different services such as Presto, Spark and Alluxio becomes an interesting challenge,
+and can have signficant impact on the performance of the tasks or queries.
+Unbalanced resource allocation can even lead to query failures and processes exiting with an error.
+
+### Presto and Alluxio
+
+When Presto is colocated with Alluxio, memory is often the most contentious resource.
+Presto needs a large amount of memory to be able to efficiently process queries.
+Alluxio also needs memory for caching and metadata management. 
+
+#### Colocated Coordinator and Master
+
+In many deployment settings, Presto coordinator is running on the same node as the Alluxio master.
+They are good candidates to be colocated because Alluxio master consumes large amount of memory due to the metadata it keeps, but Presto coordinator are often less demanding on the memory compared to Presto workers.
+
+The total amount of memory consumed by these two applications are roughly
+Alluxio Heap size + Alluxio offheap size (due to thread stack allocations) + Presto coordinator Heap size  + System resource memory size
+Linux also needs some memory for its own kernel data structures and other system programs as well.
+So it is recommended to leave at least 10-15GB for that purpose as well.
+If the sum of these four values are near the system total available memory, Out-of-memory killer may be triggered.
+It will choose the process with the highest badness score (frequently the process using the most memory) and kill it.
+This would like kill the Alluxio master and lead to system downtime.
+
+If memory resource is constrained, presto coordinator needs sufficient memory to launch and complete queries. 
+So it would require the highest priority. 
+If alluxio metadata can not fit in the remaining memory, rocksdb-based offheap storage solution should be considered. 
+Then we consider memory required by the thread allocations, this is dependent on the number of threads, so we leave it as the last priority.
+
+#### Colocated Workers
+
+It is also natural to colocate the Presto workers with Alluxio workers. 
+However, both of them can require a large amount of memory, so it is important to prioritize their allocations.
+Similar to the master's case, the total memory consumption is 
+ALLUXIO_RAM_DISK_SIZE + ALLUXIO_WORKER_HEAP_SIZE + PRESTO_WORKER_HEAP_SIZE + SYSTEM RESOURCE REQUIREMENT
+System resources contains file descriptor tables and thread allocations, and are limited on the workers, because workers tend to have fewer concurrent accesses compared to master. But we recommend leaving 10-15 GB at least for this purpose as well.
+The next priority should be PRESTO_WORKER_HEAP_SIZE.
+If the presto heap is too small, some queries will simply fail.
+Unfortunately, it is difficult to know much memory a query will need unless you run it.
+Tools such as top can be used to monitor the peak memory consumptions of the presto process.
+ALLUXIO_WORKER_HEAP_SIZE does not need to be very large, but it is critical to ensure it is enough for the correct operation of the Alluxio worker.
+The last priority should be the RAMDISK_SIZE. 
+Uncached data will negatively impact the performance, but will not have any impact on query correctness.
