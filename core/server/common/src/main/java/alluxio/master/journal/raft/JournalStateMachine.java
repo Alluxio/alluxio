@@ -139,6 +139,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
       LOG.info("No snapshot to load");
+      return;
     }
     LOG.info("Loading Snapshot {}", snapshot);
     final File snapshotFile = snapshot.getFile().getPath().toFile();
