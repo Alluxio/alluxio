@@ -902,6 +902,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS)
+          .setDescription("Number of failures when adding pages due to racing eviction. This error"
+              + " is benign.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache due to"
+              + " failed deletes in page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
@@ -1131,6 +1145,10 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutAsyncRejectionErrors";
     public static final String CLIENT_CACHE_PUT_EVICTION_ERRORS =
         "Client.CachePutEvictionErrors";
+    public static final String CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
+        "Client.CachePutBenignRacingErrors";
+    public static final String CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
+        "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
 
