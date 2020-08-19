@@ -109,7 +109,6 @@ public final class StressBenchDefinition
     }
 
     command.addAll(args);
-
     LOG.info("running command: " + String.join(" ", command));
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;
