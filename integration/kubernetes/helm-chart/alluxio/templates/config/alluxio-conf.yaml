@@ -148,6 +148,7 @@
 {{- /*        ALLUXIO_FUSE_JAVA_OPTS         */}}
 {{- /* ===================================== */}}
 {{- $fuseJavaOpts := list }}
+{{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
 {{- range $key, $val := .Values.fuse.properties }}
   {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
 {{- end }}
