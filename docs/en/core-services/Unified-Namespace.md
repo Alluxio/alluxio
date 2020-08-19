@@ -185,7 +185,7 @@ client operations.
 
 The overall cost of syncing with sync interval enabled (blue line) is amortized across the number of
 RPCs within the sync time interval. When sync interval enabled to some non-0 value users should
-expect performance spikes in normal application usage. The frequency at which the spikes occur will
+expect latency spikes in normal application usage. The frequency at which the spikes occur will
 be directly correlated with how frequently users want to update their metadata from the UFS. When
 configured to 0, users will generally see much higher RPC response times (possible an order of
 magnitude or more) greater than if they were to disable sync interval.
@@ -265,10 +265,10 @@ other parts of the namespace.
 
 ##### HDFS
 
-If the updates happen across many parts (or unknown) of the namespace at a frequent rate, use active
-sync in order to update metadata in a timely manner. If the rate of change is too fast, namespace is
-too large, or the user does not want to update the max RPC size from the namenode, then follow the
-suggestion in the section below for Non-HDFS UFS.
+If the updates happen across many or unknown number of parts of the namespace at a frequent rate,
+use active sync in order to update metadata in a timely manner. If the rate of change is too fast,
+namespace is too large, or the user does not want to update the max RPC size from the namenode, then
+follow the suggestion in the section below for Non-HDFS UFS.
 
 ##### Non-HDFS UFS
 
@@ -286,6 +286,7 @@ configuring the metadata load type. However, do note the following equivalencies
 If the metadata sync interval is configured the metadata load type is ignored.
 
 ### Active Sync for HDFS
+
 In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space
 and the UFS when the UFS is HDFS. The feature, called active sync, listens for HDFS events and
 periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on
@@ -329,7 +330,7 @@ There are two configuration options that control this behavior.
 
 `alluxio.master.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory.
 Activity is a heuristic based on the exponential moving average of number of events in a directory.
-For example, if a directory had 100, 10, 1 event in the past three intervals.
+For example, if a directory had 100, 10, and 1 events in the past three intervals.
 Its activity would be `100/10*10 + 10/10 + 1 = 3`
 `alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
 
