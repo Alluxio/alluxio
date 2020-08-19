@@ -119,3 +119,7 @@
 - Set hostPID default to false
 - Increase the default memory usage for Fuse
 
+0.6.7
+
+- Add environment variables to master, worker, fuse
+
