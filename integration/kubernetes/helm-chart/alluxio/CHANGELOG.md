@@ -117,4 +117,5 @@
 
 - Removed obsolete master journal formatting job configuration properties
 - Set hostPID default to false
+- Increase the default memory usage for Fuse
 
