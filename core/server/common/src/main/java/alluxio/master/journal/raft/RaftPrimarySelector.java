@@ -34,11 +34,11 @@ public class RaftPrimarySelector extends AbstractPrimarySelector {
 
   @Override
   public void start(InetSocketAddress address) throws IOException {
-    // The copycat cluster is owned by the outer {@link RaftJournalSystem}.
+    // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 
   @Override
   public void stop() throws IOException {
-    // The copycat cluster is owned by the outer {@link RaftJournalSystem}.
+    // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 }

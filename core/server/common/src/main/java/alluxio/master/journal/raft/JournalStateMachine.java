@@ -144,7 +144,6 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.info("Loading Snapshot {}", snapshot);
     final File snapshotFile = snapshot.getFile().getPath().toFile();
     if (!snapshotFile.exists()) {
-      LOG.error("The snapshot {} does not exist", snapshot);
       throw new FileNotFoundException(
           String.format("The snapshot file %s does not exist", snapshotFile.getPath()));
     }
@@ -153,8 +152,7 @@ public class JournalStateMachine extends BaseStateMachine {
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
     } catch (Exception e) {
-      LOG.error("Failed to load snapshot {}", snapshot, e);
-      throw e;
+      throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
   }
 
@@ -213,8 +211,7 @@ public class JournalStateMachine extends BaseStateMachine {
         suspend();
       }
     } catch (IOException e) {
-      LOG.error("State machine pause failed", e);
-      throw new IllegalStateException(e);
+      throw new IllegalStateException("State machine pause failed", e);
     }
     getLifeCycle().transition(LifeCycle.State.PAUSED);
   }
@@ -356,7 +353,8 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
     } catch (Exception e) {
       tempFile.delete();
-      LogUtils.warnWithException(LOG, "Failed to take snapshot: {}", snapshotId, e);
+      LogUtils.warnWithException(LOG,
+          "Failed to write snapshot {} to file {}", snapshotId, tempFile, e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     try {
@@ -373,7 +371,8 @@ public class JournalStateMachine extends BaseStateMachine {
           System.currentTimeMillis() - mLastSnapshotStartTime);
     } catch (Exception e) {
       tempFile.delete();
-      LogUtils.warnWithException(LOG, "Failed to take snapshot: {}", snapshotId, e);
+      LogUtils.warnWithException(LOG,
+          "Failed to complete snapshot: {} - {}", snapshotId, snapshotFile, e);
       return RaftLog.INVALID_LOG_INDEX;
     }
     try {
@@ -511,6 +510,9 @@ public class JournalStateMachine extends BaseStateMachine {
     if (mRaftGroupId == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
+    } else {
+      LOG.warn("Received notification for unrecognized group {}, current group is {}",
+          groupMemberId.getGroupId(), mRaftGroupId);
     }
   }
 }
