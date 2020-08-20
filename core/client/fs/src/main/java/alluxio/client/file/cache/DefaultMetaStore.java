@@ -12,7 +12,10 @@
 package alluxio.client.file.cache;
 
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +56,9 @@ public class DefaultMetaStore implements MetaStore {
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
+    Metrics.SPACE_USED.inc(pageInfo.getPageSize());
     mPages.incrementAndGet();
+    Metrics.PAGES.inc();
     mEvictor.updateOnPut(pageId);
   }
 
@@ -73,7 +78,9 @@ public class DefaultMetaStore implements MetaStore {
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
+    Metrics.SPACE_USED.dec(pageInfo.getPageSize());
     mPages.decrementAndGet();
+    Metrics.PAGES.dec();
     mEvictor.updateOnDelete(pageId);
   }
 
@@ -90,7 +97,9 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void reset() {
     mPages.set(0);
+    Metrics.PAGES.dec(Metrics.PAGES.getCount());
     mBytes.set(0);
+    Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
     mEvictor.reset();
   }
@@ -109,5 +118,14 @@ public class DefaultMetaStore implements MetaStore {
       return null;
     }
     return victimInfo;
+  }
+
+  private static final class Metrics {
+    /** Bytes used in the cache. */
+    private static final Counter SPACE_USED =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_SPACE_USED_COUNT.getName());
+    /** Pages stored in the cache. */
+    private static final Counter PAGES =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 }
