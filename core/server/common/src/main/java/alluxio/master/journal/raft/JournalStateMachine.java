@@ -336,54 +336,57 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    mLastSnapshotStartTime = System.currentTimeMillis();
-    long snapshotId = mNextSequenceNumberToRead - 1;
-    TermIndex last = getLastAppliedTermIndex();
-    File tempFile;
     try {
-      tempFile = createTempSnapshotFile();
-    } catch (IOException e) {
-      LogUtils.warnWithException(LOG, "Failed to create temp snapshot file", e);
-      return RaftLog.INVALID_LOG_INDEX;
-    }
-    LOG.info("Taking a snapshot to file {}", tempFile);
-    final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
-    try (DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(tempFile))) {
-      outputStream.writeLong(snapshotId);
-      JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
-    } catch (Exception e) {
-      tempFile.delete();
-      LogUtils.warnWithException(LOG,
-          "Failed to write snapshot {} to file {}", snapshotId, tempFile, e);
-      return RaftLog.INVALID_LOG_INDEX;
-    }
-    try {
-      final MD5Hash digest = MD5FileUtil.computeMd5ForFile(tempFile);
-      LOG.info("Saving digest for snapshot file {}", snapshotFile);
-      MD5FileUtil.saveMD5File(snapshotFile, digest);
-      LOG.info("Renaming a snapshot file {} to {}", tempFile, snapshotFile);
-      if (!tempFile.renameTo(snapshotFile)) {
-        tempFile.delete();
-        LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
+      mLastSnapshotStartTime = System.currentTimeMillis();
+      long snapshotId = mNextSequenceNumberToRead - 1;
+      TermIndex last = getLastAppliedTermIndex();
+      File tempFile;
+      try {
+        tempFile = createTempSnapshotFile();
+      } catch (IOException e) {
+        LogUtils.warnWithException(LOG, "Failed to create temp snapshot file", e);
         return RaftLog.INVALID_LOG_INDEX;
       }
-      LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-          System.currentTimeMillis() - mLastSnapshotStartTime);
-    } catch (Exception e) {
-      tempFile.delete();
-      LogUtils.warnWithException(LOG,
-          "Failed to complete snapshot: {} - {}", snapshotId, snapshotFile, e);
-      return RaftLog.INVALID_LOG_INDEX;
+      LOG.info("Taking a snapshot to file {}", tempFile);
+      final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
+      try (DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(tempFile))) {
+        outputStream.writeLong(snapshotId);
+        JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
+      } catch (Exception e) {
+        tempFile.delete();
+        LogUtils.warnWithException(LOG,
+            "Failed to write snapshot {} to file {}", snapshotId, tempFile, e);
+        return RaftLog.INVALID_LOG_INDEX;
+      }
+      try {
+        final MD5Hash digest = MD5FileUtil.computeMd5ForFile(tempFile);
+        LOG.info("Saving digest for snapshot file {}", snapshotFile);
+        MD5FileUtil.saveMD5File(snapshotFile, digest);
+        LOG.info("Renaming a snapshot file {} to {}", tempFile, snapshotFile);
+        if (!tempFile.renameTo(snapshotFile)) {
+          tempFile.delete();
+          LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
+          return RaftLog.INVALID_LOG_INDEX;
+        }
+        LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
+            System.currentTimeMillis() - mLastSnapshotStartTime);
+      } catch (Exception e) {
+        tempFile.delete();
+        LogUtils.warnWithException(LOG,
+            "Failed to complete snapshot: {} - {}", snapshotId, snapshotFile, e);
+        return RaftLog.INVALID_LOG_INDEX;
+      }
+      try {
+        mStorage.loadLatestSnapshot();
+      } catch (Exception e) {
+        snapshotFile.delete();
+        LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
+        return RaftLog.INVALID_LOG_INDEX;
+      }
+      return last.getIndex();
+    } finally {
+      mSnapshotting = false;
     }
-    try {
-      mStorage.loadLatestSnapshot();
-    } catch (Exception e) {
-      snapshotFile.delete();
-      LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
-      return RaftLog.INVALID_LOG_INDEX;
-    }
-    mSnapshotting = false;
-    return last.getIndex();
   }
 
   private void install(File snapshotFile) {
