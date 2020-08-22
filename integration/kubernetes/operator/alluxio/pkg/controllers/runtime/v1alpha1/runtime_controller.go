@@ -80,7 +80,7 @@ func (r *RuntimeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return r.reconcileRuntimeDeletion(ctx)
 	}
 
-	if !utils.ContainsString(ctx.Runtime.ObjectMeta.GetFinalizers(), common.alluxioRuntimeResourceFinalizerName) {
+	if !utils.ContainsString(ctx.Runtime.ObjectMeta.GetFinalizers(), common.AlluxioRuntimeResourceFinalizerName) {
 		return r.addFinalizerAndRequeue(ctx)
 	}
 
@@ -215,7 +215,7 @@ func (r *RuntimeReconciler) reconcileRuntimeDeletion(ctx common.ReconcileRequest
 
 	// 2. Remove finalizer
 	if !ctx.Runtime.ObjectMeta.GetDeletionTimestamp().IsZero() {
-		ctx.Runtime.ObjectMeta.Finalizers = utils.RemoveString(ctx.Runtime.ObjectMeta.Finalizers, common.alluxioRuntimeResourceFinalizerName)
+		ctx.Runtime.ObjectMeta.Finalizers = utils.RemoveString(ctx.Runtime.ObjectMeta.Finalizers, common.AlluxioRuntimeResourceFinalizerName)
 		if err := r.Update(ctx, ctx.Runtime); err != nil {
 			log.Error(err, "Failed to remove finalizer")
 			return utils.RequeueIfError(err)
@@ -227,7 +227,7 @@ func (r *RuntimeReconciler) reconcileRuntimeDeletion(ctx common.ReconcileRequest
 }
 
 func (r *RuntimeReconciler) addFinalizerAndRequeue(ctx common.ReconcileRequestContext) (ctrl.Result, error) {
-	ctx.Runtime.ObjectMeta.Finalizers = append(ctx.Runtime.ObjectMeta.Finalizers, common.alluxioRuntimeResourceFinalizerName)
+	ctx.Runtime.ObjectMeta.Finalizers = append(ctx.Runtime.ObjectMeta.Finalizers, common.AlluxioRuntimeResourceFinalizerName)
 	ctx.Log.Info("Add finalizer and Requeue")
 	prevGeneration := ctx.Runtime.ObjectMeta.GetGeneration()
 	if err := r.Update(ctx, ctx.Runtime); err != nil {
