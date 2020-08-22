@@ -17,6 +17,11 @@ cp  -rf /tmp/alluxio/integration/kubernetes/operator/alluxio /go/src/github.com/
 
 3. Build the binary
 
+```
+cd /go/src/github.com/Alluxio/
+make
+```
+
 
 ### Build the image
 
