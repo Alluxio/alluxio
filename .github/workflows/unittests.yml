@@ -6,9 +6,9 @@ name: Unit Tests
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ github_actions ]
   pull_request:
-    branches: [ master ]
+    branches: [ github_actions ]
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
