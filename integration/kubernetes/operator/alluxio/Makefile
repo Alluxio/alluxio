@@ -9,6 +9,8 @@ WEBHOOK_IMG ?= alluxio/alluxio-webhook
 MOUNT_IMG ?= alluxio/alluxio-mount
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+GOPATH="${SCRIPT_DIR}"
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
