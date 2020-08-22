@@ -18,7 +18,7 @@ bash alluxio/scripts/webhook-create-signed-cert.sh --service alluxio-webhook --s
 3. Deploy
 
 ```
-helm install alluxio alluxio --set controller.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-controller:v0.1.0-9113c3b,webhook.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-webhook:v0.1.0-9113c3b,mount.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-mount
+helm install alluxio alluxio --set controller.image=alluxio/alluxio-controller:v0.1.0-9113c3b,webhook.image=alluxio/alluxio-webhook:v0.1.0-9113c3b,mount.image=alluxio/alluxio-mount
 ```
 
 you will see follow:

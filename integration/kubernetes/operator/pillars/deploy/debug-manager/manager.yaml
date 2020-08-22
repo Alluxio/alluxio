@@ -27,7 +27,7 @@ spec:
       - operator: Exists
       hostNetwork: true
       containers:
-      - image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-controller:v0.1.0-57f1490-debug
+      - image: alluxio/alluxio-controller:v0.1.0-57f1490-debug
         name: manager
         ports:
         - containerPort: 8080

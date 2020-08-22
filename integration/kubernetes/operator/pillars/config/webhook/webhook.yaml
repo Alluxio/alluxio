@@ -26,7 +26,7 @@ spec:
             - alluxio-webhook
           args:
             - "--development=true"
-          image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-webhook:v0.1.0-6236799
+          image: alluxio/alluxio-webhook:v0.1.0-6236799
           imagePullPolicy: IfNotPresent
           name: webhook
           ports:

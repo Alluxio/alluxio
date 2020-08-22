@@ -24,7 +24,7 @@ func main() {
 	var development bool
 	var port int
 	flag.StringVar(&metricsAddr, "metrics-addr", ":38081", "The address the metric endpoint binds to.")
-	flag.StringVar(&alluxioInitContainerImage, "mount-ready-image", "registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-mount", "The container image used to check the mount is ready.")
+	flag.StringVar(&alluxioInitContainerImage, "mount-ready-image", "alluxio/alluxio-mount", "The container image used to check the mount is ready.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&development, "development", true,
