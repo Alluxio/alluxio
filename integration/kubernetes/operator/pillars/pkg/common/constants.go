@@ -47,7 +47,7 @@ const (
 
 	ALLUXIO_DATA_LOADER_IMAGE_ENV = "AlluxioDataLoaderImage"
 
-	DEFAULT_ALLUXIO_DATA_LOADER_IMAGE = "registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio-data-loader:v2.2.0"
+	DEFAULT_ALLUXIO_DATA_LOADER_IMAGE = "alluxio/alluxio-data-loader:v2.2.0"
 
 	DefaultDDCRuntime = ALLUXIO_RUNTIME
 )
