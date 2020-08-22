@@ -273,12 +273,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
         mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
-    RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
-        leaderElectionMinTimeout);
-    long leaderElectionMaxTimeout = leaderElectionMinTimeout.toLong(
-        TimeUnit.MILLISECONDS) + 100;
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
-        TimeDuration.valueOf(leaderElectionMaxTimeout, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setTimeoutMin(properties, leaderElectionMinTimeout);
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMinTimeout.multiply(2));
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
