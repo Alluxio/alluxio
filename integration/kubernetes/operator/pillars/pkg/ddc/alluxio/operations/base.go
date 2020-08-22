@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
 	"github.com/go-logr/logr"
 )
 

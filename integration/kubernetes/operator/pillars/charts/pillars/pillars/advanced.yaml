@@ -62,4 +62,4 @@ fuse:
     - fuse
     - --fuse-opts=direct_io,ro,max_read=131072,attr_timeout=3600,entry_timeout=3600
 
-enablePillars: true
+enablealluxio: true

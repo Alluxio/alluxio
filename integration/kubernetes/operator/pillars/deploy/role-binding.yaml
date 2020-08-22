@@ -1,19 +1,19 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: pillars-cluster-rolebinding
-  namespace: pillars-system
+  name: alluxio-cluster-rolebinding
+  namespace: alluxio-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: pillars
-  namespace: pillars-system
+  name: alluxio
+  namespace: alluxio-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pillars
-  namespace: pillars-system
+  name: alluxio
+  namespace: alluxio-system

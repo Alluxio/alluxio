@@ -1,8 +1,8 @@
 package base
 
 import (
-	data "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
 )
 
 // Engine interface defines the interfaces that should be implemented

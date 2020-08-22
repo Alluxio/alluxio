@@ -4,8 +4,8 @@ metadata:
   labels:
     control-plane: webhook-server
     controller-tools.k8s.io: "1.0"
-  name: pillars-webhook
-  namespace: pillars-system
+  name: alluxio-webhook
+  namespace: alluxio-system
 spec:
   replicas: 1
   serviceName: webhook-service
@@ -17,13 +17,13 @@ spec:
       labels:
         control-plane: webhook-server
     spec:
-      serviceAccountName: pillars
+      serviceAccountName: alluxio
       tolerations:
       - operator: Exists
       hostNetwork: true
       containers:
         - command:
-            - pillars-webhook
+            - alluxio-webhook
           args:
             - "--development=true"
             - "--mount-ready-image={{ .Values.mount.image }}"
@@ -56,4 +56,4 @@ spec:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: pillars-webhook-certs
+            secretName: alluxio-webhook-certs

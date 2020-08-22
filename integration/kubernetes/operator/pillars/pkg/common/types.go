@@ -6,7 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 
-	data "github.com/Alluxio/pillars/api/v1alpha1"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
 )
 
 type ReconcileRequestContext struct {

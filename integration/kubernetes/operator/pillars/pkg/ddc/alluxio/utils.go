@@ -7,9 +7,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
-	"github.com/Alluxio/pillars/pkg/utils/kubectl"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
+	"github.com/Alluxio/alluxio/pkg/utils/kubectl"
 	units "github.com/docker/go-units"
 	yaml "gopkg.in/yaml.v2"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"

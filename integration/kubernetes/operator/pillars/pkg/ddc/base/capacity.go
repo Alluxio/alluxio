@@ -3,7 +3,7 @@ package base
 import (
 	"context"
 
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

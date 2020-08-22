@@ -4,7 +4,7 @@
 1. Run the pod
 
 ```
-kubectl run alpine --image=cheyang/alpine:3.11-rsync --restart=Never  --overrides='{"apiVersion":"v1","metadata":{"annotations":{"data.pillars.io/dataset":"cifar10"}}}' --command -- sleep infinity
+kubectl run alpine --image=cheyang/alpine:3.11-rsync --restart=Never  --overrides='{"apiVersion":"v1","metadata":{"annotations":{"data.alluxio.io/dataset":"cifar10"}}}' --command -- sleep infinity
 ```
 
 1. First time

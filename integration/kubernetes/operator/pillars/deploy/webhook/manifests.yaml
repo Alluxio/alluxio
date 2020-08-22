@@ -1,17 +1,17 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: pillars-mutating-configuration
+  name: alluxio-mutating-configuration
 webhooks:
 - clientConfig:
     caBundle: fake
     service:
-      name: pillars-webhook
-      namespace: pillars-system
-      path: /mutate-pillars-pod
-  # url: https://<server_ip>:9443/mutate-pillars-pod
+      name: alluxio-webhook
+      namespace: alluxio-system
+      path: /mutate-alluxio-pod
+  # url: https://<server_ip>:9443/mutate-alluxio-pod
   failurePolicy: Fail
-  name: mutating.pillars.io
+  name: mutating.alluxio.io
   rules:
   - apiGroups:
     - ""

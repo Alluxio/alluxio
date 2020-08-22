@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pillars-webhook
-  namespace: pillars-system
+  name: alluxio-webhook
+  namespace: alluxio-system
 spec:
   ports:
     - port: 443

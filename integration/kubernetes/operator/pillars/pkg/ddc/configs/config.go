@@ -1,7 +1,7 @@
 package configs
 
 import (
-	dataset "github.com/Alluxio/pillars/api/v1alpha1"
+	dataset "github.com/Alluxio/alluxio/api/v1alpha1"
 )
 
 type Config struct {

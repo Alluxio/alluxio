@@ -3,9 +3,9 @@ package alluxio
 import (
 	"fmt"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc/alluxio/operations"
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc/alluxio/operations"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	units "github.com/docker/go-units"
 )
 

@@ -15,7 +15,7 @@ import (
 var (
 	// scheme   = runtime.NewScheme()
 	setupLog                  = ctrl.Log.WithName("setup")
-	pillarsInitContainerImage = ""
+	alluxioInitContainerImage = ""
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	var development bool
 	var port int
 	flag.StringVar(&metricsAddr, "metrics-addr", ":38081", "The address the metric endpoint binds to.")
-	flag.StringVar(&pillarsInitContainerImage, "mount-ready-image", "registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-mount", "The container image used to check the mount is ready.")
+	flag.StringVar(&alluxioInitContainerImage, "mount-ready-image", "registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-mount", "The container image used to check the mount is ready.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&development, "development", true,
@@ -57,21 +57,21 @@ func main() {
 	hookServer := mgr.GetWebhookServer()
 
 	setupLog.Info("registering webhooks to the webhook server")
-	hookServer.Register("/mutate-pillars-pod", &webhook.Admission{Handler: &PodCreateHandler{Client: mgr.GetClient(),
+	hookServer.Register("/mutate-alluxio-pod", &webhook.Admission{Handler: &PodCreateHandler{Client: mgr.GetClient(),
 		Log: ctrl.Log.WithName("webhook")}})
 
 	// ns := os.Getenv("POD_NAMESPACE")
 	// if len(ns) == 0 {
-	//     ns = "pillars-system"
+	//     ns = "alluxio-system"
 	// }
 	// secretName := os.Getenv("SECRET_NAME")
 	// if len(secretName) == 0 {
-	//     secretName = "pillars-webhook-server-secret"
+	//     secretName = "alluxio-webhook-server-secret"
 	// }
 
 	// bootstrapOptions := &webhook.BootstrapOptions{
-	//     MutatingWebhookConfigName:   "pillars-mutating-webhook-configuration",
-	//     // ValidatingWebhookConfigName: "pillars-validating-webhook-configuration",
+	//     MutatingWebhookConfigName:   "alluxio-mutating-webhook-configuration",
+	//     // ValidatingWebhookConfigName: "alluxio-validating-webhook-configuration",
 	// }
 
 	// if webhookHost := os.Getenv("WEBHOOK_HOST"); len(webhookHost) > 0 {
@@ -79,7 +79,7 @@ func main() {
 	// } else {
 	//     bootstrapOptions.Service = &webhook.Service{
 	//         Namespace: ns,
-	//         Name:      "pillars-webhook-server-service",
+	//         Name:      "alluxio-webhook-server-service",
 	//         // Selectors should select the pods that runs this webhook server.
 	//         Selectors: map[string]string{
 	//             "control-plane": "webhook-manager",
@@ -101,9 +101,9 @@ func main() {
 	//     os.Exit(1)
 	// }
 
-	// builderName := "mutating-create-pod-pillars"
+	// builderName := "mutating-create-pod-alluxio"
 	// wh, err := builder.NewWebhookBuilder().
-	//     Name(builderName + ".pillars.io").
+	//     Name(builderName + ".alluxio.io").
 	//     Path("/" + builderName).
 	//     Mutating().
 	//     Operations(admissionregistrationv1beta1.Create).

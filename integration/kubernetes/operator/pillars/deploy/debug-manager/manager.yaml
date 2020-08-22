@@ -3,13 +3,13 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: pillars-system
+  name: alluxio-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: pillars-system
+  namespace: alluxio-system
   labels:
     control-plane: controller-manager
 spec:
@@ -22,12 +22,12 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      serviceAccountName: pillars
+      serviceAccountName: alluxio
       tolerations:
       - operator: Exists
       hostNetwork: true
       containers:
-      - image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-controller:v0.1.0-57f1490-debug
+      - image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-controller:v0.1.0-57f1490-debug
         name: manager
         ports:
         - containerPort: 8080

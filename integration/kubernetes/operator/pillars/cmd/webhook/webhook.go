@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Alluxio/pillars/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 )
 
 const (
 	defaultHostPath      string = "/alluxio-fuse"
-	mountCheckName       string = "pillars-mount-check"
-	mountCheckVolumeName string = "pillars-check"
+	mountCheckName       string = "alluxio-mount-check"
+	mountCheckVolumeName string = "alluxio-check"
 	mountCheckPath       string = "/target"
 )
 
@@ -109,7 +109,7 @@ func (h *PodCreateHandler) patchInitContainers(pod *corev1.Pod) {
 	propagationBidirectional := corev1.MountPropagationBidirectional
 	container := corev1.Container{
 		Name:            mountCheckName,
-		Image:           pillarsInitContainerImage,
+		Image:           alluxioInitContainerImage,
 		ImagePullPolicy: corev1.PullAlways,
 		SecurityContext: &corev1.SecurityContext{Privileged: &bFlag},
 		VolumeMounts: []corev1.VolumeMount{

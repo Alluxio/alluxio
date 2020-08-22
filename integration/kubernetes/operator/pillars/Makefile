@@ -1,12 +1,12 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= alluxio/pillars-controller
+IMG ?= alluxio/alluxio-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
-WEBHOOK_IMG ?= alluxio/pillars-webhook
+WEBHOOK_IMG ?= alluxio/alluxio-webhook
 
-MOUNT_IMG ?= alluxio/pillars-mount
+MOUNT_IMG ?= alluxio/alluxio-mount
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))

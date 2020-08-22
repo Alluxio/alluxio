@@ -1,6 +1,6 @@
 version: "2"
-domain: pillars.io
-repo: github.com/Alluxio/pillars
+domain: alluxio.io
+repo: github.com/Alluxio/alluxio
 resources:
 - group: data
   version: v1alpha1

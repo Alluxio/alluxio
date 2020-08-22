@@ -8,8 +8,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/utils"
 )
 
 var log logr.Logger

@@ -2,8 +2,8 @@ package common
 
 const (
 	// LabelAnnotationPrefix is the prefix of every labels and annotations added by the controller.
-	LabelAnnotationPrefix = "data.pillars.io/"
-	// The format is data.pillars.io/storage-{runtime_type}-{data_set_name}
+	LabelAnnotationPrefix = "data.alluxio.io/"
+	// The format is data.alluxio.io/storage-{runtime_type}-{data_set_name}
 	LabelAnnotationStorageCapacityPrefix = LabelAnnotationPrefix + "storage-"
 	// The dataset annotation
 	LabelAnnotationDataset = LabelAnnotationPrefix + "dataset"
@@ -11,9 +11,9 @@ const (
 
 const (
 	// The name of the finalizer that is installed onto managed etcd resources.
-	PillarsRuntimeResourceFinalizerName = "pillars-runtime-controller-finalizer"
+	alluxioRuntimeResourceFinalizerName = "alluxio-runtime-controller-finalizer"
 
-	PillarsDatasetResourceFinalizerName = "pillars-dataset-controller-finalizer"
+	alluxioDatasetResourceFinalizerName = "alluxio-dataset-controller-finalizer"
 )
 
 //Reason for Pillar events

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: pillars
-description: A Helm chart to deploy pillars in Kubernetes
+name: alluxio
+description: A Helm chart to deploy alluxio in Kubernetes
 
 # A chart can be either an 'application' or a 'library' chart.
 #

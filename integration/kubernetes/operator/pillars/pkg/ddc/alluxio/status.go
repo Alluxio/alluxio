@@ -1,9 +1,9 @@
 package alluxio
 
 import (
-	data "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	"k8s.io/client-go/util/retry"
 
 	"context"

@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - data.pillars.io
+  - data.alluxio.io
   resources:
   - runtimes
   verbs:
@@ -18,7 +18,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - data.pillars.io
+  - data.alluxio.io
   resources:
   - runtimes/status
   verbs:

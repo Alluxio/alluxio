@@ -3,9 +3,9 @@ package v1alpha1
 import (
 	"strconv"
 
-	data "github.com/Alluxio/pillars/api/v1alpha1"
-	common "github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc/configs"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
+	common "github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc/configs"
 )
 
 /*

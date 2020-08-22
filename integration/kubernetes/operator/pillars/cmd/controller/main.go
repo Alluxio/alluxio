@@ -17,11 +17,11 @@ import (
 	"os"
 	"time"
 
-	datav1alpha1 "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
-	datactlv1alpha1 "github.com/Alluxio/pillars/pkg/controllers/dataset/v1alpha1"
-	runtimectlv1alpha1 "github.com/Alluxio/pillars/pkg/controllers/runtime/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/ddc/base"
+	datav1alpha1 "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
+	datactlv1alpha1 "github.com/Alluxio/alluxio/pkg/controllers/dataset/v1alpha1"
+	runtimectlv1alpha1 "github.com/Alluxio/alluxio/pkg/controllers/runtime/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/ddc/base"
 
 	zapOpt "go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"

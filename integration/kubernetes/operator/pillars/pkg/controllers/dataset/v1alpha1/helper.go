@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	datav1alpha1 "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
+	datav1alpha1 "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

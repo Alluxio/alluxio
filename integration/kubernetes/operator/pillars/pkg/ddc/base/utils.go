@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Alluxio/pillars/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/common"
 	units "github.com/docker/go-units"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

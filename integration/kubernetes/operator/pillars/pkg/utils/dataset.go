@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	data "github.com/Alluxio/pillars/api/v1alpha1"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

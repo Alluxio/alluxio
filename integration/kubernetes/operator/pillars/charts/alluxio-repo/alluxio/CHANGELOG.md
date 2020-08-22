@@ -57,7 +57,7 @@
 
 0.12.0
 
-- Change from metadata.labels['data.pillars.io/storage-GB-alluxio-{{ .Release.Name }}'] to metadata.labels['data.pillars.io/storage-human-alluxio-{{ .Release.Name }}']
+- Change from metadata.labels['data.alluxio.io/storage-GB-alluxio-{{ .Release.Name }}'] to metadata.labels['data.alluxio.io/storage-human-alluxio-{{ .Release.Name }}']
 
 Design:
 

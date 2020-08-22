@@ -142,7 +142,7 @@ journal:
 #  - volumeName: 
 #    path:
 
-enablePillars: true
+enablealluxio: true
 
 
 

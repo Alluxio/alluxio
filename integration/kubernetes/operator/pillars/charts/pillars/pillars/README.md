@@ -1,30 +1,30 @@
-# Pillars
+# alluxio
 
 ## Install
 
 1. Download and extract the package
 
 ```
-wget http://kubeflow.oss-cn-beijing.aliyuncs.com/pillars-0.2.0.tgz
-tar -xvf pillars-0.2.0.tgz
+wget http://kubeflow.oss-cn-beijing.aliyuncs.com/alluxio-0.2.0.tgz
+tar -xvf alluxio-0.2.0.tgz
 ```
 
 2. Create a signed cert/key pair and store it in a Kubernetes secret that will be consumed by injector deployment
 
 ```
-bash pillars/scripts/webhook-create-signed-cert.sh --service pillars-webhook --secret pillars-webhook-certs --namespace pillars-system
+bash alluxio/scripts/webhook-create-signed-cert.sh --service alluxio-webhook --secret alluxio-webhook-certs --namespace alluxio-system
 ```
 
 3. Deploy
 
 ```
-helm install pillars pillars --set controller.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-controller:v0.1.0-9113c3b,webhook.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-webhook:v0.1.0-9113c3b,mount.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-mount
+helm install alluxio alluxio --set controller.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-controller:v0.1.0-9113c3b,webhook.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-webhook:v0.1.0-9113c3b,mount.image=registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/alluxio-mount
 ```
 
 you will see follow:
 
 ```
-NAME: pillars
+NAME: alluxio
 LAST DEPLOYED: Wed May 13 20:19:54 2020
 NAMESPACE: default
 STATUS: deployed
@@ -35,8 +35,8 @@ TEST SUITE: None
 4. Patch the MutatingWebhookConfiguration by set caBundle with correct value from Kubernetes cluster:
 
 ```
-cat pillars/scripts/webhookconfiguration.yaml | \
-    bash pillars/scripts/webhook-patch-ca-bundle.sh > \
+cat alluxio/scripts/webhookconfiguration.yaml | \
+    bash alluxio/scripts/webhook-patch-ca-bundle.sh > \
     /tmp/mutatingwebhook-ca-bundle.yaml
 kubectl apply -f /tmp/mutatingwebhook-ca-bundle.yaml
 ```
@@ -45,14 +45,14 @@ kubectl apply -f /tmp/mutatingwebhook-ca-bundle.yaml
 
 ```
 kubectl create ns alluxio-system
-cp pillars/advanced.yaml advanced.yaml
+cp alluxio/advanced.yaml advanced.yaml
 kubectl create cm default-alluxio-template --namespace alluxio-system --from-file=data=advanced.yaml
 ```
 
 6. Use the follow yaml to create dataset
 
 ```
-apiVersion: data.pillars.io/v1alpha1
+apiVersion: data.alluxio.io/v1alpha1
 kind: Dataset
 metadata:
   name: mydata
@@ -86,7 +86,7 @@ spec:
 ## Uninstall
 
 ```
-helm delete pillars
-kubectl delete -f pillars/templates/crd/
-kubectl delete mutatingwebhookconfigurations pillars-mutating-configuration
+helm delete alluxio
+kubectl delete -f alluxio/templates/crd/
+kubectl delete mutatingwebhookconfigurations alluxio-mutating-configuration
 ```

@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.2
   creationTimestamp: null
-  name: datasets.data.pillars.io
+  name: datasets.data.alluxio.io
 spec:
-  group: data.pillars.io
+  group: data.alluxio.io
   names:
     kind: Dataset
     listKind: DatasetList

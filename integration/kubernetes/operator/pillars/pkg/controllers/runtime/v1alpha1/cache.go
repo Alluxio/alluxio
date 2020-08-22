@@ -3,10 +3,10 @@ package v1alpha1
 import (
 	"reflect"
 
-	datav1alpha1 "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc/base"
-	"github.com/Alluxio/pillars/pkg/utils"
+	datav1alpha1 "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc/base"
+	"github.com/Alluxio/alluxio/pkg/utils"
 )
 
 // Update the dataset with cache status

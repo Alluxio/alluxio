@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.2
   creationTimestamp: null
-  name: runtimes.data.pillars.io
+  name: runtimes.data.alluxio.io
 spec:
-  group: data.pillars.io
+  group: data.alluxio.io
   names:
     kind: Runtime
     listKind: RuntimeList

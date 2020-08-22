@@ -1,11 +1,11 @@
 package alluxio
 
 import (
-	data "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc/base"
-	"github.com/Alluxio/pillars/pkg/ddc/configs"
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc/base"
+	"github.com/Alluxio/alluxio/pkg/ddc/configs"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
 
 	"github.com/go-logr/logr"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"

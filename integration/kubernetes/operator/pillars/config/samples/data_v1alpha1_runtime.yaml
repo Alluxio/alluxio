@@ -1,4 +1,4 @@
-apiVersion: data.pillars.io/v1alpha1
+apiVersion: data.alluxio.io/v1alpha1
 kind: Runtime
 metadata:
   name: imagenet

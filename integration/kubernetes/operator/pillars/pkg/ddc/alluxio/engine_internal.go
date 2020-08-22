@@ -7,11 +7,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
-	"github.com/Alluxio/pillars/pkg/utils/helm"
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
-	"github.com/Alluxio/pillars/pkg/utils/kubectl"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/utils/helm"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
+	"github.com/Alluxio/alluxio/pkg/utils/kubectl"
 
 	"k8s.io/client-go/util/retry"
 )

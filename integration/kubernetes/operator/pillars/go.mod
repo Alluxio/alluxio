@@ -1,4 +1,4 @@
-module github.com/Alluxio/pillars
+module github.com/Alluxio/alluxio
 
 go 1.13
 

@@ -68,11 +68,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          {{- if .Values.enablePillars }}
+          {{- if .Values.enablealluxio }}
           - name: ALLUXIO_WORKER_MEMORY_SIZE
             valueFrom:
               fieldRef:
-                fieldPath: metadata.labels['data.pillars.io/storage-human-alluxio-{{ .Release.Name }}']
+                fieldPath: metadata.labels['data.alluxio.io/storage-human-alluxio-{{ .Release.Name }}']
           {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
@@ -165,11 +165,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          {{- if .Values.enablePillars }}
+          {{- if .Values.enablealluxio }}
           - name: ALLUXIO_WORKER_MEMORY_SIZE
             valueFrom:
               fieldRef:
-                fieldPath: metadata.labels['data.pillars.io/storage-GB-alluxio-{{ .Release.Name }}']
+                fieldPath: metadata.labels['data.alluxio.io/storage-GB-alluxio-{{ .Release.Name }}']
           {{- end }}
           #- name: ALLUXIO_JOB_WORKER_JAVA_OPTS
           #  value: " -Dalluxio.worker.hostname=$(ALLUXIO_WORKER_HOSTNAME) "

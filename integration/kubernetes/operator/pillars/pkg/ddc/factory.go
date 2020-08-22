@@ -1,9 +1,9 @@
 package ddc
 
 import (
-	"github.com/Alluxio/pillars/pkg/ddc/alluxio"
-	"github.com/Alluxio/pillars/pkg/ddc/base"
-	"github.com/Alluxio/pillars/pkg/ddc/configs"
+	"github.com/Alluxio/alluxio/pkg/ddc/alluxio"
+	"github.com/Alluxio/alluxio/pkg/ddc/base"
+	"github.com/Alluxio/alluxio/pkg/ddc/configs"
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 

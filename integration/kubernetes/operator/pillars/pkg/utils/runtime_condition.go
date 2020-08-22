@@ -1,7 +1,7 @@
 package utils
 
 import (
-	data "github.com/Alluxio/pillars/api/v1alpha1"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

@@ -6,16 +6,16 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
-	"github.com/Alluxio/pillars/pkg/utils/kubeclient"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/utils/kubeclient"
 	units "github.com/docker/go-units"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	data "github.com/Alluxio/pillars/api/v1alpha1"
+	data "github.com/Alluxio/alluxio/api/v1alpha1"
 )
 
 // Load the data

@@ -12,7 +12,7 @@ set -o pipefail
 
 #if [ -z "${CA_BUNDLE}" ]; then
 export CA_BUNDLE=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.ca\.crt}")
-# kubectl get secrets -n pillars-system -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.ca\.crt}"
+# kubectl get secrets -n alluxio-system -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.ca\.crt}"
 #fi
 
 #if command -v envsubst >/dev/null 2>&1; then

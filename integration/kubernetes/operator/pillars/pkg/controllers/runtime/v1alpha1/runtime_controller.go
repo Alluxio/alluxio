@@ -29,12 +29,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	datav1alpha1 "github.com/Alluxio/pillars/api/v1alpha1"
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc"
-	"github.com/Alluxio/pillars/pkg/ddc/base"
-	"github.com/Alluxio/pillars/pkg/ddc/configs"
-	"github.com/Alluxio/pillars/pkg/utils"
+	datav1alpha1 "github.com/Alluxio/alluxio/api/v1alpha1"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc"
+	"github.com/Alluxio/alluxio/pkg/ddc/base"
+	"github.com/Alluxio/alluxio/pkg/ddc/configs"
+	"github.com/Alluxio/alluxio/pkg/utils"
 )
 
 // RuntimeReconciler reconciles a Runtime object
@@ -47,8 +47,8 @@ type RuntimeReconciler struct {
 	Engines      map[string]base.Engine
 }
 
-// +kubebuilder:rbac:groups=data.pillars.io,resources=runtimes,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=data.pillars.io,resources=runtimes/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=data.alluxio.io,resources=runtimes,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=data.alluxio.io,resources=runtimes/status,verbs=get;update;patch
 
 func (r *RuntimeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := common.ReconcileRequestContext{
@@ -80,7 +80,7 @@ func (r *RuntimeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return r.reconcileRuntimeDeletion(ctx)
 	}
 
-	if !utils.ContainsString(ctx.Runtime.ObjectMeta.GetFinalizers(), common.PillarsRuntimeResourceFinalizerName) {
+	if !utils.ContainsString(ctx.Runtime.ObjectMeta.GetFinalizers(), common.alluxioRuntimeResourceFinalizerName) {
 		return r.addFinalizerAndRequeue(ctx)
 	}
 
@@ -215,7 +215,7 @@ func (r *RuntimeReconciler) reconcileRuntimeDeletion(ctx common.ReconcileRequest
 
 	// 2. Remove finalizer
 	if !ctx.Runtime.ObjectMeta.GetDeletionTimestamp().IsZero() {
-		ctx.Runtime.ObjectMeta.Finalizers = utils.RemoveString(ctx.Runtime.ObjectMeta.Finalizers, common.PillarsRuntimeResourceFinalizerName)
+		ctx.Runtime.ObjectMeta.Finalizers = utils.RemoveString(ctx.Runtime.ObjectMeta.Finalizers, common.alluxioRuntimeResourceFinalizerName)
 		if err := r.Update(ctx, ctx.Runtime); err != nil {
 			log.Error(err, "Failed to remove finalizer")
 			return utils.RequeueIfError(err)
@@ -227,7 +227,7 @@ func (r *RuntimeReconciler) reconcileRuntimeDeletion(ctx common.ReconcileRequest
 }
 
 func (r *RuntimeReconciler) addFinalizerAndRequeue(ctx common.ReconcileRequestContext) (ctrl.Result, error) {
-	ctx.Runtime.ObjectMeta.Finalizers = append(ctx.Runtime.ObjectMeta.Finalizers, common.PillarsRuntimeResourceFinalizerName)
+	ctx.Runtime.ObjectMeta.Finalizers = append(ctx.Runtime.ObjectMeta.Finalizers, common.alluxioRuntimeResourceFinalizerName)
 	ctx.Log.Info("Add finalizer and Requeue")
 	prevGeneration := ctx.Runtime.ObjectMeta.GetGeneration()
 	if err := r.Update(ctx, ctx.Runtime); err != nil {

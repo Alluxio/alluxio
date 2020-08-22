@@ -8,14 +8,14 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/mutate-pillars-pod,mutating=true,failurePolicy=fail,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.kb.io
+// +kubebuilder:webhook:path=/mutate-alluxio-pod,mutating=true,failurePolicy=fail,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.kb.io
 
 // PodCreateHandler handles Pod
 type PodCreateHandler struct {
@@ -38,7 +38,7 @@ func (h *PodCreateHandler) mutatingPodFn(ctx context.Context, obj *corev1.Pod) (
 func (h *PodCreateHandler) mutatingPod(ctx context.Context, pod *corev1.Pod) (mutated bool, err error) {
 
 	if !h.mutationRequired(ignoredNamespaces, &pod.ObjectMeta) {
-		h.Log.V(1).Info("Skip the pod because it doesn't have annotation data.pillars.io/dataset",
+		h.Log.V(1).Info("Skip the pod because it doesn't have annotation data.alluxio.io/dataset",
 			"name", pod.Name,
 			"namespace", pod.Namespace)
 		return
@@ -54,7 +54,7 @@ func (h *PodCreateHandler) mutatingPod(ctx context.Context, pod *corev1.Pod) (mu
 	}
 
 	mutated = true
-	h.Log.V(1).Info("Mutate the pod because it doesn't have annotation data.pillars.io/dataset",
+	h.Log.V(1).Info("Mutate the pod because it doesn't have annotation data.alluxio.io/dataset",
 		"name", pod.Name,
 		"namespace", pod.Namespace)
 

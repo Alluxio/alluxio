@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/Alluxio/pillars/pkg/utils"
+	"github.com/Alluxio/alluxio/pkg/utils"
 	"k8s.io/client-go/util/retry"
 )
 

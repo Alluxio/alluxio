@@ -33,7 +33,7 @@ fuse:
     - fuse
     - --fuse-opts=direct_io
 
-enablePillars: true
+enablealluxio: true
 `
 
 const permissions = 0755

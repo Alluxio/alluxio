@@ -3,8 +3,8 @@ package alluxio
 import (
 	"fmt"
 
-	"github.com/Alluxio/pillars/pkg/common"
-	"github.com/Alluxio/pillars/pkg/ddc/alluxio/operations"
+	"github.com/Alluxio/alluxio/pkg/common"
+	"github.com/Alluxio/alluxio/pkg/ddc/alluxio/operations"
 )
 
 // Syn the UFS

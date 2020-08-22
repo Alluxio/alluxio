@@ -3,13 +3,13 @@
 # metadata:
 #   labels:
 #     control-plane: controller-manager
-#   name: pillars-system
+#   name: alluxio-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: pillars-system
+  namespace: alluxio-system
   labels:
     control-plane: controller-manager
 spec:
@@ -22,19 +22,19 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      serviceAccountName: pillars
+      serviceAccountName: alluxio
       tolerations:
       - operator: Exists
       hostNetwork: true
       containers:
       - command:
-        - pillars-controller
+        - alluxio-controller
         # args:
         # - --enable-leader-election
         image: "{{ .Values.controller.image }}"
         name: manager
         command:
-          - pillars-controller
+          - alluxio-controller
         args:
           - --capacity-percentage={{ .Values.controller.capacityPercentagePerNode }}
           - --reserved={{ .Values.controller.reservedStorage }}

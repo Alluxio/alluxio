@@ -17,9 +17,9 @@ The following flags are required.
        --namespace        Namespace where webhook service and secret reside.
        --secret           Secret name for CA certificate and server certificate/key pair.
 ./webhook-create-signed-cert.sh \
-    --service pillars-webhook \
-    --secret pillars-webhook-certs \
-    --namespace pillars-system
+    --service alluxio-webhook \
+    --secret alluxio-webhook-certs \
+    --namespace alluxio-system
 EOF
     exit 1
 }
@@ -45,9 +45,9 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-[ -z ${service} ] && service=pillars-webhook
-[ -z ${secret} ] && secret=pillars-webhook-certs
-[ -z ${namespace} ] && namespace=pillars-system
+[ -z ${service} ] && service=alluxio-webhook
+[ -z ${secret} ] && secret=alluxio-webhook-certs
+[ -z ${namespace} ] && namespace=alluxio-system
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
