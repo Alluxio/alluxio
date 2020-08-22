@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pillars-cluster-rolebinding
+  namespace: pillars-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: pillars
+  namespace: pillars-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pillars
+  namespace: pillars-system

@@ -1,0 +1,48 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "alluxio-job.fullname" . }}
+  labels:
+    app: {{ template "alluxio-job.name" . }}
+    chart: {{ template "alluxio-job.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  backoffLimit: {{ .Values.retry }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "alluxio-job.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      restartPolicy: Never
+      containers:
+      - name: {{ template "alluxio-job.fullname" . }}
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command: ["load-data.sh"]
+        {{- if .Values.dir }}  
+        args: 
+          - {{ .Values.dir }}
+        {{- end }}
+        {{- if .Values.replicas }}
+          - "{{ .Values.replicas }}"
+        {{- end }}
+        env:
+        - name: ALLUXIO_WORKER_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: REPLICAS
+          value: "{{ .value.replicas }}"
+        - name: ALLUXIO_JAVA_OPTS
+          value: " -Dalluxio.user.hostname=$(ALLUXIO_WORKER_HOSTNAME) -Dalluxio.master.hostname={{ .Values.alluxio.master }} "
+       {{- if .Values.envs }}            
+       {{- range $key, $value := .Values.envs }}
+         - name: "{{ $key }}"
+           value: "{{ $value }}"
+       {{- end }}
+       {{- end }}

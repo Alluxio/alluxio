@@ -1,0 +1,7 @@
+apiVersion: data.pillars.io/v1alpha1
+kind: Runtime
+metadata:
+  name: imagenet
+spec:
+  # Add fields here
+  foo: bar

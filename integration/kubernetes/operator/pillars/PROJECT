@@ -1,0 +1,10 @@
+version: "2"
+domain: pillars.io
+repo: github.com/Alluxio/pillars
+resources:
+- group: data
+  version: v1alpha1
+  kind: Dataset
+- group: data
+  version: v1alpha1
+  kind: Runtime

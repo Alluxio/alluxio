@@ -1,0 +1,24 @@
+apiVersion: data.pillars.io/v1alpha1
+kind: Dataset
+metadata:
+  name: imagenet
+spec:
+  # Add fields here
+  mounts:
+  - name: imagenet
+    mountPoint: oss://imagenet/
+    options:
+     fs.oss.endpoint: oss-cn-huhehaote-internal.aliyuncs.com
+     fs.oss.accessKeyId: xxx
+     fs.oss.accessKeySecret: yyy
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+       - matchExpressions:
+         - key: kubernetes.io/hostname
+           operator: In
+           values:
+           - cn-hongkong.172.31.136.181
+  prefetchStrategy: Never # Optional
+  # Never, OnDemand, Always
+  replicas: 1

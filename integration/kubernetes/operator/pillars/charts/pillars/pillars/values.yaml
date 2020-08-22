@@ -1,0 +1,17 @@
+# Default values for pillars.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+controller:
+  image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-controller:v0.1.0-9113c3b
+  capacityPercentagePerNode: 50
+  reservedStorage: 1GiB
+  cacheStoreType: MEM
+  cacheStoragePath: /dev/shm
+
+
+webhook:
+  image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-webhook:v0.1.0-9113c3b
+
+mount:
+  image: registry.cn-huhehaote.aliyuncs.com/tensorflow-samples/pillars-mount

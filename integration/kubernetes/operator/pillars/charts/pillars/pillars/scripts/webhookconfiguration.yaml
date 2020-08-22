@@ -1,0 +1,24 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: pillars-mutating-configuration
+webhooks:
+- clientConfig:
+    caBundle: fake
+    service:
+      name: pillars-webhook
+      namespace: pillars-system
+      path: /mutate-pillars-pod
+  # url: https://<server_ip>:9443/mutate-pillars-pod
+  failurePolicy: Fail
+  name: mutating.pillars.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pods
