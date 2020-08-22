@@ -1,6 +1,24 @@
 
 
-### Build
+### Build the binary
+
+1. Download the git repo
+
+```
+git clone https://github.com/Alluxio/alluxio.git
+```
+
+2. Copy to the Gopath
+
+```
+mkdir -p /go/src/github.com/Alluxio/
+cp  -rf /tmp/alluxio/integration/kubernetes/operator/alluxio /go/src/github.com/Alluxio/
+```
+
+3. Build the binary
+
+
+### Build the image
 
 1. Build docker image
 

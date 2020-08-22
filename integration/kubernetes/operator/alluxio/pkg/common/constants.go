@@ -13,7 +13,7 @@ const (
 	// The name of the finalizer that is installed onto managed etcd resources.
 	AlluxioRuntimeResourceFinalizerName = "alluxio-runtime-controller-finalizer"
 
-	AlluxioRuntimeResourceFinalizerName = "alluxio-dataset-controller-finalizer"
+	alluxioDatasetResourceFinalizerName = "alluxio-dataset-controller-finalizer"
 )
 
 //Reason for Pillar events

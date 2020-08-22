@@ -101,7 +101,7 @@ func (r *DatasetReconciler) reconcileDataset(ctx reconcileRequestContext) (ctrl.
 	}
 
 	// 2.Add finalizer
-	if !utils.ContainsString(ctx.Dataset.ObjectMeta.GetFinalizers(), common.AlluxioRuntimeResourceFinalizerName) {
+	if !utils.ContainsString(ctx.Dataset.ObjectMeta.GetFinalizers(), common.alluxioDatasetResourceFinalizerName) {
 		return r.addFinalizerAndRequeue(ctx)
 	}
 
@@ -199,7 +199,7 @@ func (r *DatasetReconciler) reconcileDatasetDeletion(ctx reconcileRequestContext
 
 	// 4. Remove finalizer
 	if !ctx.Dataset.ObjectMeta.GetDeletionTimestamp().IsZero() {
-		ctx.Dataset.ObjectMeta.Finalizers = utils.RemoveString(ctx.Dataset.ObjectMeta.Finalizers, common.AlluxioRuntimeResourceFinalizerName)
+		ctx.Dataset.ObjectMeta.Finalizers = utils.RemoveString(ctx.Dataset.ObjectMeta.Finalizers, common.alluxioDatasetResourceFinalizerName)
 		if err := r.Update(ctx, &ctx.Dataset); err != nil {
 			log.Error(err, "Failed to remove finalizer")
 			return ctrl.Result{}, err
@@ -211,7 +211,7 @@ func (r *DatasetReconciler) reconcileDatasetDeletion(ctx reconcileRequestContext
 }
 
 func (r *DatasetReconciler) addFinalizerAndRequeue(ctx reconcileRequestContext) (ctrl.Result, error) {
-	ctx.Dataset.ObjectMeta.Finalizers = append(ctx.Dataset.ObjectMeta.Finalizers, common.AlluxioRuntimeResourceFinalizerName)
+	ctx.Dataset.ObjectMeta.Finalizers = append(ctx.Dataset.ObjectMeta.Finalizers, common.alluxioDatasetResourceFinalizerName)
 	ctx.Log.Info("Add finalizer and Requeue")
 	prevGeneration := ctx.Dataset.ObjectMeta.GetGeneration()
 	if err := r.Update(ctx, &ctx.Dataset); err != nil {
