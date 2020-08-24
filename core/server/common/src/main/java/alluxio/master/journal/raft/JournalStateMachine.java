@@ -63,11 +63,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * A state machine for managing all of Alluxio's journaled state. Entries applied to this state
  * machine will be forwarded to the appropriate internal master.
  *
- * The state machine starts by resetting all state, then applying the entries offered by copycat.
+ * The state machine starts by resetting all state, then applying the entries offered by Ratis.
  * When the master becomes primary, it should wait until the state machine is up to date and no
  * other primary master is serving, then call {@link #upgrade}. Once the state machine is upgraded,
- * it will ignore all entries appended by copycat because those entries are applied to primary
- * master state before being written to copycat.
+ * it will ignore all entries appended by Ratis because those entries are applied to primary
+ * master state before being written to Rati.
  *
  */
 @ThreadSafe
@@ -232,10 +232,7 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   /**
-     * Applies a journal entry commit to the state machine.
-     *
-     * This method is automatically discovered by the Copycat framework.
-     *
+   * Applies a journal entry commit to the state machine.
    * @param commit the commit
    */
   public void applyJournalEntryCommand(TransactionContext commit) {

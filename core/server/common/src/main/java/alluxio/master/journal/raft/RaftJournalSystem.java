@@ -152,8 +152,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private final RaftJournalConfiguration mConf;
 
   /**
-   * Listens to the copycat server to detect gaining or losing primacy. The lifecycle for this
-   * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the copycat server
+   * Listens to the Ratis server to detect gaining or losing primacy. The lifecycle for this
+   * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the Ratis server
    * is reset during failover, this object must be re-initialized with the new server.
    */
   private final RaftPrimarySelector mPrimarySelector;
@@ -166,19 +166,19 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   /// Lifecycle: created at startup and re-created when master loses primacy and resets.
 
   /**
-   * Interacts with Copycat, applying entries to masters, taking snapshots,
+   * Interacts with Ratis, applying entries to masters, taking snapshots,
    * and installing snapshots.
    */
   private JournalStateMachine mStateMachine;
   /**
-   * Copycat server.
+   * Ratis server.
    */
   private RaftServer mServer;
 
   /// Lifecycle: created when gaining primacy, destroyed when losing primacy.
 
   /**
-   * Writer which uses a copycat client to write journal entries. This field is only set when the
+   * Writer which uses a Ratis client to write journal entries. This field is only set when the
    * journal system is primary mode. When primacy is lost, the writer is closed and set to null.
    */
   private RaftJournalWriter mRaftJournalWriter;
@@ -376,7 +376,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void losePrimacy() {
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
-      // Avoid duplicate shut down copycat server
+      // Avoid duplicate shut down Ratis server
       return;
     }
     try {
@@ -485,11 +485,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
     //
-    // 1. Write a unique ID to the copycat.
+    // 1. Write a unique ID to Ratis.
     // 2. Wait for the ID to by applied to the state machine. This proves that we are
-    //    caught up since the copycat cannot apply commits from a previous term after applying
+    //    caught up since Ratis cannot apply commits from a previous term after applying
     //    commits from a later term.
-    // 3. Wait for a quiet period to elapse without anything new being written to Copycat. This is a
+    // 3. Wait for a quiet period to elapse without anything new being written to Ratis. This is a
     //    heuristic to account for the time it takes for a node to realize it is no longer the
     //    leader. If two nodes think they are leader at the same time, they will both write unique
     //    IDs to the journal, but only the second one has a chance of becoming leader. The first
