@@ -23,7 +23,7 @@ fi
 mvn_args=""
 if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
 then
-  mvn_args+=" -fn"
+  mvn_args+=" -Dmaven.test.failure.ignore=true -fn --fail-at-end"
 fi
 
 RUN_MAVEN="false"
