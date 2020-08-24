@@ -126,7 +126,9 @@ public enum ExceptionMessage {
   FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
 
   // file
-  CANNOT_READ_INCOMPLETE_FILE("Cannot read from {0} because it is incomplete"),
+  CANNOT_READ_INCOMPLETE_FILE(
+      "Cannot read from {0} because it is incomplete. Wait for the file to be marked as complete "
+          + "by the writing thread or application."),
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_DIR_CHILDREN(
       "Cannot delete directory {0}. Failed to delete children: {1}"),
