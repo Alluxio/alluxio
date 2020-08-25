@@ -50,7 +50,7 @@ fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 ### 嵌套挂载点
 
 可以将GCS存储路径挂载到Alluxio命名空间中的一个嵌套目录，以便允许统一访问
-多个底层存储系统。 可用Alluxio的[命令行界面]({{ '/en/operation/User-CLI.html'| relativize_url}})来实现。
+多个底层存储系统。 可用Alluxio的[命令行界面]({{ '/en/operation/User-CLI.html' | relativize_url }})来实现。
 
 首先，在`conf/alluxio-site.properties`中，指定master主机：
 
