@@ -162,22 +162,44 @@ the metadata sync feature is used to synchronize the two namespaces.
 
 When Alluxio scans a UFS directory and loads metadata for its sub-paths,
 it creates a copy of the metadata so that future operations do not need to load from the UFS.
-The cached copy of the metadata is refreshed according to the
+Alluxio keeps a fingerprint of each UFS file so that Alluxio can update the file if it changes.
+The fingerprint includes information such as file size and last modified time.
+If a file is modified in the UFS, Alluxio will detect this from the fingerprint, free the existing
+data for that file, and reload the metadata for the updated file.
+If a file is added or deleted in the UFS, Alluxio will update the metadata in its namespace as well.
+
+The fingerprint is verified with the UFS based on the
 `alluxio.user.file.metadata.sync.interval` client configuration property.
-This property applies to client side operations.
+
 For example, if a client executes an operation with the interval set to one minute,
 the relevant metadata will be refreshed from the UFS if the last refresh was over a minute ago.
 A value of `0` indicates that the metadata will always be synced for every operation,
 whereas the default value of `-1` indicates the metadata is never synced again after the initial load.
 
-Low interval values allow Alluxio clients to quickly discover external modifications to the UFS,
-at the cost of decreasing performance since the number of calls to the UFS increases.
+The graph below illustrates the impact of setting the metadata sync interval on the latency of
+client operations.
 
-Metadata sync keeps a fingerprint of each UFS file so that Alluxio can update the file if it changes.
-The fingerprint includes information such as file size and last modified time.
-If a file is modified in the UFS, Alluxio will detect this from the fingerprint, free the existing
-data for that file, and reload the metadata for the updated file.
-If a file is added or deleted in the UFS, Alluxio will update the metadata in its namespace as well.
+<p align="center">
+<img style="text-align: center" src="{{ '/img/unified-namespace-metadata-sync-performance.png' | relativize_url }}" alt="Metadata sync interval"/>
+</p>
+
+The overall cost of syncing with sync interval enabled (blue line) is amortized across the number of
+RPCs within the sync time interval. When sync interval enabled to some non-0 value users should
+expect latency spikes in normal application usage. The frequency at which the spikes occur will
+be directly correlated with how frequently users want to update their metadata from the UFS. When
+configured to 0, users will generally see much higher RPC response times (possible an order of
+magnitude or more) greater than if they were to disable sync interval.
+
+The reason syncing metadata is so costly is because of the latency induced by making an RPC call to
+a UFS. This latency introduced by syncing is the cost of syncing metadata. Some major factors are
+listed below:
+
+* Namespace size (inodes)
+	* Latency may increase with more inodes (more data to send over the wire)
+* Geographical location of UFS w.r.t. Alluxio master.
+	* Latency increases with larger physical separation
+* UFS type and scale
+	* This is best explained by an example: latency will vary between a small (< 1M inode) installation of HDFS which is co-located with Alluxio that only serves a small number of clients (1-10) and an Amazon S3 bucket that may need to serve thousands of requests/sec.
 
 ### Techniques for managing UFS sync
 
@@ -202,26 +224,134 @@ In `alluxio-site.properties` on master nodes:
 
 Note master nodes need to be restarted to pick up configuration changes.
 
+#### Utilizing Path Configuration
+
+For clusters where the frequency of out-of-band changes varies based on the subtree in the
+namespace,
+[path configurations]({{ '/en/operation/Configuration.html#path-defaults' | relativize_url }})
+should be used to set the metadata sync interval at a finer
+granularity. For example, for paths which change often, a sync interval of `5 minutes` can
+be set, and for paths which do not change, a sync interval of `-1` can be set.
+
+### Metadata Sync Recommendations for Common Scenarios
+
+#### All operations through Alluxio
+
+If all operations are run through Alluxio without any access to the UFS from outside applications,
+then we recommend users set a sync interval of -1 with a load metadata type of ONCE.
+
+#### All operations through Alluxio except for a select few
+
+##### HDFS UFS
+
+With HDFS, if most operations except for some special cases are updated through Alluxio, we can
+take two approaches. One is [active sync](#active-sync-for-hdfs). The other is to set the sync
+interval using path configuration.
+
+If HDFS is updated very frequently (not on the Alluxio mount point) and there is a large namespace,
+it is more desirable to reduce load on the namenode by disabling active sync and simply using path
+configuration instead. Otherwise, if the load on the namenode isn't a concern, use ActiveSync and
+set the sync interval to -1.
+
+##### Non-HDFS UFS
+
+If a small number of paths are updated regularly or semi-regularly through the UFS directly instead
+of Alluxio, we recommend using the path configuration feature to set the sync interval on the
+specific path(s) based on the understanding of the rate of change in the UFS. This allows files to
+be synced for the special cases without detrimentally affecting the performance of operations on
+other parts of the namespace.
+
+#### UFS frequently updated not through Alluxio
+
+##### HDFS
+
+If the updates happen across many or unknown number of parts of the namespace at a frequent rate,
+use active sync in order to update metadata in a timely manner. If the rate of change is too fast,
+namespace is too large, or the user does not want to update the max RPC size from the namenode, then
+follow the suggestion in the section below for Non-HDFS UFS.
+
+##### Non-HDFS UFS
+
+Set the sync interval for each subtree or the entire cluster based on the understanding of the rate
+of change in the UFS.
+
 ### Other Methods for Loading New UFS Files
 
-The UFS sync discussed previously is the recommended method for synchronizing changes from the UFS.
-Here are some other methods for loading files:
+We recommend to configure the sync interval exclusively. It is not recommended to consider
+configuring the metadata load type. However, do note the following equivalencies
 
-* `alluxio.user.file.metadata.load.type`: This client property can be set to either
-`ALWAYS`, `ONCE`, or `NEVER`. It acts similar to `alluxio.user.file.metadata.sync.interval`,
-but with two caveats:
-    1. It only discovers new files and does not reload modified or deleted files.
-    1. It only applies to the `exists`, `list`, and `getStatus` RPCs.
-    
-    `ALWAYS` will always check the UFS for new files, `ONCE` will use the default
-behavior of only scanning each directory once ever, and `NEVER` will prevent Alluxio
-from scanning for new files at all.
+`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.metadata.sync.interval=-1`
+`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.metadata.sync.interval=0`
 
-* `alluxio fs ls -f /path`: The `-f` option to `ls` acts is equivalent to setting
-`alluxio.user.file.metadata.load.type` to `ALWAYS`. It discovers new files but
-does not detect modified or deleted UFS files.
-The only way to detect modified or deleted UFS files is to pass the
-`-Dalluxio.user.file.metadata.sync.interval=0` option to `ls`.
+If the metadata sync interval is configured the metadata load type is ignored.
+
+### Active Sync for HDFS
+
+In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space
+and the UFS when the UFS is HDFS. The feature, called active sync, listens for HDFS events and
+periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on
+the master.
+Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS
+versions is later than 2.6.1.
+You may need to change the value for `alluxio.underfs.version` in your configuration file.
+Please refer to
+[HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of
+supported Hdfs versions.
+
+To enable active sync on a directory, issue the following Alluxio command.
+
+```console
+$ ./bin/alluxio fs startSync /syncdir
+```
+
+You can control the active sync interval by changing the `alluxio.master.ufs.active.sync.interval` option, the default is 30 seconds.
+
+To disable active sync on a directory, issue the following Alluxio command.
+
+```console
+$ ./bin/alluxio fs stopSync /syncdir
+```
+
+> Note: When `startSync` is issued, a full scan of the sync point is scheduled.
+> If run as the Alluxio superuser, `stopSync` will interrupt any full scans which have not yet ended.
+> If run as any other user, `stopSync` will wait for the full scan to finish before completing.
+
+You can also examine which directories are currently under active sync, with the following command.
+
+```console
+$ ./bin/alluxio fs getSyncPathList
+```
+
+#### Quiet period for Active Sync
+
+Active sync also tries to avoid syncing when the target directory is heavily used.
+It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
+There are two configuration options that control this behavior.
+
+`alluxio.master.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory.
+Activity is a heuristic based on the exponential moving average of number of events in a directory.
+For example, if a directory had 100, 10, and 1 events in the past three intervals.
+Its activity would be `100/10*10 + 10/10 + 1 = 3`
+`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+
+The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
+
+For example, the following setting
+
+```
+alluxio.master.ufs.active.sync.interval=30secs
+alluxio.master.ufs.active.sync.max.activities=100
+alluxio.master.ufs.active.sync.max.age=5
+```
+
+means that every 30 seconds, the system will count the number of events in the directory and
+calculate its activity.
+If the activity is less than 100, it will be considered a quiet period, and syncing will start
+for that directory.
+If the activity is greater than 100, and it has not synced for the last 5 intervals, or
+5 * 30 = 150 seconds, it will start syncing the directory.
+It will not perform active sync if the activity is greater than 100 and it has synced at least
+once in the last 5 intervals.
 
 ## Examples
 
@@ -293,68 +423,6 @@ $ ./bin/alluxio fs ls -R /
 $ ls /tmp/alluxio-demo
 hello
 ```
-
-### Metadata Active Sync for HDFS
-In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
-The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
-Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS versions is later than 2.6.1.
-You may need to change the value for `alluxio.underfs.version` in your configuration file.
-Please refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
-
-To enable active sync on a directory, issue the following Alluxio command.
-
-```console
-$ ./bin/alluxio fs startSync /syncdir
-```
-
-You can control the active sync interval by changing the `alluxio.master.ufs.active.sync.interval` option, the default is 30 seconds.
-
-To disable active sync on a directory, issue the following Alluxio command.
-
-```console
-$ ./bin/alluxio fs stopSync /syncdir
-```
-
-> Note: When `startSync` is issued, a full scan of the sync point is scheduled.
-> If run as the Alluxio superuser, `stopSync` will interrupt any full scans which have not yet ended.
-> If run as any other user, `stopSync` will wait for the full scan to finish before completing.
-
-You can also examine which directories are currently under active sync, with the following command.
-
-```console
-$ ./bin/alluxio fs getSyncPathList
-```
-
-#### Quiet period for Active Sync
-
-Active sync also tries to avoid syncing when the target directory is heavily used.
-It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
-There are two configuration options that control this behavior.
-
-`alluxio.master.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory. 
-Activity is a heuristic based on the exponential moving average of number of events in a directory.
-For example, if a directory had 100, 10, 1 event in the past three intervals. 
-Its activity would be `100/10*10 + 10/10 + 1 = 3` 
-`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
-
-The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
-
-For example, the following setting 
-
-```
-alluxio.master.ufs.active.sync.interval=30secs
-alluxio.master.ufs.active.sync.max.activities=100
-alluxio.master.ufs.active.sync.max.age=5
-```
-
-means that every 30 seconds, the system will count the number of events in the directory and
-calculate its activity.
-If the activity is less than 100, it will be considered a quiet period, and syncing will start
-for that directory.
-If the activity is greater than 100, and it has not synced for the last 5 intervals, or
-5 * 30 = 150 seconds, it will start syncing the directory.
-It will not perform active sync if the activity is greater than 100 and it has synced at least
-once in the last 5 intervals.
 
 ### Unified Namespace
 

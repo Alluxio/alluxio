@@ -129,9 +129,9 @@
     <build.path>build</build.path>
     <copycat.version>1.2.15</copycat.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <grpc.version>1.31.0</grpc.version>
-    <netty.version>4.1.48.Final</netty.version>
-    <rocksdb.version>6.11.4</rocksdb.version>
+    <grpc.version>1.28.1</grpc.version>
+    <netty.version>4.1.51.Final</netty.version>
+    <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>

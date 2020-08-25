@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -227,9 +225,12 @@ public class LocalCacheManager implements CacheManager {
   public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     if (!mAsyncWrite) {
-      boolean inserted = putInternal(pageId, page);
-      LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, inserted);
-      return inserted;
+      boolean ok = putInternal(pageId, page);
+      LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, ok);
+      if (!ok) {
+        Metrics.PUT_ERRORS.inc();
+      }
+      return ok;
     }
 
     if (!mPendingRequests.add(pageId)) { // already queued
@@ -238,7 +239,10 @@ public class LocalCacheManager implements CacheManager {
     try {
       mAsyncCacheExecutor.submit(() -> {
         try {
-          putInternal(pageId, page);
+          boolean ok = putInternal(pageId, page);
+          if (!ok) {
+            Metrics.PUT_ERRORS.inc();
+          }
         } finally {
           mPendingRequests.remove(pageId);
         }
@@ -247,6 +251,7 @@ public class LocalCacheManager implements CacheManager {
       // RejectedExecutionException may be thrown in extreme cases when the
       // highly concurrent caching workloads. In these cases, return false
       mPendingRequests.remove(pageId);
+      Metrics.PUT_ASYNC_REJECTION_ERRORS.inc();
       Metrics.PUT_ERRORS.inc();
       LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.length);
       return false;
@@ -266,7 +271,8 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
-          return false;
+          // TODO(binfan): we should return more informative result in the future
+          return true;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
@@ -276,18 +282,21 @@ public class LocalCacheManager implements CacheManager {
         }
       }
       if (enoughSpace) {
-        boolean ret = addPage(pageId, page);
-        if (!ret) {
+        boolean ok = addPage(pageId, page);
+        if (ok) {
+          Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+        } else {
+          Metrics.PUT_STORE_WRITE_ERRORS.inc();
           // something is wrong to add this page, let's remove it from meta store
           try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
             mMetaStore.removePage(pageId);
           } catch (PageNotFoundException e) {
             // best effort to remove this page from meta store and ignore the exception
-            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
+            Metrics.CLEANUP_PUT_ERRORS.inc();
           }
         }
-        LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ret);
-        return ret;
+        LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ok);
+        return ok;
       }
     }
 
@@ -297,10 +306,12 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted by a racing thread", pageId);
-          return false;
+          // TODO(binfan): we should return more informative result in the future
+          return true;
         }
         if (!mMetaStore.hasPage(victim)) {
           LOG.debug("{} is already evicted by a racing thread", pageId);
+          Metrics.PUT_EVICTION_ERRORS.inc();
           return false;
         }
         try {
@@ -308,6 +319,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.removePage(victim);
         } catch (PageNotFoundException e) {
           LOG.error("Page store is missing page {}: {}", victim, e);
+          Metrics.PUT_EVICTION_ERRORS.inc();
           return false;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
@@ -315,28 +327,36 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
       }
-      if (!deletePage(victim, victimPageInfo)) {
+      if (deletePage(victim, victimPageInfo)) {
+        Metrics.BYTES_EVICTED_CACHE.mark(victimPageInfo.getPageSize());
+        Metrics.PAGES_EVICTED_CACHE.mark();
+      } else {
         LOG.debug("Failed to evict page: {}", victim);
+        Metrics.PUT_EVICTION_ERRORS.inc();
         return false;
       }
       if (enoughSpace) {
-        boolean ret = addPage(pageId, page);
-        if (!ret) {
+        boolean ok = addPage(pageId, page);
+        if (ok) {
+          Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+        } else {
+          Metrics.PUT_STORE_WRITE_ERRORS.inc();
           // something is wrong to add this page, let's remove it from meta store
           try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
             mMetaStore.removePage(pageId);
           } catch (PageNotFoundException e) {
             // best effort to remove this page from meta store and ignore the exception
-            Metrics.PUT_FAILED_WRITE_ERRORS.inc();
+            Metrics.CLEANUP_PUT_ERRORS.inc();
           }
         }
         LOG.debug("Add page ({},{} bytes) after evicting ({}), success: {}", pageId, page.length,
-            victimPageInfo, ret);
-        return ret;
+            victimPageInfo, ok);
+        return ok;
       }
     }
     LOG.debug("putInternal({},{} bytes) fails after evicting ({})", pageId, page.length,
         victimPageInfo);
+    Metrics.PUT_EVICTION_ERRORS.inc();
     return false;
   }
 
@@ -361,12 +381,14 @@ public class LocalCacheManager implements CacheManager {
       }
       int bytesRead = getPage(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer);
       if (bytesRead <= 0) {
+        Metrics.GET_ERRORS.inc();
+        Metrics.GET_STORE_READ_ERRORS.inc();
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           // best effort to remove this page from meta store and ignore the exception
-          Metrics.GET_ERRORS_FAILED_READ.inc();
+          Metrics.CLEANUP_GET_ERRORS.inc();
         }
         return -1;
       }
@@ -387,13 +409,18 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           LOG.error("Failed to delete page {}: {}", pageId, e);
+          Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
         }
       }
-      boolean ret = deletePage(pageId, pageInfo);
-      LOG.debug("delete({}) exits, success: {}", pageId, ret);
-      return ret;
+      boolean ok = deletePage(pageId, pageInfo);
+      LOG.debug("delete({}) exits, success: {}", pageId, ok);
+      if (!ok) {
+        Metrics.DELETE_STORE_DELETE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+      }
+      return ok;
     }
   }
 
@@ -415,11 +442,9 @@ public class LocalCacheManager implements CacheManager {
       mPageStore.put(pageId, page);
     } catch (IOException e) {
       LOG.error("Failed to add page {}: {}", pageId, e);
-      Metrics.PUT_ERRORS.inc();
       return false;
     }
     mEvictor.updateOnPut(pageId);
-    Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
     return true;
   }
 
@@ -436,38 +461,24 @@ public class LocalCacheManager implements CacheManager {
       mPageStore.delete(pageId, pageInfo.getPageSize());
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to delete page {}: {}", pageId, e);
-      Metrics.DELETE_ERRORS.inc();
       return false;
     }
     mEvictor.updateOnDelete(pageId);
-    Metrics.BYTES_EVICTED_CACHE.mark(pageInfo.getPageSize());
-    Metrics.PAGES_EVICTED_CACHE.mark();
     return true;
   }
 
-  private int getPage(PageId pageId, int offset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer) {
-    try (ReadableByteChannel chan = mPageStore.get(pageId, offset)) {
-      // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-      ByteBuffer buf = ByteBuffer.wrap(buffer);
-      buf.position(offsetInBuffer);
-      buf.limit(offsetInBuffer + bytesToRead);
-      // read data from cache
-      while (buf.position() != buf.limit()) {
-        if (chan.read(buf) == -1) {
-          break;
-        }
-      }
-      if (buf.position() != buf.limit()) {
+  private int getPage(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int bufferOffset) {
+    try {
+      int ret = mPageStore.get(pageId, pageOffset, buffer, bufferOffset);
+      if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
-        Metrics.GET_ERRORS_FAILED_READ.inc();
-        throw new IOException(String.format(
-            "Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
-            pageId, bytesToRead, buf.position() - offsetInBuffer));
+        LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
+            pageId, bytesToRead, ret);
+        return -1;
       }
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to get existing page {}: {}", pageId, e);
-      Metrics.GET_ERRORS.inc();
       return -1;
     }
     mEvictor.updateOnGet(pageId);
@@ -487,18 +498,36 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when deleting pages. */
     private static final Counter DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_ERRORS.getName());
+    /** Errors when deleting pages due to absence. */
+    private static final Counter DELETE_NON_EXISTING_PAGE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NON_EXISTING_PAGE_ERRORS.getName());
+    /** Errors when deleting pages due to failed delete in page stores. */
+    private static final Counter DELETE_STORE_DELETE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS.getName());
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
-    /** Errors when getting pages due to failed reads from cache storage. */
-    private static final Counter GET_ERRORS_FAILED_READ =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_FAILED_READ_ERRORS.getName());
+    /** Errors when getting pages due to failed read from page stores. */
+    private static final Counter GET_STORE_READ_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_STORE_READ_ERRORS.getName());
+    /** Errors when cleaning up a failed get operation. */
+    private static final Counter CLEANUP_GET_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_GET_ERRORS.getName());
+    /** Errors when cleaning up a failed put operation. */
+    private static final Counter CLEANUP_PUT_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_PUT_ERRORS.getName());
     /** Errors when adding pages. */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
-    /** Errors when adding pages due to failed writes to cache storage. */
-    private static final Counter PUT_FAILED_WRITE_ERRORS =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_FAILED_WRITE_ERRORS.getName());
+    /** Errors when adding pages due to failed injection to async write queue. */
+    private static final Counter PUT_ASYNC_REJECTION_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ASYNC_REJECTION_ERRORS.getName());
+    /** Errors when adding pages due to failed eviction. */
+    private static final Counter PUT_EVICTION_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_EVICTION_ERRORS.getName());
+    /** Errors when adding pages due to failed writes to page store. */
+    private static final Counter PUT_STORE_WRITE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS.getName());
 
     private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(

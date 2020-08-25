@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -36,6 +37,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -582,6 +584,42 @@ public class AbstractFileSystemTest {
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    }
+  }
+
+  @Test
+  public void appendExistingNotSupported() throws Exception {
+    Path path = new Path("/file");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(true);
+
+    try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
+      alluxioHadoopFs.append(path, 100);
+      fail("append() of existing file is expected to fail");
+    } catch (IOException e) {
+      assertEquals("append() to existing Alluxio path is currently not supported: " + path,
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void createWithoutOverwrite() throws Exception {
+    Path path = new Path("/file");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(true);
+    when(alluxioFs.createFile(eq(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))), any()))
+        .thenThrow(new FileAlreadyExistsException(path.toString()));
+
+    try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
+      alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
+      fail("create() of existing file is expected to fail");
+    } catch (IOException e) {
+      assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
+          e.getMessage());
     }
   }
 
