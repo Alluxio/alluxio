@@ -150,6 +150,7 @@
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.12.4</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ratis.version>1.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
     <ozone.version>0.5.0-beta</ozone.version>
@@ -558,6 +559,16 @@
         <groupId>io.atomix.copycat.alluxio</groupId>
         <artifactId>copycat-client</artifactId>
         <version>${copycat.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-server</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-grpc</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.sling</groupId>
