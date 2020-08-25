@@ -163,6 +163,9 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
+          <mapping>
+            <ts>PHP_STYLE</ts>
+          </mapping>
           <excludes>
             <exclude>**/node_modules/**</exclude>
             <exclude>node/**</exclude>
