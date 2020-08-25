@@ -97,9 +97,3 @@ if [ "$RUN_MAVEN" == "true" ]; then
 else
   echo "RUN_MAVEN was not set to true, skipping maven check"
 fi
-
-if [ "${RUN_DOC_CHECK}" == "true" ]; then
-  ./dev/scripts/check-docs.sh
-else
-  echo "RUN_DOC_CHECK was not set to true, skipping doc check"
-fi
