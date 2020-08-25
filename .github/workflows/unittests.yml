@@ -46,7 +46,7 @@ jobs:
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true ALLUXIO_DOCKER_GIT_CLEAN=true ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh --entrypoint=dev/github/run_tests.sh -pl '!tests'
+          dev/github/run_docker.sh -pl '!tests'
         timeout-minutes: 60
 
       - name: Archive artifacts

@@ -82,6 +82,8 @@ function main {
     run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
   fi
 
+  run_args+=" --entrypoint=dev/github/run_tests.sh"
+
   docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE} $@
 }
 
