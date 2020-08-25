@@ -82,9 +82,6 @@ function main {
     run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
   fi
 
-  # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
-  run_args+=" --entrypoint=dev/github/build.sh"
-
   docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE} $@
 }
 
