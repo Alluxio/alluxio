@@ -123,8 +123,8 @@ public final class AlluxioFileInStreamTest {
 
     ClientTestUtils.setSmallBufferSizes(sConf);
     sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
-    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
-    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
+    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MAX, "5ms");
+    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s");
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));
