@@ -23,7 +23,7 @@ fi
 mvn_args=""
 if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
 then
-  mvn_args+=" -fn --fail-at-end"
+  mvn_args+=" -fn --fail-at-end -DfailIfNoTests=false"
 fi
 
 RUN_MAVEN="false"
