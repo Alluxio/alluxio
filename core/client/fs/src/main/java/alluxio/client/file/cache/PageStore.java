@@ -138,11 +138,10 @@ public interface PageStore extends AutoCloseable {
    * Deletes a page from the store.
    *
    * @param pageId page identifier
-   * @param pageSize page size in bytes
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
+  void delete(PageId pageId) throws IOException, PageNotFoundException;
 
   /**
    * Gets a stream of all pages from the page store. This stream needs to be closed as it may
