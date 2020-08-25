@@ -80,7 +80,8 @@ if [ "$RUN_MAVEN" == "true" ]; then
   # Revert back to the image default java version to run the test
   # JAVA_HOME=${JAVA_HOME_BACKUP}
   PATH=${PATH_BACKUP}
-  mvn -Duser.home=/home/jenkins -T 4C test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@
+  mvn -Duser.home=/home/jenkins -T 4C test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true \
+  -Dsurefire.rerunFailingTestsCount=3 -Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then
