@@ -318,7 +318,9 @@ public class Database implements Journaled {
             .setRemoveTable(removeTableEntry)
             .build();
         applyAndJournal(context, entry);
-        builder.addTablesRemoved(existingTable.getName());
+        synchronized (builder) {
+          builder.addTablesRemoved(existingTable.getName());
+        }
       }
     }
     return builder.build();
