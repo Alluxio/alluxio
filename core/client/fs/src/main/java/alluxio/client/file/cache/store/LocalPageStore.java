@@ -120,7 +120,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
