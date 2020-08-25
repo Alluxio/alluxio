@@ -74,7 +74,8 @@ if [ "$RUN_MAVEN" == "true" ]; then
   PATH_BACKUP=${PATH}
   JAVA_HOME=/usr/local/openjdk-8
   PATH=$JAVA_HOME/bin:$PATH
-  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} -pl !webui
+  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip \
+  -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} -pl '!webui,!shaded,!shaded/client,!shaded/hadoop'
 
   # Revert back to the image default java version to run the test
   # JAVA_HOME=${JAVA_HOME_BACKUP}
