@@ -22,6 +22,7 @@ jobs:
     name: "Test modules: "
 
     strategy:
+      fail-fast: false
       matrix:
         modules:
           - >-
@@ -34,8 +35,6 @@ jobs:
             alluxio.server.ft.**
           - >-
             alluxio.server.**, !alluxio.server.ft.**
-
-
     env:
       MODULES_TO_TEST: ${{ matrix.modules }}
 
