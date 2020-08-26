@@ -74,7 +74,7 @@ A common modification to the default is to set the ramdisk size explicitly. For 
 ramdisk size to be 16GB on each worker:
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
@@ -107,13 +107,14 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 Note that the ordering of the quotas must match with the ordering of the paths.
 
-
-There is a subtle difference between `alluxio.worker.memory.size` and
-`alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
-provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. This ramdisk
-will have its size determined by `alluxio.worker.memory.size` regardless of the value set in
-`alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
-of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
+Alluxio will provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. 
+This ramdisk will have its size determined by `alluxio.worker.ramdisk.size` 
+In the default case where tier 0 is MEM and is allocated the entire ramdisk, 
+`alluxio.worker.tieredstore.level0.dirs.quota` has the same value as 
+`alluxio.worker.ramdisk.size`. 
+However, if tier 0 is not MEM or if it is not allocated the entire space of the ramdisk,
+`alluxio.worker.tieredstore.level0.dirs.quota` should be configured explicitly to indicate
+the amount allocated for tier 0.
 
 ### Multiple-Tier Storage
 

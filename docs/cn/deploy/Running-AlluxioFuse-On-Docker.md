@@ -106,7 +106,7 @@ $ docker run -d \
     -v $PWD/underStorage:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.hostname=localhost \
         -Dalluxio.master.hostname=localhost \
-        -Dalluxio.worker.memory.size=1G \
+        -Dalluxio.worker.ramdisk.size=1G \
         -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage " \
     -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio:2.3.0-SNAPSHOT-b7629dc worker
@@ -114,7 +114,7 @@ $ docker run -d \
 
 命令参数说明：
 
-- `--shm-size=1G`：设置容器的共享内存大小，与`alluxio.worker.memory.size`（`ALLUXIO_JAVA_OPTS`中设置）和RAMFS的大小（`1G`）保持一致
+- `--shm-size=1G`：设置容器的共享内存大小，与`alluxio.worker.ramdisk.size`（`ALLUXIO_JAVA_OPTS`中设置）和RAMFS的大小（`1G`）保持一致
 - `-v /mnt/ramdisk:/opt/ramdisk`：和Docker容器共享主机的ramdisk
 - `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`：通知worker如何定位ramdisk
 

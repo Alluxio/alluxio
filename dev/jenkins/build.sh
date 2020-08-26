@@ -20,6 +20,12 @@ then
   git clean -fdx
 fi
 
+mvn_args=""
+if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
+then
+  mvn_args+=" -Dmaven.test.failure.ignore=true -fn --fail-at-end"
+fi
+
 RUN_MAVEN="false"
 RUN_DOC_CHECK="false"
 if [ -z "${TARGET_BRANCH}" ]; then
@@ -62,8 +68,18 @@ if [ "$RUN_MAVEN" == "true" ]; then
   then
     ALLUXIO_BUILD_FORKCOUNT=4
   fi
-
-  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
+  
+  # Always use jafa 8 to compile the source code
+  JAVA_HOME_BACKUP=${JAVA_HOME}
+  PATH_BACKUP=${PATH}
+  JAVA_HOME=/usr/local/openjdk-8 
+  PATH=$JAVA_HOME/bin:$PATH 
+  mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
+  
+  # Revert back to the image default java version to run the test
+  JAVA_HOME=${JAVA_HOME_BACKUP}
+  PATH=${PATH_BACKUP}
+  mvn -Duser.home=/home/jenkins -T 4C test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]
   then

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.security.User;
+import alluxio.util.CommonUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,9 +64,12 @@ public final class LoginModuleTest {
     loginContext.logout();
     assertTrue(subject.getPrincipals(User.class).isEmpty());
 
-    // logout twice should be no-op.
-    loginContext.logout();
-    assertTrue(subject.getPrincipals(User.class).isEmpty());
+    if (CommonUtils.getJavaVersion() == 8) {
+      // logout twice should be no-op in java 8
+      // logout more than once is not allowed in java 11
+      loginContext.logout();
+      assertTrue(subject.getPrincipals(User.class).isEmpty());
+    }
   }
 
    /**
@@ -78,7 +82,6 @@ public final class LoginModuleTest {
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
-
     // login, add OS user into subject, and add corresponding Alluxio user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
         new LoginModuleConfiguration());

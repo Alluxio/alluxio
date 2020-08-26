@@ -131,12 +131,12 @@ public final class ClientTest {
   @Test
   public void notEnoughMemoryForAlluxioWorker() throws Exception {
     mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
-    mConf.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    mConf.set(PropertyKey.WORKER_RAMDISK_SIZE, "4096.00MB");
     mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
     int workerMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (mConf.getBytes(
-        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+        PropertyKey.WORKER_RAMDISK_SIZE) / Constants.MB);
     Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB) / 2, 4);
     generateMaxAllocation(resource);
     mThrown.expect(RuntimeException.class);
@@ -149,12 +149,12 @@ public final class ClientTest {
   @Test
   public void notEnoughVCoreForAlluxioWorker() throws Exception {
     mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
-    mConf.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    mConf.set(PropertyKey.WORKER_RAMDISK_SIZE, "4096.00MB");
     mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
     int workerMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (mConf.getBytes(
-        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+        PropertyKey.WORKER_RAMDISK_SIZE) / Constants.MB);
     int workerVCore = mConf.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB), 4);
     generateMaxAllocation(resource);

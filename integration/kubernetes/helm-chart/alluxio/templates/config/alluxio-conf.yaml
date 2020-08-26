@@ -26,9 +26,6 @@
 {{- if $isSingleMaster }}
   {{- $alluxioJavaOpts = printf "-Dalluxio.master.hostname=%v-%v" $fullName $defaultMasterName | append $alluxioJavaOpts }}
 {{- end }}
-{{ if .Values.fuse.enabled -}}
-  {{- $alluxioJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $alluxioJavaOpts }}
-{{- end }}
 {{- $alluxioJavaOpts = printf "-Dalluxio.master.journal.type=%v" .Values.journal.type | append $alluxioJavaOpts }}
 {{- $alluxioJavaOpts = printf "-Dalluxio.master.journal.folder=%v" .Values.journal.folder | append $alluxioJavaOpts }}
 
@@ -96,7 +93,7 @@
 {{- if .Values.worker.resources  }}
   {{- if .Values.worker.resources.requests }}
     {{- if .Values.worker.resources.requests.memory }}
-          {{- $workerJavaOpts = printf "-Dalluxio.worker.memory.size=%v" .Values.worker.resources.requests.memory | append $workerJavaOpts }}
+          {{- $workerJavaOpts = printf "-Dalluxio.worker.ramdisk.size=%v" .Values.worker.resources.requests.memory | append $workerJavaOpts }}
     {{- end}}
   {{- end}}
 {{- end}}
@@ -151,6 +148,7 @@
 {{- /*        ALLUXIO_FUSE_JAVA_OPTS         */}}
 {{- /* ===================================== */}}
 {{- $fuseJavaOpts := list }}
+{{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
 {{- range $key, $val := .Values.fuse.properties }}
   {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
 {{- end }}

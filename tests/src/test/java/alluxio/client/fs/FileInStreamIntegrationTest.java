@@ -397,7 +397,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
           PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
-          PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+          PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
     AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");

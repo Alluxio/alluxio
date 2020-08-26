@@ -7,7 +7,7 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- */CacheQuota.java:18
+ */
 
 package alluxio.client.file.cache.evictor;
 
@@ -42,7 +42,7 @@ public class ScopedCacheEvictor implements CacheEvictor {
    */
   public ScopedCacheEvictor(AlluxioConfiguration conf, MetaStore metaStore) {
     mMetaStore = metaStore;
-    mSupplier = () -> CacheEvictor.createSingleEvictor(conf);
+    mSupplier = () -> CacheEvictor.create(conf);
   }
 
   @Override

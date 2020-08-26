@@ -75,4 +75,10 @@ public interface MetaStore {
    * Resets the meta store.
    */
   void reset();
+
+  /**
+   * @param scope scope to evict
+   * @return a page to evict
+   */
+  PageInfo evict(Scope scope);
 }

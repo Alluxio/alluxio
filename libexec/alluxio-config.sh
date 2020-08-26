@@ -51,10 +51,12 @@ if [[ -z "${JAVA}" ]]; then
   fi
 fi
 
-# Check Java version == 1.8
+# Check Java version == 1.8 or == 11
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
-if [[ $(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}') != 001008 ]]; then
-  echo "Error: Alluxio requires Java 8, currently Java $JAVA_VERSION found."
+JAVA_MAJORMINOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')
+JAVA_MAJOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d",$1);}')
+if [[ ${JAVA_MAJORMINOR} != 001008 && ${JAVA_MAJOR} != 011 ]]; then
+  echo "Error: Alluxio requires Java 8 or Java 11, currently Java $JAVA_VERSION found."
   exit 1
 fi
 
@@ -81,8 +83,13 @@ elif [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
 fi
 
+# ALLUXIO_WORKER_MEMORY_SIZE is deprecated but kept for compatibility
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
+fi
+
+if [[ -n "${ALLUXIO_WORKER_RAMDISK_SIZE}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.ramdisk.size=${ALLUXIO_WORKER_RAMDISK_SIZE}"
 fi
 
 ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties"
