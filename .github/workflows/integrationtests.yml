@@ -75,4 +75,4 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
             log*
-            surefire-reports*
+            **/surefire-reports/*
