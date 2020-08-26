@@ -227,7 +227,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     // Wait until backup is complete.
     CommonUtils.waitFor("Backup completed.", () -> {
       try {
-        return mCluster.getMetaMasterClient().getBackupStatus(backupId).getState().equals(BackupState.Completed);
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId).getState()
+            .equals(BackupState.Completed);
       } catch (Exception e) {
         throw new RuntimeException(
             String.format("Unexpected error while getting backup status: %s", e.toString()));
