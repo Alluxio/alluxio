@@ -385,7 +385,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     List<Thread> opThreads = new ArrayList<>();
     // Run background threads to perform metadata operations while the journal backups and restores
     // are happening.
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
       AlluxioOperationThread thread = new AlluxioOperationThread(mCluster.getFileSystemClient());
       thread.start();
       opThreads.add(thread);
