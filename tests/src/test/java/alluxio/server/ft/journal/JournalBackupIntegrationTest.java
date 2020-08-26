@@ -34,6 +34,7 @@ import alluxio.exception.BackupAbortedException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupState;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -226,8 +227,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     // Wait until backup is complete.
     CommonUtils.waitFor("Backup completed.", () -> {
       try {
-        mCluster.getMetaMasterClient().getBackupStatus(backupId);
-        return true;
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId).getState().equals(BackupState.Completed);
       } catch (Exception e) {
         throw new RuntimeException(
             String.format("Unexpected error while getting backup status: %s", e.toString()));
