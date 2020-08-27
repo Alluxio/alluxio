@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,6 +26,7 @@ import org.junit.rules.TemporaryFolder;
 import java.util.Iterator;
 import java.util.List;
 
+@Ignore
 public class RocksBlockStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();

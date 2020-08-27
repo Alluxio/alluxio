@@ -16,6 +16,7 @@ import static org.junit.Assert.assertArrayEquals;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 
 import com.google.common.primitives.Longs;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Ignore
 public class RocksStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
