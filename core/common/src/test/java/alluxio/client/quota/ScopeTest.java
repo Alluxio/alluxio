@@ -25,19 +25,43 @@ public class ScopeTest {
     Scope table = Scope.create("schema.table");
     Scope partition = Scope.create("schema.table.partition");
     assertNull(Scope.GLOBAL.parent());
+    assertNull(schema.parent().parent());
     assertEquals(Scope.GLOBAL, schema.parent());
     assertEquals(schema, table.parent());
     assertEquals(table, partition.parent());
+    assertEquals(Scope.create("schema.table.partition1").parent(),
+        Scope.create("schema.table.partition2").parent());
+    assertEquals(Scope.create("schema.table.part").parent(),
+        Scope.create("schema.table.partition").parent());
+    assertEquals(Scope.create("schema.table.part").parent().parent(),
+        Scope.create("schema.table").parent());
+  }
+
+  @Test
+  public void scopeHashCode() {
+    assertEquals(Scope.GLOBAL.hashCode(), Scope.create(".").hashCode());
+    assertEquals(Scope.create(".").hashCode(), Scope.create(".").hashCode());
+    assertEquals(Scope.create("schema").hashCode(), Scope.create("schema").hashCode());
+    assertEquals(Scope.create("schema.table").hashCode(), Scope.create("schema.table").hashCode());
+    assertEquals(Scope.create("schema.table.partition").hashCode(),
+        Scope.create("schema.table.partition").hashCode());
+    assertEquals(Scope.create(".").hashCode(), Scope.create("schema").parent().hashCode());
+    assertEquals(Scope.create("schema").hashCode(),
+        Scope.create("schema.table").parent().hashCode());
+    assertEquals(Scope.create("schema.table").hashCode(),
+        Scope.create("schema.table.partition").parent().hashCode());
   }
 
   @Test
   public void scopeEquals() {
     assertEquals(Scope.GLOBAL, Scope.create("."));
     assertEquals(Scope.create("."), Scope.create("."));
+    assertEquals(Scope.create("schema"), Scope.create("schema"));
     assertEquals(Scope.create("schema.table"), Scope.create("schema.table"));
     assertEquals(Scope.create("schema.table.partition"), Scope.create("schema.table.partition"));
     assertNotEquals(Scope.create("schema1"), Scope.create("schema2"));
     assertNotEquals(Scope.create("schema.table1"), Scope.create("schema.table2"));
+    assertNotEquals(Scope.create("schema.Atable"), Scope.create("schema.Btable"));
     assertNotEquals(Scope.create("schema.table"), Scope.create("schema.table.partition"));
     assertNotEquals(Scope.create("schema.table.partition1"),
         Scope.create("schema.table.partition2"));

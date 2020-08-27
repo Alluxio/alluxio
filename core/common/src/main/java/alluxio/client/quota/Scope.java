@@ -77,17 +77,16 @@ public class Scope {
       return false;
     }
     Scope scope = (Scope) o;
-    if (mId.length() == scope.mId.length()) {
-      return mLength == scope.mLength && Objects.equal(mId, scope.mId);
-    } else {
-      return Objects.equal(
-          mId.substring(0, mLength - 1), scope.mId.substring(0, scope.mLength - 1));
+    if (mLength == scope.mLength && Objects.equal(mId, scope.mId)) {
+      return true;
     }
+    return Objects.equal(
+          mId.substring(0, mLength), scope.mId.substring(0, scope.mLength));
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mLength);
+    return Objects.hashCode(mId.substring(0, mLength), mLength);
   }
 
   @Override

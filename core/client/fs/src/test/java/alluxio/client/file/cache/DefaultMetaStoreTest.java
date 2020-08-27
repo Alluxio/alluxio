@@ -11,8 +11,10 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.Scope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import org.junit.Assert;
@@ -86,5 +88,20 @@ public final class DefaultMetaStoreTest {
   public void getPageInfoNotExist() throws Exception {
     mThrown.expect(PageNotFoundException.class);
     mMetaStore.getPageInfo(mPage);
+  }
+
+  @Test
+  public void bytesInScope() {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
+    mMetaStore = new DefaultMetaStore(mConf);
+    long pageSize1 = 8765;
+    PageId pageId = new PageId("2L", 2L);
+    Scope scope = Scope.create("schema.table.partition");
+    PageInfo pageInfo = new PageInfo(pageId, pageSize1, scope);
+    mMetaStore.addPage(pageId, pageInfo);
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(Scope.create("schema.table.partition")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(Scope.create("schema.table")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(Scope.create("schema")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(Scope.create(".")));
   }
 }

@@ -36,6 +36,6 @@ public class CacheQuota {
    * @return size of quota of this scope in bytes
    */
   public long getQuota(Scope scope) {
-    return mQuota.get(scope);
+    return mQuota.getOrDefault(scope, Long.MAX_VALUE);
   }
 }

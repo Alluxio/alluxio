@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.cache.evictor.ScopedCacheEvictor;
 import alluxio.client.quota.Scope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -48,6 +48,8 @@ public class DefaultMetaStore implements MetaStore {
   private final boolean mQuotaEnabled;
   /** The evictor. */
   private final CacheEvictor mEvictor;
+  private Map<Scope, CacheEvictor> mCacheEvictors;
+  private Supplier<CacheEvictor> mSupplier;
 
   /**
    * @param conf configuration
@@ -55,8 +57,12 @@ public class DefaultMetaStore implements MetaStore {
   public DefaultMetaStore(AlluxioConfiguration conf) {
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     if (mQuotaEnabled) {
-      mEvictor = new ScopedCacheEvictor(conf, this);
+      mCacheEvictors = new ConcurrentHashMap<>();
+      mSupplier = () -> CacheEvictor.create(conf);
+      mEvictor = null;
     } else {
+      mCacheEvictors = null;
+      mSupplier = null;
       mEvictor = CacheEvictor.create(conf);
     }
   }
@@ -79,16 +85,19 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
-    mBytes.addAndGet(pageInfo.getPageSize());
-    Metrics.SPACE_USED.inc(pageInfo.getPageSize());
     mPages.incrementAndGet();
+    Metrics.SPACE_USED.inc(pageInfo.getPageSize());
     Metrics.PAGES.inc();
-    mEvictor.updateOnPut(pageId);
     if (mQuotaEnabled) {
       for (Scope scope = pageInfo.getScope(); scope != null; scope = scope.parent()) {
         mBytesInScope.compute(scope,
             (k, v) -> (v == null) ? pageInfo.getPageSize() : v + pageInfo.getPageSize());
+        CacheEvictor evictor = mCacheEvictors.computeIfAbsent(scope, k -> mSupplier.get());
+        evictor.updateOnPut(pageId);
       }
+    } else {
+      mBytes.addAndGet(pageInfo.getPageSize());
+      mEvictor.updateOnPut(pageId);
     }
   }
 
@@ -97,8 +106,16 @@ public class DefaultMetaStore implements MetaStore {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
-    mEvictor.updateOnGet(pageId);
-    return mPageMap.get(pageId);
+    PageInfo pageInfo = mPageMap.get(pageId);
+    if (mQuotaEnabled) {
+      for (Scope scope = pageInfo.getScope(); scope != null; scope = scope.parent()) {
+        CacheEvictor evictor = mCacheEvictors.computeIfAbsent(scope, k -> mSupplier.get());
+        evictor.updateOnPut(pageId);
+      }
+    } else {
+      mEvictor.updateOnGet(pageId);
+    }
+    return pageInfo;
   }
 
   @Override
@@ -107,15 +124,18 @@ public class DefaultMetaStore implements MetaStore {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
-    mBytes.addAndGet(-pageInfo.getPageSize());
-    Metrics.SPACE_USED.dec(pageInfo.getPageSize());
     mPages.decrementAndGet();
+    Metrics.SPACE_USED.dec(pageInfo.getPageSize());
     Metrics.PAGES.dec();
-    mEvictor.updateOnDelete(pageId);
     if (mQuotaEnabled) {
       for (Scope scope = pageInfo.getScope(); scope != null; scope = scope.parent()) {
         mBytesInScope.computeIfPresent(scope, (k, v) -> v - pageInfo.getPageSize());
+        CacheEvictor evictor = mCacheEvictors.computeIfAbsent(scope, k -> mSupplier.get());
+        evictor.updateOnDelete(pageId);
       }
+    } else {
+      mBytes.addAndGet(-pageInfo.getPageSize());
+      mEvictor.updateOnDelete(pageId);
     }
   }
 
@@ -127,7 +147,7 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public long bytes(Scope scope) {
     if (mQuotaEnabled) {
-      return mBytesInScope.get(scope);
+      return mBytesInScope.computeIfAbsent(scope, k -> 0L);
     } else {
       return bytes();
     }
@@ -145,7 +165,13 @@ public class DefaultMetaStore implements MetaStore {
     mBytes.set(0);
     Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
-    mEvictor.reset();
+    if (mQuotaEnabled) {
+      for (CacheEvictor evictor : mCacheEvictors.values()) {
+        evictor.reset();
+      }
+    } else {
+      mEvictor.reset();
+    }
     mBytesInScope.clear();
   }
 
@@ -154,7 +180,8 @@ public class DefaultMetaStore implements MetaStore {
   public PageInfo evict(Scope scope) {
     PageId victim;
     if (mQuotaEnabled) {
-      victim = ((ScopedCacheEvictor) mEvictor).evict(scope);
+      CacheEvictor evictor = mCacheEvictors.computeIfAbsent(scope, k -> mSupplier.get());
+      victim = evictor.evict();
     } else {
       victim = mEvictor.evict();
     }

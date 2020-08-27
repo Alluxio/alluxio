@@ -226,7 +226,7 @@ public class LocalCacheManager implements CacheManager {
     if (mQuotaEnabled) {
       // Check quota usage for each scope
       for (Scope currentScope = scope; currentScope != null; currentScope = currentScope.parent()) {
-        if (mMetaStore.bytes(currentScope) + pageSize > quota.getQuota(scope)) {
+        if (mMetaStore.bytes(currentScope) + pageSize > quota.getQuota(currentScope)) {
           return currentScope;
         }
       }

@@ -18,15 +18,19 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.cache.evictor.FIFOEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.Scope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,12 +40,9 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nullable;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -73,8 +74,9 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS, FIFOEvictor.class.getName());
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mEvictor = new FIFOEvictor();
+    mEvictor = new FIFOEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mConf, mEvictor);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
   }
@@ -225,6 +227,74 @@ public final class LocalCacheManagerTest {
         assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
       }
     }
+  }
+
+  @Test
+  public void putWithInsufficientQuota() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
+    mMetaStore = new DefaultMetaStore(mConf);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
+    Scope partitionScope = Scope.create("schema.table.partition");
+    Scope tableScope = Scope.create("schema.table");
+    Scope schemaScope = Scope.create("schema");
+    Scope globalScope = Scope.create(".");
+
+    // insufficient partition quota
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
+        new CacheQuota(ImmutableMap.of(partitionScope, (long) PAGE1.length - 1))));
+    // insufficient table quota
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
+        new CacheQuota(ImmutableMap.of(tableScope, (long) PAGE1.length - 1))));
+    // insufficient schema quota
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
+        new CacheQuota(ImmutableMap.of(schemaScope, (long) PAGE1.length - 1))));
+    // insufficient global quota
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
+        new CacheQuota(ImmutableMap.of(globalScope, (long) PAGE1.length - 1))));
+    // without quota
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+  }
+
+  @Test
+  public void putWithQuotaEviction() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
+    Scope partitionScope = Scope.create("schema.table.partition");
+    Scope tableScope = Scope.create("schema.table");
+    Scope schemaScope = Scope.create("schema");
+
+    Scope[] quotaScopes = {partitionScope, tableScope, schemaScope, Scope.GLOBAL};
+    for (Scope scope : quotaScopes) {
+      mMetaStore = new DefaultMetaStore(mConf);
+      mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
+      mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
+      CacheQuota quota =
+          new CacheQuota(ImmutableMap.of(scope, (long) PAGE1.length + PAGE2.length - 1));
+      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope, quota));
+      assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionScope, quota));
+      assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+    }
+  }
+
+  @Test
+  public void putWithInSufficientTableQuota() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
+    mMetaStore = new DefaultMetaStore(mConf);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
+    Scope partitionScope1 = Scope.create("schema.table.partition1");
+    Scope partitionScope2 = Scope.create("schema.table.partition2");
+    Scope tableScope = Scope.create("schema.table");
+    CacheQuota quota = new CacheQuota(ImmutableMap.of(
+        partitionScope1, (long) PAGE1.length,
+        partitionScope2, (long) PAGE2.length,
+        tableScope, (long) PAGE1.length + PAGE2.length - 1
+    ));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope1, quota));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+    assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionScope2, quota));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, 0, PAGE2.length, mBuf, 0));
   }
 
   @Test
@@ -452,41 +522,6 @@ public final class LocalCacheManagerTest {
 
     int getPuts() {
       return mPut.get();
-    }
-  }
-
-  /**
-   * Implementation of Evictor using FIFO eviction policy for the test.
-   */
-  class FIFOEvictor implements CacheEvictor {
-    final LinkedList<PageId> mQueue = new LinkedList<>();
-
-    public FIFOEvictor() {}
-
-    @Override
-    public void updateOnGet(PageId pageId) {
-      // noop
-    }
-
-    @Override
-    public void updateOnPut(PageId pageId) {
-      mQueue.add(pageId);
-    }
-
-    @Override
-    public void updateOnDelete(PageId pageId) {
-      mQueue.remove(mQueue.indexOf(pageId));
-    }
-
-    @Nullable
-    @Override
-    public PageId evict() {
-      return mQueue.peek();
-    }
-
-    @Override
-    public void reset() {
-      mQueue.clear();
     }
   }
 }
