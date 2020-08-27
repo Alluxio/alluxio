@@ -59,7 +59,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
     public SerializableVoid runTask(CancelTestConfig config, Integer args,
         RunTaskContext runTaskContext) throws Exception {
       // wait until interruption
-      Thread.sleep(1000 * Constants.SECOND_MS);
+      Thread.sleep(10 * Constants.SECOND_MS);
       return null;
     }
 
@@ -69,7 +69,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
     }
   }
 
-  @Test(timeout = 20000)
+  @Test
   public void cancelTest() throws Exception {
     // register the job
     Whitebox.invokeMethod(PlanDefinitionRegistry.INSTANCE, "add", CancelTestConfig.class,
