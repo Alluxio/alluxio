@@ -33,40 +33,40 @@ import java.util.List;
  * Tests {@link DelegatingFileSystem}.
  */
 public class DelegatingFileSystemTest {
-    private FileSystem mMockFileSystem;
+  private FileSystem mMockFileSystem;
 
-    @Before
-    public void before() throws Exception {
-        mMockFileSystem = mock(FileSystem.class);
-    }
+  @Before
+  public void before() throws Exception {
+    mMockFileSystem = mock(FileSystem.class);
+  }
 
-    @Test
-    public void mount() throws Exception {
-        FileSystem fileSystem = new DelegatingFileSystem(mMockFileSystem);
-        AlluxioURI alluxioPath = new AlluxioURI("/t");
-        AlluxioURI ufsPath = new AlluxioURI("/u");
-        MountPOptions mountOptions = MountPOptions
-                .newBuilder()
-                .setReadOnly(false)
-                .setShared(false)
-                .build();
-        fileSystem.mount(alluxioPath, ufsPath, mountOptions);
-        Mockito.verify(mMockFileSystem, atLeastOnce())
-                .mount(eq(alluxioPath), eq(ufsPath), eq(mountOptions));
-    }
+  @Test
+  public void mount() throws Exception {
+    FileSystem fileSystem = new DelegatingFileSystem(mMockFileSystem);
+    AlluxioURI alluxioPath = new AlluxioURI("/t");
+    AlluxioURI ufsPath = new AlluxioURI("/u");
+    MountPOptions mountOptions = MountPOptions
+        .newBuilder()
+        .setReadOnly(false)
+        .setShared(false)
+        .build();
+    fileSystem.mount(alluxioPath, ufsPath, mountOptions);
+    Mockito.verify(mMockFileSystem, atLeastOnce())
+        .mount(eq(alluxioPath), eq(ufsPath), eq(mountOptions));
+  }
 
-    @Test
-    public void setAcl() throws Exception {
-        FileSystem fileSystem = new DelegatingFileSystem(mMockFileSystem);
-        AlluxioURI alluxioPath = new AlluxioURI("/t");
-        List<AclEntry> entries = Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx"));
-        SetAclPOptions setAclPOptions = SetAclPOptions.newBuilder()
-                .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(5L).build())
-                .setRecursive(true)
-                .build();
+  @Test
+  public void setAcl() throws Exception {
+    FileSystem fileSystem = new DelegatingFileSystem(mMockFileSystem);
+    AlluxioURI alluxioPath = new AlluxioURI("/t");
+    List<AclEntry> entries = Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx"));
+    SetAclPOptions setAclPOptions = SetAclPOptions.newBuilder()
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(5L).build())
+        .setRecursive(true)
+        .build();
 
-        fileSystem.setAcl(alluxioPath, SetAclAction.MODIFY, entries, setAclPOptions);
-        Mockito.verify(mMockFileSystem, atLeastOnce())
-                .setAcl(eq(alluxioPath), eq(SetAclAction.MODIFY), eq(entries), eq(setAclPOptions));
-    }
+    fileSystem.setAcl(alluxioPath, SetAclAction.MODIFY, entries, setAclPOptions);
+    Mockito.verify(mMockFileSystem, atLeastOnce())
+        .setAcl(eq(alluxioPath), eq(SetAclAction.MODIFY), eq(entries), eq(setAclPOptions));
+  }
 }
