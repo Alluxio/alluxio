@@ -430,7 +430,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         assertFalse(fs.exists(dir2));
       }
 
-      mCluster.notifySuccess();
+      // mCluster.notifySuccess();
     } finally {
       opThreads.forEach(Thread::interrupt);
     }
