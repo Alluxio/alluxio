@@ -287,9 +287,12 @@ public abstract class AbstractClient implements Client {
     if (mConnected) {
       Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
+      LOG.info("Before Disconnect");
       beforeDisconnect();
+      LOG.info("Before Shutdown");
       mChannel.shutdown();
       mConnected = false;
+      LOG.info("After Disconnect");
       afterDisconnect();
     }
   }
