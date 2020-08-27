@@ -143,8 +143,8 @@ public class AsyncCacheRequestManager {
       // return as async caching is at best effort.
       mNumRejected.incrementAndGet();
       SAMPLING_LOG.warn(String.format(
-          "Async cache thread pool is at capacity. To increase, update the parameter '%s'. "
-              + "numRejected: {} error: {}",
+          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+              + " To increase, update the parameter '%s'. numRejected: {} error: {}",
           PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
           e.getMessage());
     } catch (Exception e) {
