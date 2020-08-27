@@ -19,6 +19,17 @@ env:
 jobs:
   # This workflow contains a single job called "build"
   build:
+    name: "Test modules: "
+
+    strategy:
+      fail-fast: false
+      matrix:
+        modules:
+          - >-
+            !alluxio.master.metastore.rocks.**
+          - >-
+            !alluxio.master.metastore.rocks.**
+
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -46,7 +57,7 @@ jobs:
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true ALLUXIO_DOCKER_GIT_CLEAN=true ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh -pl '!tests'
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
         timeout-minutes: 60
 
       - name: Archive artifacts
