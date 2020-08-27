@@ -19,14 +19,12 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 
-@Ignore
 public class RocksInodeStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
