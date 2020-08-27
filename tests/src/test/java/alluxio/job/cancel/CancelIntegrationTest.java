@@ -69,7 +69,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
     }
   }
 
-  @Test(timeout = 10000)
+  @Test(timeout = 20000)
   public void cancelTest() throws Exception {
     // register the job
     Whitebox.invokeMethod(PlanDefinitionRegistry.INSTANCE, "add", CancelTestConfig.class,
