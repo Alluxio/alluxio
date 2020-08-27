@@ -146,7 +146,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws PageNotFoundException {
+  public void delete(PageId pageId) throws PageNotFoundException {
     try {
       byte[] key = getKeyFromPageId(pageId);
       mDb.delete(key);

@@ -90,7 +90,7 @@ public class PageStoreTest {
     byte[] buf = new byte[1024];
     assertEquals(msgBytes.length, mPageStore.get(id, buf));
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
-    mPageStore.delete(id, msgBytes.length);
+    mPageStore.delete(id);
     try {
       mPageStore.get(id, buf);
       fail();
