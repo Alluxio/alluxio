@@ -341,7 +341,7 @@ public class LocalCacheManager implements CacheManager {
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
         if (scopeToEvict == null) { // enough space & no need to evict
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         }
       }
       // phase2: remove victim and add new page in pagestore

@@ -77,7 +77,10 @@ public class Scope {
       return false;
     }
     Scope scope = (Scope) o;
-    if (mLength == scope.mLength && Objects.equal(mId, scope.mId)) {
+    if (mLength != scope.mLength) {
+      return false;
+    }
+    if (Objects.equal(mId, scope.mId)) {
       return true;
     }
     return Objects.equal(

@@ -91,6 +91,11 @@ public final class DefaultMetaStoreTest {
   }
 
   @Test
+  public void evict() throws Exception {
+    Assert.assertNull(mMetaStore.evict(Scope.GLOBAL));
+  }
+
+  @Test
   public void bytesInScope() {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
     mMetaStore = new DefaultMetaStore(mConf);

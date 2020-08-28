@@ -20,10 +20,10 @@ import java.util.LinkedList;
 import javax.annotation.Nullable;
 
 /**
- * Implementation of Evictor using FIFO eviction policy for the test.
+ * Implementation of Evictor using FIFO eviction policy.
  */
 public class FIFOEvictor implements CacheEvictor {
-  final LinkedList<PageId> mQueue = new LinkedList<>();
+  private final LinkedList<PageId> mQueue = new LinkedList<>();
 
   /**
    * @param conf configuration
@@ -42,7 +42,10 @@ public class FIFOEvictor implements CacheEvictor {
 
   @Override
   public void updateOnDelete(PageId pageId) {
-    mQueue.remove(mQueue.indexOf(pageId));
+    int idx = mQueue.indexOf(pageId);
+    if (idx >= 0) {
+      mQueue.remove(idx);
+    }
   }
 
   @Nullable
