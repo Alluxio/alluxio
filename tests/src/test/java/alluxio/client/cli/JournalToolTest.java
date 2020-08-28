@@ -13,7 +13,6 @@ package alluxio.client.cli;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
