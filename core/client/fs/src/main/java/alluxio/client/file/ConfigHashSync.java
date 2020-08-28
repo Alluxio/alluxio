@@ -72,7 +72,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   }
 
   @Override
-  public synchronized void heartbeat() {
+  public void heartbeat() {
     if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
       // Wait until the initial cluster defaults are loaded.
       return;
@@ -108,7 +108,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     mClient.close();
   }
 }
