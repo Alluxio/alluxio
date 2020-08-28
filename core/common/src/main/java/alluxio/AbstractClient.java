@@ -285,17 +285,12 @@ public abstract class AbstractClient implements Client {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      final String className = this.getClass().getName();
       Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
-      LOG.info(className + ": Before Disconnect");
       beforeDisconnect();
-      LOG.info(className + ": Before Shutdown");
       mChannel.shutdown();
       mConnected = false;
-      LOG.info(className + ": After Disconnect");
       afterDisconnect();
-      LOG.info(className + ": Done");
     }
   }
 
