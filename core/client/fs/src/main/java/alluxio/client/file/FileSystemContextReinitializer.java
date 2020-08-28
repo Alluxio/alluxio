@@ -187,7 +187,7 @@ public final class FileSystemContextReinitializer implements Closeable {
       Future oldFuture = mFuture;
       mFuture = null;
 
-      mExecutor.reallyAttemptToClose(mFuture);
+      mExecutor.reallyAttemptToClose(oldFuture);
     }
   }
 }
