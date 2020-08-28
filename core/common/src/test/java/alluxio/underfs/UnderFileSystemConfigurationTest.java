@@ -45,12 +45,13 @@ public final class UnderFileSystemConfigurationTest {
       Random random = new Random();
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
-      UnderFileSystemConfiguration conf =
-          UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
+      UnderFileSystemConfiguration conf = UnderFileSystemConfiguration
+          .defaults(ConfigurationTestUtils.defaults()).setReadOnly(readOnly).setShared(shared);
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());
       assertEquals("bar", mConfiguration.get(PropertyKey.S3A_ACCESS_KEY));
-      conf = UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared)
+      conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+          .setReadOnly(readOnly).setShared(shared)
           .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());

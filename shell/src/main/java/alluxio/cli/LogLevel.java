@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
@@ -33,11 +33,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Sets or gets the log level for the specified server.
  */
 @NotThreadSafe
+@PublicApi
 public final class LogLevel {
   private static final String LOG_LEVEL = "logLevel";
   private static final String ROLE_WORKERS = "workers";
@@ -144,9 +144,8 @@ public final class LogLevel {
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
-        AlluxioBlockStore alluxioBlockStore =
-            AlluxioBlockStore.create(FileSystemContext.create(ClientContext.create(conf)));
-        List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getAllWorkers();
+        List<BlockWorkerInfo> workerInfoList =
+            FileSystemContext.create(ClientContext.create(conf)).getCachedWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           targetInfoList.add(
@@ -192,13 +191,10 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    HttpUtils.post(uriBuilder.toString(), 5000, new HttpUtils.IProcessInputStream() {
-      @Override
-      public void process(InputStream inputStream) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
-        System.out.println(targetInfo.toString() + logInfo.toString());
-      }
+    HttpUtils.post(uriBuilder.toString(), 5000, inputStream -> {
+      ObjectMapper mapper = new ObjectMapper();
+      LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
+      System.out.println(targetInfo.toString() + logInfo.toString());
     });
   }
 

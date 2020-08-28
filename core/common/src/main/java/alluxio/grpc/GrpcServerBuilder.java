@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -13,10 +13,14 @@ package alluxio.grpc;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AuthenticatedUserInjector;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
+import alluxio.security.user.UserState;
 import alluxio.util.SecurityUtils;
 
+import com.google.common.io.Closer;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
@@ -24,10 +28,7 @@ import io.grpc.netty.NettyServerBuilder;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -46,29 +47,57 @@ public final class GrpcServerBuilder {
   private Set<ServiceType> mServices;
   /** Authentication server instance that will be used by this server. */
   private AuthenticationServer mAuthenticationServer;
-
-  /** Configuration object used for  */
+  /** Used to register closers that needs to be called during server shut-down. */
+  private Closer mCloser = Closer.create();
+  /** Alluxio configuration.  */
   private AlluxioConfiguration mConfiguration;
 
-  private GrpcServerBuilder(NettyServerBuilder nettyServerBuilder, AlluxioConfiguration conf) {
-    mConfiguration = conf;
+  @SuppressFBWarnings(value = "URF_UNREAD_FIELD")
+  private UserState mUserState;
+
+  private GrpcServerBuilder(GrpcServerAddress serverAddress,
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf, UserState userState) {
+    mAuthenticationServer = authenticationServer;
+    mNettyServerBuilder = NettyServerBuilder.forAddress(serverAddress.getSocketAddress());
     mServices = new HashSet<>();
-    mNettyServerBuilder = nettyServerBuilder;
-    if (SecurityUtils.isAuthenticationEnabled(conf)) {
-      LoggerFactory.getLogger(GrpcServerBuilder.class).warn("Authentication ENABLED");
-      mAuthenticationServer = new DefaultAuthenticationServer(conf);
-      addService(new GrpcService(mAuthenticationServer).disableAuthentication());
+    mConfiguration = conf;
+    mUserState = userState;
+
+    if (SecurityUtils.isAuthenticationEnabled(mConfiguration)) {
+      if (mAuthenticationServer == null) {
+        mAuthenticationServer =
+            new DefaultAuthenticationServer(serverAddress.getHostName(), mConfiguration);
+      }
+      addService(new GrpcService(mAuthenticationServer).disableAuthentication()
+          .withCloseable(mAuthenticationServer));
     }
   }
 
   /**
    * Create an new instance of {@link GrpcServerBuilder} with authentication support.
    *
-   * @param address the address
+   * @param serverAddress server address
+   * @param conf Alluxio configuration
+   * @param userState the user state
    * @return a new instance of {@link GrpcServerBuilder}
    */
-  public static GrpcServerBuilder forAddress(SocketAddress address, AlluxioConfiguration conf) {
-    return new GrpcServerBuilder(NettyServerBuilder.forAddress(address), conf);
+  public static GrpcServerBuilder forAddress(GrpcServerAddress serverAddress,
+      AlluxioConfiguration conf, UserState userState) {
+    return new GrpcServerBuilder(serverAddress, null, conf, userState);
+  }
+
+  /**
+   * Create an new instance of {@link GrpcServerBuilder} with authentication support.
+   *
+   * @param serverAddress server address
+   * @param authenticationServer the authentication server to use
+   * @param conf the Alluxio configuration
+   * @param userState the user state
+   * @return a new instance of {@link GrpcServerBuilder}
+   */
+  public static GrpcServerBuilder forAddress(GrpcServerAddress serverAddress,
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf, UserState userState) {
+    return new GrpcServerBuilder(serverAddress, authenticationServer, conf, userState);
   }
 
   /**
@@ -84,7 +113,7 @@ public final class GrpcServerBuilder {
 
   /**
    * Sets flow control window.
-   * 
+   *
    * @param flowControlWindow the HTTP2 flow control window
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
@@ -131,6 +160,7 @@ public final class GrpcServerBuilder {
   /**
    * Sets a netty channel option.
    *
+   * @param <T> channel option type
    * @param option the option to be set
    * @param value the new value
    * @return an updated instance of this {@link GrpcServerBuilder}
@@ -163,7 +193,7 @@ public final class GrpcServerBuilder {
   }
 
   /**
-   * Sets the maximum size of inbound messages
+   * Sets the maximum size of inbound messages.
    * @param messageSize maximum size of the message
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
@@ -192,16 +222,20 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder addService(GrpcService serviceDefinition) {
     ServerServiceDefinition service = serviceDefinition.getServiceDefinition();
-    if (SecurityUtils.isAuthenticationEnabled(mConfiguration) && serviceDefinition.isAuthenticated()) {
-      service = ServerInterceptors.intercept(service, mAuthenticationServer.getInterceptors());
+    if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
+        && serviceDefinition.isAuthenticated()) {
+      // Intercept the service with authenticated user injector.
+      service = ServerInterceptors.intercept(service,
+          new AuthenticatedUserInjector(mAuthenticationServer));
     }
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
+    mCloser.register(serviceDefinition.getCloser());
     return this;
   }
 
   /**
    * Adds an interceptor for this server.
-   * 
+   *
    * @param interceptor server interceptor
    * @return an updates instance of this {@link GrpcServerBuilder}
    */
@@ -219,7 +253,7 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
-    return new GrpcServer(mNettyServerBuilder.build(),
-        mConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT));
+    return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
+        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }
 }

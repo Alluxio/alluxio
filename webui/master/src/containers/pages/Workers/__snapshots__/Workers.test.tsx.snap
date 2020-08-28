@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Workers Shallow component Matches snapshot 1`] = `
+<div
+  className="workers-page"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Live Workers
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Node Name
+              </th>
+              <th>
+                Last Heartbeat
+              </th>
+              <th>
+                State
+              </th>
+              <th>
+                Workers Capacity
+              </th>
+              <th>
+                Space Used
+              </th>
+              <th>
+                Space Usage
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+    </div>
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Lost Workers
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Node Name
+              </th>
+              <th>
+                Last Heartbeat
+              </th>
+              <th>
+                Workers Capacity
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

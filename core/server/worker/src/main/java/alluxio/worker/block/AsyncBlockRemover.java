@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Asychronous block removal service.
+ * Asynchronous block removal service.
  */
 @ThreadSafe
 public class AsyncBlockRemover {
@@ -46,6 +46,8 @@ public class AsyncBlockRemover {
   /** This set is used for recording blocks in BlockRemover. */
   private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
+
+  private volatile boolean mShutdown = false;
 
   /**
    * Constructor of AsyncBlockRemover.
@@ -86,7 +88,8 @@ public class AsyncBlockRemover {
    * Shutdown async block remover.
    */
   public void shutDown() {
-    mRemoverPool.shutdown();
+    mShutdown = true;
+    mRemoverPool.shutdownNow();
   }
 
   private class BlockRemover implements Runnable {
@@ -104,8 +107,12 @@ public class AsyncBlockRemover {
           LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          LOG.warn("{} got interrupted while it was cleaning block {}.",
-              mThreadName, blockToBeRemoved);
+          // Only log warning if interrupted not due to a shutdown.
+          if (!mShutdown) {
+            LOG.warn("{} got interrupted while it was cleaning block {}.", mThreadName,
+                blockToBeRemoved);
+          }
+          break;
         } catch (IOException e) {
           LOG.warn("IOException occurred while {} was cleaning block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
@@ -116,7 +123,7 @@ public class AsyncBlockRemover {
           LOG.warn("{}: invalid block state for block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
         } catch (Exception e) {
-          LOG.warn("Unexpected exception: {}.", e.getMessage());
+          LOG.warn("Unexpected exception: {}.", e);
         } finally {
           if (blockToBeRemoved != INVALID_BLOCK_ID) {
             mRemovingBlocks.remove(blockToBeRemoved);

@@ -1,0 +1,229 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Browse Shallow component Renders Directory Listing Matches snapshot with Table listing 1`] = `
+<div
+  className="col-12"
+>
+  <Form
+    className="mb-3 browse-directory-form"
+    id="browseDirectoryForm"
+    inline={true}
+    onSubmit={[Function]}
+    tag="form"
+  >
+    <FormGroup
+      className="mb-2 mr-sm-2"
+      tag="div"
+    >
+      <Button
+        color="secondary"
+        outline={true}
+        tag={[Function]}
+        to="/browse?path=/"
+      >
+        Root
+      </Button>
+    </FormGroup>
+    <FormGroup
+      className="mb-2 mr-sm-2"
+      tag="div"
+    >
+      <Label
+        className="mr-sm-2"
+        for="browsePath"
+        tag="label"
+        widths={
+          Array [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+          ]
+        }
+      >
+        Path
+      </Label>
+      <Input
+        id="browsePath"
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Enter a Path"
+        type="text"
+        value="/"
+      />
+    </FormGroup>
+    <FormGroup
+      className="mb-2 mr-sm-2"
+      tag="div"
+    >
+      <Button
+        color="secondary"
+        tag={[Function]}
+        to="/browse?path=%2F"
+      >
+        Go
+      </Button>
+    </FormGroup>
+  </Form>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th />
+        <th>
+          File Name
+        </th>
+        <th>
+          Size
+        </th>
+        <th>
+          Block Size
+        </th>
+        <th>
+          In-Alluxio
+        </th>
+        <th>
+          Mode
+        </th>
+        <th>
+          Owner
+        </th>
+        <th>
+          Group
+        </th>
+        <th>
+          Persistence State
+        </th>
+        <th>
+          Pin
+        </th>
+        <th>
+          Creation Time
+        </th>
+        <th>
+          Modification Time
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+  <Paginator
+    baseUrl="/browse"
+    total={0}
+  />
+</div>
+`;
+
+exports[`Browse Shallow component Renders FileView Matches snapshot with File 1`] = `
+<div
+  className="col-12"
+>
+  <FileView
+    allowDownload={true}
+    beginInputHandler={[Function]}
+    endInputHandler={[Function]}
+    history={
+      Object {
+        "action": "PUSH",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 2,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "/browse",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+    offsetInputHandler={[Function]}
+    proxyDownloadApiUrl={
+      Object {
+        "prefix": "http://192.168.1.6:39999/api/v1/paths/",
+        "suffix": "/download-file/",
+      }
+    }
+    queryStringPrefix="/browse"
+    queryStringSuffix=""
+    textAreaHeight={0}
+    viewData={
+      Object {
+        "accessControlException": "",
+        "blockSizeBytes": "",
+        "currentDirectory": Object {
+          "absolutePath": "",
+          "blockSizeBytes": "",
+          "blocksOnTier": Object {},
+          "creationTime": "",
+          "fileLocations": Array [],
+          "group": "",
+          "id": 0,
+          "inAlluxio": false,
+          "inAlluxioPercentage": 0,
+          "isDirectory": false,
+          "mode": "",
+          "modificationTime": "",
+          "name": "",
+          "owner": "",
+          "persistenceState": "",
+          "pinned": false,
+          "size": "",
+        },
+        "currentPath": "",
+        "debug": false,
+        "fatalError": "",
+        "fileBlocks": Array [],
+        "fileData": "",
+        "fileDoesNotExistException": "",
+        "fileInfos": Array [],
+        "highestTierAlias": "",
+        "invalidPathError": "",
+        "invalidPathException": "",
+        "masterNodeAddress": "",
+        "ntotalFile": 0,
+        "pathInfos": Array [],
+        "showPermissions": true,
+        "viewingOffset": 0,
+      }
+    }
+  />
+  <hr />
+  <h6>
+    Detailed blocks information (block capacity is 
+     Bytes):
+  </h6>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          ID
+        </th>
+        <th>
+          Size (Byte)
+        </th>
+        <th>
+          In 
+        </th>
+        <th>
+          Locations
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+</div>
+`;

@@ -18,6 +18,8 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.TaskInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -53,16 +55,17 @@ public final class JobMasterWorkerServiceHandler
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
-      List<alluxio.job.wire.TaskInfo> wireTaskInfoList = Lists.newArrayList();
-      for (alluxio.grpc.TaskInfo taskInfo : request.getTaskInfosList()) {
+      List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
+      for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
-          wireTaskInfoList.add(new alluxio.job.wire.TaskInfo(taskInfo));
+          wireTaskInfoList.add(new TaskInfo(taskInfo));
         } catch (IOException e) {
           LOG.error("task info deserialization failed " + e);
         }
       }
+      JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
       return JobHeartbeatPResponse.newBuilder()
-              .addAllCommands(mJobMaster.workerHeartbeat(request.getWorkerId(), wireTaskInfoList))
+              .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
               .build();
     }, "heartbeat", "request=%s", responseObserver, request);
   }

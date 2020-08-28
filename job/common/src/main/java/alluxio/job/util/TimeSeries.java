@@ -80,8 +80,7 @@ public final class TimeSeries implements Serializable {
    */
   public void record(long timeNano, int numEvents) {
     long leftEndPoint = bucket(timeNano);
-    mSeries.put(leftEndPoint,
-        (mSeries.containsKey(leftEndPoint) ? mSeries.get(leftEndPoint) : 0) + numEvents);
+    mSeries.put(leftEndPoint, mSeries.getOrDefault(leftEndPoint, 0) + numEvents);
   }
 
   /**
@@ -90,7 +89,7 @@ public final class TimeSeries implements Serializable {
    */
   public int get(long timeNano) {
     long leftEndPoint = bucket(timeNano);
-    return mSeries.containsKey(leftEndPoint) ? mSeries.get(leftEndPoint) : 0;
+    return mSeries.getOrDefault(leftEndPoint, 0);
   }
 
   /**

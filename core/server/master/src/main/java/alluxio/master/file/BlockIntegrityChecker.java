@@ -43,7 +43,7 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
     try {
       mFileSystemMaster.validateInodeBlocks(mRepair);
     } catch (Exception e) {
-      LOG.error("Failed to run periodic block integrity check.", e.toString());
+      LOG.error("Failed to run periodic block integrity check.", e);
     }
   }
 

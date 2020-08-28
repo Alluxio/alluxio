@@ -1,0 +1,170 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "BlockWorkerProto";
+
+package alluxio.grpc.block;
+
+import "proto/dataserver/protocol.proto";
+import "grpc/common.proto";
+
+// The block worker service
+service BlockWorker {
+  rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
+  rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
+
+  // Replaces ShortCircuitBlockReadHandler.
+  rpc OpenLocalBlock (stream OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
+
+  // Replaces ShortCircuitBlockWriteHandler.
+  rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
+
+  rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
+  rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
+  rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
+
+  // TODO(lu) Move to metrics worker
+  rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
+}
+
+// The check request
+message CheckRequest {}
+
+// The check response
+message CheckResponse {}
+
+// The data chunk.
+// next available id: 2
+message Chunk {
+  optional bytes data = 1;
+}
+
+// The read/write request type. It can either be an Alluxio block operation or a UFS file operation.
+// next available id: 3
+enum RequestType {
+  ALLUXIO_BLOCK = 0;
+  UFS_FILE = 1;
+  UFS_FALLBACK_BLOCK = 2;
+}
+
+// The read request.
+// next available id: 9
+message ReadRequest {
+  optional int64 block_id = 1;
+  optional int64 offset = 2;
+  optional int64 length = 3;
+  // Whether the block should be promoted before reading
+  optional bool promote = 4;
+  optional int64 chunk_size = 5;
+
+  // This is only set for UFS block read.
+  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  // Read receipt
+  optional int64 offset_received = 7;
+
+  // Is position read to a small buffer
+  optional bool position_short = 8;
+}
+
+// The read response.
+// next available id: 2
+message ReadResponse {
+  optional Chunk chunk = 1;
+}
+
+// The write request command.
+// next available id: 11
+message WriteRequestCommand {
+  optional RequestType type = 1;
+  // The block ID or UFS file ID.
+  optional int64 id = 2;
+  optional int64 offset = 3;
+  // This is only applicable for block write.
+  optional int32 tier = 4;
+  optional bool flush = 5;
+  // Cancel, close and error will be handled by standard gRPC stream APIs.
+  optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
+  optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
+  optional string medium_type = 8;
+  optional bool pin_on_create = 9;
+  optional int64 space_to_reserve = 10;
+}
+
+// The write request.
+// next available id: 3
+message WriteRequest {
+  oneof value {
+    WriteRequestCommand command = 1;
+    Chunk chunk = 2;
+  }
+}
+
+// The write response.
+// next available id: 2
+message WriteResponse {
+  optional int64 offset = 1;
+  // Errors will be handled by standard gRPC stream APIs.
+}
+
+// Request for caching a block asynchronously
+// next available id: 6
+message AsyncCacheRequest {
+  optional int64 block_id = 1;
+  // TODO(calvin): source host and port should be replace with WorkerNetAddress
+  optional string source_host = 2;
+  optional int32 source_port = 3;
+  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;
+  optional int64 length = 5;
+}
+
+// Response for an async cache request
+message AsyncCacheResponse {}
+
+
+// next available id: 3
+message OpenLocalBlockRequest {
+  optional int64 block_id = 1;
+  optional bool promote = 2;
+}
+
+// next available id: 2
+message OpenLocalBlockResponse {
+  optional string path = 1;
+}
+
+// next available id: 9
+message CreateLocalBlockRequest {
+  optional int64 block_id = 1;
+  optional int32 tier = 3;
+  optional int64 space_to_reserve = 4;
+  // If set, only reserve space for the block.
+  optional bool only_reserve_space = 5;
+  optional bool cleanup_on_failure = 6;
+  optional string medium_type = 7;
+  optional bool pin_on_create = 8;
+}
+
+// next available id: 2
+message CreateLocalBlockResponse {
+  optional string path = 1;
+}
+
+// next available id: 2
+message RemoveBlockRequest {
+  optional int64 block_id = 1;
+}
+
+message RemoveBlockResponse {}
+
+message MoveBlockRequest {
+  optional int64 block_id = 1;
+  optional string medium_type = 2;
+}
+
+message MoveBlockResponse {}
+
+message ClearMetricsRequest {}
+
+message ClearMetricsResponse {}

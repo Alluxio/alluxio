@@ -13,7 +13,7 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.util.CommonUtils;

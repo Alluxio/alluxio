@@ -34,10 +34,10 @@ import org.junit.Test;
  * Integration tests for block master functionality.
  */
 public class BlockMasterJournalIntegrationTest {
-
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .build();
   private LocalAlluxioCluster mCluster;
 
   @Before

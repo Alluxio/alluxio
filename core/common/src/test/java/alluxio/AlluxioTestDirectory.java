@@ -44,8 +44,19 @@ public final class AlluxioTestDirectory {
    * @return the created directory
    */
   public static File createTemporaryDirectory(String prefix) {
-    final File file = new File(ALLUXIO_TEST_DIRECTORY, prefix + "-" + UUID.randomUUID());
-    if (!file.mkdir()) {
+    return createTemporaryDirectory(ALLUXIO_TEST_DIRECTORY, prefix);
+  }
+
+  /**
+   * Creates a directory with the given prefix inside the Alluxio temporary directory.
+   *
+   * @param parent a parent directory
+   * @param prefix a prefix to use in naming the temporary directory
+   * @return the created directory
+   */
+  public static File createTemporaryDirectory(File parent, String prefix) {
+    final File file = new File(parent, prefix + "-" + UUID.randomUUID());
+    if (!file.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
 
@@ -81,7 +92,7 @@ public final class AlluxioTestDirectory {
     long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
     Arrays.asList(dir.listFiles()).stream()
         .filter(file -> !FileUtils.isFileNewer(file, cutoffTimestamp))
-        .forEach(file -> delete(file));
+        .forEach(AlluxioTestDirectory::delete);
   }
 
   private static void delete(File file) {

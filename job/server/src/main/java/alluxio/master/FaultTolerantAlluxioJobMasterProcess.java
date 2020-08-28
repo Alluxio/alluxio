@@ -70,12 +70,8 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
         stopMaster();
         LOG.info("Secondary stopped");
         startMaster(true);
-        mServingThread = new Thread(new Runnable() {
-          @Override
-          public void run() {
-            startServing(" (gained leadership)", " (lost leadership)");
-          }
-        }, "MasterServingThread");
+        mServingThread = new Thread(() -> startServing(
+                " (gained leadership)", " (lost leadership)"), "MasterServingThread");
         mServingThread.start();
         LOG.info("Primary started");
       } else {

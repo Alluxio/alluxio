@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Data Shallow component Matches snapshot 1`] = `
+<div
+  className="col-12"
+>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          File Path
+        </th>
+        <th>
+          Size
+        </th>
+        <th>
+          Block Size
+        </th>
+        <th>
+          Permission
+        </th>
+        <th>
+          Owner
+        </th>
+        <th>
+          Group
+        </th>
+        <th>
+          Pin
+        </th>
+        <th>
+          Creation Time
+        </th>
+        <th>
+          Modification Time
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+  <Paginator
+    baseUrl="/data"
+    total={0}
+  />
+</div>
+`;

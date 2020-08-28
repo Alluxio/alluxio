@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays ACL info of a path.
  */
 @ThreadSafe
+@PublicApi
 public final class SetFaclCommand extends AbstractFileSystemCommand {
   private static final Option RECURSIVE_OPTION = Option.builder("R")
       .required(false)

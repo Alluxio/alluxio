@@ -20,7 +20,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link ListStatusPOptions}.
  */
-public class ListStatusContext extends OperationContext<ListStatusPOptions.Builder> {
+public class ListStatusContext
+    extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
 
   /**
    * Creates context with given option data.

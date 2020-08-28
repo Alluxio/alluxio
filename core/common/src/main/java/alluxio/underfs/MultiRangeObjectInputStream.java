@@ -117,7 +117,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   }
 
   /**
-   * Open a new stream reading a range. When endPos > content length, the returned stream should
+   * Opens a new stream reading a range. When endPos > content length, the returned stream should
    * read till the last valid byte of the input. The behaviour is undefined when (startPos < 0),
    * (startPos >= content length), or (endPos <= 0).
    *

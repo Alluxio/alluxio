@@ -101,12 +101,7 @@ public class ConcurrentFileSystemMasterUtils {
     List<Thread> threads = new ArrayList<>(numFiles);
     // If there are exceptions, we will store them here.
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<Throwable>());
-    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(Thread th, Throwable ex) {
-        errors.add(ex);
-      }
-    };
+    Thread.UncaughtExceptionHandler exceptionHandler = (th, ex) -> errors.add(ex);
     for (int i = 0; i < numFiles; i++) {
       final int iteration = i;
       Thread t = new Thread(new Runnable() {

@@ -21,6 +21,10 @@ import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nullable;
 
 /**
  * Read-only view of an inode.
@@ -58,6 +62,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   long getLastModificationTimeMs();
 
   /**
+   * @return the last access time, in milliseconds
+   */
+  long getLastAccessTimeMs();
+
+  /**
    * @return the name of the inode
    */
   String getName();
@@ -83,6 +92,12 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   String getOwner();
 
   /**
+   * @return any extended attributes on the inode
+   */
+  @Nullable
+  Map<String, byte[]> getXAttr();
+
+  /**
    * @return true if the inode is deleted, false otherwise
    */
   boolean isDeleted();
@@ -106,6 +121,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    * @return true if the file has persisted, false otherwise
    */
   boolean isPersisted();
+
+  /**
+   * @return the pinned medium types set
+   */
+  Set<String> getMediumTypes();
 
   /**
    * @return the UFS fingerprint

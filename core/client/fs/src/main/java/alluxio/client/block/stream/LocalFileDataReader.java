@@ -18,10 +18,11 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -69,8 +70,9 @@ public final class LocalFileDataReader implements DataReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-    MetricsSystem.counter(ClientMetrics.BYTES_READ_LOCAL).inc(dataBuffer.getLength());
-    MetricsSystem.meter(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT).mark(dataBuffer.getLength());
+    MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()).inc(dataBuffer.getLength());
+    MetricsSystem.meter(MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName())
+        .mark(dataBuffer.getLength());
     return dataBuffer;
   }
 
@@ -93,14 +95,13 @@ public final class LocalFileDataReader implements DataReader {
    */
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
-    private final BlockWorkerClient mBlockWorker;
-    private final FileSystemContext mContext;
-    private final WorkerNetAddress mAddress;
+    private final CloseableResource<BlockWorkerClient> mBlockWorker;
     private final long mBlockId;
     private final String mPath;
     private final long mLocalReaderChunkSize;
     private final int mReadBufferSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
+
     private LocalFileBlockReader mReader;
     private final long mDataTimeoutMs;
     private boolean mClosed;
@@ -116,13 +117,11 @@ public final class LocalFileDataReader implements DataReader {
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long localReaderChunkSize, InStreamOptions options) throws IOException {
-      AlluxioConfiguration conf = context.getConf();
-      mContext = context;
-      mAddress = address;
+      AlluxioConfiguration conf = context.getClusterConf();
       mBlockId = blockId;
       mLocalReaderChunkSize = localReaderChunkSize;
-      mReadBufferSize = conf.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
-      mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+      mReadBufferSize = conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
+      mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
@@ -130,7 +129,7 @@ public final class LocalFileDataReader implements DataReader {
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mReadBufferSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock, mReadBufferSize,
             MoreObjects.toStringHelper(LocalFileDataReader.class)
                 .add("request", request)
                 .add("address", address)
@@ -140,7 +139,7 @@ public final class LocalFileDataReader implements DataReader {
         Preconditions.checkState(response.hasPath());
         mPath = response.getPath();
       } catch (Exception e) {
-        context.releaseBlockWorkerClient(address, mBlockWorker);
+        mBlockWorker.close();
         throw e;
       }
     }
@@ -165,15 +164,15 @@ public final class LocalFileDataReader implements DataReader {
       if (mClosed) {
         return;
       }
-      if (mReader != null) {
-        mReader.close();
-      }
       try {
+        if (mReader != null) {
+          mReader.close();
+        }
         mStream.close();
         mStream.waitForComplete(mDataTimeoutMs);
       } finally {
         mClosed = true;
-        mContext.releaseBlockWorkerClient(mAddress, mBlockWorker);
+        mBlockWorker.close();
       }
     }
   }

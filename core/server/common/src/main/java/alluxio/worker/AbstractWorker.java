@@ -11,9 +11,17 @@
 
 package alluxio.worker;
 
-import com.google.common.base.Preconditions;
+import alluxio.Constants;
+import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -22,14 +30,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public abstract class AbstractWorker implements Worker {
-  /** The executor service for the master sync. */
-  private final ExecutorService mExecutorService;
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractWorker.class);
+  private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
+
+  /** A factory for creating executor services when they are needed. */
+  private final ExecutorServiceFactory mExecutorServiceFactory;
+  /** The executor service for the worker. */
+  private ExecutorService mExecutorService;
 
   /**
-   * @param executorService executor service to use internally
+   * @param executorServiceFactory executor service factory to use internally
    */
-  protected AbstractWorker(ExecutorService executorService)  {
-    mExecutorService = Preconditions.checkNotNull(executorService, "executorService");
+  protected AbstractWorker(ExecutorServiceFactory executorServiceFactory) {
+    mExecutorServiceFactory =
+        Preconditions.checkNotNull(executorServiceFactory, "executorServiceFactory");
   }
 
   /**
@@ -37,5 +51,38 @@ public abstract class AbstractWorker implements Worker {
    */
   protected ExecutorService getExecutorService() {
     return mExecutorService;
+  }
+
+  @Override
+  public void start(WorkerNetAddress address) throws IOException {
+    Preconditions.checkState(mExecutorService == null);
+    mExecutorService = mExecutorServiceFactory.create();
+  }
+
+  @Override
+  public void stop() throws IOException {
+    // Shut down the executor service, interrupting any running threads.
+    if (mExecutorService != null) {
+      try {
+        mExecutorService.shutdownNow();
+        String awaitFailureMessage =
+            "waiting for {} executor service to shut down. Daemons may still be running";
+        try {
+          if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+          }
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } finally {
+        mExecutorService = null;
+      }
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    stop();
   }
 }

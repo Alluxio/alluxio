@@ -12,30 +12,28 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.security.authorization.Mode;
-import alluxio.testutils.PersistenceTestUtils;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.security.authorization.Mode;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.PersistenceTestUtils;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
@@ -45,8 +43,12 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
   private static final FileSystemMasterCommonPOptions COMMON_OPTIONS =
-      FileSystemMasterCommonPOptions.newBuilder().setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+      FileSystemMasterCommonPOptions.newBuilder()
+          .setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+          .setSyncIntervalMs(-1)
           .build();
+  private static final WaitForOptions WAIT_OPTIONS =
+      WaitForOptions.defaults().setTimeoutMs(2000).setInterval(10);
 
   private static final SetAttributePOptions TEST_OPTIONS =
       SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto())
@@ -65,10 +67,6 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build());
     return mFileSystem.getStatus(mUri);
   }
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
   public void simpleDurableWrite() throws Exception {
@@ -151,8 +149,6 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     } catch (AlluxioException e) {
       // Expected
     }
-    IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
     URIStatus status = mFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
@@ -179,8 +175,6 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     } catch (AlluxioException e) {
       // Expected
     }
-    IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
     status = mFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
@@ -199,9 +193,13 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     URIStatus status = createAsyncFile();
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
     mFileSystem.free(mUri);
-    IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class),
-        status.getBlockIds().toArray(new Long[status.getBlockIds().size()]));
+    CommonUtils.waitFor("file is freed", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(mUri).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
     status = mFileSystem.getStatus(mUri);
     // file persisted, free is no more a no-op
     Assert.assertEquals(0, status.getInMemoryPercentage());
@@ -433,8 +431,6 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     } catch (AlluxioException e) {
       // Expected
     }
-    IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
     checkFileInAlluxio(newUri, LEN);

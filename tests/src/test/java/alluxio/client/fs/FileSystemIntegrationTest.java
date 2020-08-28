@@ -212,7 +212,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
       UnderFileSystemUtils.touch(mUfs, filePath);
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(alternateUfsRoot));
-      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
       Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
@@ -234,8 +233,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(dirPath1));
       mFileSystem.mount(new AlluxioURI("/d2"), new AlluxioURI(dirPath2));
-      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
-      mFileSystem.loadMetadata(new AlluxioURI("/d2/file2"));
       Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
       Assert.assertEquals("file2", mFileSystem.listStatus(new AlluxioURI("/d2")).get(0).getName());
     } finally {

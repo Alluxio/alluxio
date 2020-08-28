@@ -34,13 +34,10 @@ public final class MasterWebUIOverview implements Serializable {
   private ConfigStatus mConfigCheckStatus;
   private int mComfigCheckWarnNum;
   private int mConfigCheckErrorNum;
-  private int mInconsistentPaths;
   private List<StorageTierInfo> mStorageTierInfos;
-  private List<String> mInconsistentPathItems;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
   private String mCapacity;
-  private String mConsistencyCheckStatus;
   private String mDiskCapacity;
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
@@ -104,15 +101,6 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * Gets consistency check status.
-   *
-   * @return the consistency check status
-   */
-  public String getConsistencyCheckStatus() {
-    return mConsistencyCheckStatus;
-  }
-
-  /**
    * Gets debug.
    *
    * @return the debug value
@@ -155,15 +143,6 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getFreeCapacity() {
     return mFreeCapacity;
-  }
-
-  /**
-   * Gets inconsistent path items.
-   *
-   * @return inconsistent path items
-   */
-  public List<String> getInconsistentPathItems() {
-    return mInconsistentPathItems;
   }
 
   /**
@@ -227,15 +206,6 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getVersion() {
     return mVersion;
-  }
-
-  /**
-   * Gets inconsistent paths.
-   *
-   * @return inconsistent paths
-   */
-  public int getInconsistentPaths() {
-    return mInconsistentPaths;
   }
 
   /**
@@ -306,17 +276,6 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * Sets consistency check status.
-   *
-   * @param consistencyCheckStatus the consistency check status
-   * @return consistency check status
-   */
-  public MasterWebUIOverview setConsistencyCheckStatus(String consistencyCheckStatus) {
-    mConsistencyCheckStatus = consistencyCheckStatus;
-    return this;
-  }
-
-  /**
    * Sets debug.
    *
    * @param debug the debug
@@ -368,17 +327,6 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
-    return this;
-  }
-
-  /**
-   * Sets inconsistent path items.
-   *
-   * @param inconsistentPathItems the inconsistent path items
-   * @return inconsistent path items
-   */
-  public MasterWebUIOverview setInconsistentPathItems(List<String> inconsistentPathItems) {
-    mInconsistentPathItems = inconsistentPathItems;
     return this;
   }
 
@@ -460,17 +408,6 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * Sets inconsistent paths.
-   *
-   * @param size the size
-   * @return inconsistent paths
-   */
-  public MasterWebUIOverview setInconsistentPaths(int size) {
-    mInconsistentPaths = size;
-    return this;
-  }
-
-  /**
    * Sets config check warn num.
    *
    * @param configCheckWarnNum the config check warn num
@@ -487,13 +424,12 @@ public final class MasterWebUIOverview implements Serializable {
         .add("configCheckErrorNum", mConfigCheckErrorNum)
         .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
         .add("configCheckWarns", mConfigCheckWarns)
-        .add("consistencyCheckStatus", mConsistencyCheckStatus).add("debug", mDebug)
+        .add("debug", mDebug)
         .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)
         .add("diskUsedCapacity", mDiskUsedCapacity).add("freeCapacity", mFreeCapacity)
-        .add("inconsistentPathItems", mInconsistentPathItems)
         .add("liveWorkerNodes", mLiveWorkerNodes).add("masterNodeAddress", mMasterNodeAddress)
         .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
         .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
-        .add("inconsistentPaths", mInconsistentPaths).toString();
+        .toString();
   }
 }

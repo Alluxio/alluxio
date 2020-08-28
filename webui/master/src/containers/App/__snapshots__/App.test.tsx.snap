@@ -1,0 +1,169 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App Shallow component Matches snapshot 1`] = `
+<Connect(ConnectedRouterWithContext)
+  history={
+    Object {
+      "action": "PUSH",
+      "block": [Function],
+      "createHref": [Function],
+      "go": [Function],
+      "goBack": [Function],
+      "goForward": [Function],
+      "length": 2,
+      "listen": [Function],
+      "location": Object {
+        "hash": "",
+        "pathname": "/",
+        "search": "",
+        "state": undefined,
+      },
+      "push": [Function],
+      "replace": [Function],
+    }
+  }
+>
+  <div
+    className="App h-100"
+  >
+    <div
+      className="w-100 sticky-top header-wrapper"
+    >
+      <Header
+        autoRefreshCallback={[Function]}
+        data={
+          Array [
+            Object {
+              "innerText": "Overview",
+              "url": "/overview",
+            },
+            Object {
+              "innerText": "Browse",
+              "url": "/browse",
+            },
+            Object {
+              "innerText": "In-Alluxio Data",
+              "url": "/data",
+            },
+            Object {
+              "innerText": "Logs",
+              "url": "/logs",
+            },
+            Object {
+              "innerText": "Configuration",
+              "url": "/config",
+            },
+            Object {
+              "innerText": "Workers",
+              "url": "/workers",
+            },
+            Object {
+              "innerText": "Metrics",
+              "url": "/metrics",
+            },
+          ]
+        }
+        history={
+          Object {
+            "action": "PUSH",
+            "block": [Function],
+            "createHref": [Function],
+            "go": [Function],
+            "goBack": [Function],
+            "goForward": [Function],
+            "length": 2,
+            "listen": [Function],
+            "location": Object {
+              "hash": "",
+              "pathname": "/",
+              "search": "",
+              "state": undefined,
+            },
+            "push": [Function],
+            "replace": [Function],
+          }
+        }
+        newerVersionAvailable={false}
+      />
+    </div>
+    <div
+      className="w-100 pt-5 mt-3 pb-4 mb-2"
+    >
+      <Switch>
+        <Route
+          exact={true}
+          path="/"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/overview"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/browse"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/config"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/data"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/logs"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/metrics"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/workers"
+          render={[Function]}
+        />
+        <Route
+          render={[Function]}
+        />
+      </Switch>
+    </div>
+    <div
+      className="w-100 footer-wrapper"
+    >
+      <Footer
+        data={
+          Array [
+            Object {
+              "attributes": Object {
+                "target": "_blank",
+              },
+              "innerText": "Project Website",
+              "url": "https://alluxio.io/",
+            },
+            Object {
+              "attributes": Object {
+                "target": "_blank",
+              },
+              "innerText": "User Mailing List",
+              "url": "https://groups.google.com/forum/#!forum/alluxio-users",
+            },
+            Object {
+              "innerText": "Workers",
+              "url": "/workers",
+            },
+          ]
+        }
+      />
+    </div>
+    <SlackButton />
+  </div>
+</Connect(ConnectedRouterWithContext)>
+`;

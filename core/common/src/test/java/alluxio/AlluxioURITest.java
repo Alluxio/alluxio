@@ -25,6 +25,7 @@ import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.OSUtils;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -483,6 +484,12 @@ public class AlluxioURITest {
         .equals(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")));
     assertFalse(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")
         .equals(new AlluxioURI("part2://127.0.0.1:3306/a.txt")));
+
+    new EqualsTester()
+        .addEqualityGroup(new AlluxioURI("sch:p1:p2://aaaabbbb:12345/"),
+            new AlluxioURI("sch:p1:p2://aaaabbbb:12345/"))
+        .addEqualityGroup(new AlluxioURI("standard://host:12345/"))
+        .testEquals();
   }
 
   /**
@@ -631,7 +638,6 @@ public class AlluxioURITest {
     assertEquals(null, new AlluxioURI("/").getScheme());
     assertEquals("file", new AlluxioURI("file:/").getScheme());
     assertEquals("file", new AlluxioURI("file://localhost/").getScheme());
-    assertEquals("alluxio-ft", new AlluxioURI("alluxio-ft://localhost/").getScheme());
     assertEquals("s3", new AlluxioURI("s3://localhost/").getScheme());
     assertEquals("alluxio", new AlluxioURI("alluxio://localhost/").getScheme());
     assertEquals("hdfs", new AlluxioURI("hdfs://localhost/").getScheme());
@@ -741,6 +747,10 @@ public class AlluxioURITest {
     final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
         new AlluxioURI("/").join(pathWithSpecialCharAndColon));
+
+    // join empty string
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").join(""));
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").join(new AlluxioURI("")));
   }
 
   @Test
@@ -767,6 +777,9 @@ public class AlluxioURITest {
     assertNotEquals(new AlluxioURI("a/b.txt"), new AlluxioURI("a").joinUnsafe("/c/../b.txt"));
     assertNotEquals(new AlluxioURI("alluxio:/a/b.txt"),
         new AlluxioURI("alluxio:/a/c.txt").joinUnsafe("/../b.txt"));
+
+    // join empty string
+    assertEquals(new AlluxioURI("/a"), new AlluxioURI("/a").joinUnsafe(""));
   }
 
   /**

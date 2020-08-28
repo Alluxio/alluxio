@@ -2,7 +2,7 @@
 layout: global
 title: Google Cloud Storage
 nickname: Google Cloud Storage
-group: Under Stores
+group: Storage Integrations
 priority: 2
 ---
 
@@ -36,7 +36,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -44,7 +44,9 @@ Configure Alluxio to use GCS as its root under storage system. The first modific
 specify an **existing** GCS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-GCS/underfs-address.md %}
+```
+alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
+```
 
 The google credentials must also be specified for the root mount point. In
 `conf/alluxio-site.properties`, add:
@@ -67,25 +69,38 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 ### Nested Mount Point
 
 An GCS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
-```bash
-$ ./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>\
-  /mnt/gcs gs://GCS_BUCKET/GCS_DIRECTORY
+First, within `conf/alluxio-site.properties`, specify the master host:
+```properties
+alluxio.master.hostname=localhost
+```
+
+Then, mount GCS:
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
+  --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
+  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
 ## Running Alluxio Locally with GCS
 
 Start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local SudoMount
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```console
+$ ./bin/alluxio runTests
+```
 
 Visit your GCS directory `GCS_BUCKET/GCS_DIRECTORY` to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like:
@@ -96,7 +111,9 @@ GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```console
+$ ./bin/alluxio-stop.sh local
+```
 
 ## Advanced Setup
 
@@ -105,17 +122,6 @@ To stop Alluxio, you can run:
 Directories are represented in GCS as zero-byte objects named with a specified suffix. The
 directory suffix can be updated with the configuration parameter
 [alluxio.underfs.gcs.directory.suffix]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.underfs.gcs.directory.suffix).
-
-### Configuring Application Dependency
-
-When building your application to use Alluxio, your application should include a client module, the
-`alluxio-core-client-fs` module to use the
-[Alluxio file system interface]({{ '/en/api/FS-API.html' | relativize_url }}) or the
-`alluxio-core-client-hdfs` module to use the
-[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
-are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
-
-{% include Configuring-Alluxio-with-GCS/dependency.md %}
 
 ## GCS Access Control
 

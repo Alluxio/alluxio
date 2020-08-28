@@ -29,14 +29,12 @@ import com.baidubce.http.BceCloseableHttpResponse;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosObjectInputStream;
 import com.baidubce.services.bos.model.BosObject;
-import com.baidubce.services.bos.model.GetObjectRequest;
 import com.baidubce.services.bos.model.ObjectMetadata;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentMatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,14 +71,11 @@ public class BOSInputStreamTest {
     for (int i = 0; i < input.length; ++i) {
       final long pos = (long) i;
       mBosObject[i] = mock(BosObject.class);
-      when(mBosClient.getObject(argThat(new ArgumentMatcher<GetObjectRequest>() {
-        @Override
-        public boolean matches(Object argument) {
-          if (argument instanceof  GetObjectRequest) {
-            return ((GetObjectRequest) argument).getRange()[0] == pos;
-          }
-          return false;
+      when(mBosClient.getObject(argThat(argument -> {
+        if (argument != null) {
+          return argument.getRange()[0] == pos;
         }
+        return false;
       }))).thenReturn(mBosObject[i]);
 
       BceCloseableHttpResponse bceCloseableHttpResponse = mock(BceCloseableHttpResponse.class);

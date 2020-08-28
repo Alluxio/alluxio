@@ -62,11 +62,13 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     if (now.plus(nextWaitTime).isAfter(mEndTime)) {
       nextWaitTime = Duration.between(now, mEndTime);
     }
-    try {
-      mSleeper.sleep(nextWaitTime);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
+    if (nextWaitTime.getNano() > 0) {
+      try {
+        mSleeper.sleep(nextWaitTime);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return false;
+      }
     }
     mAttemptCount++;
     return true;

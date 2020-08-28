@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BlockInfo Shallow component Renders BlockInfo Listing Matches snapshot with Table listing 1`] = `
+<div
+  className="col-12"
+>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          File Path
+        </th>
+        <th>
+          Size
+        </th>
+        <th>
+          Creation Time
+        </th>
+        <th>
+          Modification Time
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+  <Paginator
+    baseUrl="/blockInfo"
+    total={0}
+  />
+</div>
+`;
+
+exports[`BlockInfo Shallow component Renders BlockInfo view Matches snapshot with File 1`] = `
+<div
+  className="col-12"
+>
+  <h5 />
+  <hr />
+  <h6>
+    Blocks on this worker (block capacity is 
+    x
+     Bytes):
+  </h6>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          ID
+        </th>
+        <th>
+          Tier
+        </th>
+        <th>
+          Size (Byte)
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+</div>
+`;

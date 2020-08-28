@@ -2,7 +2,7 @@
 layout: global
 title: 在NFS上配置Alluxio
 nickname: Alluxio使用NFS
-group: Under Stores
+group: Storage Integrations
 priority: 5
 ---
 
@@ -19,7 +19,7 @@ priority: 5
 
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用NFS作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -27,14 +27,14 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=/mnt/nfs
+alluxio.master.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## 使用NFS运行Alluxio
 
 简单地运行以下命令来启动Alluxio文件系统：
 
-```bash
+```console
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -43,7 +43,7 @@ $ ./bin/alluxio-start.sh local
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -55,6 +55,6 @@ $ ./bin/alluxio runTests
 
 你可以在任何时间运行以下命令停止Alluxio：
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```

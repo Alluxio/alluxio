@@ -12,10 +12,10 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -124,17 +124,18 @@ public final class FileSystemUtils {
   }
 
   /**
-   * Convenience method for {@code #persistAndWait(fs, uri, -1)}. i.e. wait for an indefinite period
-   * of time to persist. This will block for an indefinite period of time if the path is never
-   * persisted. Use with care.
+   * Convenience method for {@code #persistAndWait(fs, uri, persistenceWaitTime, -1)}.
+   * i.e. wait for an indefinite period of time to persist. This will block
+   * for an indefinite period of time if the path is never persisted. Use with care.
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
+   * @param persistenceWaitTime the persistence wait time
    */
-  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri)
-      throws FileDoesNotExistException, IOException, AlluxioException, TimeoutException,
-      InterruptedException {
-    persistAndWait(fs, uri, -1);
+  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri,
+      long persistenceWaitTime) throws FileDoesNotExistException, IOException, AlluxioException,
+      TimeoutException, InterruptedException {
+    persistAndWait(fs, uri, persistenceWaitTime, -1);
   }
 
   /**
@@ -143,22 +144,24 @@ public final class FileSystemUtils {
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
+   * @param persistenceWaitTime the initial persistence wait time
    * @param timeoutMs max amount of time to wait for persist in milliseconds. -1 to wait
    *                  indefinitely
    * @throws TimeoutException if the persist takes longer than the timeout
    */
-  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri, int timeoutMs)
-      throws FileDoesNotExistException, IOException, AlluxioException, TimeoutException,
-      InterruptedException {
-    fs.persist(uri);
-    CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
+  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri,
+      long persistenceWaitTime, int timeoutMs) throws FileDoesNotExistException, IOException,
+      AlluxioException, TimeoutException, InterruptedException {
+    fs.persist(uri, ScheduleAsyncPersistencePOptions
+        .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
+    CommonUtils.waitForResult(String.format("%s to be persisted", uri) , () -> {
       try {
-        return fs.getStatus(uri).isPersisted();
+        return fs.getStatus(uri);
       } catch (Exception e) {
         Throwables.throwIfUnchecked(e);
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs)
-        .setInterval(Constants.SECOND_MS));
+    }, (status) -> status.isPersisted(),
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setInterval(100));
   }
 }

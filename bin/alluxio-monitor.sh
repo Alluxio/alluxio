@@ -42,22 +42,22 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 PURPLE='\033[0;35m'
 CYAN='\033[1;36m'
+WHITE='\033[1;37m'
 NC='\033[0m'
-BOLD=$(tput bold)
-END_BOLD=$(tput sgr0)
 
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
   CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+  ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 }
 
 prepare_monitor() {
   local msg=$1
-  echo -e "${BOLD}-----------------------------------------${END_BOLD}"
+  echo -e "${WHITE}-----------------------------------------${NC}"
   echo -e "${msg}"
-  echo -e "${BOLD}-----------------------------------------${END_BOLD}"
+  echo -e "${WHITE}-----------------------------------------${NC}"
   sleep 2
 }
 
@@ -90,10 +90,10 @@ run_monitor() {
       monitor_exec=alluxio.worker.AlluxioWorkerMonitor
       ;;
     job_master)
-      monitor_exec=alluxio.jobmaster.AlluxioJobMasterMonitor
+      monitor_exec=alluxio.master.job.AlluxioJobMasterMonitor
       ;;
     job_worker)
-      monitor_exec=alluxio.jobworker.AlluxioJobWorkerMonitor
+      monitor_exec=alluxio.worker.job.AlluxioJobWorkerMonitor
       ;;
     proxy)
       monitor_exec=alluxio.proxy.AlluxioProxyMonitor
@@ -108,16 +108,29 @@ run_monitor() {
     print_node_logs "${node_type}"
     return 0
   else
-    echo -e "${BOLD}---${END_BOLD} Running ${CYAN}${node_type}${NC} monitor ${BOLD}@ $(hostname -f)${END_BOLD}."
     "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
     if [[ $? -ne 0 ]]; then
-      echo -e "${BOLD}---${END_BOLD} ${RED}[ FAILED ] The ${node_type} @ $(hostname -f) is not serving requests.${NC}"
+      echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests.${NC}"
       print_node_logs "${node_type}"
       return 1
     fi
   fi
-  echo -e "${BOLD}---${END_BOLD} ${GREEN}[ OK ] The ${node_type} service @ $(hostname -f) is in an healthy state.${NC}"
+  echo -e "${WHITE}---${NC} ${GREEN}[ OK ]${NC} The ${CYAN}${node_type}${NC} service @ ${PURPLE}$(hostname -f)${NC} is in a healthy state.${NC}"
   return 0
+}
+
+# $1 --> The path to the masters/workers file
+get_nodes() {
+    local node_file=$1
+    echo "$(cat "${node_file}" | sed  "s/#.*$//;/^$/d")"
+}
+
+run_on_node() {
+  local node=$1
+  # Appends every argument after $1 to the launcher terminal
+
+  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} ${@:2} \
+    2> >(while read line; do echo "[$(date '+%F %T')][${node}] ${line}" >> ${ALLUXIO_TASK_LOG}; done)
 }
 
 run_monitors() {
@@ -127,19 +140,25 @@ run_monitors() {
   if [[ -z "${nodes}" ]]; then
     case "${node_type}" in
       master)
-        nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+        nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/masters")
         ;;
       worker)
-        nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+        nodes=$(get_nodes "${ALLUXIO_CONF_DIR}/workers")
         ;;
       job_master)
-        nodes=$(cat "${ALLUXIO_CONF_DIR}/job_masters" | sed  "s/#.*$//;/^$/d")
+        # Fall back to {conf}/masters if job_masters doesn't exist
+        local job_masters="${ALLUXIO_CONF_DIR}/job_masters"
+        if [[ ! -f ${job_masters} ]]; then job_masters=${ALLUXIO_CONF_DIR}/masters; fi
+        nodes=$(get_nodes "${job_masters}")
         ;;
       job_worker)
-        nodes=$(cat "${ALLUXIO_CONF_DIR}/job_workers" | sed  "s/#.*$//;/^$/d")
+        # Fall back to {conf}/workers if job_workers doesn't exist
+        local job_workers="${ALLUXIO_CONF_DIR}/job_workers"
+        if [[ ! -f ${job_workers} ]]; then job_workers=${ALLUXIO_CONF_DIR}/workers; fi
+        nodes=$(get_nodes "${job_workers}")
         ;;
       proxy)
-        nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
+        nodes=$(awk '{print}' "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
         ;;
       *)
         echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
@@ -151,22 +170,49 @@ run_monitors() {
   if [[ "${node_type}" == "master" ]]; then
     # master check should only run once...
     local master=$(echo -e "${nodes}" | head -n1)
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-        "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
+    run_on_node ${master} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
+
+    nodes=$(echo -e "${nodes}" | tail -n+2)
     if [[ $? -ne 0 ]]; then
       # if there is an error, print the log tail for the remaining master nodes.
-      nodes=$(echo -e "${nodes}" | tail -n+2)
-      for node in $(echo ${nodes}); do
-        ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
-            "${BIN}/alluxio-monitor.sh" -L "${node_type}"
-      done
+      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
+    else
+      HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+      JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
+      if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
+        HA_ENABLED="true"
+      fi
+      if [[ ${HA_ENABLED} == "true" ]]; then
+        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
+      fi
     fi
   else
-    for node in $(echo ${nodes}); do
-      ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
-          "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
-    done
+    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
   fi
+}
+
+# Used to run a command on multiple hosts concurrently.
+# By default it limits concurrent tasks to 100.
+batch_run_on_nodes() {
+  # String of nodes, seperated by a new line
+  local nodes=$1
+  # Command to run on each node
+  local command=$2
+  # Parameter for command
+  local params=${@:3}
+
+  # How many nodes to run on concurrently
+  local batchCount=100
+
+  local taskCount=0
+  for node in $nodes; do
+      run_on_node ${node} ${command} ${params} &
+
+      # Wait for existing tasks, if batch is full
+      ((taskCount++))
+      if [ $(( $taskCount % $batchCount )) == 0 ]; then wait; fi;
+  done
+  wait
 }
 
 main() {
@@ -209,54 +255,53 @@ main() {
   case "${ACTION}" in
     all)
       prepare_monitor "Starting to monitor ${CYAN}all remote${NC} services."
-      run_monitors "master" "${HOSTS}" "${MODE}"
-      run_monitors "worker" "${HOSTS}" "${MODE}"
-      run_monitors "proxy" "${HOSTS}" "${MODE}"
+      run_monitors "master"     "" "${MODE}"
+      run_monitors "job_master" "" "${MODE}"
+      run_monitors "worker"     "" "${MODE}"
+      run_monitors "job_worker" "" "${MODE}"
+      run_monitors "proxy"      "" "${MODE}"
       ;;
     local)
       prepare_monitor "Starting to monitor ${CYAN}all local${NC} services."
-      run_monitor "master" "${MODE}"
-      run_monitor "worker" "${MODE}"
-      run_monitor "proxy"  "${MODE}"
+      run_monitor "master"      "${MODE}"
+      run_monitor "job_master"  "${MODE}"
+      run_monitor "worker"      "${MODE}"
+      run_monitor "job_worker"  "${MODE}"
+      run_monitor "proxy"       "${MODE}"
       ;;
     master)
-      prepare_monitor "Starting to monitor the ${CYAN}master${NC} service."
       run_monitor "master" "${MODE}"
       ;;
     masters)
-      prepare_monitor "Starting to monitor all the ${CYAN}masters${NC} services."
+      prepare_monitor "Starting to monitor all Alluxio ${CYAN}masters${NC}."
       run_monitors "master" "${HOSTS}"
       ;;
     job_master)
-      prepare_monitor "Starting to monitor the ${CYAN}job_master{NC} service."
       run_monitor "job_master" "${MODE}"
       ;;
     job_masters)
-      prepare_monitor "Starting to monitor all the ${CYAN}job_master{NC} services."
+      prepare_monitor "Starting to monitor all Alluxio ${CYAN}job masters${NC}."
       run_monitors "job_master" "${HOSTS}"
       ;;
     job_worker)
-      prepare_monitor "Starting to monitor the ${CYAN}job_worker{NC} service."
       run_monitor "job_worker" "${MODE}"
       ;;
     job_workers)
-      prepare_monitor "Starting to monitor all the ${CYAN}job_worker{NC} services."
+      prepare_monitor "Starting to monitor all Alluxio ${CYAN}job workers${NC}."
       run_monitors "job_worker" "${HOSTS}"
       ;;
     proxy)
-      prepare_monitor "Starting to monitor the ${CYAN}proxy${NC} service."
       run_monitor "proxy" "${MODE}"
       ;;
     proxies)
-      prepare_monitor "Starting to monitor the ${CYAN}proxies${NC} services."
+      prepare_monitor "Starting to monitor all Alluxio ${CYAN}proxies${NC}."
       run_monitors "proxy" "${HOSTS}" "${MODE}"
       ;;
     worker)
-      prepare_monitor "Starting to monitor the ${CYAN}worker${NC} service."
       run_monitor "worker" "${MODE}"
       ;;
     workers)
-      prepare_monitor "Starting to monitor the ${CYAN}workers${NC} services."
+      prepare_monitor "Starting to monitor all Alluxio ${CYAN}workers${NC}."
       run_monitors "worker" "${HOSTS}" "${MODE}"
       ;;
     *)

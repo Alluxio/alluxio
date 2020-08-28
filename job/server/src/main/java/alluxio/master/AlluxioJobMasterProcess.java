@@ -13,17 +13,26 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
+import alluxio.master.journal.DefaultJournalMaster;
+import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -49,6 +58,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
+  /** FileSystem client for jobs. */
+  private final FileSystem mFileSystem;
+
+  /** FileSystemContext for jobs. */
+  private final FileSystemContext mFsContext;
+
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
@@ -69,13 +84,25 @@ public class AlluxioJobMasterProcess extends MasterProcess {
           NetworkAddressUtils.getLocalHostName(
               (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(mFsContext);
     mUfsManager = new JobUfsManager();
     try {
       // Create master.
-      mJobMaster = new JobMaster(new MasterContext(mJournalSystem), mUfsManager);
+      mJobMaster = new JobMaster(new MasterContext(mJournalSystem), mFileSystem, mFsContext,
+          mUfsManager);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
+    }
+  }
+
+  @Override
+  public <T extends Master> T getMaster(Class<T> clazz) {
+    if (clazz == JobMaster.class) {
+      return (T) mJobMaster;
+    } else {
+      throw new RuntimeException(String.format("Could not find the master: %s", clazz));
     }
   }
 
@@ -123,9 +150,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     stopRejectingServers();
     if (isServing()) {
       stopServing();
-      stopMaster();
-      mJournalSystem.stop();
     }
+    stopMaster();
+    mJournalSystem.stop();
   }
 
   protected void startMaster(boolean isLeader) {
@@ -150,6 +177,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void startServing(String startMessage, String stopMessage) {
+    LOG.info("Alluxio job master web server version {} starting{}. webAddress={}",
+        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
     LOG.info(
         "Alluxio job master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
@@ -173,17 +202,21 @@ public class AlluxioJobMasterProcess extends MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
-    // TODO(ggezer) Executor threads not reused until thread capacity is hit.
-    //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       stopRejectingRpcServer();
-      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
-          ServerConfiguration.global());
+      LOG.info("Starting Alluxio job master gRPC server on address {}", mRpcBindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+          ServerConfiguration.global(), ServerUserState.global());
       registerServices(serverBuilder, mJobMaster.getServices());
 
+      // Add journal master client service.
+      serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+          new GrpcService(new JournalMasterClientServiceHandler(
+              new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
+
       mGrpcServer = serverBuilder.build().start();
-      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Started Alluxio job master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -194,9 +227,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
 
   protected void stopServing() throws Exception {
     if (isServing()) {
-      LOG.info("Stopping RPC server on {} @ {}", this, mRpcBindAddress);
+      LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
       if (!mGrpcServer.shutdown()) {
-        LOG.warn("RPC Server shutdown timed out.");
+        LOG.warn("Alluxio job master RPC server shutdown timed out.");
       }
     }
     if (mWebServer != null) {
@@ -222,7 +255,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
-          .build();
+          .build(ProcessType.JOB_MASTER);
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");

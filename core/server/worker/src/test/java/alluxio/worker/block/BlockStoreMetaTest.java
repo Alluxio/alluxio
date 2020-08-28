@@ -12,6 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
@@ -51,6 +53,8 @@ public final class BlockStoreMetaTest {
   @Before
   public void before() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
     mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(alluxioHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly

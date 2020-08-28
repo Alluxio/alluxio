@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * This class represents a getSyncPathList Command.
  */
+@PublicApi
 public class GetSyncPathListCommand extends AbstractFileSystemCommand{
   /**
    * Create a GetSyncPathListCommand object.

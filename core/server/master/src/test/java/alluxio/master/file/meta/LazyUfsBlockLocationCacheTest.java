@@ -48,14 +48,15 @@ public class LazyUfsBlockLocationCacheTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = Files.createTempDir().getAbsolutePath();
-    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsPath, ServerConfiguration.global());
+    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsPath,
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     mUfsManager = new MasterUfsManager();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
-            .setShared(options.getShared())
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+            .setReadOnly(options.getReadOnly()).setShared(options.getShared())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
 
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),

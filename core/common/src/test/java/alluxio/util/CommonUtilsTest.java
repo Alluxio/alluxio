@@ -25,6 +25,7 @@ import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,16 +34,20 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -565,5 +570,100 @@ public class CommonUtilsTest {
     CountCondition cond = new CountCondition(100);
     WaitForOptions opts = WaitForOptions.defaults().setInterval(3).setTimeoutMs(100);
     CommonUtils.waitFor("", cond, opts);
+  }
+
+  @Test(timeout = 10000)
+  public void interruptInvokeAll() throws Exception {
+    // this should be significantly longer than the test timeout (10s)
+    long longWaitMs = 1000000;
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      tasks.add(() -> {
+        CommonUtils.sleepMs(longWaitMs);
+        return null;
+      });
+    }
+
+    Thread waiting = new Thread(() -> {
+      try {
+        CommonUtils.invokeAll(tasks, longWaitMs);
+      } catch (RuntimeException e) {
+        // expected, since it is interrupted
+      } catch (Exception e) {
+        fail("invokeAll threw unexpected exception: " + e);
+      }
+    });
+    try {
+      waiting.start();
+      waiting.interrupt();
+    } finally {
+      waiting.join();
+    }
+  }
+
+  @Test(timeout = 10000)
+  public void invokeAllTimeoutCleanup() throws Exception {
+    // this should be significantly longer than the test timeout (10s)
+    long longWaitMs = 1000000;
+    ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+    try {
+      List<Callable<Void>> tasks = new ArrayList<>();
+      for (int i = 0; i < 10; i++) {
+        tasks.add(() -> {
+          CommonUtils.sleepMs(longWaitMs);
+          return null;
+        });
+      }
+
+      try {
+        CommonUtils.invokeAll(service, tasks, 10);
+        fail("invokeAll is expected to timeout, not succeed");
+      } catch (TimeoutException e) {
+        // expected
+      }
+
+      CommonUtils.waitFor("all threads to stop after timeout", () -> service.getActiveCount() == 0,
+          WaitForOptions.defaults().setInterval(10).setTimeoutMs(1000));
+    } finally {
+      service.shutdownNow();
+    }
+  }
+
+  @Test
+  public void recursiveList() throws Exception {
+    File tmpDirFile = Files.createTempDir();
+    tmpDirFile.deleteOnExit();
+
+    Set<File> allFiles = new HashSet<>();
+    // Create 10 files at randomly deep level in the directory
+    for (int i = 0; i < 10; i++) {
+      createFileOrDir(tmpDirFile, i, new Random(), allFiles);
+    }
+
+    List<File> listedFiles = CommonUtils.recursiveListLocalDir(tmpDirFile);
+    assertEquals(allFiles, new HashSet<>(listedFiles));
+  }
+
+  @Test
+  public void parseVersion() throws Exception {
+    assertEquals(8, CommonUtils.parseMajorVersion("1.8.0"));
+    assertEquals(11, CommonUtils.parseMajorVersion("11.0.1"));
+    assertEquals(9, CommonUtils.parseMajorVersion("9.0.1"));
+  }
+
+  private void createFileOrDir(File dir, int index, Random rand, Set<File> files)
+          throws IOException {
+    int childType = rand.nextInt(2);
+    File child = new File(dir, index + "");
+    if (childType == 1) {
+      // The child is a directory, go deeper into it
+      child.mkdir();
+      createFileOrDir(child, index, rand, files);
+    } else {
+      // The child is a file
+      child.createNewFile();
+      files.add(child);
+    }
   }
 }

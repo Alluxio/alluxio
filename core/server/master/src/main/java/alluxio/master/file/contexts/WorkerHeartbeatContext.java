@@ -18,7 +18,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link FileSystemHeartbeatPOptions}.
  */
-public class WorkerHeartbeatContext extends OperationContext<FileSystemHeartbeatPOptions.Builder> {
+public class WorkerHeartbeatContext
+    extends OperationContext<FileSystemHeartbeatPOptions.Builder, WorkerHeartbeatContext> {
   // Prevent instantiation
   private WorkerHeartbeatContext() {
     super(FileSystemHeartbeatPOptions.newBuilder());

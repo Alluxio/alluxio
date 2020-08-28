@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withLoadingMessage HOC Shallow component Loading Matches snapshot - renders LoadingMessage 1`] = `
+<div
+  className="test"
+>
+  <LoadingMessage />
+</div>
+`;
+
+exports[`withLoadingMessage HOC Shallow component Not Loading Matches snapshot - renders WrappedComponent 1`] = `
+<WrappedComponent
+  class="test"
+  loading={false}
+/>
+`;

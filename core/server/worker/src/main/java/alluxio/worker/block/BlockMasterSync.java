@@ -21,7 +21,6 @@ import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -65,8 +63,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
 
+  /** Client-pool for all master communication. */
+  private final BlockMasterClientPool mMasterClientPool;
   /** Client for all master communication. */
-  private final BlockMasterClient mMasterClient;
+  private BlockMasterClient mMasterClient;
 
   /** An async service to remove block. */
   private final AsyncBlockRemover mAsyncBlockRemover;
@@ -80,14 +80,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerId the worker id of the worker, assigned by the block master
    * @param workerAddress the net address of the worker
-   * @param masterClient the Alluxio master client
+   * @param masterClientPool the Alluxio master client pool
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClient masterClient) throws IOException {
+      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
-    mMasterClient = masterClient;
+    mMasterClientPool = masterClientPool;
+    mMasterClient = mMasterClientPool.acquire();
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
@@ -107,7 +108,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+        storeMeta.getLostStorage(), configList);
   }
 
   /**
@@ -121,14 +123,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
-    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (Metric metric : MetricsSystem.allWorkerMetrics()) {
-      metrics.add(metric.toProto());
-    }
+    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
+
     try {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), metrics);
+          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
@@ -156,6 +156,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   @Override
   public void close() {
     mAsyncBlockRemover.shutDown();
+    mMasterClientPool.release(mMasterClient);
   }
 
   /**

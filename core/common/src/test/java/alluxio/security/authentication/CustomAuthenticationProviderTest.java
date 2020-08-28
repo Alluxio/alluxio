@@ -11,9 +11,10 @@
 
 package alluxio.security.authentication;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.security.authentication.plain.CustomAuthenticationProvider;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -51,8 +52,11 @@ public final class CustomAuthenticationProviderTest {
   public void classNotProvider() {
     String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
+    // Java 11 will add "class" prefix before the class names
+    // the following messages support both java 8 and java 11
     mThrown.expectMessage("alluxio.security.authentication.CustomAuthenticationProviderTest "
-        + "cannot be cast to alluxio.security.authentication.AuthenticationProvider");
+        + "cannot be cast to ");
+    mThrown.expectMessage("alluxio.security.authentication.AuthenticationProvider");
     new CustomAuthenticationProvider(notProviderClass);
   }
 
@@ -63,7 +67,7 @@ public final class CustomAuthenticationProviderTest {
   public void mockCustomProvider() {
     CustomAuthenticationProvider provider =
         new CustomAuthenticationProvider(MockAuthenticationProvider.class.getName());
-    Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
+    assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 
   /**

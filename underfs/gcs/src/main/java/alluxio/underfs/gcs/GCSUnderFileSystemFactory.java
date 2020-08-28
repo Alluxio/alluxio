@@ -13,7 +13,6 @@ package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -43,13 +42,12 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GCSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkGoogleCredentials(conf)) {
       try {
-        return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
+        return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);

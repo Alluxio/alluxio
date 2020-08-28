@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -34,12 +35,13 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Baidu Cloud BOS {@link UnderFileSystem} implementation.
@@ -62,11 +64,10 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio configuration
    * @return the created {@link BOSUnderFileSystem} instance
    */
-  public static BOSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) throws Exception {
+  public static BOSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
+      throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.BOS_ACCESS_KEY),
         "Property %s is required to connect to BOS", PropertyKey.BOS_ACCESS_KEY);
@@ -79,10 +80,10 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
     String endPoint = conf.get(PropertyKey.BOS_ENDPOINT_KEY);
 
     BosClientConfiguration bosClientConf = initializeBosClientConfig(accessId, accessKey, endPoint,
-        alluxioConf);
+        conf);
     BosClient bosClient = new BosClient(bosClientConf);
 
-    return new BOSUnderFileSystem(uri, bosClient, bucketName, conf, alluxioConf);
+    return new BOSUnderFileSystem(uri, bosClient, bucketName, conf);
   }
 
   /**
@@ -94,8 +95,8 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected BOSUnderFileSystem(AlluxioURI uri, BosClient bosClient, String bucketName,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
-    super(uri, conf, alluxioConf);
+      UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mClient = bosClient;
     mBucketName = bucketName;
   }
@@ -126,7 +127,7 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
@@ -141,7 +142,7 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new BOSOutputStream(mBucketName, key, mClient,
-        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -169,7 +170,7 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     ListObjectsRequest request = new ListObjectsRequest(mBucketName);
     request.setPrefix(key);
-    request.setMaxKeys(getListingChunkLength(mAlluxioConf));
+    request.setMaxKeys(getListingChunkLength(mUfsConf));
     request.setDelimiter(delimiter);
 
     ListObjectsResponse result = getObjectListingChunk(request);
@@ -286,10 +287,11 @@ public class BOSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
+      throws IOException {
     try {
       return new BOSInputStream(mBucketName, key, mClient, options.getOffset(),
-          mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+          mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (BceServiceException e) {
       throw new IOException(e.getMessage());
     }

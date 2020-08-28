@@ -30,34 +30,34 @@ import java.io.IOException;
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void loadDir() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
 
-    URIStatus statusA = mFileSystem.getStatus(uriA);
-    URIStatus statusB = mFileSystem.getStatus(uriB);
-    Assert.assertFalse(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
     // Testing loading of a directory
-    mFsShell.run("distributedLoad", "/testRoot");
-    statusA = mFileSystem.getStatus(uriA);
-    statusB = mFileSystem.getStatus(uriB);
-    Assert.assertTrue(statusA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(statusB.getInMemoryPercentage() == 100);
+    sFsShell.run("distributedLoad", "/testRoot");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
 
   @Test
   public void loadFile() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
-    URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertFalse(status.getInMemoryPercentage() == 100);
+    URIStatus status = sFileSystem.getStatus(uri);
+    Assert.assertNotEquals(100, status.getInMemoryPercentage());
     // Testing loading of a single file
-    mFsShell.run("distributedLoad", "/testFile");
-    status = mFileSystem.getStatus(uri);
-    Assert.assertTrue(status.getInMemoryPercentage() == 100);
+    sFsShell.run("distributedLoad", "/testFile");
+    status = sFileSystem.getStatus(uri);
+    Assert.assertEquals(100, status.getInMemoryPercentage());
   }
 }

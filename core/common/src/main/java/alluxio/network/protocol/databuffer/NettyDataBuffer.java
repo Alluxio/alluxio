@@ -14,6 +14,8 @@ package alluxio.network.protocol.databuffer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -55,6 +57,16 @@ public final class NettyDataBuffer implements DataBuffer {
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
     mNettyBuf.readBytes(dst, dstIndex, length);
+  }
+
+  @Override
+  public void readBytes(OutputStream outputStream, int length) throws IOException {
+    mNettyBuf.readBytes(outputStream, length);
+  }
+
+  @Override
+  public void readBytes(ByteBuffer outputBuf) {
+    mNettyBuf.readBytes(outputBuf);
   }
 
   @Override

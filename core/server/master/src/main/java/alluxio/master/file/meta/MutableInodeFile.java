@@ -24,12 +24,14 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,6 +49,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   private boolean mCompleted;
   private long mLength;
   private long mPersistJobId;
+  private long mShouldPersistTime;
   private int mReplicationDurable;
   private int mReplicationMax;
   private int mReplicationMin;
@@ -66,6 +69,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     mCompleted = false;
     mLength = 0;
     mPersistJobId = Constants.PERSISTENCE_INVALID_JOB_ID;
+    mShouldPersistTime = 0;
     mReplicationDurable = 0;
     mReplicationMax = Constants.REPLICATION_MAX_INFINITY;
     mReplicationMin = 0;
@@ -91,10 +95,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setCacheable(isCacheable());
     ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
+    ret.setMediumTypes(getMediumTypes());
     ret.setCompleted(isCompleted());
     ret.setPersisted(isPersisted());
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
+    ret.setLastAccessTimeMs(getLastAccessTimeMs());
     ret.setTtl(mTtl);
     ret.setTtlAction(mTtlAction);
     ret.setOwner(getOwner());
@@ -162,6 +168,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   @Override
   public long getPersistJobId() {
     return mPersistJobId;
+  }
+
+  @Override
+  public long getShouldPersistTime() {
+    return mShouldPersistTime;
   }
 
   @Override
@@ -262,6 +273,15 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   }
 
   /**
+   * @param shouldPersistTime the time that this file should start persisting
+   * @return the updated object
+   */
+  public MutableInodeFile setShouldPersistTime(long shouldPersistTime) {
+    mShouldPersistTime = shouldPersistTime;
+    return getThis();
+  }
+
+  /**
    * @param replicationDurable the durable number of block replication
    * @return the updated object
    */
@@ -341,6 +361,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
         .add("persistJobId", mPersistJobId)
+        .add("persistenceWaitTime", mShouldPersistTime)
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)
@@ -364,11 +385,15 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setCompleted(entry.getCompleted())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
+        // for backward compatibility, set access time to modification time if it is not in journal
+        .setLastAccessTimeMs(entry.hasLastAccessTimeMs()
+            ? entry.getLastAccessTimeMs() : entry.getLastModificationTimeMs(), true)
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setPersistJobId(entry.getPersistJobId())
+        .setShouldPersistTime(entry.getShouldPersistTime())
         .setReplicationDurable(entry.getReplicationDurable())
         .setReplicationMax(entry.getReplicationMax())
         .setReplicationMin(entry.getReplicationMin())
@@ -388,6 +413,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       acl.setMode(mode);
       ret.mAcl = acl;
     }
+
+    if (entry.getXAttrCount() > 0) {
+      ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+    }
+
+    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     return ret;
   }
 
@@ -418,24 +449,31 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(options.getCommonOptions().getTtlAction())
         .setParentId(parentId)
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
+        .setLastAccessTimeMs(context.getOperationTimeMs(), true)
         .setOwner(context.getOwner())
         .setGroup(context.getGroup())
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.isPersisted() ? PersistenceState.PERSISTED
-            : PersistenceState.NOT_PERSISTED);
+            : PersistenceState.NOT_PERSISTED)
+        .setShouldPersistTime(options.getPersistenceWaitTime() == Constants.NO_AUTO_PERSIST
+            ? Constants.NO_AUTO_PERSIST :
+            System.currentTimeMillis() + options.getPersistenceWaitTime())
+        .setXAttr(context.getXAttr());
   }
 
   @Override
   public JournalEntry toJournalEntry() {
-    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+    InodeFileEntry.Builder inodeFile = InodeFileEntry.newBuilder()
         .addAllBlocks(getBlockIds())
+        .addAllMediumType(getMediumTypes())
         .setBlockSizeBytes(getBlockSizeBytes())
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
         .setCreationTimeMs(getCreationTimeMs())
         .setId(getId())
         .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setLastAccessTimeMs(getLastAccessTimeMs())
         .setLength(getLength())
         .setName(getName())
         .setParentId(getParentId())
@@ -449,9 +487,17 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(ProtoUtils.toProto(mAcl))
-        .build();
+        .setAcl(ProtoUtils.toProto(mAcl));
+    if (getXAttr() != null) {
+      inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
+    }
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
+  }
+
+  @Override
+  public JournalEntry toJournalEntry(String path) {
+    return JournalEntry.newBuilder().setInodeFile(
+        toJournalEntry().toBuilder().getInodeFileBuilder().setPath(path)).build();
   }
 
   @Override
@@ -475,9 +521,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @return the {@link MutableInodeFile} for the inode
    */
   public static MutableInodeFile fromProto(InodeOrBuilder inode) {
-    return new MutableInodeFile(BlockId.getContainerId(inode.getId()))
+    MutableInodeFile f = new MutableInodeFile(BlockId.getContainerId(inode.getId()))
         .setCreationTimeMs(inode.getCreationTimeMs())
         .setLastModificationTimeMs(inode.getLastModifiedMs(), true)
+        .setLastAccessTimeMs(inode.getLastAccessedMs(), true)
         .setTtl(inode.getTtl())
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())
@@ -495,6 +542,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
-        .setTempUfsPath(inode.getPersistJobTempUfsPath());
+        .setShouldPersistTime(inode.getShouldPersistTime())
+        .setTempUfsPath(inode.getPersistJobTempUfsPath())
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+    if (inode.getXAttrCount() > 0) {
+      f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
+    }
+    return f;
   }
 }

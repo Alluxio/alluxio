@@ -13,7 +13,6 @@ package alluxio.underfs.bos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -22,8 +21,9 @@ import alluxio.underfs.UnderFileSystemFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link BOSUnderFileSystem}.
@@ -37,13 +37,12 @@ public class BOSUnderFileSystemFactory implements UnderFileSystemFactory {
   public BOSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkBOSCredentials(conf)) {
       try {
-        return BOSUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
+        return BOSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

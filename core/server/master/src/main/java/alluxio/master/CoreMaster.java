@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.master.journal.JournalSystem;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import java.time.Clock;
@@ -22,6 +23,7 @@ import java.time.Clock;
 public abstract class CoreMaster extends AbstractMaster {
   protected final SafeModeManager mSafeModeManager;
   protected final BackupManager mBackupManager;
+  protected final JournalSystem mJournalSystem;
   protected final long mStartTimeMs;
   protected final int mPort;
 
@@ -35,6 +37,7 @@ public abstract class CoreMaster extends AbstractMaster {
     super(context, clock, executorServiceFactory);
     mSafeModeManager = context.getSafeModeManager();
     mBackupManager = context.getBackupManager();
+    mJournalSystem = context.getJournalSystem();
     mStartTimeMs = context.getStartTimeMs();
     mPort = context.getPort();
   }

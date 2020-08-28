@@ -11,7 +11,6 @@
 
 package alluxio.wire;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.google.common.base.MoreObjects;
 
@@ -29,7 +28,6 @@ public final class WorkerWebUIMetrics implements Serializable {
 
   private long mWorkerCapacityFreePercentage;
   private long mWorkerCapacityUsedPercentage;
-  private Map<String, Counter> mRpcInvocationMetrics;
   private Map<String, Metric> mOperationMetrics;
 
   /**
@@ -66,15 +64,6 @@ public final class WorkerWebUIMetrics implements Serializable {
   }
 
   /**
-   * Gets rpc invocation metrics.
-   *
-   * @return the rpc invocation metrics
-   */
-  public Map<String, Counter> getRpcInvocationMetrics() {
-    return mRpcInvocationMetrics;
-  }
-
-  /**
    * Sets worker capacity used percentage.
    *
    * @param WorkerCapacityUsedPercentage the worker capacity used percentage
@@ -107,23 +96,11 @@ public final class WorkerWebUIMetrics implements Serializable {
     return this;
   }
 
-  /**
-   * Sets rpc invocation metrics.
-   *
-   * @param RpcInvocationMetrics the rpc invocation metrics
-   * @return the rpc invocation metrics
-   */
-  public WorkerWebUIMetrics setRpcInvocationMetrics(Map<String, Counter> RpcInvocationMetrics) {
-    mRpcInvocationMetrics = RpcInvocationMetrics;
-    return this;
-  }
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("workerCapacityUsedPercentage", mWorkerCapacityUsedPercentage)
         .add("workerCapacityFreePercentage", mWorkerCapacityFreePercentage)
-        .add("operationMetrics", mOperationMetrics)
-        .add("rpcInvocationMetrics", mRpcInvocationMetrics).toString();
+        .add("operationMetrics", mOperationMetrics).toString();
   }
 }

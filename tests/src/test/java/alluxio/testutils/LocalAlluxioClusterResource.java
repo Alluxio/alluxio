@@ -11,12 +11,20 @@
 
 package alluxio.testutils;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedClientUserResource;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsMode;
+import alluxio.util.SecurityUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -87,6 +95,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
+  /** The name of the test/cluster. */
+  private String mTestName = "test";
+
   /**
    * Creates a new instance.
    *
@@ -99,7 +110,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
-    MetricsSystem.resetAllCounters();
+    MetricsSystem.resetCountersAndGauges();
   }
 
   /**
@@ -130,11 +141,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
-    LoginUserTestUtils.resetLoginUser();
     // Create a new cluster.
     mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
-    mLocalAlluxioCluster.initConfiguration();
+    mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
@@ -150,17 +160,21 @@ public final class LocalAlluxioClusterResource implements TestRule {
       @Override
       public void evaluate() throws Throwable {
         IntegrationTestUtils.reserveMasterPorts();
+        mTestName = IntegrationTestUtils
+            .getTestName(description.getTestClass().getSimpleName(), description.getMethodName());
         try {
           try {
+            Annotation configAnnotation;
+            configAnnotation = description.getAnnotation(ServerConfig.class);
+            if (configAnnotation != null) {
+              overrideConfiguration(((ServerConfig) configAnnotation).confParams());
+            }
+
             boolean startCluster = mStartCluster;
-            Annotation configAnnotation = description.getAnnotation(Config.class);
+            configAnnotation = description.getAnnotation(Config.class);
             if (configAnnotation != null) {
               Config config = (Config) configAnnotation;
-              // Override the configuration parameters with any configuration params
-              for (int i = 0; i < config.confParams().length; i += 2) {
-                mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-                    config.confParams()[i + 1]);
-              }
+              overrideConfiguration(config.confParams());
               // Override startCluster
               startCluster = config.startCluster();
             }
@@ -180,6 +194,28 @@ public final class LocalAlluxioClusterResource implements TestRule {
         }
       }
     };
+  }
+
+  /**
+   * @param config the array of strings for the configuration values to override
+   */
+  private void overrideConfiguration(String[] config) {
+    // Override the configuration parameters with any configuration params
+    for (int i = 0; i < config.length; i += 2) {
+      mConfiguration.put(PropertyKey.fromString(config[i]), config[i + 1]);
+    }
+  }
+
+  /**
+   * Returns a resource which will reset the cluster without restarting it. The rule will perform
+   * operations on the running cluster to get back to a clean state. This is primarily useful for
+   * when the {@link LocalAlluxioCluster} is a {@code @ClassRule}, so this reset rule can reset
+   * the cluster between tests.
+   *
+   * @return a {@link TestRule} for resetting the cluster
+   */
+  public TestRule getResetResource() {
+    return new ResetRule(this);
   }
 
   /**
@@ -232,6 +268,60 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
   }
 
+  private final class ResetRule implements TestRule {
+    private final LocalAlluxioClusterResource mCluster;
+
+    ResetRule(LocalAlluxioClusterResource cluster) {
+      mCluster = cluster;
+    }
+
+    @Override
+    public Statement apply(Statement statement, Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          try {
+            statement.evaluate();
+          } finally {
+            FileSystemMaster fsm =
+                mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
+                    .getMaster(FileSystemMaster.class);
+
+            if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+              // Reset the state as the root inode user (superuser).
+              try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
+                  fsm.getRootInodeOwner(), ServerConfiguration.global())) {
+                resetCluster(fsm);
+              }
+            } else {
+              resetCluster(fsm);
+            }
+          }
+        }
+      };
+    }
+
+    private void resetCluster(FileSystemMaster fsm) throws Exception {
+      if (!mCluster.get().getLocalAlluxioMaster().isServing()) {
+        // Restart the masters if they are not serving.
+        mCluster.mLocalAlluxioCluster.startMasters();
+        // use the newly created/started file system master
+        fsm = mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(FileSystemMaster.class);
+      }
+      if (!mCluster.get().isStartedWorkers()) {
+        // Start the new workers
+        mCluster.get().startWorkers();
+      }
+      fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
+      for (FileInfo fileInfo : fsm
+          .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
+        fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
+            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+      }
+    }
+  }
+
   /**
    * An annotation for test methods that can be used to override any of the defaults set at
    * construction time.
@@ -240,5 +330,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public @interface Config {
     String[] confParams() default {};
     boolean startCluster() default true;
+  }
+
+  /**
+   * Class-level annotations that can override the configuration for static class rules.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface ServerConfig {
+    String[] confParams() default {};
   }
 }

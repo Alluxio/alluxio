@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.job.plan.PlanConfig;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -21,18 +23,25 @@ import javax.annotation.concurrent.ThreadSafe;
  * Job configuration for the sleep job.
  */
 @ThreadSafe
-public class SleepJobConfig implements JobConfig {
+public class SleepJobConfig implements PlanConfig {
   private static final long serialVersionUID = 43139051130518451L;
 
   public static final String NAME = "Sleep";
 
   private final long mTimeMs;
+  private final int mTasksPerWorker;
 
   /**
    * @param timeMs the time to sleep for in milliseconds
    */
-  public SleepJobConfig(@JsonProperty("timeMs") long timeMs) {
+  public SleepJobConfig(long timeMs) {
+    this(timeMs, 1);
+  }
+
+  public SleepJobConfig(@JsonProperty("timeMs") long timeMs,
+                        @JsonProperty("tasksPerWorker") int tasksPerWorker) {
     mTimeMs = timeMs;
+    mTasksPerWorker = tasksPerWorker;
   }
 
   /**
@@ -40,6 +49,13 @@ public class SleepJobConfig implements JobConfig {
    */
   public long getTimeMs() {
     return mTimeMs;
+  }
+
+  /**
+   * @return
+   */
+  public int getTasksPerWorker() {
+    return mTasksPerWorker;
   }
 
   @Override

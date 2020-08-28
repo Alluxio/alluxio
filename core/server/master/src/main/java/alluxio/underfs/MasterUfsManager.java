@@ -12,18 +12,21 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,6 +59,13 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
     mState = new State();
     mUfsRoots = new HashSet<>();
     mIdToRoot = new HashMap<>();
+  }
+
+  @Override
+  protected void connectUfs(UnderFileSystem fs) throws IOException {
+    fs.connectFromMaster(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            ServerConfiguration.global()));
   }
 
   @Override

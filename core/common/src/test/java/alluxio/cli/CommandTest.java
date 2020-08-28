@@ -13,10 +13,12 @@ package alluxio.cli;
 
 import static alluxio.exception.ExceptionMessage.INVALID_ARGS_NUM;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
-import org.junit.Assert;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -66,7 +68,7 @@ public final class CommandTest {
   public void expectedNumArgs() throws Exception {
     TestCommand cmd = new TestCommand();
     CommandLine commandLine = cmd.parseAndValidateArgs("arg1");
-    Assert.assertEquals(1, commandLine.getArgs().length);
+    assertEquals(1, commandLine.getArgs().length);
   }
 
   @Test

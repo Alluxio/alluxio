@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception representing an internal error. This means some invariant expected by the underlying
  * system has been broken. If you see one of these errors, something is very broken.
@@ -23,14 +25,14 @@ public class InternalException extends AlluxioStatusException {
    * @param message the exception message
    */
   public InternalException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public InternalException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -38,6 +40,6 @@ public class InternalException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public InternalException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

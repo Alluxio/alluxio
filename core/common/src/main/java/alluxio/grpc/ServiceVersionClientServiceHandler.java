@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import alluxio.Constants;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -31,17 +32,24 @@ public final class ServiceVersionClientServiceHandler
   /** Set of services that are going to be recognized by this versioning service. */
   private Set<ServiceType> mServices;
 
+  /**
+   * Creates service version handler that allows given services.
+   * @param services services to allow
+   */
   public ServiceVersionClientServiceHandler(Set<ServiceType> services) {
     mServices = services;
   }
 
   @Override
+  @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   public void getServiceVersion(GetServiceVersionPRequest request,
       StreamObserver<GetServiceVersionPResponse> responseObserver) {
 
     ServiceType serviceType = request.getServiceType();
     if (serviceType != ServiceType.UNKNOWN_SERVICE && !mServices.contains(serviceType)) {
-      responseObserver.onError(Status.NOT_FOUND.asException());
+      responseObserver.onError(Status.NOT_FOUND
+          .withDescription(String.format("Service %s is not found.", serviceType.name()))
+          .asException());
       return;
     }
 
@@ -79,6 +87,12 @@ public final class ServiceVersionClientServiceHandler
         break;
       case JOB_MASTER_WORKER_SERVICE:
         serviceVersion = Constants.JOB_MASTER_WORKER_SERVICE_VERSION;
+        break;
+      case JOURNAL_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.JOURNAL_MASTER_CLIENT_SERVICE_VERSION;
+        break;
+      case TABLE_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.TABLE_MASTER_CLIENT_SERVICE_VERSION;
         break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;

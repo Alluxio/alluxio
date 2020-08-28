@@ -12,23 +12,28 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobGrpcClientUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.migrate.MigrateConfig;
+import alluxio.job.plan.migrate.MigrateConfig;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Moves a file or directory specified by args.
  */
 @ThreadSafe
+@PublicApi
 public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   /**
@@ -56,11 +61,13 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     if (mFileSystem.exists(dstPath)) {
       throw new RuntimeException(dstPath + " already exists");
     }
-    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+    Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();
     try {
-      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
-          true), 3, mFsContext.getConf());
+      AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
+      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
+          conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
+          true), 1, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

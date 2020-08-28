@@ -1,0 +1,129 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Metrics Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Worker Gauges
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th
+            scope="row"
+          >
+            Worker Capacity
+          </th>
+          <td>
+            <Progress
+              className="h-50 mt-1"
+              max={100}
+              multi={true}
+              tag="div"
+              value={0}
+            >
+              <Progress
+                bar={true}
+                color="dark"
+                max={100}
+                tag="div"
+                value="0"
+              >
+                0
+                % Free
+              </Progress>
+              <Progress
+                bar={true}
+                color="secondary"
+                max={100}
+                tag="div"
+                value="0"
+              >
+                0
+                % Used
+              </Progress>
+            </Progress>
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Logical Operations
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Blocks Accessed
+          </th>
+          <td>
+            0
+          </td>
+          <th>
+            Blocks Cached
+          </th>
+          <td>
+            0
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Blocks Canceled
+          </th>
+          <td>
+            0
+          </td>
+          <th>
+            Blocks Deleted
+          </th>
+          <td>
+            0
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Blocks Evicted
+          </th>
+          <td>
+            0
+          </td>
+          <th>
+            Blocks Promoted
+          </th>
+          <td>
+            0
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Bytes Read Remotely
+          </th>
+          <td>
+            0
+          </td>
+          <th>
+            Bytes Written Remotely
+          </th>
+          <td>
+            0
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+</Fragment>
+`;

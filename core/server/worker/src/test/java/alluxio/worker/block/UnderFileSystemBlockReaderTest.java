@@ -28,6 +28,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -86,7 +87,8 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsManager = mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
     UfsClient ufsClient = new UfsClient(
-        () -> UnderFileSystem.Factory.create(testFilePath, ServerConfiguration.global()),
+        () -> UnderFileSystem.Factory.create(testFilePath.toString(),
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
         new AlluxioURI(testFilePath));
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);
 
@@ -99,7 +101,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   private void checkTempBlock(long start, long length) throws Exception {
     Assert.assertNotNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
-    mAlluxioBlockStore.commitBlock(SESSION_ID, BLOCK_ID);
+    mAlluxioBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     long lockId = mAlluxioBlockStore.lockBlock(SESSION_ID, BLOCK_ID);
     BlockReader reader = mAlluxioBlockStore.getBlockReader(SESSION_ID, BLOCK_ID, lockId);
     Assert.assertEquals(length, reader.getLength());
@@ -110,8 +112,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlock() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
@@ -120,8 +122,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readPartialBlock() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE - 1);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 1, buffer));
     mReader.close();
@@ -131,8 +133,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void offset() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
@@ -143,8 +145,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readOverlap() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 2, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 2, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
     buffer = mReader.read(0, TEST_BLOCK_SIZE - 2);
@@ -160,8 +162,8 @@ public final class UnderFileSystemBlockReaderTest {
   public void readFullBlockNoCache() throws Exception {
     mUnderFileSystemBlockMeta = new UnderFileSystemBlockMeta(SESSION_ID, BLOCK_ID,
         mOpenUfsBlockOptions.toBuilder().setNoCache(true).build());
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     // read should succeed even if error is thrown when caching
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
@@ -175,7 +177,7 @@ public final class UnderFileSystemBlockReaderTest {
     doThrow(new WorkerOutOfSpaceException("Ignored"))
         .when(errorThrowingBlockStore)
         .requestSpace(anyLong(), anyLong(), anyLong());
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0,
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         errorThrowingBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
@@ -187,9 +189,8 @@ public final class UnderFileSystemBlockReaderTest {
   public void readFullBlockRequestCreateBlockError() throws Exception {
     BlockStore errorThrowingBlockStore = spy(mAlluxioBlockStore);
     doThrow(new WorkerOutOfSpaceException("Ignored")).when(errorThrowingBlockStore)
-        .createBlock(anyLong(), anyLong(), any(BlockStoreLocation.class),
-            anyLong());
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0,
+        .createBlock(anyLong(), anyLong(), any(AllocateOptions.class));
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         errorThrowingBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
@@ -199,8 +200,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void transferFullBlock() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuf buf =
         PooledByteBufAllocator.DEFAULT.buffer((int) TEST_BLOCK_SIZE * 2, (int) TEST_BLOCK_SIZE * 2);
     try {
@@ -217,8 +218,8 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void transferPartialBlock() throws Exception {
-    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, mAlluxioBlockStore,
-        mUfsManager, mUfsInstreamManager);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
     ByteBuf buf =
         PooledByteBufAllocator.DEFAULT.buffer((int) TEST_BLOCK_SIZE / 2, (int) TEST_BLOCK_SIZE / 2);
     try {

@@ -14,7 +14,7 @@ package alluxio.underfs.oss;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSS;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
@@ -53,7 +53,7 @@ public final class OSSOutputStream extends OutputStream {
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
   /** The oss client for OSS operations. */
-  private final OSSClient mOssClient;
+  private final OSS mOssClient;
 
   /** The OutputStream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
@@ -71,7 +71,7 @@ public final class OSSOutputStream extends OutputStream {
    * @param client the client for OSS
    * @param tmpDirs a list of temporary directories
    */
-  public OSSOutputStream(String bucketName, String key, OSSClient client, List<String> tmpDirs)
+  public OSSOutputStream(String bucketName, String key, OSS client, List<String> tmpDirs)
       throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
@@ -158,9 +158,14 @@ public final class OSSOutputStream extends OutputStream {
       }
       mOssClient.putObject(mBucketName, mKey, in, objMeta);
     } catch (ServiceException e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
+      LOG.error("Failed to upload {}.", mKey);
       throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the OSS client completed the
+      // upload or if the upload failed.
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     }
-    mFile.delete();
   }
 }

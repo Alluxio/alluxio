@@ -15,6 +15,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journalv0.JournalInputStream;
 import alluxio.master.journalv0.JournalReader;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -54,7 +55,8 @@ public class UfsJournalReader implements JournalReader {
    */
   UfsJournalReader(UfsJournal journal) {
     mJournal = Preconditions.checkNotNull(journal, "journal");
-    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation(), ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation().toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     mCheckpoint = mJournal.getCheckpoint();
   }
 

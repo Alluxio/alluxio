@@ -2,7 +2,7 @@
 layout: global
 title: Running Deep Learning Frameworks on Alluxio
 nickname: Deep Learning Frameworks
-group: Data Applications
+group: Compute Integrations
 priority: 5
 ---
 
@@ -44,7 +44,7 @@ network I/O will increase costs and increase the time to process the data.
 While there are several data management related issues with deep learning, Alluxio can help with
 the challenge of accessing data. Alluxio in its simplest form is a virtual file system which
 transparently connects to existing storage systems and presents them as a single system to users.
-Using Alluxio's [unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}),
+Using Alluxio's [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}),
 many storage technologies can be mounted into Alluxio, including cloud storage like S3, Azure, and
 GCS. Because Alluxio can already integrate with storage systems, deep learning frameworks only need
 to interact with Alluxio to be able to access data from any connected storage. This opens the door
@@ -61,7 +61,7 @@ storage can be accessed like a local file or directory.
 ![Fuse]({{ '/img/fuse.png' | relativize_url }})
 
 Alluxio also provides
-[local caching]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) of frequently
+[local caching]({{ '/en/core-services/Caching.html' | relativize_url }}) of frequently
 used data. This is particularly useful
 when the data is remote from the computation. Since Alluxio can cache the data locally,
 network I/O is not incurred when accessing the data,
@@ -71,7 +71,7 @@ so deep learning training can be more cost effective and take less time.
 
 We use Tensorflow as an example deep learning framework in this page to show how Alluxio can help
 data access and management. We run Tensorflow benchmarks on Alluxio Fuse as described in
-[Alluxio Tensorflow](({{ '/en/compute/Tensorflow.html' | relativize_url }})) docs.
+[Alluxio Tensorflow]({{ '/en/compute/Tensorflow.html' | relativize_url }}) docs.
 
 After mounting the under storage once, data in various under storages becomes immediately
 available through Alluxio and can be transparently accessed to the benchmark without any

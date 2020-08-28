@@ -13,7 +13,6 @@ package alluxio.underfs.swift;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -41,13 +40,12 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public SwiftUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkSwiftCredentials(conf)) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
+        return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -74,12 +72,8 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       return true;
     }
 
-    // API or Password Key is required
-    PropertyKey apiOrPasswordKey = conf.isSet(PropertyKey.SWIFT_API_KEY)
-        ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
-
     // Check if required credentials exist
-    return conf.isSet(apiOrPasswordKey)
+    return conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)
         && conf.isSet(PropertyKey.SWIFT_TENANT_KEY)
         && conf.isSet(PropertyKey.SWIFT_AUTH_URL_KEY)
         && conf.isSet(PropertyKey.SWIFT_USER_KEY);

@@ -15,7 +15,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockMetadataManagerView;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 
@@ -45,14 +45,14 @@ public interface Evictor {
     /**
      * Factory for {@link Evictor}.
      *
-     * @param view {@link BlockMetadataManagerView} to pass to {@link Evictor}
+     * @param view {@link BlockMetadataEvictorView} to pass to {@link Evictor}
      * @param allocator an allocation policy
      * @return the generated {@link Evictor}
      */
-    public static Evictor create(BlockMetadataManagerView view, Allocator allocator) {
+    public static Evictor create(BlockMetadataEvictorView view, Allocator allocator) {
       return CommonUtils.createNewClassInstance(
           ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
-          new Class[] {BlockMetadataManagerView.class, Allocator.class},
+          new Class[] {BlockMetadataEvictorView.class, Allocator.class},
           new Object[] {view, allocator});
     }
   }
@@ -67,7 +67,7 @@ public interface Evictor {
    *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view);
+      BlockMetadataEvictorView view);
 
   /**
    * Frees space in the given block store location and with the given view.
@@ -97,5 +97,5 @@ public interface Evictor {
    *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view, Mode mode);
+      BlockMetadataEvictorView view, Mode mode);
 }

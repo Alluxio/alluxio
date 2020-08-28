@@ -62,14 +62,24 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
             return false;
           }
         }
+
+        @Override
+        public boolean deleteExistingFile(String path) throws IOException {
+          if (ThreadLocalRandom.current().nextBoolean()) {
+            return mUfs.deleteExistingFile(path);
+          } else {
+            return false;
+          }
+        }
       };
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new DelegatingUnderFileSystemFactory(UFS));
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-          DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+              DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH).build();
   private FileSystem mFs;
 
   @Before

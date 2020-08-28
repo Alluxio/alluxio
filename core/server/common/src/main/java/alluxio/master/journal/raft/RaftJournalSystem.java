@@ -13,34 +13,53 @@ package alluxio.master.journal.raft;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerInfo;
+import alluxio.grpc.QuorumServerState;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.master.transport.GrpcMessagingProxy;
+import alluxio.master.transport.GrpcMessagingTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.netty.NettyTransport;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
+import io.atomix.copycat.client.ServerSelectionStrategies;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.StateMachine;
+import io.atomix.copycat.server.cluster.Member;
+import io.atomix.copycat.server.state.ServerMember;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -49,8 +68,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -109,15 +126,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RaftJournalSystem extends AbstractJournalSystem {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
+  // Election timeout to use in a single master cluster.
+  private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
+
+  private static final String RAFTCLIENT_CLIENT_TYPE = "RaftClient";
+  private static final String RAFTSERVER_CLIENT_TYPE = "RaftServer";
+
   /// Lifecycle: constant from when the journal system is constructed.
 
   private final RaftJournalConfiguration mConf;
-  /**
-   * Whenever in-memory state may be inconsistent with the state represented by all flushed journal
-   * entries, a read lock on this lock must be held.
-   * We take a write lock when we want to perform a snapshot.
-   */
-  private final ReadWriteLock mJournalStateLock;
   /** Controls whether Copycat will attempt to take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
   /**
@@ -126,11 +143,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * is reset during failover, this object must be re-initialized with the new server.
    */
   private final RaftPrimarySelector mPrimarySelector;
-  /**
-   * Client used for submitting empty journal entries during snapshot. This client is created once
-   * and used for the lifetime of the journal system.
-   */
-  private final CompletableFuture<CopycatClient> mSnapshotClient;
 
   /// Lifecycle: constant from when the journal system is started.
 
@@ -167,19 +179,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @param conf raft journal configuration
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
-    Preconditions.checkState(conf.getMaxLogSize() <= Integer.MAX_VALUE,
-        "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-        conf.getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(conf.getHeartbeatIntervalMs() < conf.getElectionTimeoutMs() / 2,
-        "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
-        conf.getHeartbeatIntervalMs(), conf.getElectionTimeoutMs());
-    mConf = conf;
+    mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
-    mJournalStateLock = new ReentrantReadWriteLock(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    mSnapshotClient = createClient().connect();
   }
 
   /**
@@ -190,8 +194,24 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public static RaftJournalSystem create(RaftJournalConfiguration conf) {
     RaftJournalSystem system = new RaftJournalSystem(conf);
-    system.initServer();
     return system;
+  }
+
+  private RaftJournalConfiguration processRaftConfiguration(RaftJournalConfiguration conf) {
+    // Override election/heartbeat timeouts for single master cluster
+    // if election timeout is not set explicitly.
+    // This is to speed up single master cluster boot-up.
+    if (conf.getClusterAddresses().size() == 1
+        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+      LOG.debug("Overriding election timeout to {}ms for single master cluster.",
+          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      // Use the highest heartbeat internal relative to election timeout.
+      conf.setHeartbeatIntervalMs((SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1);
+    }
+    // Validate the conf.
+    conf.validate();
+    return conf;
   }
 
   private synchronized void initServer() {
@@ -209,59 +229,33 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals);
+    mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
+    // Read external proxy configuration.
+    GrpcMessagingProxy serverProxy = new GrpcMessagingProxy();
+    if (mConf.getProxyAddress() != null) {
+      serverProxy.addProxy(getLocalAddress(mConf), new Address(mConf.getProxyAddress()));
+    }
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
-        .withTransport(new NettyTransport())
+        .withTransport(new GrpcMessagingTransport(
+            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE)
+                .withServerProxy(serverProxy))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
         // TODO(andrew): Ensure that this supplier will really only be called once.
         .withStateMachine(new OnceSupplier<>(mStateMachine))
+        .withAppenderBatchSize((int) ServerConfiguration
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE))
         .build();
     mPrimarySelector.init(mServer);
   }
 
-  private CopycatClient createClient() {
-    return CopycatClient.builder(getClusterAddresses(mConf))
-        .withRecoveryStrategy(RecoveryStrategies.RECOVER)
-        .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
-            Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
-        .build();
-  }
-
-  private static List<Address> getClusterAddresses(RaftJournalConfiguration conf) {
-    return conf.getClusterAddresses().stream()
-        .map(addr -> new Address(addr.getHostName(), addr.getPort()))
-        .collect(Collectors.toList());
-  }
-
-  private static Address getLocalAddress(RaftJournalConfiguration conf) {
-    return new Address(conf.getLocalAddress().getHostName(), conf.getLocalAddress().getPort());
-  }
-
-  /**
-   * @return the serializer for commands in the {@link StateMachine}
-   */
-  public static Serializer createSerializer() {
-    return new Serializer().register(JournalEntryCommand.class, 1);
-  }
-
-  @Override
-  public synchronized Journal createJournal(Master master) {
-    RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter,
-        mJournalStateLock.readLock());
-    mJournals.put(master.getName(), journal);
-    return journal;
-  }
-
-  @Override
-  public synchronized void gainPrimacy() {
-    mSnapshotAllowed.set(false);
+  private CopycatClient createAndConnectClient() {
     CopycatClient client = createClient();
     try {
       client.connect().get();
@@ -273,6 +267,54 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
           Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
       throw new RuntimeException(errorMessage, e.getCause());
     }
+    return client;
+  }
+
+  private CopycatClient createClient() {
+    return CopycatClient.builder(getClusterAddresses(mConf))
+        .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+        /*
+         * We use raft clients for journal writes and writes are only allowed on leader. Forcing
+         * client to connect to leader will improve performance by eliminating extra hops and will
+         * make transport level traces less confusing for investigation.
+         */
+        .withServerSelectionStrategy(ServerSelectionStrategies.LEADER)
+        .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
+            Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
+        .withTransport(new GrpcMessagingTransport(
+            ServerConfiguration.global(), ServerUserState.global(), RAFTCLIENT_CLIENT_TYPE))
+        .withSerializer(createSerializer())
+        .build();
+  }
+
+  private static List<Address> getClusterAddresses(RaftJournalConfiguration conf) {
+    return conf.getClusterAddresses().stream()
+        .map(addr -> new Address(addr))
+        .collect(Collectors.toList());
+  }
+
+  private static Address getLocalAddress(RaftJournalConfiguration conf) {
+    return new Address(conf.getLocalAddress());
+  }
+
+  /**
+   * @return the serializer for commands in the {@link StateMachine}
+   */
+  public static Serializer createSerializer() {
+    return new Serializer().register(JournalEntryCommand.class, 1);
+  }
+
+  @Override
+  public synchronized Journal createJournal(Master master) {
+    RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter);
+    mJournals.put(master.getName(), journal);
+    return journal;
+  }
+
+  @Override
+  public synchronized void gainPrimacy() {
+    mSnapshotAllowed.set(false);
+    CopycatClient client = createAndConnectClient();
     try {
       catchUp(mStateMachine, client);
     } catch (TimeoutException e) {
@@ -285,12 +327,19 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
-    mAsyncJournalWriter.set(new AsyncJournalWriter(mRaftJournalWriter));
+    mAsyncJournalWriter
+        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
   }
 
   @Override
   public synchronized void losePrimacy() {
+    if (!mServer.isRunning()) {
+      // Avoid duplicate shut down copycat server
+      return;
+    }
     try {
+      // Close async writer first to flush pending entries.
+      mAsyncJournalWriter.get().close();
       mRaftJournalWriter.close();
     } catch (IOException e) {
       LOG.warn("Error closing journal writer: {}", e.toString());
@@ -325,6 +374,110 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     LOG.info("Raft server successfully restarted");
+  }
+
+  @Override
+  public synchronized Map<String, Long> getCurrentSequenceNumbers() {
+    long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      // Return the same global sequence for each master.
+      sequenceMap.put(master, currentGlobalState);
+    }
+    return sequenceMap;
+  }
+
+  @Override
+  public synchronized void suspend() throws IOException {
+    // Suspend copycat snapshots.
+    mSnapshotAllowed.set(false);
+    mStateMachine.suspend();
+  }
+
+  @Override
+  public synchronized void resume() throws IOException {
+    mStateMachine.resume();
+    // Resume copycat snapshots.
+    mSnapshotAllowed.set(true);
+  }
+
+  @Override
+  public synchronized CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
+    // Given sequences should be the same for each master for embedded journal.
+    List<Long> distinctSequences =
+        journalSequenceNumbers.values().stream().distinct().collect(Collectors.toList());
+    Preconditions.checkState(distinctSequences.size() == 1, "incorrect journal sequences");
+    return mStateMachine.catchup(distinctSequences.get(0));
+  }
+
+  @Override
+  public synchronized void checkpoint() throws IOException {
+    try {
+      long start = System.currentTimeMillis();
+      mSnapshotAllowed.set(true);
+      CopycatClient client = createAndConnectClient();
+      LOG.info("Submitting empty journal entry to trigger snapshot");
+      // New snapshot requires new segments (segment size is controlled by
+      // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
+      // If snapshot requirements are fulfilled, a snapshot will be triggered
+      // after sending an empty journal entry to Copycat
+      CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
+          JournalEntry.getDefaultInstance()));
+      try {
+        future.get(1, TimeUnit.MINUTES);
+      } catch (TimeoutException | ExecutionException e) {
+        LOG.warn("Exception submitting entry to trigger snapshot: {}", e.toString());
+        throw new IOException("Exception submitting entry to trigger snapshot", e);
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
+        Thread.currentThread().interrupt();
+        throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
+      }
+      waitForSnapshotStart(mStateMachine, start);
+      waitForSnapshotting(mStateMachine);
+    } finally {
+      mSnapshotAllowed.set(false);
+    }
+  }
+
+  /**
+   * Waits for snapshotting to start.
+   *
+   * @param stateMachine the journal state machine
+   * @param start the start time to check
+   */
+  private void waitForSnapshotStart(JournalStateMachine stateMachine,
+      long start) throws IOException {
+    try {
+      CommonUtils.waitFor("snapshotting to start", () ->
+              stateMachine.getLastSnapshotStartTime() > start,
+          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
+      return;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Interrupted when waiting for snapshotting to start", e);
+    } catch (TimeoutException e) {
+      throw new IOException("A recent checkpoint already exists, not creating a new one");
+    }
+  }
+
+  /**
+   * Waits for snapshotting to finish.
+   *
+   * @param stateMachine the journal state machine
+   */
+  private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
+    try {
+      CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
+          WaitForOptions.defaults().setTimeoutMs((int) ServerConfiguration.getMs(
+              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
+    } catch (TimeoutException e) {
+      LOG.warn("Timeout waiting for snapshotting to finish", e);
+      throw new DeadlineExceededException("Timeout waiting for snapshotting to finish", e);
+    }
   }
 
   /**
@@ -398,31 +551,90 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
-    LOG.info("Starting Raft journal system");
+    LOG.info("Initializing Raft Journal System");
+    initServer();
+    List<Address> clusterAddresses = getClusterAddresses(mConf);
+    LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
+        clusterAddresses, getLocalAddress(mConf));
     long startTime = System.currentTimeMillis();
     try {
-      mServer.bootstrap(getClusterAddresses(mConf)).get();
+      mServer.bootstrap(clusterAddresses).get();
     } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
+      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
+          .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
-    LOG.info("Started Raft Journal System in {}ms. Cluster addresses: {}. Local address: {}",
-        System.currentTimeMillis() - startTime, getClusterAddresses(mConf), getLocalAddress(mConf));
+    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
   }
 
   @Override
   public synchronized void stopInternal() throws InterruptedException, IOException {
     LOG.info("Shutting down raft journal");
-    mRaftJournalWriter.close();
+    if (mRaftJournalWriter != null) {
+      mRaftJournalWriter.close();
+    }
     try {
-      mServer.shutdown().get(2, TimeUnit.SECONDS);
+      mServer.shutdown().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
     } catch (TimeoutException e) {
       LOG.info("Timed out shutting down raft server");
     }
     LOG.info("Journal shutdown complete");
+  }
+
+  /**
+   * Used to get information of internal RAFT quorum.
+   *
+   * @return list of information for participating servers in RAFT quorum
+   */
+  public synchronized List<QuorumServerInfo> getQuorumServerInfoList() {
+    List<QuorumServerInfo> quorumMemberStateList = new LinkedList<>();
+    for (Member member : mServer.cluster().members()) {
+      NetAddress memberAddress = NetAddress.newBuilder().setHost(member.address().host())
+          .setRpcPort(member.address().port()).build();
+
+      quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
+          .setServerState(QuorumServerState.valueOf(member.status().name())).build());
+    }
+    return quorumMemberStateList;
+  }
+
+  /**
+   * @return {@code true} if this journal system is the leader
+   */
+  @VisibleForTesting
+  public synchronized boolean isLeader() {
+    return mServer != null && mServer.isRunning() && mServer.state() == CopycatServer.State.LEADER;
+  }
+
+  /**
+   * Removes from RAFT quorum, a server with given address.
+   * For server to be removed, it should be in unavailable state in quorum.
+   *
+   * @param serverNetAddress address of the server to remove from the quorum
+   * @throws IOException
+   */
+  public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
+    Address serverAddress = new Address(InetSocketAddress
+        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort()));
+    try {
+      mServer.cluster()
+          .remove(new ServerMember(Member.Type.ACTIVE, serverAddress, serverAddress, Instant.MIN))
+          .get();
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(
+          "Interrupted while waiting for removal of server from raft quorum.");
+    } catch (ExecutionException ee) {
+      Throwable cause = ee.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      } else {
+        throw new IOException(ee.getMessage(), cause);
+      }
+    }
   }
 
   @Override
@@ -437,8 +649,15 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void format() throws IOException {
-    FileUtils.deletePathRecursively(mConf.getPath().getAbsolutePath());
-    mConf.getPath().mkdirs();
+    File journalPath = mConf.getPath();
+    if (journalPath.isDirectory()) {
+      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+    } else {
+      if (journalPath.exists()) {
+        FileUtils.delete(journalPath.getAbsolutePath());
+      }
+      journalPath.mkdirs();
+    }
   }
 
   /**

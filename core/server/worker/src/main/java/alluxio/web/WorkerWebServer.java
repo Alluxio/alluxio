@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -86,18 +86,21 @@ public final class WorkerWebServer extends WebServer {
 
     // STATIC assets
     try {
-      String resourceDirPathString =
-          ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
-      File resourceDir = new File(resourceDirPathString);
-      mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
-      mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
-      mServletContextHandler.setResourceBase(resourceDir.getAbsolutePath());
-      mServletContextHandler.addServlet(DefaultServlet.class, "/");
-      ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
-      // TODO(william): consider a rewrite rule instead of an error handler
-      errorHandler.addErrorPage(404, "/");
-      mServletContextHandler.setErrorHandler(errorHandler);
-    } catch (MalformedURLException e) {
+      // If the Web UI is disabled, disable the resources and servlet together.
+      if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
+        String resourceDirPathString =
+                ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+        File resourceDir = new File(resourceDirPathString);
+        mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
+        mServletContextHandler.setWelcomeFiles(new String[]{"index.html"});
+        mServletContextHandler.setResourceBase(resourceDir.getAbsolutePath());
+        mServletContextHandler.addServlet(DefaultServlet.class, "/");
+        ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
+        // TODO(william): consider a rewrite rule instead of an error handler
+        errorHandler.addErrorPage(404, "/");
+        mServletContextHandler.setErrorHandler(errorHandler);
+      }
+    } catch (IOException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }
   }

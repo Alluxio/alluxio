@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -50,6 +52,7 @@ public final class BlockMetadataManagerTest {
   private static final int[] TIER_ORDINAL = {0, 1};
   private static final String[] TIER_ALIAS = {"MEM", "HDD"};
   private static final String[][] TIER_PATH = {{"/ramdisk"}, {"/disk1", "/disk2"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"HDD", "HDD"}};
   private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000, 5000}};
 
   private BlockMetadataManager mMetaManager;
@@ -68,8 +71,10 @@ public final class BlockMetadataManagerTest {
   @Before
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
     TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
-        TIER_PATH, TIER_CAPACITY_BYTES, null);
+        TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
 
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
   }

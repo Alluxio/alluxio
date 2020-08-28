@@ -11,10 +11,17 @@
 
 package alluxio.client.util;
 
+import alluxio.Constants;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility methods for the client tests.
@@ -44,5 +51,23 @@ public final class ClientTestUtils {
 
   private static void resetContexts(InstancedConfiguration conf) throws IOException {
     conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+  }
+
+  public static BlockWorkerInfo worker(long capacity, String node, String rack) {
+    return worker(capacity, 0, node, rack);
+  }
+
+  public static BlockWorkerInfo worker(long capacity, long used, String node, String rack) {
+    WorkerNetAddress address = new WorkerNetAddress();
+    List<LocalityTier> tiers = new ArrayList<>();
+    if (node != null && !node.isEmpty()) {
+      address.setHost(node);
+      tiers.add(new LocalityTier(Constants.LOCALITY_NODE, node));
+    }
+    if (rack != null && !rack.isEmpty()) {
+      tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
+    }
+    address.setTieredIdentity(new TieredIdentity(tiers));
+    return new BlockWorkerInfo(address, capacity, used);
   }
 }

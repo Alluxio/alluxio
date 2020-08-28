@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Configuration Shallow component Matches snapshot 1`] = `
+<div
+  className="configuration-page"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Alluxio Configuration
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Property
+              </th>
+              <th>
+                Value
+              </th>
+              <th>
+                Source
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+      <div
+        className="col-12"
+      >
+        <h5>
+          Whitelist
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <tbody />
+        </Table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

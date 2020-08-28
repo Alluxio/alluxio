@@ -52,6 +52,21 @@ public final class JournalEntryAssociation {
         || entry.hasBlockInfo()) {
       return Constants.BLOCK_MASTER_NAME;
     }
+    if (entry.hasClusterInfo()
+        || entry.hasPathProperties()
+        || entry.hasRemovePathProperties()) {
+      return Constants.META_MASTER_NAME;
+    }
+    if (entry.hasAttachDb()
+        || entry.hasAddTable()
+        || entry.hasRemoveTable()
+        || entry.hasDetachDb()
+        || entry.hasUpdateDatabaseInfo()
+        || entry.hasAddTransformJobInfo()
+        || entry.hasRemoveTransformJobInfo()
+        || entry.hasCompleteTransformTable()) {
+      return Constants.TABLE_MASTER_NAME;
+    }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 

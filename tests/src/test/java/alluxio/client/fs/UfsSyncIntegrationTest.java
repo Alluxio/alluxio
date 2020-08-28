@@ -16,13 +16,14 @@ import static org.junit.Assert.assertFalse;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -67,14 +68,19 @@ import java.util.stream.Collectors;
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
+  private static final long LARGE_INTERVAL_MS = 1000;
   private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
   private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
   private static final FileSystemMasterCommonPOptions PSYNC_INTERVAL =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(INTERVAL_MS).build();
+  private static final FileSystemMasterCommonPOptions PSYNC_LARGE_INTERVAL =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(LARGE_INTERVAL_MS).build();
+
   private static final String ROOT_DIR = "/";
   private static final String EXISTING_DIR = "/dir_exist";
+  private static final String NEW_FILE_UNDER_DIR = "/dir_exist/file_new";
   private static final String EXISTING_FILE = "/file_exist";
   private static final String NEW_DIR = "/dir_new";
   private static final String NEW_FILE = "/file_new";
@@ -543,6 +549,39 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
   }
 
+  @Test
+  public void clusterRestartSync() throws Exception {
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(PSYNC_LARGE_INTERVAL).build();
+
+    List<URIStatus> statusList =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusList);
+    Assert.assertEquals(0, statusList.size());
+    mLocalAlluxioClusterResource.get().stopMasters();
+    mLocalAlluxioClusterResource.get().startMasters();
+
+    List<URIStatus> statusListAfterRestart =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAfterRestart);
+    Assert.assertEquals(0, statusListAfterRestart.size());
+
+    writeUfsFile(ufsPath(NEW_FILE_UNDER_DIR), 1);
+
+    List<URIStatus> statusListAgain =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAgain);
+    Assert.assertEquals(0, statusListAgain.size());
+
+    Thread.sleep(LARGE_INTERVAL_MS);
+
+    List<URIStatus> statusListAfterSleeping =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAfterSleeping);
+    Assert.assertEquals(1, statusListAfterSleeping.size());
+  }
+
   @LocalAlluxioClusterResource.Config(
       confParams = {
           PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
@@ -603,6 +642,73 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // deleted UFS file should not exist.
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
+  }
+
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
+      })
+  @Test
+  public void recursiveSyncCacheDescendants() throws Exception {
+    // make nested directories/files in UFS
+    new File(ufsPath("/dir1")).mkdirs();
+    new File(ufsPath("/dir1/dir2")).mkdirs();
+    new File(ufsPath("/dir1/dir2/dir3")).mkdirs();
+    String fileA = "/dir1/dir2/dir3/fileA";
+    String fileB = "/dir1/dir2/dir3/fileB";
+    String fileNew = "/dir1/dir2/dir3/fileNew";
+    writeUfsFile(ufsPath(fileA), 1);
+    writeUfsFile(ufsPath(fileB), 1);
+
+    FileSystemMasterCommonPOptions longinterval =
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(Constants.HOUR_MS).build();
+
+    // Should not exist, since no loading or syncing
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
+        .setCommonOptions(PSYNC_NEVER).build()));
+
+    try {
+      mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
+          ListStatusPOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build());
+      Assert.fail("paths are not expected to exist without sync");
+    } catch (FileDoesNotExistException e) {
+      // expected, continue
+    }
+
+    // recursively sync the top dir
+    List<URIStatus> paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
+        ListStatusPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).setRecursive(true)
+            .build());
+    Assert.assertEquals(4, paths.size());
+
+    // write a new UFS file
+    writeUfsFile(ufsPath(fileNew), 1);
+    // the new UFS file should not exist, since the sync interval is 1 hour, and an ancestor
+    // already synced recently.
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileNew)), ExistsPOptions.newBuilder()
+        .setCommonOptions(longinterval).build()));
+
+    // newly created file should not exist
+    paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1/dir2/dir3")),
+        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).build());
+    Assert.assertEquals(2, paths.size());
+
+    // create a new UFS dir
+    new File(ufsPath("/dir1/dir2/dirNew")).mkdirs();
+    // newly created dir should not exist, since sync interval is long, and an ancestor is
+    // already synced
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath("/dir1/dir2/dirNew")),
+        ExistsPOptions.newBuilder().setCommonOptions(longinterval).build()));
+    // newly created dir should not exist
+    paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1/dir2")),
+        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).build());
+    Assert.assertEquals(1, paths.size());
+
+    // check the original path, and verify no new files/dirs are picked up from UFS
+    paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/dir1")),
+        ListStatusPOptions.newBuilder().setCommonOptions(longinterval).setRecursive(true)
+            .build());
+    Assert.assertEquals(4, paths.size());
   }
 
   private String ufsPath(String path) {

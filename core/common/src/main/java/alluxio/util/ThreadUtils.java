@@ -77,5 +77,20 @@ public final class ThreadUtils {
     }
   }
 
+  /**
+   * @return a string representation of the current thread
+   */
+  public static String getCurrentThreadIdentifier() {
+    return getThreadIdentifier(Thread.currentThread());
+  }
+
+  /**
+   * @param thread the thread
+   * @return a string representation of the given thread
+   */
+  public static String getThreadIdentifier(Thread thread) {
+    return String.format("%d(%s)", thread.getId(), thread.getName());
+  }
+
   private ThreadUtils() {} // prevent instantiation of utils class
 }

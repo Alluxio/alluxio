@@ -1,0 +1,333 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Metrics Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <div
+    className="col-12"
+  >
+    <div
+      className="row"
+    />
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Total IO Size
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Local Alluxio (Domain Socket) Read
+          </th>
+          <td />
+          <th>
+            Local Alluxio (Domain Socket) Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Local Alluxio (Short-circuit) Read
+          </th>
+          <td />
+          <th>
+            Local Alluxio (Short-circuit) Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Remote Alluxio Read
+          </th>
+          <td />
+          <th>
+            Remote Alluxio Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Under Filesystem Read
+          </th>
+          <td />
+          <th>
+            Under Filesystem Write
+          </th>
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Total IO Throughput (Per Minute)
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Local Alluxio (Domain Socket) Read
+          </th>
+          <td />
+          <th>
+            Local Alluxio (Domain Socket) Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Local Alluxio (Short-circuit) Read
+          </th>
+          <td />
+          <th>
+            Local Alluxio (Short-circuit) Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Remote Alluxio Read
+          </th>
+          <td />
+          <th>
+            Remote Alluxio Write
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Under Filesystem Read
+          </th>
+          <td />
+          <th>
+            Under Filesystem Write
+          </th>
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Mounted Under FileSystem Read
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Under FileSystem
+          </th>
+          <th>
+            Size
+          </th>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Mounted Under FileSystem Write
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Under FileSystem
+          </th>
+          <th>
+            Size
+          </th>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Logical Operations
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Directories Created
+          </th>
+          <td />
+          <th>
+            File Block Infos Got
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            File Infos Got
+          </th>
+          <td />
+          <th>
+            Files Completed
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Files Created
+          </th>
+          <td />
+          <th>
+            Files Freed
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Files Persisted
+          </th>
+          <td />
+          <th>
+            Files Pinned
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            New Blocks Got
+          </th>
+          <td />
+          <th>
+            Paths Deleted
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Paths Mounted
+          </th>
+          <td />
+          <th>
+            Paths Renamed
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Paths Unmounted
+          </th>
+          <td />
+          <th />
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      RPC Invocations
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            CompleteFile Operations
+          </th>
+          <td />
+          <th>
+            CreateDirectory Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            CreateFile Operations
+          </th>
+          <td />
+          <th>
+            DeletePath Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            FreeFile Operations
+          </th>
+          <td />
+          <th>
+            GetFileBlockInfo Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            GetFileInfo Operations
+          </th>
+          <td />
+          <th>
+            GetNewBlock Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Mount Operations
+          </th>
+          <td />
+          <th>
+            RenamePath Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            SetAcl Operations
+          </th>
+          <td />
+          <th>
+            SetAttribute Operations
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th>
+            Unmount Operations
+          </th>
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+</Fragment>
+`;

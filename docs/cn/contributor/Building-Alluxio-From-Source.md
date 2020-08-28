@@ -3,7 +3,7 @@ layout: global
 title: 编译Alluxio源代码
 nickname: 编译Alluxio源代码
 group: Contributor Resources
-priority: 1
+priority: 0
 ---
 
 * 内容列表
@@ -13,39 +13,41 @@ priority: 1
 
 该指南介绍如何从头编译Alluxio。
 
-这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)。
+这部分内容的前提条件是你已安装Java JDK 8或以上、Maven 3.3.9或以上。
 
 ### Checkout源码
 
 从Github上获取主分支并编译：
 
-```bash
+```console
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
-您可以编译特定版本的Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}。否则这将编译源码的master分支。
+您可以编译特定版本的Alluxio，否则这将编译源码的master分支。
 
-```bash
-$ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
+```console
+$ git tag
+$ git checkout <TAG_NAME>
 ```
 
 ### 编译
 
 使用Maven编译源码：
 
-```java
+```console
 $ mvn clean install -DskipTests
 ```
 
 为了加速编译过程，你可以运行如下指令跳过不同的检查：
 
-```bash
-$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+```console
+$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip  -Dskip.protoc
 ```
+注意：有`-Dskip.protoc`这个标志，说明不执行protoc，也就不会生成proto相关的源文件。因此，不应该在首次build的时候使用`-Dskip.protoc`。
 
 如果你看到了 `java.lang.OutOfMemoryError: Java heap space`，请设置如下变量增大maven可使用的内存空间：
 
-```bash
+```console
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ```
 
@@ -55,7 +57,7 @@ Maven编译环境将自动获取依赖，编译源码，运行单元测试，并
 
 一旦Alluxio编译完成，你可以运行如下命令：
 
-```bash
+```console
 $ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
@@ -63,7 +65,7 @@ $ ./bin/alluxio-start.sh local
 
 若要确认Alluxio是否在运行，可以访问[http://localhost:19999](http://localhost:19999)，或者查看`alluxio/logs`目录下的日志文件，也可以执行下面的简单程序:
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -71,7 +73,7 @@ $ ./bin/alluxio runTests
 
 你可以通过使用如下命令停止Alluxio：
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -83,7 +85,7 @@ $ ./bin/alluxio-stop.sh local
 ### Hadoop发行版的支持
 要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的`hadoop.version`来运行如下命令：
 
-```bash
+```console
 $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 
@@ -112,17 +114,6 @@ $ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```properties
 -Phadoop-2 -Dhadoop.version=2.3.0-cdh5.1.0
 -Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
-```
-
-#### MapR
-
-对于MapR发行版，其值为
-
-```properties
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1607
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1602
--Phadoop-2 -Dhadoop.version=2.7.0-mapr-1506
--Phadoop-2 -Dhadoop.version=2.3.0-mapr-4.0.0-FCS
 ```
 
 #### Hortonworks

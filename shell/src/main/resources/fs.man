@@ -298,6 +298,11 @@ Unmount the underlying file system path mounted in the Alluxio namespace as "pat
 under "path" are removed from Alluxio, but they still exist in the previously mounted under storage.
 
 .TP
+.BR updateMount
+\fIpath\fR
+Update options for an existing mount point while keeping Alluxio metadata under the path.
+
+.TP
 .BR unpin
 \fIpath\fR
 Unpin the given file to allow Alluxio to evict this file again. If the given path is a directory, it

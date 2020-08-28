@@ -15,13 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -43,6 +41,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * This class forwards all calls to the {@link UnderFileSystem} interface to an internal
@@ -56,8 +55,9 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
+  private final UnderFileSystemConfiguration mConf;
   private final String mPath;
-  private final AlluxioConfiguration mConfiguration;
+  private final String mEscapedPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -69,11 +69,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, AlluxioConfiguration conf) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
     mPath = path;
     mUnderFileSystem = ufs;
-    mConfiguration = conf;
+    mConf = conf;
+    mEscapedPath = MetricsSystem.escape(new AlluxioURI(path));
   }
 
   @Override
@@ -86,8 +87,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
-      public String toString() {
-        return "Cleanup";
+      public String methodName() {
+        return "cleanup";
       }
     });
   }
@@ -102,8 +103,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
-      public String toString() {
-        return "Close";
+      public String methodName() {
+        return "close";
       }
     });
   }
@@ -118,8 +119,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "ConnectFromMaster";
+      }
+
+      @Override
       public String toString() {
-        return String.format("ConnectFromMaster: hostname=%s", hostname);
+        return String.format("hostname=%s", hostname);
       }
     });
   }
@@ -134,8 +140,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "ConnectFromWorker";
+      }
+
+      @Override
       public String toString() {
-        return String.format("ConnectFromWorker: hostname=%s", hostname);
+        return String.format("hostname=%s", hostname);
       }
     });
   }
@@ -149,8 +160,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Create";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Create: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -164,8 +180,54 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Create";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Create: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(final String path) throws IOException {
+    return call(new UfsCallable<OutputStream>() {
+      @Override
+      public OutputStream call() throws IOException {
+        return mUnderFileSystem.createNonexistingFile(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "CreateNonexistingFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(final String path,
+      final CreateOptions options) throws IOException {
+    return call(new UfsCallable<OutputStream>() {
+      @Override
+      public OutputStream call() throws IOException {
+        return mUnderFileSystem.createNonexistingFile(path, options);
+      }
+
+      @Override
+      public String methodName() {
+        return "CreateNonexistingFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
@@ -179,8 +241,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "DeleteDirectory";
+      }
+
+      @Override
       public String toString() {
-        return String.format("DeleteDirectory: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -195,8 +262,54 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "DeleteDirectory";
+      }
+
+      @Override
       public String toString() {
-        return String.format("DeleteDirectory: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingDirectory(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "DeleteExistingDirectory";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(final String path, final DeleteOptions options)
+      throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingDirectory(path, options);
+      }
+
+      @Override
+      public String methodName() {
+        return "DeleteExistingDirectory";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
@@ -210,8 +323,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "DeleteFile";
+      }
+
+      @Override
       public String toString() {
-        return String.format("DeleteFile: path=%s", path);
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean deleteExistingFile(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.deleteExistingFile(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "DeleteExistingFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
@@ -225,8 +363,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Exists";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Exists: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -241,8 +384,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetAcl";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetAcl: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -256,8 +404,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetBlockSizeByte";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetBlockSizeByte: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -271,8 +424,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetDirectoryStatus";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetDirectoryStatus: path=%s", path);
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public UfsDirectoryStatus getExistingDirectoryStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsDirectoryStatus>() {
+      @Override
+      public UfsDirectoryStatus call() throws IOException {
+        return mUnderFileSystem.getExistingDirectoryStatus(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "GetExistingDirectoryStatus";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
@@ -286,8 +464,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetFileLocations";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetFileLocations: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -302,8 +485,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetFileLocations";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetFileLocations: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
@@ -317,8 +505,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetFileStatus";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetFileStatus: path=%s", path);
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public UfsFileStatus getExistingFileStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsFileStatus>() {
+      @Override
+      public UfsFileStatus call() throws IOException {
+        return mUnderFileSystem.getExistingFileStatus(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "GetExistingFileStatus";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
@@ -333,8 +546,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         }
 
         @Override
+        public String methodName() {
+          return "GetFingerprint";
+        }
+
+        @Override
         public String toString() {
-          return String.format("GetFingerprint: path=%s", path);
+          return String.format("path=%s", path);
         }
       });
     } catch (IOException e) {
@@ -357,8 +575,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetSpace";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetSpace: path=%s, type=%s", path, type);
+        return String.format("path=%s, type=%s", path, type);
       }
     });
   }
@@ -372,8 +595,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "GetStatus";
+      }
+
+      @Override
       public String toString() {
-        return String.format("GetStatus: path=%s", path);
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
+      @Override
+      public UfsStatus call() throws IOException {
+        return mUnderFileSystem.getExistingStatus(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "GetExistingStatus";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
@@ -392,8 +640,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "IsDirectory";
+      }
+
+      @Override
       public String toString() {
-        return String.format("IsDirectory: path=%s", path);
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public boolean isExistingDirectory(final String path) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.isExistingDirectory(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "IsExistingDirectory";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
@@ -407,8 +680,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "IsFile";
+      }
+
+      @Override
       public String toString() {
-        return String.format("IsFile: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -432,8 +710,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "ListStatus";
+      }
+
+      @Override
       public String toString() {
-        return String.format("ListStatus: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -448,12 +731,18 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "ListStatus";
+      }
+
+      @Override
       public String toString() {
-        return String.format("ListStatus: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
 
+  @Nullable
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
     if (statuses == null) {
@@ -490,8 +779,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Mkdirs";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Mkdirs: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -505,8 +799,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Mkdirs";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Mkdirs: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
@@ -520,8 +819,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Open";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Open: path=%s", path);
+        return String.format("path=%s", path);
       }
     });
   }
@@ -535,8 +839,54 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "Open";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Open: path=%s, options=%s", path, options);
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
+  public InputStream openExistingFile(final String path) throws IOException {
+    return call(new UfsCallable<InputStream>() {
+      @Override
+      public InputStream call() throws IOException {
+        return mUnderFileSystem.openExistingFile(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "OpenExistingFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public InputStream openExistingFile(final String path, final OpenOptions options)
+      throws IOException {
+    return call(new UfsCallable<InputStream>() {
+      @Override
+      public InputStream call() throws IOException {
+        return mUnderFileSystem.openExistingFile(path, options);
+      }
+
+      @Override
+      public String methodName() {
+        return "OpenExistingFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }
@@ -550,8 +900,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "RenameDirectory";
+      }
+
+      @Override
       public String toString() {
-        return String.format("RenameDirectory: src=%s, dst=%s", src, dst);
+        return String.format("src=%s, dst=%s", src, dst);
+      }
+    });
+  }
+
+  @Override
+  public boolean renameRenamableDirectory(final String src, final String dst) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.renameRenamableDirectory(src, dst);
+      }
+
+      @Override
+      public String methodName() {
+        return "RenameRenableDirectory";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("src=%s, dst=%s", src, dst);
       }
     });
   }
@@ -565,8 +940,33 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "RenameFile";
+      }
+
+      @Override
       public String toString() {
-        return String.format("RenameFile: src=%s, dst=%s", src, dst);
+        return String.format("src=%s, dst=%s", src, dst);
+      }
+    });
+  }
+
+  @Override
+  public boolean renameRenamableFile(final String src, final String dst) throws IOException {
+    return call(new UfsCallable<Boolean>() {
+      @Override
+      public Boolean call() throws IOException {
+        return mUnderFileSystem.renameRenamableFile(src, dst);
+      }
+
+      @Override
+      public String methodName() {
+        return "RenameRenamableFile";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("src=%s, dst=%s", src, dst);
       }
     });
   }
@@ -586,8 +986,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "SetAclEntries";
+      }
+
+      @Override
       public String toString() {
-        return String.format("SetAcl: path=%s, ACLEntries=%s", path, aclEntries);
+        return String.format("path=%s, ACLEntries=%s", path, aclEntries);
       }
     });
   }
@@ -603,8 +1008,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "SetOwner";
+      }
+
+      @Override
       public String toString() {
-        return String.format("SetOwner: path=%s, owner=%s, group=%s", path, owner, group);
+        return String.format("path=%s, owner=%s, group=%s", path, owner, group);
       }
     });
   }
@@ -619,14 +1029,19 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "SetMode";
+      }
+
+      @Override
       public String toString() {
-        return String.format("SetMode: path=%s, mode=%s", path, mode);
+        return String.format("path=%s, mode=%s", path, mode);
       }
     });
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return mUnderFileSystem.supportsFlush();
   }
 
@@ -644,8 +1059,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "StartActiveSyncPolling";
+      }
+
+      @Override
       public String toString() {
-        return String.format("Start ActiveSync Polling with %d", txId);
+        return String.format("txId=%d", txId);
       }
     });
   }
@@ -659,8 +1079,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
-      public String toString() {
-        return String.format("Stop ActiveSync Polling");
+      public String methodName() {
+        return "StopActiveSyncPolling";
       }
     });
   }
@@ -674,8 +1094,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
-      public String toString() {
-        return String.format("getActiveSyncInfo");
+      public String methodName() {
+        return "GetActiveSyncInfo";
       }
     });
   }
@@ -690,8 +1110,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "StartSync";
+      }
+
+      @Override
       public String toString() {
-        return String.format("startSync %s", uri.toString());
+        return String.format("uri=%s", uri.toString());
       }
     });
   }
@@ -706,8 +1131,13 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       }
 
       @Override
+      public String methodName() {
+        return "StopSync";
+      }
+
+      @Override
       public String toString() {
-        return String.format("stopSync %s", uri.toString());
+        return String.format("uri=%s", uri.toString());
       }
     });
   }
@@ -727,13 +1157,20 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param <T> the return type of the callable
    */
-  public interface UfsCallable<T> {
+  public abstract static class UfsCallable<T> {
     /**
      * Executes the call.
      *
      * @return the result of the call
      */
-    T call() throws IOException;
+    abstract T call() throws IOException;
+
+    abstract String methodName();
+
+    @Override
+    public String toString() {
+      return "";
+    }
   }
 
   /**
@@ -744,15 +1181,15 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    * @return the result of the callable
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
-    LOG.debug("Enter: {}", callable);
-    String methodName = callable.toString().split(NAME_SEPARATOR)[0];
+    String methodName = callable.methodName();
+    LOG.debug("Enter: {}: {}", methodName, callable);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
-      LOG.debug("Exit (OK): {}", callable);
+      LOG.debug("Exit (OK): {}: {}", methodName, callable);
       return ret;
     } catch (IOException e) {
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      LOG.debug("Exit (Error): {}, Error={}", callable, e.getMessage());
+      LOG.debug("Exit (Error): {}: {}, Error={}", methodName, callable, e.getMessage());
       throw e;
     }
   }
@@ -765,18 +1202,18 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
-          && AuthenticatedClientUser.get(mConfiguration) != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mConfiguration).getName(), WorkerMetrics.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+      if (SecurityUtils.isAuthenticationEnabled(mConf)
+          && AuthenticatedClientUser.get(mConf) != null) {
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
+            AuthenticatedClientUser.get(mConf).getName(), MetricInfo.TAG_UFS,
+            mEscapedPath, MetricInfo.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
-    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+    return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_UFS,
+        mEscapedPath, MetricInfo.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
   }
 

@@ -24,4 +24,4 @@ should be included.
 ## Usage
 
 For more details on how to use the generated tar, go
-[to the docs](http://alluxio.org/documentation/Running-Alluxio-Locally.html).
+[to the docs](https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-Locally.html).

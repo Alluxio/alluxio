@@ -13,7 +13,6 @@ package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -38,13 +37,12 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkOSSCredentials(conf)) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
+        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

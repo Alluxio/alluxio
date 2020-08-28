@@ -13,7 +13,6 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -43,6 +42,7 @@ public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
   private BlockLocationPolicy mUfsReadLocationPolicy;
+  private boolean mPositionShort;
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
@@ -66,10 +66,6 @@ public final class InStreamOptions {
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())
-        .setFileReadLocationPolicy(
-            alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(alluxioConf
-            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
         .setMaxUfsReadConcurrency(alluxioConf
             .getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
     // Merge default options with given options.
@@ -77,11 +73,9 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    CreateOptions blockLocationPolicyCreateOptions =
-        CreateOptions.defaults().setLocationPolicyClassName(openOptions.getFileReadLocationPolicy())
-            .setDeterministicHashPolicyNumShards(openOptions.getHashingNumberOfShards());
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions,
-        alluxioConf);
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
+        alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+    mPositionShort = false;
   }
 
   /**
@@ -103,6 +97,15 @@ public final class InStreamOptions {
   }
 
   /**
+   * Sets whether the operation is positioned read to a small buffer.
+   *
+   * @param positionShort whether the operation is positioned read to a small buffer
+   */
+  public void setPositionShort(boolean positionShort) {
+    mPositionShort = positionShort;
+  }
+
+  /**
    * @return the {@link BlockLocationPolicy} associated with the instream
    */
   public BlockLocationPolicy getUfsReadLocationPolicy() {
@@ -114,6 +117,13 @@ public final class InStreamOptions {
    */
   public URIStatus getStatus() {
     return mStatus;
+  }
+
+  /**
+   * @return true, if the operation is using positioned read to a small buffer size
+   */
+  public boolean getPositionShort() {
+    return mPositionShort;
   }
 
   /**
@@ -168,14 +178,16 @@ public final class InStreamOptions {
     }
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mProtoOptions, that.mProtoOptions);
+        && Objects.equal(mProtoOptions, that.mProtoOptions)
+        && Objects.equal(mPositionShort, that.mPositionShort);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(
         mStatus,
-        mProtoOptions
+        mProtoOptions,
+        mPositionShort
     );
   }
 
@@ -184,6 +196,7 @@ public final class InStreamOptions {
     return MoreObjects.toStringHelper(this)
         .add("URIStatus", mStatus)
         .add("OpenFileOptions", mProtoOptions)
+        .add("PositionShort", mPositionShort)
         .toString();
   }
 }

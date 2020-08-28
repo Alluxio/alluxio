@@ -11,11 +11,11 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -43,7 +43,7 @@ public interface JournalReader extends Closeable {
    * @return the input stream for reading the checkpoint, or null if the next element isn't a
    *         checkpoint
    */
-  InputStream getCheckpoint();
+  CheckpointInputStream getCheckpoint();
 
   /**
    * Gets the the sequence number of the next journal log entry to read. This method is valid

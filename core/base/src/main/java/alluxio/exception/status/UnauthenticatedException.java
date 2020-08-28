@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that the request does not have valid authentication credentials for the
  * operation.
@@ -23,14 +25,14 @@ public class UnauthenticatedException extends AlluxioStatusException {
    * @param message the exception message
    */
   public UnauthenticatedException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public UnauthenticatedException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -38,6 +40,6 @@ public class UnauthenticatedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public UnauthenticatedException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 本地Java客户端
-nickname: Native Java
+title: 原生文件系统Java客户端
+nickname: Filesystem API
 group: Client APIs
-priority: 1
+priority: 0
 ---
 
 * 内容列表
@@ -84,25 +84,25 @@ Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件�
 
 使用Alluxio的Java API，用户可以在`CreateFileOptions`中设置该策略以用于写文件，也可在`OpenFileOptions`中设置该策略用于向Alluxio中读文件。
 
-用户可以简单的覆盖默认策略类通过修改[配置文件](Configuration-Settings.html)`alluxio.user.file.write.location.policy.class`内的属性。内置策略包括：
+用户可以简单的覆盖默认策略类通过修改[配置文件]({{ '/cn/operation/Configuration.html' | relativize_url }})`alluxio.user.block.write.location.policy.class`内的属性。内置策略包括：
 
-* **LocalFirstPolicy(alluxio.client.file.policy.LocalFirstPolicy)**
+* **LocalFirstPolicy(alluxio.client.block.policy.LocalFirstPolicy)**
 
     首先返回本地主机，如果本地Worker没有足够的容量容纳一个数据块，那么就会从有效的Worker列表中随机选择一个Worker。这也是默认策略。
 
-* **MostAvailableFirstPolicy (alluxio.client.file.policy.MostAvailableFirstPolicy)**
+* **MostAvailableFirstPolicy (alluxio.client.block.policy.MostAvailableFirstPolicy)**
 
     返回拥有最多可用容量的Worker。
 
-* **RoundRobinPolicy (alluxio.client.file.policy.RoundRobinPolicy)**
+* **RoundRobinPolicy (alluxio.client.block.policy.RoundRobinPolicy)**
 
     以循环的方式选取存储下一个数据块的Worker，如果该Worker没有足够的容量，就将其跳过。
 
-* **SpecificHostPolicy (alluxio.client.file.policy.SpecificHostPolicy)**
+* **SpecificHostPolicy (alluxio.client.block.policy.SpecificHostPolicy)**
 
     返回指定主机名的Worker。该策略不能被设置为默认策略。
 
-Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.file.policyFileWriteLocationPolicy`，开发自己的定位策略来迎合应用需求。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
+Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.block.policy.BlockLocationPolicy`，开发自己的定位策略来迎合应用需求。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
 
 ### 访问Alluxio上一个存在的文件
 
@@ -112,7 +112,7 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储层。目前这种策略偏好只存在于本地worker，不支持远程workers; 远程worker会将数据块写到最高存储层。
 
-默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文件](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
+默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
 
 ### 读数据
 
@@ -134,4 +134,4 @@ in.close();
 ### Javadoc
 
 想要获得更多API信息，请参考
-[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html)
+[Alluxio javadocs](https://docs.alluxio.io/os/javadoc/stable/index.html)

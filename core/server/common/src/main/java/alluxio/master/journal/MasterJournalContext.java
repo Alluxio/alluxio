@@ -11,9 +11,9 @@
 
 package alluxio.master.journal;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;

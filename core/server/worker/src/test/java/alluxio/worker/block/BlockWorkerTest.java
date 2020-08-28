@@ -161,7 +161,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#commitBlock(long, long)} method.
+   * Tests the {@link BlockWorker#commitBlock(long, long, boolean)} method.
    */
   @Test
   public void commitBlock() throws Exception {
@@ -171,6 +171,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long usedBytes = mRandom.nextLong();
     String tierAlias = "MEM";
+    String mediumType = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
@@ -178,18 +179,19 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
+
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
+    when(blockStoreLocation.mediumType()).thenReturn(mediumType);
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    mBlockWorker.commitBlock(sessionId, blockId);
-    verify(mBlockMasterClient).commitBlock(anyLong(), eq(usedBytes), eq(tierAlias), eq(blockId),
-        eq(length));
-    verify(mBlockStore).unlockBlock(lockId);
+    mBlockWorker.commitBlock(sessionId, blockId, mRandom.nextBoolean());
+    verify(mBlockMasterClient).commitBlock(anyLong(), eq(usedBytes), eq(tierAlias), eq(mediumType),
+        eq(blockId), eq(length));
   }
 
   /**
@@ -211,19 +213,20 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId, blockId);
-    mBlockWorker.commitBlock(sessionId, blockId);
+    doThrow(new BlockAlreadyExistsException("")).when(mBlockStore).commitBlock(sessionId, blockId,
+        false);
+    mBlockWorker.commitBlock(sessionId, blockId, mRandom.nextBoolean());
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
+   * Tests the {@link BlockWorker#createBlock(long, long, String, String, long)} method.
    */
   @Test
   public void createBlock() throws Exception {
@@ -235,17 +238,18 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method with a tier other
-   * than MEM.
+   * Tests the {@link BlockWorker#createBlock(long, long, String, String,  long)} method with
+   * a tier other than MEM.
    */
   @Test
   public void createBlockLowerTier() throws Exception {
@@ -257,16 +261,17 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlockRemote(long, long, String, long)} method.
+   * Tests the {@link BlockWorker#createBlockRemote(long, long, String, String, long)} method.
    */
   @Test
   public void createBlockRemote() throws Exception {
@@ -278,12 +283,13 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
   }
 
   /**
@@ -296,7 +302,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockWorker.freeSpace(sessionId, availableBytes, tierAlias);
-    verify(mBlockStore).freeSpace(sessionId, availableBytes, location);
+    verify(mBlockStore).freeSpace(sessionId, availableBytes, availableBytes, location);
   }
 
   /**
@@ -391,7 +397,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**
@@ -411,7 +418,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**

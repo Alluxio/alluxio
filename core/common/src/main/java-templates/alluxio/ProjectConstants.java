@@ -17,8 +17,16 @@ package alluxio;
 public final class ProjectConstants {
   /* Project version, specified in maven property. **/
   public static final String VERSION = "${project.version}";
+  /* The latest git revision of at the time of building**/
+  public static final String REVISION = "${git.revision}";
   /* Hadoop version, specified in maven property. **/
   public static final String HADOOP_VERSION = "${hadoop.version}";
+  /* Whether update check is enabled. **/
+  public static final String UPDATE_CHECK_ENABLED = "${update.check.enabled}";
+  /* Update check host. **/
+  public static final String UPDATE_CHECK_HOST = "${update.check.host}";
+  /* Update check auth string. **/
+  public static final String UPDATE_CHECK_MAGIC_NUMBER = "${update.check.auth.string}";
 
   private ProjectConstants() {} // prevent instantiation
 }

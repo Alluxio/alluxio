@@ -12,10 +12,9 @@
 package alluxio.underfs.bos;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ConfigurationUtils;
 
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.BceServiceException;
@@ -51,8 +50,7 @@ public class BOSUnderFileSystemTest {
     mClient = Mockito.mock(BosClient.class);
 
     mBOSUnderFileSystem = new BOSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(),
-        new InstancedConfiguration(ConfigurationUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
   }
 
   /**

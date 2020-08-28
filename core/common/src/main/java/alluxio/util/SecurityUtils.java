@@ -14,14 +14,19 @@ package alluxio.util;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.UserState;
 
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.Configuration;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 
 /**
  * Utility methods for security.
@@ -63,19 +68,6 @@ public final class SecurityUtils {
 
   /**
    * @param conf Alluxio configuration
-   * @return the owner fetched from the login module, or empty string if the fetch fails or
-   *         authentication is disabled
-   */
-  public static String getOwnerFromLoginModule(AlluxioConfiguration conf) {
-    try {
-      return LoginUser.get(conf).getName();
-    } catch (UnauthenticatedException | UnsupportedOperationException e) {
-      return "";
-    }
-  }
-
-  /**
-   * @param conf Alluxio configuration
    * @return the owner fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
@@ -87,19 +79,6 @@ public final class SecurityUtils {
       }
       return user.getName();
     } catch (IOException e) {
-      return "";
-    }
-  }
-
-  /**
-   * @param conf Alluxio configuration
-   * @return the group fetched from the login module, or empty string if the fetch fails or
-   *         authentication is disabled
-   */
-  public static String getGroupFromLoginModule(AlluxioConfiguration conf) {
-    try {
-      return CommonUtils.getPrimaryGroupName(LoginUser.get(conf).getName(), conf);
-    } catch (IOException | UnsupportedOperationException e) {
       return "";
     }
   }
@@ -118,6 +97,56 @@ public final class SecurityUtils {
       return CommonUtils.getPrimaryGroupName(user.getName(), conf);
     } catch (IOException e) {
       return "";
+    }
+  }
+
+  /**
+   * @param userState the UserState
+   * @return the owner name
+   */
+  public static String getOwner(UserState userState) {
+    try {
+      return userState.getUser().getName();
+    } catch (UnauthenticatedException | UnsupportedOperationException e) {
+      return "";
+    }
+  }
+
+  /**
+   * @param userState the UserState
+   * @param conf the configuration
+   * @return the primary group name for the user
+   */
+  public static String getGroup(UserState userState, AlluxioConfiguration conf) {
+    try {
+      return CommonUtils.getPrimaryGroupName(getOwner(userState), conf);
+    } catch (IOException | UnsupportedOperationException e) {
+      return "";
+    }
+  }
+
+  /**
+   * Creates a new {@link LoginContext} with the correct class loader.
+   *
+   * @param authType the {@link AuthType} to use
+   * @param subject the {@link Subject} to use
+   * @param classLoader the {@link ClassLoader} to use
+   * @param configuration the {@link javax.security.auth.login.Configuration} to use
+   * @param callbackHandler the {@link CallbackHandler}
+   * @return the new {@link LoginContext} instance
+   * @throws LoginException if LoginContext cannot be created
+   */
+  public static LoginContext createLoginContext(AuthType authType, Subject subject,
+      ClassLoader classLoader, Configuration configuration, CallbackHandler callbackHandler)
+      throws LoginException {
+    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(classLoader);
+    try {
+      // Create LoginContext based on authType, corresponding LoginModule should be registered
+      // under the authType name in LoginModuleConfiguration.
+      return new LoginContext(authType.getAuthName(), subject, callbackHandler, configuration);
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
   }
 }

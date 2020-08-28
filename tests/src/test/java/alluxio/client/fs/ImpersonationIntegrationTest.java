@@ -12,14 +12,15 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.security.User;
+import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.testutils.BaseIntegrationTest;
@@ -33,7 +34,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,7 +136,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (IOException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -161,7 +161,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (IOException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -202,7 +202,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (IOException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -227,7 +227,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     try {
       checkCreateFile(createHdfsSubject(), HDFS_USER);
       Assert.fail("Connection succeeded, but impersonation should be denied.");
-    } catch (IOException e) {
+    } catch (UnauthenticatedException e) {
       // expected
     }
   }
@@ -244,7 +244,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
 
   private Subject createHdfsSubject() {
     // Create a subject for an hdfs user
-    User user = new User(HDFS_USER);
+    CurrentUser user = new CurrentUser(HDFS_USER);
     Set<Principal> principals = new HashSet<>();
     principals.add(user);
     return new Subject(false, principals, new HashSet<>(), new HashSet<>());

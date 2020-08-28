@@ -11,6 +11,8 @@
 
 package alluxio.master.backcompat;
 
+import com.google.common.base.Objects;
+
 /**
  * Class for representing a version.
  */
@@ -42,6 +44,26 @@ public final class Version implements Comparable<Version> {
       return mPatch - o.mPatch;
     }
     return 0;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+
+    if (!(o instanceof Version)) {
+      return false;
+    }
+
+    Version other = (Version) o;
+
+    return compareTo(other) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mMajor, mMinor, mPatch);
   }
 
   @Override

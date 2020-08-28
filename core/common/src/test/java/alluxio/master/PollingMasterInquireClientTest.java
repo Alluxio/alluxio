@@ -37,10 +37,11 @@ public class PollingMasterInquireClientTest {
   @Test(timeout = 10000)
   public void pollRejectingDoesntHang() throws Exception {
     int port = mPort.getPort();
-    RejectingServer s = new RejectingServer(port);
+    InetSocketAddress serverAddress = new InetSocketAddress("127.0.0.1", port);
+    RejectingServer s = new RejectingServer(serverAddress);
     s.start();
-    List<InetSocketAddress> addrs = Arrays.asList(
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
+    List<InetSocketAddress> addrs = Arrays.asList(InetSocketAddress
+        .createUnresolved(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
     PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
         () -> new CountingRetry(0), new ConfigurationBuilder().build());
     try {

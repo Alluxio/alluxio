@@ -1,0 +1,47 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+@import '../../constants/scss/themeVariables';
+
+.loadingMessageWrapper {
+  position: fixed;
+  top: 33%;
+  left: 50%;
+
+  .loadingMessage {
+    position: relative;
+    left: -50%;
+    padding: 1em 1.5em;
+    color: $gray-400;
+    background-color: $light;
+    border-radius: 1em;
+
+    img.loadingMessageSpin {
+      height: 100px;
+      width: 100px;
+      -webkit-animation: loadingMessageSpin 2s ease-in-out infinite;
+      -moz-animation: loadingMessageSpin 2s ease-in-out infinite;
+      animation: loadingMessageSpin 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes loadingMessageSpin {
+    0%, 50% {
+      transform: rotateY(0deg);
+    }
+    50% {
+      transform: rotateY(90deg);
+    }
+    100% {
+      transform: rotateY(0deg);
+    }
+  }
+}

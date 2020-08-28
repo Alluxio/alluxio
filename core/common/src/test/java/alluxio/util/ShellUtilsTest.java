@@ -19,8 +19,10 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
-import org.junit.Assert;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
@@ -28,6 +30,9 @@ import java.util.List;
  * Tests the {@link ShellUtils} class.
  */
 public final class ShellUtilsTest {
+
+  @Rule
+  public ExpectedException mExceptionRule = ExpectedException.none();
 
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method.
@@ -39,7 +44,16 @@ public final class ShellUtilsTest {
     String testString = "alluxio";
     // Execute echo for testing command execution.
     String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
-    Assert.assertEquals(testString + "\n", result);
+    assertEquals(testString + "\n", result);
+  }
+
+  @Test
+  public void execCommandFail() throws Exception {
+    String testString = "false";
+    mExceptionRule.expect(ShellUtils.ExitCodeException.class);
+    // run a command that guarantees to fail
+    String result = ShellUtils.execCommand("bash", "-c", " " + testString);
+    assertEquals(testString + "\n", result);
   }
 
   /**
@@ -51,7 +65,7 @@ public final class ShellUtilsTest {
   public void execGetGroupCommand() throws Exception {
     String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
-    Assert.assertTrue(result.contains("root") || result.contains("admin"));
+    assertTrue(result.contains("root") || result.contains("admin"));
   }
 
   @Test
@@ -92,6 +106,15 @@ public final class ShellUtilsTest {
         + "(hfs, local, nodev, nosuid, read-only, noowners, quarantine)");
     assertEquals(Optional.of("/dev/disk4s1"), info.getDeviceSpec());
     assertEquals(Optional.of("/Volumes/Space Path"), info.getMountPoint());
+    assertFalse(info.getFsType().isPresent());
+    assertFalse(info.getOptions().getSize().isPresent());
+  }
+
+  @Test
+  public void parseMountInfoInvalidOutput() throws Exception {
+    UnixMountInfo info = ShellUtils.parseMountInfo("invalid output");
+    assertFalse(info.getDeviceSpec().isPresent());
+    assertFalse(info.getMountPoint().isPresent());
     assertFalse(info.getFsType().isPresent());
     assertFalse(info.getOptions().getSize().isPresent());
   }

@@ -15,6 +15,12 @@ import alluxio.RpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
+import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetAllWorkerHealthPResponse;
+import alluxio.grpc.GetJobServiceSummaryPRequest;
+import alluxio.grpc.GetJobServiceSummaryPResponse;
+import alluxio.grpc.GetJobStatusDetailedPRequest;
+import alluxio.grpc.GetJobStatusDetailedPResponse;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.GetJobStatusPResponse;
 import alluxio.grpc.JobMasterClientServiceGrpc;
@@ -24,11 +30,15 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
+import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobWorkerHealth;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * This class is a gRPC handler for job master RPCs invoked by a job service client.
@@ -58,17 +68,43 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
-      StreamObserver<GetJobStatusPResponse> responseObserver) {
+                           StreamObserver<GetJobStatusPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
-          .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
+                                   StreamObserver<GetJobStatusDetailedPResponse>
+                                       responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
+    {
+      return GetJobStatusDetailedPResponse.newBuilder()
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
+    }, "getJobStatusDetailed", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getJobServiceSummary(GetJobServiceSummaryPRequest request,
+      StreamObserver<GetJobServiceSummaryPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>) () -> {
+          return GetJobServiceSummaryPResponse.newBuilder()
+                .setSummary(mJobMaster.getSummary().toProto()).build();
+        }, "getJobServiceSummary", "request=%s", responseObserver, request);
   }
 
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
-      return ListAllPResponse.newBuilder().addAllJobIds(mJobMaster.list()).build();
+      ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
+          .addAllJobIds(mJobMaster.list());
+      for (JobInfo jobInfo : mJobMaster.listDetailed()) {
+        builder.addJobInfos(jobInfo.toProto());
+      }
+      return builder.build();
     }, "listAll", "request=%s", responseObserver, request);
   }
 
@@ -84,5 +120,21 @@ public class JobMasterClientServiceHandler
         throw new InvalidArgumentException(e);
       }
     }, "run", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getAllWorkerHealth(GetAllWorkerHealthPRequest request,
+                                 StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
+      GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
+
+      List<JobWorkerHealth> workerHealths = mJobMaster.getAllWorkerHealth();
+
+      for (JobWorkerHealth workerHealth : workerHealths) {
+        builder.addWorkerHealths(workerHealth.toProto());
+      }
+
+      return builder.build();
+    }, "getAllWorkerHealth", "request=%s", responseObserver, request);
   }
 }

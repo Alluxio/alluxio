@@ -14,6 +14,8 @@ package alluxio.master.journal.ufs;
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.CatchupFuture;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
@@ -27,11 +29,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -62,8 +68,10 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public UfsJournal createJournal(Master master) {
+    Supplier<Set<JournalSink>> supplier = () -> this.getJournalSinks(master);
     UfsJournal journal =
-        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs);
+        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
+            supplier);
     mJournals.put(master.getName(), journal);
     return journal;
   }
@@ -71,14 +79,15 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   @Override
   public void gainPrimacy() {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (UfsJournal journal : mJournals.values()) {
+    for (Map.Entry<String, UfsJournal> entry : mJournals.entrySet()) {
       callables.add(() -> {
+        UfsJournal journal = entry.getValue();
         journal.gainPrimacy();
         return null;
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 365 * Constants.DAY_MS);
+      CommonUtils.invokeAll(callables, 365L * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -86,13 +95,55 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
+    // Make all journals secondary as soon as possible
+    for (UfsJournal journal : mJournals.values()) {
+      journal.signalLosePrimacy();
+    }
+
+    // Wait for all journals to transition to secondary
     try {
       for (UfsJournal journal : mJournals.values()) {
-        journal.losePrimacy();
+        journal.awaitLosePrimacy();
       }
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
+  }
+
+  @Override
+  public void suspend() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Suspending journal: {}", journalEntry.getKey());
+      journalEntry.getValue().suspend();
+    }
+  }
+
+  @Override
+  public void resume() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Resuming journal: {}", journalEntry.getKey());
+      journalEntry.getValue().resume();
+    }
+  }
+
+  @Override
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
+    List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
+      LOG.info("Advancing journal :{} to sequence: {}", journalEntry.getKey(), resumeSequence);
+      futures.add(journalEntry.getValue().catchup(resumeSequence));
+    }
+    return CatchupFuture.allOf(futures);
+  }
+
+  @Override
+  public Map<String, Long> getCurrentSequenceNumbers() {
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      sequenceMap.put(master, mJournals.get(master).getNextSequenceNumberToWrite() - 1);
+    }
+    return sequenceMap;
   }
 
   @Override
@@ -152,6 +203,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public void format() throws IOException {
     for (UfsJournal journal : mJournals.values()) {
       journal.format();
+    }
+  }
+
+  @Override
+  public void checkpoint() throws IOException {
+    for (UfsJournal journal : mJournals.values()) {
+      journal.checkpoint();
     }
   }
 }

@@ -13,6 +13,7 @@ package alluxio.cli.extensions;
 
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 
@@ -28,7 +29,7 @@ public final class ExtensionsShell extends AbstractShell {
    * @param conf the Alluxio configuration to use when instantiating the shell
    */
   ExtensionsShell(InstancedConfiguration conf) {
-    super(null, conf);
+    super(null, null, conf);
   }
 
   /**
@@ -49,6 +50,6 @@ public final class ExtensionsShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return ExtensionsShellUtils.loadCommands();
+    return CommandUtils.loadCommands(ExtensionsShell.class.getPackage().getName(), null, null);
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating unrecoverable data loss or corruption.
  */
@@ -22,14 +24,14 @@ public class DataLossException extends AlluxioStatusException {
    * @param message the exception message
    */
   public DataLossException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public DataLossException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -37,6 +39,6 @@ public class DataLossException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public DataLossException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

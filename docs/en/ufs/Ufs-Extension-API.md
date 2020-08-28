@@ -2,7 +2,7 @@
 layout: global
 title: Under File Storage Extension API
 nickname: UFS Extension API
-group: Under Stores
+group: Storage Integrations
 priority: 101
 ---
 
@@ -38,19 +38,21 @@ dependency management tool, and forwards all operations to a local filesystem.
 
 ### Implement the Under Storage Interface
 
-The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3
 Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are good examples of how
 to enable a storage system to serve as Alluxio's underlying storage.
 
 Step 1: Implement the interface `UnderFileSystem`
 
 The `UnderFileSystem` interface is defined in the module `org.alluxio:alluxio-core-common`. Choose
-to extend either `BaseUnderFileSystem` or `ObjectUnderFileSystem` to implement the `UnderFileSystem`
-interface. `ObjectUnderFileSystem` is suitable for connecting to object storage and abstracts away
+to extend either `ConsistentUnderFileSystem` or `ObjectUnderFileSystem` to implement the `UnderFileSystem`
+interface. 
+- **`ConsistentUnderFileSystem`**: used for storage like HDFS which is not eventually consistent. 
+- **`ObjectUnderFileSystem`**: suitable for connecting to object storage and abstracts away
 mapping file system operations to an object store.
 
 ```java
-public class DummyUnderFileSystem extends BaseUnderFileSystem {
+public class DummyUnderFileSystem extends ConsistentUnderFileSystem {
 	// Implement filesystem operations
 	...
 }
@@ -130,17 +132,31 @@ In addition, to avoid collisions, specify scope for the dependency `alluxio-core
 </dependencies>
 ```
 
-### Test
+Build the tarball:
 
-Extend `AbstractUnderFileSystemContractTest` to test that the defined `UnderFileSystem` adheres to
-the contract between Alluxio and an under storage module. Look at the reference implementation to
-include parameters such as the working directory for the test.
-
-```java
-public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-    ...
-}
+```console
+$ mvn package
 ```
+
+### Install to Alluxio
+
+Install the tarball to Alluxio:
+
+```console
+$ ./bin/alluxio extensions install <path>/<to>/<probject>/target/alluxio-underfs-<ufsName>-<version>.jar
+```
+
+### Test the Under Storage Extension
+
+To ensure the new under storage module fulfills the minimum requirements to work with Alluxio, 
+one can run contract tests to test different workflows with various combinations of operations against the under storage.
+
+```console
+$ ./bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
+```
+
+In addition, one can also mount the under storage and run other kinds of tests on it. Please refer to 
+[managing extensions]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
 
 ## How it Works
 
@@ -164,6 +180,6 @@ extensions.
 
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
-[repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md) to edit the
+[repository](https://github.com/Alluxio/alluxio/blob/master/docs/en/ufs/Ufs-Extensions.md) to edit the
 list of extensions section on the
 [documentation page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).

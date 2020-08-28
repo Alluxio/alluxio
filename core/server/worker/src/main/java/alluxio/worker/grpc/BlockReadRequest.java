@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -22,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockReadRequest extends ReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final boolean mPromote;
+  private final boolean mPositionShort;
 
   /**
    * Creates an instance of {@link BlockReadRequest}.
@@ -38,6 +41,7 @@ public final class BlockReadRequest extends ReadRequest {
       mOpenUfsBlockOptions = null;
     }
     mPromote = request.getPromote();
+    mPositionShort = request.getPositionShort();
     // Note that we do not need to seek to offset since the block worker is created at the offset.
   }
 
@@ -46,6 +50,13 @@ public final class BlockReadRequest extends ReadRequest {
    */
   public boolean isPromote() {
     return mPromote;
+  }
+
+  /**
+   * @return if this is a positioned read to a small buffer
+   */
+  public boolean isPositionShort() {
+    return mPositionShort;
   }
 
   /**
@@ -60,5 +71,19 @@ public final class BlockReadRequest extends ReadRequest {
    */
   public boolean isPersisted() {
     return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("chunkSize", getChunkSize())
+        .add("end", getEnd())
+        .add("id", getId())
+        .add("openUfsBlockOptions", mOpenUfsBlockOptions)
+        .add("promote", mPromote)
+        .add("sessionId", getSessionId())
+        .add("start", getStart())
+        .add("positionShort", isPositionShort())
+        .toString();
   }
 }

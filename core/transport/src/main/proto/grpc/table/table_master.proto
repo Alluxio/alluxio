@@ -1,0 +1,404 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc.table";
+option java_outer_classname = "TableMasterProto";
+
+package alluxio.grpc.table;
+
+import "grpc/common.proto";
+import "grpc/job_master.proto";
+
+message FieldSchema {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional string type = 3;
+    optional string comment = 4;
+}
+
+message Schema {
+    repeated FieldSchema cols = 1;
+}
+
+enum PrincipalType {
+    USER = 0;
+    ROLE = 1;
+}
+
+message Database {
+    optional string db_name = 1;
+    optional string description = 2;
+    optional string location = 3;
+    map<string, string> parameter = 4;
+    optional string owner_name = 5;
+    optional PrincipalType owner_type = 6;
+    optional string comment = 7;
+}
+
+// next available id: 12
+message TableInfo {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    enum TableType {
+        NATIVE = 0;
+        IMPORTED = 1;
+    }
+    optional TableType type = 3;
+    optional string owner = 4;
+    optional Schema schema = 5;
+    optional Layout layout = 6;
+    map<string, string> parameters = 7;
+
+    // partitioning scheme
+    repeated FieldSchema partition_cols = 8;
+
+    optional int64 previous_version = 9;
+    optional int64 version = 10;
+    optional int64 version_creation_time = 11;
+}
+
+// TODO(gpang): update
+message LayoutSpec {
+  optional string spec = 1;
+}
+
+// TODO(gpang): update
+message PartitionSpec {
+  optional string spec = 1;
+}
+
+message Layout {
+  optional string layout_type = 1;
+  optional LayoutSpec layout_spec = 2;
+  optional bytes layout_data = 3;
+  map<string, ColumnStatisticsInfo> stats = 4;
+}
+
+message Transformation {
+    optional Layout layout = 1;
+    optional string definition = 2;
+}
+
+// next available id: 6
+message Partition {
+    optional PartitionSpec partition_spec = 1;
+    optional Layout base_layout = 2;
+    /**
+     * The latest transformation is in the back of the list.
+     */
+    repeated Transformation transformations = 3;
+    optional int64 version = 4;
+    optional int64 version_creation_time = 5;
+}
+
+message ColumnStatisticsInfo {
+    optional string col_name = 1;
+    optional string col_type = 2;
+    optional ColumnStatisticsData data = 3;
+}
+
+message ColumnStatisticsData {
+    oneof data {
+        BooleanColumnStatsData boolean_stats = 1;
+        LongColumnStatsData long_stats = 2;
+        DoubleColumnStatsData double_stats = 3;
+        StringColumnStatsData string_stats = 4;
+        BinaryColumnStatsData binary_stats = 5;
+        DecimalColumnStatsData decimal_stats = 6;
+        DateColumnStatsData date_stats = 7;
+    }
+}
+
+message BooleanColumnStatsData {
+    optional int64 num_trues = 1;
+    optional int64 num_falses = 2;
+    optional int64 num_nulls = 3;
+    optional string bit_vectors = 4;
+}
+
+message LongColumnStatsData {
+    optional int64 low_value = 1;
+    optional int64 high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
+}
+
+message DoubleColumnStatsData {
+    optional double low_value = 1;
+    optional double high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
+}
+
+message Decimal {
+    required int32 scale = 1; // force using scale first in Decimal.compareTo
+    required bytes unscaled = 2;
+}
+message DecimalColumnStatsData {
+    optional Decimal low_value = 1;
+    optional Decimal high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
+}
+
+message StringColumnStatsData {
+    optional int64 max_col_len = 1;
+    optional double avg_col_len = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
+}
+
+message BinaryColumnStatsData {
+    optional int64 max_col_len = 1;
+    optional double avg_col_len = 2;
+    optional int64 num_nulls = 3;
+    optional string bit_vectors = 4;
+}
+
+message Date {
+    required int64 days_since_epoch = 1;
+}
+message DateColumnStatsData {
+    optional Date low_value = 1;
+    optional Date high_value = 2;
+    optional int64 num_nulls = 3;
+    optional int64 num_distincts = 4;
+    optional string bit_vectors = 5;
+}
+
+message SyncStatus {
+    map<string, string> tables_errors = 1;
+    repeated string tables_ignored = 2;
+    repeated string tables_unchanged = 3;
+    repeated string tables_updated = 4;
+    repeated string tables_removed = 5;
+}
+
+message GetAllDatabasesPRequest {
+}
+
+message GetAllDatabasesPResponse {
+    repeated string database = 1;
+}
+
+message GetAllTablesPRequest {
+    optional string database = 1;
+}
+
+message GetAllTablesPResponse {
+    repeated string table = 1;
+}
+
+message GetDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message GetDatabasePResponse {
+    optional Database db = 1;
+}
+
+message GetTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+}
+
+message GetTablePResponse {
+    optional TableInfo table_info = 1;
+}
+
+message AttachDatabasePRequest {
+    optional string udb_type = 1;
+    optional string udb_connection_uri = 2;
+    optional string udb_db_name = 3;
+    optional string db_name = 4;
+    map<string, string> options = 5;
+    optional bool ignore_sync_errors = 6;
+}
+
+message AttachDatabasePResponse {
+    // TODO(gpang): remove in favor of status
+    optional bool success = 1;
+    optional SyncStatus sync_status = 2;
+}
+
+message DetachDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message DetachDatabasePResponse {
+    optional bool success = 1;
+}
+
+message SyncDatabasePRequest {
+    optional string db_name = 1;
+}
+
+message SyncDatabasePResponse {
+    // TODO(gpang): remove in favor of status
+    optional bool success = 1;
+    optional SyncStatus status = 2;
+}
+
+message FileStatistics {
+    map<string, ColumnStatisticsInfo> column = 1; //map column names to column statistics
+}
+
+message GetTableColumnStatisticsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    repeated string col_names = 3;
+}
+
+message GetPartitionColumnStatisticsPRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    repeated string col_names = 3;
+    repeated string part_names = 4;
+}
+
+message GetTableColumnStatisticsPResponse {
+    repeated ColumnStatisticsInfo statistics = 1;
+}
+
+message ColumnStatisticsList {
+    repeated ColumnStatisticsInfo statistics = 1;
+}
+message GetPartitionColumnStatisticsPResponse {
+    map<string, ColumnStatisticsList> partition_statistics = 1;
+}
+
+message Value {
+    oneof value {
+        int64 long_type = 1;
+        double double_type = 2;
+        string string_type = 3;
+        bool boolean_type = 4;
+    }
+}
+
+message Range {
+    optional Value low = 1;
+    optional Value high = 2;
+}
+
+message RangeSet {
+    repeated Range ranges = 1;
+}
+
+message EquatableValueSet {
+    repeated Value candidates = 1;
+    optional bool white_list = 2;
+}
+
+message AllOrNoneSet {
+    optional bool all = 1;
+}
+
+message Domain {
+    oneof value_set {
+        RangeSet range = 1;
+        EquatableValueSet equatable = 2;
+        AllOrNoneSet all_or_none = 3;
+    }
+}
+
+message Constraint {
+    map<string, Domain> column_constraints = 1; // maps column to constraint, columns not present are not constrained
+}
+
+message ReadTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional Constraint constraint = 3;
+}
+
+message ReadTablePResponse {
+    repeated Partition partitions = 1;
+}
+
+message TransformTablePRequest {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string definition = 3;
+}
+
+message TransformTablePResponse {
+    optional int64 job_id = 1;
+}
+
+message GetTransformJobInfoPRequest {
+    optional int64 job_id = 1;
+}
+
+message TransformJobInfo {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional string definition = 3;
+    optional int64 job_id = 4;
+    optional alluxio.grpc.job.Status job_status = 5;
+    optional string job_error = 6;
+}
+
+message GetTransformJobInfoPResponse {
+    repeated TransformJobInfo info = 1;
+}
+
+/**
+ * This interface contains table master service endpoints for Alluxio clients.
+ */
+service TableMasterClientService {
+
+    /**
+     * Returns all databases in the catalog
+     */
+    rpc GetAllDatabases(GetAllDatabasesPRequest) returns (GetAllDatabasesPResponse);
+
+    /**
+     * Returns all tables in the database
+     */
+    rpc GetAllTables(GetAllTablesPRequest) returns (GetAllTablesPResponse);
+
+    /**
+    * Gets a database by name from the table master
+    */
+    rpc GetDatabase(GetDatabasePRequest) returns (GetDatabasePResponse);
+
+    /**
+     * Returns a specific table info
+     */
+    rpc GetTable(GetTablePRequest) returns (GetTablePResponse);
+
+    /**
+     * Attach an existing database into the catalog as a new database name
+     */
+    rpc AttachDatabase(AttachDatabasePRequest) returns (AttachDatabasePResponse);
+
+    /**
+     * Detach existing database into the catalog, removing any metadata about the table
+     */
+    rpc DetachDatabase(DetachDatabasePRequest) returns (DetachDatabasePResponse);
+
+    /**
+     * Sync existing database into the catalog
+     */
+    rpc SyncDatabase(SyncDatabasePRequest) returns (SyncDatabasePResponse);
+
+    rpc GetTableColumnStatistics(GetTableColumnStatisticsPRequest) returns (GetTableColumnStatisticsPResponse);
+
+    rpc GetPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest) returns (GetPartitionColumnStatisticsPResponse);
+
+    rpc ReadTable(ReadTablePRequest) returns (ReadTablePResponse);
+
+    rpc TransformTable(TransformTablePRequest) returns (TransformTablePResponse);
+
+    /**
+     * Gets information of transformation jobs.
+     * If the job ID exists in the request, the information for that job is returned;
+     * Otherwise, information of all the jobs kept in table master will be returned.
+     */
+    rpc GetTransformJobInfo(GetTransformJobInfoPRequest) returns (GetTransformJobInfoPResponse);
+}

@@ -18,6 +18,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import alluxio.conf.ServerConfiguration;
@@ -26,9 +27,9 @@ import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.junit.After;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link AsyncJournalWriter}.
@@ -50,10 +51,10 @@ public class AsyncJournalWriterTest {
       ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "0ms");
     }
 
-    mMockJournalWriter = PowerMockito.mock(JournalWriter.class);
+    mMockJournalWriter = mock(JournalWriter.class);
     doNothing().when(mMockJournalWriter).write(any(JournalEntry.class));
     doNothing().when(mMockJournalWriter).flush();
-    mAsyncJournalWriter = new AsyncJournalWriter(mMockJournalWriter);
+    mAsyncJournalWriter = new AsyncJournalWriter(mMockJournalWriter, Collections::emptySet);
   }
 
   /**

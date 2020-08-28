@@ -11,10 +11,14 @@
 
 package alluxio.util.executor;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import java.util.Random;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,10 +30,10 @@ public class ControllableSchedulerTest {
     CountTask task = new CountTask();
     ControllableScheduler scheduler = new ControllableScheduler();
     scheduler.submit(task);
-    Assert.assertFalse(scheduler.schedulerIsIdle());
+    assertFalse(scheduler.schedulerIsIdle());
     scheduler.runNextPendingCommand();
-    Assert.assertEquals(1, task.runTimes());
-    Assert.assertTrue(scheduler.schedulerIsIdle());
+    assertEquals(1, task.runTimes());
+    assertTrue(scheduler.schedulerIsIdle());
   }
 
   @Test
@@ -37,9 +41,9 @@ public class ControllableSchedulerTest {
     CountTask task = new CountTask();
     ControllableScheduler scheduler = new ControllableScheduler();
     scheduler.schedule(task, 5, TimeUnit.HOURS);
-    Assert.assertTrue(scheduler.schedulerIsIdle());
+    assertTrue(scheduler.schedulerIsIdle());
     scheduler.jumpAndExecute(5, TimeUnit.HOURS);
-    Assert.assertEquals(1, task.runTimes());
+    assertEquals(1, task.runTimes());
   }
 
   @Test
@@ -51,16 +55,27 @@ public class ControllableSchedulerTest {
     scheduler.scheduleAtFixedRate(task, delayDays, periodDays, TimeUnit.DAYS);
 
     scheduler.jumpAndExecute(3 * 24, TimeUnit.HOURS);
-    Assert.assertEquals(0, task.runTimes());
+    assertEquals(0, task.runTimes());
 
     scheduler.jumpAndExecute(2 * 24 * 60, TimeUnit.MINUTES);
-    Assert.assertEquals(1, task.runTimes());
+    assertEquals(1, task.runTimes());
 
     Random random = new Random();
     int daysToJump = random.nextInt(1000000000);
     scheduler.jumpAndExecute(daysToJump, TimeUnit.DAYS);
-    Assert.assertEquals(daysToJump / periodDays + 1, task.runTimes());
-    Assert.assertTrue(scheduler.schedulerIsIdle());
+    assertEquals(daysToJump / periodDays + 1, task.runTimes());
+    assertTrue(scheduler.schedulerIsIdle());
+  }
+
+  @Test
+  public void cancel() {
+    CountTask task = new CountTask();
+    ControllableScheduler scheduler = new ControllableScheduler();
+    ScheduledFuture<?> future = scheduler.schedule(task, 5, TimeUnit.HOURS);
+    assertTrue(scheduler.schedulerIsIdle());
+    future.cancel(true);
+    scheduler.jumpAndExecute(5, TimeUnit.HOURS);
+    assertEquals(0, task.runTimes());
   }
 
   /**

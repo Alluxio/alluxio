@@ -12,13 +12,15 @@
 package alluxio.underfs.wasb;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
 
+import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +39,20 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
   /** Constant for the wasb URI scheme. */
-  public static final String SCHEME = "wasb://";
+  public static final String SCHEME_INSECURE = "wasb://";
+
+  /** Constant for the wasbs URI scheme. */
+  public static final String SCHEME_SECURE = "wasbs://";
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.
    *
    * @param conf the configuration for this UFS
+   * @param isSecure whether blob storage is using https
    * @return the created configuration
    */
-  public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
+  public static Configuration createConfiguration(UnderFileSystemConfiguration conf,
+          Boolean isSecure) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
@@ -54,8 +61,13 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
         wasbConf.set(key, value);
       }
     }
-    wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
-    wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    if (isSecure) {
+      wasbConf.set("fs.AbstractFileSystem.wasbs.impl", "org.apache.hadoop.fs.azure.Wasbs");
+      wasbConf.set("fs.wasbs.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    } else {
+      wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
+      wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    }
     return wasbConf;
   }
 
@@ -64,13 +76,12 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio configuration
    * @return a new Wasb {@link UnderFileSystem} instance
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
-    Configuration wasbConf = createConfiguration(conf);
-    return new WasbUnderFileSystem(uri, conf, wasbConf, alluxioConf);
+      UnderFileSystemConfiguration conf) {
+    Configuration wasbConf = createConfiguration(conf, uri.getScheme().startsWith(SCHEME_SECURE));
+    return new WasbUnderFileSystem(uri, conf, wasbConf);
   }
 
   /**
@@ -79,11 +90,10 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param wasbConf the configuration for this Wasb UFS
-   * @param alluxioConf Alluxio configuration
    */
   public WasbUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      final Configuration wasbConf, AlluxioConfiguration alluxioConf) {
-    super(ufsUri, conf, wasbConf, alluxioConf);
+      final Configuration wasbConf) {
+    super(ufsUri, conf, wasbConf);
   }
 
   @Override
@@ -94,7 +104,23 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     // wasb is an object store, so use the default block size, like other object stores.
-    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    UfsStatus status = super.getStatus(path);
+    if (status instanceof UfsFileStatus) {
+      // wasb is backed by an object store but always claims its block size to be 512MB.
+      // reset the block size in UfsFileStatus according to getBlockSizeByte
+      return new UfsFileStatus(path,
+          ((UfsFileStatus) status).getContentHash(),
+          ((UfsFileStatus) status).getContentLength(),
+          MoreObjects.firstNonNull(status.getLastModifiedTime(), 0L),
+          status.getOwner(), status.getGroup(), status.getMode(),
+          getBlockSizeByte(path));
+    }
+    return status;
   }
 
   // Not supported

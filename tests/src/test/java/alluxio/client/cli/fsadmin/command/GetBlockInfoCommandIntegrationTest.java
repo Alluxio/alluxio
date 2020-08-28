@@ -18,7 +18,6 @@ import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
 import alluxio.master.block.BlockId;
 
@@ -43,9 +42,12 @@ public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShe
   public void blockMetaNotFound() {
     long invalidId = 1421312312L;
     int ret = mFsAdminShell.run("getBlockInfo", String.valueOf(invalidId));
-    Assert.assertEquals(-1, ret);
+    // invalid block id should still continue to return useful information
+    Assert.assertEquals(0, ret);
     Assert.assertThat(mOutput.toString(),
-        containsString(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(invalidId)));
+        containsString("BlockMeta is not available for blockId"));
+    Assert.assertThat(mOutput.toString(),
+        containsString("This block belongs to file"));
   }
 
   @Test

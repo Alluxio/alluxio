@@ -25,20 +25,20 @@ public final class RuntimeConstants {
 
   static {
     if (VERSION.endsWith("SNAPSHOT")) {
-      ALLUXIO_DOCS_URL = "https://www.alluxio.org/docs/master";
-      ALLUXIO_JAVADOC_URL = "https://www.alluxio.org/javadoc/master";
+      ALLUXIO_DOCS_URL = "https://docs.alluxio.io/os/user/edge";
+      ALLUXIO_JAVADOC_URL = "https://docs.alluxio.io/os/javadoc/edge";
     } else {
       String[] majorMinor = VERSION.split("\\.");
       ALLUXIO_DOCS_URL =
-          String.format("https://www.alluxio.org/docs/%s.%s", majorMinor[0], majorMinor[1]);
+          String.format("https://docs.alluxio.io/os/user/%s.%s", majorMinor[0], majorMinor[1]);
       ALLUXIO_JAVADOC_URL =
-          String.format("https://www.alluxio.org/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
+          String.format("https://docs.alluxio.io/os/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
     }
   }
 
   /** The relative path to the Alluxio target jar. */
-  public static final String ALLUXIO_JAR =
-      "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
+  public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION
+      + "-jar-with-dependencies.jar";
 
   /** The URL of Alluxio documentation for this version on project web site. */
   public static final String ALLUXIO_DOCS_URL;
@@ -47,7 +47,16 @@ public final class RuntimeConstants {
   public static final String ALLUXIO_JAVADOC_URL;
 
   /** The URL of Alluxio debugging documentation. */
-  public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
+  public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/Troubleshooting.html";
+
+  /** The URL of Alluxio 1.x to 2.x upgrade documentation. */
+  public static final String ALLUXIO_2X_UPGRADE_DOC_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/2.x-Upgrade.html";
+
+  /** The URL of Alluxio security documentation. */
+  public static final String ALLUXIO_SECURITY_DOCS_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/Security.html";
 
   private RuntimeConstants() {} // prevent instantiation
 }

@@ -11,8 +11,12 @@
 
 package alluxio.master.file.meta;
 
-import java.util.ArrayList;
+import alluxio.concurrent.LockMode;
+
+import com.google.common.base.Preconditions;
+
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,56 +30,138 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Modification is only supported for the non-base part of the lock list.
  */
 @NotThreadSafe
-public class CompositeInodeLockList extends InodeLockList {
+public class CompositeInodeLockList implements InodeLockList {
   /** The base lock list for this composite list. */
   private final InodeLockList mBaseLockList;
+  /** An extension lock list for taking additional locks on top of the locks in mBaseLockList. */
+  private final InodeLockList mSubLockList;
+
+  /** The size of the base lock list, saved for fast lookup. */
+  private final int mBaseListSize;
 
   /**
    * Constructs a new lock list, using an existing lock list as the base list.
    *
    * @param baseLockList the base {@link InodeLockList} to use
+   * @param useTryLock whether or not use {@link Lock#tryLock()} or {@link Lock#lock()}
    */
-  public CompositeInodeLockList(InodeLockList baseLockList) {
-    super(baseLockList.mInodeLockManager);
+  public CompositeInodeLockList(InodeLockList baseLockList, boolean useTryLock) {
     mBaseLockList = baseLockList;
-    mLockMode = baseLockList.mLockMode;
+    mBaseListSize = baseLockList.numInodes();
+    mSubLockList = new SimpleInodeLockList(baseLockList.getInodeLockManager(), useTryLock);
   }
 
   @Override
-  public synchronized List<Inode> getLockedInodes() {
-    // Combine the base list of inodes first.
-    List<Inode> ret = new ArrayList<>(mBaseLockList.numLockedInodes() + mLockedInodes.size());
-    ret.addAll(mBaseLockList.getLockedInodes());
-    ret.addAll(mLockedInodes);
-    return ret;
+  public void lockRootEdge(LockMode mode) {
+    throw new UnsupportedOperationException(
+        "lockRootEdge is not supported for composite lock lists");
   }
 
   @Override
-  public synchronized Inode get(int index) {
-    if (index < mBaseLockList.numLockedInodes()) {
-      return mBaseLockList.get(index);
+  public void lockInode(Inode inode, LockMode mode) {
+    mode = nextLockMode(mode);
+    mSubLockList.lockInode(inode, mode);
+  }
+
+  @Override
+  public void lockEdge(Inode inode, String childName, LockMode mode) {
+    mode = nextLockMode(mode);
+    if (mSubLockList.isEmpty()) {
+      Preconditions.checkState(inode.getId() == mBaseLockList.get(mBaseListSize - 1).getId());
     }
-    return mLockedInodes.get(index - mBaseLockList.numLockedInodes());
+    mSubLockList.lockEdge(inode, childName, mode);
   }
 
   @Override
-  public synchronized int numLockedInodes() {
-    return mBaseLockList.numLockedInodes() + mLockedInodes.size();
-  }
-
-  /**
-   * @return true if the locklist is empty
-   */
-  @Override
-  public synchronized boolean isEmpty() {
-    return mBaseLockList.isEmpty() && mLockedInodes.isEmpty();
-  }
-
-  @Override
-  protected Entry lastEntry() {
-    if (mEntries.isEmpty()) {
-      return mBaseLockList.lastEntry();
+  public void unlockLastInode() {
+    if (!mSubLockList.isEmpty()) {
+      mSubLockList.unlockLastInode();
     }
-    return super.lastEntry();
+  }
+
+  @Override
+  public void unlockLastEdge() {
+    if (!mSubLockList.isEmpty()) {
+      mSubLockList.unlockLastEdge();
+    }
+  }
+
+  @Override
+  public void downgradeToReadLocks() {
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeToReadLocks();
+    }
+  }
+
+  @Override
+  public void downgradeLastEdge() {
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeLastEdge();
+    }
+  }
+
+  @Override
+  public void pushWriteLockedEdge(Inode inode, String childName) {
+    if (canDowngradeLast()) {
+      mSubLockList.pushWriteLockedEdge(inode, childName);
+      return;
+    }
+    // Can't downgrade, just acquire new locks instead.
+    mSubLockList.lockInode(inode, LockMode.WRITE);
+    mSubLockList.lockEdge(inode, childName, LockMode.WRITE);
+  }
+
+  private boolean canDowngradeLast() {
+    return !mSubLockList.isEmpty() && mBaseLockList.getLockMode() == LockMode.READ;
+  }
+
+  private LockMode nextLockMode(LockMode mode) {
+    if (mBaseLockList.getLockMode() == LockMode.WRITE) {
+      return LockMode.WRITE;
+    }
+    return mode;
+  }
+
+  @Override
+  public LockMode getLockMode() {
+    return mSubLockList.isEmpty() ? mBaseLockList.getLockMode() : mSubLockList.getLockMode();
+  }
+
+  @Override
+  public List<Inode> getLockedInodes() {
+    List<Inode> inodes = mBaseLockList.getLockedInodes();
+    inodes.addAll(mSubLockList.getLockedInodes());
+    return inodes;
+  }
+
+  @Override
+  public Inode get(int index) {
+    return index < mBaseListSize ? mBaseLockList.get(index)
+        : mSubLockList.get(index - mBaseListSize);
+  }
+
+  @Override
+  public int numInodes() {
+    return mBaseListSize + mSubLockList.numInodes();
+  }
+
+  @Override
+  public boolean endsInInode() {
+    return mSubLockList.isEmpty() ? mBaseLockList.endsInInode() : mSubLockList.endsInInode();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return mBaseLockList.isEmpty() && mSubLockList.isEmpty();
+  }
+
+  @Override
+  public InodeLockManager getInodeLockManager() {
+    return mBaseLockList.getInodeLockManager();
+  }
+
+  @Override
+  public void close() {
+    mSubLockList.close();
   }
 }

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -28,21 +29,22 @@ import java.net.SocketException;
 public final class RejectingServer extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(RejectingServer.class);
 
-  private final int mPort;
+  private final InetSocketAddress mAddress;
   private ServerSocket mServerSocket;
 
   /**
-   * @param port the port to reject requests on
+   * @param address the socket address to reject requests on
    */
-  public RejectingServer(int port) {
-    super("RejectingServer-" + port);
-    mPort = port;
+  public RejectingServer(InetSocketAddress address) {
+    super("RejectingServer-" + address);
+    mAddress = address;
   }
 
   @Override
   public void run() {
     try {
-      mServerSocket = new ServerSocket(mPort);
+      mServerSocket = new ServerSocket();
+      mServerSocket.bind(mAddress);
       mServerSocket.setReuseAddress(true);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -72,7 +74,7 @@ public final class RejectingServer extends Thread {
       }
     }
     try {
-      join(5 * Constants.SECOND_MS);
+      join(5L * Constants.SECOND_MS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }

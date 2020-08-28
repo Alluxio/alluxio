@@ -16,12 +16,12 @@ import static org.junit.Assert.fail;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.AlluxioFuseOptions;
@@ -253,6 +253,31 @@ public class FuseFileSystemIntegrationTest {
       os.write(content.getBytes());
     }
     String result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    Assert.assertEquals("Test File Content\n", result);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms"})
+  public void continueWithRevokedAuth() throws Exception {
+    String testFile = "/tailTestFile";
+    String content = "Alluxio Tail Test File Content";
+    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+      os.write(content.getBytes());
+    }
+    String result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    Assert.assertEquals("Test File Content\n", result);
+
+    /*
+     * Sleeping will ensure that authentication sessions for existing clients held by FUSE will
+     * expire on the server. This should have propagated back to the client and reauthentication
+     * should happen on the background for making the second call succeed.
+     *
+     * Sleep more than authentication revocation timeout.
+     */
+    Thread.sleep(500);
+
+    result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
     Assert.assertEquals("Test File Content\n", result);
   }
 

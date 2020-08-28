@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -32,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Removes the file specified by argv.
  */
 @ThreadSafe
+@PublicApi
 public final class RmCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =

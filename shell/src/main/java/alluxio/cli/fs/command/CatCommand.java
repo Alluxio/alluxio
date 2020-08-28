@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -32,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's contents to the console.
  */
 @ThreadSafe
+@PublicApi
 public final class CatCommand extends AbstractFileSystemCommand {
   /**
    * @param fsContext the filesystem of Alluxio

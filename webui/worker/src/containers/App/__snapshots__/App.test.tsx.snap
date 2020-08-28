@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App Shallow component Matches snapshot 1`] = `
+<Connect(ConnectedRouterWithContext)
+  history={
+    Object {
+      "action": "PUSH",
+      "block": [Function],
+      "createHref": [Function],
+      "go": [Function],
+      "goBack": [Function],
+      "goForward": [Function],
+      "length": 2,
+      "listen": [Function],
+      "location": Object {
+        "hash": "",
+        "pathname": "/",
+        "search": "",
+        "state": undefined,
+      },
+      "push": [Function],
+      "replace": [Function],
+    }
+  }
+>
+  <div
+    className="App h-100"
+  >
+    <div
+      className="w-100 sticky-top header-wrapper"
+    >
+      <Header
+        autoRefreshCallback={[Function]}
+        callbackParameters={
+          Object {
+            "masterHostname": "",
+            "masterPort": 19999,
+          }
+        }
+        data={
+          Array [
+            Object {
+              "innerText": "Overview",
+              "url": "/overview",
+            },
+            Object {
+              "innerText": "BlockInfo",
+              "url": "/blockInfo",
+            },
+            Object {
+              "innerText": "Logs",
+              "url": "/logs",
+            },
+            Object {
+              "innerText": "Metrics",
+              "url": "/metrics",
+            },
+            Object {
+              "innerText": "Return to Master",
+              "url": [Function],
+            },
+          ]
+        }
+        history={
+          Object {
+            "action": "PUSH",
+            "block": [Function],
+            "createHref": [Function],
+            "go": [Function],
+            "goBack": [Function],
+            "goForward": [Function],
+            "length": 2,
+            "listen": [Function],
+            "location": Object {
+              "hash": "",
+              "pathname": "/",
+              "search": "",
+              "state": undefined,
+            },
+            "push": [Function],
+            "replace": [Function],
+          }
+        }
+      />
+    </div>
+    <div
+      className="w-100 pt-5 mt-3 pb-4 mb-2"
+    >
+      <Switch>
+        <Route
+          exact={true}
+          path="/"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/overview"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/blockInfo"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/logs"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/metrics"
+          render={[Function]}
+        />
+        <Route
+          render={[Function]}
+        />
+      </Switch>
+    </div>
+    <div
+      className="w-100 footer-wrapper"
+    >
+      <Footer
+        callbackParameters={
+          Object {
+            "masterHostname": "",
+            "masterPort": 19999,
+          }
+        }
+        data={
+          Array [
+            Object {
+              "attributes": Object {
+                "target": "_blank",
+              },
+              "innerText": "Project Website",
+              "url": "https://alluxio.io/",
+            },
+            Object {
+              "attributes": Object {
+                "target": "_blank",
+              },
+              "innerText": "User Mailing List",
+              "url": "https://groups.google.com/forum/#!forum/alluxio-users",
+            },
+            Object {
+              "innerText": "Workers",
+              "url": [Function],
+            },
+          ]
+        }
+      />
+    </div>
+    <SlackButton />
+  </div>
+</Connect(ConnectedRouterWithContext)>
+`;

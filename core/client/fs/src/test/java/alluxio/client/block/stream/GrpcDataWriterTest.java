@@ -11,10 +11,15 @@
 
 package alluxio.client.block.stream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -26,6 +31,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
+import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -36,12 +42,12 @@ import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -73,26 +79,28 @@ public final class GrpcDataWriterTest {
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private ClientContext mClientContext;
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
+      new ConfigurationRule(PropertyKey.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES,
           String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
   public void before() throws Exception {
+    mClientContext = ClientContext.create(mConf);
+
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
-    PowerMockito.when(mContext.getClientContext())
-        .thenReturn(ClientContext.create(mConf));
-    PowerMockito.when(mContext.getConf()).thenReturn(mConf);
-    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
-    PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
-    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
+    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+        new NoopClosableResource<>(mClient));
+    when(mContext.getClientContext()).thenReturn(mClientContext);
+    when(mContext.getClusterConf()).thenReturn(mConf);
+    when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After
@@ -109,7 +117,7 @@ public final class GrpcDataWriterTest {
     try (DataWriter writer = create(10)) {
       checksumActual = verifyWriteRequests(mClient, 0, 10);
     }
-    Assert.assertEquals(0, checksumActual);
+    assertEquals(0, checksumActual);
   }
 
   /**
@@ -126,7 +134,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 0, length - 1);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -143,7 +151,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -159,7 +167,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -175,7 +183,24 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
+  }
+
+  @Test
+  public void closedBlockWorkerClientTest() throws IOException {
+    CloseableResource<BlockWorkerClient> resource = Mockito.mock(CloseableResource.class);
+    when(resource.get()).thenReturn(mClient);
+    FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
+    when(context.acquireBlockWorkerClient(any(WorkerNetAddress.class))).thenReturn(resource);
+    when(context.getClusterConf()).thenReturn(mConf);
+    mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT, "1");
+    GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
+        RequestType.ALLUXIO_BLOCK,
+        OutStreamOptions.defaults(mClientContext).setWriteTier(0));
+    verify(resource, times(0)).close();
+    verifyWriteRequests(mClient, 0, 0);
+    writer.close();
+    verify(resource, times(1)).close();
   }
 
   /**
@@ -188,7 +213,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults(mConf).setWriteTier(TIER));
+            OutStreamOptions.defaults(mClientContext).setWriteTier(TIER));
     return writer;
   }
 
@@ -219,7 +244,7 @@ public final class GrpcDataWriterTest {
             try {
               writer.writeChunk(buf);
             } catch (Exception e) {
-              Assert.fail(e.getMessage());
+              fail(e.getMessage());
               throw e;
             }
             remaining -= bytesToWrite;
@@ -234,7 +259,7 @@ public final class GrpcDataWriterTest {
           return checksum;
         } catch (Throwable throwable) {
           LOG.error("Failed to write file.", throwable);
-          Assert.fail();
+          fail();
           throw throwable;
         }
       }
@@ -263,7 +288,7 @@ public final class GrpcDataWriterTest {
         validateWriteRequest(request, pos);
         if (request.hasChunk()) {
           Chunk chunk = request.getChunk();
-          Assert.assertTrue(chunk.hasData());
+          assertTrue(chunk.hasData());
           ByteString buf = chunk.getData();
           for (byte b : buf.toByteArray()) {
             if (pos >= checksumStart && pos <= checksumEnd) {
@@ -276,7 +301,7 @@ public final class GrpcDataWriterTest {
       return checksum;
     } catch (Throwable throwable) {
       LOG.error("Failed to verify write requests.", throwable);
-      Assert.fail();
+      fail();
       throw throwable;
     }
   }
@@ -289,10 +314,10 @@ public final class GrpcDataWriterTest {
    */
   private void validateWriteRequest(WriteRequest request, long offset) {
     if (request.hasCommand()) {
-      Assert.assertEquals(BLOCK_ID, request.getCommand().getId());
-      Assert.assertEquals(offset, request.getCommand().getOffset());
+      assertEquals(BLOCK_ID, request.getCommand().getId());
+      assertEquals(offset, request.getCommand().getOffset());
     } else {
-      Assert.assertTrue(request.hasChunk());
+      assertTrue(request.hasChunk());
     }
   }
 }

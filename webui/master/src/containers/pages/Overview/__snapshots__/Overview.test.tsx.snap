@@ -1,0 +1,192 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Overview Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <div
+    className="col-md-6"
+  >
+    <h5>
+      Alluxio Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th
+            scope="row"
+          >
+            Master Address
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Started
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Uptime
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Version
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Running Workers
+          </th>
+          <td>
+            0
+          </td>
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Server Configuration Check
+          </th>
+          <td
+            className=""
+          />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-md-6"
+  >
+    <h5>
+      Cluster Usage Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th
+            scope="row"
+          >
+            Workers Capacity
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Workers Free / Used
+          </th>
+          <td>
+             / 
+          </td>
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            UnderFS Capacity
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            UnderFS Free / Used
+          </th>
+          <td>
+             / 
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-md-12"
+  >
+    <h5>
+      Storage Usage Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <thead>
+        <tr>
+          <th>
+            Storage Alias
+          </th>
+          <th>
+            Space Capacity
+          </th>
+          <th>
+            Space Used
+          </th>
+          <th>
+            Space Usage
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          key=""
+        >
+          <td />
+          <td />
+          <td />
+          <td>
+            <Progress
+              className="h-50 mt-1"
+              max={100}
+              multi={true}
+              tag="div"
+              value={0}
+            >
+              <Progress
+                bar={true}
+                color="dark"
+                max={100}
+                tag="div"
+                value="0"
+              >
+                0
+                % Free
+              </Progress>
+              <Progress
+                bar={true}
+                color="secondary"
+                max={100}
+                tag="div"
+                value="100"
+              >
+                100
+                % Used
+              </Progress>
+            </Progress>
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+</Fragment>
+`;

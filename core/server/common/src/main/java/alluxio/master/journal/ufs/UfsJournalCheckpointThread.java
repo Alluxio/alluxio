@@ -11,10 +11,13 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
@@ -24,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,21 +79,40 @@ public final class UfsJournalCheckpointThread extends Thread {
    */
   private long mNextSequenceNumberToCheckpoint;
 
+  /** A supplier of journal sinks for this journal. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
+
   /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
    * @param journal the journal
+   * @param journalSinks a supplier for journal sinks
    */
-  public UfsJournalCheckpointThread(Master master, UfsJournal journal) {
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal,
+      Supplier<Set<JournalSink>> journalSinks) {
+    this(master, journal, 0L, journalSinks);
+  }
+
+  /**
+   * Creates a new instance of {@link UfsJournalCheckpointThread}.
+   *
+   * @param master the master to apply the journal entries to
+   * @param journal the journal
+   * @param startSequence the journal start sequence
+   * @param journalSinks a supplier for journal sinks
+   */
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal, long startSequence,
+      Supplier<Set<JournalSink>> journalSinks) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
-    mJournalReader = new UfsJournalReader(mJournal, 0, false);
-    mCheckpointPeriodEntries = ServerConfiguration.getLong(
-        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
+    mCheckpointPeriodEntries =
+        ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mJournalSinks = journalSinks;
   }
 
   /**
@@ -138,8 +162,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       runInternal();
     } catch (Throwable e) {
-      LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
-      throw e;
+      ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
+          mMaster.getName());
+      System.exit(-1);
     }
   }
 
@@ -156,11 +181,24 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         switch (mJournalReader.advance()) {
           case CHECKPOINT:
+            LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
             entry = mJournalReader.getEntry();
-            mMaster.processJournalEntry(entry);
+            try {
+              if (!mMaster.processJournalEntry(entry)) {
+                JournalUtils
+                    .handleJournalReplayFailure(LOG, null, "%s: Unrecognized journal entry: %s",
+                        mMaster.getName(), entry);
+              } else {
+                JournalUtils.sinkAppend(mJournalSinks, entry);
+              }
+            } catch (Throwable t) {
+              JournalUtils.handleJournalReplayFailure(LOG, t,
+                  "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
+            }
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
@@ -170,8 +208,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             break;
         }
       } catch (IOException e) {
-        LOG.warn("{}: Failed to read or process the journal entry with error {}.",
-            mMaster.getName(), e.getMessage());
+        LOG.error("{}: Failed to read or process a journal entry.", mMaster.getName(), e);
         try {
           mJournalReader.close();
         } catch (IOException ee) {
@@ -249,6 +286,9 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         synchronized (mCheckpointingLock) {
           if (mShutdownInitiated) {
+            // This checkpoint thread is signaled to shutdown, so any checkpoint in progress must be
+            // canceled/invalidated.
+            journalWriter.cancel();
             return;
           }
           mCheckpointing = true;
@@ -282,7 +322,7 @@ public final class UfsJournalCheckpointThread extends Thread {
           nextSequenceNumber);
       mNextSequenceNumberToCheckpoint = nextSequenceNumber;
     } catch (IOException e) {
-      LOG.warn("{}: Failed to checkpoint with error {}.", mMaster.getName(), e.getMessage());
+      LOG.error("{}: Failed to checkpoint.", mMaster.getName(), e);
     }
   }
 }

@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.Assert;
@@ -31,7 +31,8 @@ import java.util.HashSet;
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;
-  private StorageTierView mTestTierView;
+  private StorageTierEvictorView mTestTierView;
+  private BlockMetadataEvictorView mMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -49,15 +50,15 @@ public class StorageTierViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    BlockMetadataManagerView metaManagerView =
-        new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+    mMetadataView =
+        new BlockMetadataEvictorView(metaManager, new HashSet<Long>(),
             new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestTierView = new StorageTierView(mTestTier, metaManagerView);
+    mTestTierView = new StorageTierEvictorView(mTestTier, mMetadataView);
   }
 
   /**
-   * Tests the {@link StorageTierView#getDirViews()} method.
+   * Tests the {@link StorageTierEvictorView#getDirViews()} method.
    */
   @Test
   public void getDirViews() {
@@ -66,7 +67,7 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierView#getDirView(int)} method.
+   * Tests the {@link StorageTierEvictorView#getDirView(int)} method.
    */
   @Test
   public void getDirView() {
@@ -80,13 +81,12 @@ public class StorageTierViewTest {
    */
   @Test
   public void getDirViewBadIndex() {
-    mThrown.expect(IndexOutOfBoundsException.class);
     int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
-    Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
+    Assert.assertNull(mTestTierView.getDirView(badDirIndex));
   }
 
   /**
-   * Tests the {@link StorageTierView#getTierViewAlias()} method.
+   * Tests the {@link StorageTierEvictorView#getTierViewAlias()} method.
    */
   @Test
   public void getTierViewAlias() {
@@ -94,10 +94,18 @@ public class StorageTierViewTest {
   }
 
   /**
-   * Tests the {@link StorageTierView#getTierViewOrdinal()} method.
+   * Tests the {@link StorageTierEvictorView#getTierViewOrdinal()} method.
    */
   @Test
   public void getTierViewOrdinal() {
     Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
+  }
+
+  /**
+   * Tests the {@link StorageTierEvictorView#getTierViewOrdinal()} method.
+   */
+  @Test
+  public void getBlockMetadataEvictorView() {
+    Assert.assertEquals(mMetadataView, mTestTierView.getBlockMetadataEvictorView());
   }
 }

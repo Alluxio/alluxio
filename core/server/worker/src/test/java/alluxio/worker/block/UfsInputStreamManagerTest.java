@@ -61,7 +61,7 @@ public final class UfsInputStreamManagerTest {
       SeekableUnderFileInputStream instream = mock(SeekableUnderFileInputStream.class);
       mSeekableInStreams[i] = instream;
     }
-    when(mUfs.open(eq(FILE_NAME), any(OpenOptions.class))).thenReturn(
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenReturn(
         mSeekableInStreams[0], Arrays.copyOfRange(mSeekableInStreams, 1, mNumOfInputStreams));
     mManager = new UfsInputStreamManager();
   }
@@ -72,7 +72,7 @@ public final class UfsInputStreamManagerTest {
   @Test
   public void testAcquireAndRelease() throws Exception {
     SeekableUnderFileInputStream mockedStrem = mock(SeekableUnderFileInputStream.class);
-    when(mUfs.open(eq(FILE_NAME), any(OpenOptions.class)))
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class)))
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
     // acquire a stream
@@ -98,7 +98,7 @@ public final class UfsInputStreamManagerTest {
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(4));
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(6));
     // 3 different input streams are acquired
-    verify(mUfs, times(3)).open(eq(FILE_NAME),
+    verify(mUfs, times(3)).openExistingFile(eq(FILE_NAME),
         any(OpenOptions.class));
   }
 

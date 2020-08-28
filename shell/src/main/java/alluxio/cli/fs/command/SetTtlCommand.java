@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * args.
  */
 @ThreadSafe
+@PublicApi
 public final class SetTtlCommand extends AbstractFileSystemCommand {
 
   private static final String TTL_ACTION = "action";

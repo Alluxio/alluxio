@@ -1,0 +1,585 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FileView React component Matches snapshot 1`] = `
+<StaticRouter
+  basename=""
+  context={Object {}}
+  location="someLocation"
+>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "someLocation",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <FileView
+      beginInputHandler={[Function]}
+      endInputHandler={[Function]}
+      history={
+        Object {
+          "action": "POP",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 1,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "/",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+      offsetInputHandler={[Function]}
+      queryStringPrefix=""
+      queryStringSuffix=""
+      viewData={
+        Object {
+          "currentPath": "",
+          "debug": true,
+          "fatalError": "",
+          "fileData": "",
+          "fileInfos": Array [],
+          "invalidPathError": "",
+          "ntotalFile": 0,
+          "viewingOffset": 0,
+        }
+      }
+    >
+      <h5>
+        : 
+        <small>
+          First 5KB from 
+          0
+           in ASCII
+        </small>
+      </h5>
+      <Form
+        className="mb-3 viewData-file-form"
+        id="viewDataFileForm"
+        inline={true}
+        onSubmit={[Function]}
+        tag="form"
+      >
+        <form
+          className="mb-3 viewData-file-form form-inline"
+          id="viewDataFileForm"
+          onSubmit={[Function]}
+        >
+          <FormGroup
+            className="mb-2 mr-sm-2 w-100"
+            tag="div"
+          >
+            <div
+              className="mb-2 mr-sm-2 w-100 form-group"
+            >
+              <Input
+                className="w-100"
+                readOnly={true}
+                style={
+                  Object {
+                    "height": undefined,
+                  }
+                }
+                type="textarea"
+                value=""
+              >
+                <textarea
+                  className="w-100 form-control"
+                  readOnly={true}
+                  style={
+                    Object {
+                      "height": undefined,
+                    }
+                  }
+                  value=""
+                />
+              </Input>
+            </div>
+          </FormGroup>
+        </form>
+      </Form>
+      <hr />
+      <Form
+        className="mb-3 viewData-file-settings-form"
+        id="viewDataFileSettingsForm"
+        inline={true}
+        onSubmit={[Function]}
+        tag="form"
+      >
+        <form
+          className="mb-3 viewData-file-settings-form form-inline"
+          id="viewDataFileSettingsForm"
+          onSubmit={[Function]}
+        >
+          <FormGroup
+            className="col-5"
+            tag="div"
+          >
+            <div
+              className="col-5 form-group"
+            >
+              <Label
+                className="mr-sm-2"
+                for="viewDataFileOffset"
+                tag="label"
+                widths={
+                  Array [
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl",
+                  ]
+                }
+              >
+                <label
+                  className="mr-sm-2"
+                  htmlFor="viewDataFileOffset"
+                >
+                  Display from byte offset
+                </label>
+              </Label>
+              <Input
+                className="col-3"
+                id="viewDataFileOffset"
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyUp={[Function]}
+                placeholder="Enter an offset"
+                type="number"
+              >
+                <input
+                  className="col-3 form-control"
+                  id="viewDataFileOffset"
+                  onChange={[Function]}
+                  onFocus={[Function]}
+                  onKeyUp={[Function]}
+                  placeholder="Enter an offset"
+                  type="number"
+                />
+              </Input>
+            </div>
+          </FormGroup>
+          <FormGroup
+            className="col-5"
+            tag="div"
+          >
+            <div
+              className="col-5 form-group"
+            >
+              <Label
+                className="mr-sm-2"
+                for="viewDataFileEnd"
+                tag="label"
+                widths={
+                  Array [
+                    "xs",
+                    "sm",
+                    "md",
+                    "lg",
+                    "xl",
+                  ]
+                }
+              >
+                <label
+                  className="mr-sm-2"
+                  htmlFor="viewDataFileEnd"
+                >
+                  Relative to
+                </label>
+              </Label>
+              <ButtonGroup
+                className="auto-refresh-button"
+                id="viewDataFileEnd"
+                role="group"
+                tag="div"
+              >
+                <div
+                  className="auto-refresh-button btn-group"
+                  id="viewDataFileEnd"
+                  role="group"
+                >
+                  <Button
+                    color="secondary"
+                    onClick={[Function]}
+                    outline={false}
+                    size="sm"
+                    tag="button"
+                  >
+                    <button
+                      aria-label={null}
+                      className="btn btn-secondary btn-sm"
+                      onClick={[Function]}
+                      type="button"
+                    >
+                      <FontAwesomeIcon
+                        border={false}
+                        className=""
+                        fixedWidth={false}
+                        flip={null}
+                        icon={
+                          Object {
+                            "icon": Array [
+                              448,
+                              512,
+                              Array [],
+                              "f14a",
+                              "M400 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm0 400H48V80h352v352zm-35.864-241.724L191.547 361.48c-4.705 4.667-12.303 4.637-16.97-.068l-90.781-91.516c-4.667-4.705-4.637-12.303.069-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l59.792 60.277 141.352-140.216c4.705-4.667 12.303-4.637 16.97.068l22.536 22.718c4.667 4.706 4.637 12.304-.068 16.971z",
+                            ],
+                            "iconName": "check-square",
+                            "prefix": "far",
+                          }
+                        }
+                        inverse={false}
+                        listItem={false}
+                        mask={null}
+                        pull={null}
+                        pulse={false}
+                        rotation={null}
+                        size={null}
+                        spin={false}
+                        symbol={false}
+                        title=""
+                        transform={null}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="svg-inline--fa fa-check-square fa-w-14 "
+                          data-icon="check-square"
+                          data-prefix="far"
+                          focusable="false"
+                          role="img"
+                          style={Object {}}
+                          viewBox="0 0 448 512"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M400 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm0 400H48V80h352v352zm-35.864-241.724L191.547 361.48c-4.705 4.667-12.303 4.637-16.97-.068l-90.781-91.516c-4.667-4.705-4.637-12.303.069-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l59.792 60.277 141.352-140.216c4.705-4.667 12.303-4.637 16.97.068l22.536 22.718c4.667 4.706 4.637 12.304-.068 16.971z"
+                            fill="currentColor"
+                            style={Object {}}
+                          />
+                        </svg>
+                      </FontAwesomeIcon>
+                       begin
+                    </button>
+                  </Button>
+                  <Button
+                    color="secondary"
+                    onClick={[Function]}
+                    outline={true}
+                    size="sm"
+                    tag="button"
+                  >
+                    <button
+                      aria-label={null}
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={[Function]}
+                      type="button"
+                    >
+                      <FontAwesomeIcon
+                        border={false}
+                        className=""
+                        fixedWidth={false}
+                        flip={null}
+                        icon={
+                          Object {
+                            "icon": Array [
+                              448,
+                              512,
+                              Array [],
+                              "f0c8",
+                              "M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z",
+                            ],
+                            "iconName": "square",
+                            "prefix": "far",
+                          }
+                        }
+                        inverse={false}
+                        listItem={false}
+                        mask={null}
+                        pull={null}
+                        pulse={false}
+                        rotation={null}
+                        size={null}
+                        spin={false}
+                        symbol={false}
+                        title=""
+                        transform={null}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="svg-inline--fa fa-square fa-w-14 "
+                          data-icon="square"
+                          data-prefix="far"
+                          focusable="false"
+                          role="img"
+                          style={Object {}}
+                          viewBox="0 0 448 512"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z"
+                            fill="currentColor"
+                            style={Object {}}
+                          />
+                        </svg>
+                      </FontAwesomeIcon>
+                       end
+                    </button>
+                  </Button>
+                </div>
+              </ButtonGroup>
+            </div>
+          </FormGroup>
+          <FormGroup
+            className="col-2"
+            tag="div"
+          >
+            <div
+              className="col-2 form-group"
+            >
+              <Button
+                color="secondary"
+                tag={[Function]}
+                to="?path="
+              >
+                <Link
+                  aria-label={null}
+                  className="btn btn-secondary"
+                  onClick={[Function]}
+                  replace={false}
+                  to="?path="
+                >
+                  <a
+                    aria-label={null}
+                    className="btn btn-secondary"
+                    href="/someLocation?path="
+                    onClick={[Function]}
+                  >
+                    Go
+                  </a>
+                </Link>
+              </Button>
+            </div>
+          </FormGroup>
+        </form>
+      </Form>
+    </FileView>
+  </Router>
+</StaticRouter>
+`;
+
+exports[`FileView Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <h5>
+    : 
+    <small>
+      First 5KB from 
+      0
+       in ASCII
+    </small>
+  </h5>
+  <Form
+    className="mb-3 viewData-file-form"
+    id="viewDataFileForm"
+    inline={true}
+    onSubmit={[Function]}
+    tag="form"
+  >
+    <FormGroup
+      className="mb-2 mr-sm-2 w-100"
+      tag="div"
+    >
+      <Input
+        className="w-100"
+        readOnly={true}
+        style={
+          Object {
+            "height": undefined,
+          }
+        }
+        type="textarea"
+        value=""
+      />
+    </FormGroup>
+  </Form>
+  <hr />
+  <Form
+    className="mb-3 viewData-file-settings-form"
+    id="viewDataFileSettingsForm"
+    inline={true}
+    onSubmit={[Function]}
+    tag="form"
+  >
+    <FormGroup
+      className="col-5"
+      tag="div"
+    >
+      <Label
+        className="mr-sm-2"
+        for="viewDataFileOffset"
+        tag="label"
+        widths={
+          Array [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+          ]
+        }
+      >
+        Display from byte offset
+      </Label>
+      <Input
+        className="col-3"
+        id="viewDataFileOffset"
+        onChange={[Function]}
+        onFocus={[Function]}
+        onKeyUp={[Function]}
+        placeholder="Enter an offset"
+        type="number"
+      />
+    </FormGroup>
+    <FormGroup
+      className="col-5"
+      tag="div"
+    >
+      <Label
+        className="mr-sm-2"
+        for="viewDataFileEnd"
+        tag="label"
+        widths={
+          Array [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+          ]
+        }
+      >
+        Relative to
+      </Label>
+      <ButtonGroup
+        className="auto-refresh-button"
+        id="viewDataFileEnd"
+        role="group"
+        tag="div"
+      >
+        <Button
+          color="secondary"
+          onClick={[Function]}
+          outline={false}
+          size="sm"
+          tag="button"
+        >
+          <FontAwesomeIcon
+            border={false}
+            className=""
+            fixedWidth={false}
+            flip={null}
+            icon={
+              Object {
+                "icon": Array [
+                  448,
+                  512,
+                  Array [],
+                  "f14a",
+                  "M400 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zm0 400H48V80h352v352zm-35.864-241.724L191.547 361.48c-4.705 4.667-12.303 4.637-16.97-.068l-90.781-91.516c-4.667-4.705-4.637-12.303.069-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l59.792 60.277 141.352-140.216c4.705-4.667 12.303-4.637 16.97.068l22.536 22.718c4.667 4.706 4.637 12.304-.068 16.971z",
+                ],
+                "iconName": "check-square",
+                "prefix": "far",
+              }
+            }
+            inverse={false}
+            listItem={false}
+            mask={null}
+            pull={null}
+            pulse={false}
+            rotation={null}
+            size={null}
+            spin={false}
+            symbol={false}
+            title=""
+            transform={null}
+          />
+           begin
+        </Button>
+        <Button
+          color="secondary"
+          onClick={[Function]}
+          outline={true}
+          size="sm"
+          tag="button"
+        >
+          <FontAwesomeIcon
+            border={false}
+            className=""
+            fixedWidth={false}
+            flip={null}
+            icon={
+              Object {
+                "icon": Array [
+                  448,
+                  512,
+                  Array [],
+                  "f0c8",
+                  "M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z",
+                ],
+                "iconName": "square",
+                "prefix": "far",
+              }
+            }
+            inverse={false}
+            listItem={false}
+            mask={null}
+            pull={null}
+            pulse={false}
+            rotation={null}
+            size={null}
+            spin={false}
+            symbol={false}
+            title=""
+            transform={null}
+          />
+           end
+        </Button>
+      </ButtonGroup>
+    </FormGroup>
+    <FormGroup
+      className="col-2"
+      tag="div"
+    >
+      <Button
+        color="secondary"
+        tag={[Function]}
+        to="?path="
+      >
+        Go
+      </Button>
+    </FormGroup>
+  </Form>
+</Fragment>
+`;

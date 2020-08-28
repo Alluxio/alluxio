@@ -373,7 +373,8 @@ public class AccessControlList implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof AccessControlList)) {
+
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
     AccessControlList that = (AccessControlList) o;

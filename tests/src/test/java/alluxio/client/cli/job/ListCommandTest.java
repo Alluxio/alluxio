@@ -11,7 +11,8 @@
 
 package alluxio.client.cli.job;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 /**
@@ -22,7 +23,13 @@ public final class ListCommandTest extends JobShellTest {
   public void listTest() throws Exception {
     long jobId = runPersistJob();
 
-    mJobShell.run("ls");
-    Assert.assertEquals(jobId + "\n", mOutput.toString());
+    waitForJobToFinish(jobId);
+
+    sJobShell.run("ls");
+    String output = mOutput.toString();
+
+    assertTrue(output.contains(String.valueOf(jobId)));
+    assertTrue(output.contains("Persist"));
+    assertTrue(output.contains("COMPLETED"));
   }
 }

@@ -11,15 +11,22 @@
 
 package alluxio.client.metrics;
 
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.metrics.Metric;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ClientMetrics;
+import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,41 +40,95 @@ import javax.annotation.concurrent.ThreadSafe;
  * it before retrying.
  */
 @ThreadSafe
-public final class ClientMasterSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(ClientMasterSync.class);
+public final class ClientMasterSync {
+  private static final Logger SAMPLING_LOG =
+      new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class),
+          30L * Constants.SECOND_MS);
 
-  /** Client for communicating to metrics master. */
-  private final MetricsMasterClient mMasterClient;
-  private final String mAppId;
+  private final String mApplicationId;
+  private final MasterInquireClient mInquireClient;
+  private final ClientContext mContext;
+
+  /**
+   * Client for communicating to metrics master.
+   */
+  private RetryHandlingMetricsMasterClient mMasterClient;
 
   /**
    * Constructs a new {@link ClientMasterSync}.
    *
-   * @param masterClient the master client
-   * @param appId the app ID for this client
+   * @param appId the application id to send with metrics
+   * @param ctx client context
+   * @param inquireClient the master inquire client
    */
-  public ClientMasterSync(MetricsMasterClient masterClient, String appId) {
-    mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
-    mAppId = Preconditions.checkNotNull(appId, "appId");
+  public ClientMasterSync(String appId, ClientContext ctx, MasterInquireClient inquireClient) {
+    mApplicationId = Preconditions.checkNotNull(appId);
+    mInquireClient = inquireClient;
+    mContext = ctx;
   }
 
-  @Override
-  public synchronized void heartbeat() throws InterruptedException {
-    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (Metric metric : MetricsSystem.allClientMetrics()) {
-      metric.setInstanceId(mAppId);
-      metrics.add(metric.toProto());
+  /**
+   * Sends metrics to the master keyed with appId and client hostname.
+   */
+  public synchronized void heartbeat() {
+    if (mMasterClient == null) {
+      if (loadConf()) {
+        mMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
+            .newBuilder(mContext)
+            .setMasterInquireClient(mInquireClient)
+            .build());
+      } else {
+        return; // not heartbeat when failed to load conf
+      }
     }
+    // TODO(zac): Support per FileSystem instance metrics
+    // Currently we only support JVM-level metrics. A list is used here because in the near
+    // future we will support sending per filesystem client-level metrics.
+    List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
+    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportClientMetrics();
+    if (metrics.size() == 0) {
+      // Likely when all should report metrics are counters
+      // and this client doesn't do any actual operations (only used for meta sync)
+      return;
+    }
+    fsClientMetrics.add(ClientMetrics.newBuilder()
+        .setSource(mApplicationId)
+        .addAllMetrics(metrics)
+        .build());
     try {
-      mMasterClient.heartbeat(metrics);
+      mMasterClient.heartbeat(fsClientMetrics);
     } catch (IOException e) {
-      // An error occurred, log and ignore it or error if heartbeat timeout is reached.
-      LOG.error("Failed to heartbeat to the metrics master:", e);
-      mMasterClient.disconnect();
+      // WARN instead of ERROR as metrics are not critical to the application function
+      SAMPLING_LOG.warn("Failed to send metrics to master: {}", e.toString());
     }
   }
 
-  @Override
-  public void close() {
+  /**
+   * Close the metrics master client.
+   */
+  public synchronized void close() {
+    if (mMasterClient != null) {
+      mMasterClient.close();
+    }
+  }
+
+  /**
+   * Loads configuration.
+   *
+   * @return true if successfully loaded configuration
+   */
+  private boolean loadConf() {
+    try {
+      InetSocketAddress masterAddr = mInquireClient.getPrimaryRpcAddress();
+      mContext.loadConf(masterAddr, true, false);
+    } catch (UnavailableException e) {
+      SAMPLING_LOG.error("Failed to get master address during initialization: {}", e.toString());
+      return false;
+    } catch (AlluxioStatusException ae) {
+      SAMPLING_LOG.error("Failed to load configuration from "
+          + "meta master during initialization: {}", ae.toString());
+      return false;
+    }
+    return true;
   }
 }

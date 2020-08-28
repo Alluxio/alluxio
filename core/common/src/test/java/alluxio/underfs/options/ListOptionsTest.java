@@ -11,9 +11,10 @@
 
 package alluxio.underfs.options;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.test.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -32,7 +33,7 @@ public final class ListOptionsTest {
   public void defaults() throws IOException {
     ListOptions options = ListOptions.defaults();
 
-    Assert.assertEquals(false, options.isRecursive());
+    assertEquals(false, options.isRecursive());
   }
 
   /**
@@ -44,11 +45,11 @@ public final class ListOptionsTest {
 
     boolean recursive = false;
     options.setRecursive(recursive);
-    Assert.assertEquals(recursive, options.isRecursive());
+    assertEquals(recursive, options.isRecursive());
 
     recursive = true;
     options.setRecursive(recursive);
-    Assert.assertEquals(recursive, options.isRecursive());
+    assertEquals(recursive, options.isRecursive());
   }
 
   @Test

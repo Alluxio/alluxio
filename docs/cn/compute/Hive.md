@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Apache Hive
 nickname: Apache Hive
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 3
 ---
 
 * 内容列表
@@ -13,7 +13,7 @@ priority: 2
 
 ## 前期准备
 
-开始之前你需要安装好[Java](Java-Setup.html)，同时使用[本地模式](Running-Alluxio-Locally.html)或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
+开始之前你需要安装好Java，同时使用[本地模式]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})或[集群模式]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})构建好Alluxio。
 
 接着[下载Hive](http://hive.apache.org/downloads.html)。
 
@@ -21,12 +21,12 @@ priority: 2
 
 ## 配置Hive
 
-我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
+我们建议您从Alluxio[下载页面](http://www.alluxio.io/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
 
 在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
 
-```bash
-export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```console
+$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
 
@@ -43,9 +43,9 @@ Hive可以使用存储在Alluxio中的文件来创建新表。设置非常直接
 
 这里有一个示例展示了在Alluxio上创建Hive的内部表。你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件（如：`ml-100k.zip`）。然后接下该文件，并且将文件`u.user`上传到Alluxio的`ml-100k/`下：
 
-```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
 ```
 然后创建新的内部表：
 
@@ -88,7 +88,7 @@ hive> select * from u_user;
 
 ### 在ALluxio中使用已经存储在HDFS中的表
 
-当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.underfs.address=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
+当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
 
 #### 使用已存在的内部表的Hive命令行示例
 
@@ -197,7 +197,7 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 在Alluxio中为Hive创建相应目录：
 
-```bash
+```console
 $ ./bin/alluxio fs mkdir /tmp
 $ ./bin/alluxio fs mkdir /user/hive/warehouse
 $ ./bin/alluxio fs chmod 775 /tmp
@@ -238,17 +238,3 @@ hive> select * from u_user;
 你可以在命令行中看到相应查询结果：
 
 ![HiveQueryResult]({{ site.baseurl }}/img/screenshot_hive_query_result.png)
-
-
-## 检查Hive和Alluxio的集成情况 (支持 Hive 2.X)
-
-在Alluxio上运行Hive之前，您可能需要确保您的配置已正确设置，以便与Alluxio集成。 Hive集成检查器可以帮助您实现这一点。
-
-您可以在Alluxio项目目录中运行以下命令：
-
-```bash
-$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
-```
-
-您可以使用`-h`来显示有关该命令的有用信息。
-此命令将报告可能会阻止您在Alluxio上运行Hive的潜在问题。

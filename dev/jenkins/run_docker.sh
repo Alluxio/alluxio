@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-set -e
+set -ex
 
 function main {
   if [ -z "${ALLUXIO_DOCKER_ID}" ]
@@ -23,7 +23,7 @@ function main {
   fi
   if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
   then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.3"
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.5-jdk8"
   fi
 
   local run_args="--rm"
@@ -31,6 +31,23 @@ function main {
   if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]
   then
     run_args+=" -it"
+  fi
+
+  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
+  then
+    run_args+=" -e ALLUXIO_GIT_CLEAN=true"
+  fi
+
+  if [ -n "${ALLUXIO_DOCKER_MVN_RUNTOEND}" ]
+  then
+    run_args+=" -e ALLUXIO_MVN_RUNTOEND=true"
+  fi
+
+  if [ -n "${ALLUXIO_SONAR_ARGS}" ]
+  then
+    # write out to a file, in case there are spaces in the args
+    echo "ALLUXIO_SONAR_ARGS=${ALLUXIO_SONAR_ARGS}" > /tmp/.env
+    run_args+=" --env-file /tmp/.env"
   fi
 
   local home="/home/jenkins"
@@ -56,6 +73,14 @@ function main {
 
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
+
+  # If target branch or remote exists, set to run relevant checks given the diff of the PR
+  if [ -n "${ghprbTargetBranch}" ]
+  then
+    # this env var is defined by the github pull request builder jenkins plugin
+    # see https://plugins.jenkins.io/ghprb/
+    run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
+  fi
 
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
   run_args+=" --entrypoint=dev/jenkins/build.sh"

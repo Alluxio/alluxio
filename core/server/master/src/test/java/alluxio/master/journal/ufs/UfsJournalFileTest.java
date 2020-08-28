@@ -39,7 +39,7 @@ public final class UfsJournalFileTest {
   @Before
   public void before() throws Exception {
     mLocation = URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "master");
-    mJournal = new UfsJournal(mLocation, new NoopMaster(), 0);
+    mJournal = new UfsJournal(mLocation, new NoopMaster(), 0, Collections::emptySet);
   }
 
   @Test

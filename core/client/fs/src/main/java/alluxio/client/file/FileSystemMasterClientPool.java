@@ -11,17 +11,14 @@
 
 package alluxio.client.file;
 
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
-import alluxio.resource.ResourcePool;
-
-import com.google.common.io.Closer;
+import alluxio.resource.DynamicResourcePool;
+import alluxio.util.ThreadFactoryUtils;
 
 import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -29,38 +26,56 @@ import javax.annotation.concurrent.ThreadSafe;
  * A fixed pool of FileSystemMasterClient instances.
  */
 @ThreadSafe
-public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
-  private final Queue<FileSystemMasterClient> mClientList;
+public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSystemMasterClient> {
   private final MasterClientContext mMasterContext;
+  private final long mGcThresholdMs;
+
+  private static final int FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE = 1;
+  private static final ScheduledExecutorService GC_EXECUTOR =
+      new ScheduledThreadPoolExecutor(FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("FileSystemMasterClientPoolGcThreads-%d", true));
 
   /**
    * Creates a new file system master client pool.
    *
-   * @param context information for connecting to processes in the cluster
-   * @param masterInquireClient a client for determining the master address
+   * @param ctx information for connecting to processes in the cluster
    */
-  public FileSystemMasterClientPool(ClientContext context,
-      MasterInquireClient masterInquireClient) {
-    super(context.getConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
-    mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext = MasterClientContext.newBuilder(context)
-            .setMasterInquireClient(masterInquireClient).build();
+  public FileSystemMasterClientPool(MasterClientContext ctx) {
+    super(Options.defaultOptions()
+        .setMinCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN))
+        .setMaxCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX))
+        .setGcIntervalMs(
+            ctx.getClusterConf().getMs(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS))
+        .setGcExecutor(GC_EXECUTOR));
+    mMasterContext = ctx;
+    mGcThresholdMs =
+        ctx.getClusterConf().getMs(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 
   @Override
-  public void close() throws IOException {
-    FileSystemMasterClient client;
-    Closer closer = Closer.create();
-    while ((client = mClientList.poll()) != null) {
-      closer.register(client);
+  protected void closeResource(FileSystemMasterClient client) {
+    try {
+      client.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-    closer.close();
   }
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(mMasterContext);
-    mClientList.add(client);
-    return client;
+    return FileSystemMasterClient.Factory.create(mMasterContext);
+  }
+
+  @Override
+  protected boolean isHealthy(FileSystemMasterClient client) {
+    return client.isConnected();
+  }
+
+  @Override
+  protected boolean shouldGc(ResourceInternal<FileSystemMasterClient> clientResourceInternal) {
+    return System.currentTimeMillis() - clientResourceInternal
+        .getLastAccessTimeMs() > mGcThresholdMs;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.concurrent.ManagedBlockingUfsForwarder;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
@@ -106,7 +107,7 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return this.
+   * return it.
    *
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
@@ -125,11 +126,37 @@ public abstract class AbstractUfsManager implements UfsManager {
         return cachedFs;
       }
       UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
-      mUnderFileSystemMap.putIfAbsent(key, fs);
+
+      // Detect whether to use managed blocking on UFS operations.
+      boolean useManagedBlocking = fs.isObjectStorage();
+      if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
+        useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
+      }
+      // Wrap UFS under managed blocking forwarder if required.
+      if (useManagedBlocking) {
+        fs = new ManagedBlockingUfsForwarder(fs);
+      }
+
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur unless our synchronization is incorrect
+        LOG.warn("UFS already existed in UFS manager");
+      }
       mCloser.register(fs);
+      try {
+        connectUfs(fs);
+      } catch (IOException e) {
+        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.getMessage());
+      }
       return fs;
     }
   }
+
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system.
+   * The implementation will either call {@link UnderFileSystem#connectFromMaster(String)} or
+   *  {@link UnderFileSystem#connectFromWorker(String)} depending on the running process.
+   */
+  protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
@@ -170,8 +197,8 @@ public abstract class AbstractUfsManager implements UfsManager {
         Map<String, String> rootConf =
             ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
-                .createMountSpecificConf(rootConf));
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {

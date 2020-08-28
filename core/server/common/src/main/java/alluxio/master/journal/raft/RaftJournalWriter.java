@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -35,7 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
-  private static final long FLUSH_TIMEOUT_S = 2;
+  // How long to wait for a response from the cluster before giving up and trying again.
+  private final long mWriteTimeoutMs;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber;
@@ -57,6 +60,8 @@ public class RaftJournalWriter implements JournalWriter {
     mLastCommittedSequenceNumber = new AtomicLong(-1);
     mClient = client;
     mClosed = false;
+    mWriteTimeoutMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
   }
 
   @Override
@@ -85,8 +90,8 @@ public class RaftJournalWriter implements JournalWriter {
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
         mLastSubmittedSequenceNumber.set(flushSN);
-        mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(FLUSH_TIMEOUT_S,
-            TimeUnit.SECONDS);
+        mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(mWriteTimeoutMs,
+            TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -94,9 +99,9 @@ public class RaftJournalWriter implements JournalWriter {
       } catch (ExecutionException e) {
         throw new IOException(e.getCause());
       } catch (TimeoutException e) {
-        throw new IOException(
-            String.format("Timed out after waiting %s seconds for journal flush", FLUSH_TIMEOUT_S),
-            e);
+        throw new IOException(String.format(
+            "Timed out after waiting %s milliseconds for journal entries to be processed",
+            mWriteTimeoutMs), e);
       }
       mJournalEntryBuilder = null;
     }
@@ -104,6 +109,9 @@ public class RaftJournalWriter implements JournalWriter {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     mClosed = true;
     LOG.info("Closing journal writer. Last sequence numbers written/submitted/committed: {}/{}/{}",
         mNextSequenceNumberToWrite.get() - 1, mLastSubmittedSequenceNumber.get(),
@@ -120,14 +128,15 @@ public class RaftJournalWriter implements JournalWriter {
 
   private void closeClient() {
     try {
-      mClient.close().get(10, TimeUnit.SECONDS);
+      mClient.close().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     } catch (ExecutionException e) {
-      LOG.debug("Failed to close raft client: {}", e.toString());
+      LOG.warn("Failed to close raft client: {}", e.toString());
     } catch (TimeoutException e) {
-      LOG.debug("Failed to close raft client after 10 seconds");
+      LOG.warn("Timed out while closing raft client.");
     }
   }
 }

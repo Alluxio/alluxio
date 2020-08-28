@@ -14,6 +14,8 @@ package alluxio.client.job;
 import alluxio.Client;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
@@ -50,12 +52,27 @@ public interface JobMasterClient extends Client {
   void cancel(long id) throws IOException;
 
   /**
-   * Gets the status of the given job.
+   * Gets the status of the given job id.
    *
    * @param id the job id
    * @return the job information
    */
-  JobInfo getStatus(long id) throws IOException;
+  JobInfo getJobStatus(long id) throws IOException;
+
+  /**
+   * Gets detailed status of the given job id.
+   *
+   * @param id the job id
+   * @return the detailed job information
+   */
+  JobInfo getJobStatusDetailed(long id) throws IOException;
+
+  /**
+   * Gets the job service summary.
+   *
+   * @return the job service summary
+   */
+  JobServiceSummary getJobServiceSummary() throws IOException;
 
   /**
    * @return the list of ids of all jobs
@@ -63,10 +80,21 @@ public interface JobMasterClient extends Client {
   List<Long> list() throws IOException;
 
   /**
-   * Starts a job based on the given configuration.
+   * @return the list of all jobInfos
+   */
+  List<JobInfo> listDetailed() throws IOException;
+
+  /**
+   * Starts a plan based on the given configuration.
    *
    * @param jobConfig the job configuration
-   * @return the job id
+   * @return the plan id
    */
   long run(JobConfig jobConfig) throws IOException;
+
+  /**
+   * Gets all worker health.
+   * @return list of all worker health information
+   */
+  List<JobWorkerHealth> getAllWorkerHealth() throws IOException;
 }

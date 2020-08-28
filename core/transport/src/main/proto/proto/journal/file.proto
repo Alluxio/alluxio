@@ -1,0 +1,272 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+import "grpc/common.proto";
+import "proto/shared/acl.proto";
+
+// Journal entry messages for the file master.
+
+// A pair of strings, useful for maps.
+// next available id: 3
+message StringPairEntry {
+  optional string key = 1;
+  optional string value = 2;
+}
+
+// next available id: 3
+message ActiveSyncTxIdEntry {
+  optional int64 mount_id = 1;
+  optional int64 tx_id = 2;
+}
+
+// next available id: 3
+message AddSyncPointEntry {
+  optional string syncpoint_path = 1;
+  optional int64 mount_id = 2;
+}
+
+// next available id: 3
+message RemoveSyncPointEntry {
+  optional string syncpoint_path = 1;
+  optional int64 mount_id = 2;
+}
+
+// next available id: 7
+message AddMountPointEntry {
+  optional string alluxio_path = 1;
+  optional string ufs_path = 2;
+  optional bool readOnly = 3;
+  repeated StringPairEntry properties = 4;
+  optional bool shared = 5;
+  optional int64 mount_id = 6;
+}
+
+// next available id: 2
+message AsyncPersistRequestEntry {
+  optional int64 file_id = 1;
+}
+
+// next available id: 6
+message CompleteFileEntry {
+  repeated int64 block_ids = 1;
+  optional int64 id = 2;
+  optional int64 length = 3;
+  optional int64 op_time_ms = 4;
+  optional string ufs_fingerprint = 5;
+}
+
+// next available id: 6
+message DeleteFileEntry {
+  optional int64 id = 1;
+  // Deprecated, we now write one journal entry per inode removed
+  optional bool recursive = 2;
+  optional int64 op_time_ms = 3;
+  // Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
+  optional bool alluxioOnly = 4;
+  optional string path = 5;
+}
+
+// next available id: 2
+message DeleteMountPointEntry {
+  optional string alluxio_path = 1;
+}
+
+// Creates a new block for a file inode.
+// next available id: 2
+message NewBlockEntry {
+  optional int64 id = 1;
+}
+
+// next available id: 20
+message UpdateInodeEntry {
+  optional int64 id = 1;
+  optional int64 parent_id = 2;
+  optional string name = 3;
+  optional string persistence_state = 4;
+  optional bool pinned = 5;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
+  optional bool overwrite_modification_time = 8;
+  optional string owner = 9;
+  optional string group = 10;
+  optional int32 mode = 11;
+  optional int64 ttl = 12;
+  optional PTtlAction ttlAction = 13 [default = DELETE];
+  optional alluxio.proto.shared.AccessControlList acl = 14;
+  optional string ufs_fingerprint = 15;
+  repeated string medium_type = 16;
+  map<string, bytes> xAttr = 17;
+  optional int64 last_access_time_ms = 18;
+  optional bool overwrite_access_time = 19;
+}
+
+// next available id: 5
+message UpdateInodeDirectoryEntry {
+  optional int64 id = 1;
+  optional bool mount_point = 2;
+  optional bool direct_children_loaded = 3;
+  optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
+}
+
+// next available id: 13
+message UpdateInodeFileEntry {
+  optional int64 id = 1;
+  optional int64 block_size_bytes = 2;
+  optional int64 length = 3;
+  optional bool completed = 4;
+  optional bool cacheable = 5;
+  // Overwrite the blocks list
+  repeated int64 set_blocks = 7;
+  optional int32 replication_max = 8;
+  optional int32 replication_min = 9;
+  optional int64 persist_job_id = 10;
+  optional string temp_ufs_path = 11;
+  optional string path = 12;
+}
+
+// next available id: 21
+message InodeDirectoryEntry {
+  optional int64 id = 1;
+  optional int64 parent_id = 2;
+  optional string name = 3;
+  optional string persistence_state = 4;
+  optional bool pinned = 5;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
+  optional string owner = 8;
+  optional string group = 9;
+  optional int32 mode = 10;
+  optional bool mount_point = 11;
+  optional bool direct_children_loaded = 12;
+  optional int64 ttl = 13;
+  optional PTtlAction ttlAction = 14 [default = DELETE];
+  optional alluxio.proto.shared.AccessControlList acl = 15;
+  optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
+  optional string path = 17;
+  repeated string medium_type = 18;
+  map<string, bytes> xAttr = 19;
+  optional int64 last_access_time_ms = 20;
+}
+
+// next available id: 3
+message InodeDirectoryIdGeneratorEntry {
+  optional int64 container_id = 1;
+  optional int64 sequence_number = 2;
+}
+
+enum PTtlAction {
+  DELETE = 0;
+  FREE = 1;
+}
+
+// next available id: 30
+message InodeFileEntry {
+  optional int64 id = 1;
+  optional int64 parent_id = 2;
+  optional string name = 3;
+  optional string persistence_state = 4;
+  optional bool pinned = 5;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
+  optional int64 block_size_bytes = 8;
+  optional int64 length = 9;
+  optional bool completed = 10;
+  optional bool cacheable = 11;
+  repeated int64 blocks = 12;
+  optional int64 ttl = 13;
+  optional string owner = 14;
+  optional string group = 15;
+  optional int32 mode = 16;
+  optional PTtlAction ttlAction = 17 [default = DELETE];
+  optional string ufs_fingerprint = 18;
+  optional alluxio.proto.shared.AccessControlList acl = 19;
+  optional int32 replication_max = 20;
+  optional int32 replication_min = 21;
+  optional int64 persist_job_id = 22;
+  optional string temp_ufs_path = 23;
+  optional int32 replication_durable = 24;
+  optional string path = 25;
+  repeated string medium_type = 26;
+  optional int64 should_persist_time = 27;
+  map<string, bytes> xAttr = 28;
+  optional int64 last_access_time_ms = 29;
+}
+
+// next available id: 3
+message InodeLastModificationTimeEntry {
+  optional int64 id = 1;
+  optional int64 last_modification_time_ms = 2;
+}
+
+// next available id: 2
+message PersistDirectoryEntry {
+  optional int64 id = 1;
+}
+
+// next available id: 4
+message PersistFileEntry {
+  optional int64 id = 1;
+  optional int64 length = 2;
+  optional int64 op_time_ms = 3;
+}
+
+// next available id: 8
+message RenameEntry {
+  optional int64 id = 1;
+  // Deprecated, use new_parent_id/new_name instead
+  optional string dst_path = 2;
+  optional int64 op_time_ms = 3;
+
+  optional int64 new_parent_id = 4;
+  optional string new_name = 5;
+  optional string path = 6;
+  optional string new_path = 7;
+}
+
+enum PSetAclAction {
+  REPLACE = 0;
+  MODIFY = 1;
+  REMOVE = 2;
+  REMOVE_ALL = 3;
+  REMOVE_DEFAULT = 4;
+}
+
+// next available id: 6
+message SetAclEntry {
+  optional int64 id = 1;
+  optional int64 op_time_ms = 2;
+  optional PSetAclAction action = 3;
+  repeated alluxio.proto.shared.AclEntry entries = 4;
+  optional bool recursive = 5;
+}
+
+// next available id: 15
+message SetAttributeEntry {
+  optional int64 id = 1;
+  optional int64 op_time_ms = 2;
+  optional bool pinned = 3;
+  optional int64 ttl = 4;
+  optional bool persisted = 5;
+  optional string owner = 6;
+  optional string group = 7;
+  optional int32 permission = 8;
+  optional PTtlAction ttlAction = 9 [default = DELETE];
+  optional string ufs_fingerprint = 10;
+  optional int64 persistJobId = 11;
+  optional string tempUfsPath = 12;
+  optional int32 replication_max = 13;
+  optional int32 replication_min = 14;
+}
+
+enum UfsMode {
+  NO_ACCESS = 0;
+  READ_ONLY = 1;
+  READ_WRITE = 2;
+}
+
+// next available id: 3
+message UpdateUfsModeEntry {
+  optional string ufsPath = 1;
+  optional UfsMode ufsMode = 2 [default = READ_WRITE];
+}

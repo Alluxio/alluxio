@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logs Shallow component Renders Directory Listing Matches snapshot with Table listing 1`] = `
+<div
+  className="col-12"
+>
+  <FileView
+    beginInputHandler={[Function]}
+    endInputHandler={[Function]}
+    history={
+      Object {
+        "action": "PUSH",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 2,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "/logs",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+    offsetInputHandler={[Function]}
+    queryStringPrefix="/logs"
+    queryStringSuffix=""
+    textAreaHeight={0}
+    viewData={
+      Object {
+        "currentPath": "",
+        "debug": false,
+        "fatalError": "",
+        "fileData": "",
+        "fileInfos": Array [],
+        "invalidPathError": "",
+        "ntotalFile": 0,
+        "viewingOffset": 0,
+      }
+    }
+  />
+</div>
+`;
+
+exports[`Logs Shallow component Renders FileView Matches snapshot with File 1`] = `
+<div
+  className="col-12"
+>
+  <Table
+    hover={true}
+    responsiveTag="div"
+    tag="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          File Name
+        </th>
+        <th>
+          Size
+        </th>
+        <th>
+          Block Size
+        </th>
+        <th>
+          In-Alluxio
+        </th>
+        <th>
+          Persistence State
+        </th>
+        <th>
+          Pin
+        </th>
+        <th>
+          Modification Time
+        </th>
+      </tr>
+    </thead>
+    <tbody />
+  </Table>
+</div>
+`;

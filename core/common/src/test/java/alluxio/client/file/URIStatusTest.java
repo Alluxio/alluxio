@@ -11,12 +11,20 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
 import org.hamcrest.CoreMatchers;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * Tests for the {@link URIStatus} class.
@@ -27,10 +35,10 @@ public final class URIStatusTest {
   public void constructor() {
     try {
       new URIStatus(null);
-      Assert.fail("Cannot create a URIStatus from a null FileInfo");
+      fail("Cannot create a URIStatus from a null FileInfo");
     } catch (Exception e) {
-      Assert.assertTrue(e instanceof NullPointerException);
-      Assert.assertThat(e.getMessage(),
+      assertTrue(e instanceof NullPointerException);
+      assertThat(e.getMessage(),
           CoreMatchers.containsString("Cannot create a URIStatus from a null FileInfo"));
     }
   }
@@ -42,36 +50,39 @@ public final class URIStatusTest {
   public void fields() {
     FileInfo fileInfo = FileInfoTest.createRandom();
     URIStatus uriStatus = new URIStatus(fileInfo);
-    Assert.assertEquals(uriStatus.getBlockIds(), fileInfo.getBlockIds());
-    Assert.assertEquals(uriStatus.getBlockSizeBytes(),
+    assertEquals(uriStatus.getBlockIds(), fileInfo.getBlockIds());
+    assertEquals(uriStatus.getBlockSizeBytes(),
         fileInfo.getBlockSizeBytes());
-    Assert.assertEquals(uriStatus.getCreationTimeMs(),
+    assertEquals(uriStatus.getCreationTimeMs(),
         fileInfo.getCreationTimeMs());
-    Assert.assertEquals(uriStatus.getFileId(), fileInfo.getFileId());
-    Assert.assertEquals(uriStatus.getGroup(), fileInfo.getGroup());
-    Assert.assertEquals(uriStatus.getInMemoryPercentage(),
+    assertEquals(uriStatus.getFileId(), fileInfo.getFileId());
+    assertEquals(uriStatus.getGroup(), fileInfo.getGroup());
+    assertEquals(uriStatus.getInMemoryPercentage(),
         fileInfo.getInMemoryPercentage());
-    Assert.assertEquals(uriStatus.getLastModificationTimeMs(),
+    assertEquals(uriStatus.getLastModificationTimeMs(),
         fileInfo.getLastModificationTimeMs());
-    Assert.assertEquals(uriStatus.getLength(), fileInfo.getLength());
-    Assert.assertEquals(uriStatus.getName(), fileInfo.getName());
-    Assert.assertEquals(uriStatus.getPath(), fileInfo.getPath());
-    Assert.assertEquals(uriStatus.getMode(), fileInfo.getMode());
-    Assert.assertEquals(uriStatus.getPersistenceState(),
+    assertEquals(uriStatus.getLength(), fileInfo.getLength());
+    assertEquals(uriStatus.getName(), fileInfo.getName());
+    assertEquals(uriStatus.getPath(), fileInfo.getPath());
+    assertEquals(uriStatus.getMode(), fileInfo.getMode());
+    assertEquals(uriStatus.getPersistenceState(),
         fileInfo.getPersistenceState());
-    Assert.assertEquals(uriStatus.getTtl(), fileInfo.getTtl());
-    Assert.assertEquals(uriStatus.getTtlAction(), fileInfo.getTtlAction());
-    Assert.assertEquals(uriStatus.getUfsPath(), fileInfo.getUfsPath());
-    Assert.assertEquals(uriStatus.getOwner(), fileInfo.getOwner());
-    Assert.assertEquals(uriStatus.isCacheable(), fileInfo.isCacheable());
-    Assert.assertEquals(uriStatus.isCompleted(), fileInfo.isCompleted());
-    Assert.assertEquals(uriStatus.isFolder(), fileInfo.isFolder());
-    Assert.assertEquals(uriStatus.isPersisted(), fileInfo.isPersisted());
-    Assert.assertEquals(uriStatus.isPinned(), fileInfo.isPinned());
-    Assert.assertEquals(uriStatus.isMountPoint(), fileInfo.isMountPoint());
-    Assert.assertEquals(uriStatus.getFileBlockInfos(),
-        fileInfo.getFileBlockInfos());
-    Assert.assertEquals(uriStatus.toString(), fileInfo.toString());
+    assertEquals(uriStatus.getTtl(), fileInfo.getTtl());
+    assertEquals(uriStatus.getTtlAction(), fileInfo.getTtlAction());
+    assertEquals(uriStatus.getUfsPath(), fileInfo.getUfsPath());
+    assertEquals(uriStatus.getOwner(), fileInfo.getOwner());
+    assertEquals(uriStatus.isCacheable(), fileInfo.isCacheable());
+    assertEquals(uriStatus.isCompleted(), fileInfo.isCompleted());
+    assertEquals(uriStatus.isFolder(), fileInfo.isFolder());
+    assertEquals(uriStatus.isPersisted(), fileInfo.isPersisted());
+    assertEquals(uriStatus.isPinned(), fileInfo.isPinned());
+    assertEquals(uriStatus.isMountPoint(), fileInfo.isMountPoint());
+    assertEquals(uriStatus.getFileBlockInfos(), fileInfo.getFileBlockInfos());
+    assertEquals(uriStatus.toString(), fileInfo.toString());
+    assertEquals(uriStatus.getXAttr().size(), fileInfo.getXAttr().size());
+    for (Map.Entry<String, byte[]> entry : uriStatus.getXAttr().entrySet()) {
+      Assert.assertArrayEquals(entry.getValue(), fileInfo.getXAttr().get(entry.getKey()));
+    }
   }
 
   @Test
@@ -79,7 +90,7 @@ public final class URIStatusTest {
     FileInfo fileInfo = FileInfoTest.createRandom();
     URIStatus uriStatus1 = new URIStatus(fileInfo);
     URIStatus uriStatus2 = new URIStatus(fileInfo);
-    Assert.assertTrue(uriStatus1.equals(uriStatus2));
-    Assert.assertEquals(uriStatus1.hashCode(), uriStatus2.hashCode());
+    assertTrue(uriStatus1.equals(uriStatus2));
+    assertEquals(uriStatus1.hashCode(), uriStatus2.hashCode());
   }
 }

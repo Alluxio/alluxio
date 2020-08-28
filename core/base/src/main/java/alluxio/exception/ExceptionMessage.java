@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.Constants;
+
 import com.google.common.base.Preconditions;
 
 import java.text.MessageFormat;
@@ -32,6 +34,7 @@ public enum ExceptionMessage {
   PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
   PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
+  STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
 
   // general block
   BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
@@ -86,17 +89,17 @@ public enum ExceptionMessage {
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE(
-      "Failed to find an eviction plan to free {0,number,#} bytes space at location {1}"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
-      "Failed to allocate {0,number,#} bytes on {1} after {2}ms to create blockId {3,number,#}"),
+      "Failed to free {0,number,#} bytes space at location {1}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION(
+      "Failed to allocate {0,number,#} bytes on {1} to create blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
       "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
   NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
       "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
       "Failed to request {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
-  NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
-      "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
+  NO_SPACE_FOR_BLOCK_MOVE(
+      "Failed to find space in {0} to move blockId {1,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
       "Failed to find space in {0} to move blockId {1,number,#} after {2} attempts"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
@@ -123,6 +126,9 @@ public enum ExceptionMessage {
   FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
 
   // file
+  CANNOT_READ_INCOMPLETE_FILE(
+      "Cannot read from {0} because it is incomplete. Wait for the file to be marked as complete "
+          + "by the writing thread or application."),
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_DIR_CHILDREN(
       "Cannot delete directory {0}. Failed to delete children: {1}"),
@@ -137,7 +143,6 @@ public enum ExceptionMessage {
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
-  FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
@@ -168,6 +173,17 @@ public enum ExceptionMessage {
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
+  // table master
+  DATABASE_DOES_NOT_EXIST("Database {0} does not exist"),
+  TABLE_DOES_NOT_EXIST("Table {0} does not exist in database {1}"),
+  TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES("Write action must have positive number of files"),
+  TABLE_BEING_TRANSFORMED("Existing job {0} is transforming table {1} in database {2}"),
+  TABLE_ALREADY_TRANSFORMED("Database {0} table {1} has been transformed by definition {2}"),
+  TRANSFORM_JOB_DOES_NOT_EXIST("No transformation information for job ID {0}"),
+  TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED("TransformManager's heartbeat was interrupted"),
+  TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE("Transformation job {0} for database {1} table {2} "
+      + "was not found in job master, maybe the job master was restarted: {3}"),
+
   // safe mode
   MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
 
@@ -188,6 +204,10 @@ public enum ExceptionMessage {
   INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option `{0}` for --sort"),
   INVALID_ARG_TYPE("Arg {0} is not type {1}"),
+  INVALID_OPTION("Invalid option provided. Supported options: {0}"),
+  INVALID_OPTION_COUNT("Invalid option count. Expected: {0}, Found: {1}"),
+  INVALID_OPTION_VALUE("Invalid value provided for option: {0}. Supported values: {1}"),
+  INVALID_ADDRESS_VALUE("Invalid address provided."),
 
   // extension shell
   INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
@@ -204,20 +224,27 @@ public enum ExceptionMessage {
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // configuration
+  UNABLE_TO_DETERMINE_MASTER_HOSTNAME("Cannot run {0}; Unable to determine {1} address. Please "
+      + "modify " + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
+      + "{3}=true and {4}=[comma-separated zookeeper master addresses], or utilize internal HA by "
+      + "setting {5}=[comma-separated alluxio {1} addresses]"),
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
-  KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
-  KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
-  KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
-  KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
-  KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
-  KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
+  KEY_NOT_BOOLEAN("Configuration cannot evaluate value {0} as boolean for key {1}"),
+  KEY_NOT_BYTES("Configuration cannot evaluate value {0} as bytes for key {1}"),
+  KEY_NOT_DOUBLE("Configuration cannot evaluate value {0} as double for key {1}"),
+  KEY_NOT_FLOAT("Configuration cannot evaluate value {0} as float for key {1}"),
+  KEY_NOT_INTEGER("Configuration cannot evaluate value {0} as integer for key {1}"),
+  KEY_NOT_LONG("Configuration cannot evaluate value {0} as long for key {1}"),
+  KEY_NOT_MS("Configuration cannot evaluate value {0} as milliseconds for key {1}"),
   KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
-  UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
+  UNKNOWN_ENUM("Unrecognized configuration enum value <{0}> for key {1}. Acceptable values: {2}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
+
+  // metrics
+  INVALID_METRIC_KEY("Invalid metric key {0}"),
 
   // security
   ACL_BASE_REQUIRED(
@@ -225,10 +252,6 @@ public enum ExceptionMessage {
           + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
-  IMPERSONATION_NOT_CONFIGURED(
-      "User {0} is not configured for any impersonation. impersonationUser: {1}"),
-  IMPERSONATION_GROUPS_FAILED("Failed to get groups for impersonationUser {0}. user: {1}"),
-  IMPERSONATION_DENIED("User {0} is not configured to impersonate {1}"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
@@ -253,6 +276,7 @@ public enum ExceptionMessage {
       "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
+  FOREIGN_URI_NOT_MOUNTED("Foreign URI: {0} is not found on Alluxio mounts."),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
@@ -268,6 +292,10 @@ public enum ExceptionMessage {
       "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
   MIGRATE_TO_FILE_AS_DIRECTORY("Cannot migrate to {0}. {1} is a file, not a directory"),
 
+  // transform job
+  TRANSFORM_TABLE_URI_LACKS_SCHEME("URI {0} lacks scheme"),
+  TRANSFORM_TABLE_URI_LACKS_AUTHORITY("URI {0} lacks authority"),
+
   // job service
   NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
       "Cannot find a local block worker to replicate blockId {0,number,#}"),
@@ -279,6 +307,7 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
+  PINNED_TO_MULTIPLE_MEDIUMTYPES("File {0} pinned to multiple medium types"),
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
@@ -299,9 +328,9 @@ public enum ExceptionMessage {
    * @return the formatted message
    */
   public String getMessage(Object... params) {
-    Preconditions.checkArgument(mMessage.getFormats().length == params.length,
-        "The message takes " + mMessage.getFormats().length + " arguments, but is given "
-            + params.length);
+    Preconditions.checkArgument(mMessage.getFormatsByArgumentIndex().length == params.length,
+        "The message takes " + mMessage.getFormatsByArgumentIndex().length + " arguments, but is "
+            + "given " + params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
       return mMessage.format(params);

@@ -82,9 +82,10 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // connect Master Web service
     InetSocketAddress masterWebAddr =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, ServerConfiguration.global());
-    mMasterWebService = (HttpURLConnection) new URL(
-        "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
-            + "/index.html").openConnection();
+    mMasterWebService = (HttpURLConnection) new URL("http://"
+        + (masterWebAddr.isUnresolved() ? masterWebAddr.toString()
+            : masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort())
+        + "/index.html").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service

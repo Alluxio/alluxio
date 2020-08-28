@@ -12,7 +12,7 @@ bootstrapConf:
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 fs:
   Interact with Alluxio in command line style for basic file system operations.
-  See [Command Line]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more information.
+  See [User CLI]({{ '/en/operation/User-CLI.html' | relativize_url }}) for more information.
 fsadmin:
   Command line tool for use by Alluxio filesystem admins.
   See [Fsadmin Command Line]({{ '/en/basic/operation/Admin-CLI.md' | relativize_url }}) for more information.
@@ -32,8 +32,9 @@ journalCrashTest:
   Test the Master Journal System in a crash scenario. Try <code>alluxio journalCrashTest -help</code>
   to see the meanings of each argument in detail, or you can run it without args by default.
 readJournal:
-  Read a Alluxio journal file from stdin and write a human-readable version of it to stdout. You
-  can run this on the journal file as <code>alluxio readJournal < journal/FileSystemMaster/log.out</code>.
+  Read a Alluxio journal file from stdin and write a human-readable version of it to stdout.
+  Try <code>alluxio readJournal -help</code> to see the meanings of each argument in detail,
+  or you can run it without args by default.
 upgradeJournal:
   Upgrade an Alluxio journal version 0 (Alluxio version &lt; 1.5.0) to an Alluxio journal version
    1 (Alluxio version &gt;= 1.5.0).

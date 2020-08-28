@@ -11,11 +11,15 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
 
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
+import org.javaswift.joss.exception.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SwiftInputStream extends MultiRangeObjectInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftInputStream.class);
 
   /** JOSS Swift account. */
   private final Account mAccount;
@@ -36,6 +41,11 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   private final String mContainerName;
   /** The path of the object to read, without container prefix. */
   private final String mObjectPath;
+  /**
+   * Policy determining the retry behavior in case the object does not exist.
+   * The object may not exist because of eventual consistency.
+   */
+  private final RetryPolicy mRetryPolicy;
 
   /**
    * Constructor for an input stream to an object in a Swift API based store.
@@ -43,11 +53,12 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
+   * @param retryPolicy retry policy in case the object does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object,
-      long multiRangeChunkSize) {
-    this(account, container, object, 0L, multiRangeChunkSize);
+      RetryPolicy retryPolicy, long multiRangeChunkSize) {
+    this(account, container, object, 0L, retryPolicy, multiRangeChunkSize);
   }
 
   /**
@@ -57,23 +68,37 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
+   * @param retryPolicy retry policy in case the object does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object, long position,
-      long multiRangeChunkSize) {
+      RetryPolicy retryPolicy, long multiRangeChunkSize) {
     super(multiRangeChunkSize);
     mAccount = account;
     mContainerName = container;
     mObjectPath = object;
     mPos = position;
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
-    StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
-    DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));
-    return storedObject.downloadObjectAsInputStream(downloadInstructions);
+    NotFoundException lastException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
+        DownloadInstructions downloadInstructions  = new DownloadInstructions();
+        downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));
+        return storedObject.downloadObjectAsInputStream(downloadInstructions);
+      } catch (NotFoundException e) {
+        LOG.warn("Attempt {} to get object {} from container {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mObjectPath, mContainerName, e.toString());
+        // Object does not exist
+        lastException = e;
+      }
+    }
+    // Failed after retrying object does not exist
+    throw lastException;
   }
 }

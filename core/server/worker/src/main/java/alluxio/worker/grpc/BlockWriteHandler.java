@@ -16,13 +16,14 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteResponse;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 
 import org.slf4j.Logger;
@@ -48,24 +49,44 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
+  private final boolean mDomainSocketEnabled;
+
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
    * @param blockWorker the block worker
    * @param responseObserver the stream observer for the write response
+   * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether reading block over domain socket
    */
-  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
-    BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    long bytesToReserve = FILE_BUFFER_SIZE;
+    if (msg.getCommand().hasSpaceToReserve()) {
+      bytesToReserve = msg.getCommand().getSpaceToReserve();
+    }
+    BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+        mStorageTierAssoc.getAlias(request.getTier()),
+        request.getMediumType(), bytesToReserve);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
+      context.setMeter(MetricsSystem.meter(
+          MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
+    } else {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setMeter(MetricsSystem.meter(
+          MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+    }
     return context;
   }
 
@@ -75,7 +96,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (context.getBlockWriter() != null) {
       context.getBlockWriter().close();
     }
-    mWorker.commitBlock(request.getSessionId(), request.getId());
+    mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
   }
 
   @Override
@@ -89,8 +110,10 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
 
   @Override
   protected void cleanupRequest(BlockWriteRequestContext context) throws Exception {
-    WriteRequest request = context.getRequest();
-    mWorker.cleanupSession(request.getSessionId());
+    if (context.getBlockWriter() != null) {
+      context.getBlockWriter().close();
+    }
+    mWorker.cleanupSession(context.getRequest().getSessionId());
   }
 
   @Override
@@ -101,7 +124,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
 
   @Override
   protected void writeBuf(BlockWriteRequestContext context,
-      StreamObserver<WriteResponse> observer, ByteString buf, long pos) throws Exception {
+      StreamObserver<WriteResponse> observer, DataBuffer buf, long pos) throws Exception {
     Preconditions.checkState(context != null);
     WriteRequest request = context.getRequest();
     long bytesReserved = context.getBytesReserved();
@@ -112,15 +135,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.setBytesReserved(bytesReserved + bytesToReserve);
     }
     if (context.getBlockWriter() == null) {
-      String metricName = WorkerMetrics.BYTES_WRITTEN_ALLUXIO;
       context.setBlockWriter(
           mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
-      context.setCounter(MetricsSystem.counter(metricName));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
-    int sz = buf.size();
-    Preconditions.checkState(
-        context.getBlockWriter().append(buf.asReadOnlyByteBuffer())  == sz);
+    int sz = buf.readableBytes();
+    Preconditions.checkState(context.getBlockWriter().append(buf)  == sz);
   }
 }

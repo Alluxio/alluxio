@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
@@ -46,7 +47,8 @@ public class ConcurrentRecursiveCreateTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString()).build();
 
   @Test
   public void createDuringUfsRename() throws Exception {

@@ -24,7 +24,7 @@ public interface BlockDeletionContext extends Closeable {
    * @param blockIds the blocks to be deleted when the context closes
    */
   default void registerBlocksForDeletion(Collection<Long> blockIds) {
-    blockIds.forEach(id -> registerBlockForDeletion(id));
+    blockIds.forEach(this::registerBlockForDeletion);
   }
 
   /**

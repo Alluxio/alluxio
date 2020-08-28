@@ -15,16 +15,23 @@ import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 /**
  * Alluxio master monitor for inquiring the AlluxioMaster service availability.
  */
 public final class AlluxioMasterMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterMonitor.class);
+
+  public static final Supplier<RetryPolicy> TWO_MIN_EXP_BACKOFF =
+      () -> new ExponentialBackoffRetry(50, 1000, 130); // Max time ~2 min
 
   /**
    * Starts the Alluxio master monitor.
@@ -39,7 +46,14 @@ public final class AlluxioMasterMonitor {
     }
 
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    HealthCheckClient client = new MasterHealthCheckClient.Builder(alluxioConf).build();
+
+    MasterHealthCheckClient.Builder builder = new MasterHealthCheckClient.Builder(alluxioConf);
+    if (ConfigurationUtils.isHaMode(alluxioConf)) {
+      builder.withProcessCheck(true);
+    } else {
+      builder.withProcessCheck(false);
+    }
+    HealthCheckClient client = builder.build();
     if (!client.isServing()) {
       System.exit(1);
     }

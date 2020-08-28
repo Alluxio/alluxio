@@ -20,6 +20,11 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -119,6 +124,34 @@ public final class PathUtils {
       return AlluxioURI.SEPARATOR;
     }
     return output.toString();
+  }
+
+  /**
+   * @param paths the set of paths
+   * @return the lowest common ancestor, or null if paths is null or empty
+   */
+  public static AlluxioURI findLowestCommonAncestor(Collection<AlluxioURI> paths) {
+    if (paths == null || paths.isEmpty()) {
+      return null;
+    }
+    List<String> matchedComponents = null;
+    int matchedLen = 0;
+    for (AlluxioURI path : paths) {
+      String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
+      if (matchedComponents == null) {
+        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedLen = pathComp.length;
+      }
+
+      for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
+        if (!matchedComponents.get(i).equals(pathComp[i])) {
+          matchedLen = i;
+          break;
+        }
+      }
+    }
+    return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
+        matchedComponents.subList(0, matchedLen).toArray()));
   }
 
   /**

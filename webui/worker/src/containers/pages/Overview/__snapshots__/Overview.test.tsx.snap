@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Overview Shallow component Matches snapshot 1`] = `
+<Fragment>
+  <div
+    className="col-md-6"
+  >
+    <h5>
+      Alluxio Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th
+            scope="row"
+          >
+            Worker Address
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Started
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Uptime
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Version
+          </th>
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-md-6"
+  >
+    <h5>
+      Cluster Usage Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th
+            scope="row"
+          >
+            Total Capacity / Used
+          </th>
+          <td>
+             / 
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-md-12"
+  >
+    <h5>
+      Storage Usage Summary
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <thead>
+        <tr>
+          <th>
+            Alias
+          </th>
+          <th>
+            Path
+          </th>
+          <th>
+            Capacity
+          </th>
+          <th>
+            Space Used
+          </th>
+          <th>
+            Space Usage
+          </th>
+        </tr>
+      </thead>
+      <tbody />
+    </Table>
+  </div>
+</Fragment>
+`;

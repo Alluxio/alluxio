@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -22,15 +23,17 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Changes the owner of a file or directory specified by args.
  */
 @ThreadSafe
+@PublicApi
 public final class ChownCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =

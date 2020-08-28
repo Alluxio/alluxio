@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Queue;
 
 /**
@@ -37,7 +38,7 @@ public final class UfsJournalSnapshotTest {
   public void before() throws Exception {
     mJournal =
         new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
-            "FileSystemMaster"), new NoopMaster(), 0);
+            "FileSystemMaster"), new NoopMaster(), 0, Collections::emptySet);
   }
 
   /**

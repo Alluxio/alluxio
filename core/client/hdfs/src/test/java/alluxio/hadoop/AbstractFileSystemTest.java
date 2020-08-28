@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -29,20 +30,20 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
@@ -121,21 +122,6 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
-    URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
-
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.MASTER_HOSTNAME, uri.getHost(),
-        PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "ignored"), mConfiguration).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
-  }
-
-  @Test
   public void hadoopShouldLoadFileSystemWithSingleZkUri() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
     URI uri = URI.create(Constants.HEADER + "zk@zkHost:2181/tmp/path.txt");
@@ -192,37 +178,6 @@ public class AbstractFileSystemTest {
     uri = URI.create("alluxio://host1:19998;host2:19998;host3:19998/path");
     fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
     assertTrue(fs instanceof FileSystem);
-  }
-
-  /**
-   * Hadoop should be able to load uris like alluxio-ft:///path/to/file.
-   */
-  @Test
-  public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
-    URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "ignored"), mConfiguration).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
-  }
-
-  /**
-   * Tests that using an alluxio-ft:/// URI is still possible after using an alluxio://host:port/
-   * URI.
-   */
-  @Test
-  public void loadRegularThenFaultTolerant() throws Exception {
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "host:2"), mConfiguration).toResource()) {
-      org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host:1/"), getConf());
-      org.apache.hadoop.fs.FileSystem fs =
-          org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER_FT + "/"), getConf());
-      assertTrue(fs instanceof FaultTolerantFileSystem);
-    }
   }
 
   @Test
@@ -381,12 +336,14 @@ public class AbstractFileSystemTest {
   public void listStatus() throws Exception {
     FileInfo fileInfo1 = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
         .setMode(00755);
     FileInfo fileInfo2 = new FileInfo()
         .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
         .setFolder(true)
         .setOwner("user2")
         .setGroup("group2")
@@ -438,6 +395,7 @@ public class AbstractFileSystemTest {
   public void getStatus() throws Exception {
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
@@ -577,9 +535,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList("worker0", "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
@@ -608,9 +565,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching & no ufs locations, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
@@ -631,6 +587,42 @@ public class AbstractFileSystemTest {
     }
   }
 
+  @Test
+  public void appendExistingNotSupported() throws Exception {
+    Path path = new Path("/file");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(true);
+
+    try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
+      alluxioHadoopFs.append(path, 100);
+      fail("append() of existing file is expected to fail");
+    } catch (IOException e) {
+      assertEquals("append() to existing Alluxio path is currently not supported: " + path,
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void createWithoutOverwrite() throws Exception {
+    Path path = new Path("/file");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(true);
+    when(alluxioFs.createFile(eq(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))), any()))
+        .thenThrow(new FileAlreadyExistsException(path.toString()));
+
+    try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
+      alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
+      fail("create() of existing file is expected to fail");
+    } catch (IOException e) {
+      assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
+          e.getMessage());
+    }
+  }
+
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,
       List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
     FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(
@@ -639,26 +631,28 @@ public class AbstractFileSystemTest {
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
         .setFolder(false)
         .setOwner("user1")
         .setGroup("group1")
         .setMode(00755)
         .setFileBlockInfos(Arrays.asList(blockInfo));
     Path path = new Path("/dir/file");
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
         .thenReturn(blockStore);
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));
-    when(fsContext.getConf()).thenReturn(mConfiguration);
+    when(fsContext.getClusterConf()).thenReturn(mConfiguration);
+    when(fsContext.getPathConf(any(AlluxioURI.class))).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
     alluxio.client.file.FileSystem spyFs = spy(fs);
-    doReturn(new URIStatus(fileInfo))
-        .when(spyFs).getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)));
+    doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
-    PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
+    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(spyFs);
@@ -683,7 +677,6 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
     return conf;
   }
@@ -708,6 +701,7 @@ public class AbstractFileSystemTest {
     assertEquals(info.getGroup(), status.getGroup());
     assertEquals(info.getMode(), status.getPermission().toShort());
     assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    assertEquals(info.getLastAccessTimeMs(), status.getAccessTime());
     assertEquals(info.isFolder(), status.isDir());
   }
 }

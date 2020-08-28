@@ -20,6 +20,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockLockManager;
@@ -48,17 +49,20 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   /** The lock Id of the block being read. */
   private long mLockId;
   private long mSessionId;
+  private AuthenticatedUserInfo mUserInfo;
 
   /**
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param blockWorker the block worker
+   * @param userInfo the authenticated user info
    */
   ShortCircuitBlockReadHandler(BlockWorker blockWorker,
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+      StreamObserver<OpenLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mWorker = blockWorker;
     mLockId = BlockLockManager.INVALID_LOCK_ID;
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
   }
 
   /**
@@ -76,11 +80,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           // TODO(calvin): Update the locking logic so this can be done better
           if (mRequest.getPromote()) {
             try {
-              mWorker
-                  .moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+              mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
             } catch (BlockDoesNotExistException e) {
-              LOG.debug("Block {} to promote does not exist in Alluxio: {}",
-                  mRequest.getBlockId(), e.getMessage());
+              LOG.debug("Block {} to promote does not exist in Alluxio: {}", mRequest.getBlockId(),
+                  e.getMessage());
             } catch (Exception e) {
               LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
             }
@@ -110,8 +113,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, "OpenBlock", true, false, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+    }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 
   @Override
@@ -150,7 +153,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
         mLockId = BlockLockManager.INVALID_LOCK_ID;
       }
-    }, "CloseBlock", false, true, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+    }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 }

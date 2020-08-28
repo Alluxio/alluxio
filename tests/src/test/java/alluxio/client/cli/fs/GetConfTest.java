@@ -12,15 +12,18 @@
 package alluxio.client.cli.fs;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
-import alluxio.client.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -49,24 +52,24 @@ public final class GetConfTest {
 
   @Test
   public void getConf() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
     ClientContext ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx,
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx,
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2MB\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "Nonsense");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "Nonsense");
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx,
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("Nonsense\n", mOutputStream.toString());
   }
 
@@ -88,40 +91,40 @@ public final class GetConfTest {
 
   @Test
   public void getConfWithCorrectUnit() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
     ClientContext ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "B",
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "MB",
-        PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
   }
 
   @Test
   public void getConfWithWrongUnit() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
     assertEquals(1,
         GetConf.getConf(ClientContext.create(ServerConfiguration.global()), "--unit", "bad_unit",
-            PropertyKey.WORKER_MEMORY_SIZE.toString()));
+            PropertyKey.WORKER_RAMDISK_SIZE.toString()));
   }
 
   @Test
@@ -144,16 +147,16 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration()).thenReturn(configList);
+    Mockito.when(client.getConfiguration(any())).thenReturn(
+        Configuration.fromProto(prepareGetConfigurationResponse()));
 
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER\n"
         + "alluxio.master.hostname=localhost\n"
-        + "alluxio.master.port=19998\n"
-        + "alluxio.master.web.port=19999\n"
-        + "alluxio.underfs.address=hdfs://localhost:9000\n";
+        + "alluxio.master.mount.table.root.ufs=hdfs://localhost:9000\n"
+        + "alluxio.master.rpc.port=19998\n"
+        + "alluxio.master.web.port=19999\n";
     assertEquals(expectedOutput, mOutputStream.toString());
   }
 
@@ -162,8 +165,8 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration()).thenReturn(configList);
+    Mockito.when(client.getConfiguration(any())).thenReturn(Configuration.fromProto(
+        prepareGetConfigurationResponse()));
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
         "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
@@ -171,9 +174,9 @@ public final class GetConfTest {
         "alluxio.logger.type=MASTER_LOGGER (SYSTEM_PROPERTY)\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER (SYSTEM_PROPERTY)\n"
         + "alluxio.master.hostname=localhost (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n"
-        + "alluxio.master.port=19998 (DEFAULT)\n"
-        + "alluxio.master.web.port=19999 (DEFAULT)\n"
-        + "alluxio.underfs.address=hdfs://localhost:9000 (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n";
+        + "alluxio.master.mount.table.root.ufs=hdfs://localhost:9000 (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n"
+        + "alluxio.master.rpc.port=19998 (DEFAULT)\n"
+        + "alluxio.master.web.port=19999 (DEFAULT)\n";
     // CHECKSTYLE.ON: LineLengthExceed
     assertEquals(expectedOutput, mOutputStream.toString());
   }
@@ -183,18 +186,24 @@ public final class GetConfTest {
    */
   private List<ConfigProperty> prepareConfigList() {
     return Arrays.asList(
-        ConfigProperty.newBuilder().setName("alluxio.master.port").setValue("19998")
+        ConfigProperty.newBuilder().setName("alluxio.master.rpc.port").setValue("19998")
             .setSource("DEFAULT").build(),
         ConfigProperty.newBuilder().setName("alluxio.master.web.port").setValue("19999")
             .setSource("DEFAULT").build(),
         ConfigProperty.newBuilder().setName("alluxio.master.hostname").setValue("localhost")
             .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
-        ConfigProperty.newBuilder().setName("alluxio.underfs.address")
+        ConfigProperty.newBuilder().setName("alluxio.master.mount.table.root.ufs")
             .setValue("hdfs://localhost:9000")
             .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
         ConfigProperty.newBuilder().setName("alluxio.logger.type").setValue("MASTER_LOGGER")
             .setSource("SYSTEM_PROPERTY").build(),
         ConfigProperty.newBuilder().setName("alluxio.master.audit.logger.type")
             .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY").build());
+  }
+
+  private GetConfigurationPResponse prepareGetConfigurationResponse() {
+    return GetConfigurationPResponse.newBuilder()
+        .addAllClusterConfigs(prepareConfigList())
+        .build();
   }
 }

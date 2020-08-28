@@ -78,8 +78,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Used for auto binding. **/
   private ServerSocket mBindSocket;
 
-  /** The address for the rpc server. */
-  private InetSocketAddress mRpcAddress;
+  /** The bind address for the rpc server. */
+  private InetSocketAddress mRpcBindAddress;
+
+  /** The connect address for the rpc server. */
+  private InetSocketAddress mRpcConnectAddress;
 
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
@@ -135,14 +138,17 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       } else {
         bindPort = configuredBindAddress.getPort();
       }
-      mRpcAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
+      mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
+      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
+          ServerConfiguration.global());
       if (mBindSocket != null) {
         // Socket opened for auto bind.
         // Close it.
         mBindSocket.close();
       }
       // Setup Data server
-      mDataServer = DataServer.Factory.create(mRpcAddress, this);
+      mDataServer =
+          DataServer.Factory.create(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
@@ -153,8 +159,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer =
-            DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+        mDomainSocketDataServer = DataServer.Factory.create(mRpcConnectAddress.getHostName(),
+            new DomainSocketAddress(domainSocketPath), this);
         // Share domain socket so that clients can access it.
         FileUtils.changeLocalFileToFullPermission(domainSocketPath);
       }
@@ -213,7 +219,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public InetSocketAddress getRpcAddress() {
-    return mRpcAddress;
+    return mRpcBindAddress;
   }
 
   @Override
@@ -265,8 +271,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       if (mJvmPauseMonitor != null) {
         mJvmPauseMonitor.stop();
       }
-      stopWorkers();
     }
+    stopWorkers();
   }
 
   private boolean isServing() {
@@ -325,7 +331,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
             ServerConfiguration.global()))
-        .setRpcPort(mRpcAddress.getPort())
+        .setContainerHost(ServerConfiguration.global()
+            .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
+        .setRpcPort(mRpcBindAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
@@ -334,6 +342,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public String toString() {
-    return "Alluxio worker";
+    return "Alluxio worker @" + mRpcConnectAddress;
   }
 }

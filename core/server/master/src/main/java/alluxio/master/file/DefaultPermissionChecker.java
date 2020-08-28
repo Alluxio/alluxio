@@ -11,14 +11,14 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclAction;
@@ -74,7 +74,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
     // collects existing inodes info on the path. Note that, not all the components of the path have
     // corresponding inodes.
-    List<Inode> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -95,7 +95,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     // collects inodes info on the path
-    List<Inode> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -110,7 +110,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       return Mode.Bits.NONE;
     }
     // collects inodes info on the path
-    List<Inode> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     try {
@@ -124,7 +124,8 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
   @Override
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired) throws AccessControlException, InvalidPathException {
+      boolean ownerRequired, boolean writeRequired)
+      throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -137,7 +138,21 @@ public class DefaultPermissionChecker implements PermissionChecker {
     if (ownerRequired) {
       checkOwner(inodePath);
     }
-    checkPermission(Mode.Bits.WRITE, inodePath);
+    // For other non-permission related attributes
+    if (writeRequired) {
+      checkPermission(Mode.Bits.WRITE, inodePath);
+    }
+  }
+
+  @Override
+  public void checkSuperUser() throws AccessControlException {
+    // collects user and groups
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+    List<String> groups = getGroups(user);
+    if (!isPrivilegedUser(user, groups)) {
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage(user + " is not a super user or in super group"));
+    }
   }
 
   /**
@@ -164,7 +179,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   private void checkOwner(LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
-    List<Inode> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -175,21 +190,6 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     checkInodeList(user, groups, null, inodePath.getUri().getPath(), inodeList, true);
-  }
-
-  /**
-   * Checks whether the user is a super user or in super group.
-   *
-   * @throws AccessControlException if the user is not a super user
-   */
-  private void checkSuperUser() throws AccessControlException {
-    // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
-    List<String> groups = getGroups(user);
-    if (!isPrivilegedUser(user, groups)) {
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-          .getMessage(user + " is not a super user or in super group"));
-    }
   }
 
   /**
@@ -207,7 +207,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   protected void checkInodeList(String user, List<String> groups, Mode.Bits bits, String path,
-      List<Inode> inodeList, boolean checkIsOwner) throws AccessControlException {
+      List<InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
@@ -222,7 +222,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       checkInode(user, groups, inodeList.get(i), Mode.Bits.EXECUTE, path);
     }
 
-    Inode inode = inodeList.get(inodeList.size() - 1);
+    InodeView inode = inodeList.get(inodeList.size() - 1);
     if (checkIsOwner) {
       if (inode == null || user.equals(inode.getOwner())) {
         return;
@@ -243,7 +243,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits bits,
+  private void checkInode(String user, List<String> groups, InodeView inode, Mode.Bits bits,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -266,7 +266,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @return the permission
    */
   private Mode.Bits getPermissionInternal(String user, List<String> groups, String path,
-      List<Inode> inodeList) {
+      List<InodeView> inodeList) {
     int size = inodeList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
@@ -285,7 +285,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       }
     }
 
-    Inode inode = inodeList.get(inodeList.size() - 1);
+    InodeView inode = inodeList.get(inodeList.size() - 1);
     if (inode == null) {
       return Mode.Bits.NONE;
     }
@@ -298,7 +298,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   }
 
   private static String toExceptionMessage(String user, Mode.Bits bits, String path,
-      Inode inode) {
+      InodeView inode) {
     StringBuilder sb =
         new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
             .append(", ").append("path=").append(path).append(": ").append("failed at ")

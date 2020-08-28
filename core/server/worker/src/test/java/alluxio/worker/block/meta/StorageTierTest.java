@@ -39,7 +39,7 @@ public class StorageTierTest {
   private static final String TEST_WORKER_DATA_DIR = "testworker";
 
   private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
-
+  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM", "MEM"};
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
@@ -66,11 +66,12 @@ public class StorageTierTest {
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, TEST_WORKER_DATA_DIR);
+        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES,
+        TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DATA_DIR);
 
     mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
-    mTier = StorageTier.newStorageTier("MEM");
+    mTier = StorageTier.newStorageTier("MEM", false);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
@@ -121,13 +122,12 @@ public class StorageTierTest {
    */
   @Test
   public void getDir() {
-    mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
     Assert.assertEquals(mTestBlockDirPath1, dir1.getDirPath());
     StorageDir dir2 = mTier.getDir(1);
     Assert.assertEquals(mTestBlockDirPath2, dir2.getDirPath());
     // Get dir by a non-existing index, expect getDir to fail and throw IndexOutOfBoundsException
-    mTier.getDir(2);
+    Assert.assertNull(mTier.getDir(2));
   }
 
   /**
@@ -146,9 +146,23 @@ public class StorageTierTest {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
-    mTier = StorageTier.newStorageTier("MEM");
+    mTier = StorageTier.newStorageTier("MEM", false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
+    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+  }
+
+  @Test
+  public void tolerantMisconfigurationInStorageDir() throws Exception {
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
+            "MEM");
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
+            2000);
+    mTier = StorageTier.newStorageTier("MEM", false);
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
   }
 }

@@ -38,7 +38,6 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -192,8 +191,7 @@ public final class PermissionCheckerTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    sInodeStore = masterContext.getInodeStoreFactory()
-        .apply(new InodeStoreArgs(lockManager, ServerConfiguration.global()));
+    sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     sRegistry.start(true);

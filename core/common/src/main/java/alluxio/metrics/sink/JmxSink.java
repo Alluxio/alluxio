@@ -11,8 +11,8 @@
 
 package alluxio.metrics.sink;
 
-import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jmx.JmxReporter;
 
 import java.util.Properties;
 
@@ -23,6 +23,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class JmxSink implements Sink {
+  private static final String DOMAIN = "org.alluxio";
+
   private JmxReporter mReporter;
 
   /**
@@ -32,7 +34,14 @@ public final class JmxSink implements Sink {
    * @param registry the metric registry to register
    */
   public JmxSink(Properties properties, MetricRegistry registry) {
-    mReporter = JmxReporter.forRegistry(registry).build();
+    JmxReporter.Builder builder = JmxReporter.forRegistry(registry);
+    String domain = properties.getProperty("domain");
+    if (domain != null) {
+      builder.inDomain(domain);
+    } else {
+      builder.inDomain(DOMAIN);
+    }
+    mReporter = builder.build();
   }
 
   @Override

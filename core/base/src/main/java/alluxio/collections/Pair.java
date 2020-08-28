@@ -11,6 +11,8 @@
 
 package alluxio.collections;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,11 +39,19 @@ public class Pair<T1, T2> {
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof Pair<?, ?>) {
-      return ((Pair<?, ?>) o).getFirst().equals(mFirst)
-          && ((Pair<?, ?>) o).getSecond().equals(mSecond);
+    if (o == null) {
+      return false;
     }
-    return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Pair<?, ?>)) {
+      return false;
+    }
+    Pair that = (Pair) o;
+
+    return Objects.equal(mFirst, that.mFirst)
+        && Objects.equal(mSecond, that.mSecond);
   }
 
   /**
@@ -60,7 +70,7 @@ public class Pair<T1, T2> {
 
   @Override
   public int hashCode() {
-    return 31 * mFirst.hashCode() + mSecond.hashCode();
+    return Objects.hashCode(mFirst, mSecond);
   }
 
   /**

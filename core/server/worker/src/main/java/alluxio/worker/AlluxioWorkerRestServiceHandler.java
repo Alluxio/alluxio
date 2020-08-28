@@ -26,7 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -48,15 +48,14 @@ import alluxio.wire.WorkerWebUIMetrics;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.qmino.miredot.annotations.ReturnType;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +91,7 @@ import javax.ws.rs.core.Response;
  * This class is a REST handler for requesting general worker information.
  */
 @NotThreadSafe
+@Api(value = "/worker", description = "Alluxio Worker Rest Service")
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
@@ -116,19 +116,6 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String LOG_LEVEL = "logLevel";
   public static final String LOG_ARGUMENT_NAME = "logName";
   public static final String LOG_ARGUMENT_LEVEL = "level";
-
-  // the following endpoints are deprecated
-  public static final String GET_RPC_ADDRESS = "rpc_address";
-  public static final String GET_CAPACITY_BYTES = "capacity_bytes";
-  public static final String GET_CONFIGURATION = "configuration";
-  public static final String GET_USED_BYTES = "used_bytes";
-  public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
-  public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
-  public static final String GET_DIRECTORY_PATHS_ON_TIERS = "directory_paths_on_tiers";
-  public static final String GET_START_TIME_MS = "start_time_ms";
-  public static final String GET_UPTIME_MS = "uptime_ms";
-  public static final String GET_VERSION = "version";
-  public static final String GET_METRICS = "metrics";
 
   private final WorkerProcess mWorkerProcess;
   private final BlockStoreMeta mStoreMeta;
@@ -156,24 +143,22 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_INFO)
-  @ReturnType("alluxio.wire.AlluxioWorkerInfo")
+  @ApiOperation(value = "Get general Alluxio Worker service information",
+      response = alluxio.wire.AlluxioWorkerInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-    return RestUtils.call(new RestUtils.RestCallable<AlluxioWorkerInfo>() {
-      @Override
-      public AlluxioWorkerInfo call() throws Exception {
-        boolean rawConfig = false;
-        if (rawConfiguration != null) {
-          rawConfig = rawConfiguration;
-        }
-        AlluxioWorkerInfo result = new AlluxioWorkerInfo().setCapacity(getCapacityInternal())
-            .setConfiguration(getConfigurationInternal(rawConfig)).setMetrics(getMetricsInternal())
-            .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
-            .setStartTimeMs(mWorkerProcess.getStartTimeMs())
-            .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
-            .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
-        return result;
+    return RestUtils.call(() -> {
+      boolean rawConfig = false;
+      if (rawConfiguration != null) {
+        rawConfig = rawConfiguration;
       }
+      AlluxioWorkerInfo result = new AlluxioWorkerInfo().setCapacity(getCapacityInternal())
+          .setConfiguration(getConfigurationInternal(rawConfig)).setMetrics(getMetricsInternal())
+          .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
+          .setStartTimeMs(mWorkerProcess.getStartTimeMs())
+          .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
+          .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
+      return result;
     }, ServerConfiguration.global());
   }
 
@@ -184,7 +169,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_INIT)
-  @ReturnType("alluxio.wire.WorkerWebUIInit")
   public Response getWebUIInit() {
     return RestUtils.call(() -> {
       WorkerWebUIInit response = new WorkerWebUIInit();
@@ -197,7 +181,7 @@ public final class AlluxioWorkerRestServiceHandler {
               .getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB,
                   ServerConfiguration.global()))
           .setMasterPort(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL));
 
       return response;
     }, ServerConfiguration.global());
@@ -210,7 +194,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_OVERVIEW)
-  @ReturnType("alluxio.wire.WorkerWebUIOverview")
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       WorkerWebUIOverview response = new WorkerWebUIOverview();
@@ -264,7 +247,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_BLOCKINFO)
-  @ReturnType("alluxio.wire.WorkerWebUIBlockInfo")
   public Response getWebUIBlockInfo(@QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
@@ -326,8 +308,10 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
+        // make the limit the total number of files if request limit is > than what is available
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
-        limit = offset * limit > fileIds.size() ? fileIds.size() % offset : limit;
+        // offset+limit can't be greater than the size of the list
+        limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
         List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
@@ -346,6 +330,8 @@ public final class AlluxioWorkerRestServiceHandler {
                 uiFileInfo
                     .addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
               }
+            }
+            if (!uiFileInfo.getBlockIds().isEmpty()) {
               uiFileInfos.add(uiFileInfo);
             }
           } catch (Exception e) {
@@ -374,56 +360,31 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_METRICS)
-  @ReturnType("alluxio.wire.WorkerWebUIMetrics")
   public Response getWebUIMetrics() {
     return RestUtils.call(() -> {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = mr.getGauges();
 
-      Long workerCapacityTotal = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL)).getValue();
-      Long workerCapacityUsed = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED)).getValue();
+      Long workerCapacityTotal = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
+      Long workerCapacityUsed = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
 
       int workerCapacityUsedPercentage =
           (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
 
       response.setWorkerCapacityUsedPercentage(workerCapacityUsedPercentage);
-      response.setWorkerCapacityFreePercentage(100 - workerCapacityUsedPercentage);
-
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
+      response.setWorkerCapacityFreePercentage(100L - workerCapacityUsedPercentage);
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
-      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
         operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
-      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
-      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
 
       response.setOperationMetrics(operations);
-
-      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
-      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
-        rpcInvocationsUpdated
-            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
-      }
-
-      response.setRpcInvocationMetrics(rpcInvocations);
 
       return response;
     }, ServerConfiguration.global());
@@ -440,7 +401,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(WEBUI_LOGS)
-  @ReturnType("alluxio.wire.WorkerWebUILogs")
   public Response getWebUILogs(@DefaultValue("") @QueryParam("path") String requestPath,
       @DefaultValue("0") @QueryParam("offset") String requestOffset,
       @QueryParam("end") String requestEnd,
@@ -484,7 +444,7 @@ public final class AlluxioWorkerRestServiceHandler {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
           limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+          limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);
@@ -537,7 +497,7 @@ public final class AlluxioWorkerRestServiceHandler {
           String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
-            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            int len = (int) Math.min(5L * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
             if (skipped < 0) {
@@ -568,181 +528,6 @@ public final class AlluxioWorkerRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
-  /**
-   * @summary get the configuration map, the keys are ordered alphabetically.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CONFIGURATION)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
-  @Deprecated
-  public Response getConfiguration() {
-    return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the address of the worker
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_RPC_ADDRESS)
-  @ReturnType("java.lang.String")
-  @Deprecated
-  public Response getRpcAddress() {
-    return RestUtils
-        .call(() -> mWorkerProcess.getRpcAddress().toString(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the total capacity of the worker in bytes
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES)
-  @ReturnType("java.lang.Long")
-  @Deprecated
-  public Response getCapacityBytes() {
-    return RestUtils.call(() -> mStoreMeta.getCapacityBytes(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the used bytes of the worker
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_USED_BYTES)
-  @ReturnType("java.lang.Long")
-  @Deprecated
-  public Response getUsedBytes() {
-    return RestUtils.call(mStoreMeta::getUsedBytes, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
-   *    are in the order from tier aliases with smaller ordinals to those with larger ones.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  @Deprecated
-  public Response getCapacityBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
-          capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return capacityBytesOnTiers;
-      }
-    }, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, the keys are in the
-   *    order from tier aliases with smaller ordinals to those with larger ones.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  @Deprecated
-  public Response getUsedBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
-          usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return usedBytesOnTiers;
-      }
-    }, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the mapping from tier alias to the paths of the directories in the tier
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
-  @Deprecated
-  public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(() -> getTierPathsInternal(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the version of the worker
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_VERSION)
-  @ReturnType("java.lang.String")
-  @Deprecated
-  public Response getVersion() {
-    return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the start time of the worker in milliseconds
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_START_TIME_MS)
-  @ReturnType("java.lang.Long")
-  @Deprecated
-  public Response getStartTimeMs() {
-    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the uptime of the worker in milliseconds
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_UPTIME_MS)
-  @ReturnType("java.lang.Long")
-  @Deprecated
-  public Response getUptimeMs() {
-    return RestUtils.call(() -> mWorkerProcess.getUptimeMs(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the worker metrics
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
-  @Deprecated
-  public Response getMetrics() {
-    return RestUtils.call(() -> getMetricsInternal(), ServerConfiguration.global());
-  }
-
   private Capacity getCapacityInternal() {
     return new Capacity().setTotal(mStoreMeta.getCapacityBytes())
         .setUsed(mStoreMeta.getUsedBytes());
@@ -762,7 +547,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
-        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(MetricKey.WORKER_BLOCKS_CACHED.getName());
     @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
@@ -814,7 +599,6 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @POST
   @Path(LOG_LEVEL)
-  @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {

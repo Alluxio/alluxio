@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationTestUtils;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
@@ -59,8 +60,8 @@ public class AsyncUfsAbsentPathCacheTest {
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
-            .setShared(options.getShared())
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+            .setReadOnly(options.getReadOnly()).setShared(options.getShared())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
@@ -159,14 +160,15 @@ public class AsyncUfsAbsentPathCacheTest {
     checkAbsentPaths(new AlluxioURI(alluxioBase + "/c"));
 
     // Unmount
-    Assert.assertTrue(mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt")));
+    Assert.assertTrue(
+        mMountTable.delete(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"), true));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults().setReadOnly(options.getReadOnly())
-            .setShared(options.getShared())
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+            .setReadOnly(options.getReadOnly()).setShared(options.getShared())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), newMountId, options);

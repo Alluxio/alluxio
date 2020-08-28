@@ -2,8 +2,8 @@
 layout: global
 title: 在GlusterFS上配置Alluxio
 nickname: Alluxio使用GlusterFS
-group: Under Stores
-priority: 2
+group: Storage Integrations
+priority: 5
 ---
 
 * 内容列表
@@ -19,21 +19,21 @@ priority: 2
 
 你需要通过修改`conf/alluxio-site.properties`来配置Alluxio使用底层存储系统，如果该配置文件不存在，则根据模版创建一个配置文件
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/mnt/gluster`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 ```properties
-alluxio.underfs.address=/mnt/gluster
+alluxio.master.mount.table.root.ufs=/mnt/gluster
 ```
 
 ## 使用GlusterFS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察是否一切运行正常
 
-```bash
+```console
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -42,7 +42,7 @@ $ ./bin/alluxio-start.sh local
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
+```console
 $ ./bin/alluxio runTests
 ```
 
@@ -54,6 +54,6 @@ $ ./bin/alluxio runTests
 
 运行以下命令停止Alluxio：
 
-```bash
+```console
 $ ./bin/alluxio-stop.sh local
 ```

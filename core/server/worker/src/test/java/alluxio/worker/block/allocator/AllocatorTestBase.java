@@ -11,8 +11,13 @@
 
 package alluxio.worker.block.allocator;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
@@ -21,7 +26,6 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -46,6 +50,8 @@ public class AllocatorTestBase {
   public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"SSD", "SSD"},
+      {"HDD", "HDD", "HDD"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
       {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
       {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
@@ -79,8 +85,10 @@ public class AllocatorTestBase {
    */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
     TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
-        TIER_PATH, TIER_CAPACITY_BYTES, null);
+        TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
     mManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
@@ -98,14 +106,14 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (!avail) {
-      Assert.assertTrue(tempBlockMeta == null);
+      assertTrue(tempBlockMeta == null);
     } else {
-      Assert.assertTrue(tempBlockMeta != null);
+      assertTrue(tempBlockMeta != null);
     }
   }
 
@@ -126,27 +134,27 @@ public class AllocatorTestBase {
     mTestBlockId++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (!avail) {
-      Assert.assertTrue(tempBlockMeta == null);
+      assertTrue(tempBlockMeta == null);
     } else {
-      Assert.assertTrue(tempBlockMeta != null);
+      assertTrue(tempBlockMeta != null);
 
       StorageDir pDir = tempBlockMeta.getParentDir();
       StorageTier pTier = pDir.getParentTier();
 
-      Assert.assertTrue(pDir.getDirIndex() == dirIndex);
-      Assert.assertEquals(tierAlias, pTier.getTierAlias());
+      assertTrue(pDir.getDirIndex() == dirIndex);
+      assertEquals(tierAlias, pTier.getTierAlias());
 
       //update the dir meta info
       pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));
     }
   }
 
-  protected BlockMetadataManagerView getManagerView() {
-    return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
+  protected BlockMetadataEvictorView getMetadataEvictorView() {
+    return new BlockMetadataEvictorView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }

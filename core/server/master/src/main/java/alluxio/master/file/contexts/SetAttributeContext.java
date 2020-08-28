@@ -21,7 +21,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link SetAttributePOptions}.
  */
-public class SetAttributeContext extends OperationContext<SetAttributePOptions.Builder> {
+public class SetAttributeContext
+    extends OperationContext<SetAttributePOptions.Builder, SetAttributeContext> {
 
   private long mOperationTimeMs;
   private String mUfsFingerprint;

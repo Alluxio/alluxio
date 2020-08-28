@@ -11,42 +11,59 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.network.protocol.databuffer.DataBuffer;
+
 import io.netty.buffer.ByteBuf;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * A writer interface to write or update a block stored in managed storage.
+ * An abstract writer class to write or update a block stored in managed storage.
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockWriter extends Closeable {
+public abstract class BlockWriter extends BlockClient {
+
+  /**
+   * Default constructor for the abstract writer implementations.
+   */
+  public BlockWriter() {
+    super(Type.WRITER);
+  }
+
   /**
    * Appends data to the end of a block from an input {@link ByteBuffer}.
    *
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was appended in bytes
    */
-  long append(ByteBuffer inputBuf) throws IOException;
+  public abstract long append(ByteBuffer inputBuf) throws IOException;
 
   /**
    * Appends buf.readableBytes() bytes to the end of this block writer from the given buf.
    *
-   * @param buf the byte buffer to hold the data
+   * @param buf the byte buffer that holds the data
    * @return the size of data that was appended in bytes
    */
-  long append(ByteBuf buf) throws IOException;
+  public abstract long append(ByteBuf buf) throws IOException;
+
+  /**
+   * Appends buffer.readableBytes() bytes to the end of this block writer from the given buffer.
+   *
+   * @param buffer the byte buffer that holds the data
+   * @return the size of data that was appended in bytes
+   */
+  public abstract long append(DataBuffer buffer) throws IOException;
 
   /**
    * @return the current write position (same as the number of bytes written)
    */
-  long getPosition();
+  public abstract long getPosition();
 
   /**
    * @return a writeable byte channel of the block
    */
-  WritableByteChannel getChannel();
+  public abstract WritableByteChannel getChannel();
 }

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -48,19 +49,19 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     }).when(mResponseObserver).onCompleted();
     doAnswer(args -> {
       mResponseCompleted = true;
-      mError = args.getArgumentAt(0, Throwable.class);
+      mError = args.getArgument(0, Throwable.class);
       return null;
     }).when(mResponseObserver).onError(any(Throwable.class));
     doAnswer((args) -> {
       // make a copy of response data before it is released
       mResponses.add(ReadResponse.parseFrom(
-          args.getArgumentAt(0, ReadResponse.class).toByteString()));
+          args.getArgument(0, ReadResponse.class).toByteString()));
       return null;
     }).when(mResponseObserver).onNext(any(ReadResponse.class));
     mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
-        mResponseObserver);
-    mReadHandlerNoException = new BlockReadHandler(
-        GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker, mResponseObserver);
+        mResponseObserver, new AuthenticatedUserInfo(), false);
+    mReadHandlerNoException = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
+        mBlockWorker, mResponseObserver, new AuthenticatedUserInfo(), false);
   }
 
   /**

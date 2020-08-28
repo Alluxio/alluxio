@@ -15,7 +15,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.state.DirectoryId;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;

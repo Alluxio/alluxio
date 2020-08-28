@@ -12,17 +12,24 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.ClientContext;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
@@ -32,8 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -187,7 +196,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     reset();
-    LoginUserTestUtils.resetLoginUser();
     ServerConfiguration.reset();
   }
 
@@ -249,12 +257,29 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
+
+    // forget all the workers in the master
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
+  }
+
+  /**
+   * @return true if the workers are started, and not stopped
+   */
+  public boolean isStartedWorkers() {
+    return !mWorkerThreads.isEmpty();
   }
 
   /**
    * Creates a default {@link ServerConfiguration} for testing.
+   *
+   * @param name the name of the test/cluster
    */
-  public abstract void initConfiguration() throws IOException;
+  public abstract void initConfiguration(String name) throws IOException;
 
   /**
    * Returns a {@link FileSystem} client.
@@ -284,6 +309,29 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Waits for all workers registered with master.
+   *
+   * @param timeoutMs the timeout to wait
+   */
+  public void waitForWorkersRegistered(int timeoutMs)
+      throws TimeoutException, InterruptedException, IOException {
+    try (MetaMasterClient client =
+             new RetryHandlingMetaMasterClient(MasterClientContext
+                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+      CommonUtils.waitFor("workers registered", () -> {
+        try {
+          return client.getMasterInfo(Collections.emptySet())
+              .getWorkerAddressesList().size() == mNumWorkers;
+        } catch (UnavailableException e) {
+          return false;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
+    }
+  }
+
+  /**
    * Resets the cluster to original state.
    */
   protected void reset() {
@@ -307,9 +355,11 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets Alluxio work directory.
+   *
+   * @param name the name of the test/cluster
    */
-  protected void setAlluxioWorkDirectory() {
+  protected void setAlluxioWorkDirectory(String name) {
     mWorkDirectory =
-        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+        AlluxioTestDirectory.createTemporaryDirectory(name).getAbsolutePath();
   }
 }

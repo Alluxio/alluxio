@@ -20,7 +20,7 @@ import alluxio.uri.URI;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -389,6 +389,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
+    if (suffix.isEmpty()) {
+      return new AlluxioURI(getScheme(), getAuthority(), getPath());
+    }
     // TODO(gpang): there should be other usage of join() which can use joinUnsafe() instead.
     String path = getPath();
     StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());

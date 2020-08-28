@@ -12,34 +12,29 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPResponse;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupPStatus;
+import alluxio.grpc.BackupStatusPRequest;
+import alluxio.grpc.CheckpointPOptions;
+import alluxio.grpc.CheckpointPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
-import alluxio.grpc.GetMetricsPOptions;
-import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.metrics.MetricsSystem;
+import alluxio.master.StateLockOptions;
 import alluxio.wire.Address;
-import alluxio.wire.BackupOptions;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -59,11 +54,17 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-  public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
+  public void backup(BackupPRequest request, StreamObserver<BackupPStatus> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> mMetaMaster.backup(request, StateLockOptions.defaultsForShellBackup()).toProto(),
+        "backup", "request=%s", responseObserver, request);
+  }
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BackupPResponse>) () -> {
-      return mMetaMaster.backup(BackupOptions.fromProto(options)).toProto();
-    }, "backup", "options=%s", responseObserver, options);
+  @Override
+  public void getBackupStatus(BackupStatusPRequest request,
+      StreamObserver<BackupPStatus> responseObserver) {
+    RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus(request).toProto(),
+        "getBackupStatus", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -129,32 +130,10 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-  public void getMetrics(GetMetricsPOptions options,
-      StreamObserver<GetMetricsPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
-
-      MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-      Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
-
-      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-        metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), alluxio.grpc.MetricValue
-            .newBuilder().setLongValue(entry.getValue().getCount()).build());
-      }
-
-      for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
-        Object value = entry.getValue().getValue();
-        if (value instanceof Integer) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Integer) value)).build());
-        } else if (value instanceof Long) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Long) value)).build());
-        } else if (value instanceof Double) {
-          metricsMap.put(entry.getKey(),
-              alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
-        }
-      }
-      return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
-    }, "getConfiguration", "options=%s", responseObserver, options);
+  public void checkpoint(CheckpointPOptions options,
+      StreamObserver<CheckpointPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
+        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+        "checkpoint", "options=%s", responseObserver, options);
   }
 }

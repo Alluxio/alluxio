@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * Fingerprint for a UFS file or directory.
@@ -44,7 +45,7 @@ public final class Fingerprint {
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[" + KVDELIMTER
       + TAGDELIMTER + "]");
-  private static final String UNDERSCORE = "_";
+  public static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 
@@ -130,6 +131,7 @@ public final class Fingerprint {
    * @param input the string to parse
    * @return the parsed fingerprint object, or null if parsing failed
    */
+  @Nullable
   public static Fingerprint parse(String input) {
     if (input == null) {
       return null;

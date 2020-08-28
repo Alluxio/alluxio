@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
@@ -18,9 +19,9 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
-import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
+import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * messages for all supported commands.
  */
 @ThreadSafe
+@PublicApi
 public final class HelpCommand extends AbstractFileSystemCommand {
   private static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
 
@@ -48,11 +50,14 @@ public final class HelpCommand extends AbstractFileSystemCommand {
         String.format("%s: %s", command.getCommandName(), command.getDescription());
     int width = 80;
     try {
-      width = TerminalFactory.get().getWidth();
+      width = TerminalBuilder.terminal().getWidth();
     } catch (Exception e) {
-      // In case the terminal factory failed to decide terminal type, use default width
+      // In case the terminal builder failed to decide terminal type, use default width
     }
-
+    // Use default value if terminal width is assigned 0
+    if (width == 0) {
+      width = 80;
+    }
     HELP_FORMATTER.printWrapped(pw, width, description);
     HELP_FORMATTER.printUsage(pw, width, command.getUsage());
     if (command.getOptions().getOptions().size() > 0) {

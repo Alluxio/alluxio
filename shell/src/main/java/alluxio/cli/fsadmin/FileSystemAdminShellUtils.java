@@ -56,14 +56,13 @@ public final class FileSystemAdminShellUtils {
    * @param alluxioConf Alluxio configuration
    */
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
-    try (CloseableResource<FileSystemMasterClient> client =
-      FileSystemContext.create(ClientContext.create(alluxioConf))
-          .acquireMasterClientResource()) {
+    try (FileSystemContext context = FileSystemContext.create(ClientContext.create(alluxioConf));
+        CloseableResource<FileSystemMasterClient> client = context.acquireMasterClientResource()) {
       InetSocketAddress address = client.get().getAddress();
 
       List<InetSocketAddress> addresses = Arrays.asList(address);
-      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-          new ExponentialBackoffRetry(50, 100, 2), alluxioConf);
+      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
+          () -> new ExponentialBackoffRetry(50, 100, 2), alluxioConf);
       inquireClient.getPrimaryRpcAddress();
     } catch (UnavailableException e) {
       throw new IOException("Cannot connect to Alluxio leader master.");

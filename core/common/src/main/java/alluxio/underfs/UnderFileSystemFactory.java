@@ -12,10 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.extensions.ExtensionFactory;
-
-import javax.annotation.Nullable;
 
 /**
  * Interface for under file system factories.
@@ -30,16 +27,14 @@ public interface UnderFileSystemFactory
    * provided is insufficient to create a client.
    *
    * @param path file path
-   * @param conf optional configuration object for the UFS, may be null
-   * @param alluxioConf configuration object for alluxio
+   * @param conf configuration object for the UFS
    * @return the client
    */
-  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf);
+  UnderFileSystem create(String path, UnderFileSystemConfiguration conf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for
    * this path.
    *
    * @param path file path
@@ -49,14 +44,14 @@ public interface UnderFileSystemFactory
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for
    * this path.
    *
    * @param path file path
-   * @param conf optional configuration object for the UFS, may be null
+   * @param conf configuration object for the UFS
    * @return true if the path is supported, false otherwise
    */
-  default boolean supportsPath(String path, @Nullable UnderFileSystemConfiguration conf) {
+  default boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
     return supportsPath(path);
   }
 

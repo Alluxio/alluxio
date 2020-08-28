@@ -40,11 +40,6 @@ public class HeapBlockStore implements BlockStore {
   public final TwoKeyConcurrentMap<Long, Long, BlockLocation, Map<Long, BlockLocation>>
       mBlockLocations = new TwoKeyConcurrentMap<>(() -> new HashMap<>(4));
 
-  /**
-   * @param args block store args
-   */
-  public HeapBlockStore(BlockStoreArgs args) {}
-
   @Override
   public Optional<BlockMeta> getBlock(long id) {
     return Optional.ofNullable(mBlocks.get(id));
@@ -80,6 +75,11 @@ public class HeapBlockStore implements BlockStore {
   @Override
   public void clear() {
     mBlocks.clear();
+  }
+
+  @Override
+  public void close() {
+    // Nothing to close for HEAP store.
   }
 
   @Override
