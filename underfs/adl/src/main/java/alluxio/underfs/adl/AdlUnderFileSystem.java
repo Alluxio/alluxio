@@ -22,6 +22,10 @@ import alluxio.underfs.options.FileLocationOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +83,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    * @return a new Adl {@link UnderFileSystem} instance
    */
   public static AdlUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) {
+                                                  UnderFileSystemConfiguration conf) {
     Configuration adlConf = createConfiguration(conf);
     return new AdlUnderFileSystem(uri, conf, adlConf);
   }
@@ -92,7 +96,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    * @param adlConf the configuration for this Adl UFS
    */
   public AdlUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      final Configuration adlConf) {
+                            final Configuration adlConf) {
     super(ufsUri, conf, adlConf);
   }
 
@@ -114,13 +118,25 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
       // adl is backed by an object store but always claims its block size to be 512MB.
       // reset the block size in UfsFileStatus according to getBlockSizeByte
       return new UfsFileStatus(path,
-          ((UfsFileStatus) status).getContentHash(),
-          ((UfsFileStatus) status).getContentLength(),
-          MoreObjects.firstNonNull(status.getLastModifiedTime(), 0L),
-          status.getOwner(), status.getGroup(), status.getMode(),
-          getBlockSizeByte(path));
+              ((UfsFileStatus) status).getContentHash(),
+              ((UfsFileStatus) status).getContentLength(),
+              MoreObjects.firstNonNull(status.getLastModifiedTime(), 0L),
+              status.getOwner(), status.getGroup(), status.getMode(),
+              getBlockSizeByte(path));
     }
     return status;
+  }
+
+  // No Op
+  @Override
+  public void setOwner(String path, String user, String group) {
+    return;
+  }
+
+  // No Op
+  @Override
+  public void setMode(String path, short mode) {
+    return;
   }
 
   // Not supported
