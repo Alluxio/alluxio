@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,9 +39,12 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
   private final FileSystemContext mContext;
+
   private volatile RetryHandlingMetaMasterConfigClient mClient;
 
   private volatile IOException mException;
+
+  private final ReentrantLock mLock;
 
   /**
    * Constructs a new {@link ConfigHashSync}.
@@ -49,6 +54,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   public ConfigHashSync(FileSystemContext context) {
     mContext = context;
     mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
+    mLock = new ReentrantLock();
   }
 
   /**
@@ -73,42 +79,59 @@ public final class ConfigHashSync implements HeartbeatExecutor {
 
   @Override
   public synchronized void heartbeat() {
-    if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
-      // Wait until the initial cluster defaults are loaded.
-      return;
-    }
-    ConfigHash hash;
+    mLock.lock();
     try {
-      hash = mClient.getConfigHash();
-    } catch (IOException e) {
-      LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
-      // Disconnect to reconnect in the next heartbeat.
-      mClient.disconnect();
-      return;
-    }
-    boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
-        mContext.getClientContext().getClusterConfHash());
-    boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
-        mContext.getClientContext().getPathConfHash());
-    if (isClusterConfUpdated || isPathConfUpdated) {
-      try {
-        mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
-        mException = null;
-      } catch (UnavailableException e) {
-        LOG.error("Failed to reinitialize FileSystemContext:", e);
-        // Meta master might be temporarily unavailable, retry in next heartbeat.
-      } catch (IOException e) {
-        LOG.error("Failed to close FileSystemContext, interrupting the heartbeat thread", e);
-        mException = e;
-        // If the heartbeat keeps running, the context might be reinitialized successfully in the
-        // next heartbeat, then the resources that are not closed in the old context are leaked.
-        Thread.currentThread().interrupt();
+      if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
+        // Wait until the initial cluster defaults are loaded.
+        return;
       }
+      ConfigHash hash;
+      try {
+        hash = mClient.getConfigHash();
+      } catch (IOException e) {
+        LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
+        // Disconnect to reconnect in the next heartbeat.
+        mClient.disconnect();
+        return;
+      }
+      boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
+          mContext.getClientContext().getClusterConfHash());
+      boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
+          mContext.getClientContext().getPathConfHash());
+      if (isClusterConfUpdated || isPathConfUpdated) {
+        try {
+          mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
+          mException = null;
+        } catch (UnavailableException e) {
+          LOG.error("Failed to reinitialize FileSystemContext:", e);
+          // Meta master might be temporarily unavailable, retry in next heartbeat.
+        } catch (IOException e) {
+          LOG.error("Failed to close FileSystemContext, interrupting the heartbeat thread", e);
+          mException = e;
+          // If the heartbeat keeps running, the context might be reinitialized successfully in the
+          // next heartbeat, then the resources that are not closed in the old context are leaked.
+          Thread.currentThread().interrupt();
+        }
+      }
+    } finally {
+      mLock.unlock();
     }
   }
 
   @Override
   public synchronized void close() {
-    mClient.close();
+    mLock.lock();
+    try {
+      mClient.close();
+    } finally {
+      mLock.unlock();
+    }
+  }
+
+  public void reallyAttemptToClose(Future heartbeatFuture) {
+    while (!mLock.tryLock()) {
+      heartbeatFuture.cancel(true);
+    }
+    close();
   }
 }
