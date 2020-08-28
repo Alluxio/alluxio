@@ -964,12 +964,6 @@
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
-            <properties>
-              <property>
-                <name>listener</name>
-                <value>alluxio.TimedOutTestsListenerFromBookKeeper</value>
-              </property>
-            </properties>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>

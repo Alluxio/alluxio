@@ -375,6 +375,12 @@
               <value>${hadoop.version}</value>
             </property>
           </systemProperties>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>alluxio.TimedOutTestsListenerFromBookKeeper</value>
+            </property>
+          </properties>
         </configuration>
       </plugin>
 
