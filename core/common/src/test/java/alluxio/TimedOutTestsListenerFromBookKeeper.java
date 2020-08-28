@@ -11,9 +11,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JUnit run listener which prints full thread dump into System.err in case a test is failed due to
@@ -21,26 +23,21 @@ import org.junit.runner.notification.RunListener;
  */
 public class TimedOutTestsListenerFromBookKeeper extends RunListener {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TimedOutTestsListenerFromBookKeeper.class);
+
   static final String TEST_TIMED_OUT_PREFIX = "test timed out after";
 
   private static String indent = "    ";
 
-  private final PrintWriter output;
-
   public TimedOutTestsListenerFromBookKeeper() {
-    this.output = new PrintWriter(System.err);
-  }
-
-  public TimedOutTestsListenerFromBookKeeper(PrintWriter output) {
-    this.output = output;
   }
 
   @Override
   public void testFailure(Failure failure) throws Exception {
     if (failure != null && failure.getMessage() != null && failure.getMessage().startsWith(TEST_TIMED_OUT_PREFIX)) {
-      output.println("====> TEST TIMED OUT. PRINTING THREAD DUMP. <====");
-      output.println();
-      output.print(buildThreadDiagnosticString());
+      LOG.info("====> TEST TIMED OUT. PRINTING THREAD DUMP. <====");
+      LOG.info("");
+      LOG.info(buildThreadDiagnosticString());
     }
   }
 
@@ -71,7 +68,7 @@ public class TimedOutTestsListenerFromBookKeeper extends RunListener {
       dump.append(String.format("\"%s\" %s prio=%d tid=%d %s\njava.lang.Thread.State: %s", thread.getName(),
           (thread.isDaemon() ? "daemon" : ""), thread.getPriority(), thread.getId(),
           Thread.State.WAITING.equals(thread.getState()) ? "in Object.wait()"
-              : StringUtils.lowerCase(thread.getState().name()),
+              : thread.getState().name().toLowerCase(),
           Thread.State.WAITING.equals(thread.getState()) ? "WAITING (on object monitor)" : thread.getState()));
       for (StackTraceElement stackTraceElement : e.getValue()) {
         dump.append("\n        at ");
