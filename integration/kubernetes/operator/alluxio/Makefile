@@ -25,27 +25,27 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go test ./... -coverprofile cover.out
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go build  -o bin/manager cmd/controller/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -o bin/manager cmd/controller/main.go
 
 # Build webhook
 webhook: generate fmt vet
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go build  -o bin/webhook cmd/webhook/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -o bin/webhook cmd/webhook/*.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config, add debug
 run: generate fmt vet manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go run -gcflags "all=-N -l" cmd/controller/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run -gcflags "all=-N -l" cmd/controller/main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config, add debug
 runwebhook: generate fmt vet manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go run -gcflags "all=-N -l" cmd/webhook/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run -gcflags "all=-N -l" cmd/webhook/*.go
 
 # Debug against the configured Kubernetes cluster in ~/.kube/config, add debug
 debug: generate fmt vet manifests
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  dlv debug --headless --listen ":12345" --log --api-version=2 cmd/controller/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 dlv debug --headless --listen ":12345" --log --api-version=2 cmd/controller/main.go
 
 # Install CRDs into a cluster
 install: manifests
