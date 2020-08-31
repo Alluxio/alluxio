@@ -37,7 +37,7 @@
       <id>haoyuan</id>
       <name>Haoyuan Li</name>
       <email>haoyuan@alluxio.com</email>
-      <url>http://www.cs.berkeley.edu/~haoyuan</url>
+      <url>https://www.cs.berkeley.edu/~haoyuan</url>
       <organization>Alluxio Open Foundation</organization>
       <organizationUrl>https://alluxio.io/</organizationUrl>
     </developer>
@@ -118,7 +118,7 @@
     </repository>
     <repository>
       <id>alluxio.artifacts</id>
-      <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
+      <url>https://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
   </repositories>
 
