@@ -79,6 +79,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
@@ -636,15 +637,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    try (RaftClient client = createClient()) {
-      return client.getClientRpc().sendRequestAsync(
-          new RaftClientRequest(mClientId, server, mRaftGroupId, nextCallId(), message,
-              RaftClientRequest.staleReadRequestType(0), null));
-    } catch (IOException e) {
-      CompletableFuture<RaftClientReply> future = new CompletableFuture<>();
-      future.completeExceptionally(e);
-      return future;
-    }
+    RaftClient client = createClient();
+    return client.getClientRpc().sendRequestAsync(
+        new RaftClientRequest(mClientId, server, mRaftGroupId, nextCallId(), message,
+            RaftClientRequest.staleReadRequestType(0), null)
+    ).whenComplete((reply, t) -> {
+      try {
+        client.close();
+      } catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    });
   }
 
   private GroupInfoReply getGroupInfo() throws IOException {
