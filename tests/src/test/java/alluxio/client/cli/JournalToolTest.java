@@ -269,13 +269,14 @@ public class JournalToolTest extends BaseIntegrationTest {
 
       if (checkpointTest.size() == 0) {
         return false;
-      } else if (checkpointTest.size() == 1) {
-        checkpoint.add(checkpointTest.get(0));
-        return true;
       }
-      fail("Unexpected checkpoint list: " + checkpoint);
-      return false;
+      checkpoint.addAll(checkpointTest);
+      return true;
     }, WaitForOptions.defaults().setTimeoutMs(500));
+
+    if (checkpoint.size() > 1) {
+      fail("Unexpected checkpoint list: " + checkpoint);
+    }
 
     return checkpoint.get(0).toString();
   }
