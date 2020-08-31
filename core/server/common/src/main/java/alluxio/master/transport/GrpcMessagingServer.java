@@ -20,9 +20,6 @@ import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.Server;
 import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +31,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
- * {@link Server} implementation based on Alluxio gRPC messaging.
+ * Server implementation based on Alluxio gRPC messaging.
  *
  * Each server should listen only one address.
  * Outstanding listen futures should be completed before calling {@link #close()}.
  */
-public class GrpcMessagingServer implements Server {
+public class GrpcMessagingServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingServer.class);
 
   /** Alluxio configuration. */
@@ -74,9 +71,8 @@ public class GrpcMessagingServer implements Server {
     mProxy = proxy;
   }
 
-  @Override
-  public synchronized CompletableFuture<Void> listen(Address address,
-      Consumer<Connection> listener) {
+  public synchronized CompletableFuture<Void> listen(InetSocketAddress address,
+      Consumer<GrpcMessagingConnection> listener) {
     // Return existing future if building currently.
     if (mListenFuture != null && !mListenFuture.isCompletedExceptionally()) {
       return mListenFuture;
@@ -87,7 +83,7 @@ public class GrpcMessagingServer implements Server {
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
 
-      Address bindAddress = address;
+      InetSocketAddress bindAddress = address;
       if (mProxy.hasProxyFor(address)) {
         bindAddress = mProxy.getProxyFor(address);
         LOG.debug("Found proxy: {} for address: {}", bindAddress, address);
@@ -96,8 +92,8 @@ public class GrpcMessagingServer implements Server {
 
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(bindAddress.host(),
-              new InetSocketAddress(bindAddress.host(), bindAddress.port())), mConf, mUserState)
+          .forAddress(GrpcServerAddress.create(bindAddress.getHostString(),
+              bindAddress), mConf, mUserState)
           .maxInboundMessageSize((int) mConf.getBytes(
               PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
@@ -120,7 +116,6 @@ public class GrpcMessagingServer implements Server {
     return mListenFuture;
   }
 
-  @Override
   public synchronized CompletableFuture<Void> close() {
     if (mGrpcServer == null) {
       return CompletableFuture.completedFuture(null);

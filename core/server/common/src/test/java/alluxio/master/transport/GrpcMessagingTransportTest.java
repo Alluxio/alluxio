@@ -21,11 +21,6 @@ import io.atomix.catalyst.concurrent.SingleThreadContext;
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.transport.Transport;
 import io.atomix.copycat.protocol.ClientRequestTypeResolver;
 import io.atomix.copycat.protocol.ClientResponseTypeResolver;
 import io.atomix.copycat.server.storage.util.StorageSerialization;
@@ -36,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +44,7 @@ import java.util.function.Supplier;
  */
 public class GrpcMessagingTransportTest {
 
-  private Transport mTransport;
+  private GrpcMessagingTransport mTransport;
 
   @Before
   public void before() {
@@ -66,7 +62,7 @@ public class GrpcMessagingTransportTest {
     // Set by server connection listener, when new connection is opened to server.
     final AtomicBoolean connectionEstablished = new AtomicBoolean(false);
     // Server connection lister that validates connection establishment.
-    Consumer<Connection> connectionListener = new CopycatTransportTestListener((connection) -> {
+    Consumer<GrpcMessagingConnection> connectionListener = new CopycatTransportTestListener((connection) -> {
       // Set connection as established.
       connectionEstablished.set(true);
     });
@@ -75,7 +71,7 @@ public class GrpcMessagingTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
-    Address address = bindServer(connectionContext, mTransport.server(), connectionListener);
+    InetSocketAddress address = bindServer(connectionContext, mTransport.server(), connectionListener);
 
     // Open a client connection to server.
     connectClient(connectionContext, mTransport.client(), address);
@@ -91,13 +87,13 @@ public class GrpcMessagingTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
-    Address address =
+    InetSocketAddress address =
         bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
 
-    Client transportClient = mTransport.client();
+    GrpcMessagingClient transportClient = mTransport.client();
     // Open 2 client connections to server.
-    Connection clientConnection1 = connectClient(connectionContext, transportClient, address);
-    Connection clientConnection2 = connectClient(connectionContext, transportClient, address);
+    GrpcMessagingConnection clientConnection1 = connectClient(connectionContext, transportClient, address);
+    GrpcMessagingConnection clientConnection2 = connectClient(connectionContext, transportClient, address);
 
     // Close connection-1.
     clientConnection1.close().get();
@@ -113,11 +109,11 @@ public class GrpcMessagingTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
-    Address address =
+    InetSocketAddress address =
         bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
 
     // Open a client connection to server.
-    Connection clientConnection = connectClient(connectionContext, mTransport.client(), address);
+    GrpcMessagingConnection clientConnection = connectClient(connectionContext, mTransport.client(), address);
 
     // Close connection.
     clientConnection.close().get();
@@ -139,12 +135,12 @@ public class GrpcMessagingTransportTest {
     ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create transport server.
-    Server server = mTransport.server();
+    GrpcMessagingServer server = mTransport.server();
     // Bind transport server.
-    Address address = bindServer(connectionContext, server, new CopycatTransportTestListener());
+    InetSocketAddress address = bindServer(connectionContext, server, new CopycatTransportTestListener());
 
     // Open a client connection to server.
-    Connection clientConnection = connectClient(connectionContext, mTransport.client(), address);
+    GrpcMessagingConnection clientConnection = connectClient(connectionContext, mTransport.client(), address);
 
     // Close server.
     server.close().get();
@@ -168,11 +164,11 @@ public class GrpcMessagingTransportTest {
    * @return address to which the server is bound
    * @throws Exception
    */
-  private Address bindServer(ThreadContext context, Server server, Consumer<Connection> listener)
+  private InetSocketAddress bindServer(ThreadContext context, GrpcMessagingServer server, Consumer<GrpcMessagingConnection> listener)
       throws Exception {
 
     ServerSocket autoBindSocket = new ServerSocket(0);
-    Address serverAddress = new Address("localhost", autoBindSocket.getLocalPort());
+    InetSocketAddress serverAddress = new InetSocketAddress("localhost", autoBindSocket.getLocalPort());
     autoBindSocket.close();
 
     context.execute(() -> {
@@ -196,9 +192,9 @@ public class GrpcMessagingTransportTest {
    * @return client connection
    * @throws Exception
    */
-  private Connection connectClient(ThreadContext context, Client client, Address serverAddress)
+  private GrpcMessagingConnection connectClient(ThreadContext context, GrpcMessagingClient client, InetSocketAddress serverAddress)
       throws Exception {
-    Supplier<CompletableFuture<Connection>> connectionSupplier = () -> {
+    Supplier<CompletableFuture<GrpcMessagingConnection>> connectionSupplier = () -> {
       try {
         // Create client connection to server.
         return client.connect(serverAddress);
@@ -207,7 +203,7 @@ public class GrpcMessagingTransportTest {
       }
     };
     // Run supplier on given context.
-    Connection clientConnection = context.execute(connectionSupplier).get().get();
+    GrpcMessagingConnection clientConnection = context.execute(connectionSupplier).get().get();
 
     /*
      * gRPC won't establish stream until message is sent over. Explicitly send a command to cause
@@ -229,7 +225,7 @@ public class GrpcMessagingTransportTest {
    * @return response to request
    * @throws Exception
    */
-  private CompletableFuture<Object> sendRequest(Connection connection, Object request)
+  private CompletableFuture<Object> sendRequest(GrpcMessagingConnection connection, Object request)
       throws Exception {
     // Future for receiving command completion.
     CompletableFuture<Object> commandFuture = new CompletableFuture<>();
@@ -313,8 +309,8 @@ public class GrpcMessagingTransportTest {
   /**
    * Test listener that is used to register test request types on server connection.
    */
-  class CopycatTransportTestListener implements Consumer<Connection> {
-    Consumer<Connection> mNestedListener;
+  class CopycatTransportTestListener implements Consumer<GrpcMessagingConnection> {
+    Consumer<GrpcMessagingConnection> mNestedListener;
 
     /**
      * Creates test listener.
@@ -328,12 +324,12 @@ public class GrpcMessagingTransportTest {
      *
      * @param nestedListener nested listener
      */
-    public CopycatTransportTestListener(Consumer<Connection> nestedListener) {
+    public CopycatTransportTestListener(Consumer<GrpcMessagingConnection> nestedListener) {
       mNestedListener = nestedListener;
     }
 
     @Override
-    public void accept(Connection connection) {
+    public void accept(GrpcMessagingConnection connection) {
       // Register request handler for 'DummyRequest'.
       connection.handler(DummyRequest.class, (command) -> {
         return CompletableFuture.completedFuture(null);

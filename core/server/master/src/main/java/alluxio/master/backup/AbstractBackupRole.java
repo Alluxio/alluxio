@@ -18,6 +18,7 @@ import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.UserState;
 import alluxio.underfs.UfsManager;
@@ -31,7 +32,6 @@ import com.google.common.io.Closer;
 import io.atomix.catalyst.concurrent.SingleThreadContext;
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +122,7 @@ public abstract class AbstractBackupRole implements BackupRole {
    * Used to send message via connection and wait until response is received. Response is discarded
    * since backup messages are one-way.
    */
-  protected void sendMessageBlocking(Connection connection, Object message) throws IOException {
+  protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message) throws IOException {
     try {
       mCatalystContext.execute(() -> {
         return connection.sendAndReceive(message);

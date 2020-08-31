@@ -20,22 +20,20 @@ import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.security.user.UserState;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * {@link Client} implementation based on Alluxio gRPC messaging.
+ * Client implementation based on Alluxio gRPC messaging.
  *
  * Listen should be called once for each distinct address.
  * Pending futures should all be closed prior to calling {@link #close()}.
  */
-public class GrpcMessagingClient implements Client {
+public class GrpcMessagingClient {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingClient.class);
 
   /** Alluxio configuration. */
@@ -65,18 +63,17 @@ public class GrpcMessagingClient implements Client {
     mClientType = clientType;
   }
 
-  @Override
-  public CompletableFuture<Connection> connect(Address address) {
+  public CompletableFuture<GrpcMessagingConnection> connect(InetSocketAddress address) {
     LOG.debug("Creating a messaging client connection to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     // Future for this connection.
-    final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+    final CompletableFuture<GrpcMessagingConnection> connectionFuture = new CompletableFuture<>();
     // Spawn gRPC connection building on a common pool.
-    final CompletableFuture<Connection> buildFuture = CompletableFuture.supplyAsync(() -> {
+    final CompletableFuture<GrpcMessagingConnection> buildFuture = CompletableFuture.supplyAsync(() -> {
       try {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
+            .newBuilder(GrpcServerAddress.create(address.getHostString(), address), mConf)
             .setClientType(mClientType).setSubject(mUserState.getSubject())
             .build();
 
@@ -110,7 +107,6 @@ public class GrpcMessagingClient implements Client {
     return connectionFuture;
   }
 
-  @Override
   public CompletableFuture<Void> close() {
     LOG.debug("Closing messaging client; {}", this);
     // Nothing to clean up
