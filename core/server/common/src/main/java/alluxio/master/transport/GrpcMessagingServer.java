@@ -19,7 +19,6 @@ import alluxio.grpc.GrpcService;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.user.UserState;
 
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class GrpcMessagingServer {
 
     LOG.debug("Opening messaging server for: {}", address);
 
-    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    final GrpcMessagingContext threadContext = GrpcMessagingContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
 
       InetSocketAddress bindAddress = address;

@@ -309,7 +309,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     });
     // Register message handlers under catalyst context.
     try {
-      mCatalystContext.execute(() -> {
+      mGrpcMessagingContext.execute(() -> {
         // Register suspend message handler.
         leaderConnection.handler(BackupSuspendMessage.class, this::handleSuspendJournalsMessage);
         // Register backup message handler.
@@ -358,7 +358,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =
-            mCatalystContext.execute(() -> messagingClient.connect(leaderAddress)).get().get();
+            mGrpcMessagingContext.execute(() -> messagingClient.connect(leaderAddress)).get().get();
 
         // Activate the connection.
         activateLeaderConnection(mLeaderConnection);

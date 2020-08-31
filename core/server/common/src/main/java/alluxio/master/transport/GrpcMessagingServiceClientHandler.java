@@ -16,7 +16,6 @@ import alluxio.grpc.TransportMessage;
 import alluxio.security.authentication.ClientIpAddressInjector;
 
 import com.google.common.base.MoreObjects;
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ public class GrpcMessagingServiceClientHandler
   /** Messaging server provided listener for storing incoming connections. */
   private final Consumer<GrpcMessagingConnection> mListener;
   /** {@link GrpcMessagingServer}'s catalyst thread context. */
-  private final ThreadContext mContext;
+  private final GrpcMessagingContext mContext;
   /** Request timeout value for new connections. */
   private final long mRequestTimeoutMs;
   /** Executor for building server connections. */
@@ -54,7 +53,7 @@ public class GrpcMessagingServiceClientHandler
    * @param requestTimeoutMs request timeout value for new connections
    */
   public GrpcMessagingServiceClientHandler(InetSocketAddress serverAddress, Consumer<GrpcMessagingConnection> listener,
-      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
+      GrpcMessagingContext context, ExecutorService executor, long requestTimeoutMs) {
     mServerAddress = serverAddress;
     mListener = listener;
     mContext = context;

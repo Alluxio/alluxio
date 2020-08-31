@@ -40,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -143,7 +142,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
                         NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
                             ServerConfiguration.global()),
-                        (conn) -> activateWorkerConnection(conn), mCatalystContext,
+                        (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
                     new ClientIpAddressInjector())).withCloseable(this));
     return services;

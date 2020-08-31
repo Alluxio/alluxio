@@ -22,7 +22,6 @@ import com.google.protobuf.UnsafeByteOperations;
 import io.atomix.catalyst.concurrent.Listener;
 import io.atomix.catalyst.concurrent.Listeners;
 import io.atomix.catalyst.concurrent.Scheduled;
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.SerializationException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public abstract class GrpcMessagingConnection
   private final Map<Long, GrpcMessagingConnection.ContextualFuture> mResponseFutures;
 
   /** Thread context of creator of this connection. */
-  private final ThreadContext mContext;
+  private final GrpcMessagingContext mContext;
 
   /** Type of connection owner. */
   private final ConnectionOwner mConnectionOwner;
@@ -112,7 +111,7 @@ public abstract class GrpcMessagingConnection
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
   public GrpcMessagingConnection(ConnectionOwner connectionOwner, String transportId,
-      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
+      GrpcMessagingContext context, ExecutorService executor, long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mConnectionId = MoreObjects.toStringHelper(this)
         .add("ConnectionOwner", mConnectionOwner)
@@ -171,7 +170,7 @@ public abstract class GrpcMessagingConnection
       // Create a contextual future for the request.
       GrpcMessagingConnection.ContextualFuture<U> future =
           new GrpcMessagingConnection.ContextualFuture<>(System.currentTimeMillis(),
-              ThreadContext.currentContextOrThrow());
+              GrpcMessagingContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
       if (mClosed) {
@@ -224,7 +223,7 @@ public abstract class GrpcMessagingConnection
         throw new IllegalStateException("Connection closed");
       }
       mHandlers.put(type, new GrpcMessagingConnection.HandlerHolder(handler,
-          ThreadContext.currentContextOrThrow()));
+          GrpcMessagingContext.currentContextOrThrow()));
       return null;
     }
   }
@@ -281,7 +280,7 @@ public abstract class GrpcMessagingConnection
           }
         };
         // Make sure response is sent under catalyst context.
-        if (ThreadContext.currentContext() != null) {
+        if (GrpcMessagingContext.currentContext() != null) {
           // Current thread under catalyst context.
           responseAction.run();
         } else {
@@ -301,7 +300,7 @@ public abstract class GrpcMessagingConnection
    * @param context catalyst thread context
    * @param responseObject response object  to send
    */
-  private void sendResponse(long requestId, ThreadContext context, Object responseObject) {
+  private void sendResponse(long requestId, GrpcMessagingContext context, Object responseObject) {
     LOG.debug("Sending response of type: {} for request({}). GrpcMessagingConnection: {}",
         responseObjectType(responseObject), requestId, mConnectionOwner);
     // Create response message.
@@ -531,14 +530,14 @@ public abstract class GrpcMessagingConnection
     /** Request handler. */
     private final Function<Object, CompletableFuture<Object>> mHandler;
     /** Catalyst thread context. */
-    private final ThreadContext mContext;
+    private final GrpcMessagingContext mContext;
 
-    private HandlerHolder(Function handler, ThreadContext context) {
+    private HandlerHolder(Function handler, GrpcMessagingContext context) {
       mHandler = handler;
       mContext = context;
     }
 
-    private ThreadContext getContext() {
+    private GrpcMessagingContext getContext() {
       return mContext;
     }
 
@@ -554,14 +553,14 @@ public abstract class GrpcMessagingConnection
     /** Creation time. */
     private final long mCreationTime;
     /** Catalyst thread context. */
-    private final ThreadContext mContext;
+    private final GrpcMessagingContext mContext;
 
-    private ContextualFuture(long creationTime, ThreadContext context) {
+    private ContextualFuture(long creationTime, GrpcMessagingContext context) {
       mCreationTime = creationTime;
       mContext = context;
     }
 
-    private ThreadContext getContext() {
+    private GrpcMessagingContext getContext() {
       return mContext;
     }
 

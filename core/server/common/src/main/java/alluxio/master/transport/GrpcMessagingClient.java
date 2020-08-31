@@ -19,7 +19,6 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.security.user.UserState;
 
-import io.atomix.catalyst.concurrent.ThreadContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +64,7 @@ public class GrpcMessagingClient {
 
   public CompletableFuture<GrpcMessagingConnection> connect(InetSocketAddress address) {
     LOG.debug("Creating a messaging client connection to: {}", address);
-    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    final GrpcMessagingContext threadContext = GrpcMessagingContext.currentContextOrThrow();
     // Future for this connection.
     final CompletableFuture<GrpcMessagingConnection> connectionFuture = new CompletableFuture<>();
     // Spawn gRPC connection building on a common pool.

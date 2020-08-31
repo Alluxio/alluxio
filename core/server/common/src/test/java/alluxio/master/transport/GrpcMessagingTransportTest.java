@@ -17,8 +17,6 @@ import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.concurrent.SingleThreadContext;
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.copycat.protocol.ClientRequestTypeResolver;
@@ -68,7 +66,7 @@ public class GrpcMessagingTransportTest {
     });
 
     // Catalyst thread context for managing client/server.
-    ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
+    GrpcMessagingContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
     InetSocketAddress address = bindServer(connectionContext, mTransport.server(), connectionListener);
@@ -84,7 +82,7 @@ public class GrpcMessagingTransportTest {
   public void testConnectionIsolation() throws Exception {
 
     // Catalyst thread context for managing client/server.
-    ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
+    GrpcMessagingContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
     InetSocketAddress address =
@@ -106,7 +104,7 @@ public class GrpcMessagingTransportTest {
   public void testConnectionClosed() throws Exception {
 
     // Catalyst thread context for managing client/server.
-    ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
+    GrpcMessagingContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create and bind transport server.
     InetSocketAddress address =
@@ -132,7 +130,7 @@ public class GrpcMessagingTransportTest {
   @Test
   public void testServerClosed() throws Exception {
     // Catalyst thread context for managing client/server.
-    ThreadContext connectionContext = createSingleThreadContext("ClientServerCtx");
+    GrpcMessagingContext connectionContext = createSingleThreadContext("ClientServerCtx");
 
     // Create transport server.
     GrpcMessagingServer server = mTransport.server();
@@ -164,7 +162,7 @@ public class GrpcMessagingTransportTest {
    * @return address to which the server is bound
    * @throws Exception
    */
-  private InetSocketAddress bindServer(ThreadContext context, GrpcMessagingServer server, Consumer<GrpcMessagingConnection> listener)
+  private InetSocketAddress bindServer(GrpcMessagingContext context, GrpcMessagingServer server, Consumer<GrpcMessagingConnection> listener)
       throws Exception {
 
     ServerSocket autoBindSocket = new ServerSocket(0);
@@ -192,7 +190,7 @@ public class GrpcMessagingTransportTest {
    * @return client connection
    * @throws Exception
    */
-  private GrpcMessagingConnection connectClient(ThreadContext context, GrpcMessagingClient client, InetSocketAddress serverAddress)
+  private GrpcMessagingConnection connectClient(GrpcMessagingContext context, GrpcMessagingClient client, InetSocketAddress serverAddress)
       throws Exception {
     Supplier<CompletableFuture<GrpcMessagingConnection>> connectionSupplier = () -> {
       try {
@@ -267,8 +265,8 @@ public class GrpcMessagingTransportTest {
    * @param contextName context name
    * @return thread context
    */
-  private ThreadContext createSingleThreadContext(String contextName) {
-    return new SingleThreadContext(contextName, createTestSerializer());
+  private GrpcMessagingContext createSingleThreadContext(String contextName) {
+    return new GrpcMessagingContext(contextName, createTestSerializer());
   }
 
   /**
