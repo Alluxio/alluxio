@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
-import io.atomix.catalyst.concurrent.Scheduled;
 import io.atomix.catalyst.serializer.Serializer;
+import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,17 +103,17 @@ public class GrpcMessagingContext {
     return this.wrappedExecutor;
   }
 
-  public Scheduled schedule(Duration delay, Runnable runnable) {
+  public Cancellable schedule(Duration delay, Runnable runnable) {
     ScheduledFuture<?> future = this.executor.schedule(logFailure(runnable), delay.toMillis(), TimeUnit.MILLISECONDS);
     return () -> {
-      future.cancel(false);
+      return future.cancel(false);
     };
   }
 
-  public Scheduled schedule(Duration delay, Duration interval, Runnable runnable) {
+  public Cancellable schedule(Duration delay, Duration interval, Runnable runnable) {
     ScheduledFuture<?> future = this.executor.scheduleAtFixedRate(logFailure(runnable), delay.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
     return () -> {
-      future.cancel(false);
+      return future.cancel(false);
     };
   }
 

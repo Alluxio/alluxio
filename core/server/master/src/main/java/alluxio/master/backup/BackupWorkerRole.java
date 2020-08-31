@@ -30,13 +30,13 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.transport.GrpcMessagingClient;
 import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.Listeners;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
-import io.atomix.catalyst.concurrent.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   /** Connection with the leader. */
   private GrpcMessagingConnection mLeaderConnection;
   /** Close listener for leader connection. */
-  private Listener<GrpcMessagingConnection> mLeaderConnectionCloseListener;
+  private Listeners<GrpcMessagingConnection>.ListenerHolder mLeaderConnectionCloseListener;
 
   /** Future to control ongoing backup. */
   private Future<?> mBackupFuture;

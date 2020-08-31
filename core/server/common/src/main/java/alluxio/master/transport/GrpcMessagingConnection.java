@@ -19,11 +19,8 @@ import alluxio.resource.LockResource;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
-import io.atomix.catalyst.concurrent.Listener;
-import io.atomix.catalyst.concurrent.Listeners;
-import io.atomix.catalyst.concurrent.Scheduled;
-import io.atomix.catalyst.serializer.SerializationException;
 import io.grpc.stub.StreamObserver;
+import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +88,7 @@ public abstract class GrpcMessagingConnection
   private final long mRequestTimeoutMs;
 
   /** Timeout scheduler. */
-  private final Scheduled mTimeoutScheduler;
+  private final Cancellable mTimeoutScheduler;
 
   /** Used to synchronize during connection shut down. */
   private final ReadWriteLock mStateLock;
@@ -249,9 +246,9 @@ public abstract class GrpcMessagingConnection
       } else {
         // Send fail response.
         sendResponse(requestId, mContext,
-            new SerializationException("Unknown message type: " + request.getClass()));
+            new RuntimeException("Unknown message type: " + request.getClass()));
       }
-    } catch (SerializationException e) {
+    } catch (RuntimeException e) {
       // Send fail response.
       sendResponse(requestId, mContext, e);
     }
@@ -345,7 +342,7 @@ public abstract class GrpcMessagingConnection
         // Complete request future on originating context as per interface contract.
         future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
-    } catch (SerializationException e) {
+    } catch (RuntimeException e) {
       future.getContext().executor().execute(() -> future.completeExceptionally(e));
     }
   }
@@ -354,7 +351,7 @@ public abstract class GrpcMessagingConnection
     return (responseObject != null) ? responseObject.getClass().getName() : "<NULL>";
   }
 
-  public Listener<Throwable> onException(Consumer<Throwable> listener) {
+  public Listeners<Throwable>.ListenerHolder onException(Consumer<Throwable> listener) {
     // Call immediately if the connection was failed.
     if (mLastFailure != null) {
       listener.accept(mLastFailure);
@@ -362,7 +359,7 @@ public abstract class GrpcMessagingConnection
     return mExceptionListeners.add(Preconditions.checkNotNull(listener, "listener should not be null"));
   }
 
-  public Listener<GrpcMessagingConnection> onClose(Consumer<GrpcMessagingConnection> listener) {
+  public Listeners<GrpcMessagingConnection>.ListenerHolder onClose(Consumer<GrpcMessagingConnection> listener) {
     // Call immediately if the connection was closed.
     if (mClosed) {
       listener.accept(this);
@@ -400,7 +397,7 @@ public abstract class GrpcMessagingConnection
       failPendingRequests(new ConnectException("GrpcMessagingConnection closed."));
 
       // Call close listeners.
-      for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
+      for (Listeners<GrpcMessagingConnection>.ListenerHolder listener : mCloseListeners) {
         listener.accept(this);
       }
     }, mExecutor);
@@ -441,12 +438,12 @@ public abstract class GrpcMessagingConnection
     failPendingRequests(t);
 
     // Call exception listeners.
-    for (Listener<Throwable> listener : mExceptionListeners) {
+    for (Listeners<Throwable>.ListenerHolder listener : mExceptionListeners) {
       listener.accept(t);
     }
 
     // Call close listeners as we can't reactivate this connection.
-    for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
+    for (Listeners<GrpcMessagingConnection>.ListenerHolder listener : mCloseListeners) {
       listener.accept(this);
     }
   }
