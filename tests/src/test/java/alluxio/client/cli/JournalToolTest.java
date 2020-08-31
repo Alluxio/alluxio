@@ -13,9 +13,9 @@ package alluxio.client.cli;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -274,9 +274,7 @@ public class JournalToolTest extends BaseIntegrationTest {
       return true;
     }, WaitForOptions.defaults().setTimeoutMs(500));
 
-    if (checkpoint.size() > 1) {
-      fail("Unexpected checkpoint list: " + checkpoint);
-    }
+    assertEquals("Unexpected checkpoint list: " + checkpoint, 1, checkpoint.size());
 
     return checkpoint.get(0).toString();
   }
