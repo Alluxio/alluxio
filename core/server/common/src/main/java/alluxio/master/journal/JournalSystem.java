@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
@@ -26,6 +27,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -212,6 +214,13 @@ public interface JournalSystem {
    * Creates a checkpoint in the primary master journal system.
    */
   void checkpoint() throws IOException;
+
+  /**
+   * @return RPC services for journal system
+   */
+  default Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
+    return Collections.EMPTY_MAP;
+  }
 
   /**
    * Builder for constructing a journal system.
