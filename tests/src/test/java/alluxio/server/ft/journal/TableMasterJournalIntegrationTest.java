@@ -205,7 +205,7 @@ public class TableMasterJournalIntegrationTest {
 
     final JobInfo jobStatus = jobMaster.getStatus(jobid);
     if (!jobStatus.getStatus().equals(Status.COMPLETED)) {
-      fail(jobStatus.getErrorMessage());
+      fail(jobStatus.getStatus().toString() + ": " + jobStatus.getErrorMessage());
     }
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
     // all partitions are transformed, so baselayout should be different as layout
