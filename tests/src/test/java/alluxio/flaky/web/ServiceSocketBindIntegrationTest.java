@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.flaky;
+package alluxio.flaky.web;
 
 import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
