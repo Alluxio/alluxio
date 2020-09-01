@@ -6,9 +6,9 @@ name: Flaky Integration Tests
 # events but only for the master branch
 on:
   push:
-    branches: [ github-actions, master ]
+    branches: [ github-actions ]
   pull_request:
-    branches: [ github-actions, master ]
+    branches: [ github-actions ]
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
