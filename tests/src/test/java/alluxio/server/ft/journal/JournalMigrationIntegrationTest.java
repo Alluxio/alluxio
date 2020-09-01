@@ -38,7 +38,7 @@ import java.io.File;
  * Integration test for migrating between UFS and embedded journals.
  */
 public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
-  private static final int NUM_DIRS = 5;
+  private static final int NUM_DIRS = 10;
 
   @Test
   public void migration() throws Exception {

@@ -37,7 +37,6 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
   private final FileSystemContext mContext;
-
   private volatile RetryHandlingMetaMasterConfigClient mClient;
 
   private volatile IOException mException;
@@ -73,7 +72,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public synchronized void heartbeat() {
     if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
       // Wait until the initial cluster defaults are loaded.
       return;

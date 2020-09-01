@@ -203,10 +203,7 @@ public class TableMasterJournalIntegrationTest {
     JobTestUtils.waitForJobStatus(jobMaster, jobid, ImmutableSet.of(Status.COMPLETED,
         Status.CANCELED, Status.FAILED));
 
-    final JobInfo jobStatus = jobMaster.getStatus(jobid);
-    if (!jobStatus.getStatus().equals(Status.COMPLETED)) {
-      fail(jobStatus.getStatus().toString() + ": " + jobStatus.getErrorMessage());
-    }
+    assertEquals(Status.COMPLETED, jobMaster.getStatus(jobid).getStatus());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
     // all partitions are transformed, so baselayout should be different as layout
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
