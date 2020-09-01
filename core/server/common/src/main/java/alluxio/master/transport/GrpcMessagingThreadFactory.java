@@ -14,15 +14,30 @@ package alluxio.master.transport;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The factory to create new {@link GrpcMessagingThread}.
+ */
 public class GrpcMessagingThreadFactory implements ThreadFactory {
-  private final AtomicInteger threadNumber = new AtomicInteger(1);
-  private final String nameFormat;
+  private final AtomicInteger mThreadNumber = new AtomicInteger(1);
+  private final String mNameFormat;
 
+  /**
+   * Constructs a new {@link GrpcMessagingThreadFactory}.
+   *
+   * @param nameFormat the name format of this factory
+   */
   public GrpcMessagingThreadFactory(String nameFormat) {
-    this.nameFormat = nameFormat;
+    mNameFormat = nameFormat;
   }
 
-  public Thread newThread(Runnable r) {
-    return new GrpcMessagingThread(r, String.format(this.nameFormat, this.threadNumber.getAndIncrement()));
+  /**
+   * Creates a new thread.
+   *
+   * @param runnable runnable to create thread with
+   * @return the created thread
+   */
+  public Thread newThread(Runnable runnable) {
+    return new GrpcMessagingThread(runnable,
+        String.format(mNameFormat, mThreadNumber.getAndIncrement()));
   }
 }

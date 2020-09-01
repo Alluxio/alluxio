@@ -121,7 +121,8 @@ public abstract class AbstractBackupRole implements BackupRole {
    * Used to send message via connection and wait until response is received. Response is discarded
    * since backup messages are one-way.
    */
-  protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message) throws IOException {
+  protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message)
+      throws IOException {
     try {
       mGrpcMessagingContext.execute(() -> {
         return connection.sendAndReceive(message);

@@ -21,70 +21,108 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 
+/**
+ * A class to hold all listeners belong to given type T.
+ *
+ * @param <T> the listener type
+ */
 public class Listeners<T> implements Iterable<Listeners<T>.ListenerHolder> {
-  private final List<Listeners<T>.ListenerHolder> listeners = new CopyOnWriteArrayList();
+  private final List<Listeners<T>.ListenerHolder> mListeners = new CopyOnWriteArrayList();
 
-  public Listeners() {
-  }
+  /**
+   * Empty constructor to construct {@link Listeners}.
+   */
+  public Listeners() {}
 
+  /**
+   * @return the current holding listeners
+   */
   public int size() {
-    return listeners.size();
+    return mListeners.size();
   }
 
+  /**
+   * Adds a new listener.
+   *
+   * @param listener the listener to add
+   * @return listener holder of this listener
+   */
   public ListenerHolder add(Consumer<T> listener) {
     Preconditions.checkNotNull(listener, "listener should not be null");
-    Listeners<T>.ListenerHolder holder = new Listeners.ListenerHolder(listener, GrpcMessagingContext.currentContext());
-    listeners.add(holder);
+    Listeners<T>.ListenerHolder holder
+        = new ListenerHolder(listener, GrpcMessagingContext.currentContext());
+    mListeners.add(holder);
     return holder;
   }
 
+  /**
+   * Accepts an event.
+   *
+   * @param event the event to accept
+   * @return the listener accepted future
+   */
   public CompletableFuture<Void> accept(T event) {
-    List<CompletableFuture<Void>> futures = new ArrayList(this.listeners.size());
-    Iterator var3 = listeners.iterator();
+    List<CompletableFuture<Void>> futures = new ArrayList(mListeners.size());
+    Iterator var3 = mListeners.iterator();
 
-    while(var3.hasNext()) {
-      Listeners<T>.ListenerHolder listener = (Listeners.ListenerHolder)var3.next();
-      if (listener.context != null) {
-        futures.add(listener.context.execute(() -> {
-          listener.listener.accept(event);
+    while (var3.hasNext()) {
+      Listeners<T>.ListenerHolder listener = (ListenerHolder) var3.next();
+      if (listener.getContext() != null) {
+        futures.add(listener.getContext().execute(() -> {
+          listener.getListener().accept(event);
         }));
       } else {
-        listener.listener.accept(event);
+        listener.getListener().accept(event);
       }
     }
 
-    return CompletableFuture.allOf((CompletableFuture[])futures.toArray(new CompletableFuture[futures.size()]));
+    return CompletableFuture.allOf((CompletableFuture[]) futures
+        .toArray(new CompletableFuture[futures.size()]));
   }
 
+  @Override
   public Iterator<Listeners<T>.ListenerHolder> iterator() {
-    return listeners.iterator();
+    return mListeners.iterator();
   }
 
+  /**
+   * The listener holder with messaging context.
+   */
   public class ListenerHolder implements Consumer<T>, AutoCloseable {
-    private final Consumer<T> listener;
-    private final GrpcMessagingContext context;
+    private final Consumer<T> mListener;
+    private final GrpcMessagingContext mContext;
 
-    private ListenerHolder(Consumer<T> listener, GrpcMessagingContext context) {
-      this.listener = listener;
-      this.context = context;
+    ListenerHolder(Consumer<T> listener, GrpcMessagingContext context) {
+      mListener = listener;
+      mContext = context;
     }
 
+    @Override
     public void accept(T event) {
-      if (context != null) {
+      if (mContext != null) {
         try {
-          context.executor().execute(() -> {
-            listener.accept(event);
+          mContext.executor().execute(() -> {
+            mListener.accept(event);
           });
         } catch (RejectedExecutionException var3) {
+          // Ignore the rejected exception
         }
       } else {
-        listener.accept(event);
+        mListener.accept(event);
       }
-
     }
 
+    @Override
     public void close() {
-      listeners.remove(this);
+      mListeners.remove(this);
+    }
+
+    private GrpcMessagingContext getContext() {
+      return mContext;
+    }
+
+    private Consumer<T> getListener() {
+      return mListener;
     }
   }
 }

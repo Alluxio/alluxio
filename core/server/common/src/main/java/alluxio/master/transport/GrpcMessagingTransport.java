@@ -103,6 +103,11 @@ public class GrpcMessagingTransport {
     return this;
   }
 
+  /**
+   * Creates a new Grpc messaging client.
+   *
+   * @return the created client
+   */
   public synchronized GrpcMessagingClient client() {
     if (mClosed) {
       throw new RuntimeException("Messaging transport closed");
@@ -113,6 +118,11 @@ public class GrpcMessagingTransport {
     return client;
   }
 
+  /**
+   * Creates a new Grpc messaging server.
+   *
+   * @return the created server
+   */
   public synchronized GrpcMessagingServer server() {
     if (mClosed) {
       throw new RuntimeException("Messaging transport closed");
@@ -123,6 +133,9 @@ public class GrpcMessagingTransport {
     return server;
   }
 
+  /**
+   * Closes the opened clients and servers.
+   */
   public synchronized void close() {
     if (!mClosed) {
       mClosed = true;

@@ -144,10 +144,24 @@ public abstract class GrpcMessagingConnection
     mTargetObserver = targetObserver;
   }
 
+  /**
+   * Sends a request.
+   *
+   * @param request the request to send
+   * @return the send request completable future
+   */
   public CompletableFuture<Void> send(Object request) {
     return sendAndReceiveInternal(request, true);
   }
 
+  /**
+   * Sends a request and receives a response.
+   *
+   * @param request the request to send
+   * @param <T> Request type
+   * @param <U> Response type
+   * @return future for results
+   */
   public <T, U> CompletableFuture<U> sendAndReceive(T request) {
     return sendAndReceiveInternal(request, false);
   }
@@ -206,6 +220,15 @@ public abstract class GrpcMessagingConnection
     }
   }
 
+  /**
+   * Registers a new message handler.
+   *
+   * @param type type of the handler
+   * @param handler the actual handler to register
+   * @param <T> the class and handler type
+   * @param <U> the result type
+   * @return connection
+   */
   public <T, U> GrpcMessagingConnection handler(Class<T> type, Consumer<T> handler) {
     return handler(type, r -> {
       handler.accept(r);
@@ -213,7 +236,17 @@ public abstract class GrpcMessagingConnection
     });
   }
 
-  public <T, U> GrpcMessagingConnection handler(Class<T> type, Function<T, CompletableFuture<U>> handler) {
+  /**
+   * Registers a new message handler.
+   *
+   * @param type type of the handler
+   * @param handler the actual handler to register
+   * @param <T> the class and handler type
+   * @param <U> the result type
+   * @return connection
+   */
+  public <T, U> GrpcMessagingConnection handler(Class<T> type,
+      Function<T, CompletableFuture<U>> handler) {
     Preconditions.checkNotNull(type, "type should not be null");
     try (LockResource lock = new LockResource(mStateLock.readLock())) {
       // Don't allow request if connection is closed.
@@ -352,15 +385,29 @@ public abstract class GrpcMessagingConnection
     return (responseObject != null) ? responseObject.getClass().getName() : "<NULL>";
   }
 
+  /**
+   * Adds an exception listener.
+   *
+   * @param listener the listener to add
+   * @return the listener holder
+   */
   public Listeners<Throwable>.ListenerHolder onException(Consumer<Throwable> listener) {
     // Call immediately if the connection was failed.
     if (mLastFailure != null) {
       listener.accept(mLastFailure);
     }
-    return mExceptionListeners.add(Preconditions.checkNotNull(listener, "listener should not be null"));
+    return mExceptionListeners.add(
+        Preconditions.checkNotNull(listener, "listener should not be null"));
   }
 
-  public Listeners<GrpcMessagingConnection>.ListenerHolder onClose(Consumer<GrpcMessagingConnection> listener) {
+  /**
+   * Adds a close listener.
+   *
+   * @param listener the listener to add
+   * @return the listener holder
+   */
+  public Listeners<GrpcMessagingConnection>.ListenerHolder onClose(
+      Consumer<GrpcMessagingConnection> listener) {
     // Call immediately if the connection was closed.
     if (mClosed) {
       listener.accept(this);
@@ -368,6 +415,11 @@ public abstract class GrpcMessagingConnection
     return mCloseListeners.add(Preconditions.checkNotNull(listener, "listener should not be null"));
   }
 
+  /**
+   * Closes the connection.
+   *
+   * @return future of close results
+   */
   public CompletableFuture<Void> close() {
     if (mClosed) {
       return CompletableFuture.completedFuture(null);
@@ -410,7 +462,8 @@ public abstract class GrpcMessagingConnection
 
   @Override
   public void onNext(TransportMessage message) {
-    LOG.debug("Received a new message. GrpcMessagingConnection: {}, RequestHeader: {}, ResponseHeader: {}",
+    LOG.debug("Received a new message. GrpcMessagingConnection: {}, "
+        + "RequestHeader: {}, ResponseHeader: {}",
         mConnectionId, message.getRequestHeader(), message.getResponseHeader());
     // A message can be a request or a response.
     if (message.hasRequestHeader()) {
@@ -504,8 +557,8 @@ public abstract class GrpcMessagingConnection
       Map.Entry<Long, GrpcMessagingConnection.ContextualFuture> responseEntry =
           responseFutureIter.next();
 
-      LOG.debug("Closing request({}) with error: {}. GrpcMessagingConnection: {}", responseEntry.getKey(),
-          error.getClass().getName(), mConnectionId);
+      LOG.debug("Closing request({}) with error: {}. GrpcMessagingConnection: {}",
+          responseEntry.getKey(), error.getClass().getName(), mConnectionId);
 
       GrpcMessagingConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
       responseFuture.getContext().executor()

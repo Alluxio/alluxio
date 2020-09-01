@@ -278,7 +278,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
       StateLockOptions stateLockOptions) {
     // Try to delegate backup to a follower.
     LOG.info("Scheduling backup at remote backup-worker.");
-    for (Map.Entry<GrpcMessagingConnection, String> workerEntry : mBackupWorkerHostNames.entrySet()) {
+    for (Map.Entry<GrpcMessagingConnection, String> workerEntry
+        : mBackupWorkerHostNames.entrySet()) {
       try {
         // Suspend journals on current follower.
         LOG.info("Suspending journals at backup-worker: {}", workerEntry.getValue());

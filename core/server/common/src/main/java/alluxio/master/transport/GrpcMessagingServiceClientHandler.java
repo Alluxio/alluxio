@@ -52,8 +52,9 @@ public class GrpcMessagingServiceClientHandler
    * @param executor transport executor
    * @param requestTimeoutMs request timeout value for new connections
    */
-  public GrpcMessagingServiceClientHandler(InetSocketAddress serverAddress, Consumer<GrpcMessagingConnection> listener,
-      GrpcMessagingContext context, ExecutorService executor, long requestTimeoutMs) {
+  public GrpcMessagingServiceClientHandler(InetSocketAddress serverAddress,
+      Consumer<GrpcMessagingConnection> listener, GrpcMessagingContext context,
+      ExecutorService executor, long requestTimeoutMs) {
     mServerAddress = serverAddress;
     mListener = listener;
     mContext = context;

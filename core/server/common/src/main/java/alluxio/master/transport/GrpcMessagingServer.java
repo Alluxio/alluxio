@@ -70,6 +70,13 @@ public class GrpcMessagingServer {
     mProxy = proxy;
   }
 
+  /**
+   * Listens to the given address.
+   *
+   * @param address the address to connect to
+   * @param listener listener for new connections
+   * @return completable future of the connection
+   */
   public synchronized CompletableFuture<Void> listen(InetSocketAddress address,
       Consumer<GrpcMessagingConnection> listener) {
     // Return existing future if building currently.
@@ -115,6 +122,11 @@ public class GrpcMessagingServer {
     return mListenFuture;
   }
 
+  /**
+   * Closes the connection to the server if exists.
+   *
+   * @return the close completable future
+   */
   public synchronized CompletableFuture<Void> close() {
     if (mGrpcServer == null) {
       return CompletableFuture.completedFuture(null);

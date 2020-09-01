@@ -288,7 +288,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
   /**
    * Prepares new leader connection.
    */
-  private void activateLeaderConnection(GrpcMessagingConnection leaderConnection) throws IOException {
+  private void activateLeaderConnection(GrpcMessagingConnection leaderConnection)
+      throws IOException {
     // Register connection error listener.
     leaderConnection.onException((error) -> {
       LOG.warn("Backup-leader connection failed.", error);
