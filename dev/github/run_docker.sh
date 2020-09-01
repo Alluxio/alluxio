@@ -74,15 +74,12 @@ function main {
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
-  # If target branch or remote exists, set to run relevant checks given the diff of the PR
-  if [ -n "${ghprbTargetBranch}" ]
+  if [ -z "${ALLUXIO_CHECKSTYLE}"]
   then
-    # this env var is defined by the github pull request builder jenkins plugin
-    # see https://plugins.jenkins.io/ghprb/
-    run_args+=" -e TARGET_BRANCH=${ghprbTargetBranch}"
+    run_args+=" --entrypoint=dev/github/run_tests.sh"
+  else
+    run_args+=" --entrypoint=dev/github/run_checks.sh"
   fi
-
-  run_args+=" --entrypoint=dev/github/run_tests.sh"
 
   docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE} $@
 }

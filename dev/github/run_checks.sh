@@ -76,18 +76,6 @@ if [ "$RUN_MAVEN" == "true" ]; then
   PATH=$JAVA_HOME/bin:$PATH
   mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip \
   -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args}
-
-  if [ -n "${ALLUXIO_SONAR_ARGS}" ]
-  then
-    # A separate step to run jacoco report, with all the generated coverage data. This requires the
-    # previous 'install' step to generate the jacoco exec data with the 'jacoco' profile.
-    #
-    # Must exclude some of the modules that fail to run verify again without a clean step. This is ok
-    # since these modules do not contain any source code to track for code coverage.
-    mvn -T 4C -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip -Dlicense.skip -PjacocoReport verify -pl '!webui,!shaded,!shaded/client,!shaded/hadoop'
-    # run sonar analysis
-    mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
-  fi
 else
   echo "RUN_MAVEN was not set to true, skipping maven check"
 fi
