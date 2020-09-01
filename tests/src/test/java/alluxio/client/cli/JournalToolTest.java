@@ -13,9 +13,10 @@ package alluxio.client.cli;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -37,7 +38,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import io.atomix.catalyst.concurrent.SingleThreadContext;
@@ -59,7 +59,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -257,25 +256,9 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   private String findCheckpointDir() throws Exception {
-    final List<Path> checkpoint = new ArrayList<>();
-    CommonUtils.waitFor("Checkpoint list:", () -> {
-      List<Path> checkpointTest = null;
-      try {
-        checkpointTest = Files.list(mDumpDir.toPath())
-            .filter(p -> p.toString().contains("checkpoints-")).collect(toList());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-
-      if (checkpointTest.size() == 0) {
-        return false;
-      } else if (checkpointTest.size() == 1) {
-        checkpoint.add(checkpointTest.get(0));
-        return true;
-      }
-      fail("Unexpected checkpoint list: " + checkpoint);
-      return false;
-    }, WaitForOptions.defaults().setTimeoutMs(500));
+    List<Path> checkpoint = Files.list(mDumpDir.toPath())
+        .filter(p -> p.toString().contains("checkpoints-")).collect(toList());
+    assertEquals("Unexpected checkpoint list: " + checkpoint, 1, checkpoint.size());
 
     return checkpoint.get(0).toString();
   }
