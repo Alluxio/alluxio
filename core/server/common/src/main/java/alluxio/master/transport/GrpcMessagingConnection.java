@@ -19,6 +19,7 @@ import alluxio.resource.LockResource;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
+import io.atomix.catalyst.serializer.SerializationException;
 import io.grpc.stub.StreamObserver;
 import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
@@ -246,9 +247,9 @@ public abstract class GrpcMessagingConnection
       } else {
         // Send fail response.
         sendResponse(requestId, mContext,
-            new RuntimeException("Unknown message type: " + request.getClass()));
+            new SerializationException("Unknown message type: " + request.getClass()));
       }
-    } catch (RuntimeException e) {
+    } catch (SerializationException e) {
       // Send fail response.
       sendResponse(requestId, mContext, e);
     }
@@ -342,7 +343,7 @@ public abstract class GrpcMessagingConnection
         // Complete request future on originating context as per interface contract.
         future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
-    } catch (RuntimeException e) {
+    } catch (SerializationException e) {
       future.getContext().executor().execute(() -> future.completeExceptionally(e));
     }
   }
@@ -417,7 +418,7 @@ public abstract class GrpcMessagingConnection
     } else if (message.hasResponseHeader()) {
       handleResponseMessage(message);
     } else {
-      throw new RuntimeException("Message should contain a request/response header.");
+      throw new SerializationException("Message should contain a request/response header.");
     }
   }
 
