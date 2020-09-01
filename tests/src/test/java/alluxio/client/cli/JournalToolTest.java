@@ -17,7 +17,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
