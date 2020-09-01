@@ -354,7 +354,7 @@ public abstract class GrpcMessagingConnection
     if (future == null) {
       LOG.debug(
           "Received a response for nonexistent request({})."
-              + "Connection is closed or the request has been timed out.Connection: {}",
+              + "Connection is closed or the request has been timed out. Connection: {}",
           response.getResponseHeader().getRequestId(), mConnectionId);
       return;
     }
@@ -362,7 +362,7 @@ public abstract class GrpcMessagingConnection
     try {
       if (response.getResponseHeader().getIsThrowable()) {
         Throwable error = mContext.serializer().readObject(response.getMessage().newInput());
-        LOG.debug("Received an exception for request({}). GrpcMessagingConnection: {}",
+        LOG.debug("Received an exception for request({}). Connection: {}",
             response.getResponseHeader().getRequestId(), mConnectionId, error);
         future.getContext().executor().execute(() -> future.completeExceptionally(error));
       } else {
@@ -428,7 +428,7 @@ public abstract class GrpcMessagingConnection
     return CompletableFuture.runAsync(() -> {
       LOG.debug("Closing connection: {}", mConnectionId);
 
-      // GrpcMessagingConnection can't be used after this.
+      // Connection can't be used after this.
       // Lock and set the state.
       try (LockResource lock = new LockResource(mStateLock.writeLock())) {
         mClosed = true;
@@ -447,7 +447,7 @@ public abstract class GrpcMessagingConnection
       }
 
       // Close pending requests.
-      failPendingRequests(new ConnectException("GrpcMessagingConnection closed."));
+      failPendingRequests(new ConnectException("Connection closed."));
 
       // Call close listeners.
       for (Listeners<GrpcMessagingConnection>.ListenerHolder listener : mCloseListeners) {
@@ -471,7 +471,7 @@ public abstract class GrpcMessagingConnection
     } else if (message.hasResponseHeader()) {
       handleResponseMessage(message);
     } else {
-      throw new SerializationException("Message should contain a request/response header.");
+      throw new RuntimeException("Message should contain a request/response header.");
     }
   }
 
