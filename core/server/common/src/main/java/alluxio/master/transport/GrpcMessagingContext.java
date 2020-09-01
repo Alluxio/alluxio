@@ -31,27 +31,36 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
- * The context for Grpc messaging thread.
+ * The context for Grpc messaging single thread.
+ * This context uses a {@link ScheduledExecutorService} to schedule events on the context thread.
  */
 public class GrpcMessagingContext {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingContext.class);
   private final ScheduledExecutorService mExecutor;
   private final Serializer mSerializer;
-  private volatile boolean mBlocked;
-  private final Executor mWrappedExecutor;
+  private final Executor mWrappedExecutor = new Executor() {
+    @Override
+    public void execute(Runnable command) {
+      try {
+        mExecutor.execute(logFailure(command));
+      } catch (RejectedExecutionException e) {
+        // Ignore the rejected exception
+      }
+    }
+  };
 
   /**
    * Constructs a new {@link GrpcMessagingContext}.
    *
-   * @param nameFormat the name format
-   * @param serializer the serializer
+   * @param nameFormat the name format used when instantiating the context thread
+   * @param serializer the context serializer
    */
   public GrpcMessagingContext(String nameFormat, Serializer serializer) {
     this(new GrpcMessagingThreadFactory(nameFormat), serializer);
   }
 
   /**
-   * Constructs a new {@link GrpcMessagingContext}.
+   * Constructs a new single thread {@link GrpcMessagingContext}.
    *
    * @param factory factory to use when creating the new thread
    * @param serializer the serializer
@@ -61,9 +70,9 @@ public class GrpcMessagingContext {
   }
 
   /**
-   * Constructs a new {@link GrpcMessagingContext}.
+   * Constructs a new single thread {@link GrpcMessagingContext}.
    *
-   * @param executor the executor
+   * @param executor the single thread scheduled executor to schedule events on
    * @param serializer the serializer
    */
   public GrpcMessagingContext(ScheduledExecutorService executor, Serializer serializer) {
@@ -79,15 +88,6 @@ public class GrpcMessagingContext {
    */
   public GrpcMessagingContext(Thread thread,
       ScheduledExecutorService executor, Serializer serializer) {
-    mWrappedExecutor = new Executor() {
-      public void execute(Runnable command) {
-        try {
-          GrpcMessagingContext.this.mExecutor.execute(logFailure(command));
-        } catch (RejectedExecutionException var3) {
-          // Ignore the rejected exception
-        }
-      }
-    };
     mExecutor = executor;
     mSerializer = serializer;
     Preconditions.checkState(thread instanceof GrpcMessagingThread,
@@ -95,17 +95,19 @@ public class GrpcMessagingContext {
     ((GrpcMessagingThread) thread).setContext(this);
   }
 
+  /**
+   * Gets the thread from a single threaded executor service.
+   */
   protected static GrpcMessagingThread getThread(ExecutorService executor) {
-    AtomicReference thread = new AtomicReference();
-
+    final AtomicReference<GrpcMessagingThread> thread = new AtomicReference<>();
     try {
       executor.submit(() -> {
         thread.set((GrpcMessagingThread) Thread.currentThread());
       }).get();
-    } catch (ExecutionException | InterruptedException var3) {
-      throw new IllegalStateException("failed to initialize thread state", var3);
+    } catch (ExecutionException | InterruptedException e) {
+      throw new IllegalStateException("Failed to initialize thread state", e);
     }
-    return (GrpcMessagingThread) thread.get();
+    return thread.get();
   }
 
   /**
@@ -132,9 +134,7 @@ public class GrpcMessagingContext {
   public Cancellable schedule(Duration delay, Runnable runnable) {
     ScheduledFuture<?> future = mExecutor.schedule(logFailure(runnable),
         delay.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> {
-      return future.cancel(false);
-    };
+    return () -> future.cancel(false);
   }
 
   /**
@@ -148,9 +148,7 @@ public class GrpcMessagingContext {
   public Cancellable schedule(Duration delay, Duration interval, Runnable runnable) {
     ScheduledFuture<?> future = mExecutor.scheduleAtFixedRate(logFailure(runnable),
         delay.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> {
-      return future.cancel(false);
-    };
+    return () -> future.cancel(false);
   }
 
   /**
@@ -198,28 +196,37 @@ public class GrpcMessagingContext {
     return future;
   }
 
+  /**
+   * @return The current thread context or {@code null} if no context exists
+   */
   static GrpcMessagingContext currentContext() {
     Thread thread = Thread.currentThread();
     return thread instanceof GrpcMessagingThread
         ? ((GrpcMessagingThread) thread).getContext() : null;
   }
 
+  /**
+   * @return The current thread context or {@code null} if no context exists
+   */
   static GrpcMessagingContext currentContextOrThrow() {
     GrpcMessagingContext context = currentContext();
     Preconditions.checkNotNull(context, "not on a Grpc messaging thread");
     return context;
   }
 
+  /**
+   * Returns a wrapped runnable that logs and rethrows uncaught exceptions.
+   */
   Runnable logFailure(Runnable runnable) {
     return () -> {
       try {
         runnable.run();
-      } catch (Throwable var3) {
-        if (!(var3 instanceof RejectedExecutionException)) {
-          LOG.error("An uncaught exception occurred", var3);
+      } catch (Throwable t) {
+        if (!(t instanceof RejectedExecutionException)) {
+          LOG.error("An uncaught exception occurred", t);
         }
 
-        throw var3;
+        throw t;
       }
     };
   }

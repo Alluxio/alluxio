@@ -14,7 +14,13 @@ package alluxio.master.transport;
 import java.lang.ref.WeakReference;
 
 /**
- * A thread used for Grpc messaging.
+ * A thread used for Grpc messaging and stores a {@link GrpcMessagingContext} for current thread.
+ * The context is storead in a {@link WeakReference} in order to allow the thread
+ * to be garbage collected.
+ *
+ * There is no {@link GrpcMessagingContext} associated with the thread when it is first created.
+ * It is the responsibility of thread creators to {@link #setContext(GrpcMessagingContext) set}
+ * the thread context when appropriate.
  */
 public class GrpcMessagingThread extends Thread {
   private WeakReference<GrpcMessagingContext> mContext;
@@ -35,13 +41,11 @@ public class GrpcMessagingThread extends Thread {
    * @param context context to set
    */
   public void setContext(GrpcMessagingContext context) {
-    mContext = new WeakReference(context);
+    mContext = new WeakReference<>(context);
   }
 
   /**
-   * Gets the Grpc context.
-   *
-   * @return the Grpc messaging context
+   * @return the Grpc messaging context or null if no context has been configured
    */
   public GrpcMessagingContext getContext() {
     return mContext != null ? mContext.get() : null;

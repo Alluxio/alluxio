@@ -15,14 +15,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The factory to create new {@link GrpcMessagingThread}.
+ * The factory to create new {@link GrpcMessagingThread} with name.
  */
 public class GrpcMessagingThreadFactory implements ThreadFactory {
   private final AtomicInteger mThreadNumber = new AtomicInteger(1);
   private final String mNameFormat;
 
   /**
-   * Constructs a new {@link GrpcMessagingThreadFactory}.
+   * Constructs a new {@link GrpcMessagingThreadFactory} which names thread.
    *
    * @param nameFormat the name format of this factory
    */
@@ -30,14 +30,9 @@ public class GrpcMessagingThreadFactory implements ThreadFactory {
     mNameFormat = nameFormat;
   }
 
-  /**
-   * Creates a new thread.
-   *
-   * @param runnable runnable to create thread with
-   * @return the created thread
-   */
-  public Thread newThread(Runnable runnable) {
-    return new GrpcMessagingThread(runnable,
+  @Override
+  public Thread newThread(Runnable r) {
+    return new GrpcMessagingThread(r,
         String.format(mNameFormat, mThreadNumber.getAndIncrement()));
   }
 }

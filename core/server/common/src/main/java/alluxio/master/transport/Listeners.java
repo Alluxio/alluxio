@@ -26,8 +26,8 @@ import java.util.function.Consumer;
  *
  * @param <T> the listener type
  */
-public class Listeners<T> implements Iterable<Listeners<T>.ListenerHolder> {
-  private final List<Listeners<T>.ListenerHolder> mListeners = new CopyOnWriteArrayList();
+public class Listeners<T> implements Iterable<Listener<T>> {
+  private final List<ListenerHolder> mListeners = new CopyOnWriteArrayList();
 
   /**
    * Empty constructor to construct {@link Listeners}.
@@ -47,9 +47,9 @@ public class Listeners<T> implements Iterable<Listeners<T>.ListenerHolder> {
    * @param listener the listener to add
    * @return listener holder of this listener
    */
-  public ListenerHolder add(Consumer<T> listener) {
+  public Listener<T> add(Consumer<T> listener) {
     Preconditions.checkNotNull(listener, "listener should not be null");
-    Listeners<T>.ListenerHolder holder
+    ListenerHolder holder
         = new ListenerHolder(listener, GrpcMessagingContext.currentContext());
     mListeners.add(holder);
     return holder;
@@ -63,32 +63,26 @@ public class Listeners<T> implements Iterable<Listeners<T>.ListenerHolder> {
    */
   public CompletableFuture<Void> accept(T event) {
     List<CompletableFuture<Void>> futures = new ArrayList(mListeners.size());
-    Iterator var3 = mListeners.iterator();
-
-    while (var3.hasNext()) {
-      Listeners<T>.ListenerHolder listener = (ListenerHolder) var3.next();
+    for (ListenerHolder listener : mListeners) {
       if (listener.getContext() != null) {
-        futures.add(listener.getContext().execute(() -> {
-          listener.getListener().accept(event);
-        }));
+        futures.add(listener.getContext().execute(() -> listener.getListener().accept(event)));
       } else {
         listener.getListener().accept(event);
       }
     }
-
-    return CompletableFuture.allOf((CompletableFuture[]) futures
-        .toArray(new CompletableFuture[futures.size()]));
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
   }
 
   @Override
-  public Iterator<Listeners<T>.ListenerHolder> iterator() {
-    return mListeners.iterator();
+  @SuppressWarnings("unchecked")
+  public Iterator<Listener<T>> iterator() {
+    return (Iterator) mListeners.iterator();
   }
 
   /**
    * The listener holder with messaging context.
    */
-  public class ListenerHolder implements Consumer<T>, AutoCloseable {
+  public class ListenerHolder implements Listener<T> {
     private final Consumer<T> mListener;
     private final GrpcMessagingContext mContext;
 

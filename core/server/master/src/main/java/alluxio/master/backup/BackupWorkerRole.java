@@ -30,7 +30,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.transport.GrpcMessagingClient;
 import alluxio.master.transport.GrpcMessagingConnection;
-import alluxio.master.transport.Listeners;
+import alluxio.master.transport.Listener;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
@@ -70,7 +70,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   /** Connection with the leader. */
   private GrpcMessagingConnection mLeaderConnection;
   /** Close listener for leader connection. */
-  private Listeners<GrpcMessagingConnection>.ListenerHolder mLeaderConnectionCloseListener;
+  private Listener<GrpcMessagingConnection> mLeaderConnectionCloseListener;
 
   /** Future to control ongoing backup. */
   private Future<?> mBackupFuture;

@@ -391,7 +391,7 @@ public abstract class GrpcMessagingConnection
    * @param listener the listener to add
    * @return the listener holder
    */
-  public Listeners<Throwable>.ListenerHolder onException(Consumer<Throwable> listener) {
+  public Listener<Throwable> onException(Consumer<Throwable> listener) {
     // Call immediately if the connection was failed.
     if (mLastFailure != null) {
       listener.accept(mLastFailure);
@@ -406,7 +406,7 @@ public abstract class GrpcMessagingConnection
    * @param listener the listener to add
    * @return the listener holder
    */
-  public Listeners<GrpcMessagingConnection>.ListenerHolder onClose(
+  public Listener<GrpcMessagingConnection> onClose(
       Consumer<GrpcMessagingConnection> listener) {
     // Call immediately if the connection was closed.
     if (mClosed) {
@@ -450,7 +450,7 @@ public abstract class GrpcMessagingConnection
       failPendingRequests(new ConnectException("Connection closed."));
 
       // Call close listeners.
-      for (Listeners<GrpcMessagingConnection>.ListenerHolder listener : mCloseListeners) {
+      for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
         listener.accept(this);
       }
     }, mExecutor);
@@ -492,12 +492,12 @@ public abstract class GrpcMessagingConnection
     failPendingRequests(t);
 
     // Call exception listeners.
-    for (Listeners<Throwable>.ListenerHolder listener : mExceptionListeners) {
+    for (Listener<Throwable> listener : mExceptionListeners) {
       listener.accept(t);
     }
 
     // Call close listeners as we can't reactivate this connection.
-    for (Listeners<GrpcMessagingConnection>.ListenerHolder listener : mCloseListeners) {
+    for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
       listener.accept(this);
     }
   }
