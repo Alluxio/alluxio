@@ -55,10 +55,11 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-2.5": {"hadoop-2.5", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
 	"ufs-hadoop-2.6": {"hadoop-2.6", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
 	"ufs-hadoop-2.7": {"hadoop-2.7", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
-	"ufs-hadoop-2.8": {"hadoop-2.8", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
+	"ufs-hadoop-2.8": {"hadoop-2.8", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
+	"ufs-hadoop-2.9": {"hadoop-2.9", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.0": {"hadoop-3.0", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.0 -PhdfsActiveSync"},
-	"ufs-hadoop-3.2": {"hadoop-3.2", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.2": {"hadoop-3.2", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3": {"hadoop-3.3", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
 }
 
