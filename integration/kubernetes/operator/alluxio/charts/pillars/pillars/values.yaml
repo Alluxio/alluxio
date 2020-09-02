@@ -1,0 +1,17 @@
+# Default values for alluxio.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+controller:
+  image: alluxio/alluxio-controller:v0.1.0-9113c3b
+  capacityPercentagePerNode: 50
+  reservedStorage: 1GiB
+  cacheStoreType: MEM
+  cacheStoragePath: /dev/shm
+
+
+webhook:
+  image: alluxio/alluxio-webhook:v0.1.0-9113c3b
+
+mount:
+  image: alluxio/alluxio-mount
