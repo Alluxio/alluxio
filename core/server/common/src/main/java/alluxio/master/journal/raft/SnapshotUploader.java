@@ -43,9 +43,9 @@ import java.util.function.Function;
  * @param <S> the message type to send
  * @param <R> the message type to receive
  */
-public class UploadObserver<S, R>
+public class SnapshotUploader<S, R>
     implements StreamObserver<R>, ClientResponseObserver<S, R> {
-  private static final Logger LOG = LoggerFactory.getLogger(UploadObserver.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SnapshotUploader.class);
   private static final int SNAPSHOT_CHUNK_SIZE = (int) ServerConfiguration.getBytes(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
 
@@ -57,7 +57,7 @@ public class UploadObserver<S, R>
   private long mOffset = 0;
   private StreamObserver<S> mStream;
 
-  /***
+  /**
    * Builds a stream for leader to upload a snapshot.
    *
    * @param storage the snapshot storage
@@ -65,29 +65,29 @@ public class UploadObserver<S, R>
    * @param stream the download stream
    * @return the upload stream for leader
    */
-  public static UploadObserver<DownloadSnapshotPResponse, DownloadSnapshotPRequest> forLeader(
+  public static SnapshotUploader<DownloadSnapshotPResponse, DownloadSnapshotPRequest> forLeader(
       SimpleStateMachineStorage storage, SnapshotInfo snapshot,
       StreamObserver<DownloadSnapshotPResponse> stream) {
-    return new UploadObserver<>(storage, snapshot, stream,
+    return new SnapshotUploader<>(storage, snapshot, stream,
         data -> DownloadSnapshotPResponse.getDefaultInstance().toBuilder().setData(data).build(),
         DownloadSnapshotPRequest::getOffsetReceived);
   }
 
-  /***
+  /**
    * Builds a stream for follower to upload a snapshot.
    *
    * @param storage the snapshot storage
    * @param snapshot the snapshot to upload
    * @return the upload stream for follower
    */
-  public static UploadObserver<UploadSnapshotPRequest, UploadSnapshotPResponse> forFollower(
+  public static SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> forFollower(
       SimpleStateMachineStorage storage, SnapshotInfo snapshot) {
-    return new UploadObserver<>(storage, snapshot, null,
+    return new SnapshotUploader<>(storage, snapshot, null,
         data -> UploadSnapshotPRequest.getDefaultInstance().toBuilder().setData(data).build(),
         UploadSnapshotPResponse::getOffsetReceived);
   }
 
-  private UploadObserver(SimpleStateMachineStorage storage, SnapshotInfo snapshot,
+  private SnapshotUploader(SimpleStateMachineStorage storage, SnapshotInfo snapshot,
       StreamObserver<S> stream,
       Function<SnapshotData, S> buildFunc, Function<R, Long> offsetGetter) {
     mSnapshotInfo = snapshot;

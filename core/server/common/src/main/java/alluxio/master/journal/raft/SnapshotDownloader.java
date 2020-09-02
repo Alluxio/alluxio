@@ -42,13 +42,16 @@ import java.util.function.Function;
  * @param <S> type of the message to send
  * @param <R> type of the message to receive
  */
-public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadObserver.class);
+public class SnapshotDownloader<S, R> implements ClientResponseObserver<S, R> {
+  private static final Logger LOG = LoggerFactory.getLogger(SnapshotDownloader.class);
 
   private final SimpleStateMachineStorage mStorage;
   private final CompletableFuture<TermIndex> mFuture = new CompletableFuture<>();
   private final Function<Long, S> mMessageBuilder;
   private final Function<R, SnapshotData> mDataGetter;
+  private final String mSource;
+
+  /** The term and index for the latest journal entry included in the snapshot */
   private TermIndex mTermIndex;
   private File mTempFile;
   private FileOutputStream mOutputStream;
@@ -56,39 +59,43 @@ public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
   private StreamObserver<S> mStream;
   private SnapshotInfo mSnapshotToInstall;
 
-  /***
+  /**
    * Builds a stream for leader to download a snapshot.
    *
    * @param storage the snapshot storage
    * @param stream the response stream
+   * @param source the source of the snapshot
    * @return the download stream for leader
    */
-  public static DownloadObserver<UploadSnapshotPResponse, UploadSnapshotPRequest> forLeader(
-      SimpleStateMachineStorage storage, StreamObserver<UploadSnapshotPResponse> stream) {
-    return new DownloadObserver<>(storage,
+  public static SnapshotDownloader<UploadSnapshotPResponse, UploadSnapshotPRequest> forLeader(
+      SimpleStateMachineStorage storage, StreamObserver<UploadSnapshotPResponse> stream,
+      String source) {
+    return new SnapshotDownloader<>(storage,
         offset -> UploadSnapshotPResponse.newBuilder().setOffsetReceived(offset).build(),
-        UploadSnapshotPRequest::getData, stream);
+        UploadSnapshotPRequest::getData, stream, source);
   }
 
-  /***
+  /**
    * Builds a stream for follower to download a snapshot.
    *
    * @param storage the snapshot storage
+   * @param source the source of the snapshot
    * @return the download stream for follower
    */
-  public static DownloadObserver<DownloadSnapshotPRequest, DownloadSnapshotPResponse>
-      forFollower(SimpleStateMachineStorage storage) {
-    return new DownloadObserver<>(storage,
+  public static SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse>
+      forFollower(SimpleStateMachineStorage storage, String source) {
+    return new SnapshotDownloader<>(storage,
         offset -> DownloadSnapshotPRequest.newBuilder().setOffsetReceived(offset).build(),
-        DownloadSnapshotPResponse::getData, null);
+        DownloadSnapshotPResponse::getData, null, source);
   }
 
-  private DownloadObserver(SimpleStateMachineStorage storage, Function<Long, S> messageBuilder,
-      Function<R, SnapshotData> dataGetter, StreamObserver<S> stream) {
+  private SnapshotDownloader(SimpleStateMachineStorage storage, Function<Long, S> messageBuilder,
+      Function<R, SnapshotData> dataGetter, StreamObserver<S> stream, String source) {
     mStorage = storage;
     mMessageBuilder = messageBuilder;
     mDataGetter = dataGetter;
     mStream = stream;
+    mSource = source;
   }
 
   @Override
@@ -107,7 +114,7 @@ public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
       try {
         mOutputStream.close();
       } catch (IOException ioException) {
-        LOG.error("Error closing snapshot file", ioException);
+        LOG.error("Error closing snapshot file {}", mTempFile, ioException);
       }
     }
     if (mTempFile != null && !mTempFile.delete()) {
@@ -120,8 +127,7 @@ public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
         mDataGetter.apply(response).getSnapshotTerm(),
         mDataGetter.apply(response).getSnapshotIndex());
     if (mTermIndex == null) {
-      // new start, check if there is already a download
-      LOG.info("Downloading new snapshot {}", termIndex);
+      LOG.info("Downloading new snapshot {} from {}", termIndex, mSource);
       mTermIndex = termIndex;
       // start a new file
       mTempFile = RaftJournalUtils.createTempSnapshotFile(mStorage);
@@ -135,7 +141,8 @@ public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
             mTermIndex, termIndex));
       }
       if (!mDataGetter.apply(response).hasChunk()) {
-        throw new IOException(String.format("A chunk is missing from the response %s", response));
+        throw new IOException(String.format(
+            "A chunk for file {} is missing from the response %s.", mTempFile, response));
       }
       // write the chunk
       if (mOutputStream == null) {
@@ -150,7 +157,7 @@ public class DownloadObserver<S, R> implements ClientResponseObserver<S, R> {
       }
       mOutputStream.write(mDataGetter.apply(response).getChunk().toByteArray());
       mBytesWritten += mDataGetter.apply(response).getChunk().size();
-      LOG.debug("written {} bytes to snapshot file {}", mBytesWritten, mTempFile.getPath());
+      LOG.debug("Written {} bytes to snapshot file {}", mBytesWritten, mTempFile.getPath());
       if (mDataGetter.apply(response).getEof()) {
         LOG.debug("Completed writing to temporary file {} with size {}",
             mTempFile.getPath(), mOutputStream.getChannel().position());

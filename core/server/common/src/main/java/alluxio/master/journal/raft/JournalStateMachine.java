@@ -220,7 +220,9 @@ public class JournalStateMachine extends BaseStateMachine {
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
     if (roleInfoProto.getRole() != RaftProtos.RaftPeerRole.FOLLOWER) {
       return RaftJournalUtils.completeExceptionally(
-          new IllegalStateException("Received snapshot as a non-follower"));
+          new IllegalStateException(String.format(
+              "Server should be a follower when installing a snapshot from leader. Actual: %s",
+              roleInfoProto.getRole())));
     }
     return mSnapshotManager.installSnapshotFromLeader();
   }

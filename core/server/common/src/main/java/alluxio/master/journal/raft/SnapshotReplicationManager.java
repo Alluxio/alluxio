@@ -31,6 +31,7 @@ import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.CommonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -130,14 +131,15 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("Abort snapshot installation after becoming a leader"));
     }
-    DownloadObserver<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
-        DownloadObserver.forFollower(mStorage);
     if (!transitionState(DownloadState.IDLE, DownloadState.STREAM_DATA)) {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("Illegal state while installing a snapshot"));
     }
     try {
-      getJournalServiceClient().downloadSnapshot(observer);
+      RaftJournalServiceClient client = getJournalServiceClient();
+      SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
+          SnapshotDownloader.forFollower(mStorage, client.getAddress().toString());
+      client.downloadSnapshot(observer);
       return observer.getFuture().thenApplyAsync((termIndex) -> {
         mDownloadedSnapshot = observer.getSnapshotToInstall();
         transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
@@ -179,8 +181,10 @@ public class SnapshotReplicationManager {
       throw new NotFoundException("No snapshot available");
     }
     StreamObserver<UploadSnapshotPResponse> responseObserver =
-        UploadObserver.forFollower(mStorage, snapshot);
-    LOG.info("Sending stream request for snapshot {}", snapshot.getTermIndex());
+        SnapshotUploader.forFollower(mStorage, snapshot);
+    RaftJournalServiceClient client = getJournalServiceClient();
+    LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
+        snapshot.getTermIndex());
     StreamObserver<UploadSnapshotPRequest> requestObserver = getJournalServiceClient()
         .uploadSnapshot(responseObserver);
     requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
@@ -228,9 +232,11 @@ public class SnapshotReplicationManager {
    */
   public StreamObserver<UploadSnapshotPRequest> receiveSnapshotFromFollower(
       StreamObserver<UploadSnapshotPResponse> responseStreamObserver) {
-    LOG.info("Received upload snapshot request from follower");
-    DownloadObserver<UploadSnapshotPResponse, UploadSnapshotPRequest> observer =
-        DownloadObserver.forLeader(mStorage, responseStreamObserver);
+    String followerIp = ClientIpAddressInjector.getIpAddress();
+    LOG.info("Received upload snapshot request from follower {}", followerIp);
+    SnapshotDownloader<UploadSnapshotPResponse, UploadSnapshotPRequest> observer =
+        SnapshotDownloader.forLeader(mStorage, responseStreamObserver,
+            followerIp);
     if (!transitionState(DownloadState.REQUEST_DATA, DownloadState.STREAM_DATA)) {
       responseStreamObserver.onCompleted();
       return observer;
@@ -241,7 +247,7 @@ public class SnapshotReplicationManager {
           transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
           return termIndex;
         }).exceptionally(e -> {
-          LOG.error("Unexpected exception downloading snapshot from follower.", e);
+          LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
           return null;
         });
@@ -286,9 +292,9 @@ public class SnapshotReplicationManager {
   public StreamObserver<DownloadSnapshotPRequest> sendSnapshotToFollower(
       StreamObserver<DownloadSnapshotPResponse> responseObserver) {
     SnapshotInfo snapshot = mStorage.getLatestSnapshot();
-    LOG.debug("Received snapshot download request");
-    UploadObserver<DownloadSnapshotPResponse, DownloadSnapshotPRequest> requestStreamObserver =
-        UploadObserver.forLeader(mStorage, snapshot, responseObserver);
+    LOG.debug("Received snapshot download request from {}", ClientIpAddressInjector.getIpAddress());
+    SnapshotUploader<DownloadSnapshotPResponse, DownloadSnapshotPRequest> requestStreamObserver =
+        SnapshotUploader.forLeader(mStorage, snapshot, responseObserver);
     if (snapshot == null) {
       responseObserver.onError(Status.NOT_FOUND
           .withDescription("Cannot find a valid snapshot to download.")
