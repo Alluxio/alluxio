@@ -23,7 +23,9 @@ import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.Scope;
+import alluxio.client.quota.CacheScope;
+import alluxio.client.quota.PrestoCacheQuota;
+import alluxio.client.quota.PrestoCacheScope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -234,23 +236,20 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
     mMetaStore = new DefaultMetaStore(mConf);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
-    Scope partitionScope = Scope.create("schema.table.partition");
-    Scope tableScope = Scope.create("schema.table");
-    Scope schemaScope = Scope.create("schema");
-    Scope globalScope = Scope.create(".");
+    CacheScope scope = PrestoCacheScope.create("schema.table.partition");
 
     // insufficient partition quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
-        new CacheQuota(ImmutableMap.of(partitionScope, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new PrestoCacheQuota(
+        ImmutableMap.of(PrestoCacheScope.Level.PARTITION, (long) PAGE1.length - 1))));
     // insufficient table quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
-        new CacheQuota(ImmutableMap.of(tableScope, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new PrestoCacheQuota(
+        ImmutableMap.of(PrestoCacheScope.Level.TABLE, (long) PAGE1.length - 1))));
     // insufficient schema quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
-        new CacheQuota(ImmutableMap.of(schemaScope, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new PrestoCacheQuota(
+        ImmutableMap.of(PrestoCacheScope.Level.SCHEMA, (long) PAGE1.length - 1))));
     // insufficient global quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope,
-        new CacheQuota(ImmutableMap.of(globalScope, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new PrestoCacheQuota(
+        ImmutableMap.of(PrestoCacheScope.Level.GLOBAL, (long) PAGE1.length - 1))));
     // without quota
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
   }
@@ -258,20 +257,20 @@ public final class LocalCacheManagerTest {
   @Test
   public void putWithQuotaEviction() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    Scope partitionScope = Scope.create("schema.table.partition");
-    Scope tableScope = Scope.create("schema.table");
-    Scope schemaScope = Scope.create("schema");
+    PrestoCacheScope partitionCacheScope = PrestoCacheScope.create("schema.table.partition");
+    PrestoCacheScope tableCacheScope = PrestoCacheScope.create("schema.table");
+    PrestoCacheScope schemaCacheScope = PrestoCacheScope.create("schema");
 
-    Scope[] quotaScopes = {partitionScope, tableScope, schemaScope, Scope.GLOBAL};
-    for (Scope scope : quotaScopes) {
+    PrestoCacheScope[] quotaCacheScopes = {partitionCacheScope, tableCacheScope, schemaCacheScope, PrestoCacheScope.GLOBAL};
+    for (PrestoCacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new DefaultMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
       mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota =
-          new CacheQuota(ImmutableMap.of(scope, (long) PAGE1.length + PAGE2.length - 1));
-      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope, quota));
+          new CacheQuota(ImmutableMap.of(cacheScope, (long) PAGE1.length + PAGE2.length - 1));
+      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionCacheScope, quota));
       assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
-      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionScope, quota));
+      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionCacheScope, quota));
       assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
     }
   }
@@ -279,20 +278,20 @@ public final class LocalCacheManagerTest {
   @Test
   public void putWithQuotaMoreThanCacheCapacity() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    Scope partitionScope = Scope.create("schema.table.partition");
-    Scope tableScope = Scope.create("schema.table");
-    Scope schemaScope = Scope.create("schema");
+    PrestoCacheScope partitionCacheScope = PrestoCacheScope.create("schema.table.partition");
+    PrestoCacheScope tableCacheScope = PrestoCacheScope.create("schema.table");
+    PrestoCacheScope schemaCacheScope = PrestoCacheScope.create("schema");
 
-    Scope[] quotaScopes = {partitionScope, tableScope, schemaScope, Scope.GLOBAL};
-    for (Scope scope : quotaScopes) {
+    PrestoCacheScope[] quotaCacheScopes = {partitionCacheScope, tableCacheScope, schemaCacheScope, PrestoCacheScope.GLOBAL};
+    for (PrestoCacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new DefaultMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
       mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
-      CacheQuota quota = new CacheQuota(ImmutableMap.of(scope, (long) CACHE_SIZE_BYTES + 1));
+      CacheQuota quota = new CacheQuota(ImmutableMap.of(cacheScope, (long) CACHE_SIZE_BYTES + 1));
       int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
       for (int i = 0; i < 2 * cacheSize; i++) {
         PageId pageId = new PageId("3", i);
-        assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), partitionScope, quota));
+        assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), partitionCacheScope, quota));
         if (i >= cacheSize) {
           PageId id = new PageId("3", i - cacheSize + 1);
           assertEquals(
@@ -307,23 +306,23 @@ public final class LocalCacheManagerTest {
   @Test
   public void putWithInsufficientParentQuota() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    Scope partitionScope1 = Scope.create("schema.table.partition1");
-    Scope partitionScope2 = Scope.create("schema.table.partition2");
-    Scope tableScope = Scope.create("schema.table");
-    Scope schemaScope = Scope.create("schema");
-    Scope[] quotaScopes = {tableScope, schemaScope, Scope.GLOBAL};
-    for (Scope scope : quotaScopes) {
+    PrestoCacheScope partitionCacheScope1 = PrestoCacheScope.create("schema.table.partition1");
+    PrestoCacheScope partitionCacheScope2 = PrestoCacheScope.create("schema.table.partition2");
+    PrestoCacheScope tableCacheScope = PrestoCacheScope.create("schema.table");
+    PrestoCacheScope schemaCacheScope = PrestoCacheScope.create("schema");
+    PrestoCacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, PrestoCacheScope.GLOBAL};
+    for (PrestoCacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new DefaultMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
       mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(
-          partitionScope1, (long) PAGE1.length,
-          partitionScope2, (long) PAGE2.length,
-          scope, (long) PAGE1.length + PAGE2.length - 1
+          partitionCacheScope1, (long) PAGE1.length,
+          partitionCacheScope2, (long) PAGE2.length,
+          cacheScope, (long) PAGE1.length + PAGE2.length - 1
       ));
-      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionScope1, quota));
+      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionCacheScope1, quota));
       assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
-      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionScope2, quota));
+      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionCacheScope2, quota));
       assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0));
       assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, 0, PAGE2.length, mBuf, 0));
     }

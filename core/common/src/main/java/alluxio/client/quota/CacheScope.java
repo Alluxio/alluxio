@@ -7,22 +7,20 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ *
  */
 
 package alluxio.client.quota;
 
-/**
- * Data structure that returns cache size in bytes associated with a cache scope.
- */
-public interface CacheQuota {
-  /**
-   * A predefined CacheQuota instance that sets NO limit.
-   */
-  CacheQuota UNLIMITED = (CacheScope cacheScope) -> Long.MAX_VALUE;
+import javax.annotation.Nullable;
 
+/**
+ * Scope of a
+ */
+public interface CacheScope {
   /**
-   * @param cacheScope the scope to query
-   * @return size of quota of this scope in bytes
+   * @return the parent of a given scope
    */
-  long getQuota(CacheScope cacheScope);
+  @Nullable
+  CacheScope parent();
 }

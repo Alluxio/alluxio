@@ -12,7 +12,8 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.Scope;
+import alluxio.client.quota.CacheScope;
+import alluxio.client.quota.PrestoCacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -80,7 +81,7 @@ public interface CacheManager extends AutoCloseable  {
    * @return true if the put was successful, false otherwise
    */
   default boolean put(PageId pageId, byte[] page) {
-    return put(pageId, page, Scope.GLOBAL, CacheQuota.UNLIMITED);
+    return put(pageId, page, PrestoCacheScope.GLOBAL, CacheQuota.UNLIMITED);
   }
 
   /**
@@ -89,11 +90,11 @@ public interface CacheManager extends AutoCloseable  {
    *
    * @param pageId page identifier
    * @param page page data
-   * @param scope scope of this request
+   * @param cacheScope scope of this request
    * @param cacheQuota cache quota
    * @return true if the put was successful, false otherwise
    */
-  boolean put(PageId pageId, byte[] page, Scope scope, CacheQuota cacheQuota);
+  boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota);
 
   /**
    * Reads a part of a page if the queried page is found in the cache, stores the result in

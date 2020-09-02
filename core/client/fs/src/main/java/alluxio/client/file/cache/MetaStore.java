@@ -11,7 +11,8 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.quota.Scope;
+import alluxio.client.quota.CacheScope;
+import alluxio.client.quota.PrestoCacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
@@ -61,10 +62,10 @@ public interface MetaStore {
   long bytes();
 
   /**
-   * @param scope scope to query
+   * @param cacheScope scope to query
    * @return the total size of pages stored in bytes
    */
-  long bytes(Scope scope);
+  long bytes(PrestoCacheScope cacheScope);
 
   /**
    * @return the number of pages stored
@@ -77,8 +78,8 @@ public interface MetaStore {
   void reset();
 
   /**
-   * @param scope scope to evict
+   * @param cacheScope scope to evict
    * @return a page to evict
    */
-  PageInfo evict(Scope scope);
+  PageInfo evict(CacheScope cacheScope);
 }

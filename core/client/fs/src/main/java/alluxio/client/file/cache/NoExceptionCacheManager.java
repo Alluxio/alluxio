@@ -12,7 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.Scope;
+import alluxio.client.quota.PrestoCacheScope;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -47,11 +47,11 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, Scope scope, CacheQuota cacheQuota) {
+  public boolean put(PageId pageId, byte[] page, PrestoCacheScope cacheScope, CacheQuota cacheQuota) {
     try {
-      return mCacheManager.put(pageId, page, scope, cacheQuota);
+      return mCacheManager.put(pageId, page, cacheScope, cacheQuota);
     } catch (Exception e) {
-      LOG.error("Failed to put page {}, scope {}, quota {}", pageId, scope, cacheQuota, e);
+      LOG.error("Failed to put page {}, scope {}, quota {}", pageId, cacheScope, cacheQuota, e);
       Metrics.PUT_ERRORS.inc();
       return false;
     }
