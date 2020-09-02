@@ -14,10 +14,16 @@ package alluxio.fuse;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.FuseException;
+import alluxio.master.MasterInquireClient;
+import alluxio.retry.RetryUtils;
+import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,14 +96,28 @@ public final class AlluxioFuse {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) {
+    LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
+    FileSystemContext fsContext = FileSystemContext.create(conf);
+    try {
+      InetSocketAddress confMasterAddress =
+          fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
+      RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
+          () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
+          RetryUtils.defaultClientRetry(
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+    } catch (IOException e) {
+      LOG.warn("Failed to load cluster default configuration for Fuse process. "
+          + "Proceed with local configuration for FUSE: {}", e.toString());
+    }
+    conf = fsContext.getClusterConf();
     final AlluxioFuseOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);
     }
-    LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
-
-    try (final FileSystem fs = FileSystem.Factory.create(conf)) {
+    try (final FileSystem fs = FileSystem.Factory.create(fsContext)) {
       final List<String> fuseOpts = opts.getFuseOpts();
       // Force direct_io in FUSE: writes and reads bypass the kernel page
       // cache and go directly to alluxio. This avoids extra memory copies
@@ -124,7 +145,7 @@ public final class AlluxioFuse {
         } catch (ru.serce.jnrfuse.FuseException e) {
           LOG.error("Failed to mount {}", opts.getMountPoint(), e);
           // only try to umount file system when exception occurred.
-          // jni-fuse registers JVM shutdown hook to ensure fs.umount()
+          // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
           fuseFs.umount();
         }
