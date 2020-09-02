@@ -142,7 +142,7 @@ public class SnapshotDownloader<S, R> implements ClientResponseObserver<S, R> {
       }
       if (!mDataGetter.apply(response).hasChunk()) {
         throw new IOException(String.format(
-            "A chunk for file {} is missing from the response %s.", mTempFile, response));
+            "A chunk for file %s is missing from the response %s.", mTempFile, response));
       }
       // write the chunk
       if (mOutputStream == null) {
