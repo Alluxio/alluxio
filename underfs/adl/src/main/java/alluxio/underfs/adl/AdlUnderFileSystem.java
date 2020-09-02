@@ -22,10 +22,6 @@ import alluxio.underfs.options.FileLocationOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.permission.FsPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +32,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * An {@link UnderFileSystem} uses the Microsoft Azure Blob Storage.
+ * An {@link UnderFileSystem} uses the Microsoft Azure Data Lake Storage.
  */
 @ThreadSafe
 public class AdlUnderFileSystem extends HdfsUnderFileSystem {
@@ -54,7 +50,6 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    * @param conf the configuration for this UFS
    * @return the created configuration
    */
-  //// @TODO: modify this
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
     Configuration adlConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
@@ -71,7 +66,6 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
       }
     }
     adlConf.set("fs.adl.oauth2.access.token.provider.type", "ClientCredential");
-//    adlConf.set("fs.adl.account.ruizhbigcacheadlsgen1.oauth2.access.token.provider.type", "ClientCredential");
     return adlConf;
   }
 
@@ -83,7 +77,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    * @return a new Adl {@link UnderFileSystem} instance
    */
   public static AdlUnderFileSystem createInstance(AlluxioURI uri,
-                                                  UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf) {
     Configuration adlConf = createConfiguration(conf);
     return new AdlUnderFileSystem(uri, conf, adlConf);
   }
@@ -96,7 +90,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    * @param adlConf the configuration for this Adl UFS
    */
   public AdlUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-                            final Configuration adlConf) {
+      final Configuration adlConf) {
     super(ufsUri, conf, adlConf);
   }
 
@@ -118,11 +112,11 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
       // adl is backed by an object store but always claims its block size to be 512MB.
       // reset the block size in UfsFileStatus according to getBlockSizeByte
       return new UfsFileStatus(path,
-              ((UfsFileStatus) status).getContentHash(),
-              ((UfsFileStatus) status).getContentLength(),
-              MoreObjects.firstNonNull(status.getLastModifiedTime(), 0L),
-              status.getOwner(), status.getGroup(), status.getMode(),
-              getBlockSizeByte(path));
+          ((UfsFileStatus) status).getContentHash(),
+          ((UfsFileStatus) status).getContentLength(),
+          MoreObjects.firstNonNull(status.getLastModifiedTime(), 0L),
+          status.getOwner(), status.getGroup(), status.getMode(),
+          getBlockSizeByte(path));
     }
     return status;
   }
