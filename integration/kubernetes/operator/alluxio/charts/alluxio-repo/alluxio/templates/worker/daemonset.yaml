@@ -1,3 +1,14 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -98,15 +109,15 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
-            {{- if .Values.tieredstore }} 
-            {{- if .Values.tieredstore.levels }} 
+            {{- if .Values.tieredstore }}
+            {{- if .Values.tieredstore.levels }}
             {{- range .Values.tieredstore.levels }}
             {{- if .mediumtype }}
             {{- if contains "," .mediumtype }}
             {{- $type := .type }}
             {{- $path := .path }}
             {{- $split := split "," .mediumtype }}
-            {{- range $key, $val := $split }} 
+            {{- range $key, $val := $split }}
             {{- if eq $type "hostPath"}}
             - mountPath:  {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
@@ -117,10 +128,10 @@ spec:
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
             {{- end}}
-            {{- end}} 
-            {{- end}} 
             {{- end}}
-            {{- if .Values.mounts }}   
+            {{- end}}
+            {{- end}}
+            {{- if .Values.mounts }}
             {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
@@ -195,15 +206,15 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
-            {{- if .Values.tieredstore }} 
-            {{- if .Values.tieredstore.levels }} 
+            {{- if .Values.tieredstore }}
+            {{- if .Values.tieredstore.levels }}
             {{- range .Values.tieredstore.levels }}
             {{- if .mediumtype }}
             {{- if contains "," .mediumtype }}
             {{- $type := .type }}
             {{- $path := .path }}
             {{- $split := split "," .mediumtype }}
-            {{- range $key, $val := $split }} 
+            {{- range $key, $val := $split }}
             {{- if eq $type "hostPath"}}
             - mountPath:  {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
@@ -214,10 +225,10 @@ spec:
             - mountPath: {{ .path }}
               name: {{ .alias | lower }}
             {{- end}}
-            {{- end}} 
-            {{- end}} 
-            {{- end}} 
-            {{- if .Values.mounts }}   
+            {{- end}}
+            {{- end}}
+            {{- end}}
+            {{- if .Values.mounts }}
             {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
@@ -243,15 +254,15 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
-        {{- if .Values.tieredstore }} 
-        {{- if .Values.tieredstore.levels }} 
+        {{- if .Values.tieredstore }}
+        {{- if .Values.tieredstore.levels }}
         {{- range .Values.tieredstore.levels }}
         {{- if .mediumtype }}
         {{- if contains "," .mediumtype }}
            {{- $split := split "," .mediumtype }}
            {{- $type := .type }}
            {{- $path := .path }}
-           {{- range $key, $val := $split }} 
+           {{- range $key, $val := $split }}
         {{- if eq $type "hostPath"}}
         - hostPath:
             path: {{ index ($path | split ",") $key }}
@@ -261,9 +272,9 @@ spec:
         - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
           emptyDir:
             medium: "Memory"
-            {{- if .quota }} 
+            {{- if .quota }}
             sizeLimit: {{ .quota }}
-            {{- end}} 
+            {{- end}}
         {{- end}}
         {{- end}}
         {{- end}}
@@ -277,13 +288,13 @@ spec:
         - name: {{ .alias | lower }}
           emptyDir:
             medium: "Memory"
-            {{- if .quota }} 
+            {{- if .quota }}
             sizeLimit: {{ .quota }}
-            {{- end}} 
+            {{- end}}
         {{- end}}
         {{- end}}
-        {{- end}} 
-        {{- end}} 
+        {{- end}}
+        {{- end}}
         {{- end}}
         {{- if .Values.localTimezone  }}
         - hostPath:
@@ -291,7 +302,7 @@ spec:
             type: ''
           name: volume-localtime
         {{- end }}
-        {{- if .Values.mounts }}   
+        {{- if .Values.mounts }}
         {{- range .Values.mounts }}
         - name: "{{ .name }}"
           persistentVolumeClaim:

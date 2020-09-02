@@ -1,4 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
 
 set -e
 
@@ -46,7 +56,7 @@ function public::alluxio::load_data() {
 	runtime=$((end_time_second-start_time_second))
 	runtime_minutes=$((runtime/60))
 	echo "The start time is $start_time, the end time is $end_time."
-	echo "It took $runtime_minutes minutes totoally."
+	echo "It took $runtime_minutes minutes in total."
 }
 
 function public::alluxio::init_conf() {
