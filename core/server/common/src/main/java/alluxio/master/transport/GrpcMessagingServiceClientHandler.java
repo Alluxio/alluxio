@@ -16,13 +16,11 @@ import alluxio.grpc.TransportMessage;
 import alluxio.security.authentication.ClientIpAddressInjector;
 
 import com.google.common.base.MoreObjects;
-import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -37,15 +35,15 @@ public class GrpcMessagingServiceClientHandler
       LoggerFactory.getLogger(GrpcMessagingServiceClientHandler.class);
 
   /** Messaging server provided listener for storing incoming connections. */
-  private final Consumer<Connection> mListener;
+  private final Consumer<GrpcMessagingConnection> mListener;
   /** {@link GrpcMessagingServer}'s catalyst thread context. */
-  private final ThreadContext mContext;
+  private final GrpcMessagingContext mContext;
   /** Request timeout value for new connections. */
   private final long mRequestTimeoutMs;
   /** Executor for building server connections. */
   private final ExecutorService mExecutor;
   /** Address for the server that is serving this handler. */
-  private final Address mServerAddress;
+  private final InetSocketAddress mServerAddress;
 
   /**
    * @param serverAddress server address
@@ -54,8 +52,9 @@ public class GrpcMessagingServiceClientHandler
    * @param executor transport executor
    * @param requestTimeoutMs request timeout value for new connections
    */
-  public GrpcMessagingServiceClientHandler(Address serverAddress, Consumer<Connection> listener,
-      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
+  public GrpcMessagingServiceClientHandler(InetSocketAddress serverAddress,
+      Consumer<GrpcMessagingConnection> listener, GrpcMessagingContext context,
+      ExecutorService executor, long requestTimeoutMs) {
     mServerAddress = serverAddress;
     mListener = listener;
     mContext = context;

@@ -11,8 +11,6 @@
 
 package alluxio.master.transport;
 
-import io.atomix.catalyst.concurrent.ThreadContext;
-
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -30,7 +28,7 @@ public class GrpcMessagingServerConnection extends GrpcMessagingConnection {
    * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public GrpcMessagingServerConnection(String transportId, ThreadContext context,
+  public GrpcMessagingServerConnection(String transportId, GrpcMessagingContext context,
       ExecutorService executor, long requestTimeoutMs) {
     super(ConnectionOwner.SERVER, transportId, context, executor, requestTimeoutMs);
   }
