@@ -51,7 +51,7 @@ public class SnapshotDownloader<S, R> implements ClientResponseObserver<S, R> {
   private final Function<R, SnapshotData> mDataGetter;
   private final String mSource;
 
-  /** The term and index for the latest journal entry included in the snapshot */
+  /** The term and index for the latest journal entry included in the snapshot. */
   private TermIndex mTermIndex;
   private File mTempFile;
   private FileOutputStream mOutputStream;
