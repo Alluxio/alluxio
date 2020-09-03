@@ -166,8 +166,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
-    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH) ?
-        PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
+    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH)
+        ? PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
     mCliEndpointTimeout = conf.getMs(PropertyKey.FUSE_CLI_ENDPOINT_TIMEOUT);
     mAlluxioHome = conf.get(PropertyKey.HOME);
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),

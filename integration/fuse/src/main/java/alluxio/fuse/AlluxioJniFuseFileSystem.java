@@ -130,8 +130,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new PathCacheLoader());
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH) ?
-        PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
+    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH)
+        ? PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
     mCliEndpointTimeout = conf.getMs(PropertyKey.FUSE_CLI_ENDPOINT_TIMEOUT);
     mAlluxioHome = conf.get(PropertyKey.HOME);
     for (int i = 0; i < LOCK_SIZE; i++) {
@@ -353,7 +353,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     return nread;
   }
-
 
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {

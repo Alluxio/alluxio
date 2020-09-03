@@ -247,7 +247,7 @@ A: This error indicates insufficient space left on Alluxio workers to complete y
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface]({{ '/en/operation/User-CLI.html#pin' | relativize_url }}) for more details.
-- Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
+- Increase the capacity of workers by changing `alluxio.worker.ramdisk.size` property.
 See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application

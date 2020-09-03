@@ -86,6 +86,14 @@ No, Alluxio can run on many under storage systems such as Amazon S3 or Swift in 
 Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
 developers.
 
+Read the Alluxio book to learn Alluxio comprehensively.
+
+<p align="center">
+<a href="https://book.douban.com/subject/34761887">
+<img style=" width: 25%;" src="{{ '/img/alluxio_book.png' | relativize_url }}" alt="Alluxio Book"/>
+</a>
+</p>
+
 Read the recent [blogs](https://www.alluxio.io/blog) and
 [presentations](https://www.alluxio.io/resources/presentations/).
 

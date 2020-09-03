@@ -802,6 +802,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PAGES =
+      new Builder(Name.CLIENT_CACHE_PAGES)
+          .setDescription("Total number of pages in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
       new Builder(Name.CLIENT_CACHE_PAGES_EVICTED)
           .setDescription("Total number of pages evicted from the client cache.")
@@ -832,6 +838,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+
+  // Counter versions of gauges, these may be removed in the future without notice
+  public static final MetricKey CLIENT_CACHE_SPACE_USED_COUNT =
+      new Builder(Name.CLIENT_CACHE_SPACE_USED_COUNT)
+          .setDescription("Amount of bytes used by the client cache as a counter.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLIENT_CACHE_CREATE_ERRORS =
       new Builder(Name.CLIENT_CACHE_CREATE_ERRORS)
           .setDescription("Number of failures when creating a cache in the client cache.")
@@ -899,6 +914,20 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLIENT_CACHE_PUT_EVICTION_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
               + " failed eviction.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS)
+          .setDescription("Number of failures when adding pages due to racing eviction. This error"
+              + " is benign.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache due to"
+              + " failed deletes in page store.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1107,12 +1136,14 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
         = "Client.CacheBytesRequestedExternal";
     public static final String CLIENT_CACHE_BYTES_EVICTED = "Client.CacheBytesEvicted";
+    public static final String CLIENT_CACHE_PAGES = "Client.CachePages";
     public static final String CLIENT_CACHE_PAGES_EVICTED = "Client.CachePagesEvicted";
     public static final String CLIENT_CACHE_BYTES_WRITTEN_CACHE
         = "Client.CacheBytesWrittenCache";
     public static final String CLIENT_CACHE_HIT_RATE = "Client.CacheHitRate";
     public static final String CLIENT_CACHE_SPACE_AVAILABLE = "Client.CacheSpaceAvailable";
     public static final String CLIENT_CACHE_SPACE_USED = "Client.CacheSpaceUsed";
+    public static final String CLIENT_CACHE_SPACE_USED_COUNT = "Client.CacheSpaceUsedCount";
     public static final String CLIENT_CACHE_CLEANUP_GET_ERRORS =
         "Client.CacheCleanupGetErrors";
     public static final String CLIENT_CACHE_CLEANUP_PUT_ERRORS =
@@ -1131,6 +1162,10 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutAsyncRejectionErrors";
     public static final String CLIENT_CACHE_PUT_EVICTION_ERRORS =
         "Client.CachePutEvictionErrors";
+    public static final String CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
+        "Client.CachePutBenignRacingErrors";
+    public static final String CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
+        "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
 

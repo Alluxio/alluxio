@@ -73,6 +73,7 @@ public class ValidationTestUtils {
       StreamResult sResult = new StreamResult(f);
       transformer.transform(source, sResult);
     } catch (Exception e) {
+      // TODO(bradyoo): Swallowing all exceptions and merely printing is not okay!
       e.printStackTrace();
     }
   }

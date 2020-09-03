@@ -19,7 +19,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,7 +188,7 @@ public final class ConfigurationDocGenerator {
         } else {
           fileWriter = fileWriterMap.get("common");
         }
-        fileWriter.append(StringEscapeUtils.escapeHtml(keyValueStr));
+        fileWriter.append(StringEscapeUtils.escapeHtml4(keyValueStr));
       }
 
       LOG.info("YML files for description of Property Keys were created successfully.");

@@ -33,8 +33,6 @@ function printUsage {
   echo -e "  runHdfsMountTests\t Test the integration between Alluxio and the target HDFS path. "
   echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
   echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
-  echo -e "  runMesosTest  \t Test the Alluxio integration with Mesos. Try 'alluxio mesosTest -help' for more help."
-  echo -e "                \t NOTE: This command requires Mesos to be running and will stop any Alluxio servers that are currently running."
   echo -e "  runUfsIOTest  \t Test the Alluxio throughput to the UFS path. Try 'alluxio runUfsIOTest -help' for more help."
   echo -e "                \t NOTE: This command requires a valid ufs path to write temporary files into."
   echo -e "  runUfsTests   \t Test the integration between Alluxio and the target under filesystem. Try 'alluxio runUfsTests -help' for more help."

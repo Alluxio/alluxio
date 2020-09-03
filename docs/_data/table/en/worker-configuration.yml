@@ -66,8 +66,8 @@ alluxio.worker.management.tier.swap.restore.enabled:
   'Whether to run management swap-restore task when tier alignment cannot make progress.'
 alluxio.worker.master.connect.retry.timeout:
   'Retry period before workers give up on connecting to master and exit.'
-alluxio.worker.memory.size:
-  'Memory capacity of each worker node.'
+alluxio.worker.ramdisk.size:
+  'Ramdisk capacity of each worker node.'
 alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:

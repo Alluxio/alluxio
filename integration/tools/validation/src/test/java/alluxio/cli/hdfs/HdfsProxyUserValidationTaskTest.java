@@ -20,23 +20,17 @@ import alluxio.cli.ValidationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(NetworkAddressUtils.class)
 public class HdfsProxyUserValidationTaskTest {
   private static File sTestDir;
   private InstancedConfiguration mConf;

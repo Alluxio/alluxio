@@ -26,6 +26,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -38,6 +39,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,6 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class AsyncCacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncCacheRequestManager.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** Executor service for execute the async cache tasks. */
@@ -57,6 +61,8 @@ public class AsyncCacheRequestManager {
   private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
   private final FileSystemContext mFsContext;
+  /** Keeps track of the number of rejected cache requests. */
+  private final AtomicLong mNumRejected = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
@@ -121,7 +127,7 @@ public class AsyncCacheRequestManager {
           }
           LOG.debug("Result of async caching block {}: {}", blockId, result);
         } catch (Exception e) {
-          LOG.warn("Async cache request failed.\n{}\nError: {}", request, e);
+          LOG.warn("Async cache task failed. request: {}", request, e);
         } finally {
           if (result) {
             ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
@@ -131,11 +137,18 @@ public class AsyncCacheRequestManager {
           mPendingRequests.remove(blockId);
         }
       });
-    } catch (Exception e) {
-      // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
+    } catch (RejectedExecutionException e) {
+      // RejectedExecutionException may be thrown in extreme cases when the
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
-      LOG.warn("Failed to submit async cache request.\n{}\nError: {}", request, e);
+      mNumRejected.incrementAndGet();
+      SAMPLING_LOG.warn(String.format(
+          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+              + " To increase, update the parameter '%s'. numRejected: {} error: {}",
+          PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
+          e.getMessage());
+    } catch (Exception e) {
+      LOG.warn("Failed to submit async cache request. request: {}", request, e);
       ASYNC_CACHE_FAILED_BLOCKS.inc();
       mPendingRequests.remove(blockId);
     }

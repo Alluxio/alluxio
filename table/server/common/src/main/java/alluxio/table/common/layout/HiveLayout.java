@@ -25,7 +25,7 @@ import alluxio.table.common.transform.TransformPlan;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
