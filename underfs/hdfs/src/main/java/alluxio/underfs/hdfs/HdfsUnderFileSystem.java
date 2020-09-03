@@ -670,7 +670,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception : ", e);
       LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be the local file system superuser.");
+          + "Alluxio should be running as an HDFS superuser.");
       if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
         throw e;
       } else {
