@@ -328,7 +328,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     }
   }
 
-  private void cancelCheckpoint(UfsJournalCheckpointWriter journalWriter, long nextSequenceNumber) {
+  private void cancelCheckpoint(UfsJournalCheckpointWriter journalWriter, long nextSequenceNumber)
+      throws IOException {
     journalWriter.cancel();
     LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
         nextSequenceNumber);
