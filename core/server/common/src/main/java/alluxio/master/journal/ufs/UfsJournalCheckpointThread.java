@@ -297,12 +297,14 @@ public final class UfsJournalCheckpointThread extends Thread {
       } catch (Throwable t) {
         if (ExceptionUtils.containsInterruptedException(t)) {
           Thread.currentThread().interrupt();
+          cancelCheckpoint(journalWriter, nextSequenceNumber);
         } else {
           LOG.error("{}: Failed to create checkpoint", mMaster.getName(), t);
+          cancelCheckpoint(journalWriter, nextSequenceNumber);
+          if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+          }
         }
-        journalWriter.cancel();
-        LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
-            nextSequenceNumber);
         return;
       } finally {
         synchronized (mCheckpointingLock) {
@@ -324,5 +326,11 @@ public final class UfsJournalCheckpointThread extends Thread {
     } catch (IOException e) {
       LOG.error("{}: Failed to checkpoint.", mMaster.getName(), e);
     }
+  }
+
+  private void cancelCheckpoint(UfsJournalCheckpointWriter journalWriter, long nextSequenceNumber) {
+    journalWriter.cancel();
+    LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
+        nextSequenceNumber);
   }
 }
