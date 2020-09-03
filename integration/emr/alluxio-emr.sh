@@ -19,13 +19,7 @@ readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
 readonly AWS_SHUTDOWN_ACTIONS_DIR="/mnt/var/lib/instance-controller/public/shutdown-actions"
 readonly HADOOP_CONF="/etc/hadoop/conf"
-<<<<<<< HEAD
-readonly ALLUXIO_VERSION="2.3.1-SNAPSHOT"
-||||||| 704a90e618
-readonly ALLUXIO_VERSION="2.3.0-SNAPSHOT"
-=======
 readonly ALLUXIO_VERSION="2.4.0-SNAPSHOT"
->>>>>>> 35e622c7d5afd227d67c3a0bae72cd69adc42a69
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 
 ####################

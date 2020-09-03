@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
@@ -61,9 +60,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
-  private final FileSystemContext mContext;
+
   private final byte[] mSingleByte = new byte[1];
-  private final byte[] mSeekBuffer = new byte[Constants.MB];
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -157,7 +155,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       throws IOException {
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
-    return new BlockInStream(context,
+    return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
   }
@@ -181,8 +179,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory =
         new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
-    return new BlockInStream(context, factory, address, blockSource,
-        readRequestPartial.getBlockId(), blockSize);
+    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
+        blockSize);
   }
 
   /**
@@ -208,28 +206,25 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder().buildPartial());
-    return new BlockInStream(context, factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
-   * @param context
    * @param dataReaderFactory the data reader factory
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(FileSystemContext context,
-      DataReader.Factory dataReaderFactory, WorkerNetAddress address,
+  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
       BlockInStreamSource blockSource, long id, long length) {
     mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
-    mContext = context;
   }
 
   @Override
@@ -261,10 +256,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
-    return readInternal(b, off, len);
-  }
 
-  private int readInternal(byte[] b, int off, int len) throws IOException {
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -338,6 +330,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos < mPos) {
       mEOF = false;
     }
+
     closeDataReader();
     mPos = pos;
   }
@@ -358,9 +351,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
-      return;
-    }
     try {
       closeDataReader();
     } finally {

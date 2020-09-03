@@ -18,22 +18,16 @@ Client.CacheBytesRequestedExternal:
   'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
 Client.CacheBytesWrittenCache:
   'Total number of bytes written to the client cache.'
-Client.CacheCreateErrors:
-  'Number of failures when creating a cache in the client cache.'
 Client.CacheDeleteErrors:
   'Number of failures when deleting cached data in the client cache.'
 Client.CacheGetErrors:
   'Number of failures when getting cached data in the client cache.'
-Client.CacheGetFailedReadErrors:
-  'Number of failures when getting cached data in the client cache due to read failures from local storage.'
 Client.CacheHitRate:
   'Cache hit rate: (# bytes read from cache) / (# bytes requested).'
 Client.CachePagesEvicted:
   'Total number of pages evicted from the client cache.'
 Client.CachePutErrors:
   'Number of failures when putting cached data in the client cache.'
-Client.CachePutFailedWriteErrors:
-  'Number of failures when putting cached data in the client cache due to write failures to local storage.'
 Client.CacheSpaceAvailable:
   'Amount of bytes available in the client cache.'
 Client.CacheSpaceUsed:
