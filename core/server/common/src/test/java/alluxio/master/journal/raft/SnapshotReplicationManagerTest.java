@@ -21,6 +21,7 @@ import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
 import io.grpc.ManagedChannel;
@@ -61,6 +62,7 @@ public class SnapshotReplicationManagerTest {
       new ConfigurationRule(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE,
           "32KB", ServerConfiguration.global());
 
+  private WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
   private SnapshotReplicationManager mLeaderSnapshotManager;
   private SnapshotReplicationManager mFollowerSnapshotManager;
   private RaftJournalSystem mLeader;
@@ -153,7 +155,7 @@ public class SnapshotReplicationManagerTest {
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
 
     CommonUtils.waitFor("leader snapshot to complete",
-        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1);
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
     validateSnapshotFile(mLeaderStore);
   }
 
@@ -165,7 +167,7 @@ public class SnapshotReplicationManagerTest {
     mFollowerSnapshotManager.installSnapshotFromLeader();
 
     CommonUtils.waitFor("follower snapshot to complete",
-        () -> mFollowerStore.getLatestSnapshot() != null);
+        () -> mFollowerStore.getLatestSnapshot() != null, mWaitOptions);
     validateSnapshotFile(mFollowerStore);
   }
 }

@@ -138,7 +138,7 @@ public class SnapshotReplicationManager {
     try {
       RaftJournalServiceClient client = getJournalServiceClient();
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
-          SnapshotDownloader.forFollower(mStorage, client.getAddress().toString());
+          SnapshotDownloader.forFollower(mStorage, String.valueOf(client.getAddress()));
       client.downloadSnapshot(observer);
       return observer.getFuture().thenApplyAsync((termIndex) -> {
         mDownloadedSnapshot = observer.getSnapshotToInstall();
