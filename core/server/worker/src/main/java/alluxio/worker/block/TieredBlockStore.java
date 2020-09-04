@@ -805,9 +805,11 @@ public class TieredBlockStore implements BlockStore {
 
     if (!contiguousSpaceFound || !availableBytesFound) {
       LOG.error(
-          "Failed to free space. Min contiguous requested: {}, Min available requested: {}, "
+          "Failed to free space in session: {}. "
+              + "Min contiguous requested: {}, Min available requested: {}, "
               + "Blocks iterated: {}, Blocks removed: {}, " + "Space freed: {}",
-          minContiguousBytes, minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed);
+          sessionId, minContiguousBytes, minAvailableBytes,
+          blocksIterated, blocksRemoved, spaceFreed);
 
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
           .getMessage(minAvailableBytes, location.tierAlias()));

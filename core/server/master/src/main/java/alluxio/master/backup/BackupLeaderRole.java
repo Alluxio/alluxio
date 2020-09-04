@@ -11,8 +11,10 @@
 
 package alluxio.master.backup;
 
+import alluxio.AlluxioEvent;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
@@ -152,6 +154,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
   @Override
   public BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
       throws AlluxioException {
+    AlluxioEvent.BackupRequested.fire(new Pair<>("BackupRequest", request));
     // Whether to delegate remote to a standby master.
     boolean delegateBackup;
     // Will be populated with initiated id if no back-up in progress.
@@ -183,6 +186,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Store backup id to query later for async requests.
       backupId = mBackupTracker.getCurrentStatus().getBackupId();
     }
+    AlluxioEvent.BackupStarted.fire(
+        new Pair<>("BackupId", backupId), new Pair<>("BackupRequest", request));
     // Initiate the backup.
     if (delegateBackup) {
       // Fail the backup if delegation failed.
@@ -196,6 +201,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
     } else {
       scheduleLocalBackup(request, stateLockOptions);
     }
+    AlluxioEvent.BackupSubmitted.fire(
+        new Pair<>("BackupId", backupId), new Pair<>("BackupRequest", request),
+        new Pair<>("BackupWorker", (delegateBackup) ? mRemoteBackupConnection : "local"));
 
     // Return immediately if async is requested.
     if (request.getOptions().getRunAsync()) {

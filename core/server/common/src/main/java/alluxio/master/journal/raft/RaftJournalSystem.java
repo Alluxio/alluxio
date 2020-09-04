@@ -11,7 +11,9 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.AlluxioEvent;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -35,6 +37,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
@@ -329,6 +332,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
+    AlluxioEvent.JournalSystemGainedPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override
@@ -374,6 +378,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     LOG.info("Raft server successfully restarted");
+    AlluxioEvent.JournalSystemLostPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override
@@ -665,5 +670,13 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("Quorum-Members", mConf.getClusterAddresses().stream()
+            .map(Object::toString).collect(Collectors.joining(", ")))
+        .toString();
   }
 }

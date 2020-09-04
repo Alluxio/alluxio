@@ -11,7 +11,9 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.AlluxioEvent;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
@@ -21,6 +23,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +94,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
     }
+    AlluxioEvent.JournalSystemGainedPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override
@@ -108,6 +112,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
+    AlluxioEvent.JournalSystemLostPrimacy.fire(new Pair<>("JournalClass", this));
   }
 
   @Override
@@ -211,5 +216,12 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     for (UfsJournal journal : mJournals.values()) {
       journal.checkpoint();
     }
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("Ufs-Uri", mBase)
+        .toString();
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioEvent;
+import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
 import alluxio.util.interfaces.Scoped;
 
@@ -50,6 +52,8 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   private State mState = State.SECONDARY;
 
   protected final void setState(State state) {
+    AlluxioEvent.MasterIsTransitioning.fire(
+        new Pair<>("OldState", mState), new Pair<>("NewState", state));
     try (LockResource lr = new LockResource(mStateLock)) {
       mState = state;
       mStateCond.signalAll();

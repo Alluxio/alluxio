@@ -178,19 +178,23 @@ public class ManagementTaskCoordinator implements Closeable {
 
         // Submit and wait for the task.
         currentTask = nextTask;
-        LOG.debug("Running task of type:{}", currentTask.getClass().getSimpleName());
+        String taskTypeName = currentTask.getClass().getSimpleName();
+        // Log and fire event.
+        LOG.debug("Running task of type:{}", taskTypeName);
         // Run the current task on coordinator thread.
         try {
           BlockManagementTaskResult result = currentTask.run();
-          LOG.info("{} finished with result: {}", currentTask.getClass().getSimpleName(), result);
+          // Log and fire event.
+          LOG.info("{} finished with result: {}", taskTypeName, result);
 
           if (result.noProgress()) {
+            // Log and fire event.
             LOG.debug("Task made no progress due to failures/back-offs. Sleeping {}ms",
                 mLoadDetectionCoolDownMs);
             Thread.sleep(mLoadDetectionCoolDownMs);
           }
         } catch (Exception e) {
-          LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
+          LOG.error("Management task failed: {}. Error: {}", taskTypeName,
               e);
         }
       } catch (InterruptedException e) {
