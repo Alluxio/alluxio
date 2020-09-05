@@ -150,7 +150,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     if (conf.isSet(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY)) {
       clientConf.setMaxErrorRetry(conf.getInt(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY));
     }
-
+    clientConf.setConnectionTTL(conf.getMs(PropertyKey.UNDERFS_S3_CONNECT_TTL));
     // Socket timeout
     clientConf
         .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_SOCKET_TIMEOUT));
