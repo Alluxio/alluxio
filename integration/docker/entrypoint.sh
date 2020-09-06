@@ -16,6 +16,10 @@ ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
+ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
+ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
+ALLUXIO_UID="${ALLUXIO_UID:-0}"
+ALLUXIO_GID="${ALLUXIO_GID:-0}"
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
@@ -139,6 +143,22 @@ function setup_signals {
   trap "forward_signal 1" EXIT
 }
 
+# Sets up if the non root is specified
+function setup_for_dynamic_non_root {
+  if [ ${ALLUXIO_USERNAME} != "root" ] \
+    && [ ${ALLUXIO_GROUP} != "root" ] \
+    && [ ${ALLUXIO_UID} -ne 0 ] \
+    && [ ${ALLUXIO_GID} -ne 0 ]; then \
+      addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
+      adduser -u ${ALLUXIO_UID}  -G ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
+      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      mkdir -p /journal && \
+      chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal && \
+      chmod -R g=u /opt/* /journal
+      su ${ALLUXIO_USERNAME}
+  fi
+}
+
 function main {
   if [[ "$#" -lt 1 ]]; then
     printUsage
@@ -154,6 +174,8 @@ function main {
     # --shm-size argument to docker run
     export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
   fi
+
+  setup_for_dynamic_non_root
 
   cd ${ALLUXIO_HOME}
 
