@@ -145,15 +145,18 @@ function setup_signals {
 
 # Sets up if the non root is specified
 function setup_for_dynamic_non_root {
-  if [ ${ALLUXIO_USERNAME} != "root" ] \
-    && [ ${ALLUXIO_GROUP} != "root" ] \
-    && [ ${ALLUXIO_UID} -ne 0 ] \
-    && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
-      adduser -u ${ALLUXIO_UID}  -G ${ALLUXIO_GROUP} --disabled-password ${ALLUXIO_USERNAME} && \
-      usermod -a -G root ${ALLUXIO_USERNAME} && \
-      mkdir -p /journal && \
-      chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal && \
+  if [[ ${ALLUXIO_USERNAME} != "root" ]] && [[ ${ALLUXIO_GROUP} != "root" ]] && [[ ${ALLUXIO_UID} -ne 0 ]] && [[ ${ALLUXIO_GID} -ne 0 ]]; then
+      alp=$(cat /etc/issue|grep -i "Alpine"|wc -l)
+      if [ "$alp" == "1" ];then
+        addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP}
+        adduser -u ${ALLUXIO_UID}  -G ${ALLUXIO_GROUP} --disabled-password ${ALLUXIO_USERNAME}
+      else
+        groupadd -g ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
+        useradd -u ${ALLUXIO_UID} -g ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME}
+      fi
+      usermod -a -G root ${ALLUXIO_USERNAME}
+      mkdir -p /journal
+      chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
       chmod -R g=u /opt/* /journal
       su ${ALLUXIO_USERNAME}
   fi
