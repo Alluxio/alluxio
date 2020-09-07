@@ -145,7 +145,8 @@ function setup_signals {
 
 # Sets up if the non root is specified
 function setup_for_dynamic_non_root {
-  if [[ ${ALLUXIO_USERNAME} != "root" ]] && [[ ${ALLUXIO_GROUP} != "root" ]] && [[ ${ALLUXIO_UID} -ne 0 ]] && [[ ${ALLUXIO_GID} -ne 0 ]]; then
+  if [[ ${ALLUXIO_USERNAME} != "root" ]] && [[ ${ALLUXIO_GROUP} != "root" ]] && \
+    [[ ${ALLUXIO_UID} -ne 0 ]] && [[ ${ALLUXIO_GID} -ne 0 ]] && [[ $UID -eq 0 ]]; then
       alp=$(cat /etc/issue|grep -i "Alpine"|wc -l)
       if [ "$alp" == "1" ];then
         addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP}
@@ -158,7 +159,7 @@ function setup_for_dynamic_non_root {
       mkdir -p /journal
       chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
       chmod -R g=u /opt/* /journal
-      su ${ALLUXIO_USERNAME}
+      exec su ${ALLUXIO_USERNAME} -c /entrypoint.sh ${ARGS}
   fi
 }
 
@@ -167,6 +168,8 @@ function main {
     printUsage
     exit 1
   fi
+
+  ARGS="$*"
 
   local service="$1"
   OPTIONS="$2"
