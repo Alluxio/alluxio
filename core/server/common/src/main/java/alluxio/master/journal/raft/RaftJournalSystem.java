@@ -330,13 +330,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .build();
   }
 
-  /**
-   * @return the serializer for commands in the StateMachine
-   */
-  public static Serializer createSerializer() {
-    return new Serializer().register(JournalEntryCommand.class, 1);
-  }
-
   @Override
   public synchronized Journal createJournal(Master master) {
     RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter);

@@ -12,7 +12,6 @@
 package alluxio.master.transport;
 
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
@@ -251,7 +250,7 @@ public class GrpcMessagingTransportTest {
    * @return the serializer
    */
   private Serializer createTestSerializer() {
-    Serializer serializer = RaftJournalSystem.createSerializer();
+    Serializer serializer = new Serializer();
 
     // Register dummy test command.
     serializer.register(DummyRequest.class);
