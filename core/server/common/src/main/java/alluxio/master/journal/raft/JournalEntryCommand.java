@@ -17,7 +17,6 @@ import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.copycat.Command;
 
 /**
  * Command for writing an arbitrary journal entry.
@@ -25,7 +24,7 @@ import io.atomix.copycat.Command;
  * Journal entries are serialized by writing their size as an integer, followed by their bytes
  * serialized in protocol buffer format.
  */
-public class JournalEntryCommand implements Command<Void>, CatalystSerializable {
+public class JournalEntryCommand implements CatalystSerializable {
   private static final long serialVersionUID = 7020023290825215903L;
 
   private int mSize;
