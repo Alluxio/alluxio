@@ -5689,6 +5689,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
         PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.blob.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
+    UNDERFS_AZURE_CLIENT_ID(
+        "fs.adl.account.%s.oauth2.client.id",
+        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.client\\.id"),
+    UNDERFS_AZURE_CLIENT_SECRET(
+        "fs.adl.account.%s.oauth2.credential",
+        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.credential",
+        PropertyCreators.fromBuilder(new Builder("fs.adl.account.%s.oauth2.credential")
+                .setDisplayType(DisplayType.CREDENTIALS))),
+    UNDERFS_AZURE_REFRESH_URL(
+        "fs.adl.account.%s.oauth2.refresh.url",
+        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.refresh\\.url"),
     // TODO(binfan): use alluxio.worker.tieredstore.levelX.mediatype instead
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
