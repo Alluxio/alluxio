@@ -27,8 +27,8 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -77,6 +78,8 @@ public class PlanTracker {
   /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
 
+  private final ArrayBlockingQueue<PlanInfo> mFailed;
+
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
   private final LinkedBlockingQueue<PlanInfo> mFinished;
 
@@ -92,13 +95,14 @@ public class PlanTracker {
    */
   public PlanTracker(long capacity, long retentionMs,
                      long maxJobPurgeCount, WorkflowTracker workflowTracker) {
-    Preconditions.checkArgument(capacity >= 0);
+    Preconditions.checkArgument(capacity >= 0 && capacity <= Integer.MAX_VALUE);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
+    mFailed = new ArrayBlockingQueue<>((int) capacity);
     mFinished = new LinkedBlockingQueue<>();
     mWorkflowTracker = workflowTracker;
   }
@@ -112,6 +116,14 @@ public class PlanTracker {
     if (!status.isFinished()) {
       return;
     }
+
+    if (status.equals(Status.FAILED)) {
+      if (!mFailed.offer(planInfo)) {
+        mFailed.remove();
+        mFailed.offer(planInfo);
+      }
+    }
+
     // Retry if offering to mFinished doesn't work
     for (int i = 0; i < 2; i++) {
       if (mFinished.offer(planInfo)) {
@@ -252,5 +264,9 @@ public class PlanTracker {
    */
   public Collection<PlanCoordinator> coordinators() {
     return Collections.unmodifiableCollection(mCoordinators.values());
+  }
+
+  public List<PlanInfo> failed() {
+    return Lists.newArrayList(mFailed);
   }
 }

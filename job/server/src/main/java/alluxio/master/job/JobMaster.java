@@ -34,6 +34,7 @@ import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -297,6 +298,14 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
     jobInfos.sort(Comparator.comparingLong(JobInfo::getId));
 
+    return jobInfos;
+  }
+
+  public List<JobInfo> failed() {
+    List<JobInfo> jobInfos = new ArrayList<>();
+    for (PlanInfo planInfoMeta : mPlanTracker.failed()) {
+      jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false));
+    }
     return jobInfos;
   }
 

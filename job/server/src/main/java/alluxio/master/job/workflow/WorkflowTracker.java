@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -48,6 +49,8 @@ public class WorkflowTracker {
   private final ConcurrentHashMap<Long, ConcurrentHashSet<Long>> mWaitingOn;
   private final ConcurrentHashMap<Long, ConcurrentHashSet<Long>> mChildren;
   private final ConcurrentHashMap<Long, Long> mParentWorkflow;
+
+  private final ArrayBlockingQueue<WorkflowInfo> mFailed;
 
   /**
    * Constructor for {@link WorkflowTracker}.

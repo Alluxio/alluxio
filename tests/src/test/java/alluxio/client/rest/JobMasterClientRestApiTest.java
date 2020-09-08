@@ -115,6 +115,13 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void failre_history() throws Exception {
+    List<Long> empty = Lists.newArrayList();
+    new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS,
+        HttpMethod.GET, "test this").run();
+  }
+
+  @Test
   public void list() throws Exception {
     List<Long> empty = Lists.newArrayList();
     new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.LIST), NO_PARAMS,

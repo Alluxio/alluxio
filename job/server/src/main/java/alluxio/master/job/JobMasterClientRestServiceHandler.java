@@ -102,6 +102,13 @@ public final class JobMasterClientRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
+  @GET
+  @Path(ServiceConstants.FAILURE_HISTORY)
+  @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
+  public Response failureHistory() {
+    return RestUtils.call(() -> mJobMaster.failed(), ServerConfiguration.global());
+  }
+
   /**
    * Gets the job status.
    *
