@@ -176,9 +176,8 @@ public class Serializer {
    * @param output The buffer to which to write the object
    * @param <T> The object type
    * @return The serialized object
-   * @throws MessagingException If no serializer is registered for the object
    */
-  public <T> DataOutputStream writeObject(T object, DataOutputStream output) throws IOException {
+  private <T> DataOutputStream writeObject(T object, DataOutputStream output) throws IOException {
     if (object == null) {
       output.writeByte(Identifier.NULL.code());
       return output;
@@ -191,7 +190,7 @@ public class Serializer {
 
     // If no serializer was found, throw a serialization exception.
     if (serializer == null) {
-      throw new MessagingException("Cannot serialize unregistered type: " + type);
+      throw new IOException("Cannot serialize unregistered type: " + type);
     }
 
     // Cache the serializable type ID if necessary.
@@ -294,7 +293,6 @@ public class Serializer {
    * @param input The stream from which to read the object
    * @param <T> The object type
    * @return The read object
-   * @throws MessagingException If no type could be read from the provided buffer
    */
   @SuppressWarnings("unchecked")
   public <T> T readObject(DataInputStream input) throws IOException, ClassNotFoundException {
