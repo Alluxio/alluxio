@@ -189,6 +189,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
+		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
