@@ -19,11 +19,6 @@ import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.copycat.protocol.ClientRequestTypeResolver;
-import io.atomix.copycat.protocol.ClientResponseTypeResolver;
-import io.atomix.copycat.server.storage.util.StorageSerialization;
-import io.atomix.copycat.server.util.ServerSerialization;
-import io.atomix.copycat.util.ProtocolSerialization;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +56,7 @@ public class GrpcMessagingTransportTest {
     final AtomicBoolean connectionEstablished = new AtomicBoolean(false);
     // Server connection lister that validates connection establishment.
     Consumer<GrpcMessagingConnection> connectionListener
-        = new CopycatTransportTestListener((connection) -> {
+        = new MessagingTransportTestListener((connection) -> {
           // Set connection as established.
           connectionEstablished.set(true);
         });
@@ -89,7 +84,7 @@ public class GrpcMessagingTransportTest {
 
     // Create and bind transport server.
     InetSocketAddress address =
-        bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
+        bindServer(connectionContext, mTransport.server(), new MessagingTransportTestListener());
 
     GrpcMessagingClient transportClient = mTransport.client();
     // Open 2 client connections to server.
@@ -113,7 +108,7 @@ public class GrpcMessagingTransportTest {
 
     // Create and bind transport server.
     InetSocketAddress address =
-        bindServer(connectionContext, mTransport.server(), new CopycatTransportTestListener());
+        bindServer(connectionContext, mTransport.server(), new MessagingTransportTestListener());
 
     // Open a client connection to server.
     GrpcMessagingConnection clientConnection
@@ -142,7 +137,7 @@ public class GrpcMessagingTransportTest {
     GrpcMessagingServer server = mTransport.server();
     // Bind transport server.
     InetSocketAddress address
-        = bindServer(connectionContext, server, new CopycatTransportTestListener());
+        = bindServer(connectionContext, server, new MessagingTransportTestListener());
 
     // Open a client connection to server.
     GrpcMessagingConnection clientConnection
@@ -257,11 +252,6 @@ public class GrpcMessagingTransportTest {
    */
   private Serializer createTestSerializer() {
     Serializer serializer = RaftJournalSystem.createSerializer();
-    serializer.resolve(new ClientRequestTypeResolver());
-    serializer.resolve(new ClientResponseTypeResolver());
-    serializer.resolve(new ProtocolSerialization());
-    serializer.resolve(new ServerSerialization());
-    serializer.resolve(new StorageSerialization());
 
     // Register dummy test command.
     serializer.register(DummyRequest.class);
@@ -317,13 +307,13 @@ public class GrpcMessagingTransportTest {
   /**
    * Test listener that is used to register test request types on server connection.
    */
-  class CopycatTransportTestListener implements Consumer<GrpcMessagingConnection> {
+  class MessagingTransportTestListener implements Consumer<GrpcMessagingConnection> {
     Consumer<GrpcMessagingConnection> mNestedListener;
 
     /**
      * Creates test listener.
      */
-    public CopycatTransportTestListener() {
+    public MessagingTransportTestListener() {
       this(null);
     }
 
@@ -332,7 +322,7 @@ public class GrpcMessagingTransportTest {
      *
      * @param nestedListener nested listener
      */
-    public CopycatTransportTestListener(Consumer<GrpcMessagingConnection> nestedListener) {
+    public MessagingTransportTestListener(Consumer<GrpcMessagingConnection> nestedListener) {
       mNestedListener = nestedListener;
     }
 

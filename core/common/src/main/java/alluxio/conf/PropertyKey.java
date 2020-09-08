@@ -1511,15 +1511,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19200)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
-          .setDescription("The storage level for storing embedded journal logs. Use DISK for "
-              + "maximum durability. Use MAPPED for better performance, but some risk of "
-              + "losing state in case of power loss or host failure. Use MEMORY for "
-              + "optimal performance, but no state persistence across cluster restarts.")
-          .setDefaultValue("DISK")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
           .setDefaultValue("10sec")
@@ -4902,8 +4893,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
-    public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-        "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
         "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =

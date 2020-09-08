@@ -24,7 +24,7 @@ public class GrpcMessagingServerConnection extends GrpcMessagingConnection {
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
    * @param transportId transport Id for this connection
-   * @param context copycat thread context
+   * @param context grpc messaging thread context
    * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
