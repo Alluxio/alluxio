@@ -65,6 +65,36 @@ import java.util.stream.Collectors;
 
 /**
  * Class for managing snapshot replication among masters.
+ * It manages two snapshot replication workflows - worker to master and master to worker.
+ *
+ * 1. Worker to Master
+ * When a raft leader needs a snapshot, instead of taking snapshot locally it copies a recent
+ * snapshot from one of the followers.
+ *
+ * Workflow:
+ *
+ * - Ratis calls leader state machine to take a snapshot
+ * - leader gets snapshot metadata from follower
+ * - leader pick one of the the follower and send a request for copying the snapshot
+ * - follower receives the request and calls the leader raft journal service to upload the snapshot
+ * - after the upload completes, leader remembers the temporary snapshot location and index
+ * - Ratis calls the leader state machine again to take a snapshot
+ * - leader moves the temporary snapshot to the journal snapshot folder and returns snapshot index
+ *
+ * 2. Master to Worker
+ * When a raft follower receives a notification to download a snapshot, it downloads the latest
+ * snapshot from the leader.
+ *
+ * Workflow:
+ *
+ * - Ratis leader determines one of the follower needs a snapshot because it misses journal entries
+ *   from a long time ago
+ * - Ratis leader notifies Ratis follower to install a snapshot from leader, the follower calls the
+ *   Alluxio state machine to fulfill this request
+ * - the follower state machine calls the snapshot manager which calls the raft journal service from
+ *   leader to download a snapshot
+ * - after the downloads completes, follower moves the file to snapshot directory and gives Ratis
+ *   the snapshot index
  */
 public class SnapshotReplicationManager {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotReplicationManager.class);
@@ -90,7 +120,7 @@ public class SnapshotReplicationManager {
     /** The latest snapshot is being downloaded from one of the followers. */
     STREAM_DATA,
 
-    /** A snapshot is downloaded. */
+    /** A snapshot is downloaded and ready for installation. */
     DOWNLOADED,
 
     /** A snapshot is being installed to the journal storage. */
@@ -133,20 +163,21 @@ public class SnapshotReplicationManager {
     }
     if (!transitionState(DownloadState.IDLE, DownloadState.STREAM_DATA)) {
       return RaftJournalUtils.completeExceptionally(
-          new IllegalStateException("Illegal state while installing a snapshot"));
+          new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
     try {
       RaftJournalServiceClient client = getJournalServiceClient();
+      String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
-          SnapshotDownloader.forFollower(mStorage, String.valueOf(client.getAddress()));
+          SnapshotDownloader.forFollower(mStorage, address);
       client.downloadSnapshot(observer);
       return observer.getFuture().thenApplyAsync((termIndex) -> {
         mDownloadedSnapshot = observer.getSnapshotToInstall();
         transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
         long index = installDownloadedSnapshot();
         if (index == RaftLog.INVALID_LOG_INDEX) {
-          throw new CompletionException(
-              new RuntimeException("Failed to install downloaded snapshot"));
+          throw new CompletionException(new RuntimeException(
+              String.format("Failed to install the downloaded snapshot %s", termIndex)));
         }
         if (index != termIndex.getIndex()) {
           throw new CompletionException(new IllegalStateException(
@@ -156,7 +187,8 @@ public class SnapshotReplicationManager {
         return termIndex;
       }).whenComplete((termIndex, throwable) -> {
         if (throwable != null) {
-          LOG.error("Unexpected exception downloading snapshot from leader.", throwable);
+          LOG.error("Unexpected exception downloading snapshot from leader {}.", address,
+              throwable);
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
         }
       });
