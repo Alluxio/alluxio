@@ -13,10 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.Serializer;
-
 /**
  * Command for writing an arbitrary journal entry.
  *

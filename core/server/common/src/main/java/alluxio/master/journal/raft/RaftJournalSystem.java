@@ -34,7 +34,6 @@ import alluxio.util.io.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
-import io.atomix.catalyst.serializer.Serializer;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.client.RaftClientConfigKeys;
