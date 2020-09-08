@@ -159,7 +159,7 @@ function setup_for_dynamic_non_root {
       mkdir -p /journal
       chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
       chmod -R g=u /opt/* /journal
-      exec su ${ALLUXIO_USERNAME} -c /entrypoint.sh ${ARGS}
+      exec su ${ALLUXIO_USERNAME} -c "/entrypoint.sh ${ARGS}"
   fi
 }
 
