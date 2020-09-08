@@ -657,6 +657,7 @@ public class ActiveSyncManager implements Journaled {
     if (!mStarted) {
       return;
     }
+    mStarted = false;
     for (AlluxioURI syncPoint : mSyncPathList) {
       try {
         stopSyncInternal(syncPoint);
