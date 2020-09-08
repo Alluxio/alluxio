@@ -11,13 +11,15 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.master.transport.serializer.MessagingSerializable;
+import alluxio.master.transport.serializer.SerializerUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.copycat.Command;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * Command for writing an arbitrary journal entry.
@@ -25,7 +27,7 @@ import io.atomix.copycat.Command;
  * Journal entries are serialized by writing their size as an integer, followed by their bytes
  * serialized in protocol buffer format.
  */
-public class JournalEntryCommand implements Command<Void>, CatalystSerializable {
+public class JournalEntryCommand implements Command<Void>, MessagingSerializable {
   private static final long serialVersionUID = 7020023290825215903L;
 
   private int mSize;
@@ -47,16 +49,15 @@ public class JournalEntryCommand implements Command<Void>, CatalystSerializable 
   }
 
   @Override
-  public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
-    buffer.writeInt(mSize);
-    buffer.write(mSerializedJournalEntry);
+  public void writeObject(DataOutputStream os) throws IOException {
+    os.writeInt(mSize);
+    os.write(mSerializedJournalEntry);
   }
 
   @Override
-  public void readObject(BufferInput<?> buffer, Serializer serializer) {
-    mSize = buffer.readInt();
-    mSerializedJournalEntry = new byte[mSize];
-    buffer.read(mSerializedJournalEntry);
+  public void readObject(DataInputStream is) throws IOException, ClassNotFoundException {
+    mSize = is.readInt();
+    mSerializedJournalEntry = SerializerUtils.readBytesFromStream(is, mSize);
   }
 
   /**

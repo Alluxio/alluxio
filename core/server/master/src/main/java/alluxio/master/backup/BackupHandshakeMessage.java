@@ -12,17 +12,19 @@
 package alluxio.master.backup;
 
 import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.serializer.MessagingSerializable;
+import alluxio.master.transport.serializer.SerializerUtils;
 
 import com.google.common.base.MoreObjects;
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.Serializer;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * The backup message used for introducing backup-worker to leader.
  */
-public class BackupHandshakeMessage implements CatalystSerializable {
+public class BackupHandshakeMessage implements MessagingSerializable {
   /** Backup-worker's hostname. */
   private String mBackupWorkerHostname;
 
@@ -67,13 +69,14 @@ public class BackupHandshakeMessage implements CatalystSerializable {
   }
 
   @Override
-  public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {
-    bufferOutput.writeString(mBackupWorkerHostname);
+  public void writeObject(DataOutputStream os) throws IOException {
+    os.writeInt(mBackupWorkerHostname.length());
+    os.writeBytes(mBackupWorkerHostname);
   }
 
   @Override
-  public void readObject(BufferInput<?> bufferInput, Serializer serializer) {
-    mBackupWorkerHostname = bufferInput.readString();
+  public void readObject(DataInputStream is) throws IOException {
+    mBackupWorkerHostname = SerializerUtils.readStringFromStream(is);
   }
 
   @Override

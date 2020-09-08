@@ -11,26 +11,28 @@
 
 package alluxio.master.backup;
 
+import alluxio.master.transport.serializer.MessagingSerializable;
+
 import com.google.common.base.MoreObjects;
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.Serializer;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * The backup message used for signaling follower to suspend its journals.
  */
-public class BackupSuspendMessage implements CatalystSerializable {
+public class BackupSuspendMessage implements MessagingSerializable {
   /**
    * Empty constructor as per deserialization requirement.
    */
   public BackupSuspendMessage() {}
 
   @Override
-  public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {}
+  public void writeObject(DataOutputStream os) throws IOException {}
 
   @Override
-  public void readObject(BufferInput<?> bufferInput, Serializer serializer) {}
+  public void readObject(DataInputStream is) throws IOException {}
 
   @Override
   public String toString() {

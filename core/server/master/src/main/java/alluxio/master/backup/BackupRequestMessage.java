@@ -12,14 +12,15 @@
 package alluxio.master.backup;
 
 import alluxio.grpc.BackupPRequest;
+import alluxio.master.transport.serializer.MessagingSerializable;
+import alluxio.master.transport.serializer.SerializerUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.Serializer;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +28,7 @@ import java.util.UUID;
 /**
  * The backup message used for signaling follower to start taking the backup.
  */
-public class BackupRequestMessage implements CatalystSerializable {
+public class BackupRequestMessage implements MessagingSerializable {
   /** Client supplied backup request. */
   private BackupPRequest mBackupRequest;
   /** Unique backup id. */
@@ -76,24 +77,23 @@ public class BackupRequestMessage implements CatalystSerializable {
   }
 
   @Override
-  public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {
-    bufferOutput.writeString(mBackupId.toString());
+  public void writeObject(DataOutputStream os) throws IOException {
+    SerializerUtils.writeStringToStream(os, mBackupId.toString());
     byte[] serializedReq = mBackupRequest.toByteArray();
-    bufferOutput.writeInt(serializedReq.length);
-    bufferOutput.write(serializedReq);
+    os.writeInt(serializedReq.length);
+    os.write(serializedReq);
 
-    bufferOutput.writeInt(mJournalSequences.size());
+    os.writeInt(mJournalSequences.size());
     for (Map.Entry<String, Long> sequenceEntry : mJournalSequences.entrySet()) {
-      bufferOutput.writeString(sequenceEntry.getKey());
-      bufferOutput.writeLong(sequenceEntry.getValue());
+      SerializerUtils.writeStringToStream(os, sequenceEntry.getKey());
+      os.writeLong(sequenceEntry.getValue());
     }
   }
 
   @Override
-  public void readObject(BufferInput<?> bufferInput, Serializer serializer) {
-    mBackupId = UUID.fromString(bufferInput.readString());
-    int serializedReqLen = bufferInput.readInt();
-    byte[] serializedReq = bufferInput.readBytes(serializedReqLen);
+  public void readObject(DataInputStream is) throws IOException {
+    mBackupId = UUID.fromString(SerializerUtils.readStringFromStream(is));
+    byte[] serializedReq = SerializerUtils.readBytesFromStream(is);
     try {
       mBackupRequest = BackupPRequest.parseFrom(serializedReq);
     } catch (InvalidProtocolBufferException e) {
@@ -101,9 +101,9 @@ public class BackupRequestMessage implements CatalystSerializable {
     }
 
     mJournalSequences = new HashMap<>();
-    int entryCount = bufferInput.readInt();
+    int entryCount = is.readInt();
     while (entryCount-- > 0) {
-      mJournalSequences.put(bufferInput.readString(), bufferInput.readLong());
+      mJournalSequences.put(SerializerUtils.readStringFromStream(is), is.readLong());
     }
   }
 

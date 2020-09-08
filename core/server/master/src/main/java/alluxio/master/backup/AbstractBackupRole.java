@@ -20,6 +20,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.master.transport.GrpcMessagingContext;
+import alluxio.master.transport.serializer.Serializer;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.UserState;
 import alluxio.underfs.UfsManager;
@@ -30,7 +31,6 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Closer;
-import io.atomix.catalyst.serializer.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

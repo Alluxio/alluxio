@@ -11,8 +11,9 @@
 
 package alluxio.master.transport;
 
+import alluxio.master.transport.serializer.Serializer;
+
 import com.google.common.base.Preconditions;
-import io.atomix.catalyst.serializer.Serializer;
 import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

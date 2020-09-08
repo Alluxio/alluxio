@@ -12,20 +12,22 @@
 package alluxio.master.backup;
 
 import alluxio.grpc.BackupPStatus;
+import alluxio.master.transport.serializer.SerializerUtils;
 import alluxio.wire.BackupStatus;
+import alluxio.master.transport.serializer.MessagingSerializable;
 
 import com.google.common.base.MoreObjects;
-import io.atomix.catalyst.buffer.BufferInput;
-import io.atomix.catalyst.buffer.BufferOutput;
-import io.atomix.catalyst.serializer.CatalystSerializable;
-import io.atomix.catalyst.serializer.Serializer;
 
 import javax.annotation.Nullable;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * The backup message used for sending status of current backup to leader.
  */
-public class BackupHeartbeatMessage implements CatalystSerializable {
+public class BackupHeartbeatMessage implements MessagingSerializable {
+
   /** Current backup status. */
   private BackupStatus mBackupStatus;
 
@@ -53,25 +55,25 @@ public class BackupHeartbeatMessage implements CatalystSerializable {
   }
 
   @Override
-  public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {
+  public void writeObject(DataOutputStream os) throws IOException {
     if (mBackupStatus == null) {
-      bufferOutput.writeBoolean(false);
+      os.writeBoolean(false);
       return;
     }
 
     // Leverage {@link BackupStatus#toProto} for serialization.
     byte[] statusBytes = mBackupStatus.toProto().toByteArray();
-    bufferOutput.writeBoolean(true);
-    bufferOutput.writeInt(statusBytes.length);
-    bufferOutput.writeBytes(statusBytes);
+    os.writeBoolean(true);
+    os.writeInt(statusBytes.length);
+    os.write(statusBytes);
   }
 
   @Override
-  public void readObject(BufferInput<?> bufferInput, Serializer serializer) {
-    if (bufferInput.readBoolean()) {
+  public void readObject(DataInputStream is) throws IOException {
+    if (is.readBoolean()) {
       // Leverage {@link BackupStatus#fromProto} for deserialization.
-      int statusBytesLen = bufferInput.readInt();
-      byte[] statusBytes = bufferInput.readBytes(statusBytesLen);
+      int statusBytesLen = is.readInt();
+      byte[] statusBytes = SerializerUtils.readBytesFromStream(is, statusBytesLen);
       try {
         mBackupStatus = BackupStatus.fromProto(BackupPStatus.parseFrom(statusBytes));
       } catch (Exception e) {

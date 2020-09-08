@@ -14,12 +14,12 @@ package alluxio.master.transport;
 import alluxio.grpc.TransportMessage;
 import alluxio.grpc.MessagingRequestHeader;
 import alluxio.grpc.MessagingResponseHeader;
+import alluxio.master.transport.serializer.MessagingException;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
-import io.atomix.catalyst.serializer.SerializationException;
 import io.grpc.stub.StreamObserver;
 import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
@@ -200,9 +200,9 @@ public abstract class GrpcMessagingConnection
         mTargetObserver.onNext(TransportMessage.newBuilder()
             .setRequestHeader(MessagingRequestHeader.newBuilder().setRequestId(requestId))
             .setMessage(UnsafeByteOperations
-                .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
+                .unsafeWrap(future.getContext().serializer().writeObject(request).toByteArray()))
             .build());
-      } catch (Exception e) {
+      } catch (MessagingException e) {
         future.completeExceptionally(e);
         return future;
       }
@@ -280,9 +280,9 @@ public abstract class GrpcMessagingConnection
       } else {
         // Send fail response.
         sendResponse(requestId, mContext,
-            new SerializationException("Unknown message type: " + request.getClass()));
+            new MessagingException("Unknown message type: " + request.getClass()));
       }
-    } catch (SerializationException e) {
+    } catch (MessagingException e) {
       // Send fail response.
       sendResponse(requestId, mContext, e);
     }
@@ -340,8 +340,13 @@ public abstract class GrpcMessagingConnection
             .setRequestId(requestId).setIsThrowable(responseObject instanceof Throwable));
     // Serialize and embed response object if provided.
     if (responseObject != null) {
-      messageBuilder.setMessage(UnsafeByteOperations
-          .unsafeWrap(context.serializer().writeObject(responseObject).array()));
+      try {
+        messageBuilder.setMessage(UnsafeByteOperations
+            .unsafeWrap(context.serializer().writeObject(responseObject).toByteArray()));
+      } catch (MessagingException e) {
+        // Should not reach here
+        LOG.error("Failed the write throwable response message with exception {}", e.getMessage());
+      }
     }
     // Send response.
     mTargetObserver.onNext(messageBuilder.build());
@@ -376,7 +381,7 @@ public abstract class GrpcMessagingConnection
         // Complete request future on originating context as per interface contract.
         future.getContext().executor().execute(() -> future.complete(responseObjectRef.get()));
       }
-    } catch (SerializationException e) {
+    } catch (MessagingException e) {
       future.getContext().executor().execute(() -> future.completeExceptionally(e));
     }
   }
