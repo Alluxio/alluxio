@@ -42,6 +42,7 @@
       <groupId>org.apache.ratis</groupId>
       <artifactId>ratis-grpc</artifactId>
     </dependency>
+    <!-- TODO(lu) remove catalyst dependency which used for serialization and move to Grpc impl -->
     <dependency>
       <groupId>io.atomix.catalyst</groupId>
       <artifactId>catalyst-transport</artifactId>
