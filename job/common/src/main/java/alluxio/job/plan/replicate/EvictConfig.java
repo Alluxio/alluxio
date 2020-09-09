@@ -46,6 +46,7 @@ public final class EvictConfig implements PlanConfig {
   /**
    * Creates a new instance of {@link EvictConfig}.
    *
+   * @param path alluxio path involved in this eviction
    * @param blockId id of the block to evict
    * @param replicas number of replicas to evict
    */

@@ -266,6 +266,9 @@ public class PlanTracker {
     return Collections.unmodifiableCollection(mCoordinators.values());
   }
 
+  /**
+   * @return list of failed plans
+   */
   public List<PlanInfo> failed() {
     return Lists.newArrayList(mFailed);
   }

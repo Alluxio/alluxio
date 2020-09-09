@@ -57,7 +57,8 @@ public final class EvictConfigTest {
 
   public static EvictConfig createRandom() {
     Random random = new Random();
-    EvictConfig config = new EvictConfig(null, random.nextLong(), random.nextInt(Integer.MAX_VALUE) + 1);
+    EvictConfig config = new EvictConfig(null, random.nextLong(),
+        random.nextInt(Integer.MAX_VALUE) + 1);
     return config;
   }
 }

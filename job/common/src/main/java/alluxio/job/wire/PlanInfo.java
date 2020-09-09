@@ -166,6 +166,9 @@ public final class PlanInfo implements JobInfo {
     return mLastUpdated;
   }
 
+  /**
+   * @return a list of affected alluxio paths by this plan
+   */
   public List<String> getAffectedPaths() {
     return ImmutableList.copyOf(mAffectedPaths);
   }

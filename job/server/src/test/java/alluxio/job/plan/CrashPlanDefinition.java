@@ -13,7 +13,6 @@ package alluxio.job.plan;
 
 import alluxio.collections.Pair;
 import alluxio.job.CrashPlanConfig;
-import alluxio.job.NoopPlanConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;

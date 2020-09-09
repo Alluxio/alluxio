@@ -49,6 +49,7 @@ public final class MoveConfig implements PlanConfig {
   /**
    * Creates a new instance of {@link MoveConfig}.
    *
+   * @param path alluxio path involved in this move
    * @param blockId id of the block to move
    * @param workerHost host name of the worker
    * @param mediumType the medium type to move to

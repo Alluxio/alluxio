@@ -102,6 +102,9 @@ public final class JobMasterClientRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
+  /**
+   * @return a list of failed jobs
+   */
   @GET
   @Path(ServiceConstants.FAILURE_HISTORY)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})

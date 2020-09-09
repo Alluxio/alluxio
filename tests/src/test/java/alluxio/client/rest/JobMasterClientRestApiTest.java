@@ -11,6 +11,8 @@
 
 package alluxio.client.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.job.CrashPlanConfig;
@@ -46,8 +48,6 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.HttpMethod;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests {@link JobMasterClientRestServiceHandler}.
@@ -122,17 +122,17 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     final long jobId = startJob(new CrashPlanConfig("/test"));
     waitForStatus(jobId, Status.FAILED);
     List<Long> empty = Lists.newArrayList();
-    final String result = new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS,
-        HttpMethod.GET, null).call();
+    final String result = new TestCase(mHostname, mPort,
+        getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
 
     assertEquals("test", result);
 
     final ObjectMapper mapper = new ObjectMapper();
-    List<Map<String, String>> result_list = mapper.readValue(result, List.class);
+    List<Map<String, String>> resultList = mapper.readValue(result, List.class);
 
-    assertEquals(1, result_list.size());
+    assertEquals(1, resultList.size());
 
-    Map<String, String> map = result_list.get(0);
+    Map<String, String> map = resultList.get(0);
     assertEquals("FAILED", map.get("status"));
     assertEquals("Crash", map.get("name"));
     assertEquals("/test", map.get("affectedPaths"));

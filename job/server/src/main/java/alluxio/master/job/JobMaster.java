@@ -301,6 +301,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return jobInfos;
   }
 
+  /**
+   * @return list of all failed job infos
+   */
   public List<JobInfo> failed() {
     List<JobInfo> jobInfos = new ArrayList<>();
     for (PlanInfo planInfoMeta : mPlanTracker.failed()) {

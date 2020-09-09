@@ -119,5 +119,4 @@ public final class ReplicateConfig implements PlanConfig {
         .add("replicas", mReplicas)
         .toString();
   }
-
 }
