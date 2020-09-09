@@ -86,7 +86,7 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
     // block0.offset = start < block1.offset < start+len < block2.offset
     start = 0;
     len = BLOCK_SIZE + 1;
-    Assert.assertNotEquals(2, sTFS.getFileBlockLocations(fStatus, start, len).length);
+    Assert.assertEquals(2, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
     // block0.offset < start < block1.offset < start+len < block2.offset
     start = 1;
