@@ -12,8 +12,9 @@
 package alluxio.job;
 
 import alluxio.job.plan.PlanConfig;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -21,18 +22,22 @@ import java.util.Collections;
 /**
  * Config for a plan that does nothing.
  */
-public class NoopPlanConfig implements PlanConfig {
+public class CrashPlanConfig implements PlanConfig {
 
-  public static final String NAME = "NoOp";
+  public static final String NAME = "Crash";
 
-  public NoopPlanConfig() {}
+  public String mPath;
+
+  public CrashPlanConfig(@JsonProperty("path") String path) {
+    mPath = path;
+  }
 
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
     }
-    return obj instanceof NoopPlanConfig;
+    return obj instanceof CrashPlanConfig;
   }
 
   @Override
@@ -50,8 +55,12 @@ public class NoopPlanConfig implements PlanConfig {
     return NAME;
   }
 
+  public String getPath() {
+    return mPath;
+  }
+
   @Override
   public Collection<String> affectedPaths() {
-    return Collections.EMPTY_LIST;
+    return ImmutableList.of(mPath);
   }
 }

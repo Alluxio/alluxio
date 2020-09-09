@@ -50,8 +50,6 @@ public class WorkflowTracker {
   private final ConcurrentHashMap<Long, ConcurrentHashSet<Long>> mChildren;
   private final ConcurrentHashMap<Long, Long> mParentWorkflow;
 
-  private final ArrayBlockingQueue<WorkflowInfo> mFailed;
-
   /**
    * Constructor for {@link WorkflowTracker}.
    * @param jobMaster the job master
