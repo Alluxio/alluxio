@@ -32,7 +32,7 @@ MinIO是为云应用和DevOps构建的对象存储。 MinIO提供了一个开源
 可以在存储桶中新建一个目录或使用一个现有目录。
 在本指南中，MinIO存储桶名称为`MINIO_BUCKET`，存储桶中的目录名称为`MINIO_DIRECTORY`。
 
-##配置Alluxio
+## 配置Alluxio
 
 你需要通过修改`conf/alluxio-site.properties`来配置Alluxio用MinIO做为底层存储系统。第一个修改是指定一个**现存**MinIO存储桶和目录作为底层存储系统。
 由于Minio支持`s3`协议，因此可以将Alluxio配置为
@@ -53,7 +53,7 @@ aws.secretKey=<MINIO_SECRET_KEY_ID>
 例如`http://localhost:9000/`。
 如果未设置端口值，则默认为`http`端口为80，`https`端口为443。
 
-##测试MinIO配置
+## 测试MinIO配置
 
 通过如下命令格式化并启动Alluxio
 
@@ -78,8 +78,7 @@ $ ./bin/alluxio runTests
 
 ### 指定的存储桶不存在
 
-如果返回了类似这样的消息，则需要再次检查`alluxio-site.properties`文件中存储桶的名称
-，并确保该存储桶存在于MinIO中。
+如果返回了类似这样的消息，则需要再次检查`alluxio-site.properties`文件中存储桶的名称，并确保该存储桶存在于MinIO中。
 存储桶名称的属性由[`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)控制。 
 
 ```
@@ -103,7 +102,7 @@ Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed 
         at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
-###连接被拒绝-无法执行HTTP请求
+### 连接被拒绝-无法执行HTTP请求
 
 如果发生客户端返回连接被拒绝错误的异常，
 那么很可能是Alluxio无法连接MinIO服务器。
@@ -119,7 +118,7 @@ ion refused)) from the under file system
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
 
-###请求禁止
+### 请求禁止
 
 如果遇到包含有关禁止访问的消息的异常，则可能
 Alluxio master凭证配置不正确。
