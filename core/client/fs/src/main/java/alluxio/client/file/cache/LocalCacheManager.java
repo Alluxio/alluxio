@@ -99,6 +99,8 @@ public class LocalCacheManager implements CacheManager {
       LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
       return false;
     }
+    long discardedPages = 0;
+    long discardedBytes = 0;
     try (Stream<PageInfo> stream = pageStore.getPages()) {
       Iterator<PageInfo> iterator = stream.iterator();
       while (iterator.hasNext()) {
@@ -107,18 +109,21 @@ public class LocalCacheManager implements CacheManager {
           LOG.error("Invalid page info");
           return false;
         }
-        metaStore.addPage(pageInfo.getPageId(), pageInfo);
-        if (metaStore.bytes() > pageStore.getCacheSize()) {
-          LOG.error("Loaded pages exceed cache capacity ({} bytes)", pageStore.getCacheSize());
-          return false;
+        PageId pageId = pageInfo.getPageId();
+        if (metaStore.bytes() + pageInfo.getPageSize() <= pageStore.getCacheSize()) {
+          metaStore.addPage(pageId, pageInfo);
+        } else {
+          pageStore.delete(pageId);
+          discardedPages++;
+          discardedBytes += pageInfo.getPageSize();
         }
       }
     } catch (Exception e) {
       LOG.error("Failed to restore PageStore", e);
       return false;
     }
-    LOG.info("Restored PageStore with {} existing pages and {} bytes", metaStore.pages(),
-        metaStore.bytes());
+    LOG.info("Restored PageStore with {} pages ({} bytes), discarded {} pages ({} bytes)",
+        metaStore.pages(), metaStore.bytes(), discardedPages, discardedBytes);
     return true;
   }
 

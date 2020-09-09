@@ -312,6 +312,23 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void restoreWithMorePagesThanCapacity() throws Exception {
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    mCacheManager.put(PAGE_ID2, PAGE2);
+    mCacheManager.put(pageUuid, BufferUtils.getIncreasingByteArray(
+        PAGE1.length + PAGE2.length + 1));
+    mCacheManager.close();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE1.length + PAGE2.length);
+    mCacheManager = LocalCacheManager.create(mConf);
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertArrayEquals(PAGE1, mBuf);
+    assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
+    assertArrayEquals(PAGE2, mBuf);
+    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+  }
+
+  @Test
   public void asyncCache() throws Exception {
     final int threads = 16;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);

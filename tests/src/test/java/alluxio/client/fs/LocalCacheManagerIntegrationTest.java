@@ -182,7 +182,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
     mCacheManager = LocalCacheManager.create(mConf);
-    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   @Test
