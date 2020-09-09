@@ -125,8 +125,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     final String result = new TestCase(mHostname, mPort,
         getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
 
-    assertEquals("test", result);
-
     final ObjectMapper mapper = new ObjectMapper();
     List<Map<String, String>> resultList = mapper.readValue(result, List.class);
 
