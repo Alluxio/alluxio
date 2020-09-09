@@ -61,8 +61,6 @@ public class RaftJournalDumper extends AbstractJournalDumper {
 
   @Override
   void dumpJournal() throws Throwable {
-    // Copycat freaks out shown directory is not an actual copycat dir.
-    // At least verify that it exists.
     if (!FileUtils.exists(mInputDir)) {
       throw new FileNotFoundException(String.format("Input dir does not exist: %s", mInputDir));
     }

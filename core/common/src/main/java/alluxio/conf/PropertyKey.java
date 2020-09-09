@@ -1511,6 +1511,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19200)
           .setScope(Scope.ALL)
           .build();
+  /**
+   * @deprecated storage level is used by copycat dependency which is removed
+   */
+  @Deprecated
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
           .setDescription("The storage level for storing embedded journal logs. Use DISK for "

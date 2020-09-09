@@ -37,6 +37,7 @@ import java.util.function.Supplier;
 public class GrpcMessagingContext {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingContext.class);
   private final ScheduledExecutorService mExecutor;
+  // TODO(lu) remove the catalyst serializer and change to gRPC proto
   private final Serializer mSerializer;
   private final Executor mWrappedExecutor = new Executor() {
     @Override

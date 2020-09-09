@@ -127,7 +127,7 @@
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <copycat.version>1.2.15</copycat.version>
+    <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
     <netty.version>4.1.45.Final</netty.version>
@@ -551,24 +551,9 @@
         <version>${parquet.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-server</artifactId>
-        <version>${copycat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-client</artifactId>
-        <version>${copycat.version}</version>
-      </dependency>
-      <dependency>
-        <artifactId>ratis-server</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
-      </dependency>
-      <dependency>
-        <artifactId>ratis-grpc</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-transport</artifactId>
+        <version>${catalyst.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.sling</groupId>
@@ -688,6 +673,16 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-slf4j-impl</artifactId>
         <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-server</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-grpc</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
       </dependency>
 
       <!-- Test scope -->
