@@ -29,7 +29,7 @@ fi
 
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
-  git clean -fdx
+  git clean -ffdx
 fi
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
 
