@@ -71,7 +71,7 @@ public final class PlanInfo implements JobInfo {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
     mDescription = verbose ? planInfo.getJobConfig().toString() : "";
-    mErrorMessage = verbose ? planInfo.getErrorMessage() : "";
+    mErrorMessage = planInfo.getErrorMessage();
     mStatus = Status.valueOf(planInfo.getStatus().name());
     mResult = verbose ? planInfo.getResult() : "";
     mLastUpdated = planInfo.getLastStatusChangeMs();
