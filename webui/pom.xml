@@ -40,7 +40,7 @@
             <goals>
               <goal>install-node-and-npm</goal>
             </goals>
-            <phase>generate-sources</phase>
+            <phase>process-sources</phase>
             <configuration>
               <nodeVersion>v10.11.0</nodeVersion>
               <npmVersion>6.4.1</npmVersion>
@@ -51,7 +51,7 @@
             <goals>
               <goal>npm</goal>
             </goals>
-            <phase>generate-sources</phase>
+            <phase>process-sources</phase>
             <configuration>
               <arguments>install --production --no-save --no-package-lock --no-shrinkwrap</arguments>
             </configuration>
@@ -87,7 +87,7 @@
           </execution>
           <execution>
             <id>Install npm dependencies for packages</id>
-            <phase>generate-sources</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
