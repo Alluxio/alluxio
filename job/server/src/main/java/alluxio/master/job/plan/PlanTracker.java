@@ -102,7 +102,7 @@ public class PlanTracker {
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
-    mFailed = new ArrayBlockingQueue<>((int) capacity);
+    mFailed = new ArrayBlockingQueue<>((int) Math.max(1, capacity));
     mFinished = new LinkedBlockingQueue<>();
     mWorkflowTracker = workflowTracker;
   }

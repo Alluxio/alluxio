@@ -31,6 +31,7 @@ import alluxio.util.WaitForOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -126,14 +127,14 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
         getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
 
     final ObjectMapper mapper = new ObjectMapper();
-    List<Map<String, String>> resultList = mapper.readValue(result, List.class);
+    List<Map<String, Object>> resultList = mapper.readValue(result, List.class);
 
     assertEquals(1, resultList.size());
 
-    Map<String, String> map = resultList.get(0);
+    Map<String, Object> map = resultList.get(0);
     assertEquals("FAILED", map.get("status"));
     assertEquals("Crash", map.get("name"));
-    assertEquals("/test", map.get("affectedPaths"));
+    assertEquals(ImmutableList.of("/test"), map.get("affectedPaths"));
   }
 
   @Test
