@@ -265,6 +265,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   private int readInternal(byte[] b, int off, int len) throws IOException {
+    // LOG.warn("BlockInStream::readInternal before readChunk()");
+    if (mPos >= mLength)
+    {
+      return -1;
+    }
+
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -274,11 +280,17 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       Preconditions
           .checkState(mPos >= mLength, PreconditionMessage.BLOCK_LENGTH_INCONSISTENT.toString(),
               mId, mLength, mPos);
+      // Should this be -1? (ruizh)
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
     mCurrentChunk.readBytes(b, off, toRead);
+    // LOG.warn("BlockInStream::readInternal read {} bytes from chunk", toRead);
     mPos += toRead;
+    if (mPos >= mLength)
+    {
+      closeDataReader();
+    }
     return toRead;
   }
 

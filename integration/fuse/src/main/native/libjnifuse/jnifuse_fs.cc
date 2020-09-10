@@ -57,6 +57,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->mkdirOper = new MkdirOperation(this);
   this->rmdirOper = new RmdirOperation(this);
   this->writeOper = new WriteOperation(this);
+  this->renameOper = new RenameOperation(this);
 }
 
 JniFuseFileSystem::~JniFuseFileSystem() {
@@ -71,6 +72,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->mkdirOper;
   delete this->rmdirOper;
   delete this->writeOper;
+  delete this->renameOper;
 }
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {

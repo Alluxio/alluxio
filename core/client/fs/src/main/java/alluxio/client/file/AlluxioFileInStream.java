@@ -183,8 +183,10 @@ public class AlluxioFileInStream extends FileInStream {
     IOException lastException = null;
     while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
       try {
+        // LOG.warn("FileInStream::read: before updateStream()");
         updateStream();
         int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
+        // LOG.warn("FileInStream::read {} bytes from block", bytesRead);
         if (bytesRead > 0) {
           bytesLeft -= bytesRead;
           currentOffset += bytesRead;
@@ -364,6 +366,7 @@ public class AlluxioFileInStream extends FileInStream {
     }
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
+    // LOG.warn("FileInStream blockInStream={}", mBlockInStream);
     mBlockInStream.seek(offset);
   }
 
@@ -378,7 +381,7 @@ public class AlluxioFileInStream extends FileInStream {
       if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
         return;
       }
-      triggerAsyncCaching(stream);
+//      triggerAsyncCaching(stream);
     }
   }
 

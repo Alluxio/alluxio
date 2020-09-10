@@ -124,6 +124,10 @@ public final class MetadataCache {
     }
   }
 
+  public void purgeAll() {
+    mCache.invalidateAll();
+  }
+
   /**
    * @param dir the directory
    * @return the cached list status results or null

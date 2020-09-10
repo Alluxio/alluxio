@@ -64,6 +64,7 @@ int flush_wrapper(const char *path, struct fuse_file_info *fi) {
 }
 
 int release_wrapper(const char *path, struct fuse_file_info *fi) {
+  LOGD("release: %s", path);
   return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
 }
 
@@ -84,4 +85,8 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
       path, buf, size, off, fi);
+}
+
+int rename_wrapper(const char *oldPath, const char *newPath) {
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
 }

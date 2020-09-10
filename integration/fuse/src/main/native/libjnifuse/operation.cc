@@ -308,4 +308,26 @@ int WriteOperation::call(const char *path, const char *buf, size_t size,
   return ret;
 }
 
+RenameOperation::RenameOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
+  this->methodID = env->GetMethodID(this->clazz, "renameCallback", signature);
+}
+
+int RenameOperation::call(const char *oldPath, const char *newPath) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(oldPath);
+  jstring jspathNew = env->NewStringUTF(newPath);
+
+   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(jspathNew);
+
+  return ret;
+}
+
 }  // namespace jnifuse

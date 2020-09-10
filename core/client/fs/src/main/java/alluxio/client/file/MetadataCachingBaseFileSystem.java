@@ -15,10 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.Bits;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.*;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.ThreadUtils;
 
@@ -105,6 +104,23 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       mMetadataCache.put(path, statuses);
     }
     return statuses;
+  }
+
+  @Override
+  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(src);
+    checkUri(dst);
+    super.rename(src, dst, options);
+    mMetadataCache.purgeAll();
+  }
+
+  @Override
+  public void delete(AlluxioURI path, DeletePOptions options)
+          throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+    super.delete(path, options);
+    mMetadataCache.purgeAll();
   }
 
   /**
