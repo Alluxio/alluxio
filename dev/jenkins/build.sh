@@ -17,7 +17,7 @@ set -ex
 
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
-  git clean -fdx
+  git clean -ffdx
 fi
 
 mvn_args=""
