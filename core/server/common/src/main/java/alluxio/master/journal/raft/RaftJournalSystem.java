@@ -17,9 +17,11 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
+import alluxio.grpc.ServiceType;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -46,6 +48,7 @@ import org.apache.ratis.protocol.GroupInfoReply;
 import org.apache.ratis.protocol.GroupInfoRequest;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
+import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
@@ -75,6 +78,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
@@ -137,7 +141,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * snapshots in Copycat through our AtomicBoolean, then wait for any snapshot to complete.
  */
 @ThreadSafe
-public final class RaftJournalSystem extends AbstractJournalSystem {
+public class RaftJournalSystem extends AbstractJournalSystem {
   public static final UUID RAFT_GROUP_ID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
 
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
@@ -234,8 +238,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     return conf;
   }
 
-  private RaftPeerId getPeerId(InetSocketAddress address) {
-    return RaftPeerId.getRaftPeerId(address.getHostString() + "_" + address.getPort());
+  /**
+   * @return a raft peer id for local raft server
+   */
+  public synchronized RaftPeerId getLocalPeerId() {
+    return mPeerId;
   }
 
   private synchronized void initServer() throws IOException {
@@ -247,9 +254,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
     List<InetSocketAddress> addresses = mConf.getClusterAddresses();
     InetSocketAddress localAddress = mConf.getLocalAddress();
-    mPeerId = getPeerId(localAddress);
+    mPeerId = RaftJournalUtils.getPeerId(localAddress);
     Set<RaftPeer> peers = addresses.stream()
-        .map(addr -> new RaftPeer(getPeerId(addr), addr))
+        .map(addr -> new RaftPeer(RaftJournalUtils.getPeerId(addr), addr))
         .collect(Collectors.toSet());
     mRaftGroupId = RaftGroupId.valueOf(RAFT_GROUP_ID);
     mRaftGroup = RaftGroup.valueOf(mRaftGroupId, peers);
@@ -362,7 +369,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
-        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
+        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
   }
 
   @Override
@@ -460,6 +467,14 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted while performing snapshot", e);
     }
+  }
+
+  @Override
+  public synchronized Map<ServiceType, GrpcService> getJournalServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
+        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
+    return services;
   }
 
   /**
@@ -605,6 +620,28 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     return quorumMemberStateList;
   }
 
+  /**
+   * Sends a message to a raft server asynchronously.
+   *
+   * @param server the raft peer id of the target server
+   * @param message the message to send
+   * @return a future to be completed with the client reply
+   */
+  public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
+      RaftPeerId server, Message message) {
+    RaftClient client = createClient();
+    return client.getClientRpc().sendRequestAsync(
+        new RaftClientRequest(mClientId, server, mRaftGroupId, nextCallId(), message,
+            RaftClientRequest.staleReadRequestType(0), null)
+    ).whenComplete((reply, t) -> {
+      try {
+        client.close();
+      } catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    });
+  }
+
   private GroupInfoReply getGroupInfo() throws IOException {
     GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mClientId,
         mPeerId, mRaftGroupId, nextCallId());
@@ -631,7 +668,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void removeQuorumServer(NetAddress serverNetAddress) throws IOException {
     InetSocketAddress serverAddress = InetSocketAddress
         .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
-    RaftPeerId peerId = getPeerId(serverAddress);
+    RaftPeerId peerId = RaftJournalUtils.getPeerId(serverAddress);
     try (RaftClient client = createClient()) {
       Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
       RaftClientReply reply = client.setConfiguration(peers.stream()
