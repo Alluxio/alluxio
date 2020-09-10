@@ -1538,6 +1538,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The stream chunk size used by masters to replicate snapshots.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
           .setDefaultValue("2hour")
@@ -4912,6 +4919,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
         "alluxio.master.embedded.journal.write.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
+        "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =

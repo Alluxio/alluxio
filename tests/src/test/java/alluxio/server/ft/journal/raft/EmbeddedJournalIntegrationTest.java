@@ -12,14 +12,15 @@
 package alluxio.server.ft.journal.raft;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -28,6 +29,7 @@ import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.journal.JournalType;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -36,6 +38,11 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.ratis.server.impl.RaftServerConstants;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -47,6 +54,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -97,6 +105,86 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.waitForAndKillPrimaryMaster(RESTART_TIMEOUT_MS);
     assertTrue(fs.exists(testDir));
     mCluster.notifySuccess();
+  }
+
+  @Test
+  public void copySnapshotToMaster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+        .setClusterName("copySnapshotToMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "50KB")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
+        .build();
+    mCluster.start();
+
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    for (int i = 0; i < 2000; i++) {
+      fs.createDirectory(testDir.join("file" + i));
+    }
+    int primaryMasterIndex = mCluster.getPrimaryMasterIndex(5000);
+    String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
+    File raftDir = new File(leaderJournalPath, RaftJournalSystem.RAFT_GROUP_ID.toString());
+    waitForSnapshot(raftDir);
+    mCluster.stopMasters();
+
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    assertNotNull(snapshot);
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void copySnapshotToFollower() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+        .setClusterName("copySnapshotToFollower")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10KB")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
+        .build();
+    mCluster.start();
+    int catchUpMasterIndex = (mCluster.getPrimaryMasterIndex(5000) + 1) % NUM_MASTERS;
+
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    for (int i = 0; i < 2000; i++) {
+      fs.createDirectory(testDir.join("file" + i));
+    }
+    mCluster.getMetaMasterClient().checkpoint();
+    mCluster.stopMaster(catchUpMasterIndex);
+    File catchupJournalDir = new File(mCluster.getJournalDir(catchUpMasterIndex));
+    FileUtils.deleteDirectory(catchupJournalDir);
+    assertTrue(catchupJournalDir.mkdirs());
+    mCluster.startMaster(catchUpMasterIndex);
+    File raftDir = new File(catchupJournalDir, RaftJournalSystem.RAFT_GROUP_ID.toString());
+    waitForSnapshot(raftDir);
+    mCluster.stopMaster(catchUpMasterIndex);
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    assertNotNull(snapshot);
+    mCluster.notifySuccess();
+  }
+
+  private void waitForSnapshot(File raftDir) throws InterruptedException, TimeoutException {
+    File snapshotDir = new File(raftDir, "sm");
+    CommonUtils.waitFor("snapshot is downloaded", () -> {
+      File[] files = snapshotDir.listFiles();
+      return files != null && files.length > 1 && files[0].length() > 0;
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(RESTART_TIMEOUT_MS));
   }
 
   @Test

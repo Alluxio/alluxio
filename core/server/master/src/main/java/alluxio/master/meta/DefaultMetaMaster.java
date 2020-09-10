@@ -265,6 +265,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new GrpcService(new MetaMasterMasterServiceHandler(this)));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
+    services.putAll(mJournalSystem.getJournalServices());
     return services;
   }
 
