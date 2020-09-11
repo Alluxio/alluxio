@@ -112,10 +112,9 @@ public class CreateHmsClientValidationTask extends
                 + "Please check if the given hive metastore uris is valid and reachable"), null);
       }
     } catch (InterruptedException e) {
-      new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
+      return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
           ValidationUtils.getErrorInfo(e),
-          "Hive metastore client creation is interrupted. Please rerun the test if needed");
-      throw e;
+          "Hive metastore client creation is interrupted. Please rerun the test if needed"), null);
     } catch (Throwable t) {
       String errorInfo = ValidationUtils.getErrorInfo(t);
       ValidationTaskResult result = new ValidationTaskResult()
