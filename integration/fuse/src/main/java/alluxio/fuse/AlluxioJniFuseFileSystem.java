@@ -238,6 +238,17 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
+      if (mIsUserGroupTranslation) {
+        // Translate the file owner/group to unix uid/gid
+        // Show as uid==-1 (nobody) if owner does not exist in unix
+        // Show as gid==-1 (nogroup) if group does not exist in unix
+        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()));
+        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup()));
+      } else {
+        stat.st_uid.set(UID);
+        stat.st_gid.set(GID);
+      }
+
       int mode = status.getMode();
       if (status.isFolder()) {
         mode |= FileStat.S_IFDIR;
