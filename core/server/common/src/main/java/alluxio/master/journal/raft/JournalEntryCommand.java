@@ -15,9 +15,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
  * Command for writing an arbitrary journal entry.
- *
- * Journal entries are serialized by writing their size as an integer, followed by their bytes
- * serialized in protocol buffer format.
  */
 public class JournalEntryCommand {
   private static final long serialVersionUID = 7020023290825215903L;
