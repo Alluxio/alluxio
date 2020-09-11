@@ -18,7 +18,35 @@ import java.io.IOException;
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager extends AutoCloseable  {
+public interface CacheManager extends AutoCloseable {
+
+  /**
+   * State of a cache.
+   */
+  enum State {
+    /**
+     * this cache is read only
+     */
+    READ_ONLY(0),
+    /**
+     * this cache can both read and write
+     */
+    READ_WRITE(1);
+
+    private final int mValue;
+
+    State(int value) {
+      mValue = value;
+    }
+
+    /**
+     * @return the value of the state
+     */
+    public int getValue() {
+      return mValue;
+    }
+  }
+
   /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link CacheManager}
@@ -71,4 +99,9 @@ public interface CacheManager extends AutoCloseable  {
    * @return true if the page is successfully deleted, false otherwise
    */
   boolean delete(PageId pageId);
+
+  /**
+   * @return state of this cache.
+   */
+  State state();
 }

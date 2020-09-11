@@ -39,15 +39,11 @@ public interface PageStore extends AutoCloseable {
    * cache dir otherwise.
    *
    * @param options the options to instantiate the page store
-   * @param init whether to init the cache dir
    * @return a PageStore instance
    * @throws IOException if I/O error happens
    */
-  static PageStore create(PageStoreOptions options, boolean init) throws IOException {
-    LOG.info("Creating PageStore with option={}, init={}", options.toString(), init);
-    if (init) {
-      initialize(options);
-    }
+  static PageStore create(PageStoreOptions options) throws IOException {
+    LOG.info("Creating PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:

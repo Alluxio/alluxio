@@ -11,6 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
+import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
+
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
@@ -34,10 +37,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -69,63 +74,25 @@ public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private static final int LOCK_SIZE = 1024;
+
   private final long mPageSize;
   private final long mCacheSize;
   private final boolean mAsyncWrite;
+  private final boolean mAsyncRestore;
   /** A readwrite lock pool to guard individual pages based on striping. */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
-  private final PageStore mPageStore;
+  private PageStore mPageStore;
   /** A readwrite lock to guard metadata operations. */
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
+  /** Executor service for execute the init tasks. */
+  private final ExecutorService mInitService;
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mAsyncCacheExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
-
-  /**
-   * Restores a page store a the configured location, updating meta store and evictor.
-   *
-   * @param pageStore page store
-   * @param options page store options
-   * @param metaStore meta store
-   * @return whether the restore succeeds or not
-   */
-  private static boolean restore(
-      PageStore pageStore, PageStoreOptions options, MetaStore metaStore) {
-    LOG.info("Attempt to restore PageStore with {}", options);
-    Path rootDir = Paths.get(options.getRootDir());
-    if (!Files.exists(rootDir)) {
-      LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
-      return false;
-    }
-    long discardedPages = 0;
-    long discardedBytes = 0;
-    try (Stream<PageInfo> stream = pageStore.getPages()) {
-      Iterator<PageInfo> iterator = stream.iterator();
-      while (iterator.hasNext()) {
-        PageInfo pageInfo = iterator.next();
-        if (pageInfo == null) {
-          LOG.error("Invalid page info");
-          return false;
-        }
-        PageId pageId = pageInfo.getPageId();
-        if (metaStore.bytes() + pageInfo.getPageSize() <= pageStore.getCacheSize()) {
-          metaStore.addPage(pageId, pageInfo);
-        } else {
-          pageStore.delete(pageId);
-          discardedPages++;
-          discardedBytes += pageInfo.getPageSize();
-        }
-      }
-    } catch (Exception e) {
-      LOG.error("Failed to restore PageStore", e);
-      return false;
-    }
-    LOG.info("Restored PageStore with {} pages ({} bytes), discarded {} pages ({} bytes)",
-        metaStore.pages(), metaStore.bytes(), discardedPages, discardedBytes);
-    return true;
-  }
+  /** State of this cache. */
+  private final AtomicReference<CacheManager.State> mState = new AtomicReference<>(READ_ONLY);
 
   /**
    * @param conf the Alluxio configuration
@@ -134,26 +101,27 @@ public class LocalCacheManager implements CacheManager {
   public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
     MetaStore metaStore = MetaStore.create(CacheEvictor.create(conf));
     PageStoreOptions options = PageStoreOptions.create(conf);
-    PageStore pageStore = null;
-    boolean restored = false;
-    try {
-      pageStore = PageStore.create(options, false);
-      restored = restore(pageStore, options, metaStore);
-    } catch (Exception e) {
-      LOG.error("Failed to restore PageStore", e);
+    PageStore pageStore = PageStore.create(options);
+    return create(conf, metaStore, pageStore, options);
+  }
+
+  /**
+   * @param conf the Alluxio configuration
+   * @param metaStore the meta store manages the metadata
+   * @param pageStore the page store manages the cache data
+   * @param options page store options
+   * @return an instance of {@link LocalCacheManager}
+   */
+  @VisibleForTesting
+  static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
+      PageStore pageStore, PageStoreOptions options) {
+    LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStore);
+    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
+      manager.mInitService.submit(() -> manager.restoreOrInit(options));
+    } else {
+      manager.restoreOrInit(options);
     }
-    if (!restored) {
-      if (pageStore != null) {
-        try {
-          pageStore.close();
-        } catch (Exception e) {
-          LOG.error("Failed to close PageStore", e);
-        }
-      }
-      metaStore.reset();
-      pageStore = PageStore.create(options, true);
-    }
-    return new LocalCacheManager(conf, metaStore, pageStore);
+    return manager;
   }
 
   /**
@@ -161,12 +129,12 @@ public class LocalCacheManager implements CacheManager {
    * @param metaStore the meta store manages the metadata
    * @param pageStore the page store manages the cache data
    */
-  @VisibleForTesting
-  LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore, PageStore pageStore) {
+  private LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore, PageStore pageStore) {
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
+    mAsyncRestore = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED);
     mCacheSize = pageStore.getCacheSize();
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
@@ -178,6 +146,7 @@ public class LocalCacheManager implements CacheManager {
                 conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60,
                 TimeUnit.SECONDS, new SynchronousQueue<>())
             : null;
+    mInitService = mAsyncRestore ? Executors.newSingleThreadExecutor() : null;
     Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
@@ -221,6 +190,11 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
+    if (mState.get() != READ_WRITE) {
+      Metrics.PUT_NOT_READY_ERRORS.inc();
+      Metrics.PUT_ERRORS.inc();
+      return false;
+    }
     if (!mAsyncWrite) {
       boolean ok = putInternal(pageId, page);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, ok);
@@ -407,6 +381,11 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public boolean delete(PageId pageId) {
     LOG.debug("delete({}) enters", pageId);
+    if (mState.get() != READ_WRITE) {
+      Metrics.DELETE_NOT_READY_ERRORS.inc();
+      Metrics.DELETE_ERRORS.inc();
+      return false;
+    }
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
@@ -430,8 +409,86 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public State state() {
+    return mState.get();
+  }
+
+  /**
+   * Restores a page store a the configured location, updating meta store.
+   */
+  private void restoreOrInit(PageStoreOptions options) {
+    Preconditions.checkState(mState.get() == READ_ONLY);
+    if (!restore(options)) {
+      try {
+        mPageStore.close();
+        try (LockResource r = new LockResource(mMetaLock.writeLock())) {
+          mMetaStore.reset();
+        }
+        PageStore.initialize(options);
+        mPageStore = PageStore.create(options);
+      } catch (Exception e) {
+        LOG.error("Failed to clean up PageStore", e);
+        return;
+      }
+    }
+    mState.set(READ_WRITE);
+    Metrics.STATE.inc();
+  }
+
+  private boolean restore(PageStoreOptions options) {
+    LOG.info("Attempt to restore PageStore with {}", options);
+    Path rootDir = Paths.get(options.getRootDir());
+    if (!Files.exists(rootDir)) {
+      LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
+      return false;
+    }
+    long discardedPages = 0;
+    long discardedBytes = 0;
+    try (Stream<PageInfo> stream = mPageStore.getPages()) {
+      Iterator<PageInfo> iterator = stream.iterator();
+      while (iterator.hasNext()) {
+        PageInfo pageInfo = iterator.next();
+        if (pageInfo == null) {
+          LOG.error("Invalid page info");
+          return false;
+        }
+        PageId pageId = pageInfo.getPageId();
+        ReadWriteLock pageLock = getPageLock(pageId);
+        try (LockResource r = new LockResource(pageLock.readLock())) {
+          boolean enoughSpace;
+          try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+            enoughSpace =
+                mMetaStore.bytes() + pageInfo.getPageSize() <= mPageStore.getCacheSize();
+            if (enoughSpace) {
+              mMetaStore.addPage(pageId, pageInfo);
+            }
+          }
+          if (!enoughSpace) {
+            mPageStore.delete(pageId);
+            discardedPages++;
+            discardedBytes += pageInfo.getPageSize();
+          }
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to restore PageStore", e);
+      return false;
+    }
+    LOG.info("Complete Restored PageStore with {} pages ({} bytes), discarded {} pages ({} bytes)",
+        mMetaStore.pages(), mMetaStore.bytes(), discardedPages, discardedBytes);
+    return true;
+  }
+
+  @Override
   public void close() throws Exception {
     mPageStore.close();
+    mMetaStore.reset();
+    if (mInitService != null) {
+      mInitService.shutdownNow();
+    }
+    if (mAsyncCacheExecutor != null) {
+      mAsyncCacheExecutor.shutdownNow();
+    }
   }
 
   /**
@@ -484,6 +541,9 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when deleting pages due to absence. */
     private static final Counter DELETE_NON_EXISTING_PAGE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NON_EXISTING_PAGE_ERRORS.getName());
+    /** Errors when cache is not ready to delete pages. */
+    private static final Counter DELETE_NOT_READY_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NOT_READY_ERRORS.getName());
     /** Errors when deleting pages due to failed delete in page stores. */
     private static final Counter DELETE_STORE_DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS.getName());
@@ -511,12 +571,18 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when adding pages due to benign racing eviction. */
     private static final Counter PUT_BENIGN_RACING_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS.getName());
+    /** Errors when cache is not ready to add pages. */
+    private static final Counter PUT_NOT_READY_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_NOT_READY_ERRORS.getName());
     /** Errors when adding pages due to failed deletes in page store. */
     private static final Counter PUT_STORE_DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS.getName());
     /** Errors when adding pages due to failed writes to page store. */
     private static final Counter PUT_STORE_WRITE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS.getName());
+    /** State of the cache. */
+    private static final Counter STATE =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_STATE.getName());
 
     private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(
