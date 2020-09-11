@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -21,6 +22,7 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.LogUtils;
 import alluxio.util.StreamUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -73,6 +75,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class JournalStateMachine extends BaseStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
   /** Journals managed by this applier. */
   private final Map<String, RaftJournal> mJournals;
@@ -328,6 +331,11 @@ public class JournalStateMachine extends BaseStateMachine {
   public long takeLocalSnapshot() {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
+      SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    if (mJournalApplier.isSuspended()) {
+      SAMPLING_LOG.info("Skip taking snapshot while journal application is suspended.");
       return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.debug("Calling snapshot");
