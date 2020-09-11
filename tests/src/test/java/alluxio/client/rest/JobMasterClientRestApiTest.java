@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.CrashPlanConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;

@@ -34,7 +34,6 @@ import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
-import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -72,7 +71,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -303,12 +301,13 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * @return list of all failed job infos
+   * @param limit maximum number of jobInfos to return
+   * @return list of all failed job infos ordered by when it failed (recently failed first)
    */
   public List<JobInfo> failed(int limit) {
     List<JobInfo> jobInfos = new ArrayList<>();
     mPlanTracker.failed().stream().limit(limit).forEachOrdered((planInfoMeta) ->
-      jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false))
+        jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false))
     );
     return jobInfos;
   }

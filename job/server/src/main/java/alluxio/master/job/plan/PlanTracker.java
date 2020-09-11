@@ -105,7 +105,9 @@ public class PlanTracker {
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
       long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
-      if (diffTime != 0) return Long.signum(diffTime);
+      if (diffTime != 0) {
+        return Long.signum(diffTime);
+      }
       return Long.signum(right.getId() - left.getId());
     }));
     mFinished = new LinkedBlockingQueue<>();
