@@ -159,7 +159,16 @@ function setup_for_dynamic_non_root {
       mkdir -p /journal
       chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
       chmod -R g=u /opt/* /journal
-      exec su ${ALLUXIO_USERNAME} -c "/entrypoint.sh ${ARGS}"
+      # Chmod the dirs of tiered stores for alluxio worker
+      # to ensure write permission for non-root user.
+      if [[ "$1" == "worker" || "$1" == "worker-only" ]]; then
+        "${ALLUXIO_HOME}/bin/alluxio" getConf | \
+          grep "alluxio.worker.tieredstore.level[0-9].dirs.path" | \
+          awk -F '=' '{print $2}' | \
+          grep -Ev "^$" | \
+          xargs -I {} chmod -R 777 {}
+      fi
+      exec su ${ALLUXIO_USERNAME} -c "/entrypoint.sh $*"
   fi
 }
 
@@ -168,8 +177,6 @@ function main {
     printUsage
     exit 1
   fi
-
-  ARGS="$*"
 
   local service="$1"
   OPTIONS="$2"
@@ -181,7 +188,7 @@ function main {
     export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
   fi
 
-  setup_for_dynamic_non_root
+  setup_for_dynamic_non_root "$@"
 
   cd ${ALLUXIO_HOME}
 
