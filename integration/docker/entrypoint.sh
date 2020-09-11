@@ -162,9 +162,9 @@ function setup_for_dynamic_non_root {
       # Chmod the dirs of tiered stores for alluxio worker
       # to ensure write permission for non-root user.
       if [[ "$1" == "worker" || "$1" == "worker-only" ]]; then
-        "${ALLUXIO_HOME}/bin/alluxio" getConf | \
+        echo "$ALLUXIO_JAVA_OPTS" | tr ' ' '\n' | \
           grep "alluxio.worker.tieredstore.level[0-9].dirs.path" | \
-          awk -F '=' '{print $2}' | \
+          cut -d '=' -f 2 | \
           grep -Ev "^$" | \
           xargs -I {} chmod -R 777 {}
       fi
