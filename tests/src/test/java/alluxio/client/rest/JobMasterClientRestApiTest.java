@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.CrashPlanConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
@@ -66,6 +67,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
+      .setProperty(PropertyKey.JOB_MASTER_JOB_CAPACITY, 2)
+      .setProperty(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0sec")
       .build();
 
   @Rule
@@ -120,8 +123,12 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
 
   @Test
   public void failre_history() throws Exception {
-    final long jobId = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId, Status.FAILED);
+    final long jobId0 = startJob(new CrashPlanConfig("/test"));
+    waitForStatus(jobId0, Status.FAILED);
+    final long jobId1 = startJob(new CrashPlanConfig("/test"));
+    waitForStatus(jobId1, Status.FAILED);
+    final long jobId2 = startJob(new CrashPlanConfig("/test"));
+    waitForStatus(jobId2, Status.FAILED);
     List<Long> empty = Lists.newArrayList();
     final String result = new TestCase(mHostname, mPort,
         getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
@@ -129,12 +136,17 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     final ObjectMapper mapper = new ObjectMapper();
     List<Map<String, Object>> resultList = mapper.readValue(result, List.class);
 
-    assertEquals(1, resultList.size());
+    assertEquals(2, resultList.size());
 
     Map<String, Object> map = resultList.get(0);
+    assertEquals(jobId2, map.get("id"));
     assertEquals("FAILED", map.get("status"));
     assertEquals("Crash", map.get("name"));
     assertEquals(ImmutableList.of("/test"), map.get("affectedPaths"));
+    assertEquals("Task execution failed: CrashPlanConfig always crashes", map.get("errorMessage"));
+
+    map = resultList.get(1);
+    assertEquals(jobId1, map.get("id"));
   }
 
   @Test

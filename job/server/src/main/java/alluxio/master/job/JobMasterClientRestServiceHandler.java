@@ -109,7 +109,7 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.FAILURE_HISTORY)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
   public Response failureHistory() {
-    return RestUtils.call(() -> mJobMaster.failed(), ServerConfiguration.global());
+    return RestUtils.call(() -> mJobMaster.failed(50), ServerConfiguration.global());
   }
 
   /**

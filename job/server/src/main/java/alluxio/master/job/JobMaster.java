@@ -72,6 +72,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -304,11 +305,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   /**
    * @return list of all failed job infos
    */
-  public List<JobInfo> failed() {
+  public List<JobInfo> failed(int limit) {
     List<JobInfo> jobInfos = new ArrayList<>();
-    for (PlanInfo planInfoMeta : mPlanTracker.failed()) {
-      jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false));
-    }
+    mPlanTracker.failed().stream().limit(limit).forEachOrdered((planInfoMeta) ->
+      jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false))
+    );
     return jobInfos;
   }
 

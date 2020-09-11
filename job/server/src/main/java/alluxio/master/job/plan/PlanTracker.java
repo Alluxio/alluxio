@@ -36,7 +36,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -78,7 +79,7 @@ public class PlanTracker {
   /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
 
-  private final ArrayBlockingQueue<PlanInfo> mFailed;
+  private final SortedSet<PlanInfo> mFailed;
 
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
   private final LinkedBlockingQueue<PlanInfo> mFinished;
@@ -102,7 +103,11 @@ public class PlanTracker {
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
-    mFailed = new ArrayBlockingQueue<>((int) Math.max(1, capacity));
+    mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
+      long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
+      if (diffTime != 0) return Long.signum(diffTime);
+      return Long.signum(right.getId() - left.getId());
+    }));
     mFinished = new LinkedBlockingQueue<>();
     mWorkflowTracker = workflowTracker;
   }
@@ -118,10 +123,10 @@ public class PlanTracker {
     }
 
     if (status.equals(Status.FAILED)) {
-      if (!mFailed.offer(planInfo)) {
-        mFailed.remove();
-        mFailed.offer(planInfo);
+      while (mFailed.size() >= mCapacity) {
+        mFailed.remove(mFailed.last());
       }
+      mFailed.add(planInfo);
     }
 
     // Retry if offering to mFinished doesn't work
