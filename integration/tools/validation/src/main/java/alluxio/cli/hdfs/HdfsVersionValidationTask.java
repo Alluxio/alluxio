@@ -12,6 +12,7 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
@@ -77,26 +78,26 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validate(Map<String, String> optionMap)
           throws InterruptedException {
     String hadoopVersion;
     try {
       hadoopVersion = getHadoopVersion();
     } catch (IOException e) {
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               String.format("Failed to get hadoop version:%n%s.", ValidationUtils.getErrorInfo(e)),
               "Please check if hadoop is on your PATH.");
     }
 
     String version = mConf.get(PropertyKey.UNDERFS_VERSION);
     if (hadoopVersion.contains(version)) {
-      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
               String.format("Hadoop version %s contains UFS version defined in alluxio %s=%s.",
                       hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
               "");
     }
 
-    return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+    return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
             String.format("Hadoop version %s does not match %s=%s.",
                     hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
             String.format("Please configure %s to match the HDFS version.",

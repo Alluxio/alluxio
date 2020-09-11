@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 
+import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.hdfs.HdfsVersionValidationTask;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
@@ -50,7 +50,7 @@ public class HdfsVersionValidationTaskTest {
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.2");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString("2.2 does not match alluxio.underfs.version"));
     assertThat(result.getAdvice(), containsString("configure alluxio.underfs.version"));
@@ -64,7 +64,7 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
             "2.7 does not match alluxio.underfs.version=2.6"));
@@ -79,7 +79,7 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
@@ -92,7 +92,7 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
 
@@ -105,7 +105,7 @@ public class HdfsVersionValidationTaskTest {
     sConf.set(PropertyKey.UNDERFS_VERSION, "2.6.3");
 
     HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
-    ValidationUtils.TaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validate(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
             "Hadoop version 2.6.2 does not match alluxio.underfs.version=2.6.3"));

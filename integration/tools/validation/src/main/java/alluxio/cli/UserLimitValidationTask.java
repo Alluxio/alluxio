@@ -11,8 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,7 +40,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validate(Map<String, String> optionsMap) {
     ValidationUtils.State state = ValidationUtils.State.OK;
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
@@ -55,7 +53,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
         if (line == null) {
           msg.append(String.format("Unable to check user limit for %s.%n", getName()));
           advice.append(String.format("Please check if you are able to run %s. ", mCommand));
-          return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+          return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
                   msg.toString(), advice.toString());
         }
 
@@ -65,7 +63,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
             state = ValidationUtils.State.WARNING;
             advice.append(String.format("The user limit should be less than %d. ", mUpperBound));
           }
-          return new ValidationUtils.TaskResult(state, getName(),
+          return new ValidationTaskResult(state, getName(),
                   msg.toString(), advice.toString());
         }
 
@@ -85,13 +83,13 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
                   mLowerBound));
         }
 
-        return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+        return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
       }
     } catch (IOException e) {
       msg.append(String.format("Unable to check user limit for %s: %s. ",
               getName(), e.getMessage()));
       msg.append(ValidationUtils.getErrorInfo(e));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }
   }

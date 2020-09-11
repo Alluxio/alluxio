@@ -110,12 +110,12 @@ public final class UnderFileSystemContractTest {
   }
 
   /**
-   * Runs the tests and return a {@link alluxio.cli.ValidationUtils.TaskResult}.
+   * Runs the tests and return a {@link ValidationTaskResult}.
    *
    * @return a task result for all UFS tests
    * */
   // TODO(jiacheng): Refactor and move this into ValidateHdfsMount
-  public ValidationUtils.TaskResult runValidationTask() throws IOException {
+  public ValidationTaskResult runValidationTask() throws IOException {
     Closer closer = Closer.create();
     final ByteArrayOutputStream msgBuf = new ByteArrayOutputStream();
     final ByteArrayOutputStream adviceBuf = new ByteArrayOutputStream();
@@ -132,7 +132,7 @@ public final class UnderFileSystemContractTest {
       if (factory == null || !factory.supportsPath(mUfsPath)) {
         msgStream.append(String.format("%s is not a valid path%n", mUfsPath));
         adviceStream.append(String.format("Please validate if %s is a correct path%n", mUfsPath));
-        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, TASK_NAME,
+        return new ValidationTaskResult(ValidationUtils.State.FAILED, TASK_NAME,
                 msgBuf.toString(), adviceBuf.toString());
       }
 
@@ -155,12 +155,12 @@ public final class UnderFileSystemContractTest {
       if (failedCnt > 0) {
         adviceStream.append("Please check the failed UFS operations from the output.");
       }
-      return new ValidationUtils.TaskResult(state, TASK_NAME, msgBuf.toString(),
+      return new ValidationTaskResult(state, TASK_NAME, msgBuf.toString(),
               adviceBuf.toString());
     } catch (Exception e) {
       msgStream.append(ValidationUtils.getErrorInfo(e));
       adviceStream.append("Please resolve the errors from failed UFS operations.");
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, TASK_NAME,
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, TASK_NAME,
               msgBuf.toString(), adviceBuf.toString());
     } finally {
       closer.close();
