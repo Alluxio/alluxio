@@ -28,18 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
-  private static final Lock LOCK = new ReentrantLock();
-  @GuardedBy("LOCK")
   private static final AtomicReference<CacheManager> CACHE_MANAGER = new AtomicReference<>();
 
   private final AlluxioConfiguration mConf;
@@ -53,7 +47,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     super(fs);
     // TODO(feng): support multiple cache managers
     if (CACHE_MANAGER.get() == null) {
-      if (LOCK.tryLock()) {
+      synchronized (LocalCacheFileSystem.class) {
         try {
           if (CACHE_MANAGER.get() == null) {
             CACHE_MANAGER.set(CacheManager.create(conf));
@@ -61,8 +55,6 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
           throw new IOException("Failed to create CacheManager", e);
-        } finally {
-          LOCK.unlock();
         }
       }
     }

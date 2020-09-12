@@ -25,11 +25,11 @@ public interface CacheManager extends AutoCloseable {
    */
   enum State {
     /**
-     * this cache is read only
+     * this cache is read only.
      */
     READ_ONLY(0),
     /**
-     * this cache can both read and write
+     * this cache can both read and write.
      */
     READ_WRITE(1);
 
@@ -101,7 +101,7 @@ public interface CacheManager extends AutoCloseable {
   boolean delete(PageId pageId);
 
   /**
-   * @return state of this cache.
+   * @return state of this cache
    */
   State state();
 }
