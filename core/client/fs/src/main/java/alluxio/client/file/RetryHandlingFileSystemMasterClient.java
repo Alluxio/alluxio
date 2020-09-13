@@ -238,7 +238,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws AlluxioStatusException {
+  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+      throws AlluxioStatusException {
     retryRPC(
         () -> {
           ListStatusPOptions lsOptions = ListStatusPOptions.newBuilder()

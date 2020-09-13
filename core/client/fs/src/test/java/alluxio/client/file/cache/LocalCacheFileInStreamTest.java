@@ -476,7 +476,8 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

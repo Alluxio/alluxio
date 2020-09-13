@@ -119,7 +119,8 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.loadMetadata(path, options);
   }
 
