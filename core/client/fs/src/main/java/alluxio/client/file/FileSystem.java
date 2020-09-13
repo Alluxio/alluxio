@@ -35,6 +35,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -391,6 +392,28 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataPOptions)} with default
+   * options.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default void loadMetadata(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    loadMetadata(path, LoadMetadataPOptions.getDefaultInstance());
+  }
+
+  /**
+   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @param options options to associate with this operation
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

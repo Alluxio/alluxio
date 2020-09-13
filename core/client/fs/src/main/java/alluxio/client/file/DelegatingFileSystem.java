@@ -27,6 +27,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -121,8 +122,14 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
                             Consumer<? super URIStatus> action)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+          throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.iterateStatus(path, options, action);
+  }
+
+  @Override
+  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.loadMetadata(path, options);
   }
 
   @Override
