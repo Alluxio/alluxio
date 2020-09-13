@@ -18,6 +18,7 @@
 FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.4.0-SNAPSHOT/alluxio-2.4.0-SNAPSHOT-bin.tar.gz
+# (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing 
 ARG ENABLE_DYANMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
@@ -66,6 +67,7 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=extractor /opt/ /opt/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
+
 
 RUN if [ ${ENABLE_DYANMIC_USER} = "true" ] ; then \
        chmod -R 777 /journal; \
