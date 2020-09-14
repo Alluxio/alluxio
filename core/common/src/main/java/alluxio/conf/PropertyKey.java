@@ -989,12 +989,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_CONNECT_TTL =
-          new Builder(Name.UNDERFS_S3_CONNECT_TTL)
-                  .setDefaultValue(-1)
-                  .setDescription("The expiration time of S3 connections in ms.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.SERVER)
-                  .build();
+      new Builder(Name.UNDERFS_S3_CONNECT_TTL)
+          .setDefaultValue(-1)
+          .setDescription("The expiration time of S3 connections in ms. -1 means the connection "
+            + "will never expire.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_S3_SOCKET_TIMEOUT)
           .setAlias("alluxio.underfs.s3a.socket.timeout.ms", "alluxio.underfs.s3a.socket.timeout")
