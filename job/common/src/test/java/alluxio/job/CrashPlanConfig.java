@@ -18,6 +18,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Config for a plan that does nothing.
@@ -42,7 +43,7 @@ public class CrashPlanConfig implements PlanConfig {
 
   @Override
   public int hashCode() {
-    return 42;
+    return Objects.hashCode(mPath);
   }
 
   @Override

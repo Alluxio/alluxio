@@ -38,5 +38,5 @@ public interface ValidationTask {
    * @param optionMap contains string representation of <key, value> pairs
    * @return the result of validation task
    */
-  ValidationUtils.TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
+  ValidationTaskResult validate(Map<String, String> optionMap) throws InterruptedException;
 }

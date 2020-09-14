@@ -11,19 +11,12 @@
 
 package alluxio.cli;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +24,6 @@ import java.util.Map;
  * A tool to validate an HDFS mount, before the path is mounted to Alluxio.
  * */
 public class HdfsValidationTool implements ValidationTool {
-  private static final Logger LOG = LoggerFactory.getLogger(HdfsValidationTool.class);
 
   private String mUfsPath;
   private UnderFileSystemConfiguration mUfsConf;
@@ -47,54 +39,43 @@ public class HdfsValidationTool implements ValidationTool {
     mUfsConf = ufsConf;
   }
 
-  private static List<ValidationUtils.TaskResult> validateUfs(
-          String ufsPath, AlluxioConfiguration ufsConf) throws InterruptedException {
-    Map<String, String> validateOpts = ImmutableMap.of();
-    ValidateEnv tasks = new ValidateEnv(ufsPath, ufsConf);
-
-    List<ValidationUtils.TaskResult> results = new ArrayList<>();
-    Map<String, String> desc = tasks.getDescription();
-    for (Map.Entry<ValidationTask, String> entry : tasks.getTasks().entrySet()) {
+  @Override
+  public Map<String, ValidationTask> getTasks() {
+    ValidateEnv env = new ValidateEnv(mUfsPath, mUfsConf);
+    Map<String, ValidationTask> tasks = new HashMap<>();
+    for (Map.Entry<ValidationTask, String> entry : env.getTasks().entrySet()) {
       ValidationTask task = entry.getKey();
       String taskName = entry.getValue();
       Class clazz = task.getClass();
       if (clazz.isAnnotationPresent(ApplicableUfsType.class)) {
         ApplicableUfsType type = (ApplicableUfsType) clazz.getAnnotation(ApplicableUfsType.class);
         if (type.value() == ApplicableUfsType.Type.HDFS
-                || type.value() == ApplicableUfsType.Type.ALL) {
-          ValidationUtils.TaskResult result = task.validate(validateOpts);
-          if (desc.containsKey(taskName)) {
-            result.setDesc(desc.get(taskName));
-          }
-          results.add(result);
+            || type.value() == ApplicableUfsType.Type.ALL) {
+          tasks.put(taskName, task);
         }
       }
+    }
+    return tasks;
+  }
+
+  protected List<ValidationTaskResult> validateUfs() throws InterruptedException {
+    Map<String, String> validateOpts = ImmutableMap.of();
+    Map<String, String> desc = new ValidateEnv(mUfsPath, mUfsConf).getDescription();
+    List<ValidationTaskResult> results = new LinkedList<>();
+    for (Map.Entry<String, ValidationTask> entry : getTasks().entrySet()) {
+      ValidationTask task = entry.getValue();
+      String taskName = entry.getKey();
+      ValidationTaskResult result = task.validate(validateOpts);
+      if (desc.containsKey(taskName)) {
+        result.setDesc(desc.get(taskName));
+      }
+      results.add(result);
     }
     return results;
   }
 
-  private static ValidationUtils.TaskResult runUfsTests(String path, InstancedConfiguration conf) {
-    try {
-      UnderFileSystemContractTest test = new UnderFileSystemContractTest(path, conf);
-      return test.runValidationTask();
-    } catch (IOException e) {
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, "ufsTests",
-              ValidationUtils.getErrorInfo(e), "");
-    }
-  }
-
   @Override
-  public String runTests() throws InterruptedException {
-    // Run validateEnv
-    List<ValidationUtils.TaskResult> results = validateUfs(mUfsPath, mUfsConf);
-
-    // group by state
-    Map<ValidationUtils.State, List<ValidationUtils.TaskResult>> map = new HashMap<>();
-    results.stream().forEach((r) -> {
-      map.computeIfAbsent(r.getState(), (k) -> new ArrayList<>()).add(r);
-    });
-
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    return gson.toJson(map);
+  public List<ValidationTaskResult> runAllTests() throws InterruptedException {
+    return validateUfs();
   }
 }
