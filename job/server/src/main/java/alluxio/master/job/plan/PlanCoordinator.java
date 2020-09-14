@@ -188,6 +188,7 @@ public final class PlanCoordinator {
   /**
    * Sets the job as failed with given error message.
    *
+   * @param errorType Error type to set for failure
    * @param errorMessage Error message to set for failure
    */
   public void setJobAsFailed(String errorType, String errorMessage) {

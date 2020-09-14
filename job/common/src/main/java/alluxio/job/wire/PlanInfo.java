@@ -160,6 +160,9 @@ public final class PlanInfo implements JobInfo {
     return mChildren;
   }
 
+  /**
+   * @return the error type
+   */
   public String getErrorType() {
     return mErrorType;
   }
