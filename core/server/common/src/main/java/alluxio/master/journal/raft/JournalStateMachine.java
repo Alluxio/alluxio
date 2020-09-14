@@ -182,11 +182,14 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           request.getContent().asReadOnlyByteBuffer());
       LOG.debug("Received query request: {}", queryRequest);
+      // give snapshot manager a chance to handle snapshot related requests
       Message reply = mSnapshotManager.handleRequest(queryRequest);
       if (reply != null) {
         future.complete(reply);
         return future;
       }
+      // Snapshot manager returned null indicating the request is not handled. Check and handle
+      // other type of requests.
       if (queryRequest.hasAddQuorumServerRequest()) {
         AddQuorumServerRequest addRequest = queryRequest.getAddQuorumServerRequest();
         return CompletableFuture.supplyAsync(() -> {
