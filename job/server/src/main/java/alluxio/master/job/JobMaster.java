@@ -301,6 +301,18 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * @param limit maximum number of jobInfos to return
+   * @return list of all failed job infos ordered by when it failed (recently failed first)
+   */
+  public List<JobInfo> failed(int limit) {
+    List<JobInfo> jobInfos = new ArrayList<>();
+    mPlanTracker.failed().stream().limit(limit).forEachOrdered((planInfoMeta) ->
+        jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false))
+    );
+    return jobInfos;
+  }
+
+  /**
    * Gets information of the given job id (verbose = True).
    *
    * @param jobId the id of the job

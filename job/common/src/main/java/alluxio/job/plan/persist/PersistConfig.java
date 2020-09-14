@@ -19,8 +19,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 
 /**
  * The configuration of persisting a file.
@@ -119,5 +121,10 @@ public class PersistConfig implements PlanConfig {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("filePath", mFilePath).add("mountId", mMountId)
         .add("overwrite", mOverwrite).add("ufsPath", mUfsPath).toString();
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return ImmutableList.of(mFilePath);
   }
 }
