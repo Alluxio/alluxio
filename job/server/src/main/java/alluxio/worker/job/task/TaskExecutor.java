@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.task;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
@@ -22,7 +20,6 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
