@@ -50,7 +50,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validate(Map<String, String> optionMap)
           throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
@@ -65,7 +65,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
               mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the master node hostnames. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
@@ -73,7 +73,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
               mConf.get(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the worker node hostnames. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.WARNING, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
     ValidationUtils.State state = ValidationUtils.State.OK;
@@ -160,7 +160,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         state = state == ValidationUtils.State.FAILED ? ValidationUtils.State.FAILED : errLevel;
       }
     }
-    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private Properties getNodeConf(String node) throws IOException {

@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -41,7 +40,7 @@ public final class SshValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -50,7 +49,7 @@ public final class SshValidationTask extends AbstractValidationTask {
       msg.append("Failed to find master/worker nodes from Alluxio configuration. ");
       advice.append(String.format("Please check your %s/master and %s/worker files. ",
               mConf.get(PropertyKey.CONF_DIR)));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }
 
@@ -62,6 +61,6 @@ public final class SshValidationTask extends AbstractValidationTask {
         state = ValidationUtils.State.FAILED;
       }
     }
-    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
   }
 }
