@@ -30,6 +30,9 @@ import java.util.stream.Collectors;
  */
 public class TableValidationTask extends MetastoreValidationTask<IMetaStoreClient, String> {
 
+  // The maximum number of table objects that this test will get.
+  // Used to avoid issuing too many calls to the hive metastore
+  // which may need a long time based on network conditions
   private static final int GET_TABLE_OBJECT_THRESHOLD = 5;
 
   private final String mTables;

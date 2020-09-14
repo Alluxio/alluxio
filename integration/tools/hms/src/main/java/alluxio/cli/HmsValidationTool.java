@@ -17,12 +17,10 @@ import alluxio.cli.hms.DatabaseValidationTask;
 import alluxio.cli.hms.UriCheckTask;
 import alluxio.cli.hms.TableValidationTask;
 
-import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,19 +30,15 @@ import java.util.stream.Collectors;
  */
 public class HmsValidationTool implements ValidationTool {
   private static final Logger LOG = LoggerFactory.getLogger(HmsValidationTool.class);
-  // The maximum number of table objects that this test will get.
-  // Used to avoid issuing too many calls to the hive metastore
-  // which may need a long time based on network conditions
+
   // Default hive metastore client socket timeout in minutes
   public static final int DEFAULT_SOCKET_TIMEOUT = 12;
   public static final String DEFAULT_DATABASE = "default";
 
-  private String mMetastoreUri;
-  private String mDatabase;
-  private String mTables;
-  private int mSocketTimeout;
-  private IMetaStoreClient mClient;
-  private List<ValidationTaskResult> mResults = new LinkedList<>();
+  private final String mMetastoreUri;
+  private final String mDatabase;
+  private final String mTables;
+  private final int mSocketTimeout;
   private final Map<String, ValidationTask> mTasks;
 
   /**

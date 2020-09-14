@@ -14,8 +14,6 @@ package alluxio.cli;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,7 +24,6 @@ import java.util.Map;
  * A tool to validate an HDFS mount, before the path is mounted to Alluxio.
  * */
 public class HdfsValidationTool implements ValidationTool {
-  private static final Logger LOG = LoggerFactory.getLogger(HdfsValidationTool.class);
 
   private String mUfsPath;
   private UnderFileSystemConfiguration mUfsConf;
