@@ -36,6 +36,7 @@ public class WorkflowInfo implements JobInfo {
   private final String mName;
   private final Status mStatus;
   private final long mLastUpdated;
+  private final String mErrorType;
   private final String mErrorMessage;
   private final List<JobInfo> mChildren;
 
@@ -45,15 +46,17 @@ public class WorkflowInfo implements JobInfo {
    * @param name name of the workflow
    * @param status {@link Status} of the workflow
    * @param lastUpdated lastUpdated time in milliseconds
+   * @param errorType error type
    * @param errorMessage error message
    * @param children list of child job infos
    */
-  public WorkflowInfo(long id, String name, Status status, long lastUpdated, String errorMessage,
-      List<JobInfo> children) {
+  public WorkflowInfo(long id, String name, Status status, long lastUpdated, String errorType,
+                      String errorMessage, List<JobInfo> children) {
     mId = id;
     mName = name;
     mStatus = status;
     mLastUpdated = lastUpdated;
+    mErrorType = (errorType == null) ? "" : errorType;
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
     mChildren = children;
   }
@@ -69,6 +72,7 @@ public class WorkflowInfo implements JobInfo {
     mName = jobInfo.getName();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mLastUpdated = jobInfo.getLastUpdated();
+    mErrorType = jobInfo.getErrorType();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = Lists.newArrayList();
     for (alluxio.grpc.JobInfo childJobInfo : jobInfo.getChildrenList()) {
@@ -124,6 +128,12 @@ public class WorkflowInfo implements JobInfo {
 
   @Nonnull
   @Override
+  public String getErrorType() {
+    return mErrorType;
+  }
+
+  @Nonnull
+  @Override
   public String getErrorMessage() {
     return mErrorMessage;
   }
@@ -133,7 +143,7 @@ public class WorkflowInfo implements JobInfo {
   public alluxio.grpc.JobInfo toProto() throws IOException {
     alluxio.grpc.JobInfo.Builder builder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
         .setName(mName).setStatus(mStatus.toProto()).setLastUpdated(mLastUpdated)
-        .setErrorMessage(mErrorMessage).setType(JobType.WORKFLOW);
+        .setErrorType(mErrorType).setErrorMessage(mErrorMessage).setType(JobType.WORKFLOW);
 
     for (JobInfo child : mChildren) {
       builder.addChildren(child.toProto());
@@ -144,7 +154,7 @@ public class WorkflowInfo implements JobInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mStatus, mLastUpdated, mChildren);
+    return Objects.hashCode(mId, mStatus, mLastUpdated, mErrorType, mErrorMessage, mChildren);
   }
 
   @Override
@@ -162,7 +172,9 @@ public class WorkflowInfo implements JobInfo {
     return Objects.equal(mId, that.mId)
         && Objects.equal(mChildren, that.mChildren)
         && Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mLastUpdated, that.mLastUpdated);
+        && Objects.equal(mLastUpdated, that.mLastUpdated)
+        && Objects.equal(mErrorType, that.mErrorType)
+        && Objects.equal(mErrorMessage, that.mErrorMessage);
   }
 
   @Override

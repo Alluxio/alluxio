@@ -163,6 +163,7 @@ public final class PlanInfo implements JobInfo {
   /**
    * @return the error type
    */
+  @Override
   public String getErrorType() {
     return mErrorType;
   }

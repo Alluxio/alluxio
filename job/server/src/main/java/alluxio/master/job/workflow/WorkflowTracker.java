@@ -25,6 +25,7 @@ import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,7 +130,7 @@ public class WorkflowTracker {
 
     WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getName(),
         workflowExecution.getStatus(), workflowExecution.getLastUpdated(),
-        workflowExecution.getErrorMessage(), jobInfos);
+        workflowExecution.getErrorType(), workflowExecution.getErrorMessage(), jobInfos);
     return workflowInfo;
   }
 
@@ -201,7 +202,8 @@ public class WorkflowTracker {
     }
   }
 
-  private synchronized void stop(long jobId, Status status, String errorMessage) {
+  private synchronized void stop(long jobId, Status status, String errorType,
+                                 String errorMessage) {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -210,9 +212,9 @@ public class WorkflowTracker {
 
     WorkflowExecution workflowExecution = mWorkflows.get(parentJobId);
 
-    workflowExecution.stop(status, errorMessage);
+    workflowExecution.stop(status, errorType, errorMessage);
 
-    stop(parentJobId, status, errorMessage);
+    stop(parentJobId, status, errorType, errorMessage);
     return;
   }
 
@@ -249,8 +251,10 @@ public class WorkflowTracker {
         mJobMaster.run(childJobConfig, childJobId);
       } catch (JobDoesNotExistException | ResourceExhaustedException e) {
         LOG.warn(e.getMessage());
-        workflowExecution.stop(Status.FAILED, e.getMessage());
-        stop(jobId, Status.FAILED, e.getMessage());
+        workflowExecution.stop(Status.FAILED,
+            ExceptionUtils.getRootCause(e).getClass().getSimpleName(), e.getMessage());
+        stop(jobId, Status.FAILED, ExceptionUtils.getRootCause(e).getClass().getSimpleName(),
+            e.getMessage());
       }
     }
   }
@@ -267,7 +271,7 @@ public class WorkflowTracker {
         break;
       case CANCELED:
       case FAILED:
-        stop(planInfo.getId(), status, planInfo.getErrorMessage());
+        stop(planInfo.getId(), status, planInfo.getErrorType(), planInfo.getErrorMessage());
         break;
       default:
         break;
