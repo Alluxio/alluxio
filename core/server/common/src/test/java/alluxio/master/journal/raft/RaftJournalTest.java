@@ -139,6 +139,50 @@ public class RaftJournalTest {
         () -> countingMaster.getApplyCount() == entryCount + 1, mWaitOptions);
   }
 
+  @Test
+  public void suspendSnapshotRestart() throws Exception {
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    mFollowerJournalSystem.createJournal(countingMaster);
+
+    final int entryCount = 10;
+    try (JournalContext journalContext =
+             mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+      for (int i = 0; i < entryCount; i++) {
+        journalContext.append(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+                File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
+      }
+    }
+
+    // Suspend follower journal system.
+    mFollowerJournalSystem.suspend();
+
+    // Write more entries which are not applied due to suspension.
+    try (JournalContext journalContext =
+             mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+      journalContext
+          .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+              .setInodeLastModificationTime(
+                  File.InodeLastModificationTimeEntry.newBuilder().setId(entryCount).build())
+              .build());
+    }
+
+    // Ask the follower to do a snapshot.
+    mFollowerJournalSystem.checkpoint();
+
+    // Restart the follower.
+    mFollowerJournalSystem.stop();
+    mFollowerJournalSystem.start();
+    Thread.sleep(
+        2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
+
+    // Verify that all entries are replayed despite the snapshot was requested while some entries
+    // are queued up during suspension.
+    CommonUtils.waitFor("full state acquired after restart",
+        () -> countingMaster.getApplyCount() == entryCount + 1, mWaitOptions);
+  }
+
   // Raft journal receives leader knowledge in chunks.
   // So advancing should take into account seeing partial knowledge.
   @Test
@@ -413,6 +457,11 @@ public class RaftJournalTest {
     public boolean processJournalEntry(Journal.JournalEntry entry) {
       mApplyCount++;
       return true;
+    }
+
+    @Override
+    public void resetState() {
+      mApplyCount = 0;
     }
 
     /**
