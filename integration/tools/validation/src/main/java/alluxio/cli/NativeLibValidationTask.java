@@ -34,7 +34,7 @@ public class NativeLibValidationTask extends AbstractValidationTask {
     return "ValidateJavaNativeLibPaths";
   }
 
-  private ValidationUtils.TaskResult accessNativeLib() {
+  private ValidationTaskResult accessNativeLib() {
     String nativeLibPath = System.getProperty(NATIVE_LIB_PATH);
     StringTokenizer parser = new StringTokenizer(nativeLibPath, NATIVE_LIB_PATH_SEPARATOR);
     ValidationUtils.State state = ValidationUtils.State.OK;
@@ -50,11 +50,11 @@ public class NativeLibValidationTask extends AbstractValidationTask {
         advice.append(String.format("Please check your path %s.%n", path));
       }
     }
-    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validate(Map<String, String> optionMap)
           throws InterruptedException {
     return accessNativeLib();
   }
