@@ -173,9 +173,11 @@ public final class PlanInfo implements Comparable<PlanInfo> {
       }
       Status oldStatus = mStatus;
       mStatus = status;
-      mLastStatusChangeMs = CommonUtils.getCurrentMs();
-      if (mStatusChangeCallback != null && status != oldStatus) {
-        mStatusChangeCallback.accept(this);
+      if (status != oldStatus) {
+        mLastStatusChangeMs = CommonUtils.getCurrentMs();
+        if (mStatusChangeCallback != null) {
+          mStatusChangeCallback.accept(this);
+        }
       }
     }
   }

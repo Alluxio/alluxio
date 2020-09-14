@@ -52,6 +52,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -179,6 +181,11 @@ public final class JobMasterTest {
     @Override
     public String getName() {
       return "dummy";
+    }
+
+    @Override
+    public Collection<String> affectedPaths() {
+      return Collections.EMPTY_LIST;
     }
   }
 }

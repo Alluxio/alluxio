@@ -103,6 +103,16 @@ public final class JobMasterClientRestServiceHandler {
   }
 
   /**
+   * @return a list of failed jobs
+   */
+  @GET
+  @Path(ServiceConstants.FAILURE_HISTORY)
+  @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
+  public Response failureHistory() {
+    return RestUtils.call(() -> mJobMaster.failed(50), ServerConfiguration.global());
+  }
+
+  /**
    * Gets the job status.
    *
    * @param jobId the job id

@@ -19,8 +19,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Configuration of a job evicting a block.
@@ -31,6 +35,8 @@ public final class EvictConfig implements PlanConfig {
   private static final long serialVersionUID = 931006961650512841L;
   public static final String NAME = "Evict";
 
+  private String mPath;
+
   /** Which block to evict. */
   private long mBlockId;
 
@@ -40,13 +46,16 @@ public final class EvictConfig implements PlanConfig {
   /**
    * Creates a new instance of {@link EvictConfig}.
    *
+   * @param path alluxio path involved in this eviction
    * @param blockId id of the block to evict
    * @param replicas number of replicas to evict
    */
   @JsonCreator
-  public EvictConfig(@JsonProperty("blockId") long blockId,
+  public EvictConfig(@JsonProperty("path") String path,
+      @JsonProperty("blockId") long blockId,
       @JsonProperty("replicas") int replicas) {
     Preconditions.checkArgument(replicas > 0, "replicas must be positive.");
+    mPath = path;
     mBlockId = blockId;
     mReplicas = replicas;
   }
@@ -54,6 +63,14 @@ public final class EvictConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    if (StringUtils.isEmpty(mPath)) {
+      return ImmutableList.of(mPath);
+    }
+    return Collections.EMPTY_LIST;
   }
 
   /**
