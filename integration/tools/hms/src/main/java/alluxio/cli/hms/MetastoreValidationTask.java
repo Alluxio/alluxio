@@ -22,7 +22,7 @@ import java.util.Map;
  * A validation task which includes extra information in order to provide dependencies for
  * sub-tasks along with the task's validation result.
  *
- * @param <K> The input type of this type
+ * @param <K> The input type of this task
  * @param <T> the output type of this task
  */
 public abstract class MetastoreValidationTask<K, T> extends AbstractValidationTask {
