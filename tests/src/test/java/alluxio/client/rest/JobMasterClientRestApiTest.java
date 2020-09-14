@@ -146,6 +146,17 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
 
     map = resultList.get(1);
     assertEquals(jobId1, map.get("id"));
+
+    Map<String, Object> params = Maps.newHashMap();
+    params.put("limit", 1);
+
+    result = new TestCase(mHostname, mPort,
+        getEndpoint(ServiceConstants.FAILURE_HISTORY), params, HttpMethod.GET, null).call();
+    resultList = mapper.readValue(result, List.class);
+
+    assertEquals(1, resultList.size());
+    map = resultList.get(0);
+    assertEquals(jobId2, map.get("id"));
   }
 
   @Test

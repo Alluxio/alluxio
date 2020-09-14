@@ -108,8 +108,8 @@ public final class JobMasterClientRestServiceHandler {
   @GET
   @Path(ServiceConstants.FAILURE_HISTORY)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
-  public Response failureHistory() {
-    return RestUtils.call(() -> mJobMaster.failed(50), ServerConfiguration.global());
+  public Response failureHistory(@QueryParam("limit") final int limit) {
+    return RestUtils.call(() -> mJobMaster.failed(limit), ServerConfiguration.global());
   }
 
   /**
