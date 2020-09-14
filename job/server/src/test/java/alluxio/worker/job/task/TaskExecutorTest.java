@@ -105,6 +105,6 @@ public final class TaskExecutorTest {
         new TaskExecutor(jobId, taskId, command, context, mTaskExecutorManager);
     executor.run();
 
-    verify(mTaskExecutorManager).notifyTaskFailure(eq(jobId), eq(taskId), anyString());
+    verify(mTaskExecutorManager).notifyTaskFailure(eq(jobId), eq(taskId), any());
   }
 }

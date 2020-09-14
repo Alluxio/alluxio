@@ -12,6 +12,8 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
@@ -20,8 +22,10 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,12 +181,21 @@ public class TaskExecutorManager {
    *
    * @param jobId the job id
    * @param taskId the task id
-   * @param errorMessage the error message
+   * @param t the thrown exception
    */
-  public synchronized void notifyTaskFailure(long jobId, long taskId, String errorMessage) {
+  public synchronized void notifyTaskFailure(long jobId, long taskId, Throwable t) {
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.FAILED);
+
+    String errorMessage;
+    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
+      errorMessage = Throwables.getStackTraceAsString(t);
+    } else {
+      errorMessage = t.getMessage();
+    }
+
+    taskInfo.setErrorType(ExceptionUtils.getRootCause(t).getClass().getSimpleName());
     if (errorMessage != null) {
       taskInfo.setErrorMessage(errorMessage);
     }
@@ -229,6 +242,7 @@ public class TaskExecutorManager {
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
+      taskInfo.setErrorType("FailedCancel");
       taskInfo.setErrorMessage("Failed to cancel the task");
       finishTask(id);
     } else {

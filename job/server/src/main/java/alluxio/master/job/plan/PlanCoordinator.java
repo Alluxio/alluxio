@@ -28,6 +28,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,6 +124,7 @@ public final class PlanCoordinator {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
       mPlanInfo.setStatus(Status.FAILED);
+      mPlanInfo.setErrorType(ExceptionUtils.getRootCause(e).getClass().getSimpleName());
       mPlanInfo.setErrorMessage(e.getMessage());
       return;
     }
@@ -188,10 +190,11 @@ public final class PlanCoordinator {
    *
    * @param errorMessage Error message to set for failure
    */
-  public void setJobAsFailed(String errorMessage) {
+  public void setJobAsFailed(String errorType, String errorMessage) {
     synchronized (mPlanInfo) {
       if (!mPlanInfo.getStatus().isFinished()) {
         mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorType(errorType);
         mPlanInfo.setErrorMessage(errorMessage);
       }
     }
@@ -220,6 +223,7 @@ public final class PlanCoordinator {
           continue;
         }
         taskInfo.setStatus(Status.FAILED);
+        taskInfo.setErrorType("JobWorkerLost");
         taskInfo.setErrorMessage("Job worker was lost before the task could complete");
         statusChanged = true;
       }
@@ -249,6 +253,7 @@ public final class PlanCoordinator {
         case FAILED:
           mPlanInfo.setStatus(Status.FAILED);
           if (mPlanInfo.getErrorMessage().isEmpty()) {
+            mPlanInfo.setErrorType(info.getErrorType());
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
             LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
           }
@@ -288,6 +293,7 @@ public final class PlanCoordinator {
         mPlanInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
         mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorType(ExceptionUtils.getRootCause(e).getClass().getSimpleName());
         mPlanInfo.setErrorMessage(e.getMessage());
       }
     }

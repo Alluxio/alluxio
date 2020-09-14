@@ -101,12 +101,8 @@ public final class TaskExecutor implements Runnable {
   }
 
   private void fail(Throwable t, JobConfig jobConfig, Serializable taskArgs) {
-    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
-      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId,
-          Throwables.getStackTraceAsString(t));
-    } else {
-      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
-    }
+    mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t);
+
     LOG.warn("Exception running task for job {}({}) : {}",
         (jobConfig == null) ? "Undefined" : jobConfig.getName(),
         (taskArgs == null) ? "Undefined" : taskArgs.toString(), t.getMessage());
