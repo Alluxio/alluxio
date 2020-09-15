@@ -142,9 +142,6 @@
                 <relocation>
                   <pattern>com.google</pattern>
                   <shadedPattern>${shading.prefix}.com.google</shadedPattern>
-                  <excludes>
-                    <exclude>com.google.inject.**</exclude>
-                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>

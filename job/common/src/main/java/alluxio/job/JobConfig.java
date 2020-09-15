@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * A job configuration. All the subclasses are both Java and JSON serializable.
@@ -26,4 +27,9 @@ public interface JobConfig extends Serializable {
    * @return the name of the job
    */
   String getName();
+
+  /**
+   * @return list of affected paths
+   */
+  Collection<String> affectedPaths();
 }

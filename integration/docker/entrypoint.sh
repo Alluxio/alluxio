@@ -16,6 +16,10 @@ ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
+ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
+ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
+ALLUXIO_UID="${ALLUXIO_UID:-0}"
+ALLUXIO_GID="${ALLUXIO_GID:-0}"
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
@@ -31,6 +35,7 @@ ALLUXIO_ENV_VARS=(
   ALLUXIO_WORKER_JAVA_OPTS
   ALLUXIO_JOB_MASTER_JAVA_OPTS
   ALLUXIO_JOB_WORKER_JAVA_OPTS
+  ALLUXIO_FUSE_JAVA_OPTS
 )
 
 function printUsage {
@@ -138,11 +143,33 @@ function setup_signals {
   trap "forward_signal 1" EXIT
 }
 
+# Sets up if the non root is specified
+function setup_for_dynamic_non_root {
+  if [[ ${ALLUXIO_USERNAME} != "root" ]] && [[ ${ALLUXIO_GROUP} != "root" ]] && \
+    [[ ${ALLUXIO_UID} -ne 0 ]] && [[ ${ALLUXIO_GID} -ne 0 ]] && [[ $UID -eq 0 ]]; then
+      alp=$(cat /etc/issue|grep -i "Alpine"|wc -l)
+      if [ "$alp" == "1" ];then
+        addgroup -g ${ALLUXIO_GID} ${ALLUXIO_GROUP}
+        adduser -u ${ALLUXIO_UID}  -G ${ALLUXIO_GROUP} --disabled-password ${ALLUXIO_USERNAME}
+      else
+        groupadd -g ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
+        useradd -u ${ALLUXIO_UID} -g ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME}
+      fi
+      usermod -a -G root ${ALLUXIO_USERNAME}
+      mkdir -p /journal
+      chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt/* /journal
+      chmod -R g=u /opt/* /journal
+      exec su ${ALLUXIO_USERNAME} -c "/entrypoint.sh ${ARGS}"
+  fi
+}
+
 function main {
   if [[ "$#" -lt 1 ]]; then
     printUsage
     exit 1
   fi
+
+  ARGS="$*"
 
   local service="$1"
   OPTIONS="$2"
@@ -153,6 +180,8 @@ function main {
     # --shm-size argument to docker run
     export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
   fi
+
+  setup_for_dynamic_non_root
 
   cd ${ALLUXIO_HOME}
 

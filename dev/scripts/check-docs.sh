@@ -14,6 +14,8 @@
 # This script validates headers and relative links in documentation markdown files
 # and verifies markdown is buildable by jekyll
 
+set -eux
+
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 GOPATH="${SCRIPT_DIR}" go run "${SCRIPT_DIR}/src/alluxio.org/check-docs/main.go"

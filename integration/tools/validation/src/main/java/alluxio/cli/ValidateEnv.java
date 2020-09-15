@@ -12,21 +12,11 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.ClusterConfConsistencyValidationTask;
 import alluxio.cli.hdfs.HdfsConfParityValidationTask;
 import alluxio.cli.hdfs.HdfsConfValidationTask;
 import alluxio.cli.hdfs.HdfsProxyUserValidationTask;
 import alluxio.cli.hdfs.HdfsVersionValidationTask;
-import alluxio.cli.NativeLibValidationTask;
-import alluxio.cli.PortAvailabilityValidationTask;
-import alluxio.cli.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.hdfs.SecureHdfsValidationTask;
-import alluxio.cli.SshValidationTask;
-import alluxio.cli.StorageSpaceValidationTask;
-import alluxio.cli.UfsDirectoryValidationTask;
-import alluxio.cli.UfsSuperUserValidationTask;
-import alluxio.cli.UserLimitValidationTask;
-import alluxio.cli.ValidationTask;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -301,8 +291,8 @@ public final class ValidateEnv {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      ValidationUtils.TaskResult result = task.validate(optionsMap);
-      results.put(result.mState, results.getOrDefault(result, 0) + 1);
+      ValidationTaskResult result = task.validate(optionsMap);
+      results.put(result.mState, results.getOrDefault(result.mState, 0) + 1);
       switch (result.mState) {
         case OK:
           System.out.print(Constants.ANSI_GREEN);

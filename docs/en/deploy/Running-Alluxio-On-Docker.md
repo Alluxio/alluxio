@@ -104,8 +104,8 @@ In order to make sure this works for either local or remote clients, we have to 
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
-+ A: Use [host network](https://docs.docker.com/network/host/) or
-+ B: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
++ Option1: Use [host network](https://docs.docker.com/network/host/) or
++ Option2: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
 
 Host network shares ip-address and networking namespace between the container and the Docker host.
 User-defined bridge network allows containers connected to communicate,
@@ -279,7 +279,7 @@ for line in textFile_RDD.collect():
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
-## Operations
+## Advanced Setup
 
 ### Set server configuration
 
@@ -382,34 +382,6 @@ You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/d
 {% endnavtab %}
 {% endnavtabs %}
 
-### Enable short-circuit reads and writes
-
-If your compute applications will run on the same nodes as your Alluxio workers,
-you can improve performance by enabling short-circuit reads
-and writes. This allows applications to read from and write to their
-local Alluxio worker without going over the loopback network. Instead, they will
-read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket).
-
-On worker host machines, create a directory for the shared domain socket.
-
-```console
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
-```
-
-When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
-to share the domain socket directory. Also set domain socket properties by passing
-`alluxio.worker.data.server.domain.socket.address=/opt/domain` and
-`alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
-
-```console
-$ docker run -d \
-  ...
-  -v /tmp/domain:/opt/domain \
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
-  alluxio worker
-```
-
 ### Relaunch Alluxio Servers
 
 When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatting
@@ -442,6 +414,70 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 
+## Performance Optimiztion
+
+### Enable short-circuit reads and writes
+
+If your application pods will run on the same host as your Alluxio worker pods,
+performance can be greatly improved by enabling short-circuit reads and writes.
+This allows applications to read from and write to their
+local Alluxio worker without going over the loopback network.
+In dockerized enviroments, there are two ways to enable short-circuit reads and writes in Alluxio.
+
++ Option1: use [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) or
++ Option2: use [shared volumes](https://docs.docker.com/storage/volumes/).
+
+Using shared volumes is slightly easier and may yield higher performance, but may result in inaccurate resource accounting.
+Using domain sockets is recommended for production deployment.
+
+{% navtabs Short-circuit %}
+{% navtab Domain socket %}
+
+On worker host machines, create a directory for the shared domain socket.
+
+```console
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+```
+
+When starting both workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
+to share the domain socket directory.
+Also set domain socket properties by passing
+`alluxio.worker.data.server.domain.socket.address=/opt/domain` and
+`alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
+
+```console
+$ docker run -d \
+  ...
+  -v /tmp/domain:/opt/domain \
+  -e ALLUXIO_JAVA_OPTS=" \
+     ...
+     -Dalluxio.worker.data.server.domain.socket.address=/opt/domain \
+     -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
+  alluxio worker
+```
+
+{% endnavtab %}
+{% navtab Shared volume %}
+
+When starting both workers and clients, run their docker containers with the worker storage as shared volumes across host, worker and client pods.
+With default Alluxio setting on docker,  `MEM` is the main storage on host path `/dev/shm`.
+In this case, pass  `-v /dev/shm:/dev/shm` when running both containers so both worker and clients and access this path directly.
+
+For example, run worker container using:
+
+```console
+$ docker run -d \
+  ...
+  --shm-size=1G \
+  -v /dev/shm:/dev/shm \
+  alluxio worker
+```
+
+To run application containers, also pass `alluxio.user.hostname=<host ip>`.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Troubleshooting
 

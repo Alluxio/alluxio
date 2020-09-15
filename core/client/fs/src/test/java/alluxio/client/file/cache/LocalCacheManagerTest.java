@@ -23,6 +23,7 @@ import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
@@ -36,7 +37,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,10 +73,10 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
-    mMetaStore = MetaStore.create();
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mEvictor = new FIFOEvictor(mMetaStore);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mEvictor = new FIFOEvictor();
+    mMetaStore = MetaStore.create(mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
   }
 
   private byte[] page(int i, int pageLen) {
@@ -97,7 +97,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putExist() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE2));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
   }
@@ -106,7 +106,7 @@ public final class LocalCacheManagerTest {
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -119,7 +119,7 @@ public final class LocalCacheManagerTest {
     // Cache size is only one full page, but should be able to store multiple small pages
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -139,7 +139,7 @@ public final class LocalCacheManagerTest {
   public void evictSmallPageByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -164,7 +164,7 @@ public final class LocalCacheManagerTest {
   public void evictSmallPagesByPutPigPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -186,7 +186,7 @@ public final class LocalCacheManagerTest {
   public void evictBigPagesByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
     PageId bigPageId = pageId(-1, 0);
     assertTrue(mCacheManager.put(bigPageId, page(0, PAGE_SIZE_BYTES)));
     int smallPageLen = 8;
@@ -318,7 +318,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
     PutDelayedPageStore pageStore = new PutDelayedPageStore();
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore);
     for (int i = 0; i < threads; i++) {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
@@ -343,7 +343,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
     PutDelayedPageStore pageStore = new PutDelayedPageStore();
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     pageStore.setHanging(false);
@@ -357,8 +357,8 @@ public final class LocalCacheManagerTest {
   @Test
   public void recoverCacheFromFailedPut() throws Exception {
     FaultyPageStore pageStore = new FaultyPageStore();
-    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
-    pageStore.setFaulty(true);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore);
+    pageStore.setPutFaulty(true);
     // a failed put
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     // no state left after previous failed put
@@ -367,7 +367,25 @@ public final class LocalCacheManagerTest {
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
     // still no state left
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    pageStore.setFaulty(false);
+    pageStore.setPutFaulty(false);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertArrayEquals(PAGE1, mBuf);
+  }
+
+  @Test
+  public void failedPageStoreDeleteOnEviction() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    FaultyPageStore pageStore = new FaultyPageStore();
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore);
+    pageStore.setDeleteFaulty(true);
+    // first put should be ok
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    // trigger a failed eviction
+    assertFalse(mCacheManager.put(PAGE_ID2, PAGE2));
+    // restore page store to function
+    pageStore.setDeleteFaulty(false);
+    // trigger another eviction, this should work
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -381,18 +399,31 @@ public final class LocalCacheManagerTest {
       super(PageStoreOptions.create(mConf).toOptions());
     }
 
-    private AtomicBoolean mFaulty = new AtomicBoolean(false);
+    private AtomicBoolean mPutFaulty = new AtomicBoolean(false);
+    private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
 
     @Override
     public void put(PageId pageId, byte[] page) throws IOException {
-      if (mFaulty.get()) {
+      if (mPutFaulty.get()) {
         throw new IOException("Not found");
       }
       super.put(pageId, page);
     }
 
-    void setFaulty(boolean faulty) {
-      mFaulty.set(faulty);
+    @Override
+    public void delete(PageId pageId) throws IOException, PageNotFoundException {
+      if (mDeleteFaulty.get()) {
+        throw new IOException("Not found");
+      }
+      super.delete(pageId);
+    }
+
+    void setPutFaulty(boolean faulty) {
+      mPutFaulty.set(faulty);
+    }
+
+    void setDeleteFaulty(boolean faulty) {
+      mDeleteFaulty.set(faulty);
     }
   }
 
@@ -428,12 +459,9 @@ public final class LocalCacheManagerTest {
    * Implementation of Evictor using FIFO eviction policy for the test.
    */
   class FIFOEvictor implements CacheEvictor {
-    final Queue<PageId> mQueue = new LinkedList<>();
-    final MetaStore  mMetaStore;
+    final LinkedList<PageId> mQueue = new LinkedList<>();
 
-    public FIFOEvictor(MetaStore metaStore) {
-      mMetaStore = metaStore;
-    }
+    public FIFOEvictor() {}
 
     @Override
     public void updateOnGet(PageId pageId) {
@@ -447,21 +475,13 @@ public final class LocalCacheManagerTest {
 
     @Override
     public void updateOnDelete(PageId pageId) {
-      // noop
+      mQueue.remove(mQueue.indexOf(pageId));
     }
 
     @Nullable
     @Override
     public PageId evict() {
-      PageId pageId;
-      while ((pageId = mQueue.peek()) != null) {
-        if (mMetaStore.hasPage(pageId)) {
-          return pageId;
-        }
-        // this page has been deleted
-        mQueue.poll();
-      }
-      return null;
+      return mQueue.peek();
     }
 
     @Override
