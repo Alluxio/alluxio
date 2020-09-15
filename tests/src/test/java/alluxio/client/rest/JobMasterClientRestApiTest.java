@@ -128,7 +128,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     waitForStatus(jobId1, Status.FAILED);
     final long jobId2 = startJob(new CrashPlanConfig("/test"));
     waitForStatus(jobId2, Status.FAILED);
-    List<Long> empty = Lists.newArrayList();
     final String result = new TestCase(mHostname, mPort,
         getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
 
@@ -143,6 +142,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     assertEquals("Crash", map.get("name"));
     assertEquals(ImmutableList.of("/test"), map.get("affectedPaths"));
     assertEquals("Task execution failed: CrashPlanConfig always crashes", map.get("errorMessage"));
+    assertEquals("IllegalStateException", map.get("errorType"));
 
     map = resultList.get(1);
     assertEquals(jobId1, map.get("id"));

@@ -183,7 +183,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     // Fail any jobs that were still running when the last job master stopped.
     for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
       if (!planCoordinator.isJobFinished()) {
-        planCoordinator.setJobAsFailed("Job failed: Job master shut down during execution");
+        planCoordinator.setJobAsFailed("JobMasterShutdown",
+            "Job failed: Job master shut down during execution");
       }
     }
     if (isLeader) {
