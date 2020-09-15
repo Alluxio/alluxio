@@ -14,6 +14,7 @@ package alluxio.master.job.workflow;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
@@ -251,10 +252,9 @@ public class WorkflowTracker {
         mJobMaster.run(childJobConfig, childJobId);
       } catch (JobDoesNotExistException | ResourceExhaustedException e) {
         LOG.warn(e.getMessage());
-        workflowExecution.stop(Status.FAILED,
-            ExceptionUtils.getRootCause(e).getClass().getSimpleName(), e.getMessage());
-        stop(jobId, Status.FAILED, ExceptionUtils.getRootCause(e).getClass().getSimpleName(),
-            e.getMessage());
+        final String errorType = ErrorUtils.getErrorType(e);
+        workflowExecution.stop(Status.FAILED, errorType, e.getMessage());
+        stop(jobId, Status.FAILED, errorType, e.getMessage());
       }
     }
   }

@@ -15,6 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -195,7 +196,7 @@ public class TaskExecutorManager {
       errorMessage = t.getMessage();
     }
 
-    taskInfo.setErrorType(ExceptionUtils.getRootCause(t).getClass().getSimpleName());
+    taskInfo.setErrorType(ErrorUtils.getErrorType(t));
     if (errorMessage != null) {
       taskInfo.setErrorMessage(errorMessage);
     }
