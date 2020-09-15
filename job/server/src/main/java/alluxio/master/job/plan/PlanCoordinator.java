@@ -13,6 +13,7 @@ package alluxio.master.job.plan;
 
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
@@ -28,7 +29,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +124,7 @@ public final class PlanCoordinator {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
       mPlanInfo.setStatus(Status.FAILED);
-      mPlanInfo.setErrorType(ExceptionUtils.getRootCause(e).getClass().getSimpleName());
+      mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
       return;
     }
@@ -294,7 +294,7 @@ public final class PlanCoordinator {
         mPlanInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
         mPlanInfo.setStatus(Status.FAILED);
-        mPlanInfo.setErrorType(ExceptionUtils.getRootCause(e).getClass().getSimpleName());
+        mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
         mPlanInfo.setErrorMessage(e.getMessage());
       }
     }

@@ -217,6 +217,7 @@ public class TaskInfo implements JobInfo {
   /**
    * @return the error type
    */
+  @Override
   public String getErrorType() {
     return mErrorType;
   }

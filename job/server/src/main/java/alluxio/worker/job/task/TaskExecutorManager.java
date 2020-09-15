@@ -15,6 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -25,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,7 +195,7 @@ public class TaskExecutorManager {
       errorMessage = t.getMessage();
     }
 
-    taskInfo.setErrorType(ExceptionUtils.getRootCause(t).getClass().getSimpleName());
+    taskInfo.setErrorType(ErrorUtils.getErrorType(t));
     if (errorMessage != null) {
       taskInfo.setErrorMessage(errorMessage);
     }
