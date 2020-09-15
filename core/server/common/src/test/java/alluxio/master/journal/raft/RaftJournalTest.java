@@ -13,10 +13,10 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
@@ -49,8 +49,8 @@ public class RaftJournalTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private JournalSystem mLeaderJournalSystem;
-  private JournalSystem mFollowerJournalSystem;
+  private RaftJournalSystem mLeaderJournalSystem;
+  private RaftJournalSystem mFollowerJournalSystem;
 
   // A 30sec wait-options object for use by the test.
   private WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
@@ -79,6 +79,39 @@ public class RaftJournalTest {
   public void After() throws Exception {
     mLeaderJournalSystem.stop();
     mFollowerJournalSystem.stop();
+  }
+
+  @Test
+  public void joinCluster() throws Exception {
+    // Create entries on the leader journal context.
+    // These will be replicated to follower journal context.
+    final int entryCount = 10;
+    try (JournalContext journalContext =
+             mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+      for (int i = 0; i < entryCount; i++) {
+        journalContext.append(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+                File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
+      }
+    }
+
+    RaftJournalSystem newJs = createNewJournalSystem(mLeaderJournalSystem);
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    newJs.createJournal(countingMaster);
+    newJs.start();
+
+    // Write more entries and validate they are replicated to follower.
+    try (JournalContext journalContext =
+             mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+      journalContext
+          .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+              .setInodeLastModificationTime(
+                  File.InodeLastModificationTimeEntry.newBuilder().setId(entryCount).build())
+              .build());
+    }
+    CommonUtils.waitFor("follower catches up on all changes",
+        () -> countingMaster.getApplyCount() == entryCount + 1, mWaitOptions);
   }
 
   @Test
@@ -409,6 +442,23 @@ public class RaftJournalTest {
           .setClusterAddresses(clusterAddresses).setLocalAddress(clusterAddresses.get(i))));
     }
     return journalSystems;
+  }
+
+  /**
+   * Creates list of raft journal systems in a clustered mode.
+   */
+  private RaftJournalSystem createNewJournalSystem(RaftJournalSystem seed) throws Exception {
+    List<InetSocketAddress> clusterAddresses = seed.getQuorumServerInfoList().stream()
+        .map(QuorumServerInfo::getServerAddress)
+        .map(address -> InetSocketAddress.createUnresolved(address.getHost(), address.getRpcPort()))
+        .collect(Collectors.toList());
+
+    List<Integer> freePorts = getFreePorts(1);
+    InetSocketAddress joinAddr = InetSocketAddress.createUnresolved("localhost", freePorts.get(0));
+    clusterAddresses.add(joinAddr);
+    return RaftJournalSystem.create(RaftJournalConfiguration
+        .defaults(NetworkAddressUtils.ServiceType.MASTER_RAFT).setPath(mFolder.newFolder())
+        .setClusterAddresses(clusterAddresses).setLocalAddress(joinAddr));
   }
 
   /**

@@ -11,10 +11,15 @@ import "grpc/common.proto";
 message JournalQueryRequest {
   optional GetSnapshotInfoRequest snapshotInfoRequest = 1;
   optional GetSnapshotRequest snapshotRequest = 2;
+  optional AddQuorumServerRequest addQuorumServerRequest = 3;
 }
 
 message JournalQueryResponse {
   optional GetSnapshotInfoResponse snapshotInfoResponse = 1;
+}
+
+message AddQuorumServerRequest {
+  optional NetAddress serverAddress = 1;
 }
 
 message GetSnapshotInfoRequest {

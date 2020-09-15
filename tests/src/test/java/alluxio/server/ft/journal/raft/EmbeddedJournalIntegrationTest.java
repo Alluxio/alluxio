@@ -45,7 +45,6 @@ import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -251,8 +250,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
-  // TODO(feng): Re-enable this test when Ratis based cluster membership management is implemented
-  @Ignore("Enable after implementing adding new master to cluster")
   @Test
   public void growCluster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
@@ -260,7 +257,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
     mCluster.start();
 
@@ -291,7 +288,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         newBootstrapList);
     ServerConfiguration.global().set(PropertyKey.MASTER_RPC_ADDRESSES, newRpcList);
 
-    // Create a seperate working dir for the new master.
+    // Create a separate working dir for the new master.
     File newMasterWorkDir =
         AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalAddMaster-NewMaster");
     newMasterWorkDir.deleteOnExit();
@@ -329,7 +326,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     CommonUtils.waitFor("New master is included in quorum", () -> {
       try {
         return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
-            .size() == 3;
+            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
+            .toArray().length == 3;
       } catch (Exception exc) {
         throw new RuntimeException(exc);
       }

@@ -17,7 +17,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -53,6 +55,7 @@ import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.protocol.SetConfigurationRequest;
 import org.apache.ratis.retry.ExponentialBackoffRetry;
 import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.rpc.SupportedRpcType;
@@ -68,6 +71,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -562,6 +566,38 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       throw new IOException(errorMessage, e.getCause());
     }
     LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
+    joinQuorum();
+  }
+
+  private void joinQuorum() {
+    InetSocketAddress localAddress = mConf.getLocalAddress();
+    // Send a request to join the quorum.
+    // If the server is already part of the quorum, this operation is a noop.
+    AddQuorumServerRequest request = AddQuorumServerRequest.newBuilder()
+        .setServerAddress(NetAddress.newBuilder()
+            .setHost(localAddress.getHostString())
+            .setRpcPort(localAddress.getPort()))
+        .build();
+    RaftClient client = createClient();
+    client.sendReadOnlyAsync(Message.valueOf(
+        UnsafeByteOperations.unsafeWrap(
+            JournalQueryRequest
+                .newBuilder()
+                .setAddQuorumServerRequest(request)
+                .build().toByteArray()
+        ))).whenComplete((reply, t) -> {
+          if (t != null) {
+            LOG.error("Exception occurred while joining quorum", t);
+          }
+          if (reply != null && reply.getException() != null) {
+            LOG.error("Received an error while joining quorum", reply.getException());
+          }
+          try {
+            client.close();
+          } catch (IOException e) {
+            LOG.error("Exception occurred closing raft client", e);
+          }
+        });
   }
 
   @Override
@@ -677,6 +713,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       if (reply.getException() != null) {
         throw reply.getException();
       }
+    }
+  }
+
+  /**
+   * Adds a server to the quorum.
+   *
+   * @param serverNetAddress the address of the server
+   * @throws IOException if error occurred while performing the operation
+   */
+  public synchronized void addQuorumServer(NetAddress serverNetAddress) throws IOException {
+    InetSocketAddress serverAddress = InetSocketAddress
+        .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
+    RaftPeerId peerId = RaftJournalUtils.getPeerId(serverAddress);
+    Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
+    if (peers.stream().anyMatch((peer) -> peer.getId().equals(peerId))) {
+      return;
+    }
+    RaftPeer newPeer = new RaftPeer(peerId, serverAddress);
+    List<RaftPeer> newPeers = new ArrayList<>(peers);
+    newPeers.add(newPeer);
+    RaftClientReply reply = mServer.setConfiguration(
+        new SetConfigurationRequest(mClientId, mPeerId, mRaftGroupId, nextCallId(), newPeers));
+    if (reply.getException() != null) {
+      throw reply.getException();
     }
   }
 
