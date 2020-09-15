@@ -26,7 +26,6 @@ import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
 import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

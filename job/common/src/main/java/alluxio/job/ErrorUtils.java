@@ -13,6 +13,9 @@ package alluxio.job;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+/**
+ * Utility for getting error information in job service.
+ */
 public class ErrorUtils {
 
   /**
