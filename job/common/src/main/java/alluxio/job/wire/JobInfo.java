@@ -70,6 +70,12 @@ public interface JobInfo {
   Serializable getResult();
 
   /**
+   * @return error type
+   */
+  @Nonnull
+  String getErrorType();
+
+  /**
    * @return error message
    */
   @Nonnull
