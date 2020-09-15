@@ -11,8 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
@@ -34,9 +34,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -90,15 +87,12 @@ public class PageStoreTest {
     byte[] msgBytes = msg.getBytes();
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
-    ByteBuffer buf = ByteBuffer.allocate(1024);
-    mPageStore.get(id).read(buf);
-    buf.flip();
-    String read = StandardCharsets.UTF_8.decode(buf).toString();
-    assertEquals(msg, read);
-    mPageStore.delete(id, msgBytes.length);
+    byte[] buf = new byte[1024];
+    assertEquals(msgBytes.length, mPageStore.get(id, buf));
+    assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
+    mPageStore.delete(id);
     try {
-      buf.clear();
-      mPageStore.get(id).read(buf);
+      mPageStore.get(id, buf);
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -111,12 +105,11 @@ public class PageStoreTest {
     int offset = 3;
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
-    ByteBuffer buf = ByteBuffer.allocate(1024);
-    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
-      channel.read(buf);
-    }
-    buf.flip();
-    assertTrue(BufferUtils.equalIncreasingByteBuffer(offset, len - offset, buf));
+    byte[] buf = new byte[len];
+    int bytesRead = mPageStore.get(id, offset, buf, 0);
+    assertEquals(len - offset, bytesRead);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
+        Arrays.copyOfRange(buf, 0, bytesRead));
   }
 
   @Test
@@ -125,11 +118,9 @@ public class PageStoreTest {
     int offset = 36;
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
-    ByteBuffer buf = ByteBuffer.allocate(1024);
+    byte[] buf = new byte[1024];
     mThrown.expect(IllegalArgumentException.class);
-    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
-      channel.read(buf);
-    }
+    mPageStore.get(id, offset, buf, 0);
   }
 
   @Test
@@ -184,14 +175,13 @@ public class PageStoreTest {
 
     ByteArrayOutputStream bos = new ByteArrayOutputStream(Constants.MB);
     ArrayList<Long> times = new ArrayList<>();
+    byte[] buf = new byte[Constants.MB];
     for (int i = 0; i < numTrials; i++) {
       Collections.shuffle(pages);
       long start = System.nanoTime();
       bos.reset();
-      ByteBuffer buf = ByteBuffer.allocate(Constants.MB);
-      for (Integer pageIndex  : pages) {
-        buf.clear();
-        store.get(new PageId("0", pageIndex)).read(buf);
+      for (Integer pageIndex : pages) {
+        store.get(new PageId("0", pageIndex), buf);
       }
       long end = System.nanoTime();
       times.add(end - start);

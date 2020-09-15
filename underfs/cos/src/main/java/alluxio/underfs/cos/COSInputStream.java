@@ -23,10 +23,11 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for reading a file from COS. This input stream returns 0 when calling read with an empty
@@ -97,21 +98,23 @@ public class COSInputStream extends MultiRangeObjectInputStream {
     // COS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     CosServiceException lastException = null;
+    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
         COSObject object = mCosClient.getObject(req);
         return new BufferedInputStream(object.getObjectContent());
       } catch (CosServiceException e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        errorMessage = String
+            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw new IOException(e);
+          throw new IOException(errorMessage, e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw new IOException(lastException);
+    throw new IOException(errorMessage, lastException);
   }
 }

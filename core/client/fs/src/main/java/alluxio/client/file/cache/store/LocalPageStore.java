@@ -20,11 +20,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.ReadableByteChannel;
+import java.io.RandomAccessFile;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,28 +86,41 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
+  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
+    Preconditions.checkArgument(buffer.length >= bufferOffset, "page offset %s should be "
+        + "less or equal than buffer length %s", bufferOffset, buffer.length);
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
-    File f = p.toFile();
-    Preconditions.checkArgument(pageOffset <= f.length(),
-        "page offset %s exceeded page size %s", pageOffset, f.length());
-    FileInputStream fis = new FileInputStream(p.toFile());
-    try {
-      fis.skip(pageOffset);
-      return fis.getChannel();
-    } catch (Throwable t) {
-      fis.close();
-      throw t;
+    long pageLength = p.toFile().length();
+    Preconditions.checkArgument(pageOffset <= pageLength,
+        "page offset %s exceeded page size %s", pageOffset, pageLength);
+    try (RandomAccessFile localFile = new RandomAccessFile(p.toString(), "r")) {
+      int bytesSkipped = localFile.skipBytes(pageOffset);
+      if (pageOffset != bytesSkipped) {
+        throw new IOException(
+            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped", pageId,
+                p, pageOffset, bytesSkipped));
+      }
+      int bytesRead = 0;
+      int bytesLeft = (int) Math.min(pageLength - pageOffset, buffer.length - bufferOffset);
+      while (bytesLeft >= 0) {
+        int bytes = localFile.read(buffer, bufferOffset + bytesRead, bytesLeft);
+        if (bytes <= 0) {
+          break;
+        }
+        bytesRead += bytes;
+        bytesLeft -= bytes;
+      }
+      return bytesRead;
     }
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());

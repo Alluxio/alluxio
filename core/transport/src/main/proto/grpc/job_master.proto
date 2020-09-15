@@ -40,6 +40,7 @@ message JobInfo {
   repeated JobInfo children = 11;
   optional string workerHost = 12;
   optional string description = 13;
+  repeated string affectedPaths = 14;
 
   // Around for backwards compatibility
   repeated JobUnused unused0 = 3; // formerly taskInfos

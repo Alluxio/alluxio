@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -113,7 +111,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
+  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
@@ -123,16 +121,32 @@ public class RocksPageStore implements PageStore {
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      ByteArrayInputStream bais = new ByteArrayInputStream(page);
-      bais.skip(pageOffset);
-      return Channels.newChannel(bais);
+      try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
+        int bytesSkipped = (int) bais.skip(pageOffset);
+        if (pageOffset != bytesSkipped) {
+          throw new IOException(
+              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
+                  pageOffset, bytesSkipped));
+        }
+        int bytesRead = 0;
+        int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+        while (bytesLeft >= 0) {
+          int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
+          if (bytes <= 0) {
+            break;
+          }
+          bytesRead += bytes;
+          bytesLeft -= bytes;
+        }
+        return bytesRead;
+      }
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws PageNotFoundException {
+  public void delete(PageId pageId) throws PageNotFoundException {
     try {
       byte[] key = getKeyFromPageId(pageId);
       mDb.delete(key);

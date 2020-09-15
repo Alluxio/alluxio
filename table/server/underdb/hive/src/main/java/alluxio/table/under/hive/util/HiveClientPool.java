@@ -77,8 +77,8 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
       HiveConf conf = new HiveConf();
       conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
 
-      IMetaStoreClient client =
-          RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName());
+      IMetaStoreClient client = HMSClientFactory.newInstance(
+          RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName()));
       if (!mDbExists) {
         synchronized (this) {
           // serialize the querying of the hive db

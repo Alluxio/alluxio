@@ -121,7 +121,7 @@ public class TriggeredCheckpointTest {
       throws Exception {
     cluster.stopMasters();
     cluster.startMasters();
-    cluster.waitForAllNodesRegistered(30 * Constants.SECOND_MS);
+    cluster.waitForAllNodesRegistered(40 * Constants.SECOND_MS);
     assertEquals(100, cluster.getFileSystemClient().listStatus(new AlluxioURI("/")).size());
     assertEquals(101, (long) cluster.getMetricsMasterClient().getMetrics()
         .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());

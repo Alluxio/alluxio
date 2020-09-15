@@ -115,7 +115,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioURI uri = getAlluxioPath(path);
     try {
       if (mFileSystem.exists(uri)) {
-        throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
+        throw new IOException(
+            "append() to existing Alluxio path is currently not supported: " + uri);
       }
       return new FSDataOutputStream(
           mFileSystem.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build()),
@@ -168,7 +169,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       try {
         if (mFileSystem.exists(uri)) {
           if (!overwrite) {
-            throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
+            throw new IOException(
+                "Not allowed to create() (overwrite=false) for existing Alluxio path: " + uri);
           }
           if (mFileSystem.getStatus(uri).isFolder()) {
             throw new IOException(

@@ -108,7 +108,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     mClient.close();
   }
 }

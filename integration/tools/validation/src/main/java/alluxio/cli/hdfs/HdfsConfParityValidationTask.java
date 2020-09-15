@@ -11,6 +11,7 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
@@ -50,11 +51,11 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validate(Map<String, String> optionsMap) {
     if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append(String.format("UFS path %s is not HDFS. "
               + "Skipping validation for HDFS properties.%n", mPath));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
 
@@ -68,7 +69,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
     return opts;
   }
 
-  private ValidationUtils.TaskResult validateHdfsSettingParity(Map<String, String> optionsMap) {
+  private ValidationTaskResult validateHdfsSettingParity(Map<String, String> optionsMap) {
     String serverHadoopConfDirPath;
     if (optionsMap.containsKey(HADOOP_CONF_DIR_OPTION.getOpt())) {
       serverHadoopConfDirPath = optionsMap.get(HADOOP_CONF_DIR_OPTION.getOpt());
@@ -78,7 +79,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
     if (serverHadoopConfDirPath == null) {
       mMsg.append("Path to server-side hadoop configuration unspecified,"
               + " skipping validation for HDFS properties.");
-      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
     String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath,
@@ -87,7 +88,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
             "/hdfs-site.xml");
 
     // Load client core-site and hdfs-site config
-    ValidationUtils.TaskResult loadConfig = loadHdfsConfig();
+    ValidationTaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.getState() != ValidationUtils.State.OK) {
       // If failed to load config files, abort
       return loadConfig;
@@ -97,7 +98,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
              "core-site.xml", mCoreConf)
             && compareConfigurations(serverHdfsSiteFilePath,
              "hdfs-site.xml", mHdfsConf);
-    return new ValidationUtils.TaskResult(ok ? ValidationUtils.State.OK
+    return new ValidationTaskResult(ok ? ValidationUtils.State.OK
              : ValidationUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
   }
 
