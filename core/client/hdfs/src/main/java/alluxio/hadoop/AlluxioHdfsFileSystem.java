@@ -157,7 +157,7 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     throw new UnsupportedOperationException("LoadMetadata is not supported.");
   }
 

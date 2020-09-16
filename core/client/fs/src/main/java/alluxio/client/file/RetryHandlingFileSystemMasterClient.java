@@ -73,6 +73,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -238,9 +239,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws AlluxioStatusException {
-    retryRPC(
+    return retryRPC(
         () -> {
           ListStatusPOptions lsOptions = ListStatusPOptions.newBuilder()
               .setCommonOptions(
@@ -250,12 +251,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
               .setLoadMetadataType(LoadMetadataPType.ALWAYS)
               .setRecursive(options.getRecursive())
               .build();
+          final AtomicLong num = new AtomicLong();
           mClient.listStatus(
               ListStatusPRequest.newBuilder()
                   .setPath(getTransportPath(path))
-                  .setOptions(lsOptions).build()
-          );
-          return null;
+                  .setOptions(lsOptions).build())
+              .forEachRemaining((pListStatusResponse) -> {
+                num.addAndGet(pListStatusResponse.getFileInfosCount());
+              });
+          return num.get();
         }, RPC_LOG, "loadMetadata", "path=%s,options=%s", path, options
     );
   }

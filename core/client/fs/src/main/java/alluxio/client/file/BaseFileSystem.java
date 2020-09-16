@@ -276,14 +276,13 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, final LoadMetadataPOptions options)
+  public long loadMetadata(AlluxioURI path, final LoadMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    return rpc(client -> {
       LoadMetadataPOptions mergedOptions = FileSystemOptions.loadMetadataDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      client.loadMetadata(path, mergedOptions);
-      return null;
+      return client.loadMetadata(path, mergedOptions);
     });
   }
 

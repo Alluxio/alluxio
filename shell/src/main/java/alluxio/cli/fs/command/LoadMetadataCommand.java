@@ -71,7 +71,8 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       LoadMetadataPOptions options = LoadMetadataPOptions.newBuilder()
           .setRecursive(recursive)
           .build();
-      mFileSystem.loadMetadata(path, options);
+      long ret = mFileSystem.loadMetadata(path, options);
+      System.out.println(String.format("%d paths loaded", ret));
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }

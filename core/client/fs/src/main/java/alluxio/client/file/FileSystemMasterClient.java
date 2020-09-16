@@ -161,8 +161,9 @@ public interface FileSystemMasterClient extends Client {
    * @param path the path of the file to load metadata for
    * @param options method options
    * @throws NotFoundException if the path does not exist
+   * @return number of paths loaded from the under file system
    */
-  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws AlluxioStatusException;
+  long loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws AlluxioStatusException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.

@@ -381,8 +381,9 @@ public interface FileSystem extends Closeable {
    * @param path the path for which to load metadata from UFS
    * @param options options to associate with this operation
    * @throws FileDoesNotExistException if the given path does not exist
+   * @return number of paths loaded from the under file system
    */
-  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+  long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
