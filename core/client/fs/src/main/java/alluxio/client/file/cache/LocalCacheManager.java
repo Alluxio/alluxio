@@ -98,7 +98,8 @@ public class LocalCacheManager implements CacheManager {
    * @param conf the Alluxio configuration
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
+  public static synchronized LocalCacheManager create(AlluxioConfiguration conf)
+      throws IOException {
     MetaStore metaStore = MetaStore.create(CacheEvictor.create(conf));
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore = PageStore.create(options);
@@ -113,7 +114,7 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   @VisibleForTesting
-  static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
+  static synchronized LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
       PageStore pageStore, PageStoreOptions options) {
     LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStore);
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
@@ -415,8 +416,9 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * Restores a page store a the configured location, updating meta store.
+   * This method is synchronized to ensure only one thread can enter.
    */
-  private void restoreOrInit(PageStoreOptions options) {
+  private synchronized void restoreOrInit(PageStoreOptions options) {
     Preconditions.checkState(mState.get() == READ_ONLY);
     if (!restore(options)) {
       try {
@@ -435,7 +437,7 @@ public class LocalCacheManager implements CacheManager {
     Metrics.STATE.inc();
   }
 
-  private boolean restore(PageStoreOptions options) {
+  private synchronized boolean restore(PageStoreOptions options) {
     LOG.info("Attempt to restore PageStore with {}", options);
     Path rootDir = Paths.get(options.getRootDir());
     if (!Files.exists(rootDir)) {
@@ -454,7 +456,7 @@ public class LocalCacheManager implements CacheManager {
         }
         PageId pageId = pageInfo.getPageId();
         ReadWriteLock pageLock = getPageLock(pageId);
-        try (LockResource r = new LockResource(pageLock.readLock())) {
+        try (LockResource r = new LockResource(pageLock.writeLock())) {
           boolean enoughSpace;
           try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
             enoughSpace =

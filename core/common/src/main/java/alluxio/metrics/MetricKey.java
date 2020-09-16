@@ -952,7 +952,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_CACHE_STATE =
       new Builder(Name.CLIENT_CACHE_STATE)
-          .setDescription("State of the cache: 0 (NOT_READY), 1 (READ_ONLY) and 2 (READ_WRITE)")
+          .setDescription("State of the cache: 0 (READ_ONLY) and 1 (READ_WRITE)")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
