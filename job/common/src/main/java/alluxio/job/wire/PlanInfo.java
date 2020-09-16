@@ -40,6 +40,7 @@ public final class PlanInfo implements JobInfo {
   private final Status mStatus;
   private final String mResult;
   private final long mLastUpdated;
+  private final List<String> mAffectedPaths;
 
   /**
    * JobInfo constructor exposed for testing.
@@ -59,6 +60,7 @@ public final class PlanInfo implements JobInfo {
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
     mChildren = ImmutableList.of();
     mResult = null;
+    mAffectedPaths = ImmutableList.of();
   }
 
   /**
@@ -71,7 +73,7 @@ public final class PlanInfo implements JobInfo {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
     mDescription = verbose ? planInfo.getJobConfig().toString() : "";
-    mErrorMessage = verbose ? planInfo.getErrorMessage() : "";
+    mErrorMessage = planInfo.getErrorMessage();
     mStatus = Status.valueOf(planInfo.getStatus().name());
     mResult = verbose ? planInfo.getResult() : "";
     mLastUpdated = planInfo.getLastStatusChangeMs();
@@ -82,6 +84,7 @@ public final class PlanInfo implements JobInfo {
         mChildren.add(taskInfo);
       }
     }
+    mAffectedPaths = ImmutableList.copyOf(planInfo.getJobConfig().affectedPaths());
   }
 
   /**
@@ -112,6 +115,10 @@ public final class PlanInfo implements JobInfo {
       mResult = null;
     }
     mLastUpdated = jobInfo.getLastUpdated();
+    mAffectedPaths = new ArrayList<>();
+    for (String path : jobInfo.getAffectedPathsList()) {
+      mAffectedPaths.add(path);
+    }
   }
 
   @Override
@@ -159,6 +166,13 @@ public final class PlanInfo implements JobInfo {
     return mLastUpdated;
   }
 
+  /**
+   * @return a list of affected alluxio paths by this plan
+   */
+  public List<String> getAffectedPaths() {
+    return ImmutableList.copyOf(mAffectedPaths);
+  }
+
   @Override
   public alluxio.grpc.JobInfo toProto() throws IOException {
     List<alluxio.grpc.JobInfo> taskInfos = new ArrayList<>();
@@ -167,13 +181,15 @@ public final class PlanInfo implements JobInfo {
     }
     alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
         .setErrorMessage(mErrorMessage).addAllChildren(taskInfos).setStatus(mStatus.toProto())
-        .setName(mName).setDescription(mDescription).setType(JobType.PLAN);
+        .setName(mName).setDescription(mDescription).addAllAffectedPaths(mAffectedPaths)
+        .setType(JobType.PLAN);
     if (mResult != null && !mResult.isEmpty()) {
       ByteBuffer result =
           mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
       jobInfoBuilder.setResult(ByteString.copyFrom(result));
     }
     jobInfoBuilder.setLastUpdated(mLastUpdated);
+
     return jobInfoBuilder.build();
   }
 

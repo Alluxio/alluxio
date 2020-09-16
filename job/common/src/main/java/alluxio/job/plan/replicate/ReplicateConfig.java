@@ -19,8 +19,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 
 /**
  * Configuration of a job replicating a block.
@@ -59,6 +61,11 @@ public final class ReplicateConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return ImmutableList.of(mPath);
   }
 
   /**

@@ -12,6 +12,7 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
 import alluxio.collections.Pair;
@@ -60,7 +61,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     return "ValidateHdfsConf";
   }
 
-  protected ValidationUtils.TaskResult loadHdfsConfig() {
+  protected ValidationTaskResult loadHdfsConfig() {
     Pair<String, String> clientConfFiles = getHdfsConfPaths();
     String coreConfPath = clientConfFiles.getFirst();
     String hdfsConfPath = clientConfFiles.getSecond();
@@ -69,7 +70,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
     ValidationUtils.State state = (mCoreConf != null) && (mHdfsConf != null)
             ? ValidationUtils.State.OK : ValidationUtils.State.FAILED;
-    return new ValidationUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
+    return new ValidationTaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   protected Pair<String, String> getHdfsConfPaths() {
@@ -90,15 +91,15 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validate(Map<String, String> optionsMap) {
     if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append(String.format(
               "UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
 
-    ValidationUtils.TaskResult loadConfig = loadHdfsConfig();
+    ValidationTaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.getState() != ValidationUtils.State.OK) {
       // If failed to load config files, abort
       return loadConfig;
@@ -110,7 +111,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
 
   // Verify core-site.xml and hdfs.site.xml has no conflicts
   // mCoreConf and mHdfsConf are verified to be non-null as precondition
-  protected ValidationUtils.TaskResult checkConflicts() {
+  protected ValidationTaskResult checkConflicts() {
     ValidationUtils.State state = ValidationUtils.State.OK;
     for (Map.Entry<String, String> entry : mCoreConf.entrySet()) {
       String k = entry.getKey();
@@ -129,7 +130,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     if (state == ValidationUtils.State.OK) {
       mMsg.append("core-site.xml and hdfs-site.xml are consistent.\n");
     }
-    return new ValidationUtils.TaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
+    return new ValidationTaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   @Nullable

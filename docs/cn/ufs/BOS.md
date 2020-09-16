@@ -2,8 +2,8 @@
 layout: global
 title: 在BOS上配置Alluxio
 nickname: Alluxio使用BOS
-group: Under Stores
-priority: 4
+group: Storage Integrations
+priority: 5
 ---
 
 * 内容列表
@@ -45,7 +45,7 @@ fs.bos.endpoint=<BOS_ENDPOINT>
 ### 嵌套目录安装
 
 BOS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
-[Mount 命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将BOS容器内部的目录挂载到Alluxio的`/bos`目录
+[Mount 命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将BOS容器内部的目录挂载到Alluxio的`/bos`目录
 
 ```bash 
 $ ./bin/alluxio fs mount --option fs.bos.accessKeyId=<BOS_ACCESS_KEY_ID> \

@@ -17,8 +17,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 
 /**
  * Configuration for the migrate job. A migration can either be a copy or a move.
@@ -130,5 +132,10 @@ public class MigrateConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return ImmutableList.of(mSource, mDestination);
   }
 }

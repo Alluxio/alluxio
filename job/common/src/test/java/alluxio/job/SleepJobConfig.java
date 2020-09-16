@@ -18,6 +18,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Job configuration for the sleep job.
@@ -86,5 +88,10 @@ public class SleepJobConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return Collections.EMPTY_LIST;
   }
 }

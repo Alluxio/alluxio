@@ -32,4 +32,30 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
   </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>kubernetes/operator/alluxio/hack/boilerplate.go.txt</exclude>
+          </excludes>
+          <mapping>
+            <alluxio>SCRIPT_STYLE</alluxio>
+            <go>SLASHSTAR_STYLE</go>
+            <java>SLASHSTAR_STYLE</java>
+            <tsx>SLASHSTAR_STYLE</tsx>
+            <scss>SLASHSTAR_STYLE</scss>
+            <properties.template>SCRIPT_STYLE</properties.template>
+            <sh.template>SCRIPT_STYLE</sh.template>
+            <workers>SCRIPT_STYLE</workers>
+            <xml.template>XML_STYLE</xml.template>
+          </mapping>
+          <useDefaultMapping>true</useDefaultMapping>
+          <strictCheck>true</strictCheck>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

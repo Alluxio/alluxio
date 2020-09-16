@@ -2,7 +2,7 @@
 layout: global
 title: Baidu Cloud Object Storage Service
 nickname: Baidu Cloud Object Storage Service
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -89,7 +89,7 @@ $ bin/alluxio-stop.sh local
 
 An BOS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for this purpose.
+[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an BOS bucket into Alluxio directory
 `/bos`:
 

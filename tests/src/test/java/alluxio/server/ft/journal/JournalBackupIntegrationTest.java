@@ -95,7 +95,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(3)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "3sec")
         .build();
     backupRestoreTest(true);
   }

@@ -11,15 +11,43 @@
 
 package alluxio.cli;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * The validation tool interface.
  */
 public interface ValidationTool {
 
   /**
+   * @return a mapping of task names to tasks that this tool can run
+   */
+  Map<String, ValidationTask> getTasks();
+
+  /**
    * Runs validation tests.
    *
    * @return a json string of the test results
    */
-  String runTests() throws InterruptedException;
+  List<ValidationTaskResult> runAllTests() throws InterruptedException;
+
+  /**
+   * Converts the results of the {@link #runAllTests()} method into a JSON string for digestion by
+   * other components.
+   *
+   * @param results a result from a validation tool
+   * @return a JSON string representing the result input
+   */
+  static String convertResults(List<ValidationTaskResult> results) {
+    // group by state
+    Map<ValidationUtils.State, List<ValidationTaskResult>> map = new HashMap<>();
+    results.forEach(r -> map.computeIfAbsent(r.getState(), k -> new ArrayList<>()).add(r));
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    return gson.toJson(map);
+  }
 }
