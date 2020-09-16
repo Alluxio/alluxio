@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
@@ -389,6 +390,51 @@ public final class LocalCacheManagerTest {
         WaitForOptions.defaults().setTimeoutMs(10000));
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+  }
+
+  @Test
+  public void syncRestoreUnwritableRootDir() throws Exception {
+    mCacheManager.close();
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    mPageStore.put(PAGE_ID1, PAGE1);
+    mPageStore.put(pageUuid, PAGE2);
+    String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
+        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
+    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
+    File root = new File(rootDir);
+    root.setWritable(false);
+    try {
+      mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+      assertEquals(CacheManager.State.NOT_IN_USE, mCacheManager.state());
+      assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+      assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    } finally {
+      root.setWritable(true);
+    }
+  }
+
+  @Test
+  public void asyncRestoreUnwritableRootDir() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
+    mCacheManager.close();
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    mPageStore.put(PAGE_ID1, PAGE1);
+    mPageStore.put(pageUuid, PAGE2);
+    String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
+        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
+    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
+    File root = new File(rootDir);
+    root.setWritable(false);
+    try {
+      mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+      CommonUtils.waitFor("async restore completed",
+          () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
+          WaitForOptions.defaults().setTimeoutMs(10000));
+      assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+      assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    } finally {
+      root.setWritable(true);
+    }
   }
 
   @Test

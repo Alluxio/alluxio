@@ -27,11 +27,15 @@ public interface CacheManager extends AutoCloseable {
     /**
      * this cache is read only.
      */
-    READ_ONLY(0),
+    NOT_IN_USE(0),
+    /**
+     * this cache is read only.
+     */
+    READ_ONLY(1),
     /**
      * this cache can both read and write.
      */
-    READ_WRITE(1);
+    READ_WRITE(2);
 
     private final int mValue;
 

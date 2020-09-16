@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
@@ -74,7 +75,6 @@ public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private static final int LOCK_SIZE = 1024;
-
   private final long mPageSize;
   private final long mCacheSize;
   private final boolean mAsyncWrite;
@@ -351,6 +351,11 @@ public class LocalCacheManager implements CacheManager {
         "buffer does not have enough space: bufferLength=%s offsetInBuffer=%s bytesToRead=%s",
         buffer.length, offsetInBuffer, bytesToRead);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
+    if (mState.get() == NOT_IN_USE) {
+      Metrics.GET_NOT_READY_ERRORS.inc();
+      Metrics.GET_ERRORS.inc();
+      return 0;
+    }
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
@@ -415,24 +420,29 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
-   * Restores a page store a the configured location, updating meta store.
-   * This method is synchronized to ensure only one thread can enter.
+   * Restores a page store at the configured location, updating meta store accordingly.
+   * If restore process fails, cleanup the location and init a new store.
+   * This method is synchronized to ensure only one thread can enter and operate.
    */
   private synchronized void restoreOrInit(PageStoreOptions options) {
     Preconditions.checkState(mState.get() == READ_ONLY);
     if (!restore(options)) {
+      try (LockResource r = new LockResource(mMetaLock.writeLock())) {
+        mMetaStore.reset();
+      }
       try {
         mPageStore.close();
-        try (LockResource r = new LockResource(mMetaLock.writeLock())) {
-          mMetaStore.reset();
-        }
+        // when cache is large, e.g. millions of pages, initialize may take a while
         PageStore.initialize(options);
         mPageStore = PageStore.create(options);
       } catch (Exception e) {
-        LOG.error("Failed to clean up PageStore", e);
+        LOG.error("Failed to initialize a new PageStore. Cache is NOT_IN_USE: ", e);
+        mState.set(NOT_IN_USE);
+        Metrics.STATE.dec();
         return;
       }
     }
+    LOG.info("Cache is in READ_WRITE.");
     mState.set(READ_WRITE);
     Metrics.STATE.inc();
   }
@@ -476,7 +486,8 @@ public class LocalCacheManager implements CacheManager {
       LOG.error("Failed to restore PageStore", e);
       return false;
     }
-    LOG.info("Complete Restored PageStore with {} pages ({} bytes), discarded {} pages ({} bytes)",
+    LOG.info("Successfully restored PageStore with {} pages ({} bytes), "
+            + "discarded {} pages ({} bytes)",
         mMetaStore.pages(), mMetaStore.bytes(), discardedPages, discardedBytes);
     return true;
   }
@@ -552,6 +563,9 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
+    /** Errors when getting pages. */
+    private static final Counter GET_NOT_READY_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_NOT_READY_ERRORS.getName());
     /** Errors when getting pages due to failed read from page stores. */
     private static final Counter GET_STORE_READ_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_STORE_READ_ERRORS.getName());
