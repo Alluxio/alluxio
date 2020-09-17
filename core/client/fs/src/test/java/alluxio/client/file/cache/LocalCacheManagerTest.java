@@ -406,8 +406,9 @@ public final class LocalCacheManagerTest {
     try {
       mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
       assertEquals(CacheManager.State.NOT_IN_USE, mCacheManager.state());
-      assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-      assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+      assertEquals(-1, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+      assertEquals(false, mCacheManager.put(PAGE_ID2, PAGE2));
+      assertEquals(false, mCacheManager.delete(PAGE_ID1));
     } finally {
       root.setWritable(true);
     }
@@ -430,8 +431,9 @@ public final class LocalCacheManagerTest {
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
-      assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-      assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+      assertEquals(-1, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+      assertEquals(false, mCacheManager.put(PAGE_ID2, PAGE2));
+      assertEquals(false, mCacheManager.delete(PAGE_ID1));
     } finally {
       root.setWritable(true);
     }

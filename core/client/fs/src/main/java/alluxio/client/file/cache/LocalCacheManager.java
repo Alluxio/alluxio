@@ -361,7 +361,7 @@ public class LocalCacheManager implements CacheManager {
     if (mState.get() == NOT_IN_USE) {
       Metrics.GET_NOT_READY_ERRORS.inc();
       Metrics.GET_ERRORS.inc();
-      return 0;
+      return -1;
     }
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -571,7 +571,7 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
-    /** Errors when getting pages. */
+    /** Errors when cache is not ready to get pages. */
     private static final Counter GET_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_NOT_READY_ERRORS.getName());
     /** Errors when getting pages due to failed read from page stores. */
