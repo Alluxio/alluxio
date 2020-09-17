@@ -926,6 +926,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
+    Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.GET_FILE_INFO).inc();
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1497,7 +1498,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // actual file does not exist in UFS yet.
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     }
-
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.CREATE_FILE).inc();
     Metrics.FILES_CREATED.inc();
     return created;
   }
@@ -1769,7 +1771,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // Delete Inodes
       for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
         LockedInodePath tempInodePath = delInodePair.getSecond();
+        MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
+        Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.DELETE_FILE).inc();
       }
 
       if (!failedUris.isEmpty()) {
@@ -1780,7 +1784,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
             ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
       }
     }
-
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
   }
 
@@ -4201,11 +4204,25 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
-    private static final Map<Integer, Map<String, Counter>> savedUfsOps = new HashMap<>();
+    private static final Map<Long, Map<UFSOps, Counter>> SAVED_UFS_OPS = new HashMap<>();
 
+    /**
+     * UFS operations enum.
+     */
+    public enum UFSOps {
+      CREATE_FILE, GET_FILE_INFO, DELETE_FILE
+    }
+
+    /**
+     * Get operations saved per ufs counter.
+     *
+     * @param mountId mount id
+     * @param ufsOp ufs operation
+     * @return the counter object
+     */
     @VisibleForTesting
-    public static Counter getUfsCounter(int mountId, String ufsOp) {
-      return savedUfsOps.compute(mountId, (k, v) -> {
+    public static Counter getUfsCounter(long mountId, UFSOps ufsOp) {
+      return SAVED_UFS_OPS.compute(mountId, (k, v) -> {
         if (v != null) {
           return v;
         } else {
