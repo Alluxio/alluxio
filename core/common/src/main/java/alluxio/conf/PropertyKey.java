@@ -3345,6 +3345,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If this is enabled, cache restore state asynchronously.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
           .setDefaultValue(true)
@@ -5084,6 +5091,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
+    public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
+        "alluxio.user.client.cache.async.restore.enabled";
     public static final String USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
         "alluxio.user.client.cache.async.write.enabled";
     public static final String USER_CLIENT_CACHE_ASYNC_WRITE_THREADS =

@@ -27,14 +27,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
-  private static Optional<CacheManager> sCacheManager;
+  private static final Lock CACHE_INIT_LOCK = new ReentrantLock();
+  @GuardedBy("CACHE_INIT_LOCK")
+  private static final AtomicReference<CacheManager> CACHE_MANAGER = new AtomicReference<>();
 
   private final AlluxioConfiguration mConf;
 
@@ -43,21 +49,20 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
    * @param fs a FileSystem instance to query on local cache miss
    * @param conf the configuration, only respected for the first call
    */
-  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-      value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
-      justification = "write to static is made threadsafe")
   public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) throws IOException {
     super(fs);
     // TODO(feng): support multiple cache managers
-    if (sCacheManager == null) {
-      synchronized (LocalCacheFileSystem.class) {
-        if (sCacheManager == null) {
-          try {
-            sCacheManager = Optional.of(CacheManager.create(conf));
-          } catch (IOException e) {
-            Metrics.CREATE_ERRORS.inc();
-            throw new IOException("Failed to create CacheManager", e);
+    if (CACHE_MANAGER.get() == null) {
+      if (CACHE_INIT_LOCK.tryLock()) {
+        try {
+          if (CACHE_MANAGER.get() == null) {
+            CACHE_MANAGER.set(CacheManager.create(conf));
           }
+        } catch (IOException e) {
+          Metrics.CREATE_ERRORS.inc();
+          throw new IOException("Failed to create CacheManager", e);
+        } finally {
+          CACHE_INIT_LOCK.unlock();
         }
       }
     }
@@ -72,19 +77,21 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    if (sCacheManager == null || !sCacheManager.isPresent()) {
+    if (CACHE_MANAGER.get() == null
+        || CACHE_MANAGER.get().state() == CacheManager.State.NOT_IN_USE) {
       return mDelegatedFileSystem.openFile(path, options);
     }
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager.get());
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, CACHE_MANAGER.get());
   }
 
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    if (sCacheManager == null || !sCacheManager.isPresent()) {
+    if (CACHE_MANAGER.get() == null
+        || CACHE_MANAGER.get().state() == CacheManager.State.NOT_IN_USE) {
       return mDelegatedFileSystem.openFile(status, options);
     }
-    return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
+    return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, CACHE_MANAGER.get());
   }
 
   private static final class Metrics {

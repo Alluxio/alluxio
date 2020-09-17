@@ -35,26 +35,33 @@ public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
-   * Creates a {@link PageStore}. When init is false, restore from previous state; clean up the
-   * cache dir otherwise.
+   * Creates a new {@link PageStore}. Previous state in the samme cache dir will be overwritten.
    *
    * @param options the options to instantiate the page store
-   * @param init whether to init the cache dir
    * @return a PageStore instance
    * @throws IOException if I/O error happens
    */
-  static PageStore create(PageStoreOptions options, boolean init) throws IOException {
-    LOG.info("Creating PageStore with option={}, init={}", options.toString(), init);
-    if (init) {
-      initialize(options);
-    }
+  static PageStore create(PageStoreOptions options) throws IOException {
+    initialize(options);
+    return open(options);
+  }
+
+  /**
+   * Opens an existing {@link PageStore}.
+   *
+   * @param options the options to instantiate the page store
+   * @return a PageStore instance
+   * @throws IOException if I/O error happens
+   */
+  static PageStore open(PageStoreOptions options) throws IOException {
+    LOG.info("Creating PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
         pageStore = new LocalPageStore(options.toOptions());
         break;
       case ROCKS:
-        pageStore = RocksPageStore.create(options.toOptions());
+        pageStore = RocksPageStore.open(options.toOptions());
         break;
       default:
         throw new IllegalArgumentException(
@@ -83,9 +90,7 @@ public interface PageStore extends AutoCloseable {
    */
   static void initialize(PageStoreOptions options) throws IOException {
     String rootPath = options.getRootDir();
-    PageStoreType storeType = options.getType();
-    Path storePath = getStorePath(storeType, rootPath);
-    Files.createDirectories(storePath);
+    Files.createDirectories(Paths.get(rootPath));
     LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.forEach(path -> {
