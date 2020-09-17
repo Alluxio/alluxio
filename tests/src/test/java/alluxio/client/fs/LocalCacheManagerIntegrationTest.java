@@ -15,6 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
@@ -23,6 +24,8 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
@@ -35,6 +38,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Paths;
 
+// TODO(binfan): this is not a real integration test, should be consolidated with UT
 public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int PAGE_COUNT = 32;
@@ -183,6 +187,9 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
     mCacheManager = LocalCacheManager.create(mConf);
+    CommonUtils.waitFor("async restore completed",
+        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        WaitForOptions.defaults().setTimeoutMs(10000));
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
