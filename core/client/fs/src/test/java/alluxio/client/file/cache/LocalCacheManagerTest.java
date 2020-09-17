@@ -447,7 +447,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(pageUuid, BufferUtils.getIncreasingByteArray(
         PAGE1.length + PAGE2.length + 1));
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.open(mPageStoreOptions);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -467,7 +467,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(pageUuid, BufferUtils.getIncreasingByteArray(
         PAGE1.length + PAGE2.length + 1));
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.open(mPageStoreOptions);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
     CommonUtils.waitFor("async restore completed",
         () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,

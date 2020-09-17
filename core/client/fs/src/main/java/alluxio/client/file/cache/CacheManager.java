@@ -25,7 +25,7 @@ public interface CacheManager extends AutoCloseable {
    */
   enum State {
     /**
-     * this cache is read only.
+     * this cache is not in use.
      */
     NOT_IN_USE(0),
     /**

@@ -92,17 +92,22 @@ public class LocalCacheManager implements CacheManager {
   private final ExecutorService mAsyncCacheExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
   /** State of this cache. */
-  private final AtomicReference<CacheManager.State> mState = new AtomicReference<>(READ_ONLY);
+  private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
 
   /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link LocalCacheManager}
    */
-  public static synchronized LocalCacheManager create(AlluxioConfiguration conf)
+  public static LocalCacheManager create(AlluxioConfiguration conf)
       throws IOException {
     MetaStore metaStore = MetaStore.create(CacheEvictor.create(conf));
     PageStoreOptions options = PageStoreOptions.create(conf);
-    PageStore pageStore = PageStore.create(options);
+    PageStore pageStore;
+    try {
+      pageStore = PageStore.open(options);
+    } catch (IOException e) {
+      pageStore = PageStore.create(options);
+    }
     return create(conf, metaStore, pageStore, options);
   }
 
@@ -114,7 +119,7 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   @VisibleForTesting
-  static synchronized LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
+  static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
       PageStore pageStore, PageStoreOptions options) {
     LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStore);
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
@@ -149,6 +154,8 @@ public class LocalCacheManager implements CacheManager {
             : null;
     mInitService = mAsyncRestore ? Executors.newSingleThreadExecutor() : null;
     Metrics.registerGauges(mCacheSize, mMetaStore);
+    mState.set(READ_ONLY);
+    Metrics.STATE.inc();
   }
 
   /**
@@ -421,33 +428,34 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * Restores a page store at the configured location, updating meta store accordingly.
-   * If restore process fails, cleanup the location and init a new store.
+   * If restore process fails, cleanup the location and create a new page store.
    * This method is synchronized to ensure only one thread can enter and operate.
    */
-  private synchronized void restoreOrInit(PageStoreOptions options) {
-    Preconditions.checkState(mState.get() == READ_ONLY);
-    if (!restore(options)) {
-      try (LockResource r = new LockResource(mMetaLock.writeLock())) {
-        mMetaStore.reset();
+  private void restoreOrInit(PageStoreOptions options) {
+    synchronized (LocalCacheManager.class) {
+      Preconditions.checkState(mState.get() == READ_ONLY);
+      if (!restore(options)) {
+        try (LockResource r = new LockResource(mMetaLock.writeLock())) {
+          mMetaStore.reset();
+        }
+        try {
+          mPageStore.close();
+          // when cache is large, e.g. millions of pages, initialize may take a while on deletion
+          mPageStore = PageStore.create(options);
+        } catch (Exception e) {
+          LOG.error("Failed to create a new PageStore. Cache is NOT_IN_USE: ", e);
+          mState.set(NOT_IN_USE);
+          Metrics.STATE.dec();
+          return;
+        }
       }
-      try {
-        mPageStore.close();
-        // when cache is large, e.g. millions of pages, initialize may take a while
-        PageStore.initialize(options);
-        mPageStore = PageStore.create(options);
-      } catch (Exception e) {
-        LOG.error("Failed to initialize a new PageStore. Cache is NOT_IN_USE: ", e);
-        mState.set(NOT_IN_USE);
-        Metrics.STATE.dec();
-        return;
-      }
+      LOG.info("Cache is in READ_WRITE.");
+      mState.set(READ_WRITE);
+      Metrics.STATE.inc();
     }
-    LOG.info("Cache is in READ_WRITE.");
-    mState.set(READ_WRITE);
-    Metrics.STATE.inc();
   }
 
-  private synchronized boolean restore(PageStoreOptions options) {
+  private boolean restore(PageStoreOptions options) {
     LOG.info("Attempt to restore PageStore with {}", options);
     Path rootDir = Paths.get(options.getRootDir());
     if (!Files.exists(rootDir)) {
@@ -461,7 +469,7 @@ public class LocalCacheManager implements CacheManager {
       while (iterator.hasNext()) {
         PageInfo pageInfo = iterator.next();
         if (pageInfo == null) {
-          LOG.error("Invalid page info");
+          LOG.error("Failed to restore PageStore: Invalid page info");
           return false;
         }
         PageId pageId = pageInfo.getPageId();
@@ -483,7 +491,7 @@ public class LocalCacheManager implements CacheManager {
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to restore PageStore", e);
+      LOG.error("Failed to restore PageStore: ", e);
       return false;
     }
     LOG.info("Successfully restored PageStore with {} pages ({} bytes), "

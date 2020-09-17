@@ -60,6 +60,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getPath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
   }
 
   @After
