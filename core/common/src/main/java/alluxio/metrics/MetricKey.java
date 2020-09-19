@@ -846,6 +846,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_UNREMOVABLE_FILES =
+      new Builder(Name.CLIENT_CACHE_UNREMOVABLE_FILES)
+          .setDescription("Amount of bytes unusable managed by the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   public static final MetricKey CLIENT_CACHE_CREATE_ERRORS =
       new Builder(Name.CLIENT_CACHE_CREATE_ERRORS)
@@ -865,6 +871,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_DELETE_NOT_READY_ERRORS)
+          .setDescription("Number of failures when  when cache is not ready to delete pages.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
       new Builder(Name.CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS)
           .setDescription("Number of failures when deleting pages due to failed delete in page "
@@ -875,6 +887,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_GET_ERRORS =
       new Builder(Name.CLIENT_CACHE_GET_ERRORS)
           .setDescription("Number of failures when getting cached data in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_GET_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_GET_NOT_READY_ERRORS)
+          .setDescription("Number of failures when cache is not ready to get pages.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -924,6 +942,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PUT_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_NOT_READY_ERRORS)
+          .setDescription("Number of failures when cache is not ready to add pages.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
@@ -935,6 +959,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
               + " failed writes to page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STATE =
+      new Builder(Name.CLIENT_CACHE_STATE)
+          .setDescription("State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1152,9 +1182,12 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_DELETE_ERRORS = "Client.CacheDeleteErrors";
     public static final String CLIENT_CACHE_DELETE_NON_EXISTING_PAGE_ERRORS =
         "Client.CacheDeleteNonExistingPageErrors";
+    public static final String CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
+        "Client.CacheDeleteNotReadyErrors";
     public static final String CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
         "Client.CacheDeleteStoreDeleteErrors";
     public static final String CLIENT_CACHE_GET_ERRORS = "Client.CacheGetErrors";
+    public static final String CLIENT_CACHE_GET_NOT_READY_ERRORS = "Client.CacheGetNotReadyErrors";
     public static final String CLIENT_CACHE_GET_STORE_READ_ERRORS =
         "Client.CacheGetStoreReadErrors";
     public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
@@ -1164,10 +1197,14 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutEvictionErrors";
     public static final String CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
         "Client.CachePutBenignRacingErrors";
+    public static final String CLIENT_CACHE_PUT_NOT_READY_ERRORS =
+        "Client.CachePutNotReadyErrors";
     public static final String CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
         "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
+    public static final String CLIENT_CACHE_STATE = "Client.CacheState";
+    public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
 
     private Name() {} // prevent instantiation
   }

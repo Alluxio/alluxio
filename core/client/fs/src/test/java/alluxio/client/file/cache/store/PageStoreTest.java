@@ -73,7 +73,7 @@ public class PageStoreTest {
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
-    mPageStore = PageStore.create(mOptions, true);
+    mPageStore = PageStore.create(mOptions);
   }
 
   @After
