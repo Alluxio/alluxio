@@ -59,7 +59,7 @@ public class RocksPageStore implements PageStore {
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
+  public static RocksPageStore open(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
     Options rocksOptions = new Options();
