@@ -395,6 +395,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public State state() {
+      return State.READ_WRITE;
+    }
+
+    @Override
     public void close() throws Exception {
       // no-op
     }
