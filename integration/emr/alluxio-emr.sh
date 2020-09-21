@@ -662,6 +662,20 @@ IN
   # set user provided properties
   set_custom_alluxio_properties "${delimited_properties}"
 
+  # Create a symbolic link in presto plugin directory pointing to our connector if alluxio version is above 2.2
+  for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
+    # guard against using an older version by checking for alluxio connector's existence
+    if [ -d "$plugindir" ]; then
+      doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
+      sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
+      sudo mkdir -p /etc/presto/conf/catalog
+      echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+      echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+      echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+      break
+    fi
+  done
+
   # start Alluxio cluster
   if [[ "${client_only}" != "true" ]]; then
     echo "Starting Alluxio cluster"
@@ -705,20 +719,6 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
     fi
   fi
-
-  # Create a symbolic link in presto plugin directory pointing to our connector if alluxio version is above 2.2
-  for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
-    # guard against using an older version by checking for alluxio connector's existence
-    if [ -d "$plugindir" ]; then
-      doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
-      sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
-      sudo mkdir -p /etc/presto/conf/catalog
-      echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      break
-    fi
-  done
 
   echo "Alluxio bootstrap complete!"
 }

@@ -118,7 +118,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, null).run();
     waitForStatus(jobId, Status.CANCELED);
   }
-
+  
   @Test
   public void list() throws Exception {
     List<Long> empty = Lists.newArrayList();
