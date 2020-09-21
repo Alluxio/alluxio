@@ -11,11 +11,8 @@
 
 package alluxio.client.rest;
 
-import static org.junit.Assert.assertEquals;
-
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.job.CrashPlanConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
@@ -31,7 +28,6 @@ import alluxio.util.WaitForOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -118,7 +114,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, null).run();
     waitForStatus(jobId, Status.CANCELED);
   }
-  
+
   @Test
   public void list() throws Exception {
     List<Long> empty = Lists.newArrayList();
