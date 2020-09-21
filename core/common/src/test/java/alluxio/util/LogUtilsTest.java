@@ -25,16 +25,16 @@ public final class LogUtilsTest {
   @Test
   public void truncateShort() throws Exception {
     String s;
-    assertEquals("null", LogUtils.truncateMessageLines(null));
+    assertEquals("null", LogUtils.truncateMessageLineLength(null));
     s = CommonUtils.randomAlphaNumString(1);
-    assertEquals(s, LogUtils.truncateMessageLines(s));
+    assertEquals(s, LogUtils.truncateMessageLineLength(s));
     s = CommonUtils.randomAlphaNumString(LogUtils.MAX_TRUNCATED_LENGTH);
-    assertEquals(s, LogUtils.truncateMessageLines(s));
+    assertEquals(s, LogUtils.truncateMessageLineLength(s));
 
     for (int i = 0; i < 20; i++) {
       s = CommonUtils.randomAlphaNumString(
           ThreadLocalRandom.current().nextInt(2, LogUtils.MAX_TRUNCATED_LENGTH));
-      assertEquals(s, LogUtils.truncateMessageLines(s));
+      assertEquals(s, LogUtils.truncateMessageLineLength(s));
     }
   }
 
@@ -47,7 +47,7 @@ public final class LogUtilsTest {
         s += CommonUtils.randomAlphaNumString(
             ThreadLocalRandom.current().nextInt(1, LogUtils.MAX_TRUNCATED_LENGTH + 1));
       }
-      assertEquals(s, LogUtils.truncateMessageLines(s));
+      assertEquals(s, LogUtils.truncateMessageLineLength(s));
     }
   }
 
@@ -58,7 +58,7 @@ public final class LogUtilsTest {
     for (int i = 0; i < 20; i++) {
       s = CommonUtils.randomAlphaNumString(ThreadLocalRandom.current()
           .nextInt(LogUtils.MAX_TRUNCATED_LENGTH + 1, 2 + LogUtils.MAX_TRUNCATED_LENGTH));
-      String truncated = LogUtils.truncateMessageLines(s);
+      String truncated = LogUtils.truncateMessageLineLength(s);
       assertTrue(truncated.startsWith(s.substring(0, LogUtils.MAX_TRUNCATED_LENGTH) + " ..."));
     }
   }
@@ -80,7 +80,7 @@ public final class LogUtilsTest {
         }
       }
 
-      String truncated = LogUtils.truncateMessageLines(s);
+      String truncated = LogUtils.truncateMessageLineLength(s);
 
       String[] expectedLines = s.split("\n");
       String[] actualLines = truncated.split("\n");
@@ -103,7 +103,7 @@ public final class LogUtilsTest {
     String s = CommonUtils.randomAlphaNumString(LogUtils.MAX_TRUNCATED_LENGTH);
 
     for (int length = 1; length < LogUtils.MAX_TRUNCATED_LENGTH; length++) {
-      String truncated = LogUtils.truncateMessageLines(s, length);
+      String truncated = LogUtils.truncateMessageLineLength(s, length);
       assertTrue(truncated.startsWith(s.substring(0, length) + " ..."));
     }
   }

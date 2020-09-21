@@ -143,8 +143,8 @@ public final class LogUtils {
    * @param message the message to truncate the lines for
    * @return the message, with lines truncated to length {@link #MAX_TRUNCATED_LENGTH}
    */
-  public static String truncateMessageLines(Object message) {
-    return truncateMessageLines(message, MAX_TRUNCATED_LENGTH);
+  public static String truncateMessageLineLength(Object message) {
+    return truncateMessageLineLength(message, MAX_TRUNCATED_LENGTH);
   }
 
   /**
@@ -154,7 +154,7 @@ public final class LogUtils {
    * @param maxLineLength the maximum length of a message line
    * @return the message, with lines truncated to the specified length
    */
-  public static String truncateMessageLines(Object message, int maxLineLength) {
+  public static String truncateMessageLineLength(Object message, int maxLineLength) {
     if (message == null) {
       return "null";
     }

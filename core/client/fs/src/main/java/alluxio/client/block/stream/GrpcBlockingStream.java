@@ -94,8 +94,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   public void send(ReqT request, long timeoutMs) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
       throw new CancelledException(
-          formatErrorMessage("Failed to send request %s: stream is already closed or canceled.",
-              LogUtils.truncateMessageLines(request)));
+          formatErrorMessage("Failed to send request %s: stream is already closed or cancelled.",
+              LogUtils.truncateMessageLineLength(request)));
     }
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
@@ -107,13 +107,13 @@ public class GrpcBlockingStream<ReqT, ResT> {
           if (!mReadyOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new DeadlineExceededException(
                 formatErrorMessage("Timeout sending request %s after %dms.",
-                    LogUtils.truncateMessageLines(request), timeoutMs));
+                    LogUtils.truncateMessageLineLength(request), timeoutMs));
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           throw new CancelledException(
               formatErrorMessage("Failed to send request %s: interrupted while waiting for server.",
-                  LogUtils.truncateMessageLines(request)), e);
+                  LogUtils.truncateMessageLineLength(request)), e);
         }
       }
     }
@@ -129,8 +129,10 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      LOG.debug("Failed to send request {}: stream is already closed or canceled. ({})",
-          LogUtils.truncateMessageLines(request), mDescription);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Failed to send request {}: stream is already closed or cancelled. ({})",
+            LogUtils.truncateMessageLineLength(request), mDescription);
+      }
       return;
     }
     try (LockResource lr = new LockResource(mLock)) {
