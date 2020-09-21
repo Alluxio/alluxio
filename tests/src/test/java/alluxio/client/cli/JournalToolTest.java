@@ -217,7 +217,7 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   private long getCurrentRatisSnapshotIndex(String journalFolder) throws Throwable {
     try (RaftStorage storage = new RaftStorage(
-        new File(journalFolder, RaftJournalSystem.RAFT_GROUP_ID.toString()),
+        new File(journalFolder, RaftJournalSystem.RAFT_GROUP_UUID.toString()),
         RaftServerConstants.StartupOption.REGULAR)) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);

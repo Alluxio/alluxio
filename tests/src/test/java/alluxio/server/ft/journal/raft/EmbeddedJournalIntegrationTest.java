@@ -129,7 +129,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     }
     int primaryMasterIndex = mCluster.getPrimaryMasterIndex(5000);
     String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
-    File raftDir = new File(leaderJournalPath, RaftJournalSystem.RAFT_GROUP_ID.toString());
+    File raftDir = new File(leaderJournalPath, RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMasters();
 
@@ -168,7 +168,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     FileUtils.deleteDirectory(catchupJournalDir);
     assertTrue(catchupJournalDir.mkdirs());
     mCluster.startMaster(catchUpMasterIndex);
-    File raftDir = new File(catchupJournalDir, RaftJournalSystem.RAFT_GROUP_ID.toString());
+    File raftDir = new File(catchupJournalDir, RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();

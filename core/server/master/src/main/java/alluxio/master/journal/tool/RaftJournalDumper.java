@@ -108,7 +108,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
   }
 
   private File getJournalDir() {
-    return new File(mInputDir, RaftJournalSystem.RAFT_GROUP_ID.toString());
+    return new File(mInputDir, RaftJournalSystem.RAFT_GROUP_UUID.toString());
   }
 
   private void readRatisSnapshotFromDir() throws IOException {
