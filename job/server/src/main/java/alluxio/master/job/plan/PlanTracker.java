@@ -40,6 +40,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -276,7 +277,7 @@ public class PlanTracker {
   /**
    * @return list of failed plans
    */
-  public List<PlanInfo> failed() {
-    return Lists.newArrayList(mFailed);
+  public Stream<PlanInfo> failed() {
+    return mFailed.stream();
   }
 }
