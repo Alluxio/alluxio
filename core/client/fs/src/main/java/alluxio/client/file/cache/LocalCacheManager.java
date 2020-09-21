@@ -56,7 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class to manage & serve cached pages. This class coordinates various components to respond for
  * thread-safety and enforce cache replacement policies.
  *
- * One of the motivations of creating a client-side cache is from "Improving In-Memory File System
+ * The idea of creating a client-side cache is followed after "Improving In-Memory File System
  * Reading Performance by Fine-Grained User-Space Cache Mechanisms" by Gu et al, which illustrates
  * performance benefits for various read workloads. This class also introduces paging as a caching
  * unit.
