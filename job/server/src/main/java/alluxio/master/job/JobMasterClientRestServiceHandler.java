@@ -104,10 +104,6 @@ public final class JobMasterClientRestServiceHandler {
   }
 
   /**
-   * @return a list of failed jobs
-   */
-
-  /**
    * @param limit maximum number of jobs to return
    * @param before filters out on or after this timestamp (in ms) (-1 to disable)
    * @param after filter out on or before this timestamp (in ms) (-1 to disable)
