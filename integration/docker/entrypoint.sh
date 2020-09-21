@@ -163,7 +163,8 @@ function setup_for_dynamic_non_root {
       # to ensure write permission for non-root user.
       chmod -R 777 ${ALLUXIO_RAM_FOLDER}
       if [[ "$1" == "worker" || "$1" == "worker-only" ]]; then
-        echo "${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}" | tr ' ' '\n' | \
+        echo "${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}" | \
+          tr ' ' '\n' | \
           grep "alluxio.worker.tieredstore.level[0-9].dirs.path" | \
           cut -d '=' -f 2 | \
           tr ',' '\n' | \
