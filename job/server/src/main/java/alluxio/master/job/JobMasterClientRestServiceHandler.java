@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -103,13 +104,19 @@ public final class JobMasterClientRestServiceHandler {
   }
 
   /**
-   * @return a list of failed jobs
+   * @param limit maximum number of jobs to return
+   * @param before filters out on or after this timestamp (in ms) (-1 to disable)
+   * @param after filter out on or before this timestamp (in ms) (-1 to disable)
+   * @return a list of failed jobs with the most recently failed job first
    */
   @GET
   @Path(ServiceConstants.FAILURE_HISTORY)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
-  public Response failureHistory() {
-    return RestUtils.call(() -> mJobMaster.failed(50), ServerConfiguration.global());
+  public Response failureHistory(@DefaultValue("20") @QueryParam("limit") final int limit,
+                                 @DefaultValue("-1") @QueryParam("before") final long before,
+                                 @DefaultValue("-1") @QueryParam("after") final long after) {
+    return RestUtils.call(() -> mJobMaster.failed(limit, before, after),
+        ServerConfiguration.global());
   }
 
   /**

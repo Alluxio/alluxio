@@ -244,11 +244,10 @@ public class TaskExecutorManager {
       taskInfo.setStatus(Status.FAILED);
       taskInfo.setErrorType("FailedCancel");
       taskInfo.setErrorMessage("Failed to cancel the task");
-      finishTask(id);
     } else {
       taskInfo.setStatus(Status.CANCELED);
-      finishTask(id);
     }
+    finishTask(id);
   }
 
   /**
