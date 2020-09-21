@@ -377,8 +377,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     private ClientId mClientId;
 
     RaftLocalClient(RaftServer server, ClientId clientId) {
-      this.mServer = server;
-      this.mClientId = clientId;
+      mServer = server;
+      mClientId = clientId;
     }
 
     public CompletableFuture<RaftClientReply> sendRequestAsync(
