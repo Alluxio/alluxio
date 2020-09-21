@@ -16,6 +16,7 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
+import alluxio.util.LogUtils;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -92,8 +93,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CancelledException(formatErrorMessage(
-          "Failed to send request %s: stream is already closed or canceled.", request));
+      throw new CancelledException(
+          formatErrorMessage("Failed to send request %s: stream is already closed or canceled.",
+              LogUtils.truncateMessageLines(request)));
     }
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
@@ -104,12 +106,14 @@ public class GrpcBlockingStream<ReqT, ResT> {
         try {
           if (!mReadyOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new DeadlineExceededException(
-                formatErrorMessage("Timeout sending request %s after %dms.", request, timeoutMs));
+                formatErrorMessage("Timeout sending request %s after %dms.",
+                    LogUtils.truncateMessageLines(request), timeoutMs));
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new CancelledException(formatErrorMessage(
-              "Failed to send request %s: interrupted while waiting for server.", request), e);
+          throw new CancelledException(
+              formatErrorMessage("Failed to send request %s: interrupted while waiting for server.",
+                  LogUtils.truncateMessageLines(request)), e);
         }
       }
     }
@@ -126,7 +130,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
       LOG.debug("Failed to send request {}: stream is already closed or canceled. ({})",
-          request, mDescription);
+          LogUtils.truncateMessageLines(request), mDescription);
       return;
     }
     try (LockResource lr = new LockResource(mLock)) {
