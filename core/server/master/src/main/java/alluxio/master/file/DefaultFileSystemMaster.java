@@ -4201,6 +4201,24 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
+    private static final Map<Integer, Map<String, Counter>> savedUfsOps = new HashMap<>();
+
+    @VisibleForTesting
+    public static Counter getUfsCounter(int mountId, String ufsOp) {
+      return savedUfsOps.compute(mountId, (k, v) -> {
+        if (v != null) {
+          return v;
+        } else {
+          return new HashMap<>();
+        }
+      }).compute(ufsOp, (k, v) -> {
+        if (v != null) {
+          return v;
+        } else {
+          return MetricsSystem.counter("Mount_id_" + mountId + "_" + ufsOp);
+        }
+      });
+    }
 
     /**
      * Register some file system master related gauges.
