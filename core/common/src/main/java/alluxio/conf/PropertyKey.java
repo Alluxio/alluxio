@@ -988,6 +988,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3_CONNECT_TTL =
+      new Builder(Name.UNDERFS_S3_CONNECT_TTL)
+          .setDefaultValue(-1)
+          .setDescription("The expiration time of S3 connections in ms. -1 means the connection "
+            + "will never expire.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_S3_SOCKET_TIMEOUT)
           .setAlias("alluxio.underfs.s3a.socket.timeout.ms", "alluxio.underfs.s3a.socket.timeout")
@@ -3550,6 +3558,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If this is enabled, cache restore state asynchronously.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
           .setDefaultValue(true)
@@ -4755,6 +4770,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3.server.side.encryption.enabled";
     public static final String UNDERFS_S3_SIGNER_ALGORITHM =
         "alluxio.underfs.s3.signer.algorithm";
+    public static final String UNDERFS_S3_CONNECT_TTL =
+        "alluxio.underfs.s3.connection.ttl";
     public static final String UNDERFS_S3_SOCKET_TIMEOUT =
         "alluxio.underfs.s3.socket.timeout";
     public static final String UNDERFS_S3_STREAMING_UPLOAD_ENABLED =
@@ -5255,6 +5272,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
+    public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
+        "alluxio.user.client.cache.async.restore.enabled";
     public static final String USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
         "alluxio.user.client.cache.async.write.enabled";
     public static final String USER_CLIENT_CACHE_ASYNC_WRITE_THREADS =

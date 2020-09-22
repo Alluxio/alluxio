@@ -35,6 +35,7 @@ public final class PlanInfo implements JobInfo {
   private final long mId;
   private final String mName;
   private final String mDescription;
+  private final String mErrorType;
   private final String mErrorMessage;
   private final List<JobInfo> mChildren;
   private final Status mStatus;
@@ -57,6 +58,7 @@ public final class PlanInfo implements JobInfo {
     mDescription = "";
     mStatus = status;
     mLastUpdated = lastUpdated;
+    mErrorType = "";
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
     mChildren = ImmutableList.of();
     mResult = null;
@@ -73,6 +75,7 @@ public final class PlanInfo implements JobInfo {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
     mDescription = verbose ? planInfo.getJobConfig().toString() : "";
+    mErrorType = planInfo.getErrorType();
     mErrorMessage = planInfo.getErrorMessage();
     mStatus = Status.valueOf(planInfo.getStatus().name());
     mResult = verbose ? planInfo.getResult() : "";
@@ -99,6 +102,7 @@ public final class PlanInfo implements JobInfo {
     mId = jobInfo.getId();
     mName = jobInfo.getName();
     mDescription = jobInfo.getDescription();
+    mErrorType = jobInfo.getErrorType();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = new ArrayList<>();
     for (alluxio.grpc.JobInfo taskInfo : jobInfo.getChildrenList()) {
@@ -156,6 +160,14 @@ public final class PlanInfo implements JobInfo {
     return mChildren;
   }
 
+  /**
+   * @return the error type
+   */
+  @Override
+  public String getErrorType() {
+    return mErrorType;
+  }
+
   @Override
   public String getErrorMessage() {
     return mErrorMessage;
@@ -182,7 +194,7 @@ public final class PlanInfo implements JobInfo {
     alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
         .setErrorMessage(mErrorMessage).addAllChildren(taskInfos).setStatus(mStatus.toProto())
         .setName(mName).setDescription(mDescription).addAllAffectedPaths(mAffectedPaths)
-        .setType(JobType.PLAN);
+        .setErrorType(mErrorType).setType(JobType.PLAN);
     if (mResult != null && !mResult.isEmpty()) {
       ByteBuffer result =
           mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
@@ -206,6 +218,7 @@ public final class PlanInfo implements JobInfo {
     }
     PlanInfo that = (PlanInfo) o;
     return Objects.equal(mId, that.mId)
+        && Objects.equal(mErrorType, that.mErrorType)
         && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mChildren, that.mChildren)
         && Objects.equal(mStatus, that.mStatus)
@@ -225,6 +238,7 @@ public final class PlanInfo implements JobInfo {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("id", mId)
+        .add("errorType", mErrorType)
         .add("errorMessage", mErrorMessage)
         .add("childPlanInfoList", mChildren)
         .add("status", mStatus)

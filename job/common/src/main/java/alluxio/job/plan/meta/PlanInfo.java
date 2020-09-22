@@ -38,6 +38,7 @@ public final class PlanInfo implements Comparable<PlanInfo> {
   private final Consumer<PlanInfo> mStatusChangeCallback;
   private volatile Status mStatus;
   private volatile long mLastStatusChangeMs;
+  private volatile String mErrorType;
   private volatile String mErrorMessage;
   private volatile String mResult;
 
@@ -53,6 +54,7 @@ public final class PlanInfo implements Comparable<PlanInfo> {
     mJobConfig = Preconditions.checkNotNull(jobConfig);
     mTaskIdToInfo = new ConcurrentHashMap<>(4, 0.95f);
     mLastStatusChangeMs = CommonUtils.getCurrentMs();
+    mErrorType = "";
     mErrorMessage = "";
     mStatus = Status.CREATED;
     mStatusChangeCallback = statusChangeCallback;
@@ -108,6 +110,20 @@ public final class PlanInfo implements Comparable<PlanInfo> {
    */
   public long getLastStatusChangeMs() {
     return mLastStatusChangeMs;
+  }
+
+  /**
+   * @param errorType the error type
+   */
+  public void setErrorType(String errorType) {
+    mErrorType = errorType == null ? "" : errorType;
+  }
+
+  /**
+   * @return the error type
+   */
+  public String getErrorType() {
+    return mErrorType;
   }
 
   /**
