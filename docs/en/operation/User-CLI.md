@@ -1370,7 +1370,7 @@ format. Available configurations are:
 
 ```console
 file.count.max=<num> (maximum number of files in transformed output)
-file.size.min=<num> (minimum file size of the output)
+file.size.min=<num> (minimum file size in bytes of the output)
 ```
 
 ### transformStatus
