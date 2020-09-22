@@ -11,11 +11,8 @@
 
 package alluxio.client.rest;
 
-import static org.junit.Assert.assertEquals;
-
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.job.CrashPlanConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
@@ -31,7 +28,6 @@ import alluxio.util.WaitForOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -117,103 +113,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.CANCEL),
         params, HttpMethod.POST, null).run();
     waitForStatus(jobId, Status.CANCELED);
-  }
-
-  @Test
-  public void failre_history() throws Exception {
-    final long jobId0 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId0, Status.FAILED);
-    final long jobId1 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId1, Status.FAILED);
-    final long jobId2 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId2, Status.FAILED);
-    String result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
-
-    final ObjectMapper mapper = new ObjectMapper();
-    List<Map<String, Object>> resultList = mapper.readValue(result, List.class);
-
-    assertEquals(3, resultList.size());
-
-    Map<String, Object> map = resultList.get(0);
-    assertEquals(jobId2, map.get("id"));
-    assertEquals("FAILED", map.get("status"));
-    assertEquals("Crash", map.get("name"));
-    assertEquals(ImmutableList.of("/test"), map.get("affectedPaths"));
-    assertEquals("Task execution failed: CrashPlanConfig always crashes", map.get("errorMessage"));
-    assertEquals("IllegalStateException", map.get("errorType"));
-
-    map = resultList.get(1);
-    assertEquals(jobId1, map.get("id"));
-
-    map = resultList.get(2);
-    assertEquals(jobId0, map.get("id"));
-
-    Map<String, String> params = Maps.newHashMap();
-    params.put("limit", "1");
-
-    result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), params, HttpMethod.GET, null).call();
-    resultList = mapper.readValue(result, List.class);
-
-    assertEquals(1, resultList.size());
-    map = resultList.get(0);
-    assertEquals(jobId2, map.get("id"));
-  }
-
-  @Test
-  public void failure_history_filters() throws Exception {
-    final long jobId0 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId0, Status.FAILED);
-    final long jobId1 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId1, Status.FAILED);
-    final long jobId2 = startJob(new CrashPlanConfig("/test"));
-    waitForStatus(jobId2, Status.FAILED);
-
-    String result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), NO_PARAMS, HttpMethod.GET, null).call();
-
-    final ObjectMapper mapper = new ObjectMapper();
-    List<Map<String, Object>> resultList = mapper.readValue(result, List.class);
-
-    assertEquals(3, resultList.size());
-
-    Map<String, Object> map = resultList.get(0);
-    assertEquals(jobId2, map.get("id"));
-    final Long lastUpdated2 = (Long) map.get("lastUpdated");
-
-    map = resultList.get(1);
-    assertEquals(jobId1, map.get("id"));
-    final Long lastUpdated1 = (Long) map.get("lastUpdated");
-
-    map = resultList.get(2);
-    assertEquals(jobId0, map.get("id"));
-    final Long lastUpdated0 = (Long) map.get("lastUpdated");
-
-    Map<String, String> params = Maps.newHashMap();
-    params.put("before", Long.toString(lastUpdated2));
-    params.put("after", Long.toString(lastUpdated0));
-
-    result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), params, HttpMethod.GET, null).call();
-    resultList = mapper.readValue(result, List.class);
-
-    assertEquals(1, resultList.size());
-    assertEquals(jobId1, resultList.get(0).get("id"));
-
-    params.put("after", Long.toString(lastUpdated0 - 1));
-    result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), params, HttpMethod.GET, null).call();
-    resultList = mapper.readValue(result, List.class);
-    assertEquals(2, resultList.size());
-    assertEquals(jobId1, resultList.get(0).get("id"));
-    assertEquals(jobId0, resultList.get(1).get("id"));
-
-    params.put("before", Long.toString(lastUpdated2 + 1));
-    result = new TestCase(mHostname, mPort,
-        getEndpoint(ServiceConstants.FAILURE_HISTORY), params, HttpMethod.GET, null).call();
-    resultList = mapper.readValue(result, List.class);
-    assertEquals(3, resultList.size());
   }
 
   @Test
