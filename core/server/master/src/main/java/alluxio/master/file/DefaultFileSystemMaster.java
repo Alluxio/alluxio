@@ -4083,10 +4083,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .get(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(), bytesReadLocalThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(), bytesReadDomainSocketThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(), bytesReadRemoteThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(), bytesReadUfsThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
+          bytesReadLocalThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
+          bytesReadDomainSocketThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
+          bytesReadRemoteThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
+          bytesReadUfsThroughput);
 
       // Bytes written
       Long bytesWrittenLocalThroughput = (Long) gauges
@@ -4098,10 +4102,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(), bytesWrittenLocalThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(), bytesWrittenAlluxioThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(), bytesWrittenDomainSocketThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(), bytesWrittenUfsThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
+          bytesWrittenLocalThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
+          bytesWrittenAlluxioThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
+          bytesWrittenDomainSocketThroughput);
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
+          bytesWrittenUfsThroughput);
     }
 
     @Override
