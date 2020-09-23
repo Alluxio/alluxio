@@ -147,6 +147,10 @@ public class AlluxioFileInStream extends FileInStream {
         if (result != -1) {
           mPosition++;
         }
+        if (mBlockInStream.remaining() == 0) {
+          closeBlockInStream(mBlockInStream);
+          mBlockInStream = null;
+        }
         return result;
       } catch (IOException e) {
         lastException = e;
@@ -191,6 +195,10 @@ public class AlluxioFileInStream extends FileInStream {
         }
         retry = mRetryPolicySupplier.get();
         lastException = null;
+        if (mBlockInStream.remaining() == 0) {
+          closeBlockInStream(mBlockInStream);
+          mBlockInStream = null;
+        }
       } catch (IOException e) {
         lastException = e;
         if (mBlockInStream != null) {
