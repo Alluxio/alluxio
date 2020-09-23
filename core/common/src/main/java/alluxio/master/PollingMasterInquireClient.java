@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -138,7 +139,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
             .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
             .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+            .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                TimeUnit.MILLISECONDS);
     ServiceType serviceType
         = address.getPort() == mConfiguration.getInt(PropertyKey.JOB_MASTER_RPC_PORT)
         ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
