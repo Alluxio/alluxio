@@ -1352,7 +1352,7 @@ The `transform` command will transform a table for improved efficiency when read
 Here is an example usage:
 
 ```console
-$ ./bin/alluxio table transform db_name table_name
+$ ./bin/alluxio table transform db_name table_name [-d <definition>]
 ```
 
 This command will invoke a transformation on the table. The transformation is performed
@@ -1363,7 +1363,15 @@ format.
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
 > For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
-> with each file no smaller than 2GB. 
+> with each file no smaller than 2GB.
+ 
+The definition format takes a form of configuration separated by semicolon and specifies the details of the output
+format. Available configurations are:
+
+```console
+file.count.max=<num> (maximum number of files in transformed output)
+file.size.min=<num> (minimum file size in bytes of the output)
+```
 
 ### transformStatus
 

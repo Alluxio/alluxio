@@ -57,7 +57,7 @@ It will show the status of the transformation job:
 ```console
 database: default
 table: test
-transformation: write(hive).option(hive.file.count.max, 100).option(hive.file.size.min, 2147483648)
+transformation: file.count.max=100
 job ID: 1572296710137
 job status: COMPLETED
 ```
