@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.joining;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
@@ -124,6 +125,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         return address;
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
+        continue;
+      } catch (DeadlineExceededException e) {
+        LOG.debug("Timeout while connecting to {}", address);
         continue;
       } catch (AlluxioStatusException e) {
         throw new RuntimeException(e);
