@@ -125,7 +125,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    */
   default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer, 0);
+    return get(pageId, 0, buffer.length, buffer, 0);
   }
 
   /**
@@ -133,6 +133,7 @@ public interface PageStore extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param pageOffset offset within page
+   * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
    * @param bufferOffset offset in buffer
    * @return the number of bytes read
@@ -140,8 +141,8 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset) throws IOException,
-      PageNotFoundException;
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+      throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the store.
