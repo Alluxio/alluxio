@@ -15,6 +15,9 @@ import alluxio.job.plan.PlanConfig;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Config for a plan that does nothing.
  */
@@ -45,5 +48,10 @@ public class NoopPlanConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return Collections.EMPTY_LIST;
   }
 }

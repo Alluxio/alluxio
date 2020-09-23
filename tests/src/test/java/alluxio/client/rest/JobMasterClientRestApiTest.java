@@ -62,6 +62,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
+      .setProperty(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0sec")
       .build();
 
   @Rule

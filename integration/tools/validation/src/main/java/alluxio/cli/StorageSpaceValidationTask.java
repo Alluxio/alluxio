@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
@@ -48,7 +47,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validate(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
@@ -70,7 +69,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
         advice.append(String.format("Please check your setting for %s.%n",
                 tierDirCapacityConf.toString()));
-        return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+        return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
                 msg.toString(), advice.toString());
       }
 
@@ -139,7 +138,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
     ValidationUtils.State state = success ? ValidationUtils.State.OK
             : ValidationUtils.State.WARNING;
-    return new ValidationUtils.TaskResult(state, getName(), msg.toString(), advice.toString());
+    return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

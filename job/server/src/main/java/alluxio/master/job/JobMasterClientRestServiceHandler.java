@@ -22,6 +22,8 @@ import alluxio.web.JobMasterWebServer;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jaxrs.annotation.JacksonFeatures;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
 
@@ -41,6 +43,7 @@ import javax.ws.rs.core.Response;
  */
 @Path(ServiceConstants.MASTER_SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "/master")
 public final class JobMasterClientRestServiceHandler {
   private JobMaster mJobMaster;
 
@@ -111,6 +114,7 @@ public final class JobMasterClientRestServiceHandler {
   @GET
   @Path(ServiceConstants.GET_STATUS)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
+  @ApiOperation(value = "Gets the status of a job", response = JobInfo.class)
   public Response getStatus(@QueryParam("jobId") final long jobId) {
     return RestUtils.call(new RestUtils.RestCallable<JobInfo>() {
       @Override

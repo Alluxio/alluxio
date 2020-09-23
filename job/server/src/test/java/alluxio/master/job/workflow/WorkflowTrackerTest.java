@@ -157,7 +157,7 @@ public class WorkflowTrackerTest {
     }
 
     mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 100)
-        .findFirst().get().setJobAsFailed("failed");
+        .findFirst().get().setJobAsFailed("TestError", "failed");
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 4);
 
@@ -171,7 +171,7 @@ public class WorkflowTrackerTest {
     }
 
     mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 101)
-        .findFirst().get().setJobAsFailed("failed");
+        .findFirst().get().setJobAsFailed("TestError", "failed");
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
 
