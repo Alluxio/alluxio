@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.HttpMethod;
 
@@ -97,21 +96,17 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     Files.isDirectory(Paths.get(mLocalAlluxioClusterResource.get().getAlluxioHome(), "web"));
   }
 
-  private void verifyWebService(ServiceType serviceType, String path) throws Exception {
+  private void verifyWebService(ServiceType serviceType, String path) throws IOException {
     InetSocketAddress webAddr = getInetSocketAddresss(serviceType);
+
+    CommonUtils.sleepMs(30000);
 
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":" + webAddr.getPort() + path)
         .openConnection();
+    webService.connect();
 
-    CommonUtils.waitFor("test", () -> {
-      try {
-        webService.connect();
-        return 200 == webService.getResponseCode();
-      } catch (IOException e) {
-        return false;
-      }
-    });
+    Assert.assertEquals(200, webService.getResponseCode());
 
     Scanner pageScanner = null;
     boolean verified = false;
