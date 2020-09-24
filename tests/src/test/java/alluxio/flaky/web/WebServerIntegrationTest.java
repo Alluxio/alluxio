@@ -16,6 +16,7 @@ import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.HttpMethod;
 
@@ -95,15 +97,21 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     Files.isDirectory(Paths.get(mLocalAlluxioClusterResource.get().getAlluxioHome(), "web"));
   }
 
-  private void verifyWebService(ServiceType serviceType, String path) throws IOException {
+  private void verifyWebService(ServiceType serviceType, String path) throws Exception {
     InetSocketAddress webAddr = getInetSocketAddresss(serviceType);
 
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":" + webAddr.getPort() + path)
         .openConnection();
-    webService.connect();
 
-    Assert.assertEquals(200, webService.getResponseCode());
+    CommonUtils.waitFor("test", () -> {
+      try {
+        webService.connect();
+        return 200 == webService.getResponseCode();
+      } catch (IOException e) {
+        return false;
+      }
+    });
 
     Scanner pageScanner = null;
     boolean verified = false;
