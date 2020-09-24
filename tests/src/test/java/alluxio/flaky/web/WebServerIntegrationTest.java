@@ -99,14 +99,12 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   private void verifyWebService(ServiceType serviceType, String path) throws IOException {
     InetSocketAddress webAddr = getInetSocketAddresss(serviceType);
 
-    CommonUtils.sleepMs(30000);
-
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":" + webAddr.getPort() + path)
         .openConnection();
     webService.connect();
 
-    Assert.assertEquals(200, webService.getResponseCode());
+    Assert.assertEquals("Not connecting for " + serviceType.name(), 200, webService.getResponseCode());
 
     Scanner pageScanner = null;
     boolean verified = false;
