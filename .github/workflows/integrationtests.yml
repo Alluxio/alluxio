@@ -6,7 +6,7 @@ name: Integration Tests
 # events but only for the master branch
 on:
   push:
-    branches: [ github_actions, master ]
+    branches: [ github_actions ]
   pull_request:
     branches: [ github_actions, master ]
 
