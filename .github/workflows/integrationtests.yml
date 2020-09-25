@@ -28,7 +28,9 @@ jobs:
           - >-
             alluxio.client.cli.**
           - >-
-            alluxio.client.**,!alluxio.client.cli.**
+            alluxio.client.fs.**
+          - >-
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
             alluxio.job.**
           - >-
