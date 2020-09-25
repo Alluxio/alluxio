@@ -9,14 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.flaky.web;
+package alluxio.web;
 
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -104,7 +103,7 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
         .openConnection();
     webService.connect();
 
-    Assert.assertEquals("Not connecting for " + serviceType.name(), 200, webService.getResponseCode());
+    Assert.assertEquals(200, webService.getResponseCode());
 
     Scanner pageScanner = null;
     boolean verified = false;
