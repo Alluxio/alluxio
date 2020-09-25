@@ -39,6 +39,7 @@ ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
+ARG ENABLE_DYNAMIC_USER=false
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
@@ -75,7 +76,12 @@ COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
 RUN if [ ${ENABLE_DYANMIC_USER} = "true" ] ; then \
-       chmod -R 777 /journal; \
+       chmod -R 777 /mnt; \
+    fi
+
+# Enable user_allow_other option for fuse in non-root mode
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
+       echo "user_allow_other" >> /etc/fuse.conf; \
     fi
 
 USER ${ALLUXIO_UID}
