@@ -42,7 +42,7 @@ failover. In Alluxio 2.0, there are two different ways to achieve these two goal
 * To deploy an Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled
   Alluxio binary file, extract the tarball and copy the extracted directory to all nodes (including
   nodes running masters and workers).
-* Enable SSH login without password from master node to worker nodes. You can add a public SSH key
+* Enable SSH login without password from all master node to all worker nodes. You can add a public SSH key
   for the host into `~/.ssh/authorized_keys`. See
   [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
