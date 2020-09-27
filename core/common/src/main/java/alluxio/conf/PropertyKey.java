@@ -2651,6 +2651,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT =
+      new Builder(Name.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("Timeout for periodical connections between workers "
+              + "and the leading master. Periodical connections between workers "
+              + "and previous leading master may hang which prevents workers "
+              + "from registering with the new leading master "
+              + "during flaky network situations.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
           .setDescription("Retry period before workers give up on connecting to master and exit.")
@@ -5149,6 +5159,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
+    public static final String WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT =
+        "alluxio.worker.master.periodical.connect.timeout";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
