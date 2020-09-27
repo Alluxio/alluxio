@@ -2653,7 +2653,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT =
       new Builder(Name.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("5min")
           .setDescription("Timeout for periodical connections between workers "
               + "and the leading master. Periodical connections between workers "
               + "and previous leading master may hang which prevents workers "
