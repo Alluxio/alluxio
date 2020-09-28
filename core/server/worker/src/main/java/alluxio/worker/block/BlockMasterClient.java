@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -187,8 +189,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
-    return retryRPC(() -> mClient.blockHeartbeat(request).getCommand(),
-        LOG, "Heartbeat", "workerId=%d", workerId);
+    return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
+        .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
   /**

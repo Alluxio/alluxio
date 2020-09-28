@@ -2657,6 +2657,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1hour")
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
+      new Builder(Name.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("Timeout for periodical RPC between workers "
+              + "and the leading master. This property is added to prevent workers "
+              + "from hanging in periodical RPCs with previous leading master "
+              + "during flaky network situations. If the timeout is too short, "
+              + "periodical RPCs may not have enough time to get response "
+              + "from the leading master during heavy cluster load "
+              + "and high network latency.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_RAMDISK_SIZE =
       new Builder(Name.WORKER_RAMDISK_SIZE)
           .setAlias(Name.WORKER_MEMORY_SIZE)
@@ -5151,6 +5163,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
+    public static final String WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
+        "alluxio.worker.master.periodical.rpc.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
