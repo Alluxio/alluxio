@@ -17,7 +17,6 @@ import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.cli.ValidationTool;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;

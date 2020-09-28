@@ -42,7 +42,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionsMap)
+  public ValidationTaskResult validateImpl(Map<String, String> optionsMap)
       throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();

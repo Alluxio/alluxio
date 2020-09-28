@@ -88,7 +88,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionMap) {
+  public ValidationTaskResult validateImpl(Map<String, String> optionMap) {
     // Skip this test if NOSASL
     if (mConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE)
             .equals(AuthType.NOSASL.getAuthName())) {
