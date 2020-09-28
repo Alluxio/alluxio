@@ -385,6 +385,11 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.writeInode(inode);
   }
 
+  /**
+   * Applies the provided update inode entry according to the persistance state.
+   *
+   * @param entry the update inode entry to use
+   */
   private void applyUpdateInode(UpdateInodeEntry entry) {
     Optional<MutableInode<?>> inodeOpt = mInodeStore.getMutable(entry.getId());
     if (!inodeOpt.isPresent()) {
@@ -539,6 +544,11 @@ public class InodeTreePersistentState implements Journaled {
   // Helper methods
   ////
 
+  /**
+   * Writes a new inode to the inode store.
+   *
+   * @param inode the mutable inode to be added to the inode store
+   */
   private void applyCreateInode(MutableInode<?> inode) {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.

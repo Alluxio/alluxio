@@ -390,10 +390,7 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
-   * alluxio-site properties.
-   *
-   * @return the set of Alluxio properties loaded from the site-properties file
+   * @return the set of Alluxio properties loaded from alluxio-site.properties
    */
   public static AlluxioProperties defaults() {
     if (sDefaultProperties == null) {

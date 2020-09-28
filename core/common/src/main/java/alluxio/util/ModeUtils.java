@@ -100,6 +100,11 @@ public final class ModeUtils {
     return new Mode((short) umask);
   }
 
+  /**
+   * @param value the value to validate
+   * @return whether the provided {@code value}
+   *         can be converted to an integer
+   */
   private static boolean isValid(String value) {
     try {
       Integer.parseInt(value);

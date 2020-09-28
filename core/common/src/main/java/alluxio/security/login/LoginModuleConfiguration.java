@@ -64,6 +64,20 @@ public final class LoginModuleConfiguration extends Configuration {
    */
   public LoginModuleConfiguration() {}
 
+  /**
+   * Gets and returns configuration entries for the specified application.
+   *
+   * @param appName the name of the login module or application.
+   * @return a vector of {@link javax.security.auth.spi.LoginModule}
+   *         entries configured for the login module. The vector contains
+   *         three objects of type {@link AppConfigurationEntry}:
+   *         1) one for the operating-system specific login;
+   *         2) another one for the application login;
+   *         3) another one for the Alluxio login.
+   *
+   * @throws UnsupportedOperationException if the authentication is made through
+   *         Kerberos, which is not supported
+   */
   @Override
   @Nullable
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {

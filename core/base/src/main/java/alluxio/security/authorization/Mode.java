@@ -153,9 +153,7 @@ public final class Mode {
   }
 
   /**
-   * Sets group bits.
-   *
-   * @param bits the group bits to set
+   * @param bits the group bits/permissions to set
    */
   public void setGroupBits(Bits bits) {
     mGroupBits = bits;
@@ -185,6 +183,14 @@ public final class Mode {
     mOtherBits = bits;
   }
 
+  /**
+   * @param u the owner bits to use, corresponding to
+   *        the owner permissions
+   * @param g the group bits to use, corresponding to
+   *        the group permissions
+   * @param o the other bits to use, corresponding to
+   *        permissions from others
+   */
   private void set(Bits u, Bits g, Bits o) {
     mOwnerBits = u;
     mGroupBits = g;

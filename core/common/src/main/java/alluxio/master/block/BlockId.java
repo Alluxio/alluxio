@@ -35,6 +35,8 @@ public final class BlockId {
   }
 
   /**
+   * Creates a new block ID with the provided container ID and sequence number.
+   *
    * @param containerId the container ID to create the block ID with
    * @param sequenceNumber the sequence number to create the block ID with
    * @return the block ID constructed with the container ID and sequence number

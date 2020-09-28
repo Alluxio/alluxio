@@ -220,7 +220,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the {@link TtlAction}
+   * @return the TTL (time-to-live) action, or what Alluxio
+   *         should do with the file once its hop limit
+   *         exceeds - either delete it or free it
    */
   public TtlAction getTtlAction() {
     return mTtlAction;
@@ -305,7 +307,7 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the ACL object for this file
+   * @return the access-control list (ACL) for this file information
    */
   public AccessControlList getAcl() {
     return mAcl;
@@ -350,8 +352,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param fileId the file id to use
-   * @return the file information
+   * @param fileId the file ID to use
+   * @return this file information updated
    */
   public FileInfo setFileId(long fileId) {
     mFileId = fileId;
@@ -434,8 +436,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param folder the folder flag value to use
-   * @return the file information
+   * @param folder whether the file is
+   *        a folder
+   * @return this file information updated
    */
   public FileInfo setFolder(boolean folder) {
     mFolder = folder;
@@ -443,8 +446,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param pinned the pinned flag value to use
-   * @return the file information
+   * @param pinned whether the file is pinned
+   * @return this file information updated
    */
   public FileInfo setPinned(boolean pinned) {
     mPinned = pinned;
@@ -452,8 +455,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param cacheable the cacheable flag value to use
-   * @return the file information
+   * @param cacheable whether the file is cacheable
+   * @return this file information updated
    */
   public FileInfo setCacheable(boolean cacheable) {
     mCacheable = cacheable;
@@ -461,8 +464,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param persisted the persisted flag value to use
-   * @return the file information
+   * @param persisted whether the file
+   *        should be persisted
+   * @return this file information updated
    */
   public FileInfo setPersisted(boolean persisted) {
     mPersisted = persisted;
@@ -525,8 +529,10 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param ttlAction the {@link TtlAction} to use
-   * @return the updated options object
+   * @param ttlAction the TTL (time-to-live) action to use
+   *        for the file, or what should be done to the file once its TTL
+   *        expires - either delete it or free it
+   * @return this file information with an updated TTL action
    */
   public FileInfo setTtlAction(TtlAction ttlAction) {
     mTtlAction = ttlAction;
@@ -554,8 +560,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param mode the file mode bits
-   * @return the file information
+   * @param mode the file mode bits to use
+   * @return this file information updated with
+   *         the provided mode bits
    */
   public FileInfo setMode(int mode) {
     mMode = mode;
@@ -612,8 +619,8 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param mountId the id of mount
-   * @return the file information
+   * @param mountId the ID of mount to use
+   * @return this file information with an updated mount ID
    */
   public FileInfo setMountId(long mountId) {
     mMountId = mountId;

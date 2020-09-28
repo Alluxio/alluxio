@@ -122,6 +122,9 @@ public abstract class AbstractClient implements Client {
    */
   protected abstract ServiceType getRemoteServiceType();
 
+  /**
+   * @return the remote service version
+   */
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
     return mVersionService
@@ -164,9 +167,11 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * This method is called before the connection is connected. Implementations should add any
-   * additional operations before the connection is connected.
-   * loading the cluster defaults
+   * Loads configuration if not loaded from meta master and client is not connected yet.
+   * <p>
+   * This method is called before the connection is established. Implementations should add any
+   * additional operations that may need to occur before the connection is made loading the cluster
+   * defaults.
    */
   protected void beforeConnect()
       throws IOException {
@@ -295,7 +300,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * @return true if this client is connected to the remote
+   * @return whether this client is connected to the remote
    */
   public synchronized boolean isConnected() {
     return mConnected;
@@ -386,6 +391,17 @@ public abstract class AbstractClient implements Client {
     }
   }
 
+  /**
+   * Attempts to establish an RPC.
+   *
+   * @param rpc the RPC call to be executed
+   * @param onRetry the action to take on a retry
+   * @param <V> the return value of RPC call
+   * @return the RPC result
+   * @throws AlluxioStatusException if the client is closed or
+   *         the RPC connection fails more times than allowed
+   *         by the retry policy
+   */
   private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
       throws AlluxioStatusException {
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
@@ -416,6 +432,12 @@ public abstract class AbstractClient implements Client {
         + " attempts: " + ex.toString(), ex);
   }
 
+  /**
+   * @param metricName the metric name from which to get the
+   *        qualified name
+   * @return a String with the qualified name for the provided
+   *         {@code metricName}
+   */
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {

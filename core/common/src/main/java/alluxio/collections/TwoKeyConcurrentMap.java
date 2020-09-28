@@ -42,9 +42,14 @@ public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends Concur
   }
 
   /**
-   * @param k1 the first key
-   * @param k2 the second key
-   * @param v the value
+   * Assigns a new value to a pair of keys.
+   * <p>
+   * Adds a new value to this double-keyed concurrent hash map
+   * and assigns it to the provided pair of keys {@code k1} and {@code k2}.
+   *
+   * @param k1 the first key of this map
+   * @param k2 the second key of this map
+   * @param v the value to link the pair of keys to
    */
   public void addInnerValue(K1 k1, K2 k2, V v) {
     compute(k1, (k, inner) -> {

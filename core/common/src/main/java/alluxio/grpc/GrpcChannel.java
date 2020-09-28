@@ -77,7 +77,9 @@ public final class GrpcChannel extends Channel {
 
   /**
    * Intercepts the channel with given interceptor.
-   * @param interceptor interceptor
+   *
+   * @param interceptor the client interceptor to intercept
+   *        this gRPC channel with
    */
   public void intercept(ClientInterceptor interceptor) {
     mTrackedChannel = ClientInterceptors.intercept(mTrackedChannel, interceptor);
@@ -150,6 +152,9 @@ public final class GrpcChannel extends Channel {
   private class ChannelResponseTracker implements ClientInterceptor {
     private boolean mChannelHealthy = true;
 
+    /**
+     * @return whether the channel is healthy
+     */
     public boolean isChannelHealthy() {
       return mChannelHealthy;
     }

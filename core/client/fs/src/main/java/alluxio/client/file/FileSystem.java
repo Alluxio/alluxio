@@ -168,12 +168,12 @@ public interface FileSystem extends Closeable {
   boolean isClosed();
 
   /**
+   * Creates a directory with the provided URI path.
+   * <p>
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
    * default options.
    *
-   * @param path the path of the directory to create in Alluxio space
-   * @throws FileAlreadyExistsException if there is already a file or directory at the given path
-   * @throws InvalidPathException if the path is invalid
+   * @param path the Alluxio URI of the directory to create in Alluxio space
    */
   default void createDirectory(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {

@@ -46,9 +46,7 @@ public interface Client extends Closeable {
   InetSocketAddress getConfAddress() throws UnavailableException;
 
   /**
-   * Returns the connected status of the client.
-   *
-   * @return true if this client is connected to the remote
+   * @return whether this client is connected to the remote
    */
   boolean isConnected();
 

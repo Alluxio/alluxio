@@ -37,12 +37,17 @@ public final class BlockLocationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLocationUtils.class);
 
   /**
-   * @param tieredIdentity the tiered identity
-   * @param addresses the candidate worker addresses
+   * Gets the nearest available worker network address.
+   *
+   * @param tieredIdentity the tiered identity from which to determine
+   *        the nearest identity if a local worker is not found within
+   *        the provided {@code addresses}
+   * @param addresses the candidate worker addresses to retrieve
+   *        the closest network address from
    * @param conf Alluxio configuration
-   * @return the first in the pair indicates the address closest to this one. If none of the
-   *         identities match, the first address is returned. the second in the pair indicates
-   *         whether or not the location is local
+   * @return a pair with 1) the address closest to this one
+   *         and 2) whether the location is local if the nearest
+   *         identity can be determined, otherwise returns empty
    */
   public static Optional<Pair<WorkerNetAddress, Boolean>> nearest(TieredIdentity tieredIdentity,
       List<WorkerNetAddress> addresses, AlluxioConfiguration conf) {

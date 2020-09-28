@@ -124,10 +124,10 @@ public final class AlluxioLoginModule implements LoginModule {
   /**
    * Gets a principal user.
    *
-   * @param className the name of class extending Principal
-   * @return a user extending a specified Principal
+   * @param className the name of class extending {@link Principal}
+   * @return a user extending a specified class extending Principal
    * @throws LoginException if the specified class can not be found,
-   * or there are are more than one instance of Principal
+   *         or there are multiple instances of Principal
    */
   @Nullable
   private Principal getPrincipalUser(String className) throws LoginException {

@@ -490,10 +490,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   protected abstract boolean shouldGc(ResourceInternal<T> resourceInternal);
 
   /**
-   * Checks whether a resource is healthy or not.
-   *
    * @param resource the resource to check
-   * @return true if the resource is healthy
+   * @return whether the {@code resource} is healthy
    */
   protected abstract boolean isHealthy(T resource);
 

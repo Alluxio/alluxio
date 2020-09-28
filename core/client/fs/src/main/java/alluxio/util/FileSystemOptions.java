@@ -55,6 +55,8 @@ public class FileSystemOptions {
   }
 
   /**
+   * Creates default directory options based on the provided configuration.
+   *
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
@@ -126,7 +128,7 @@ public class FileSystemOptions {
 
   /**
    * @param conf Alluxio configuration
-   * @return options based on the configuration
+   * @return default file system master options based on the configuration
    */
   public static FileSystemMasterCommonPOptions commonDefaults(
       AlluxioConfiguration conf) {
@@ -163,7 +165,7 @@ public class FileSystemOptions {
 
   /**
    * @param conf Alluxio configuration
-   * @return options based on the configuration
+   * @return default options based on the {@code conf}iguration
    */
   public static ListStatusPOptions listStatusDefaults(AlluxioConfiguration conf) {
     return ListStatusPOptions.newBuilder()
@@ -187,6 +189,8 @@ public class FileSystemOptions {
   }
 
   /**
+   * Builds and returns a new set of options for the file system.
+   *
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */

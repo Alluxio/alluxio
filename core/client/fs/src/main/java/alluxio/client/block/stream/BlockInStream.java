@@ -384,7 +384,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
-   * Close the current data reader.
+   * Closes the current data reader.
    */
   private void closeDataReader() throws IOException {
     if (mCurrentChunk != null) {

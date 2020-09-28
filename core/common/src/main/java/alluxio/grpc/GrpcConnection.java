@@ -46,7 +46,8 @@ public class GrpcConnection implements AutoCloseable {
   }
 
   /**
-   * @return the hannel key that owns the connection
+   * @return the channel key that owns this gRPC
+   *         connection
    */
   public GrpcChannelKey getChannelKey() {
     return mKey.getChannelKey();

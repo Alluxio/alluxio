@@ -91,8 +91,10 @@ public final class GrpcUtils {
   }
 
   /**
-   * @param pAcl the proto representation
-   * @return the {@link AccessControlList} instance created from the proto representation
+   * Creates an access-control list (ACL) from the provided protobuf representation.
+   *
+   * @param pAcl the protobuf representation of the ACL
+   * @return the {@link AccessControlList} instance created from the protobuf representation
    */
   public static AccessControlList fromProto(PAcl pAcl) {
     AccessControlList acl;
@@ -656,9 +658,11 @@ public final class GrpcUtils {
   }
 
   /**
+   * Checks if target enum is contained within the given source.
+   *
    * @param source source enum
    * @param target target enum
-   * @return true if target enum is contained within the source
+   * @return whether target enum is present in the provided {@code source}
    */
   public static boolean contains(Scope source, Scope target) {
     return (source.getNumber() | target.getNumber()) == source.getNumber();

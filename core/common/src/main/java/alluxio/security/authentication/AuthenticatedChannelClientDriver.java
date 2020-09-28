@@ -82,9 +82,11 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
   }
 
   /**
-   * Sets the server's Sasl stream.
+   * Sets the server's Simple Authentication and Security Layer stream.
+   * <p>
+   * Defines the {@link #mRequestObserver}.
    *
-   * @param requestObserver server Sasl stream
+   * @param requestObserver server SASL stream
    */
   public void setServerObserver(StreamObserver<SaslMessage> requestObserver) {
     mRequestObserver = requestObserver;
@@ -168,6 +170,14 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     }
   }
 
+  /**
+   * Builds a Simple Authentication and Security Layer (SASL) message.
+   *
+   * @return the generated SASL message
+   * @throws SaslException if the SASL exchange has failed due to reasons
+   *         related to authentication, such as an invalid
+   *         identity, passphrase, or key
+   */
   private SaslMessage generateInitialMessage() throws SaslException {
     SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
     initialMsg.setClientId(mChannelKey.getChannelId().toString());
@@ -175,6 +185,16 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     return initialMsg.build();
   }
 
+  /**
+   * Sets a time limit for channel authentication duration, waits until completion or timeout.
+   *
+   * @param timeoutMs the max duration of the wait time for the channel
+   *        authentication in milliseconds
+   * @throws AlluxioStatusException if this thread is interrupted,
+   *         the server does not provide an authentication service,
+   *         or the authentication service took longer than the max
+   *         duration established
+   */
   private void waitUntilChannelAuthenticated(long timeoutMs) throws AlluxioStatusException {
     try {
       // Wait until authentication status changes.
@@ -195,6 +215,11 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     }
   }
 
+  /**
+   * Closes the Simple Authentication and Security Layer (SASL) client handler.
+   *
+   * @param signalServer whether to signal server
+   */
   private void closeAuthenticatedChannel(boolean signalServer) {
     mSaslClientHandler.close();
     // Authentication failed either during or after handshake.

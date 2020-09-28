@@ -63,8 +63,9 @@ public final class TieredIdentity implements Serializable {
   }
 
   /**
-   * @param other a tiered identity to compare to
-   * @return whether the top tier of this tiered identity matches the top tier of other
+   * @param other a tiered identity to compare this one to
+   * @return whether the top tier of this tiered identity matches
+   *         the top tier (index 0) of {@code other}
    */
   public boolean topTiersMatch(TieredIdentity other) {
     return mTiers.get(0).equals(other.getTier(0));

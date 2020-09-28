@@ -37,7 +37,7 @@ public final class OSUtils {
   }
 
   /**
-   * @return true if current OS is Windows
+   * @return whether the current operating system (OS) is Windows
    */
   public static boolean isWindows() {
     return SystemUtils.IS_OS_WINDOWS;
@@ -51,7 +51,7 @@ public final class OSUtils {
   }
 
   /**
-   * @return true if current OS is Linux
+   * @return whether the current operating system (OS) is Linux
    */
   public static boolean isLinux() {
     return SystemUtils.IS_OS_LINUX;

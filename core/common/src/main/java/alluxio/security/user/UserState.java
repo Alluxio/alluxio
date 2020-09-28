@@ -73,8 +73,10 @@ public interface UserState {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
 
     /**
+     * Creates a new user state with the provided configurations.
+     *
      * @param conf the configuration to use
-     * @return a new UserState instance
+     * @return a new user state with the provided configuration
      */
     public static UserState create(AlluxioConfiguration conf) {
       return create(conf, new Subject());

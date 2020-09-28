@@ -45,10 +45,10 @@ public interface URI extends Comparable<URI>, Serializable {
     private Factory() {} // prevent instantiation
 
     /**
-     * Creates a {@link URI} from a string.
+     * Creates a URI from a String.
      *
-     * @param uriStr URI string to create the {@link URI} from
-     * @return the created {@link URI}
+     * @param uriStr URI string to create the URI from
+     * @return the URI corresponding to the provided String
      */
     public static URI create(String uriStr) {
       Preconditions.checkArgument(uriStr != null, "Can not create a uri with a null path.");

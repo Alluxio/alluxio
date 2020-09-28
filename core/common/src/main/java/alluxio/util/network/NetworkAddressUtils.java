@@ -352,7 +352,8 @@ public final class NetworkAddressUtils {
    * Gets the local hostname to be used by the client. If this isn't configured, a
    * non-loopback local hostname will be looked up.
    *
-   * @param conf Alluxio configuration
+   * @param conf Alluxio configuration from which to fetch the user hostname,
+   *        locality tier node, and timeout in milliseconds
    * @return the local hostname for the client
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
@@ -408,11 +409,9 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Gets a local host name for the host this JVM is running on.
-   *
-   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
-   *        reachable
-   * @return the local host name, which is not based on a loopback ip address
+   * @param timeoutMs the timeout in milliseconds to use for checking that a possible local host
+   *        is reachable
+   * @return the local host name, which is not based on a loopback IP address
    */
   public static synchronized String getLocalHostName(int timeoutMs) {
     if (sLocalHost != null) {

@@ -27,13 +27,12 @@ public final class ThreadFactoryUtils {
   private ThreadFactoryUtils() {}
 
   /**
-   * Creates a {@link java.util.concurrent.ThreadFactory} that spawns off threads.
+   * Creates a thread factory that spawns off threads.
    *
-   * @param nameFormat name pattern for each thread. should contain '%d' to distinguish between
-   *                   threads.
-   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
-   *                 daemon threads.
-   * @return the created factory
+   * @param nameFormat the name pattern for each thread. should contain '%d' to distinguish between
+   *        threads
+   * @param isDaemon boolean representing whether the thread factory should create daemon threads
+   * @return a new thread factory that spawns off threads
    */
   public static ThreadFactory build(final String nameFormat, boolean isDaemon) {
     return new ThreadFactoryBuilder().setDaemon(isDaemon).setNameFormat(nameFormat).build();

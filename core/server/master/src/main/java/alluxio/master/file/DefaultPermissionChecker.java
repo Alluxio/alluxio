@@ -293,6 +293,14 @@ public class DefaultPermissionChecker implements PermissionChecker {
     return inode.getPermission(user, groups).toModeBits();
   }
 
+  /**
+   * Checks whether the user is root or belongs to a super group.
+   *
+   * @param user the user to check permissions from
+   * @param groups the list of file system groups
+   * @return a boolean value representing whether the provided {@code user}
+   *         is a superuser or belongs to the {@link #mFileSystemSuperGroup}
+   */
   private boolean isPrivilegedUser(String user, List<String> groups) {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }

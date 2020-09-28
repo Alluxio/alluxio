@@ -87,6 +87,12 @@ public class GrpcSerializationUtils {
     }
   }
 
+  /**
+   * @param className the name of the class to get the desired field from
+   * @param fieldName the name of the field to retrieve
+   * @return the private field with the corresponding {@code fieldName}
+   *         for the class with the corresponding {@code className}
+   */
   private static Field getPrivateField(String className, String fieldName)
       throws NoSuchFieldException, ClassNotFoundException {
     Class<?> declaringClass = Class.forName(className);
@@ -95,6 +101,12 @@ public class GrpcSerializationUtils {
     return field;
   }
 
+  /**
+   * @param className the name of the class to get the private constructor from
+   * @param parameterTypes the constructor parameter types
+   * @return the private constructor with the provided {@code parameterTypes}
+   *         for the class with the provided {@code className}
+   */
   private static Constructor<?> getPrivateConstructor(String className, Class<?> ...parameterTypes)
       throws ClassNotFoundException, NoSuchMethodException {
     Class<?> declaringClass = Class.forName(className);

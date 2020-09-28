@@ -264,9 +264,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Gets the path component of the {@link AlluxioURI}.
-   *
-   * @return the path
+   * @return the path component of this Alluxio URI
    */
   public String getPath() {
     return mUri.getPath();
@@ -303,9 +301,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Tells if the {@link AlluxioURI} has authority or not.
-   *
-   * @return true if it has, false otherwise
+   * @return whether this Alluxio URI has authority
    */
   public boolean hasAuthority() {
     return !(mUri.getAuthority() instanceof NoAuthority);
@@ -317,9 +313,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Tells if this {@link AlluxioURI} has scheme or not.
-   *
-   * @return true if it has, false otherwise
+   * @return whether this AlluxioURI has scheme
    */
   public boolean hasScheme() {
     return mUri.getScheme() != null;
@@ -330,7 +324,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash
-   * @return true if it is a windows path, false otherwise
+   * @return whether the provided {@code path} is a Windows path
    */
   public static boolean hasWindowsDrive(String path, boolean slashed) {
     int start = slashed ? 1 : 0;

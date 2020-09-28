@@ -81,8 +81,8 @@ public final class GrpcChannelBuilder {
   /**
    * Sets {@link Subject} for authentication.
    *
-   * @param subject the subject
-   * @return the updated {@link GrpcChannelBuilder} instance
+   * @param subject the subject to use for this channel builder
+   * @return this gRPC channel builder updated with a new subject
    */
   public GrpcChannelBuilder setSubject(Subject subject) {
     mParentSubject = subject;

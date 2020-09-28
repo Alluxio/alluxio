@@ -22,10 +22,13 @@ import java.util.stream.Collectors;
 public final class StreamUtils {
 
   /**
-   * @param f the function to apply
+   * Applies a function to each element in a provided collection. Outputs are returned in a list.
+   *
+   * @param f the function to apply in each iteration over
+   *        the provided {@code collection}
    * @param collection a collection to map over
-   * @param <T> the input type
-   * @param <R> the output type
+   * @param <T> the function input type and type of objects in the provided {@code collection}
+   * @param <R> the function output type and type of objects in the returned list
    * @return a list containing the elements of the collection with the function applied
    */
   public static <T, R> List<R> map(Function<T, R> f, Collection<T> collection) {

@@ -264,6 +264,9 @@ public class FileSystemContext implements Closeable {
     LOG.debug("Closed context with id: {}", mId);
   }
 
+  /**
+   * Closes this file system context.
+   */
   private synchronized void closeContext() throws IOException {
     if (!mClosed.get()) {
       // Setting closed should be the first thing we do because if any of the close operations
@@ -505,6 +508,14 @@ public class FileSystemContext implements Closeable {
     }
   }
 
+  /**
+   * Acquires or instantiates a new block worker client if none is found in the client pool.
+   *
+   * @param workerNetAddress the network address of the channel
+   * @param context the client context to use
+   * @param userState the user state to use
+   * @return a closeable resource wrapping the corresponding block worker client
+   */
   private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
       final WorkerNetAddress workerNetAddress, final ClientContext context, UserState userState)
       throws IOException {
@@ -556,7 +567,7 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return if there is a local worker running the same machine
+   * @return whether there is a local worker running in this JVM
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
@@ -606,6 +617,9 @@ public class FileSystemContext implements Closeable {
     }
   }
 
+  /**
+   * Initializes the local worker.
+   */
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {

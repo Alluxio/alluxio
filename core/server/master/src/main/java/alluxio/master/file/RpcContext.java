@@ -126,6 +126,11 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
     }
   }
 
+  /**
+   * Attempts to close the provided closeable gracefully.
+   *
+   * @param c the autocloseable to close
+   */
   private void closeQuietly(AutoCloseable c) {
     if (c != null) {
       try {

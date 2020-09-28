@@ -43,7 +43,7 @@ public final class BlockWorkerInfo {
   }
 
   /**
-   * @return the address of the worker
+   * @return the network address of the worker
    */
   public WorkerNetAddress getNetAddress() {
     return mNetAddress;

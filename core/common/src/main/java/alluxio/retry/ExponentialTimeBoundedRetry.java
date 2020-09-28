@@ -63,7 +63,9 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
   }
 
   /**
-   * @return a builder
+   * Creates and returns a new retry policy builder with exponential backoff.
+   *
+   * @return a builder for creating a new exponential time-bounded retry policy
    */
   public static Builder builder() {
     return new Builder();
@@ -107,8 +109,10 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     }
 
     /**
+     * Defines the maximum sleep time for the returned new instance.
+     *
      * @param maxSleep maximum sleep interval between retries
-     * @return the builder
+     * @return this builder with the provided maximum sleep time
      */
     public Builder withMaxSleep(Duration maxSleep) {
       mMaxSleep = maxSleep;
@@ -126,7 +130,10 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     }
 
     /**
-     * @return the built retry mechanism
+     * Builds and returns a new exponential time-bounded retry mechanism.
+     *
+     * @return the built exponential time-bounded
+     *         retry mechanism
      */
     public ExponentialTimeBoundedRetry build() {
       return new ExponentialTimeBoundedRetry(

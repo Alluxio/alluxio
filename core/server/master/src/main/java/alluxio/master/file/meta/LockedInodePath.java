@@ -442,6 +442,9 @@ public class LockedInodePath implements Closeable {
     }
   }
 
+  /**
+   * Locks the root edge and inode.
+   */
   private void bootstrapTraversal() {
     if (!mLockList.isEmpty()) {
       return;

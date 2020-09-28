@@ -64,8 +64,16 @@ public abstract class BaseUserState implements UserState {
     return mUser;
   }
 
+  /**
+   * Logs in the Alluxio user.
+   *
+   * @return the Alluxio user that was logged in
+   */
   protected abstract User login() throws UnauthenticatedException;
 
+  /**
+   * Attempts to login the user if it is not already logged in.
+   */
   private void tryLogin() throws UnauthenticatedException {
     if (mUser == null) {
       synchronized (this) {

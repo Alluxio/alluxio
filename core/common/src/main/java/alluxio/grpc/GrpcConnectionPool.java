@@ -121,8 +121,7 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * Decreases the ref-count of the {@link ManagedChannel} for the given address. It shuts down the
-   * underlying channel if reference count reaches zero.
+   * Decreases ref-count of the managed channel and shuts it down if the counter reaches zero.
    *
    * @param connectionKey the connection key
    * @param conf the Alluxio configuration
@@ -143,6 +142,12 @@ public class GrpcConnectionPool {
     });
   }
 
+  /**
+   * @param channelKey the gRPC channel key
+   * @param conf the Alluxio configuration
+   * @return the gRPC connection key for the provided gRPC channel key and
+             with the provided Alluxio configuration
+   */
   private GrpcConnectionKey getConnectionKey(GrpcChannelKey channelKey, AlluxioConfiguration conf) {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
@@ -155,7 +160,11 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * Creates a {@link ManagedChannel} by given pool key.
+   * Creates a managed Netty channel by given pool key.
+   *
+   * @param channelKey the unique identifier for the gRPC channel
+   * @param conf the Alluxio configuration
+   * @return a new managed channel
    */
   private ManagedChannel createManagedChannel(GrpcChannelKey channelKey,
       AlluxioConfiguration conf) {
@@ -177,7 +186,8 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * It updates and returns the given {@link NettyChannelBuilder} based on network group settings.
+   * Updates and returns the given netty channel builder based on network group settings.
+   * @return the provided netty channel builder with group defaults applied
    */
   private NettyChannelBuilder applyGroupDefaults(GrpcChannelKey key,
       NettyChannelBuilder channelBuilder, AlluxioConfiguration conf) {
@@ -211,7 +221,9 @@ public class GrpcConnectionPool {
   }
 
   /**
-   * Returns {@code true} if given managed channel is ready.
+   * Waits until it is known whether the connection is ready.
+   *
+   * @return whether the given managed channel is ready
    */
   private boolean waitForConnectionReady(ManagedChannel managedChannel, AlluxioConfiguration conf) {
     long healthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
@@ -274,6 +286,14 @@ public class GrpcConnectionPool {
     }
   }
 
+  /**
+   * Acquires event loop for the network group of a given gRPC channel key.
+   *
+   * @param channelKey the gRPC channel key from which to
+   *        get the network group
+   * @param conf Alluxio configuration
+   * @return the event loop group for the provided {@code channelKey}
+   */
   private EventLoopGroup acquireNetworkEventLoop(GrpcChannelKey channelKey,
       AlluxioConfiguration conf) {
     return mEventLoops.compute(channelKey.getNetworkGroup(), (key, v) -> {
@@ -305,6 +325,12 @@ public class GrpcConnectionPool {
     }).get();
   }
 
+  /**
+   * Attempts to release network event loop for a provided gRPC channel key.
+   *
+   * @param channelKey the gRPC channel key from which the network group
+   *        will be provided
+   */
   private void releaseNetworkEventLoop(GrpcChannelKey channelKey) {
     mEventLoops.compute(channelKey.getNetworkGroup(), (key, ref) -> {
       Preconditions.checkNotNull(ref, "Cannot release nonexistent event-loop");

@@ -173,7 +173,10 @@ public final class MetricsSystem {
   }
 
   /**
-   * Constructs the source name of metrics in this {@link MetricsSystem}.
+   * Constructs the source name of metrics in this metrics system.
+   *
+   * @return a local hostname for the host this JVM is running on
+   *         with '.' replaced with '_' for metrics usage
    */
   private static String constructSourceName() {
     PropertyKey sourceKey = null;
@@ -259,7 +262,8 @@ public final class MetricsSystem {
    * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric
-   * @return the metric with instance and id tags
+   * @return the metric with instance and ID tags
+   * @throws IllegalStateException if the process type is unsupported
    */
   public static String getMetricName(String name) {
     if (name.startsWith(CLUSTER)) {

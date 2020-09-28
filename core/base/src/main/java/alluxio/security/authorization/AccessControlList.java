@@ -107,7 +107,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * @return the owning group
+   * @return the owning group for this access-control list (ACL)
    */
   public String getOwningGroup() {
     return mOwningGroup;
@@ -208,9 +208,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * Sets owning user.
-   *
-   * @param user the owning user
+   * @param user the new owning user to use for this access-control list (ACL)
    */
   public void setOwningUser(String user) {
     Preconditions.checkNotNull(user);
@@ -218,9 +216,7 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * Sets owning group.
-   *
-   * @param group the owning group
+   * @param group the new owning group to use for this access-control list (ACL)
    */
   public void setOwningGroup(String group) {
     Preconditions.checkNotNull(group);
@@ -228,11 +224,13 @@ public class AccessControlList implements Serializable {
   }
 
   /**
-   * Sets permitted actions for owning user, owning group, and other based on the mode.
-   * The format of mode is defined in {@link Mode}.
+   * Sets permitted actions for owning user, owning group, and others based on the {@code mode}.
+   * <p>
+   * The mode format is defined in {@code Mode}.
+   * <p>
    * The update logic is defined in {@link AclActions#updateByModeBits(Mode.Bits)}.
    *
-   * @param mode the mode
+   * @param mode short representation of the POSIX-style file/directory access mode
    */
   public void setMode(short mode) {
     mMode = mode;

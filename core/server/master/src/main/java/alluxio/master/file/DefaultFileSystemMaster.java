@@ -2083,11 +2083,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Implementation of directory creation for a given path.
+   * Creates a directory for the provided inode path.
    *
-   * @param rpcContext the rpc context
-   * @param inodePath the path of the directory
-   * @param context method context
+   * @param rpcContext the context for establishing an RPC
+   * @param inodePath the {@link LockedInodePath} of the directory
+   * @param context the method {@link CreateDirectoryContext} used to merge
+   *        and wrap the options for creating the directory
    * @return a list of created inodes
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
@@ -3301,20 +3302,20 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Sync metadata for an Alluxio path with the UFS.
+   * Syncs metadata for an Alluxio path with the UFS.
    *
-   * @param rpcContext the current RPC context
-   * @param path the path to sync
+   * @param rpcContext the current context for establishing an RPC
+   * @param path the path to sync with the UFS
    * @param options options included with the RPC
    * @param syncDescendantType how deep the sync should be performed
-   * @param auditContextSrcInodeFunc the src inode for the audit context, if null, no source inode
-   *                                 is set on the audit context
+   * @param auditContextSrcInodeFunc the source inode for the audit context, if {@code null},
+   *        no source inode is set on the audit context
    * @param permissionCheckOperation a consumer that accepts a locked inode path and a
-   *                                 {@link PermissionChecker}. The consumer is expected to call one
-   *                                 of the permission checkers functions with the given inode path.
-   *                                 If null, no permission checking is performed
-   * @param isGetFileInfo            true if syncing for a getFileInfo operation
-   * @return
+   *        permission checker, the consumer is expected to call one of the permission
+   *        checker functions with the given inode path, if null, no permission checking is
+   *        performed
+   * @param isGetFileInfo whether syncing is for a {@link #getFileInfo} operation
+   * @return whether at least one path was synced
    */
   private boolean syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
@@ -4338,11 +4339,19 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return auditContext;
   }
 
+  /**
+   * @return a new block deletion context for the unmount command
+   */
   private BlockDeletionContext createBlockDeletionContext() {
     return new DefaultBlockDeletionContext(this::removeBlocks,
         blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
   }
 
+  /**
+   * Removes the provided blocks from the block master.
+   *
+   * @param blocks the list of blocks to be removed
+   */
   private void removeBlocks(List<Long> blocks) throws IOException {
     if (blocks.isEmpty()) {
       return;
@@ -4379,6 +4388,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
         operationContext.withTracker(mStateLockCallTracker));
   }
 
+  /**
+   * Creates a new locking scheme.
+   *
+   * @param path the Alluxio URI for the locking scheme
+   * @param options the file system master common options
+   * @param desiredLockMode the lock pattern to follow, which
+   *        is either READ, WRITE_INODE, or WRITE_EDGE
+   * @return a new locking scheme with the provided information
+   */
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
     return new LockingScheme(path, desiredLockMode, options, mUfsSyncPathCache, false);

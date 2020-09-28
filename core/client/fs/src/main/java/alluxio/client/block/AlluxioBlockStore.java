@@ -223,6 +223,13 @@ public final class AlluxioBlockStore {
     }
   }
 
+  /**
+   * Handles failed workers and returns a collection with the ones running.
+   *
+   * @param workers the worker network addresses to filter from
+   * @param failedWorkers the failed workers to find and ignore from {@code workers}
+   * @return all functioning worker network addresses in the provided collection
+   */
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
       Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {

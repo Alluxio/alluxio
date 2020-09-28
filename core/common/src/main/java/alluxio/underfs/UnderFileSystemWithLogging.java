@@ -1217,6 +1217,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         mUnderFileSystem.getUnderFSType());
   }
 
+  /**
+   * @param metricName the String to convert the metric name from
+   * @return the qualified metric name for the provided String
+   */
   // TODO(calvin): This should not be in this class
   private String getQualifiedFailureMetricName(String metricName) {
     return getQualifiedMetricName(metricName + "Failures");

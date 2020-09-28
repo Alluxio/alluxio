@@ -108,7 +108,7 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   boolean isDirectory();
 
   /**
-   * @return true if the inode is a file, false otherwise
+   * @return whether the inode is a file
    */
   boolean isFile();
 

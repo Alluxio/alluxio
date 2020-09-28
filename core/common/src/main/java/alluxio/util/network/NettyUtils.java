@@ -51,15 +51,16 @@ public final class NettyUtils {
   private NettyUtils() {}
 
   /**
-   * Creates a Netty {@link EventLoopGroup} based on {@link ChannelType}.
+   * Creates a Netty event loop group based on the channel type.
    *
-   * @param type Selector for which form of low-level IO we should use
+   * @param type selector for which form of low-level IO should be used
    * @param numThreads target number of threads
-   * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
-   *        threads.
-   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create daemon
-   *        threads.
-   * @return EventLoopGroup matching the ChannelType
+   * @param threadPrefix name pattern for each thread. Should contain '%d' to distinguish between
+   *        threads
+   * @param isDaemon boolean representing whether the {@link java.util.concurrent.ThreadFactory}
+   *        should create daemon threads
+   * @return an event loop group matching the channel type
+   * @throws IllegalStateException if the specified channel type is unsupported
    */
   public static EventLoopGroup createEventLoop(ChannelType type, int numThreads,
       String threadPrefix, boolean isDaemon) {
@@ -102,9 +103,9 @@ public final class NettyUtils {
   }
 
   /**
-   * @param workerNetAddress the worker address
+   * @param workerNetAddress the worker network address
    * @param conf Alluxio configuration
-   * @return true if the domain socket is enabled on this client
+   * @return whether the domain socket is enabled on this client
    */
   public static boolean isDomainSocketAccessible(WorkerNetAddress workerNetAddress,
       AlluxioConfiguration conf) {
@@ -119,8 +120,9 @@ public final class NettyUtils {
   }
 
   /**
-   * @param workerNetAddress the worker address
-   * @return true if the domain socket is supported by the worker
+   * @param workerNetAddress the worker network address
+   * @return whether the domain socket is supported by the worker
+   *         with the provided network address
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
     return !workerNetAddress.getDomainSocketPath().isEmpty();
@@ -137,6 +139,10 @@ public final class NettyUtils {
     return sNettyEpollAvailable;
   }
 
+  /**
+   * @return whether EPOLL is
+   *         available
+   */
   private static boolean checkNettyEpollAvailable() {
     if (!Epoll.isAvailable()) {
       LOG.info("EPOLL is not available, will use NIO");
@@ -173,7 +179,8 @@ public final class NettyUtils {
   }
 
   /**
-   * Get the proper channel class.
+   * Gets the proper channel class based on the provided property key and Alluxio configuration.
+   * <p>
    * Always returns {@link NioSocketChannel} NIO if EPOLL is not available.
    *
    * @param isDomainSocket whether this is for a domain channel

@@ -33,7 +33,7 @@ public final class LoginModuleConfigurationUtils {
   }
 
   /**
-   * @return the OS login module class name
+   * @return the login module class name according to the operating system (OS)
    */
   private static String getOSLoginModuleName() {
     if (OSUtils.IBM_JAVA) {
