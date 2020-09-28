@@ -2659,7 +2659,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
       new Builder(Name.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("5min")
           .setDescription("Timeout for periodical RPC between workers "
               + "and the leading master. This property is added to prevent workers "
               + "from hanging in periodical RPCs with previous leading master "
