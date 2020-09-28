@@ -209,7 +209,13 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void readBlock() throws Exception {
-    testReadBuffer((int) BLOCK_LENGTH);
+    int dataRead = (int) BLOCK_LENGTH;
+    byte[] buffer = new byte[dataRead];
+    mTestStream.read(buffer);
+    assertEquals(true, mInStreams.get(0).isClosed());
+    mTestStream.close();
+
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
   }
 
   /**
@@ -217,7 +223,16 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void readFile() throws Exception {
-    testReadBuffer((int) FILE_LENGTH);
+    int dataRead = (int) FILE_LENGTH;
+    byte[] buffer = new byte[dataRead];
+    mTestStream.read(buffer);
+
+    for (int i = 0; i < NUM_STREAMS; i++) {
+      assertEquals(true, mInStreams.get(i).isClosed());
+    }
+    mTestStream.close();
+
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
   }
 
   /**

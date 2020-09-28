@@ -149,7 +149,6 @@ public class AlluxioFileInStream extends FileInStream {
         }
         if (mBlockInStream.remaining() == 0) {
           closeBlockInStream(mBlockInStream);
-          mBlockInStream = null;
         }
         return result;
       } catch (IOException e) {
@@ -197,7 +196,6 @@ public class AlluxioFileInStream extends FileInStream {
         lastException = null;
         if (mBlockInStream.remaining() == 0) {
           closeBlockInStream(mBlockInStream);
-          mBlockInStream = null;
         }
       } catch (IOException e) {
         lastException = e;
