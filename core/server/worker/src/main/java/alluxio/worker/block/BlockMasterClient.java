@@ -190,7 +190,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
-        .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT), TimeUnit.MILLISECONDS)
+        .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
         .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 

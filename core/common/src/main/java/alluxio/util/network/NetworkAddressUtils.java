@@ -672,7 +672,7 @@ public final class NetworkAddressUtils {
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
           ServiceVersionClientServiceGrpc.newBlockingStub(channel)
-              .withDeadlineAfter(conf.getMs(PropertyKey.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT),
+              .withDeadlineAfter(conf.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                   TimeUnit.MILLISECONDS);
       versionClient.getServiceVersion(
           GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());

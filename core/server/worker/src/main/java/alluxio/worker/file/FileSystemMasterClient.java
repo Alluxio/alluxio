@@ -87,7 +87,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public Set<Long> getPinList() throws IOException {
     return retryRPC(() -> new HashSet<>(mClient.withDeadlineAfter(mContext.getClusterConf()
-            .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT), TimeUnit.MILLISECONDS)
+            .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
             .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build())
             .getPinnedFileIdsList()),
         LOG, "GetPinList", "");

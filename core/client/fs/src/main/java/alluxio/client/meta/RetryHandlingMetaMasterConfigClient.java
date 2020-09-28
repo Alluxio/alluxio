@@ -79,7 +79,7 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   @Override
   public Configuration getConfiguration(GetConfigurationPOptions options) throws IOException {
     return Configuration.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
-        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT),
+        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
         TimeUnit.MILLISECONDS).getConfiguration(options),
         RPC_LOG, "GetConfiguration", "options=%s", options));
   }
@@ -87,7 +87,7 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   @Override
   public ConfigHash getConfigHash() throws IOException {
     return ConfigHash.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
-        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_CONNECT_TIMEOUT),
+        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
         TimeUnit.MILLISECONDS).getConfigHash(GetConfigHashPOptions.getDefaultInstance()),
         RPC_LOG, "GetConfigHash", ""));
   }
