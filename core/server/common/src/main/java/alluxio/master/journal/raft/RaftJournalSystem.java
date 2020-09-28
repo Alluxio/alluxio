@@ -32,6 +32,7 @@ import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
+import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
@@ -329,7 +330,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
-        .setMaxSleepTime(TimeDuration.ONE_SECOND)
+        .setMaxSleepTime(TimeDuration.valueOf(mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
@@ -587,15 +588,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
                 .build().toByteArray()
         ))).whenComplete((reply, t) -> {
           if (t != null) {
-            LOG.error("Exception occurred while joining quorum", t);
+            LogUtils.warnWithException(LOG, "Exception occurred while joining quorum", t);
           }
           if (reply != null && reply.getException() != null) {
-            LOG.error("Received an error while joining quorum", reply.getException());
+            LogUtils.warnWithException(LOG,
+                "Received an error while joining quorum", reply.getException());
           }
           try {
             client.close();
           } catch (IOException e) {
-            LOG.error("Exception occurred closing raft client", e);
+            LogUtils.warnWithException(LOG, "Exception occurred closing raft client", e);
           }
         });
   }
