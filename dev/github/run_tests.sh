@@ -23,6 +23,11 @@ then
   mvn_args+=" -fn -DfailIfNoTests=false --fail-at-end"
 fi
 
+# Set things up so that the current user has a real name and can authenticate.
+myuid=$(id -u)
+mygid=$(id -g)
+echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
+
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
 mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true \
