@@ -531,6 +531,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       try {
         future.get(5, TimeUnit.SECONDS);
       } catch (TimeoutException | ExecutionException e) {
+        client.getClientRpc().handleException(mPeerId,
+            e instanceof ExecutionException ? e.getCause() : e, true);
         LOG.info("Exception submitting term start entry: {}", e.toString());
         continue;
       }
