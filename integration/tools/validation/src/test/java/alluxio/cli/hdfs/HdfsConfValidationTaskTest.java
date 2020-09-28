@@ -134,7 +134,7 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
 
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString("key1"));
@@ -155,7 +155,7 @@ public class HdfsConfValidationTaskTest {
             hdfsSite + HdfsConfValidationTask.SEPARATOR + coreSite);
     HdfsConfValidationTask task =
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
-    ValidationTaskResult result = task.validate(ImmutableMap.of());
+    ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
 
     assertEquals(ValidationUtils.State.OK, result.getState());
   }

@@ -51,7 +51,7 @@ public class CreateHmsClientValidationTask extends
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validateImpl(Map<String, String> optionMap)
       throws InterruptedException {
     Pair<ValidationTaskResult, IMetaStoreClient> ent = getValidationWithResult();
     if (ent.getFirst() == null) {

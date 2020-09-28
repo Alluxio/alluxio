@@ -43,7 +43,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validateImpl(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
     try {

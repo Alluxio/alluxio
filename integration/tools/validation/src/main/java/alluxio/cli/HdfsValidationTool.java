@@ -65,7 +65,13 @@ public class HdfsValidationTool implements ValidationTool {
     for (Map.Entry<String, ValidationTask> entry : getTasks().entrySet()) {
       ValidationTask task = entry.getValue();
       String taskName = entry.getKey();
-      ValidationTaskResult result = task.validate(validateOpts);
+      ValidationTaskResult result;
+      try {
+        result = task.validate(validateOpts);
+      } catch (InterruptedException e) {
+        result = new ValidationTaskResult(ValidationUtils.State.FAILED, task.getName(),
+            "Task interrupted while running", "");
+      }
       if (desc.containsKey(taskName)) {
         result.setDesc(desc.get(taskName));
       }

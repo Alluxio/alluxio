@@ -37,16 +37,27 @@ public interface ValidationTool {
   List<ValidationTaskResult> runAllTests() throws InterruptedException;
 
   /**
-   * Converts the results of the {@link #runAllTests()} method into a JSON string for digestion by
+   * Converts the results of the {@link #runAllTests()} method into a map for digestion by
    * other components.
    *
    * @param results a result from a validation tool
-   * @return a JSON string representing the result input
+   * @return a map representing the result input
    */
-  static String convertResults(List<ValidationTaskResult> results) {
+  static Map<ValidationUtils.State, List<ValidationTaskResult>> convertResults(
+      List<ValidationTaskResult> results) {
     // group by state
     Map<ValidationUtils.State, List<ValidationTaskResult>> map = new HashMap<>();
     results.forEach(r -> map.computeIfAbsent(r.getState(), k -> new ArrayList<>()).add(r));
+    return map;
+  }
+
+  /**
+   * Convert to Json format of the validation result.
+   *
+   * @param map result stored in a map
+   * @return a string containing json representation of the result
+   */
+  static String toJson(Map<ValidationUtils.State, List<ValidationTaskResult>> map) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     return gson.toJson(map);
   }
