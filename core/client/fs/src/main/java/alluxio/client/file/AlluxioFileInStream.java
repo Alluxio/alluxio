@@ -279,6 +279,10 @@ public class AlluxioFileInStream extends FileInStream {
         if (mCachedPositionedReadStream.getSource() != BlockInStream.BlockInStreamSource.LOCAL) {
           triggerAsyncCaching(mCachedPositionedReadStream);
         }
+        if (bytesRead == mBlockSize - offset) {
+          mCachedPositionedReadStream.close();
+          mCachedPositionedReadStream = null;
+        }
       } catch (IOException e) {
         lastException = e;
         if (mCachedPositionedReadStream != null) {

@@ -647,6 +647,7 @@ public final class AlluxioFileInStreamTest {
   public void positionedRead() throws IOException {
     byte[] b = new byte[(int) BLOCK_LENGTH];
     mTestStream.positionedRead(BLOCK_LENGTH, b, 0, b.length);
+    assertEquals(true, mInStreams.get(1).isClosed());
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int)
         BLOCK_LENGTH), b);
   }
