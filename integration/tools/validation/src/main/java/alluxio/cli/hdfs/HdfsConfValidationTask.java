@@ -168,17 +168,19 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     try {
       properties = parser.parseXmlConfiguration(path);
       mMsg.append(String.format("Successfully loaded %s. %n", path));
-      mState = ValidationUtils.State.OK;
     } catch (ParserConfigurationException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to create instance of DocumentBuilder for file: %s. %s.%n",
               path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append("Please check your configuration for javax.xml.parsers.DocumentBuilder.%n");
     } catch (IOException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
     } catch (SAXException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
