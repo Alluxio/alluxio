@@ -89,6 +89,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -137,7 +138,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The way we apply journal entries to the primary makes it tricky to perform
  * primary state snapshots. Normally Ratis would decide when it wants a snapshot,
  * but with the pre-apply protocol we may be in the middle of modifying state
- * when the snapshot would happen. To manage this, we inject an AtomicBoolean into Copycat
+ * when the snapshot would happen. To manage this, we declare an AtomicBoolean field
  * which decides whether it will be allowed to take snapshots. Normally, snapshots
  * are prohibited on the primary. However, we don't want the primary's log to grow unbounded,
  * so we allow a snapshot to be taken once a day at a user-configured time. To support this,
@@ -158,6 +159,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /// Lifecycle: constant from when the journal system is constructed.
 
   private final RaftJournalConfiguration mConf;
+  /** Controls whether state machine can take snapshots. */
+  private final AtomicBoolean mSnapshotAllowed;
 
   /**
    * Listens to the Ratis server to detect gaining or losing primacy. The lifecycle for this
@@ -211,6 +214,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftJournalSystem(RaftJournalConfiguration conf) {
     mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
+    mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
   }
@@ -350,6 +354,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
+    mSnapshotAllowed.set(false);
     RaftClient client = createClient();
     Runnable closeClient = () -> {
       try {
@@ -403,6 +408,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     LOG.info("Shut down Raft server");
     try {
+      mSnapshotAllowed.set(true);
       initServer();
     } catch (IOException e) {
       LOG.error("Fatal error: failed to init Raft cluster with addresses {} while stepping down",
@@ -434,12 +440,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void suspend() throws IOException {
+    mSnapshotAllowed.set(false);
     mStateMachine.suspend();
   }
 
   @Override
   public synchronized void resume() throws IOException {
     mStateMachine.resume();
+    mSnapshotAllowed.set(true);
   }
 
   @Override
@@ -461,6 +469,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
     try (RaftClient client = createClient()) {
+      mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
       // TODO(feng): maybe prune logs after snapshot
@@ -471,6 +480,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.warn("Interrupted while performing snapshot: {}", e.toString());
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted while performing snapshot", e);
+    } finally {
+      mSnapshotAllowed.set(false);
     }
   }
 
@@ -770,6 +781,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
+  }
+
+  /**
+   * @return whether it is allowed to take a local shapshot
+   */
+  public boolean isSnapshotAllowed() {
+    return mSnapshotAllowed.get();
   }
 
   /**

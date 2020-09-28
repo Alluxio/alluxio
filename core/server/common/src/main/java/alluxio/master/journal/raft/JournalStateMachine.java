@@ -104,6 +104,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private BufferedJournalApplier mJournalApplier;
   private final SimpleStateMachineStorage mStorage = new SimpleStateMachineStorage();
   private RaftGroupId mRaftGroupId;
+  private RaftServer mServer;
 
   /**
    * @param journals      master journals; these journals are still owned by the caller, not by the
@@ -125,6 +126,7 @@ public class JournalStateMachine extends BaseStateMachine {
       RaftStorage raftStorage) throws IOException {
     getLifeCycle().startAndTransition(() -> {
       super.initialize(server, groupId, raftStorage);
+      mServer = server;
       mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(mStorage.getLatestSnapshot());
@@ -364,8 +366,17 @@ public class JournalStateMachine extends BaseStateMachine {
       SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
       return RaftLog.INVALID_LOG_INDEX;
     }
+    if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
+      SAMPLING_LOG.info("Skip taking snapshot because raft server is not in running state: "
+          + "current state is {}.", mServer.getLifeCycleState());
+      return RaftLog.INVALID_LOG_INDEX;
+    }
     if (mJournalApplier.isSuspended()) {
       SAMPLING_LOG.info("Skip taking snapshot while journal application is suspended.");
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    if (!mJournalSystem.isSnapshotAllowed()) {
+      SAMPLING_LOG.info("Skip taking snapshot when it is not allowed by the journal system.");
       return RaftLog.INVALID_LOG_INDEX;
     }
     LOG.debug("Calling snapshot");
