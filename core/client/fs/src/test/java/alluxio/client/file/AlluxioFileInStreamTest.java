@@ -209,6 +209,14 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void readBlock() throws Exception {
+    testReadBuffer((int) BLOCK_LENGTH);
+  }
+
+  /**
+   * Tests that reading the complete block works and the BlockInStream is closed.
+   */
+  @Test
+  public void readBlockStreamCloseOnEnd() throws Exception {
     int dataRead = (int) BLOCK_LENGTH;
     byte[] buffer = new byte[dataRead];
     mTestStream.read(buffer);
@@ -223,6 +231,14 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void readFile() throws Exception {
+    testReadBuffer((int) FILE_LENGTH);
+  }
+
+  /**
+   * Tests that reading the complete file works and all streams are closed when to the end of file.
+   */
+  @Test
+  public void readFileStreamCloseOnEnd() throws Exception {
     int dataRead = (int) FILE_LENGTH;
     byte[] buffer = new byte[dataRead];
     mTestStream.read(buffer);
@@ -647,8 +663,19 @@ public final class AlluxioFileInStreamTest {
   public void positionedRead() throws IOException {
     byte[] b = new byte[(int) BLOCK_LENGTH];
     mTestStream.positionedRead(BLOCK_LENGTH, b, 0, b.length);
-    assertEquals(true, mInStreams.get(1).isClosed());
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int)
+        BLOCK_LENGTH), b);
+  }
+
+  /**
+   * Tests the BlockInStream is closed when reading to the end of the block.
+   */
+  @Test
+  public void positionedReadStreamCloseOnEnd() throws IOException {
+    byte[] b = new byte[(int) BLOCK_LENGTH];
+    mTestStream.positionedRead(0, b, 0, b.length);
+    assertEquals(true, mInStreams.get(0).isClosed());
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) 0, (int)
         BLOCK_LENGTH), b);
   }
 
