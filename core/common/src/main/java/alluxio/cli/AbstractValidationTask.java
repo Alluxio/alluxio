@@ -15,6 +15,7 @@ import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract class for validation environment.
@@ -23,5 +24,26 @@ public abstract class AbstractValidationTask implements ValidationTask {
   @Override
   public List<Option> getOptionList() {
     return new ArrayList<>();
+  }
+
+  protected abstract ValidationTaskResult validateImpl(Map<String, String> optionMap)
+      throws InterruptedException;
+
+  /**
+   * validate a test and return the result.
+   *
+   * @param optionMap contains string representation of <key, value> pairs
+   * @return return test result
+   */
+  public ValidationTaskResult validate(Map<String, String> optionMap)
+      throws InterruptedException {
+    try {
+      return validateImpl(optionMap);
+    } catch (InterruptedException e) {
+      throw e;
+    } catch (Exception e) {
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
+          ValidationUtils.getErrorInfo(e), "Fix unexpected error");
+    }
   }
 }

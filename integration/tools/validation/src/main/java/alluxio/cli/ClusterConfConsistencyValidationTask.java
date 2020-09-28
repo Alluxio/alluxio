@@ -50,7 +50,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionMap)
+  protected ValidationTaskResult validateImpl(Map<String, String> optionMap)
           throws InterruptedException {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();

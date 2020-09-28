@@ -78,7 +78,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validateImpl(Map<String, String> optionMap)
           throws InterruptedException {
     String hadoopVersion;
     try {
