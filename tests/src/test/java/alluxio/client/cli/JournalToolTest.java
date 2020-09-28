@@ -254,11 +254,10 @@ public class JournalToolTest extends BaseIntegrationTest {
     return currentSnapshotIdx.get();
   }
 
-  private String findCheckpointDir() throws Exception {
+  private String findCheckpointDir() throws IOException {
     List<Path> checkpoint = Files.list(mDumpDir.toPath())
         .filter(p -> p.toString().contains("checkpoints-")).collect(toList());
     assertEquals("Unexpected checkpoint list: " + checkpoint, 1, checkpoint.size());
-
     return checkpoint.get(0).toString();
   }
 

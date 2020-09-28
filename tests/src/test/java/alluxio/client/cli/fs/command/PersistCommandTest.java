@@ -100,7 +100,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
       assertFalse(sFileSystem.getStatus(new AlluxioURI(doNotPersist)).isPersisted());
       int ret = fsShell.run("mv", toPersist, persisted);
       Assert.assertEquals(mOutput.toString(), 0, ret);
-      CommonUtils.waitFor("Directory and its content to be persisted", () -> {
+      CommonUtils.waitFor("Directory to be persisted", () -> {
         try {
           return sFileSystem.getStatus(new AlluxioURI(persisted)).isPersisted()
               && sFileSystem.getStatus(new AlluxioURI(persisted + "/foobar1")).isPersisted()
