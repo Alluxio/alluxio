@@ -1,21 +1,10 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Integration Tests
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   pull_request:
-    branches: [ github_actions, master ]
+    branches: [ github_actions, master, branch-2.* ]
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: us-east-1
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
     name: "Test modules: "
 
@@ -40,12 +29,9 @@ jobs:
           - >-
             alluxio.web.**
 
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout repo
         uses: actions/checkout@v2
 
@@ -66,7 +52,9 @@ jobs:
       - name: Run a one-line script
         run: |
           mkdir -p ~/.m2
-          ALLUXIO_DOCKER_NO_TTY=true ALLUXIO_DOCKER_GIT_CLEAN=true ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_DOCKER_NO_TTY=true \
+          ALLUXIO_DOCKER_GIT_CLEAN=true \
+          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 

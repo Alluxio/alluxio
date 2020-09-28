@@ -10,12 +10,17 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# This script is called by both run_checks.sh and run_tests.sh to perform the initial build process
+
 #
 # This script is run from inside the Docker container
 #
 set -ex
 
-./dev/github/helper.sh
+if [ -n "${ALLUXIO_GIT_CLEAN}" ]
+then
+  git clean -fdx
+fi
 
 mvn_args=""
 if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
@@ -25,5 +30,10 @@ fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
-mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true \
--Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@
+# Always use java 8 to compile the source code
+JAVA_HOME_BACKUP=${JAVA_HOME}
+PATH_BACKUP=${PATH}
+JAVA_HOME=/usr/local/openjdk-8
+PATH=$JAVA_HOME/bin:$PATH
+mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
+-Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args}
