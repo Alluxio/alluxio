@@ -64,9 +64,10 @@ import java.util.stream.Collectors;
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
   private static final String USAGE =
-      "USAGE: collectInfo [--max-threads <threadNum>] [--local] [--help] "
+      "collectInfo [--max-threads <threadNum>] [--local] [--help] "
           + "[--exclude-logs <filename-prefixes>] [--include-logs <filename-prefixes>] "
-          + "[--start-time <datetime>] [--end-time <datetime>] COMMAND <outputPath>\n\n"
+          + "[--additional-logs <filename-prefixes>] [--start-time <datetime>] "
+          + "[--end-time <datetime>] COMMAND <outputPath>\n\n"
           + "collectInfo runs a set of sub-commands which collect information "
           + "about your Alluxio cluster.\nIn the end of the run, "
           + "the collected information will be written to files and bundled into one tarball.\n"
