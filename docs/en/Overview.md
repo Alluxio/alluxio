@@ -97,7 +97,7 @@ Also try our getting started tutorials for Presto & Alluxio via:
 <p align="center">
 <a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-aws/">
+<a href="https://www.alluxio.io/products/aws/alluxio-presto-sandbox-aws/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
