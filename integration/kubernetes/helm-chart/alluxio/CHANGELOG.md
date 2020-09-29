@@ -138,3 +138,7 @@
 0.6.11
 
 - Pass alluxio.user.hostname via ALLUXIO_FUSE_JAVA_OPTS for FUSE
+
+0.6.12
+
+- Added options to set up proxy service next to workers

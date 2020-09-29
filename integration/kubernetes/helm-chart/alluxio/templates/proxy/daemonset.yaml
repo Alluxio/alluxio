@@ -1,0 +1,83 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{- $hostNetwork := .Values.proxy.hostNetwork }}
+{{- $hostPID := .Values.proxy.hostPID }}
+{{ if .Values.proxy.enabled -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ template "alluxio.fullname" . }}-proxy
+  labels:
+    app: {{ template "alluxio.name" . }}
+    chart: {{ template "alluxio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: alluxio-proxy
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "alluxio.name" . }}
+      release: {{ .Release.Name }}
+      role: alluxio-proxy
+  template:
+    metadata:
+      labels:
+        app: {{ template "alluxio.name" . }}
+        chart: {{ template "alluxio.chart" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        role: alluxio-proxy
+    spec:
+      hostNetwork: {{ $hostNetwork }}
+      hostPID: {{ $hostPID }}
+      dnsPolicy: {{ .Values.proxy.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
+      securityContext:
+        fsGroup: {{ .Values.fsGroup }}
+      nodeSelector:
+      {{- if .Values.proxy.nodeSelector }}
+{{ toYaml .Values.proxy.nodeSelector | trim | indent 8  }}
+      {{- else if .Values.nodeSelector }}
+{{ toYaml .Values.nodeSelector | trim | indent 8  }}
+      {{- end }}
+      containers:
+        - name: alluxio-proxy
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            runAsUser: {{ .Values.user }}
+            runAsGroup: {{ .Values.group }}
+          {{- if .Values.proxy.resources  }}
+{{ include "alluxio.proxy.resources" . | indent 10 }}
+          {{- end }}
+          command: ["/entrypoint.sh"]
+          {{- if .Values.proxy.args }}
+          args:
+{{ toYaml .Values.proxy.args | trim | indent 12 }}
+          {{- end }}
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          {{- range $key, $value := .Values.proxy.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ template "alluxio.fullname" . }}-config
+{{ include "alluxio.proxy.readinessProbe" . | indent 10 }}
+{{ include "alluxio.proxy.livenessProbe" . | indent 10 }}
+          ports:
+          - containerPort: {{ .Values.proxy.ports.web }}
+            name: web
+{{- end }} # proxy enabled

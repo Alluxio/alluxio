@@ -197,6 +197,38 @@ jobWorker:
   # JVM options specific to the jobWorker container
   jvmOptions:
 
+
+## Proxy ##
+proxy:
+  enabled: false # Enable this to enable the proxy for REST API
+  env:
+    # Extra environment variables for the worker pod
+    # Example:
+    # JAVA_HOME: /opt/java
+  args:
+    - proxy
+  # Properties for the proxy component
+  properties:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+  ports:
+    web: 39999
+  # hostPID requires escalated privileges
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the worker container
+  jvmOptions:
+  nodeSelector: {}
+
 # Tiered Storage
 # emptyDir example
 #  - level: 0

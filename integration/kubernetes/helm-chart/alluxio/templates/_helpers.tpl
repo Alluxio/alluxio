@@ -75,6 +75,29 @@ resources:
     {{- end }}
 {{- end -}}
 
+{{- define "alluxio.proxy.resources" -}}
+resources:
+  limits:
+    {{- if .Values.proxy.resources.limits }}
+      {{- if .Values.proxy.resources.limits.cpu  }}
+    cpu: {{ .Values.proxy.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.proxy.resources.limits.memory  }}
+    memory: {{ .Values.proxy.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.proxy.resources.requests }}
+      {{- if .Values.proxy.resources.requests.cpu  }}
+    cpu: {{ .Values.proxy.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.proxy.resources.requests.memory  }}
+    memory: {{ .Values.proxy.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
+
 {{- define "alluxio.master.resources" -}}
 resources:
   limits:
@@ -288,6 +311,12 @@ readinessProbe:
     port: rpc
 {{- end -}}
 
+{{- define "alluxio.proxy.readinessProbe" -}}
+readinessProbe:
+  tcpSocket:
+    port: web
+{{- end -}}
+
 {{- define "alluxio.jobWorker.readinessProbe" -}}
 readinessProbe:
   tcpSocket:
@@ -318,6 +347,16 @@ livenessProbe:
 livenessProbe:
   tcpSocket:
     port: rpc
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 2
+{{- end -}}
+
+{{- define "alluxio.proxy.livenessProbe" -}}
+livenessProbe:
+  tcpSocket:
+    port: web
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
