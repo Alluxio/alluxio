@@ -25,6 +25,13 @@ Alluxio is used in production to manage Petabytes of data in many leading compan
 the largest deployment exceeding 1300 nodes. You can find more use cases at
 [Powered by Alluxio](https://www.alluxio.io/powered-by-alluxio) or visit our first community conference ([Data Orchestration Summit](https://www.alluxio.io/data-orchestration-summit-2019/)) to learn from other community members!
 
+## Who Owns and Manages Alluxio Project
+
+Alluxio Open Source Foundation is the owner of Alluxio project.
+Project operation is done by Alluxio Project Management Committee (PMC).
+You can checkout more details in its structure and how to join Alluxio PMC 
+[here](https://github.com/Alluxio/alluxio/wiki/Alluxio-Project-Management-Committee-(PMC)).
+
 ## Community and Events
 Please use the following to reach members of the community:
 
