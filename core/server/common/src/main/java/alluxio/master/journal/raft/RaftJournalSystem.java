@@ -402,26 +402,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try {
       mServer.close();
     } catch (IOException e) {
-      LOG.error("Fatal error: failed to leave Raft cluster while stepping down", e);
-      System.exit(-1);
-      throw new IllegalStateException(e);
+      throw new IllegalStateException(
+          "Fatal error: failed to leave Raft cluster while stepping down", e);
     }
     LOG.info("Shut down Raft server");
     try {
       mSnapshotAllowed.set(true);
       initServer();
     } catch (IOException e) {
-      LOG.error("Fatal error: failed to init Raft cluster with addresses {} while stepping down",
-          mConf.getClusterAddresses(), e);
-      System.exit(-1);
+      throw new IllegalStateException(String.format(
+          "Fatal error: failed to init Raft cluster with addresses %s while stepping down",
+          mConf.getClusterAddresses()), e);
     }
     LOG.info("Bootstrapping new Raft server");
     try {
       mServer.start();
     } catch (IOException e) {
-      LOG.error("Fatal error: failed to start Raft cluster with addresses {} while stepping down",
-          mConf.getClusterAddresses(), e);
-      System.exit(-1);
+      throw new IllegalStateException(String.format(
+          "Fatal error: failed to start Raft cluster with addresses %s while stepping down",
+          mConf.getClusterAddresses()), e);
     }
 
     LOG.info("Raft server successfully restarted");
