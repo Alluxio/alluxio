@@ -188,7 +188,7 @@ The parsable datetime formats include below:
 2020-01-03T12:10
 ```
 
-1. `--start-time <datetime>` specifis a datetime before with the log files can be ignored.
+1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
 A log file will be ignored if the last modified time is before this start time.
 
 ## Setup FAQ
