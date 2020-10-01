@@ -46,10 +46,12 @@ import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcConfigKeys;
 import org.apache.ratis.proto.RaftProtos;
+import org.apache.ratis.protocol.AlreadyClosedException;
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.GroupInfoReply;
 import org.apache.ratis.protocol.GroupInfoRequest;
 import org.apache.ratis.protocol.Message;
+import org.apache.ratis.protocol.NotLeaderException;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftGroup;
@@ -69,6 +71,7 @@ import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -92,6 +95,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -331,7 +335,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftProperties properties = new RaftProperties();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
         TimeDuration.valueOf(15, TimeUnit.SECONDS));
-    RaftClientConfigKeys.Async.setOutstandingRequestsMax(properties, 100);
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
@@ -339,6 +342,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
+        .setClientId(mClientId)
         .setLeaderId(null)
         .setProperties(properties)
         .setParameters(new Parameters())
@@ -356,37 +360,92 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    try (RaftClient client = createClient()) {
+    LocalFirstClient client = new LocalFirstClient(mServer, this::createClient, mPrimarySelector);
+
+    Runnable closeClient = () -> {
+      try {
+        client.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close raft client: {}", e.toString());
+      }
+    };
+
+    try {
       catchUp(mStateMachine, client);
-    } catch (TimeoutException | IOException e) {
+    } catch (TimeoutException e) {
+      closeClient.run();
       throw new RuntimeException(e);
     } catch (InterruptedException e) {
+      closeClient.run();
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
     long nextSN = mStateMachine.upgrade() + 1;
 
     Preconditions.checkState(mRaftJournalWriter == null);
-    mRaftJournalWriter = new RaftJournalWriter(nextSN, new RaftLocalClient(mServer, mClientId));
+    mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
   }
 
-  static class RaftLocalClient {
-    private RaftServer mServer;
-    private ClientId mClientId;
+  static class LocalFirstClient implements Closeable {
+    private final RaftServer mServer;
+    private final RaftPrimarySelector mPrimarySelector;
+    private final Supplier<RaftClient> mClientSupplier;
+    private volatile RaftClient mClient;
 
-    RaftLocalClient(RaftServer server, ClientId clientId) {
+    LocalFirstClient(RaftServer server, Supplier<RaftClient> clientSupplier,
+        RaftPrimarySelector primarySelector) {
+      // LOG.info("new LocalFirstClient {}", this);
       mServer = server;
-      mClientId = clientId;
+      mClientSupplier = clientSupplier;
+      mClient = clientSupplier.get();
+      mPrimarySelector = primarySelector;
     }
 
-    public CompletableFuture<RaftClientReply> sendRequestAsync(
-        RaftPeerId server, Message message) throws IOException {
-      return mServer.submitClientRequestAsync(
-          new RaftClientRequest(mClientId, server, RAFT_GROUP_ID, nextCallId(), message,
-              RaftClientRequest.writeRequestType(), null)
-      );
+    public CompletableFuture<RaftClientReply> sendRequestAsync(Message message) throws IOException {
+      if (mPrimarySelector.getState() == PrimarySelector.State.PRIMARY) {
+        // LOG.info("sending local request {}", this);
+        return mServer.submitClientRequestAsync(
+            new RaftClientRequest(mClient.getId(), null, RAFT_GROUP_ID, nextCallId(), message,
+                RaftClientRequest.writeRequestType(), null)).thenApply(reply -> {
+                  if (reply.getException() != null) {
+                    if (reply.getException() instanceof NotLeaderException) {
+                      try {
+                        return sendRemoteRequest(message).get(5, TimeUnit.SECONDS);
+                      } catch (InterruptedException | TimeoutException e) {
+                        throw new CompletionException(e);
+                      } catch (ExecutionException e) {
+                        throw new CompletionException(e.getCause());
+                      }
+                    }
+                    throw new CompletionException(reply.getException());
+                  }
+                  return reply;
+                });
+      } else {
+        return sendRemoteRequest(message);
+      }
+    }
+
+    private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) {
+      // LOG.info("sending remote request {}", this);
+      return mClient.sendAsync(message).exceptionally(t -> {
+        if (t instanceof ExecutionException && t.getCause() instanceof AlreadyClosedException) {
+          try {
+            mClient.close();
+          } catch (IOException e) {
+            LOG.warn("Failed to close client: {}", e.getMessage());
+          }
+          mClient = mClientSupplier.get();
+        }
+        throw new CompletionException(t.getCause());
+      });
+    }
+
+    @Override
+    public void close() throws IOException {
+      mClient.close();
     }
   }
 
@@ -475,7 +534,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
-    try (RaftClient client = createClient()) {
+    try (LocalFirstClient client =
+             new LocalFirstClient(mServer, this::createClient, mPrimarySelector)) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -505,7 +565,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    *
    * The caller is responsible for detecting and responding to leadership changes.
    */
-  private void catchUp(JournalStateMachine stateMachine, RaftClient client)
+  private void catchUp(JournalStateMachine stateMachine, LocalFirstClient client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     // Wait for any outstanding snapshot to complete.
@@ -533,13 +593,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       long gainPrimacySN = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
       LOG.info("Performing catchup. Last applied SN: {}. Catchup ID: {}",
           lastAppliedSN, gainPrimacySN);
-      CompletableFuture<RaftClientReply> future = client.sendAsync(
-          toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
       try {
-        future.get(5, TimeUnit.SECONDS);
-      } catch (TimeoutException | ExecutionException e) {
-        client.getClientRpc().handleException(mPeerId,
-            e instanceof ExecutionException ? e.getCause() : e, true);
+        CompletableFuture<RaftClientReply> future = client.sendRequestAsync(
+            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
+        RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
+        if (reply.getException() != null) {
+          LOG.info("Exception sending term start entry: {}", reply.getException());
+          continue;
+        }
+      } catch (TimeoutException | ExecutionException | IOException e) {
         LOG.info("Exception submitting term start entry: {}", e.toString());
         continue;
       }

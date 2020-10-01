@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -45,7 +46,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final AtomicLong mLastSubmittedSequenceNumber;
   private final AtomicLong mLastCommittedSequenceNumber;
 
-  private final RaftJournalSystem.RaftLocalClient mClient;
+  private final RaftJournalSystem.LocalFirstClient mClient;
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
@@ -55,7 +56,8 @@ public class RaftJournalWriter implements JournalWriter {
    * @param client client for writing entries to the journal
    */
   public RaftJournalWriter(long nextSequenceNumberToWrite,
-      RaftJournalSystem.RaftLocalClient client) {
+      RaftJournalSystem.LocalFirstClient client) {
+    // LOG.info("new journal writer {}", this);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
     mLastCommittedSequenceNumber = new AtomicLong(-1);
@@ -90,9 +92,11 @@ public class RaftJournalWriter implements JournalWriter {
         // It is ok to submit the same entries multiple times because we de-duplicate by sequence
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
-        Message message = RaftJournalSystem.toRaftMessage(mJournalEntryBuilder.build());
+        JournalEntry entry = mJournalEntryBuilder.build();
+        // LOG.info("{} - Sending request {}", this, entry);
+        Message message = RaftJournalSystem.toRaftMessage(entry);
         mLastSubmittedSequenceNumber.set(flushSN);
-        RaftClientReply reply = mClient.sendRequestAsync(null, message)
+        RaftClientReply reply = mClient.sendRequestAsync(message)
             .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
         if (reply.getException() != null) {
@@ -121,6 +125,7 @@ public class RaftJournalWriter implements JournalWriter {
     LOG.info("Closing journal writer. Last sequence numbers written/submitted/committed: {}/{}/{}",
         mNextSequenceNumberToWrite.get() - 1, mLastSubmittedSequenceNumber.get(),
         mLastCommittedSequenceNumber.get());
+    closeClient();
   }
 
   /**
@@ -128,5 +133,13 @@ public class RaftJournalWriter implements JournalWriter {
    */
   public long getNextSequenceNumberToWrite() {
     return mNextSequenceNumberToWrite.get();
+  }
+
+  private void closeClient() {
+    try {
+      mClient.close();
+    } catch (IOException e) {
+      LOG.warn("Failed to close raft client: {}", e.toString());
+    }
   }
 }
