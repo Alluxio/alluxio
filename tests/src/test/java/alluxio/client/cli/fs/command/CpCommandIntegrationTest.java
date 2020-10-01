@@ -168,7 +168,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyWildcardWithSpecialCharacters() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     char[] specialChars = new char[]{'.', '+', '^', '$'};
     for (char specialChar : specialChars) {
       copyWildcardWithSpecialChar(testDir, specialChar);
@@ -177,15 +177,15 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   private void copyWildcardWithSpecialChar(String testDir, char specialChar) throws Exception {
     String specialFolderName = String.format("%s/folder%sname", testDir, specialChar);
-    sFsShell.run("mkdir", specialFolderName);
-    sFsShell.run("mkdir", "/result");
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName)));
-    sFsShell.run("cp", testDir + "/foobar4", specialFolderName + "/foobar4");
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName + "/foobar4")));
-    sFsShell.run("cp", specialFolderName + "/*", "/result/");
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
-    sFsShell.run("rm", "/result/foobar4");
-    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
+    mFsShell.run("mkdir", specialFolderName);
+    mFsShell.run("mkdir", "/result");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(specialFolderName)));
+    mFsShell.run("cp", testDir + "/foobar4", specialFolderName + "/foobar4");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(specialFolderName + "/foobar4")));
+    mFsShell.run("cp", specialFolderName + "/*", "/result/");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/result/foobar4")));
+    mFsShell.run("rm", "/result/foobar4");
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/result/foobar4")));
   }
 
   /**
