@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -276,25 +275,24 @@ public final class FileSystemShellUtils {
   }
 
   /**
-   * The characters that have special regex semantics.
-   */
-  private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
-
-  /**
    * Escapes the special characters in a given string.
    *
    * @param str input string
    * @return the string with special characters escaped
    */
   private static String escape(String str) {
-    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
+    return str.replace(".", "%2E")
+        .replace("+", "%2B")
+        .replace("^", "%5E")
+        .replace("$", "%24")
+        .replace("*", "%2A");
   }
 
   /**
    * Replaces the wildcards with Java's regex semantics.
    */
   private static String replaceWildcards(String text) {
-    return escape(text).replace("\\*", ".*");
+    return escape(text).replace("%2A", ".*");
   }
 
   /**
