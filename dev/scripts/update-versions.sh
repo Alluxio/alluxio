@@ -64,6 +64,13 @@ function update_libexec() {
 # Arguments:
 #  $1: old version
 #  $2: new version
+function update_readme() {
+    perl -pi -e "s/${1}/${2}/g" README.md
+}
+
+# Arguments:
+#  $1: old version
+#  $2: new version
 function update_docs() {
 
     local current_branch="$(git rev-parse --abbrev-ref HEAD)"
