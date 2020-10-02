@@ -99,7 +99,6 @@ public final class EvictConfig implements PlanConfig {
       return false;
     }
     EvictConfig that = (EvictConfig) obj;
-
     return Objects.equal(mBlockId, that.mBlockId) && Objects.equal(mReplicas, that.mReplicas);
   }
 
