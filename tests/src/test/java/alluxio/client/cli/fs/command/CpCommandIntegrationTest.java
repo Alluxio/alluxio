@@ -163,6 +163,32 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
+   * Tests copying a list of files with special characters in folder name
+   * specified through a wildcard expression.
+   */
+  @Test
+  public void copyWildcardWithSpecialCharacters() throws Exception {
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    char[] specialChars = new char[]{'.', '+', '^', '$'};
+    for (char specialChar : specialChars) {
+      copyWildcardWithSpecialChar(testDir, specialChar);
+    }
+  }
+
+  private void copyWildcardWithSpecialChar(String testDir, char specialChar) throws Exception {
+    String specialFolderName = String.format("%s/folder%sname", testDir, specialChar);
+    mFsShell.run("mkdir", specialFolderName);
+    mFsShell.run("mkdir", "/result");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(specialFolderName)));
+    mFsShell.run("cp", testDir + "/foobar4", specialFolderName + "/foobar4");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(specialFolderName + "/foobar4")));
+    mFsShell.run("cp", specialFolderName + "/*", "/result/");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/result/foobar4")));
+    mFsShell.run("rm", "/result/foobar4");
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/result/foobar4")));
+  }
+
+  /**
    * Tests copying a file with attributes preserved.
    */
   @Test
