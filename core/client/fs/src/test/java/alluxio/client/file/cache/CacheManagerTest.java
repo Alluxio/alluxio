@@ -35,9 +35,9 @@ public class CacheManagerTest {
   }
 
   @Test
-  public void factoryReset() throws Exception {
+  public void factoryClear() throws Exception {
     CacheManager manager = CacheManager.Factory.get(mConf);
-    CacheManager.Factory.reset();
+    CacheManager.Factory.clear();
     assertNotEquals(manager, CacheManager.Factory.get(mConf));
   }
 }

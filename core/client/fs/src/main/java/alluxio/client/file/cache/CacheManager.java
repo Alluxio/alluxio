@@ -113,9 +113,9 @@ public interface CacheManager extends AutoCloseable {
     }
 
     /**
-     * Resets the {@link CacheManager}.
+     * Removes the current {@link CacheManager} if it exists.
      */
-    static void reset() {
+    static void clear() {
       try (LockResource r = new LockResource(CACHE_INIT_LOCK)) {
         CacheManager manager = CACHE_MANAGER.getAndSet(null);
         if (manager != null) {
