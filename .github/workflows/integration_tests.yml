@@ -49,6 +49,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run tests
+        continue-on-error: true
         id: test0
         run: |
           mkdir -p ~/.m2
@@ -59,7 +60,6 @@ jobs:
         timeout-minutes: 60
 
       - name: Run tests (Retry 1)
-        continue-on-error: true
         id: test1
         if: steps.test0.outcome=="failure"
         run: |
