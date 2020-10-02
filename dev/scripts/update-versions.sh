@@ -136,6 +136,7 @@ function main() {
     update_dataproc "$_old" "$_new"
     update_emr "$_old" "$_new"
     update_libexec "$_old" "$_new"
+    update_readme "$_old" "$_new"
     update_docs "$_old" "$_new"
     update_k8s "$_old" "$_new"
     update_dockerfiles "$_old" "$_new"
