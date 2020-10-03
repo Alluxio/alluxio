@@ -73,7 +73,8 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
     sFsShell.run("du", "-h", "-s", "-g", "/testRoot");
     expected = "File Size     In Alluxio       Worker Host Name          Path\n"
             + "9.79MB        20.75KB (0%)     total                     /testRoot\n"
-            + String.format(format, "", "20.75KB", workerHostName, "");
+            + String.format(format, "", "20.75KB", workerHostName, "")
+            + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
