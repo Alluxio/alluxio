@@ -90,7 +90,7 @@ public class DuCommandTest {
         new FileInfo().setLength(20).setInAlluxioPercentage(50).setInMemoryPercentage(0));
 
     List<URIStatus> statuses = infos.stream().map(URIStatus::new).collect(Collectors.toList());
-    DuCommand.getSizeInfo(rootpath, statuses, false, true, false,true);
+    DuCommand.getSizeInfo(rootpath, statuses, false, true, false, true);
     String output = mOutput.toString().trim();
     assertPercentage(output, 83, 58);
   }
