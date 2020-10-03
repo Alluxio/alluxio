@@ -98,8 +98,9 @@ public final class DuCommand extends AbstractFileSystemCommand {
   @Override
   protected void processHeader(CommandLine cl) {
     printInfo("File Size", "In Alluxio",
-        Optional.of(cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : ""), "Path",
-            Optional.of(cl.hasOption(GROUP_BY_WORKER_OPTION_NAME) ? "Worker Host Name" : ""));
+        cl.hasOption(MEMORY_OPTION_NAME) ? Optional.of("In Memory") : Optional.empty(),
+            "Path", cl.hasOption(GROUP_BY_WORKER_OPTION_NAME) ? Optional.of("Worker Host Name")
+                    : Optional.empty());
   }
 
   @Override
