@@ -164,10 +164,11 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
       printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString(), workerHostName);
 
+      Optional<String> inMem = inMemMessage.isPresent() ? Optional.of("") : inMemMessage;
       distributionMap.forEach((hostName, size) -> {
         String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
                 : String.valueOf(size);
-        printInfo("", inAlluxioMessageThisWorker, Optional.of(""), "", Optional.of(hostName));
+        printInfo("", inAlluxioMessageThisWorker, inMem, "", Optional.of(hostName));
       });
     } else {
       for (URIStatus status : statuses) {
@@ -191,11 +192,12 @@ public final class DuCommand extends AbstractFileSystemCommand {
               }
             }
           }
+          Optional<String> inMem = inMemMessage.isPresent() ? Optional.of("") : inMemMessage;
           printInfo(sizeMessage, inAlluxioMessage, inMemMessage, status.getPath(), workerHostName);
           distributionMap.forEach((hostName, size) -> {
             String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
                     : String.valueOf(size);
-            printInfo("", inAlluxioMessageThisWorker, Optional.of(""), "", Optional.of(hostName));
+            printInfo("", inAlluxioMessageThisWorker, inMem, "", Optional.of(hostName));
           });
         }
       }
