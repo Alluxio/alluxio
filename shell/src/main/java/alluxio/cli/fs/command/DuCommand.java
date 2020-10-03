@@ -18,6 +18,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FormatUtils;
 
@@ -26,9 +28,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Comparator;
+import java.util.Optional;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -38,13 +42,16 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class DuCommand extends AbstractFileSystemCommand {
-  private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %s";
+  private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %-25s %s";
+  private static final String MID_1_INFO_FORMAT = "%-13s %-16s %-16s %s";
+  private static final String MID_2_INFO_FORMAT = "%-13s %-16s %-25s %s";
   private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";
   private static final String VALUE_AND_PERCENT_FORMAT = "%s (%d%%)";
 
   private static final String MEMORY_OPTION_NAME = "memory";
   private static final String READABLE_OPTION_NAME = "h";
   private static final String SUMMARIZE_OPTION_NAME = "s";
+  private static final String GROUP_BY_WORKER_OPTION_NAME = "g";
 
   private static final Option MEMORY_OPTION =
       Option.builder()
@@ -68,6 +75,14 @@ public final class DuCommand extends AbstractFileSystemCommand {
           .desc("display the aggregate summary of file lengths being displayed")
           .build();
 
+  private static final Option GROUP_BY_WORKER_OPTION =
+          Option.builder(GROUP_BY_WORKER_OPTION_NAME)
+                  .required(false)
+                  .hasArg(false)
+                  .desc("displays information for In-Alluxio data size under the path, "
+                          + "grouped by worker.")
+                  .build();
+
   /**
    * @param fsContext the filesystem of Alluxio
    */
@@ -83,7 +98,8 @@ public final class DuCommand extends AbstractFileSystemCommand {
   @Override
   protected void processHeader(CommandLine cl) {
     printInfo("File Size", "In Alluxio",
-        cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : "", "Path");
+        Optional.of(cl.hasOption(MEMORY_OPTION_NAME) ? "In Memory" : ""), "Path",
+            Optional.of(cl.hasOption(GROUP_BY_WORKER_OPTION_NAME) ? "Worker Host Name" : ""));
   }
 
   @Override
@@ -96,9 +112,10 @@ public final class DuCommand extends AbstractFileSystemCommand {
       return;
     }
 
-    Collections.sort(statuses, Comparator.comparing(URIStatus::getPath));
+    statuses.sort(Comparator.comparing(URIStatus::getPath));
     getSizeInfo(path, statuses, cl.hasOption(READABLE_OPTION_NAME),
-        cl.hasOption(SUMMARIZE_OPTION_NAME), cl.hasOption(MEMORY_OPTION_NAME));
+        cl.hasOption(SUMMARIZE_OPTION_NAME), cl.hasOption(GROUP_BY_WORKER_OPTION_NAME),
+        cl.hasOption(MEMORY_OPTION_NAME));
   }
 
   /**
@@ -108,14 +125,17 @@ public final class DuCommand extends AbstractFileSystemCommand {
    * @param statuses the statuses of files and folders
    * @param readable whether to print info of human readable format
    * @param summarize whether to display the aggregate summary lengths
+   * @param groupByWorker whether to display In-Alluxio groupByWorker
    * @param addMemory whether to display the memory size and percentage information
    */
   protected static void getSizeInfo(AlluxioURI path, List<URIStatus> statuses,
-      boolean readable, boolean summarize, boolean addMemory) {
+      boolean readable, boolean summarize, boolean groupByWorker, boolean addMemory) {
+    Optional<String> workerHostName = groupByWorker ? Optional.of("total") : Optional.empty();
     if (summarize) {
       long totalSize = 0;
       long sizeInAlluxio = 0;
       long sizeInMem = 0;
+      Map<String, Long> distributionMap = new HashMap<>();
       for (URIStatus status : statuses) {
         if (!status.isFolder()) {
           long size = status.getLength();
@@ -123,13 +143,31 @@ public final class DuCommand extends AbstractFileSystemCommand {
           sizeInMem += size * status.getInMemoryPercentage();
           sizeInAlluxio += size * status.getInAlluxioPercentage();
         }
+        if (groupByWorker) {
+          for (FileBlockInfo fileBlockInfo : status.getFileBlockInfos()) {
+            long length = fileBlockInfo.getBlockInfo().getLength();
+            for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
+              distributionMap.put(blockLocation.getWorkerAddress().getHost(),
+                      distributionMap.getOrDefault(
+                              blockLocation.getWorkerAddress().getHost(), 0L) + length);
+            }
+          }
+        }
       }
       String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
           : String.valueOf(totalSize);
       String inAlluxioMessage = getFormattedValues(readable, sizeInAlluxio / 100, totalSize);
-      String inMemMessage = addMemory
-          ? getFormattedValues(readable, sizeInMem / 100, totalSize) : "";
-      printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString());
+      Optional<String> inMemMessage = addMemory
+          ? Optional.of(getFormattedValues(readable, sizeInMem / 100, totalSize))
+              : Optional.empty();
+
+      printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString(), workerHostName);
+
+      distributionMap.forEach((hostName, size) -> {
+        String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
+                : String.valueOf(size);
+        printInfo("", inAlluxioMessageThisWorker, Optional.of(""), "", Optional.of(hostName));
+      });
     } else {
       for (URIStatus status : statuses) {
         if (!status.isFolder()) {
@@ -138,9 +176,26 @@ public final class DuCommand extends AbstractFileSystemCommand {
               : String.valueOf(totalSize);
           String inAlluxioMessage = getFormattedValues(readable,
               status.getInAlluxioPercentage() * totalSize / 100, totalSize);
-          String inMemMessage = addMemory ? getFormattedValues(readable,
-              status.getInMemoryPercentage() * totalSize / 100, totalSize) : "";
-          printInfo(sizeMessage, inAlluxioMessage, inMemMessage, status.getPath());
+          Optional<String> inMemMessage = addMemory ? Optional.of(getFormattedValues(readable,
+              status.getInMemoryPercentage() * totalSize / 100, totalSize)) : Optional.empty();
+
+          Map<String, Long> distributionMap = new HashMap<>();
+          if (groupByWorker) {
+            for (FileBlockInfo fileBlockInfo : status.getFileBlockInfos()) {
+              long length = fileBlockInfo.getBlockInfo().getLength();
+              for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
+                distributionMap.put(blockLocation.getWorkerAddress().getHost(),
+                        distributionMap.getOrDefault(
+                                blockLocation.getWorkerAddress().getHost(), 0L) + length);
+              }
+            }
+          }
+          printInfo(sizeMessage, inAlluxioMessage, inMemMessage, status.getPath(), workerHostName);
+          distributionMap.forEach((hostName, size) -> {
+            String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
+                    : String.valueOf(size);
+            printInfo("", inAlluxioMessageThisWorker, Optional.of(""), "", Optional.of(hostName));
+          });
         }
       }
     }
@@ -171,17 +226,29 @@ public final class DuCommand extends AbstractFileSystemCommand {
    * @param inAlluxioMessage the in Alluxio size message to print
    * @param inMemMessage the in memory size message to print
    * @param path the path to print
+   * @param workerHostName the worker host name to print
    */
-  private static void printInfo(String sizeMessage,
-      String inAlluxioMessage, String inMemMessage, String path) {
-    System.out.println(inMemMessage.isEmpty()
-        ? String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path)
-        : String.format(LONG_INFO_FORMAT, sizeMessage, inAlluxioMessage, inMemMessage, path));
+  private static void printInfo(String sizeMessage, String inAlluxioMessage,
+      Optional<String> inMemMessage, String path, Optional<String> workerHostName) {
+    String message;
+    if (inMemMessage.isPresent() && workerHostName.isPresent()) {
+      message = String.format(LONG_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+              inMemMessage.get(), workerHostName.get(), path);
+    } else if (inMemMessage.isPresent()) {
+      message = String.format(MID_1_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+              inMemMessage.get(), path);
+    } else if (workerHostName.isPresent()) {
+      message = String.format(MID_2_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+              workerHostName.get(), path);
+    } else {
+      message = String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path);
+    }
+    System.out.println(message);
   }
 
   @Override
   public String getUsage() {
-    return "du [-h|-s|--memory] <path>";
+    return "du [-h|-s|-g|--memory] <path>";
   }
 
   @Override
@@ -196,8 +263,11 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(MEMORY_OPTION)
-        .addOption(READABLE_OPTION).addOption(SUMMARIZE_OPTION);
+    return new Options()
+        .addOption(MEMORY_OPTION)
+        .addOption(READABLE_OPTION)
+        .addOption(SUMMARIZE_OPTION)
+        .addOption(GROUP_BY_WORKER_OPTION);
   }
 
   @Override
