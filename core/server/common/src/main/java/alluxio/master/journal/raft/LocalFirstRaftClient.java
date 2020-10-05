@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;
@@ -47,12 +49,16 @@ public class LocalFirstRaftClient implements Closeable {
    * @param server the local raft server
    * @param clientSupplier a function for building a remote raft client
    * @param clientId the client id
+   * @param configuration the server configuration
    */
   public LocalFirstRaftClient(RaftServer server, Supplier<RaftClient> clientSupplier,
-      ClientId clientId) {
+      ClientId clientId, InstancedConfiguration configuration) {
     mServer = server;
     mClientSupplier = clientSupplier;
     mClientId = clientId;
+    if (!configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
+      ensureClient();
+    }
   }
 
   /**

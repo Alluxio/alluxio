@@ -356,7 +356,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient, mClientId);
+    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient, mClientId,
+        ServerConfiguration.global());
 
     Runnable closeClient = () -> {
       try {
@@ -469,8 +470,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
-    try (LocalFirstRaftClient client =
-             new LocalFirstRaftClient(mServer, this::createClient, mClientId)) {
+    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+        mClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -503,6 +504,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
+    long waitBeforeRetry = ServerConfiguration.global()
+        .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
@@ -541,7 +544,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       if (ex != null) {
         LOG.info("Exception submitting term start entry: {}", ex.toString());
         // avoid excessive retries when server is not ready
-        Thread.sleep(100);
+        Thread.sleep(waitBeforeRetry);
         continue;
       }
 
