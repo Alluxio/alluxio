@@ -244,6 +244,7 @@ public class JournalStateMachine extends BaseStateMachine {
       throw new IllegalStateException("Cannot obtain raft log index", e);
     }
   }
+
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
