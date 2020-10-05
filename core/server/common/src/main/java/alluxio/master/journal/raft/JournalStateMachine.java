@@ -257,7 +257,7 @@ public class JournalStateMachine extends BaseStateMachine {
       long latestJournalIndex = getNextIndex() - 1;
       if (latestJournalIndex >= snapshotIndex.getIndex()) {
         // do not reload the state machine if the downloaded snapshot is older than the latest entry
-        // do it after installation so the leader will stop sending the same request
+        // fail the request after installation so the leader will stop sending the same request
         throw new IllegalArgumentException(
             String.format("Downloaded snapshot index %d is older than the latest entry index %d",
                 getNextIndex(), firstTermIndexInLog.getIndex()));
