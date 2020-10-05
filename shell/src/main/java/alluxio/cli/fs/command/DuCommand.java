@@ -42,9 +42,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class DuCommand extends AbstractFileSystemCommand {
+  //File Size     In Alluxio       In Memory        Worker Host Name          Path
   private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %-25s %s";
+  //File Size     In Alluxio       In Memory        Path
   private static final String MID_1_INFO_FORMAT = "%-13s %-16s %-16s %s";
+  //File Size     In Alluxio       Worker Host Name          Path
   private static final String MID_2_INFO_FORMAT = "%-13s %-16s %-25s %s";
+  //File Size     In Alluxio       Path
   private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";
   private static final String VALUE_AND_PERCENT_FORMAT = "%s (%d%%)";
 
@@ -145,14 +149,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
           sizeInAlluxio += size * status.getInAlluxioPercentage();
         }
         if (groupByWorker) {
-          for (FileBlockInfo fileBlockInfo : status.getFileBlockInfos()) {
-            long length = fileBlockInfo.getBlockInfo().getLength();
-            for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
-              distributionMap.put(blockLocation.getWorkerAddress().getHost(),
-                      distributionMap.getOrDefault(
-                              blockLocation.getWorkerAddress().getHost(), 0L) + length);
-            }
-          }
+          fillDistributionMap(distributionMap, status);
         }
       }
       String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
@@ -165,11 +162,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
       printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString(), workerHostName);
 
       Optional<String> inMem = inMemMessage.isPresent() ? Optional.of("") : inMemMessage;
-      distributionMap.forEach((hostName, size) -> {
-        String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
-                : String.valueOf(size);
-        printInfo("", inAlluxioMessageThisWorker, inMem, "", Optional.of(hostName));
-      });
+      getSizeInfoGroupByWorker(distributionMap, readable, inMem);
     } else {
       for (URIStatus status : statuses) {
         if (!status.isFolder()) {
@@ -183,25 +176,48 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
           Map<String, Long> distributionMap = new HashMap<>();
           if (groupByWorker) {
-            for (FileBlockInfo fileBlockInfo : status.getFileBlockInfos()) {
-              long length = fileBlockInfo.getBlockInfo().getLength();
-              for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
-                distributionMap.put(blockLocation.getWorkerAddress().getHost(),
-                        distributionMap.getOrDefault(
-                                blockLocation.getWorkerAddress().getHost(), 0L) + length);
-              }
-            }
+            fillDistributionMap(distributionMap, status);
           }
           Optional<String> inMem = inMemMessage.isPresent() ? Optional.of("") : inMemMessage;
           printInfo(sizeMessage, inAlluxioMessage, inMemMessage, status.getPath(), workerHostName);
-          distributionMap.forEach((hostName, size) -> {
-            String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
-                    : String.valueOf(size);
-            printInfo("", inAlluxioMessageThisWorker, inMem, "", Optional.of(hostName));
-          });
+          getSizeInfoGroupByWorker(distributionMap, readable, inMem);
         }
       }
     }
+  }
+
+  /**
+   * Get each block info under the url status, then accumulate block size
+   * grouped by worker host name, finally record info into distribution map.
+   *
+   * @param distributionMap map of workers and their total block size
+   * @param status whether to print info of human readable format
+   */
+  private static void fillDistributionMap(Map<String, Long> distributionMap, URIStatus status) {
+    for (FileBlockInfo fileBlockInfo : status.getFileBlockInfos()) {
+      long length = fileBlockInfo.getBlockInfo().getLength();
+      for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
+        distributionMap.put(blockLocation.getWorkerAddress().getHost(),
+                distributionMap.getOrDefault(
+                        blockLocation.getWorkerAddress().getHost(), 0L) + length);
+      }
+    }
+  }
+
+  /**
+   * Gets and prints the In-Alluxio size information grouped by worker in the distributionMap.
+   *
+   * @param distributionMap map of workers and their total block size
+   * @param readable url status to be statistics
+   * @param inMem in memory size information to print
+   */
+  private static void getSizeInfoGroupByWorker(Map<String, Long> distributionMap, boolean readable,
+      Optional<String> inMem) {
+    distributionMap.forEach((hostName, size) -> {
+      String inAlluxioMessageThisWorker = readable ? FormatUtils.getSizeFromBytes(size)
+              : String.valueOf(size);
+      printInfo("", inAlluxioMessageThisWorker, inMem, "", Optional.of(hostName));
+    });
   }
 
   /**
