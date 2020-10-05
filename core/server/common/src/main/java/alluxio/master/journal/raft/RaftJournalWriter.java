@@ -18,8 +18,9 @@ import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
-import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
+import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final AtomicLong mLastSubmittedSequenceNumber;
   private final AtomicLong mLastCommittedSequenceNumber;
 
-  private final RaftClient mClient;
+  private final LocalFirstRaftClient mClient;
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
@@ -55,7 +56,8 @@ public class RaftJournalWriter implements JournalWriter {
    * @param client client for writing entries to the journal; the constructed journal writer owns
    *               this client and is responsible for closing it
    */
-  public RaftJournalWriter(long nextSequenceNumberToWrite, RaftClient client) {
+  public RaftJournalWriter(long nextSequenceNumberToWrite,
+      LocalFirstRaftClient client) {
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
     mLastCommittedSequenceNumber = new AtomicLong(-1);
@@ -90,9 +92,11 @@ public class RaftJournalWriter implements JournalWriter {
         // It is ok to submit the same entries multiple times because we de-duplicate by sequence
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
+        JournalEntry entry = mJournalEntryBuilder.build();
+        Message message = RaftJournalSystem.toRaftMessage(entry);
         mLastSubmittedSequenceNumber.set(flushSN);
         RaftClientReply reply = mClient
-            .sendAsync(RaftJournalSystem.toRaftMessage(mJournalEntryBuilder.build()))
+            .sendAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
             .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
         if (reply.getException() != null) {

@@ -148,7 +148,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class RaftJournalSystem extends AbstractJournalSystem {
-  public static final UUID RAFT_GROUP_ID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
+  public static final UUID RAFT_GROUP_UUID =
+      UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
+  public static final RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
 
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalSystem.class);
 
@@ -201,10 +203,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
   private final ClientId mClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
-  private RaftGroupId mRaftGroupId;
   private RaftPeerId mPeerId;
 
-  private static long nextCallId() {
+  static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
   }
 
@@ -267,8 +268,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     Set<RaftPeer> peers = addresses.stream()
         .map(addr -> new RaftPeer(RaftJournalUtils.getPeerId(addr), addr))
         .collect(Collectors.toSet());
-    mRaftGroupId = RaftGroupId.valueOf(RAFT_GROUP_ID);
-    mRaftGroup = RaftGroup.valueOf(mRaftGroupId, peers);
+    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
 
     RaftProperties properties = new RaftProperties();
 
@@ -338,6 +338,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
+        .setClientId(mClientId)
         .setLeaderId(null)
         .setProperties(properties)
         .setParameters(new Parameters())
@@ -355,7 +356,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    RaftClient client = createClient();
+    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient, mClientId,
+        ServerConfiguration.global());
+
     Runnable closeClient = () -> {
       try {
         client.close();
@@ -467,7 +470,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
-    try (RaftClient client = createClient()) {
+    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+        mClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -497,9 +501,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    *
    * The caller is responsible for detecting and responding to leadership changes.
    */
-  private void catchUp(JournalStateMachine stateMachine, RaftClient client)
+  private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
+    long waitBeforeRetry = ServerConfiguration.global()
+        .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
@@ -525,14 +531,20 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       long gainPrimacySN = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
       LOG.info("Performing catchup. Last applied SN: {}. Catchup ID: {}",
           lastAppliedSN, gainPrimacySN);
-      CompletableFuture<RaftClientReply> future = client.sendAsync(
-          toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
+      Exception ex;
       try {
-        future.get(5, TimeUnit.SECONDS);
-      } catch (TimeoutException | ExecutionException e) {
-        client.getClientRpc().handleException(mPeerId,
-            e instanceof ExecutionException ? e.getCause() : e, true);
-        LOG.info("Exception submitting term start entry: {}", e.toString());
+        CompletableFuture<RaftClientReply> future = client.sendAsync(
+            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()),
+            TimeDuration.valueOf(5, TimeUnit.SECONDS));
+        RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
+        ex = reply.getException();
+      } catch (TimeoutException | ExecutionException | IOException e) {
+        ex = e;
+      }
+      if (ex != null) {
+        LOG.info("Exception submitting term start entry: {}", ex.toString());
+        // avoid excessive retries when server is not ready
+        Thread.sleep(waitBeforeRetry);
         continue;
       }
 
@@ -681,7 +693,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       RaftPeerId server, Message message) {
     RaftClient client = createClient();
     return client.getClientRpc().sendRequestAsync(
-        new RaftClientRequest(mClientId, server, mRaftGroupId, nextCallId(), message,
+        new RaftClientRequest(mClientId, server, RAFT_GROUP_ID, nextCallId(), message,
             RaftClientRequest.staleReadRequestType(0), null)
     ).whenComplete((reply, t) -> {
       try {
@@ -694,7 +706,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   private GroupInfoReply getGroupInfo() throws IOException {
     GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mClientId,
-        mPeerId, mRaftGroupId, nextCallId());
+        mPeerId, RAFT_GROUP_ID, nextCallId());
     return mServer.getGroupInfo(groupInfoRequest);
   }
 
@@ -748,7 +760,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     List<RaftPeer> newPeers = new ArrayList<>(peers);
     newPeers.add(newPeer);
     RaftClientReply reply = mServer.setConfiguration(
-        new SetConfigurationRequest(mClientId, mPeerId, mRaftGroupId, nextCallId(), newPeers));
+        new SetConfigurationRequest(mClientId, mPeerId, RAFT_GROUP_ID, nextCallId(), newPeers));
     if (reply.getException() != null) {
       throw reply.getException();
     }

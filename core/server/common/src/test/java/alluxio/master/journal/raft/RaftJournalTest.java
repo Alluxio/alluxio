@@ -71,7 +71,8 @@ public class RaftJournalTest {
       mFollowerJournalSystem = journalSystems.get(0);
     }
     // Transition primary journal to primacy state.
-    // This is required because primary selector is not used in this test.
+    mFollowerJournalSystem.notifyLeadershipStateChanged(false);
+    mLeaderJournalSystem.notifyLeadershipStateChanged(true);
     mLeaderJournalSystem.gainPrimacy();
   }
 
@@ -318,6 +319,8 @@ public class RaftJournalTest {
     // Assert that no entries applied by suspended journal system.
     Assert.assertEquals(0, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
+    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
+    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
     mFollowerJournalSystem.gainPrimacy();
     CommonUtils.waitFor(
         "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
@@ -359,6 +362,8 @@ public class RaftJournalTest {
 
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
+    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
+    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
     mFollowerJournalSystem.gainPrimacy();
     CommonUtils.waitFor("full state acquired after resume",
         () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
@@ -408,6 +413,8 @@ public class RaftJournalTest {
         mWaitOptions);
 
     // Gain primacy in follower journal and validate it catches up.
+    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
+    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
     mFollowerJournalSystem.gainPrimacy();
     // Can't use countingMaster because Raft stops applying entries for primary journals.
     // Using JournalSystem#getCurrentSequences() API instead.
