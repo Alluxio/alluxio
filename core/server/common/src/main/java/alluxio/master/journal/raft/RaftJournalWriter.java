@@ -46,7 +46,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final AtomicLong mLastSubmittedSequenceNumber;
   private final AtomicLong mLastCommittedSequenceNumber;
 
-  private final RaftJournalSystem.LocalFirstClient mClient;
+  private final LocalFirstRaftClient mClient;
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
@@ -56,7 +56,7 @@ public class RaftJournalWriter implements JournalWriter {
    * @param client client for writing entries to the journal
    */
   public RaftJournalWriter(long nextSequenceNumberToWrite,
-      RaftJournalSystem.LocalFirstClient client) {
+      LocalFirstRaftClient client) {
     // LOG.info("new journal writer {}", this);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
@@ -97,7 +97,7 @@ public class RaftJournalWriter implements JournalWriter {
         Message message = RaftJournalSystem.toRaftMessage(entry);
         mLastSubmittedSequenceNumber.set(flushSN);
         RaftClientReply reply = mClient
-            .sendRequestAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
+            .sendAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
             .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
         if (reply.getException() != null) {
