@@ -26,6 +26,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.util.JobTestUtils;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -201,7 +202,9 @@ public class TableMasterJournalIntegrationTest {
     assertNotEquals(0, jobid);
     JobTestUtils.waitForJobStatus(jobMaster, jobid, ImmutableSet.of(Status.COMPLETED,
         Status.CANCELED, Status.FAILED));
-    assertEquals(Status.COMPLETED, jobMaster.getStatus(jobid).getStatus());
+    final JobInfo status = jobMaster.getStatus(jobid);
+    assertEquals("", status.getErrorMessage());
+    assertEquals(Status.COMPLETED, status.getStatus());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
     // all partitions are transformed, so baselayout should be different as layout
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
