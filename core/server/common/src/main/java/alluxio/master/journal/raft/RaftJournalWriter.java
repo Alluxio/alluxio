@@ -53,11 +53,11 @@ public class RaftJournalWriter implements JournalWriter {
 
   /**
    * @param nextSequenceNumberToWrite the sequence number for the writer to begin writing at
-   * @param client client for writing entries to the journal
+   * @param client client for writing entries to the journal; the constructed journal writer owns
+   *               this client and is responsible for closing it
    */
   public RaftJournalWriter(long nextSequenceNumberToWrite,
       LocalFirstRaftClient client) {
-    // LOG.info("new journal writer {}", this);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
     mLastCommittedSequenceNumber = new AtomicLong(-1);
@@ -93,7 +93,6 @@ public class RaftJournalWriter implements JournalWriter {
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
         JournalEntry entry = mJournalEntryBuilder.build();
-        // LOG.info("{} - Sending request {}", this, entry);
         Message message = RaftJournalSystem.toRaftMessage(entry);
         mLastSubmittedSequenceNumber.set(flushSN);
         RaftClientReply reply = mClient

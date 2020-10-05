@@ -101,7 +101,7 @@ public class LocalFirstRaftClient implements Closeable {
     ensureClient();
     return mClient.sendAsync(message).exceptionally(t -> {
       if (t instanceof ExecutionException && t.getCause() instanceof AlreadyClosedException) {
-        // create a new client
+        // create a new client if the current client is already closed
         try {
           mClient.close();
         } catch (IOException e) {
