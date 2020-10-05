@@ -2,9 +2,7 @@
 
 name: Checkstyle, Findbugs, Doc Check, etc.
 
-on:
-  pull_request:
-    branches: [ ** ]
+on: [pull_request]
 
 jobs:
   build:
