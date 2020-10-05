@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   pull_request:
-    branches: [ github_actions, master, branch-2.* ]
+    branches: [ * ]
 
 jobs:
   build:
