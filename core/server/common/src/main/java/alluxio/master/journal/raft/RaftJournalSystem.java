@@ -400,27 +400,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       mClientId = clientId;
     }
 
-    public CompletableFuture<RaftClientReply> sendRequestAsync(Message message) throws IOException {
+    public CompletableFuture<RaftClientReply> sendRequestAsync(Message message,
+        TimeDuration timeout) throws IOException {
       if (mClient == null) {
-        return sendLocalRequest(message);
+        return sendLocalRequest(message, timeout);
       } else {
         return sendRemoteRequest(message);
       }
     }
 
-    private CompletableFuture<RaftClientReply> sendLocalRequest(Message message)
-        throws IOException {
+    private CompletableFuture<RaftClientReply> sendLocalRequest(Message message,
+        TimeDuration timeout) throws IOException {
       return mServer.submitClientRequestAsync(
           new RaftClientRequest(mClientId, null, RAFT_GROUP_ID, nextCallId(), message,
               RaftClientRequest.writeRequestType(), null))
-          .thenApply(reply -> handleLocalException(message, reply));
+          .thenApply(reply -> handleLocalException(message, reply, timeout));
     }
 
-    private RaftClientReply handleLocalException(Message message, RaftClientReply reply) {
+    private RaftClientReply handleLocalException(Message message, RaftClientReply reply,
+        TimeDuration timeout) {
       if (reply.getException() != null) {
         if (reply.getException() instanceof NotLeaderException) {
+          LOG.info("Local master is no longer a leader, falling back to remote client.");
           try {
-            return sendRemoteRequest(message).get(5, TimeUnit.SECONDS);
+            return sendRemoteRequest(message).get(timeout.getDuration(), timeout.getUnit());
           } catch (InterruptedException | TimeoutException e) {
             throw new CompletionException(e);
           } catch (ExecutionException e) {
@@ -436,10 +439,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       ensureClient();
       return mClient.sendAsync(message).exceptionally(t -> {
         if (t instanceof ExecutionException && t.getCause() instanceof AlreadyClosedException) {
+          // create a new client
           try {
             mClient.close();
           } catch (IOException e) {
-            LOG.warn("Failed to close client: {}", e.getMessage());
+            LogUtils.warnWithException(LOG, "Failed to close client: {}", e.getMessage());
           }
           mClient = mClientSupplier.get();
         }
@@ -605,16 +609,20 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       long gainPrimacySN = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
       LOG.info("Performing catchup. Last applied SN: {}. Catchup ID: {}",
           lastAppliedSN, gainPrimacySN);
+      Exception ex;
       try {
         CompletableFuture<RaftClientReply> future = client.sendRequestAsync(
-            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
+            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()),
+            TimeDuration.valueOf(5, TimeUnit.SECONDS));
         RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
-        if (reply.getException() != null) {
-          LOG.info("Exception sending term start entry: {}", reply.getException());
-          continue;
-        }
+        ex = reply.getException();
       } catch (TimeoutException | ExecutionException | IOException e) {
-        LOG.info("Exception submitting term start entry: {}", e.toString());
+        ex = e;
+      }
+      if (ex != null) {
+        LOG.info("Exception submitting term start entry: {}", ex.toString());
+        // avoid excessive retries when server is not ready
+        Thread.sleep(100);
         continue;
       }
 
