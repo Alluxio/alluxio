@@ -46,7 +46,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validateImpl(Map<String, String> optionsMap) {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 

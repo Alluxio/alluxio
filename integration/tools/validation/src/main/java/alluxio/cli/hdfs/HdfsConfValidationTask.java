@@ -25,6 +25,8 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -41,6 +43,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   // loaded by loadHdfsConfig()
   Map<String, String> mCoreConf = null;
   Map<String, String> mHdfsConf = null;
+  ValidationUtils.State mState = ValidationUtils.State.OK;
   StringBuilder mMsg = new StringBuilder();
   StringBuilder mAdvice = new StringBuilder();
 
@@ -68,9 +71,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
 
     mCoreConf = accessAndParseConf("core-site.xml", coreConfPath);
     mHdfsConf = accessAndParseConf("hdfs-site.xml", hdfsConfPath);
-    ValidationUtils.State state = (mCoreConf != null) && (mHdfsConf != null)
-            ? ValidationUtils.State.OK : ValidationUtils.State.FAILED;
-    return new ValidationTaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
+    return new ValidationTaskResult(mState, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   protected Pair<String, String> getHdfsConfPaths() {
@@ -91,7 +92,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validateImpl(Map<String, String> optionsMap) {
     if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append(String.format(
               "UFS path %s is not HDFS. Skipping validation for HDFS properties.%n", mPath));
@@ -140,16 +141,26 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       mAdvice.append(String.format("Please configure %s in %s%n", configName,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mState = ValidationUtils.State.SKIPPED;
       return null;
     }
     try {
       PathUtils.getPathComponents(path);
     } catch (InvalidPathException e) {
+      mState = ValidationUtils.State.WARNING;
       mMsg.append(String.format("Invalid path %s in Alluxio property %s.%n", path,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please correct the path for %s in %s%n", configName,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      return null;
+    }
+    if (!Files.isReadable(Paths.get(path))) {
+      mState = ValidationUtils.State.WARNING;
+      mMsg.append(String.format("File does not exist at %s in Alluxio property %s.%n", path,
+          PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mAdvice.append(String.format("Please correct the path for %s in %s%n", configName,
+          PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
     }
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
@@ -158,15 +169,18 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
       properties = parser.parseXmlConfiguration(path);
       mMsg.append(String.format("Successfully loaded %s. %n", path));
     } catch (ParserConfigurationException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to create instance of DocumentBuilder for file: %s. %s.%n",
               path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append("Please check your configuration for javax.xml.parsers.DocumentBuilder.%n");
     } catch (IOException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
     } catch (SAXException e) {
+      mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));

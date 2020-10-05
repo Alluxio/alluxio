@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.server.web;
+package alluxio.web;
 
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;

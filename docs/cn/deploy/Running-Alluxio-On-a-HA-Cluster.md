@@ -22,7 +22,7 @@ Alluxio服务的高可用性（HA）是通过在系统多个不同节点上运�
 ## 前提条件
 
 * 要部署Alluxio群集，首先 下载 预编译的Alluxio二进制文件，解压缩tarball文件并将解压的目录复制到所有节点(包括运行master和worker的所有节点)。
-* 激活不需要密码的从master节点到worker节点的SSH登录。 可以将主机的公共SSH密钥添加到`〜/.ssh/authorized_keys`中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
+* 激活不需要密码的从所有的master节点到所有的worker节点的SSH登录。 可以将主机的公共SSH密钥添加到`〜/.ssh/authorized_keys`中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
 * 开放所有节点之间的TCP通信。 对于基本功能，确保所有节点上RPC端口都是打开的（default:19998）。
 
 ## 基本配置

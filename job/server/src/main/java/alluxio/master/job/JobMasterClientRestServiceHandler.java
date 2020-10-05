@@ -22,12 +22,13 @@ import alluxio.web.JobMasterWebServer;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jaxrs.annotation.JacksonFeatures;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response;
  */
 @Path(ServiceConstants.MASTER_SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "/master")
 public final class JobMasterClientRestServiceHandler {
   private JobMaster mJobMaster;
 
@@ -104,22 +106,6 @@ public final class JobMasterClientRestServiceHandler {
   }
 
   /**
-   * @param limit maximum number of jobs to return
-   * @param before filters out on or after this timestamp (in ms) (-1 to disable)
-   * @param after filter out on or before this timestamp (in ms) (-1 to disable)
-   * @return a list of failed jobs with the most recently failed job first
-   */
-  @GET
-  @Path(ServiceConstants.FAILURE_HISTORY)
-  @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
-  public Response failureHistory(@DefaultValue("20") @QueryParam("limit") final int limit,
-                                 @DefaultValue("-1") @QueryParam("before") final long before,
-                                 @DefaultValue("-1") @QueryParam("after") final long after) {
-    return RestUtils.call(() -> mJobMaster.failed(limit, before, after),
-        ServerConfiguration.global());
-  }
-
-  /**
    * Gets the job status.
    *
    * @param jobId the job id
@@ -128,6 +114,7 @@ public final class JobMasterClientRestServiceHandler {
   @GET
   @Path(ServiceConstants.GET_STATUS)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
+  @ApiOperation(value = "Gets the status of a job", response = JobInfo.class)
   public Response getStatus(@QueryParam("jobId") final long jobId) {
     return RestUtils.call(new RestUtils.RestCallable<JobInfo>() {
       @Override

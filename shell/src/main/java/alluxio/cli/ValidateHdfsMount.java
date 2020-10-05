@@ -139,7 +139,7 @@ public class ValidateHdfsMount {
     configMap.put(ValidationConfig.UFS_CONFIG, ufsConf);
 
     ValidationTool tests = registry.create(ValidationConfig.HDFS_TOOL_TYPE, configMap);
-    String result = ValidationTool.convertResults(tests.runAllTests());
+    String result = ValidationTool.toJson(ValidationTool.convertResults(tests.runAllTests()));
     System.out.println(result);
 
     System.exit(0);

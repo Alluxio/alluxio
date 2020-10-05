@@ -113,7 +113,7 @@ public class HmsTests {
     configMap.put(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, socketTimeout);
 
     ValidationTool tests = registry.create(ValidationConfig.HMS_TOOL_TYPE, configMap);
-    String result = ValidationTool.convertResults(tests.runAllTests());
+    String result = ValidationTool.toJson(ValidationTool.convertResults(tests.runAllTests()));
     System.out.println(result);
     if (result.contains(ValidationUtils.State.FAILED.toString())) {
       System.exit(-1);

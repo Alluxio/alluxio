@@ -111,7 +111,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
@@ -130,6 +130,7 @@ public class RocksPageStore implements PageStore {
         }
         int bytesRead = 0;
         int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+        bytesLeft = Math.min(bytesLeft, bytesToRead);
         while (bytesLeft >= 0) {
           int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
           if (bytes <= 0) {

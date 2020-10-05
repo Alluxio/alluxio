@@ -102,14 +102,15 @@ public class PageStoreTest {
   @Test
   public void getOffset() throws Exception {
     int len = 32;
-    int offset = 3;
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
-    int bytesRead = mPageStore.get(id, offset, buf, 0);
-    assertEquals(len - offset, bytesRead);
-    assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
-        Arrays.copyOfRange(buf, 0, bytesRead));
+    for (int offset = 1; offset < len; offset++) {
+      int bytesRead = mPageStore.get(id, offset, len, buf, 0);
+      assertEquals(len - offset, bytesRead);
+      assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
+          Arrays.copyOfRange(buf, 0, bytesRead));
+    }
   }
 
   @Test
@@ -120,7 +121,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     mThrown.expect(IllegalArgumentException.class);
-    mPageStore.get(id, offset, buf, 0);
+    mPageStore.get(id, offset, len, buf, 0);
   }
 
   @Test
@@ -151,6 +152,34 @@ public class PageStoreTest {
     }
     Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
     assertEquals(pages, restored);
+  }
+
+  @Test
+  public void getSmallLen() throws Exception {
+    int len = 32;
+    PageId id = new PageId("0", 0);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    byte[] buf = new byte[1024];
+    for (int b = 1; b < len; b++) {
+      int bytesRead = mPageStore.get(id, 0, b, buf, 0);
+      assertEquals(b, bytesRead);
+      assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
+          Arrays.copyOfRange(buf, 0, bytesRead));
+    }
+  }
+
+  @Test
+  public void getSmallBuffer() throws Exception {
+    int len = 32;
+    PageId id = new PageId("0", 0);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    for (int b = 1; b < len; b++) {
+      byte[] buf = new byte[b];
+      int bytesRead = mPageStore.get(id, 0, len, buf, 0);
+      assertEquals(b, bytesRead);
+      assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
+          Arrays.copyOfRange(buf, 0, bytesRead));
+    }
   }
 
   @Ignore

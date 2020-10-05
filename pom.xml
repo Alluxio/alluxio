@@ -1024,7 +1024,7 @@
         <plugin>
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
-          <version>3.1.7</version>
+          <version>3.1.1</version>
           <executions>
             <execution>
               <phase>compile</phase>

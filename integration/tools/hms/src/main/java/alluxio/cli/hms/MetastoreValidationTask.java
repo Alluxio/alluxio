@@ -47,7 +47,7 @@ public abstract class MetastoreValidationTask<K, T> extends AbstractValidationTa
   abstract Pair<ValidationTaskResult, T> getValidationWithResult() throws InterruptedException;
 
   @Override
-  public ValidationTaskResult validate(Map<String, String> optionMap)
+  public ValidationTaskResult validateImpl(Map<String, String> optionMap)
       throws InterruptedException {
     return getValidationWithResult().getFirst();
   }

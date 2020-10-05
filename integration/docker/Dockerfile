@@ -19,7 +19,7 @@ FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.4.0-SNAPSHOT/alluxio-2.4.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing 
-ARG ENABLE_DYANMIC_USER=false
+ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # if the tarball was remote, it needs to be untarred
@@ -28,7 +28,7 @@ RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
 
-RUN if [ ${ENABLE_DYANMIC_USER} = "true" ] ; then \
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
@@ -37,7 +37,7 @@ ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
-ARG ENABLE_DYANMIC_USER=false
+ARG ENABLE_DYNAMIC_USER=false
 
 RUN apk --no-cache --update add bash libc6-compat shadow && \
     rm -rf /var/cache/apk/*
@@ -69,7 +69,7 @@ COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
 
-RUN if [ ${ENABLE_DYANMIC_USER} = "true" ] ; then \
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /journal; \
     fi
 
