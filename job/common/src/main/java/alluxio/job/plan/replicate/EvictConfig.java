@@ -70,6 +70,7 @@ public final class EvictConfig implements PlanConfig {
     if (StringUtils.isEmpty(mPath)) {
       return ImmutableList.of(mPath);
     }
+
     return Collections.EMPTY_LIST;
   }
 
