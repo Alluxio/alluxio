@@ -35,6 +35,7 @@ import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.impl.RaftServerProxy;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.server.storage.RaftStorage;
@@ -236,6 +237,13 @@ public class JournalStateMachine extends BaseStateMachine {
     mJournalSystem.notifyLeadershipStateChanged(false);
   }
 
+  private long getNextIndex() {
+    try {
+      return ((RaftServerProxy) mServer).getImpl(mRaftGroupId).getState().getNextIndex();
+    } catch (IOException e) {
+      throw new IllegalStateException("Cannot obtain raft log index", e);
+    }
+  }
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
@@ -245,7 +253,17 @@ public class JournalStateMachine extends BaseStateMachine {
               "Server should be a follower when installing a snapshot from leader. Actual: %s",
               roleInfoProto.getRole())));
     }
-    return mSnapshotManager.installSnapshotFromLeader();
+    return mSnapshotManager.installSnapshotFromLeader().thenApply(snapshotIndex -> {
+      long latestJournalIndex = getNextIndex() - 1;
+      if (latestJournalIndex >= snapshotIndex.getIndex()) {
+        // do not reload the state machine if the downloaded snapshot is older than the latest entry
+        // do it after installation so the leader will stop sending the same request
+        throw new IllegalArgumentException(
+            String.format("Downloaded snapshot index %d is older than the latest entry index %d",
+                getNextIndex(), firstTermIndexInLog.getIndex()));
+      }
+      return snapshotIndex;
+    });
   }
 
   @Override
