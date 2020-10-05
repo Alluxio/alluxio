@@ -1,8 +1,6 @@
 name: Unit Tests
 
-on:
-  pull_request:
-    branches: [ github_actions, master, branch-2.* ]
+on: [pull_request]
 
 jobs:
   build:
