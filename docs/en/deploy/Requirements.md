@@ -36,7 +36,7 @@ Note that these are bare minimum requirements to run the software.
 Running Alluxio at scale and under high load will increase these requirements.
 
 * Minimum 4 GB disk space
-* Minimum 4 GB memory
+* Minimum 4 GB memory (6 GB if embedded journal is used)
 * Minimum 4 CPU cores
 * Allow the following ports and protocols:
   * Inbound TCP 19998 - The Alluxio master's default RPC port
