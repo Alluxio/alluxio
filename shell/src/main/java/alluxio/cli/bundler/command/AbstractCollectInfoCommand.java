@@ -56,12 +56,16 @@ public abstract class AbstractCollectInfoCommand implements Command {
    * */
   public String getWorkingDirectory(CommandLine cl) {
     String[] args = cl.getArgs();
-    String baseDirPath = args[0];
+    String baseDirPath = args[1];
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
     LOG.debug("Command %s works in %s", this.getCommandName(), workingDirPath);
     // mkdirs checks existence of the path
     File workingDir = new File(workingDirPath);
-    workingDir.mkdirs();
+    if (!workingDir.exists()) {
+
+      System.out.format("Creating working directory: %s%n", workingDirPath);
+      workingDir.mkdirs();
+    }
     return workingDirPath;
   }
 
