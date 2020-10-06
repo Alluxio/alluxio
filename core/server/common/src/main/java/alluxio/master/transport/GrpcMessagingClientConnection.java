@@ -13,7 +13,6 @@ package alluxio.master.transport;
 
 import alluxio.grpc.GrpcChannel;
 
-import io.atomix.catalyst.concurrent.ThreadContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ public class GrpcMessagingClientConnection extends GrpcMessagingConnection {
    * @param channel underlying gRPC channel
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public GrpcMessagingClientConnection(ThreadContext context, ExecutorService executor,
+  public GrpcMessagingClientConnection(GrpcMessagingContext context, ExecutorService executor,
       GrpcChannel channel, long requestTimeoutMs) {
     super(ConnectionOwner.CLIENT, channel.toStringShort(), context, executor, requestTimeoutMs);
     mChannel = channel;

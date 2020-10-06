@@ -1513,12 +1513,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
+          .setDefaultValue("1s")
+          .setDescription("Time for embedded journal leader to wait before retrying a catch up.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port to use for embedded journal communication with other masters.")
           .setDefaultValue(19200)
           .setScope(Scope.ALL)
           .build();
+  /**
+   * @deprecated storage level is used by copycat dependency which is removed
+   */
+  @Deprecated
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
           .setDescription("The storage level for storing embedded journal logs. Use DISK for "
@@ -1535,10 +1546,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether the journal writer will attempt to write entry locally before "
+              + "falling back to a full remote raft client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT)
           .setDefaultValue("30sec")
           .setDescription("Maximum time to wait for a write/flush on embedded journal.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The stream chunk size used by masters to replicate snapshots.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2646,6 +2672,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1hour")
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
+      new Builder(Name.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("Timeout for periodical RPC between workers "
+              + "and the leading master. This property is added to prevent workers "
+              + "from hanging in periodical RPCs with previous leading master "
+              + "during flaky network situations. If the timeout is too short, "
+              + "periodical RPCs may not have enough time to get response "
+              + "from the leading master during heavy cluster load "
+              + "and high network latency.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_RAMDISK_SIZE =
       new Builder(Name.WORKER_RAMDISK_SIZE)
           .setAlias(Name.WORKER_MEMORY_SIZE)
@@ -3681,6 +3719,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("10s")
           .setDescription("Logging a client RPC when it takes more time than the threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MASTER_POLLING_TIMEOUT =
+      new Builder(Name.USER_MASTER_POLLING_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a rpc client to wait for master to respond.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_ENABLED =
@@ -4917,6 +4962,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.election.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
         "alluxio.master.embedded.journal.appender.batch.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
+        "alluxio.master.embedded.journal.catchup.retry.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
@@ -4925,8 +4972,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
         "alluxio.master.embedded.journal.shutdown.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
+        "alluxio.master.embedded.journal.write.local.first.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
         "alluxio.master.embedded.journal.write.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
+        "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
     public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
         "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
@@ -5131,6 +5182,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
+    public static final String WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
+        "alluxio.worker.master.periodical.rpc.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
@@ -5332,6 +5385,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
+    public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =

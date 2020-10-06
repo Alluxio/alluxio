@@ -19,23 +19,20 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.security.user.UserState;
 
-import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * {@link Client} implementation based on Alluxio gRPC messaging.
+ * Client implementation based on Alluxio gRPC messaging.
  *
  * Listen should be called once for each distinct address.
  * Pending futures should all be closed prior to calling {@link #close()}.
  */
-public class GrpcMessagingClient implements Client {
+public class GrpcMessagingClient {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingClient.class);
 
   /** Alluxio configuration. */
@@ -65,37 +62,43 @@ public class GrpcMessagingClient implements Client {
     mClientType = clientType;
   }
 
-  @Override
-  public CompletableFuture<Connection> connect(Address address) {
+  /**
+   * Creates a client and connects to the given address.
+   *
+   * @param address the server address
+   * @return future of connection result
+   */
+  public CompletableFuture<GrpcMessagingConnection> connect(InetSocketAddress address) {
     LOG.debug("Creating a messaging client connection to: {}", address);
-    final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
+    final GrpcMessagingContext threadContext = GrpcMessagingContext.currentContextOrThrow();
     // Future for this connection.
-    final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+    final CompletableFuture<GrpcMessagingConnection> connectionFuture = new CompletableFuture<>();
     // Spawn gRPC connection building on a common pool.
-    final CompletableFuture<Connection> buildFuture = CompletableFuture.supplyAsync(() -> {
-      try {
-        // Create a new gRPC channel for requested connection.
-        GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
-            .setClientType(mClientType).setSubject(mUserState.getSubject())
-            .build();
+    final CompletableFuture<GrpcMessagingConnection> buildFuture = CompletableFuture
+        .supplyAsync(() -> {
+          try {
+            // Create a new gRPC channel for requested connection.
+            GrpcChannel channel = GrpcChannelBuilder
+                .newBuilder(GrpcServerAddress.create(address.getHostString(), address), mConf)
+                .setClientType(mClientType).setSubject(mUserState.getSubject())
+                .build();
 
-        // Create stub for receiving stream from server.
-        MessagingServiceGrpc.MessagingServiceStub messageClientStub =
-                MessagingServiceGrpc.newStub(channel);
+            // Create stub for receiving stream from server.
+            MessagingServiceGrpc.MessagingServiceStub messageClientStub =
+                    MessagingServiceGrpc.newStub(channel);
 
-        // Create client connection that is bound to remote server stream.
-        GrpcMessagingConnection clientConnection =
-            new GrpcMessagingClientConnection(threadContext, mExecutor, channel,
-                mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
-        clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
+            // Create client connection that is bound to remote server stream.
+            GrpcMessagingConnection clientConnection =
+                new GrpcMessagingClientConnection(threadContext, mExecutor, channel,
+                    mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
+            clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
-        LOG.debug("Created a messaging client connection: {}", clientConnection);
-        return clientConnection;
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }, mExecutor);
+            LOG.debug("Created a messaging client connection: {}", clientConnection);
+            return clientConnection;
+          } catch (Throwable e) {
+            throw new RuntimeException(e);
+          }
+        }, mExecutor);
     // When connection is build, complete the connection future with it on a catalyst thread context
     // for setting up the connection.
     buildFuture.whenComplete((result, error) -> {
@@ -110,7 +113,11 @@ public class GrpcMessagingClient implements Client {
     return connectionFuture;
   }
 
-  @Override
+  /**
+   * Closes the client.
+   *
+   * @return future of result
+   */
   public CompletableFuture<Void> close() {
     LOG.debug("Closing messaging client; {}", this);
     // Nothing to clean up
