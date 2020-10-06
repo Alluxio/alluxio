@@ -11,9 +11,10 @@ the Alluxio binaries to newer version, configure Alluxio clusters similar to bef
 and start Alluxio processes with the existing journal folder/address for upgrading.
 Alluxio is able to read the previous journal files and recover the Alluxio metadata.
 
-However, Alluxio has two versions that are not backward compatible on the journal management.
-The two versions are Alluxio 2.0.0 and Alluxio 2.4.0 which results in the journals across one of these versions
-are not compatible.
+There are two cases where master journals are not backward compatible and additional steps are required to upgrade Alluxio cluster:
+
+- Upgrading from Alluxio 1.x to Alluxio 2.x
+- Upgrading from Alluxio 2.3.x and below to Alluxio 2.4.0 and above, and the embedded journal is used.
 
 This document goes over how to upgrade Alluxio across those non-compatible versions.
 Even if Alluxio journal is compatible between the current version and the target version to upgrade to, 
