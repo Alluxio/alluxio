@@ -13,12 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.master.AbstractPrimarySelector;
 
-import com.google.common.base.Preconditions;
-import io.atomix.catalyst.concurrent.Listener;
-import io.atomix.copycat.server.CopycatServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -29,42 +23,22 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class RaftPrimarySelector extends AbstractPrimarySelector {
-  private static final Logger LOG = LoggerFactory.getLogger(RaftPrimarySelector.class);
-
-  private CopycatServer mServer;
-  private Listener<CopycatServer.State> mStateListener;
 
   /**
-   * @param server reference to the server backing this selector
+   * Notifies leadership state changed.
+   * @param state the leadership state
    */
-  public void init(CopycatServer server) {
-    mServer = Preconditions.checkNotNull(server, "server");
-    if (mStateListener != null) {
-      mStateListener.close();
-    }
-    // We must register the callback before initializing mState in case the state changes
-    // immediately after initializing mState.
-    mStateListener = server.onStateChange(state -> {
-      setState(serverState());
-    });
-    setState(serverState());
-  }
-
-  private State serverState() {
-    if (mServer.state() == CopycatServer.State.LEADER) {
-      return State.PRIMARY;
-    } else {
-      return State.SECONDARY;
-    }
+  public void notifyStateChanged(State state) {
+    setState(state);
   }
 
   @Override
   public void start(InetSocketAddress address) throws IOException {
-    // The copycat cluster is owned by the outer {@link RaftJournalSystem}.
+    // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 
   @Override
   public void stop() throws IOException {
-    // The copycat cluster is owned by the outer {@link RaftJournalSystem}.
+    // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
   }
 }

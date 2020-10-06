@@ -564,6 +564,14 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @param masterId index of the master
+   * @return the journal directory for the specified master
+   */
+  public String getJournalDir(int masterId) {
+    return mMasters.get(masterId).getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
+  }
+
+  /**
    * @return return the list of master addresses
    */
   public synchronized List<MasterNetAddress> getMasterAddresses() {
