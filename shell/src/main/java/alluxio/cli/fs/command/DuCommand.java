@@ -43,13 +43,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DuCommand extends AbstractFileSystemCommand {
   //File Size     In Alluxio       In Memory        Worker Host Name          Path
-  private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %-25s %s";
+  private static final String G_MEMORY_OPTION_FORMAT = "%-13s %-16s %-16s %-25s %s";
   //File Size     In Alluxio       In Memory        Path
-  private static final String MID_1_INFO_FORMAT = "%-13s %-16s %-16s %s";
+  private static final String MEMORY_OPTION_FORMAT = "%-13s %-16s %-16s %s";
   //File Size     In Alluxio       Worker Host Name          Path
-  private static final String MID_2_INFO_FORMAT = "%-13s %-16s %-25s %s";
+  private static final String G_OPTION_FORMAT = "%-13s %-16s %-25s %s";
   //File Size     In Alluxio       Path
-  private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";
+  private static final String NON_G_MEMORY_FORMAT = "%-13s %-16s %s";
   private static final String VALUE_AND_PERCENT_FORMAT = "%s (%d%%)";
 
   private static final String MEMORY_OPTION_NAME = "memory";
@@ -161,6 +161,17 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
       printInfo(sizeMessage, inAlluxioMessage, inMemMessage, path.toString(), workerHostName);
 
+      //If inMemMessage is present, underline information composed with In-Alluxio size
+      //and worker host name need a "" as placeholder. If inMemMessage is not present,
+      //which means inMemMessage is not exist, underline information need an empty Optional.
+      //e.g. inMemMessage is present, inMem should be ""
+      //File Size     In Alluxio       In Memory        Worker Host Name          Path
+      //2             2                2                total                     /
+      //              2                                 node1
+      //e.g. inMemMessage is not present, inMem should be an empty Optional
+      //File Size     In Alluxio       Worker Host Name          Path
+      //2             2                total                     /
+      //              2                node1
       Optional<String> inMem = inMemMessage.isPresent() ? Optional.of("") : inMemMessage;
       getSizeInfoGroupByWorker(distributionMap, readable, inMem);
     } else {
@@ -251,16 +262,16 @@ public final class DuCommand extends AbstractFileSystemCommand {
       Optional<String> inMemMessage, String path, Optional<String> workerHostName) {
     String message;
     if (inMemMessage.isPresent() && workerHostName.isPresent()) {
-      message = String.format(LONG_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+      message = String.format(G_MEMORY_OPTION_FORMAT, sizeMessage, inAlluxioMessage,
               inMemMessage.get(), workerHostName.get(), path);
     } else if (inMemMessage.isPresent()) {
-      message = String.format(MID_1_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+      message = String.format(MEMORY_OPTION_FORMAT, sizeMessage, inAlluxioMessage,
               inMemMessage.get(), path);
     } else if (workerHostName.isPresent()) {
-      message = String.format(MID_2_INFO_FORMAT, sizeMessage, inAlluxioMessage,
+      message = String.format(G_OPTION_FORMAT, sizeMessage, inAlluxioMessage,
               workerHostName.get(), path);
     } else {
-      message = String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path);
+      message = String.format(NON_G_MEMORY_FORMAT, sizeMessage, inAlluxioMessage, path);
     }
     System.out.println(message);
   }
