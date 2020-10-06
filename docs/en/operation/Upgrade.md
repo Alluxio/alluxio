@@ -1,0 +1,66 @@
+---
+layout: global
+title: Upgrading
+nickname: Upgrading
+group: Operations
+priority: 15
+---
+
+In normal cases, users can directly shutdown the current Alluxio processes, change
+the Alluxio binaries to newer version, configure Alluxio clusters similar to before, 
+and start Alluxio processes with the existing journal folder/address for upgrading.
+Alluxio is able to read the previous journal files and recover the Alluxio metadata.
+
+However, Alluxio has two versions that are not backward compatible on the journal management.
+The two versions are Alluxio 2.0.0 and Alluxio 2.4.0 which results in the journals across one of these versions
+are not compatible.
+
+This document goes over how to upgrade Alluxio across those non-compatible versions.
+Even if Alluxio journal is compatible between the current version and the target version to upgrade to, 
+the upgrade method provided in the later sections is still preferred and less error-prone.
+
+## Create a backup on the current version
+
+alluxio-1.8.1 introduced a journal backup feature. 
+Please note that the Alluxio binaries should not be changed before taking the backup.
+With versions older than 1.8.1 master(s) running,
+create a journal backup by running
+
+```console
+$ ./bin/alluxio fsadmin backup
+```
+
+This will print something like
+
+```
+Successfully backed up journal to ${BACKUP_PATH}
+```
+
+`${BACKUP_PATH}` will be determined by the date, and the configuration of your
+journal. By default, the backup file will be saved to the `alluxio.master.backup.directory` of your cluster root UFS. 
+One can also backup to the local filesystem of the current leading master node with `backup [local_address] --local` command.
+
+## Upgrade and start from backup
+
+Next, download and untar newer version Alluxio. First format the cluster with
+
+```console
+$ ./bin/alluxio format
+```
+
+Then start the cluster with the `-i ${BACKUP_PATH}` argument, replacing
+`${BACKUP_PATH}` with your specific backup path.
+
+```console
+$ ./bin/alluxio-start.sh -i ${BACKUP_PATH} all
+```
+
+Note that the `${BACKUP_PATH}` should be a full path like HDFS address that can be accessed by all the Alluxio masters. 
+If backing up to a local filesystem path, remember to copy the backup file to the same location of all masters nodes, 
+and then start all the masters with the local backup file path.
+
+## Upgrade Clients and Servers
+
+Alluxio 2.x makes significant changes in the RPC layer,
+so pre-2.0.0 clients do not work with post-2.0.0 servers, and vice-versa.
+Upgrade all applications to use the alluxio-2.x client.
