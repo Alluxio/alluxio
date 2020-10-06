@@ -16,9 +16,8 @@ There are two cases where master journals are not backward compatible and additi
 - Upgrading from Alluxio 1.x to Alluxio 2.x
 - Upgrading from Alluxio 2.3.x and below to Alluxio 2.4.0 and above, and the embedded journal is used.
 
-This document goes over how to upgrade Alluxio across those non-compatible versions.
-Even if Alluxio journal is compatible between the current version and the target version to upgrade to, 
-the upgrade method provided in the later sections is still preferred and less error-prone.
+This document goes over how to upgrade Alluxio to a non-backward compatible version.
+Even when upgrading to a backward compatible version, it is still recommended to follow the steps below to create a backup before upgrading.
 
 ## Create a backup on the current version
 
