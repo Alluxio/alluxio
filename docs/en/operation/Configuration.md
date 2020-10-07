@@ -234,6 +234,13 @@ alluxio.debug=false (DEFAULT)
 ...
 ```
 
+## Java 11 Configuration
+
+Alluxio now supports Java 11.
+To run alluxio on Java 11, configure JAVA_HOME environment variable to point to your Java 11 installation directory.
+If you only want to use Java 11 for Alluxio, you can set the JAVA_HOME environment variable in alluxio-env.sh file.
+This setting will not affect other applications running on your node.
+
 ## Server Configuration Checker
 
 The server-side configuration checker helps discover configuration errors and warnings.
