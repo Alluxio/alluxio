@@ -52,10 +52,6 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   @Override
   public IOTaskResult runLocal() throws Exception {
-    // UfsIOBench is invoked from the job worker then runs in a standalone process
-    // The process type should be set to keep consistent
-    alluxio.util.CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
-
     LOG.debug("Running locally with {} threads", mParameters.mThreads);
     ExecutorService pool = null;
     IOTaskResult result = null;
