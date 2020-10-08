@@ -29,7 +29,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -48,13 +47,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private UfsIOParameters mParameters = new UfsIOParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-  private final HashMap<String, String> mHdfsConf = new HashMap<>();
 
   @Override
   public IOTaskResult runLocal() throws Exception {
     // UfsIOBench is invoked from the job worker then runs in a standalone process
     // The process type should be set to keep consistent
-    alluxio.util.CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
+    boolean switched = CommonUtils.PROCESS_TYPE.compareAndSet(CommonUtils.ProcessType.CLIENT,
+        CommonUtils.ProcessType.JOB_WORKER);
 
     LOG.debug("Running locally with {} threads", mParameters.mThreads);
     ExecutorService pool = null;
@@ -80,6 +79,10 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       if (pool != null) {
         pool.shutdownNow();
         pool.awaitTermination(30, TimeUnit.SECONDS);
+      }
+      if (switched) {
+        // restore the process type if it was switched
+        CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
       }
     }
   }
@@ -111,7 +114,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   private void cleanUp() throws IOException {
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-            .createMountSpecificConf(mHdfsConf);
+            .createMountSpecificConf(mParameters.mConf);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
 
     for (int i = 0; i < mParameters.mThreads; i++) {
@@ -130,7 +133,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       numThreads = mParameters.mThreads;
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
       ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-              .createMountSpecificConf(mHdfsConf);
+              .createMountSpecificConf(mParameters.mConf);
       ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
       if (!ufs.exists(mParameters.mPath)) {
         // If the directory does not exist, there's no point proceeding
@@ -216,7 +219,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       numThreads = mParameters.mThreads;
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
       ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-              .createMountSpecificConf(mHdfsConf);
+              .createMountSpecificConf(mParameters.mConf);
       ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
       if (!ufs.exists(mParameters.mPath)) {
         LOG.debug("Prepare directory {}", mParameters.mPath);
