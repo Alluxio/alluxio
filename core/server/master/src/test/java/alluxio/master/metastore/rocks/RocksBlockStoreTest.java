@@ -62,11 +62,6 @@ public class RocksBlockStoreTest {
   }
 
   @Test
-  public void testJavaVersion() {
-    assertEquals("1.8.", System.getProperty("java.version").substring(0, 4));
-  }
-
-  @Test
   public void blockLocations() throws Exception {
     final int blockCount = 5;
     final int workerIdStart = 100000;
