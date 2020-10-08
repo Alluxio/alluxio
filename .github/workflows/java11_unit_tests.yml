@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Java 11 Unit Tests
 
 on: [pull_request]
 
