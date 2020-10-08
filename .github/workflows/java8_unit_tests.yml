@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Java 8 Unit Tests
 
 on: [pull_request]
 
@@ -11,21 +11,9 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**
+            !alluxio.master.metastore.rocks.**
           - >-
-            alluxio.client.fs.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
-          - >-
-            alluxio.job.**
-          - >-
-            alluxio.master.**
-          - >-
-            alluxio.server.ft.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
-          - >-
-            alluxio.web.**
+            alluxio.master.metastore.rocks.**
 
     runs-on: ubuntu-latest
 
@@ -54,7 +42,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
         timeout-minutes: 60
 
       - name: Run tests (Retry 1)
@@ -66,7 +54,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
         timeout-minutes: 60
 
       - name: Run tests (Retry 2)
@@ -77,7 +65,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
         timeout-minutes: 60
 
       - name: Archive artifacts
