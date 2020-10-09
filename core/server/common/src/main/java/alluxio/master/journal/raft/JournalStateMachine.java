@@ -144,7 +144,7 @@ public class JournalStateMachine extends BaseStateMachine {
     unpause();
   }
 
-  private void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
+  private synchronized void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
       LOG.info("No snapshot to load");
       return;
@@ -296,10 +296,11 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   public synchronized void unpause() {
     LOG.info("Unpausing raft state machine.");
+    if (mJournalApplier.isSuspended()) {
+      LOG.warn("Journal should not be suspended while state machine is paused.");
+    }
     getLifeCycle().startAndTransition(() -> {
-      if (mJournalApplier.isSuspended()) {
-        LOG.warn("Journal should not be suspended while state machine is paused.");
-      }
+      // nothing to do - just use this method to transition from PAUSE to RUNNING state
     });
     LOG.info("Raft state machine is unpaused.");
   }
@@ -308,7 +309,7 @@ public class JournalStateMachine extends BaseStateMachine {
    * Applies a journal entry commit to the state machine.
    * @param commit the commit
    */
-  public void applyJournalEntryCommand(TransactionContext commit) {
+  public synchronized void applyJournalEntryCommand(TransactionContext commit) {
     JournalEntry entry;
     try {
       entry = JournalEntry.parseFrom(
@@ -388,7 +389,7 @@ public class JournalStateMachine extends BaseStateMachine {
    * Takes a snapshot of local state machine.
    * @return the index of last included entry, or {@link RaftLog#INVALID_LOG_INDEX} if it fails
    */
-  public long takeLocalSnapshot() {
+  public synchronized long takeLocalSnapshot() {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
       SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
@@ -525,7 +526,7 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param sequence the target sequence
    * @return the future to track when catching up is done
    */
-  public CatchupFuture catchup(long sequence) {
+  public synchronized CatchupFuture catchup(long sequence) {
     return mJournalApplier.catchup(sequence);
   }
 
