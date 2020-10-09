@@ -441,9 +441,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void suspend() throws IOException {
+  public synchronized void suspend(Runnable interruptCallback) throws IOException {
     mSnapshotAllowed.set(false);
-    mStateMachine.suspend();
+    mStateMachine.suspend(interruptCallback);
   }
 
   @Override

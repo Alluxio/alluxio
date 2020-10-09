@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.master.journal.CatchupFuture;
@@ -98,6 +99,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
+  private volatile Runnable mInterruptCallback;
 
   // The start time of the most recent snapshot
   private volatile long mLastSnapshotStartTime = 0;
@@ -239,7 +241,7 @@ public class JournalStateMachine extends BaseStateMachine {
 
   private long getNextIndex() {
     try {
-      return ((RaftServerProxy) mServer).getImpl(mRaftGroupId).getState().getNextIndex();
+      return ((RaftServerProxy) mServer).getImpl(mRaftGroupId).getState().getLog().getNextIndex();
     } catch (IOException e) {
       throw new IllegalStateException("Cannot obtain raft log index", e);
     }
@@ -261,38 +263,45 @@ public class JournalStateMachine extends BaseStateMachine {
         // fail the request after installation so the leader will stop sending the same request
         throw new IllegalArgumentException(
             String.format("Downloaded snapshot index %d is older than the latest entry index %d",
-                getNextIndex(), firstTermIndexInLog.getIndex()));
+                snapshotIndex.getIndex(), latestJournalIndex));
       }
       return snapshotIndex;
     });
   }
 
   @Override
-  public void pause() {
+  public synchronized void pause() {
+    LOG.info("Pausing raft state machine.");
     getLifeCycle().transition(LifeCycle.State.PAUSING);
+    if (mInterruptCallback != null) {
+      LOG.info("Invoking suspension interrupt callback.");
+      mInterruptCallback.run();
+      mInterruptCallback = null;
+    }
     try {
-      if (!mJournalApplier.isSuspended()) {
-        suspend();
+      if (mJournalApplier.isSuspended()) {
+        // make sure there are no pending entries
+        LOG.info("Resuming journal applier.");
+        mJournalApplier.resume();
       }
     } catch (IOException e) {
       throw new IllegalStateException("State machine pause failed", e);
     }
     getLifeCycle().transition(LifeCycle.State.PAUSED);
+    LOG.info("Raft state machine is paused.");
   }
 
   /**
    * Unpause the StateMachine. This should be done after uploading new state to the StateMachine.
    */
-  public void unpause() {
+  public synchronized void unpause() {
+    LOG.info("Unpausiing raft state machine.");
     getLifeCycle().startAndTransition(() -> {
-      try {
-        if (mJournalApplier.isSuspended()) {
-          resume();
-        }
-      } catch (IOException e) {
-        throw new IllegalStateException(e);
+      if (mJournalApplier.isSuspended()) {
+        LOG.warn("Journal should not be suspended while state machine is paused.");
       }
     });
+    LOG.info("Raft state machine is unpaused.");
   }
 
   /**
@@ -485,10 +494,17 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Suspends applying to masters.
    *
+   * @param interruptCallback a callback function to be called when the suspend is interrupted
    * @throws IOException
    */
-  public void suspend() throws IOException {
+  public synchronized void suspend(Runnable interruptCallback) throws IOException {
+    LOG.info("Suspending raft state machine.");
+    if (!getLifeCycleState().isRunning()) {
+      throw new UnavailableException("Cannot suspend journal when state machine is paused.");
+    }
     mJournalApplier.suspend();
+    mInterruptCallback = interruptCallback;
+    LOG.info("Raft state machine is suspended.");
   }
 
   /**
@@ -496,8 +512,15 @@ public class JournalStateMachine extends BaseStateMachine {
    *
    * @throws IOException
    */
-  public void resume() throws IOException {
-    mJournalApplier.resume();
+  public synchronized void resume() throws IOException {
+    LOG.info("Resuming raft state machine");
+    mInterruptCallback = null;
+    if (mJournalApplier.isSuspended()) {
+      mJournalApplier.resume();
+      LOG.info("Raft state machine resumed");
+    } else {
+      LOG.warn("Raft state machine is already resumed");
+    }
   }
 
   /**
@@ -514,7 +537,7 @@ public class JournalStateMachine extends BaseStateMachine {
     return StreamUtils.map(RaftJournal::getStateMachine, mJournals.values());
   }
 
-  private void resetState() {
+  private synchronized void resetState() {
     if (mClosed) {
       return;
     }
@@ -522,6 +545,9 @@ public class JournalStateMachine extends BaseStateMachine {
       LOG.warn("Unexpected call to resetState() on a read-only journal state machine");
       return;
     }
+    mJournalApplier.close();
+    mJournalApplier = new BufferedJournalApplier(mJournals,
+        () -> mJournalSystem.getJournalSinks(null));
     for (RaftJournal journal : mJournals.values()) {
       journal.getStateMachine().resetState();
     }
@@ -532,7 +558,7 @@ public class JournalStateMachine extends BaseStateMachine {
    *
    * @return the last sequence number read while in secondary mode
    */
-  public long upgrade() {
+  public synchronized long upgrade() {
     // Resume the journal applier if was suspended.
     if (mJournalApplier.isSuspended()) {
       try {

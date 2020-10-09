@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -111,7 +112,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void suspend() throws IOException {
+  public void suspend(Runnable interruptCallback) throws IOException {
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Suspending journal: {}", journalEntry.getKey());
       journalEntry.getValue().suspend();

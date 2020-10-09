@@ -144,8 +144,9 @@ public interface JournalSystem {
   /**
    * Suspends applying for all journals.
    *
+   * @param interruptCallback the callback function to be invoked when the suspension is interrupted
    */
-  void suspend() throws IOException;
+  void suspend(Runnable interruptCallback) throws IOException;
 
   /**
    * Resumes applying for all journals.

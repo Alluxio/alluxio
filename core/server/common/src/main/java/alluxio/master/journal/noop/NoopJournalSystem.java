@@ -20,6 +20,7 @@ import alluxio.master.journal.sink.JournalSink;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Nullable;
 
@@ -48,7 +49,7 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public void suspend() {
+  public void suspend(Runnable interruptCallback) {
     return;
   }
 
