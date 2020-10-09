@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -112,6 +114,8 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
@@ -865,7 +869,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
           FileInfo fileInfo = getFileInfoInternal(inodePath);
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.GET_FILE_INFO).dec();
+            Metrics.getUfsCounter(mMountTable.getMountInfo(
+                resolution.getMountId()).getUfsUri().toString(),
+                Metrics.UFSOps.GET_FILE_INFO).dec();
           }
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
           if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
@@ -933,7 +939,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
-    Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.GET_FILE_INFO).inc();
+    Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId()).getUfsUri().toString(),
+        Metrics.UFSOps.GET_FILE_INFO).inc();
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1039,7 +1046,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
           Metrics.FILE_INFOS_GOT.inc();
           if (!ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.LIST_STATUS).inc();
+            Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+                    .getUfsUri().toString(),
+                Metrics.UFSOps.LIST_STATUS).inc();
           }
         }
       }
@@ -1513,7 +1522,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     } else {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.CREATE_FILE).inc();
+      Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+          .getUfsUri().toString(), Metrics.UFSOps.CREATE_FILE).inc();
     }
     Metrics.FILES_CREATED.inc();
     return created;
@@ -1789,7 +1799,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
         if (deleteContext.getOptions().getAlluxioOnly()) {
-          Metrics.getUfsCounter(resolution.getMountId(), Metrics.UFSOps.DELETE_FILE).inc();
+          Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+                  .getUfsUri().toString(), Metrics.UFSOps.DELETE_FILE).inc();
         }
       }
 
@@ -4221,7 +4232,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
-    private static final Map<Long, Map<UFSOps, Counter>> SAVED_UFS_OPS = new HashMap<>();
+    private static final Map<String, Map<UFSOps, Counter>> SAVED_UFS_OPS = new HashMap<>();
 
     /**
      * UFS operations enum.
@@ -4233,13 +4244,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
     /**
      * Get operations saved per ufs counter.
      *
-     * @param mountId mount id
+     * @param ufsPath ufsPath
      * @param ufsOp ufs operation
      * @return the counter object
      */
     @VisibleForTesting
-    public static Counter getUfsCounter(long mountId, UFSOps ufsOp) {
-      return SAVED_UFS_OPS.compute(mountId, (k, v) -> {
+    public static Counter getUfsCounter(String ufsPath, UFSOps ufsOp) {
+      return SAVED_UFS_OPS.compute(ufsPath, (k, v) -> {
         if (v != null) {
           return v;
         } else {
@@ -4249,7 +4260,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (v != null) {
           return v;
         } else {
-          return MetricsSystem.counter("Mount_id_" + mountId + "_" + ufsOp);
+          return MetricsSystem.counter(
+              Metric.getMetricNameWithTags(UFS_OP_SAVED_PREFIX + ufsOp.name(),
+              MetricInfo.TAG_UFS, MetricsSystem.escape(new AlluxioURI(ufsPath))));
         }
       });
     }
