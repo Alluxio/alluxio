@@ -182,12 +182,25 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   private void interruptBackup() {
-    LOG.warn("interrupting backup");
+    LOG.info("Interrupting ongoing backup.");
     if (mBackupFuture != null && !mBackupFuture.isDone()) {
-      LOG.warn("attempt to cancel backup task");
+      LOG.info("Attempt to cancel backup task.");
       mBackupFuture.cancel(true);
     }
-    LOG.warn("backup interrupted");
+    boolean shouldResume = true;
+    if (mBackupTimeoutTask != null) {
+      LOG.info("Attempt to cancel backup timeout task.");
+      shouldResume = mBackupTimeoutTask.cancel(true);
+    }
+    if (shouldResume) {
+      try {
+        LOG.info("Attempt to resume journal application.");
+        mJournalSystem.resume();
+      } catch (Exception e) {
+        LOG.warn("Failed to resume journal application: {}", e.getMessage());
+      }
+    }
+    LOG.warn("Backup interrupted successfully.");
   }
 
   /**

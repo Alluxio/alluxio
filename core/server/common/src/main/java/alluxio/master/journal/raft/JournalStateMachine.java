@@ -295,7 +295,7 @@ public class JournalStateMachine extends BaseStateMachine {
    * Unpause the StateMachine. This should be done after uploading new state to the StateMachine.
    */
   public synchronized void unpause() {
-    LOG.info("Unpausiing raft state machine.");
+    LOG.info("Unpausing raft state machine.");
     getLifeCycle().startAndTransition(() -> {
       if (mJournalApplier.isSuspended()) {
         LOG.warn("Journal should not be suspended while state machine is paused.");
@@ -515,12 +515,8 @@ public class JournalStateMachine extends BaseStateMachine {
   public synchronized void resume() throws IOException {
     LOG.info("Resuming raft state machine");
     mInterruptCallback = null;
-    if (mJournalApplier.isSuspended()) {
-      mJournalApplier.resume();
-      LOG.info("Raft state machine resumed");
-    } else {
-      LOG.warn("Raft state machine is already resumed");
-    }
+    mJournalApplier.resume();
+    LOG.info("Raft state machine resumed");
   }
 
   /**

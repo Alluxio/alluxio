@@ -448,8 +448,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void resume() throws IOException {
-    mStateMachine.resume();
-    mSnapshotAllowed.set(true);
+    try {
+      mStateMachine.resume();
+    } finally {
+      mSnapshotAllowed.set(true);
+    }
   }
 
   @Override
