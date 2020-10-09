@@ -271,7 +271,6 @@ export class MetricsPresenter extends React.Component<AllProps> {
             </Table>
           </div>
         ))}
-
         {Object.keys(data.ufsOpsSaved).map((key: string) => (
           <div key={key} className="col-12">
             <h5>Saved Under FileSystem Operations of {key}</h5>
