@@ -991,7 +991,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setUfsReadSize(ufsReadSizeMap);
       response.setUfsWriteSize(ufsWriteSizeMap);
-      response.setUfsOpsSavedMap(ufsOpsSavedMap);
+      response.setUfsOpsSaved(ufsOpsSavedMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
@@ -1002,7 +1002,7 @@ public final class AlluxioMasterRestServiceHandler {
           if (ufs != null && isMounted(ufs)) {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
-            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufsUnescaped, new TreeMap<>());
             perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_PREFIX.length()), (Long) entry.getValue().getValue());
             ufsOpsMap.put(ufsUnescaped, perUfsMap);
