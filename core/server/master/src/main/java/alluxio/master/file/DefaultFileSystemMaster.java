@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -112,6 +114,8 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
@@ -811,6 +815,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public FileInfo getFileInfo(AlluxioURI path, GetStatusContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
+    boolean ufsAccessed = false;
     long opTimeMs = System.currentTimeMillis();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -822,6 +827,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           true)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
+        ufsAccessed = true;
       }
       LoadMetadataContext lmCtx = LoadMetadataContext.mergeFrom(
           LoadMetadataPOptions.newBuilder().setCreateAncestors(true).setCommonOptions(
@@ -839,6 +845,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (loadMetadata) {
           checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
           loadMetadataIfNotExist(rpcContext, path, lmCtx, true);
+          ufsAccessed = true;
         }
 
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
@@ -860,6 +867,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
+          if (ufsAccessed) {
+            MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+            Metrics.getUfsCounter(mMountTable.getMountInfo(
+                resolution.getMountId()).getUfsUri().toString(),
+                Metrics.UFSOps.GET_FILE_INFO).dec();
+          }
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
           if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
               && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
@@ -926,6 +939,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
+    Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId()).getUfsUri().toString(),
+        Metrics.UFSOps.GET_FILE_INFO).inc();
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -943,6 +958,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
+    boolean ufsAccessed = false;
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
@@ -954,6 +970,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath))) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
+        ufsAccessed = true;
       }
       /*
       See the comments in #getFileIdInternal for an explanation on why the loop here is required.
@@ -979,6 +996,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         run = false;
         if (loadMetadata) {
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext, false);
+          ufsAccessed = true;
         }
 
         // We just synced; the new lock pattern should not sync.
@@ -1026,6 +1044,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
               descendantTypeForListStatus, resultStream, 0);
           auditContext.setSucceeded(true);
           Metrics.FILE_INFOS_GOT.inc();
+          if (!ufsAccessed) {
+            MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+            Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+                    .getUfsUri().toString(),
+                Metrics.UFSOps.LIST_STATUS).inc();
+          }
         }
       }
     }
@@ -1496,8 +1520,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
       // actual file does not exist in UFS yet.
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
+    } else {
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+          .getUfsUri().toString(), Metrics.UFSOps.CREATE_FILE).inc();
     }
-
     Metrics.FILES_CREATED.inc();
     return created;
   }
@@ -1769,7 +1796,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // Delete Inodes
       for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
         LockedInodePath tempInodePath = delInodePair.getSecond();
+        MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
+        if (deleteContext.getOptions().getAlluxioOnly()) {
+          Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+                  .getUfsUri().toString(), Metrics.UFSOps.DELETE_FILE).inc();
+        }
       }
 
       if (!failedUris.isEmpty()) {
@@ -1780,7 +1812,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
             ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
       }
     }
-
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
   }
 
@@ -4238,6 +4269,40 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
+    private static final Map<String, Map<UFSOps, Counter>> SAVED_UFS_OPS = new HashMap<>();
+
+    /**
+     * UFS operations enum.
+     */
+    public enum UFSOps {
+      CREATE_FILE, GET_FILE_INFO, DELETE_FILE, LIST_STATUS
+    }
+
+    /**
+     * Get operations saved per ufs counter.
+     *
+     * @param ufsPath ufsPath
+     * @param ufsOp ufs operation
+     * @return the counter object
+     */
+    @VisibleForTesting
+    public static Counter getUfsCounter(String ufsPath, UFSOps ufsOp) {
+      return SAVED_UFS_OPS.compute(ufsPath, (k, v) -> {
+        if (v != null) {
+          return v;
+        } else {
+          return new HashMap<>();
+        }
+      }).compute(ufsOp, (k, v) -> {
+        if (v != null) {
+          return v;
+        } else {
+          return MetricsSystem.counter(
+              Metric.getMetricNameWithTags(UFS_OP_SAVED_PREFIX + ufsOp.name(),
+              MetricInfo.TAG_UFS, MetricsSystem.escape(new AlluxioURI(ufsPath))));
+        }
+      });
+    }
 
     /**
      * Register some file system master related gauges.

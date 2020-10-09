@@ -265,6 +265,21 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * Gets the simple name without the tags.
+   *
+   * @param fullName the full metric name
+   * @return the base name
+   */
+  public static String getBaseName(String fullName) {
+    String[] pieces = fullName.split("\\.");
+    if (pieces.length < 2) {
+      return fullName;
+    } else {
+      return pieces[0] + "." + pieces[1];
+    }
+  }
+
+  /**
    * Creates the metric from the full name and the value.
    *
    * @param fullName the full name
