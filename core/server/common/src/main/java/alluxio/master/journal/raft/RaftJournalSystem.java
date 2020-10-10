@@ -220,6 +220,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter = new AtomicReference<>();
   }
 
+  private void maybeMigrateOldJournal() {
+    File oldJournalPath = new File(mConf.getPath(), RAFT_GROUP_UUID.toString());
+    File newJournalBasePath = RaftJournalUtils.getRaftJournalDir(mConf.getPath());
+    File newJournalPath = new File(newJournalBasePath, RAFT_GROUP_UUID.toString());
+    if (oldJournalPath.isDirectory() && !newJournalBasePath.exists()) {
+      LOG.info("Old journal detected at {} . moving journal to {}", oldJournalPath, newJournalPath);
+      if (!newJournalBasePath.mkdirs()) {
+        LOG.warn("Cannot create journal directory {}", newJournalBasePath);
+      }
+      if (!oldJournalPath.renameTo(newJournalPath)) {
+        LOG.warn("Failed to move journal from {} to {}", oldJournalPath, newJournalPath);
+      }
+    }
+  }
+
   /**
    * Creates and initializes a raft journal system.
    *
@@ -279,7 +294,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     GrpcConfigKeys.Server.setPort(properties, localAddress.getPort());
 
     // storage path
-    RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(mConf.getPath()));
+    maybeMigrateOldJournal();
+    RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(
+        RaftJournalUtils.getRaftJournalDir(mConf.getPath())));
 
     // segment size
     RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
