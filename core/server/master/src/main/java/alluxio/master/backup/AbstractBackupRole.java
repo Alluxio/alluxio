@@ -186,6 +186,8 @@ public abstract class AbstractBackupRole implements BackupRole {
           // Create the backup from master state.
           mBackupManager.backup(ufsStream, entryCounter);
         }
+        // Add a marker file indicating the file is completed.
+        ufs.create(backupFilePath + ".complete").close();
       } catch (IOException e) {
         try {
           ufs.deleteExistingFile(backupFilePath);

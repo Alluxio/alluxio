@@ -111,7 +111,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void suspend() throws IOException {
+  public void suspend(Runnable interruptCallback) throws IOException {
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Suspending journal: {}", journalEntry.getKey());
       journalEntry.getValue().suspend();
