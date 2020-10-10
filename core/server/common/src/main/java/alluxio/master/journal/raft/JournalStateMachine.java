@@ -99,6 +99,21 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
+
+  /**
+   * This callback is used for interrupting someone who suspends the journal applier to work on
+   * the states. It helps prevent dirty read/write of the states when the journal is reloading.
+   *
+   * Here is an example of interrupting backup tasks when the state machine reloads:
+   *
+   * - Backup worker suspends state machine before backup, passing in the callback.
+   * - Backup worker writes journal entries to UFS.
+   * - Raft state machine downloads a new snapshot from leader.
+   * - Raft state machine transitions to PAUSE state and invokes the callback.
+   * - Backup worker handles the callback and interrupts the backup tasks.
+   * - Raft state machine starts reloading the states.
+   * - Raft state machine finished the reload and transitions back to RUNNING state.
+   */
   private volatile Runnable mInterruptCallback;
 
   // The start time of the most recent snapshot
@@ -494,6 +509,12 @@ public class JournalStateMachine extends BaseStateMachine {
 
   /**
    * Suspends applying to masters.
+   *
+   * When using suspend, the caller needs to provide a callback method as parameter. This callback
+   * is invoked when the journal needs to reload and thus cannot suspend the state changes any
+   * more. The callback should cancel any tasks that access the master states. After the callback
+   * returns, the journal assumes that the states is no longer being accessed and will reload
+   * immediately.
    *
    * @param interruptCallback a callback function to be called when the suspend is interrupted
    * @throws IOException
