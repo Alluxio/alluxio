@@ -131,6 +131,9 @@ public class BackupManager {
           Iterator<JournalEntry> it = master.getJournalEntryIterator();
           while (it.hasNext()) {
             journalEntryQueue.put(it.next());
+            if (Thread.interrupted()) {
+              throw new InterruptedException();
+            }
           }
         }
         // Put termination entry for signaling the writer.
@@ -138,6 +141,7 @@ public class BackupManager {
             .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup reader task interrupted");
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while reading master state.", ie);
       } finally {
@@ -156,6 +160,9 @@ public class BackupManager {
             // No elements at the moment. Fall-back to blocking mode.
             pendingEntries.add(journalEntryQueue.take());
           }
+          if (Thread.interrupted()) {
+            throw new InterruptedException();
+          }
           // Write entries to back-up stream.
           for (JournalEntry journalEntry : pendingEntries) {
             // Check for termination entry.
@@ -170,6 +177,7 @@ public class BackupManager {
         }
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup writer task interrupted");
         // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while writing to backup stream.", ie);
