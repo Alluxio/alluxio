@@ -81,8 +81,9 @@ You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive informat
 ### Collect Alluxio cluster information
 `collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio fsadmin report` etc.
 When the Alluxio cluster is not running, this command will fail to collect some information.
-> NOTE: The configuration parameters will be collected with `alluxio getConf --master`, which obfuscates the credential fields passed to
-Alluxio as properties.
+This sub-command will run both `alluxio getConf` which collects local configuration properties, 
+and `alluxio getConf --master --source` which prints configuration properties that are received from the master.
+Both of them mask credential properties. The difference is the latter command fails if the Alluxio cluster is not up. 
 
 ### Collect Alluxio configuration files
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
