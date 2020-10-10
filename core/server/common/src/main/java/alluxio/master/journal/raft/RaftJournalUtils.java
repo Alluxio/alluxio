@@ -23,6 +23,8 @@ import java.util.concurrent.CompletableFuture;
  * Helper class for raft journal operations.
  */
 public class RaftJournalUtils {
+  public static final String RAFT_DIR = "raft";
+
   private RaftJournalUtils() {
     // prevent instantiation
   }
@@ -46,6 +48,16 @@ public class RaftJournalUtils {
    */
   public static RaftPeerId getPeerId(String host, int port) {
     return RaftPeerId.getRaftPeerId(host + "_" + port);
+  }
+
+  /**
+   * Gets the raft journal dir.
+   *
+   * @param baseDir the journal base dir
+   * @return the raft peer id
+   */
+  public static File getRaftJournalDir(File baseDir) {
+    return new File(baseDir, RAFT_DIR);
   }
 
   /**
