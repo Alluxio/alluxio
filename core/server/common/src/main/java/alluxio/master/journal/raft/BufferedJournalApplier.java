@@ -150,11 +150,7 @@ public class BufferedJournalApplier {
       LOG.info("Resuming state machine from sequence: {}", mLastAppliedSequence);
     }
 
-    // Cancel catching up thread if active.
-    if (mCatchupThread != null && mCatchupThread.isAlive()) {
-      mCatchupThread.cancel();
-      mCatchupThread.waitTermination();
-    }
+    cancelCatchup();
 
     /**
      * Applies all buffered entries.
@@ -188,6 +184,14 @@ public class BufferedJournalApplier {
       mResumeInProgress = false;
       mCatchupThread = null;
       mStateLock.unlock();
+    }
+  }
+
+  private void cancelCatchup() {
+    // Cancel catching up thread if active.
+    if (mCatchupThread != null && mCatchupThread.isAlive()) {
+      mCatchupThread.cancel();
+      mCatchupThread.waitTermination();
     }
   }
 
@@ -244,6 +248,16 @@ public class BufferedJournalApplier {
     }
     // Store last applied sequence.
     mLastAppliedSequence = entry.getSequenceNumber();
+  }
+
+  /**
+   * Resets the suspend applier. Should only be used when the state machine is reset.
+   */
+  public void close() {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
+      cancelCatchup();
+      mSuspendBuffer.clear();
+    }
   }
 
   /**

@@ -33,6 +33,7 @@ import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.CommonUtils;
+import alluxio.util.LogUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -484,7 +485,7 @@ public class SnapshotReplicationManager {
         throw new UnavailableException("No recent snapshot found from followers");
       }
     } catch (Exception e) {
-      LOG.error("Failed to request snapshot info from followers", e);
+      LogUtils.warnWithException(LOG, "Failed to request snapshot info from followers", e);
       transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
       return;
     }

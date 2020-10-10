@@ -43,7 +43,7 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
     int errCode = mFsAdminShell.run("backup");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
-    assertEquals(1, Files.list(dir).count());
+    assertEquals(2, Files.list(dir).count());
   }
 
   @Test
@@ -54,6 +54,6 @@ public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest
     int errCode = mFsAdminShell.run("backup", dir.toAbsolutePath().toString());
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
-    assertEquals(1, Files.list(dir).count());
+    assertEquals(2, Files.list(dir).count());
   }
 }
