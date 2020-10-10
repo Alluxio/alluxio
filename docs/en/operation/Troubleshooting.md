@@ -86,8 +86,14 @@ Alluxio as properties.
 
 ### Collect Alluxio configuration files
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
-> WARNING: If you put credential fields in the configuration files, DO NOT share the collected tarball with anybody unless
-you have manually obfuscated them in the tarball!
+From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
+as many users tend to put their plaintext credentials to the UFS in this file.
+Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
+which prints all the configuration properties, with the credential fields masked.
+So in order to collect Alluxio configuration in the tarball,
+please make sure `collectAlluxioInfo` sub-command is run.
+> WARNING: If you put credential fields in the configuration files except alluxio-site.properties, 
+> DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect Alluxio logs
 `collectLog` will collect all the logs under `${alluxio.work.dir}/logs`.
