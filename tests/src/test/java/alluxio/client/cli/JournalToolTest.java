@@ -32,6 +32,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.master.journal.tool.JournalTool;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -217,7 +218,8 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   private long getCurrentRatisSnapshotIndex(String journalFolder) throws Throwable {
     try (RaftStorage storage = new RaftStorage(
-        new File(journalFolder, RaftJournalSystem.RAFT_GROUP_UUID.toString()),
+        new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
+            RaftJournalSystem.RAFT_GROUP_UUID.toString()),
         RaftServerConstants.StartupOption.REGULAR)) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
