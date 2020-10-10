@@ -30,6 +30,7 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -129,7 +130,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     }
     int primaryMasterIndex = mCluster.getPrimaryMasterIndex(5000);
     String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
-    File raftDir = new File(leaderJournalPath, RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    File raftDir = new File(RaftJournalUtils.getRaftJournalDir(new File(leaderJournalPath)),
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMasters();
 
@@ -168,7 +170,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     FileUtils.deleteDirectory(catchupJournalDir);
     assertTrue(catchupJournalDir.mkdirs());
     mCluster.startMaster(catchUpMasterIndex);
-    File raftDir = new File(catchupJournalDir, RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    File raftDir = new File(RaftJournalUtils.getRaftJournalDir(catchupJournalDir),
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
