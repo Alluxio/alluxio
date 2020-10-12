@@ -384,7 +384,7 @@ configure_alluxio_hdfs_root_mount() {
       exit 2
     fi
     hdfs_version=$2
-    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version "${hdfs_version}"
+    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
     # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
     core_site_location="${HADOOP_CONF}/core-site.xml"
     hdfs_site_location="${HADOOP_CONF}/hdfs-site.xml"
