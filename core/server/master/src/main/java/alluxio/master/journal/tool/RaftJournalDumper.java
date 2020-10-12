@@ -14,6 +14,7 @@ package alluxio.master.journal.tool;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.proto.journal.Journal;
 import alluxio.util.io.FileUtils;
 
@@ -108,7 +109,8 @@ public class RaftJournalDumper extends AbstractJournalDumper {
   }
 
   private File getJournalDir() {
-    return new File(mInputDir, RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    return new File(RaftJournalUtils.getRaftJournalDir(new File(mInputDir)),
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
   }
 
   private void readRatisSnapshotFromDir() throws IOException {

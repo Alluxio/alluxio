@@ -47,6 +47,11 @@ export interface IMetrics {
       [key: string]: number;
     };
   };
+  ufsOpsSaved: {
+    [key: string]: {
+      [key: string]: number;
+    };
+  };
   ufsReadSize: {
     [key: string]: string;
   };

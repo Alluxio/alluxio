@@ -164,7 +164,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     CompletableFuture<Void> msgFuture = CompletableFuture.completedFuture(null);
 
     try {
-      mJournalSystem.suspend();
+      mJournalSystem.suspend(this::interruptBackup);
       LOG.info("Suspended journals for backup.");
     } catch (IOException e) {
       String failMessage = "Failed to suspended journals for backup.";
@@ -178,6 +178,28 @@ public class BackupWorkerRole extends AbstractBackupRole {
     }, BACKUP_ABORT_AFTER_SUSPEND_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
     return msgFuture;
+  }
+
+  private void interruptBackup() {
+    LOG.info("Interrupting ongoing backup.");
+    if (mBackupFuture != null && !mBackupFuture.isDone()) {
+      LOG.info("Attempt to cancel backup task.");
+      mBackupFuture.cancel(true);
+    }
+    boolean shouldResume = true;
+    if (mBackupTimeoutTask != null) {
+      LOG.info("Attempt to cancel backup timeout task.");
+      shouldResume = mBackupTimeoutTask.cancel(true);
+    }
+    if (shouldResume) {
+      try {
+        LOG.info("Attempt to resume journal application.");
+        mJournalSystem.resume();
+      } catch (Exception e) {
+        LOG.warn("Failed to resume journal application: {}", e.getMessage());
+      }
+    }
+    LOG.warn("Backup interrupted successfully.");
   }
 
   /**
@@ -232,6 +254,10 @@ public class BackupWorkerRole extends AbstractBackupRole {
         } catch (Exception e) {
           LOG.warn("Failed to wait for backup heartbeat completion. ", e);
         }
+      } catch (InterruptedException e) {
+        LOG.error("Backup interrupted at worker", e);
+        mBackupTracker.updateError(
+            new BackupException("Backup interrupted at worker", e));
       } catch (Exception e) {
         LOG.error("Backup failed at worker", e);
         mBackupTracker.updateError(

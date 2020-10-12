@@ -122,9 +122,9 @@ public class RaftJournalTest {
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
     try {
-      mFollowerJournalSystem.suspend();
+      mFollowerJournalSystem.suspend(null);
       Assert.fail("Suspend succeeded for already suspended journal.");
     } catch (Exception e) {
       // Expected to fail when suspending a suspended journal.
@@ -190,7 +190,7 @@ public class RaftJournalTest {
     }
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
 
     // Write more entries which are not applied due to suspension.
     try (JournalContext journalContext =
@@ -226,7 +226,7 @@ public class RaftJournalTest {
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
 
     final int entryBatchCount = 5;
     // Create batch of entries on the leader journal context.
@@ -270,7 +270,7 @@ public class RaftJournalTest {
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
 
     final int entryBatchCount = 5;
     // Create 2 batches of entries on the leader journal context.
@@ -303,7 +303,7 @@ public class RaftJournalTest {
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
 
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.
@@ -338,7 +338,7 @@ public class RaftJournalTest {
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
     // Catch up follower journal system to target-index:5.
     final long catchupIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
@@ -383,7 +383,7 @@ public class RaftJournalTest {
     final int entryCount = 100000;
 
     // Suspend follower journal system.
-    mFollowerJournalSystem.suspend();
+    mFollowerJournalSystem.suspend(null);
     // Catch up follower journal to a large index to be able to transition while in progress.
     final long catchupIndex = entryCount - 5;
     Map<String, Long> backupSequences = new HashMap<>();
