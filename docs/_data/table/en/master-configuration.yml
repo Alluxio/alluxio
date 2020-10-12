@@ -5,9 +5,9 @@ alluxio.master.audit.logging.queue.capacity:
 alluxio.master.backup.abandon.timeout:
   'Duration after which leader will abandon the backup if not received heartbeat from backup-worker.'
 alluxio.master.backup.connect.interval.max:
-  'Maximum delay between each connection attempt to leader backup master.'
+  'Maximum delay between each connection attempt to backup-leader.'
 alluxio.master.backup.connect.interval.min:
-  'Minimum delay between each connection attempt to leader backup master.'
+  'Minimum delay between each connection attempt to backup-leader.'
 alluxio.master.backup.delegation.enabled:
   'Whether to delegate journals to stand-by masters in HA cluster.'
 alluxio.master.backup.directory:
@@ -16,6 +16,14 @@ alluxio.master.backup.entry.buffer.count:
   'How many journal entries to buffer during a back-up.'
 alluxio.master.backup.heartbeat.interval:
   'Interval at which follower updates the leader on ongoing backup.'
+alluxio.master.backup.state.lock.exclusive.duration:
+  'Alluxio master will allow only exclusive locking of the state-lock for this duration. This duration starts after masters are started for the first time. User RPCs will fail to acquire state-lock during this phase and a backup is guaranteed take the state-lock meanwhile.'
+alluxio.master.backup.state.lock.forced.duration:
+  'Exclusive locking of the state-lock will timeout after this duration is spent on forced phase.'
+alluxio.master.backup.state.lock.interrupt.cycle.enabled:
+  'This controls whether RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.state.lock.interrupt.cycle.interval:
+  'The interval at which the RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
 alluxio.master.backup.transport.timeout:
   'Request timeout for backup messaging.'
 alluxio.master.bind.host:
@@ -24,12 +32,24 @@ alluxio.master.daily.backup.enabled:
   'Whether or not to enable daily primary master metadata backup.'
 alluxio.master.daily.backup.files.retained:
   'The maximum number of backup files to keep in the backup directory.'
+alluxio.master.daily.backup.state.lock.grace.mode:
+  'Grace mode helps taking the state-lock exclusively for backup with minimum disruption to existing RPCs. This low-impact locking phase is called grace-cycle. Two modes are supported: TIMEOUT/FORCED.TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lockwith grace-cycle. FORCED: Means the state-lock will be taken forcefully if grace-cycle fails to acquire it. Forced phase might trigger interrupting of existing RPCs if it is enabled.'
+alluxio.master.daily.backup.state.lock.sleep.duration:
+  'The duration that controls how long the lock waiter sleeps within a single grace-cycle.'
+alluxio.master.daily.backup.state.lock.timeout:
+  'The max duration for a grace-cycle.'
+alluxio.master.daily.backup.state.lock.try.duration:
+  'The duration that controls how long the state-lock is tried within a single grace-cycle.'
 alluxio.master.daily.backup.time:
   'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.embedded.journal.addresses:
   'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
 alluxio.master.embedded.journal.appender.batch.size:
   'Amount of data that is appended from leader to followers in a single heartbeat. Setting higher values might require increasing election timeout due to increased network delay. Setting lower values might stall knowledge propagation between the leader and followers.'
+alluxio.master.embedded.journal.bind.host:
+  'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
+alluxio.master.embedded.journal.catchup.retry.wait:
+  'Time for embedded journal leader to wait before retrying a catch up.'
 alluxio.master.embedded.journal.election.timeout:
   'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.heartbeat.interval:
@@ -38,14 +58,18 @@ alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.shutdown.timeout:
   'Maximum time to wait for embedded journal to stop on shutdown.'
+alluxio.master.embedded.journal.snapshot.replication.chunk.size:
+  'The stream chunk size used by masters to replicate snapshots.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.transport.max.inbound.message.size:
-  'The max inbound message size used by copycat client/server.'
+  'The maximum size of a message that can be sent to the embedded journal server node.'
 alluxio.master.embedded.journal.transport.request.timeout.ms:
   'Timeout for requests between embedded journal masters.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
+alluxio.master.embedded.journal.write.local.first.enabled:
+  'Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client.'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.file.access.time.journal.flush.interval:
@@ -91,7 +115,7 @@ alluxio.master.journal.type:
 alluxio.master.journal.ufs.option:
   'The configuration to use for the journal operations.'
 alluxio.master.jvm.monitor.enabled:
-  'Whether to enable start JVM monitor thread on master.'
+  'Whether to enable start JVM monitor thread on the master. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.master.keytab.file:
   'Kerberos keytab file for Alluxio master.'
 alluxio.master.lock.pool.concurrency.level:
@@ -106,6 +130,12 @@ alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
 alluxio.master.lost.worker.file.detection.interval:
   'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
+alluxio.master.metadata.sync.concurrency.level:
+  'The maximum number of concurrent sync tasks running for a given sync operation'
+alluxio.master.metadata.sync.executor.pool.size:
+  'The number of threads used to execute all metadata syncoperations'
+alluxio.master.metadata.sync.ufs.prefetch.pool.size:
+  'The number of threads used to fetch UFS objects for all metadata syncoperations'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
 alluxio.master.metastore.dir:
@@ -124,6 +154,10 @@ alluxio.master.metastore.inode.inherit.owner.and.group:
   'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
 alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
+alluxio.master.metastore.iterator.readahead.size:
+  'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metrics.service.threads:
+  'The number of threads in metrics master executor pool for parallel processing metrics submitted by workers or clients and update cluster metrics.'
 alluxio.master.metrics.time.series.interval:
   'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:
@@ -136,6 +170,8 @@ alluxio.master.mount.table.root.shared:
   'Whether Alluxio root mount point is shared.'
 alluxio.master.mount.table.root.ufs:
   'The storage address of the UFS at the Alluxio root mount point.'
+alluxio.master.network.max.inbound.message.size:
+  'The maximum size of a message that can be sent to the Alluxio master'
 alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if &lt;= 0.'
 alluxio.master.periodic.block.integrity.check.repair:
@@ -170,6 +206,14 @@ alluxio.master.rpc.executor.parallelism:
   'The parallelism level of master RPC executor service .'
 alluxio.master.rpc.port:
   'The port for Alluxio master''s RPC service.'
+alluxio.master.shell.backup.state.lock.grace.mode:
+  'Grace mode helps taking the state-lock exclusively for backup with minimum disruption to existing RPCs. This low-impact locking phase is called grace-cycle. Two modes are supported: TIMEOUT/FORCED.TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lockwith grace-cycle. FORCED: Means the state-lock will be taken forcefully if grace-cycle fails to acquire it. Forced phase might trigger interrupting of existing RPCs if it is enabled.'
+alluxio.master.shell.backup.state.lock.sleep.duration:
+  'The duration that controls how long the lock waiter sleeps within a single grace-cycle.'
+alluxio.master.shell.backup.state.lock.timeout:
+  'The max duration for a grace-cycle.'
+alluxio.master.shell.backup.state.lock.try.duration:
+  'The duration that controls how long the state-lock is tried within a single grace-cycle.'
 alluxio.master.standby.heartbeat.interval:
   'The heartbeat interval between Alluxio primary master and standby masters.'
 alluxio.master.startup.block.integrity.check.enabled:
@@ -194,8 +238,12 @@ alluxio.master.ufs.active.sync.max.activities:
   'Max number of changes in a directory to be considered for active syncing'
 alluxio.master.ufs.active.sync.max.age:
   'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
+alluxio.master.ufs.active.sync.poll.batch.size:
+  'The number of event batches that should be submitted together to a single thread for processing.'
 alluxio.master.ufs.active.sync.poll.timeout:
   'Max time to wait before timing out a polling operation'
+alluxio.master.ufs.active.sync.retry.timeout:
+  'The max total duration to retry failed active sync operations.A large duration is useful to handle transient failures such as an unresponsive under storage but can lock the inode tree being synced longer.'
 alluxio.master.ufs.active.sync.thread.pool.size:
   'Max number of threads used to perform active sync'
 alluxio.master.ufs.block.location.cache.capacity:
@@ -208,6 +256,8 @@ alluxio.master.unsafe.direct.persist.object.enabled:
   'When set to false, writing files using ASYNC_THROUGH or persist CLI with object stores as the UFS will first create temporary objects suffixed by &quot;.alluxio.TIMESTAMP.tmp&quot; in the object store before committed to the final UFS path. When set to true, files will be put to the destination path directly in the object store without staging with a temp suffix. Enabling this optimization by directly persisting files can significantly improve the efficiency writing to object store by making less data copy as rename in object store can be slow, but leaving a short vulnerability window for undefined behavior if a file is written using ASYNC_THROUGH but renamed or removed before the async persist operation completes, while this same file path was reused for other new files in Alluxio.'
 alluxio.master.update.check.enabled:
   'Whether to check for update availability.'
+alluxio.master.update.check.interval:
+  'The interval to check for update availability.'
 alluxio.master.web.bind.host:
   'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:
@@ -218,5 +268,7 @@ alluxio.master.whitelist:
   'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
 alluxio.master.worker.connect.wait.time:
   'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
+alluxio.master.worker.info.cache.refresh.time:
+  'The worker information list will be refreshed after being cached for this time period. If the refresh time is too big, operations on the job servers or clients may fail because of the stale worker info. If it is too small, continuously updating worker information may case lock contention in the block master'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'
