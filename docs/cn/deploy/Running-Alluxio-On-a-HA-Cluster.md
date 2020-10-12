@@ -160,7 +160,7 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
 
-- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`
+- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`,或者指定Java option `-Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.rpc.port=19998`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
 对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998，master_hostname_2:19998，master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181，zkHost2:2181，zkHost3:2181/path`。

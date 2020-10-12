@@ -269,7 +269,7 @@ master_hostname_2:19998,master_hostname_3:19998/path`
 
 For many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
 delimiter for multiple addresses in the URI, like
-`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
+`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` Or specify Java option `-Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.rpc.port=19998`
 and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
 
 For some other applications (e.g., Spark) where comma is not accepted inside a URL authority, you
