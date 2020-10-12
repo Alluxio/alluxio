@@ -28,22 +28,13 @@
     <ufs.ozone.version>1.0.0</ufs.ozone.version>
   </properties>
 
-  <profiles>
-    <profile>
-      <id>ufs-ozone-1</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shaded-ozone</artifactId>
-          <version>${ufs.ozone.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
   <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shaded-ozone</artifactId>
+      <version>${ufs.ozone.version}</version>
+    </dependency>
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
