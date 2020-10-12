@@ -39,7 +39,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
-RUN apk --no-cache --update add bash libc6-compat shadow && \
+RUN apk --no-cache --update add bash libc6-compat shadow tini && \
     rm -rf /var/cache/apk/*
 
 # disable JVM DNS cache

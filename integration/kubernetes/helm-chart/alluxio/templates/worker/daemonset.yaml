@@ -60,7 +60,7 @@ spec:
           {{- if .Values.worker.resources  }}
 {{ include "alluxio.worker.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.worker.args }}
           args:
 {{ toYaml .Values.worker.args | trim | indent 12 }}
@@ -115,7 +115,7 @@ spec:
           {{- if .Values.jobWorker.resources  }}
 {{ include "alluxio.jobWorker.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
           args:
 {{ toYaml .Values.jobWorker.args | trim | indent 12 }}
