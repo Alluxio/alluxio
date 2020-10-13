@@ -537,8 +537,12 @@ public class JournalStateMachine extends BaseStateMachine {
   public synchronized void resume() throws IOException {
     LOG.info("Resuming raft state machine");
     mInterruptCallback = null;
-    mJournalApplier.resume();
-    LOG.info("Raft state machine resumed");
+    if (mJournalApplier.isSuspended()) {
+      mJournalApplier.resume();
+      LOG.info("Raft state machine resumed");
+    } else {
+      LOG.info("Raft state machine is already resumed");
+    }
   }
 
   /**
