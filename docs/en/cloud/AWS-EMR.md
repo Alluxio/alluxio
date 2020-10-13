@@ -17,9 +17,9 @@ AWS EMR provides great options for running clusters on-demand to handle compute 
 It manages the deployment of various Hadoop Services and allows for hooks into these services for
 customizations.
 Alluxio can run on EMR to provide functionality above what EMRFS currently provides.
-Aside from the added performance benefits of caching, Alluxio also enables users to run compute
-workloads against on-premise storage or even a different cloud provider's storage i.e. GCS, Azure
-Blob Store.
+Aside from the added performance benefits of caching, Alluxio enables users to run compute
+workloads against on-premise storage or a different cloud provider's storage such as GCS and
+Azure Blob Store.
 
 ## Prerequisites
 
@@ -27,13 +27,13 @@ Blob Store.
 * IAM Account with the default EMR Roles
 * Key Pair for EC2
 * An S3 Bucket
-* AWS CLI: Make sure that the AWS CLI is set up and ready with the required AWS Access/Secret key
+* AWS CLI: configured with your AWS access key id and secret access key
 
 The majority of the pre-requisites can be found by going through the
 [AWS EMR Getting Started](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-gs.html) guide.
 An S3 bucket is needed as Alluxio's root Under File System and to serve as the location for the
 bootstrap script.
-If required, the root UFS can be reconfigured to be HDFS.
+If desired, the root UFS can be configured to be HDFS or any other supported under storage.
 
 ## Basic Setup
 
@@ -112,10 +112,13 @@ Use `hadoop` as the username.
 $ ssh -i /path/to/keypair.pem hadoop@<masterPublicDns>
 ```
 
-If a security group isn't specified in the `create-cluster` command,
-the default EMR security group created for you will **not** allow inbound SSH.
-In order to continue, you will need to edit the security group and open port 22.
-See more details [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access).
+Note that in the example `create-cluster` command, a security group was not specified,
+so a security group is automatically created for the new cluster.
+This security group is **not** configured to allow inbound SSH.
+In order for the above SSH command to work, edit the `ElasticMapReduce-master`
+security group in the EC2 console, adding an inbound rule for port 22 with source `0.0.0.0/0`.
+Read [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access)
+for more details.
 
   {% endcollapsible %}
   {% collapsible Test that Alluxio is running %}
@@ -189,7 +192,7 @@ LOCATION 'alluxio:///testTable';
 
 Exit the Hive CLI.
 ```console
-$ exit
+$ exit;
 ```
 
   {% endcollapsible %}
