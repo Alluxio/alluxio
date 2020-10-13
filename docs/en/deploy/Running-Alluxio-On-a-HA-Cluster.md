@@ -220,15 +220,14 @@ $ ./bin/alluxio runTests
 
 When an application interacts with Alluxio in HA mode, the client must know about
 the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
-The following sections listed out two ways to specify the HA Alluxio service address on the client side.
+The following sections list two ways to specify the HA Alluxio service address on the client side.
 
 ### Specify Alluxio Service in Configuration Parameters
 
 Users can pre-configure the service address of an Alluxio HA cluster in environment variables
-or site properties, and then connect to the service using Alluxio URI like to
-`alluxio:///path` where the required connection details to the HA cluster information is already provided.
-For example, With Alluxio connection information in `core-site.xml` of Hadoop, Hadoop CLI can 
-connect to Alluxio cluster with HA.
+or site properties, and then connect to the service using an Alluxio URI such as `alluxio:///path`.
+For example, with Alluxio connection information in `core-site.xml` of Hadoop, Hadoop CLI can 
+connect to the Alluxio cluster.
 
 ```console
 $ hadoop fs -ls alluxio:///directory
@@ -236,22 +235,19 @@ $ hadoop fs -ls alluxio:///directory
 
 Depending on the different approaches to achieve HA, different properties are required:
 
-- `alluxio.master.rpc.addresses` is required when connecting to HA cluster on embedded journal.
-
+If using embedded journal, set `alluxio.master.rpc.addresses`.
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-- Zookeeper related properties are required when connecting to HA cluster with Zookeeper.
-  - Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
-  `alluxio.zookeeper.enabled` is enabled and vise versa.
-  Multiple ZooKeeper addresses can be specified by delimiting with commas.
-  
+If using Zookeeper, set the following Zookeeper related properties  
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
+Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
+`alluxio.zookeeper.enabled` is enabled and vise versa.
+Multiple ZooKeeper addresses can be specified by delimiting with commas.
 
 ### Specify Alluxio Service with URL Authority {#ha-authority}
 
@@ -339,7 +335,7 @@ Run the following command on the new worker to add
 $ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
-Once the worker is started, it will register itself with the Alluxio leading master, and become part of the Alluxio cluster.
+Once the worker is started, it will register itself with the Alluxio leading master and become part of the Alluxio cluster.
 
 Removing a worker is as simple as stopping the worker process.
 
