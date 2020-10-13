@@ -472,6 +472,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  /**
+   * @return whether the journal is suspended
+   */
+  public synchronized boolean isSuspended() {
+    return mStateMachine.isSuspended();
+  }
+
   @Override
   public synchronized CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
     // Given sequences should be the same for each master for embedded journal.

@@ -631,4 +631,11 @@ public class JournalStateMachine extends BaseStateMachine {
   public SnapshotReplicationManager getSnapshotReplicationManager() {
     return mSnapshotManager;
   }
+
+  /**
+   * @return whether the journal is suspended
+   */
+  public synchronized boolean isSuspended() {
+    return mJournalApplier.isSuspended();
+  }
 }
