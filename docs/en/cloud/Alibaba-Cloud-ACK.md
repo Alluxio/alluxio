@@ -134,7 +134,8 @@ After the image is built, there are two ways to distribute the image:
 As mentioned at the beginning: In this experiment we will submit a Spark job to K8s. 
 The Spark job will perform a word count calculation on a certain file. 
 Before we kick off the Spark job, we need to upload the file to the Alluxio storage. 
-Here, for convenience, we directly upload the file `/opt/alluxio-{{site.ALLUXIO_VERSION_STRING}}/LICENSE` from the Alluxio master node (the file path may be slightly different due to the Alluxio version) to Alluxio.
+Here, for convenience, we directly upload the file `/opt/alluxio-{{site.ALLUXIO_VERSION_STRING}}/LICENSE` from the Alluxio master node (the file path may be slightly different due to the Alluxio version) 
+to the Alluxio namespace.
 
 Use `kubectl exec` to enter the Alluxio master pod, and upload the `LICENSE` file from the current directory to the root directory in Alluxio:
 
@@ -157,9 +158,9 @@ Containing the following blocks:
 BlockInfo{id=16777216, length=27040, locations=[BlockLocation{workerId=8217561227881498090, address=WorkerNetAddress{host=192.168.8.17, containerHost=, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity (node=192.168.8.17, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 ```
 
-As shown, this `LICENSE` file has only one block whose id is 16777216,  placed on the K8s node **192.168.8.17**.
+As shown, this `LICENSE` file has only one block whose id is 16777216,  placed on the K8s node `192.168.8.17`.
 
-We use `kubectl` to identify that the node name is **cn-beijing.192.168.8.17**:
+We use `kubectl` to identify that the node name is `cn-beijing.192.168.8.17`:
 
 ```console
 $ kubectl get nodes -o wide | awk '{print $1,$6}'
@@ -177,7 +178,7 @@ cn-beijing.192.168.8.17  192.168.8.17
 The following steps will submit a Spark job to the K8s cluster. 
 The job is mainly to count the number of occurrences of each word in the `/LICENSE` file in Alluxio.
 
-In the previous step, we see that the blocks contained in the LICENSE file are all on the node `cn-beijing.192.168.8.17`. 
+In the previous step, we see that the blocks contained in the `LICENSE` file are all on the node `cn-beijing.192.168.8.17`. 
 In this experiment, we specify the node selector to let the Spark driver and Spark executor run on the node `cn-beijing. 192.168.8.17`. 
 Then we verify that the communication between the Spark executor and the Alluxio worker is completed through 
 the domain socket when Alluxio's short-circuit function is turned on.
