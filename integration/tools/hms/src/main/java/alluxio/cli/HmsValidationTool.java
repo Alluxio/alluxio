@@ -60,7 +60,7 @@ public class HmsValidationTool implements ValidationTool {
     CreateHmsClientValidationTask clientTask =
         new CreateHmsClientValidationTask(mSocketTimeout, uriCheck);
     DatabaseValidationTask dbTask = new DatabaseValidationTask(mDatabase, clientTask);
-    TableValidationTask tableTask = new TableValidationTask(mTables, mDatabase, clientTask);
+    TableValidationTask tableTask = new TableValidationTask(mDatabase, mTables, clientTask);
     mTasks.put(uriCheck.getName(), uriCheck);
     mTasks.put(clientTask.getName(), clientTask);
     mTasks.put(dbTask.getName(), dbTask);
