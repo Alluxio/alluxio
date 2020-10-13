@@ -75,7 +75,7 @@ Alluxio, they are enabled to access different persistent storage systems without
 source code changes in the application. Once connected to Alluxio, applications are
 automatically integrated with the most popular storage options without implementing any connectors.
 
-See an example use case from
+See example use cases from
 [TensorFlow on Azure](https://blogs.msdn.microsoft.com/cloudai/2018/05/01/tensorflow-on-azure-enabling-blob-storage-via-alluxio/).
 
 ## A Single Entry Point for Multiple Data Sources (Data Unification)
