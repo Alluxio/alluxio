@@ -75,7 +75,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public OpenLocalBlockResponse call() throws Exception {
         Preconditions.checkState(mRequest == null);
         mRequest = request;
-        // LOG.warn("ShortCircuit Block onNext entry, blockId: {}", mRequest.getBlockId());
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
           mSessionId = IdUtils.createSessionId();
           // TODO(calvin): Update the locking logic so this can be done better
@@ -99,7 +98,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
             .setPath(mWorker.readBlock(mSessionId, mRequest.getBlockId(), mLockId)).build();
-        // LOG.warn("ShortCircuit Block onNext, response: {}", response);
         mWorker.unlockBlock(mLockId);
         mLockId = BlockLockManager.INVALID_LOCK_ID;
         return response;

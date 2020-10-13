@@ -265,7 +265,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   private int readInternal(byte[] b, int off, int len) throws IOException {
-    // LOG.warn("BlockInStream::readInternal before readChunk()");
     if (mPos >= mLength)
     {
       return -1;
@@ -285,7 +284,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
     mCurrentChunk.readBytes(b, off, toRead);
-    // LOG.warn("BlockInStream::readInternal read {} bytes from chunk", toRead);
     mPos += toRead;
     if (mPos >= mLength)
     {

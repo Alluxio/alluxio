@@ -301,7 +301,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int openInternal(String path, FuseFileInfo fi) {
-    // LOG.warn("Enter openInternal, path={}", path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       long fd = mNextOpenFileId.getAndIncrement();
@@ -311,7 +310,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       if (fd % 100 == 1) {
         LOG.info("open(fd={},entries={})", fd, mOpenFileEntries.size());
       }
-      // LOG.warn("Exit openInternal, path={}", path);
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -326,7 +324,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    // LOG.warn("Enter ReadInternal, path={}", path);
     if (mReadOps.incrementAndGet() % 10000 == 500) {
       long cachedBytes =
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
@@ -341,7 +338,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final int sz = (int) size;
     long fd = fi.fh.get();
     // FileInStream is not thread safe
-    // LOG.warn("ReadInternal acquiring lock lockId={} for fileID={}", Math.floorMod((int) fd, LOCK_SIZE), fd);
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       // LOG.warn("ReadInternal acquired lock for fileID={}", fd);
       FileInStream is = mOpenFileEntries.get(fd);
@@ -367,7 +363,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Failed to read {},{},{}: ", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
-    // LOG.warn("Exit ReadInternal, path={}", path);
     return nread;
   }
 
@@ -430,14 +425,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int releaseInternal(String path, FuseFileInfo fi) {
-    // LOG.warn("Enter releaseInternal, path={}", path);
     long fd = fi.fh.get();
     if (mReleaseOps.incrementAndGet() % 100 == 1) {
       LOG.info("release(fd={},entries={})", fd, mOpenFileEntries.size());
     }
-    // LOG.warn("releaseInternal acquiring lock lockId={} for fileID={}", Math.floorMod((int) fd, LOCK_SIZE), fd);
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
-      // LOG.warn("releaseInternal acquired lock for fileID={}", fd);
       FileInStream is = mOpenFileEntries.remove(fd);
       FileOutStream os = mCreateFileEntries.remove(fd);
       if (is == null && os == null) {
@@ -454,7 +446,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Failed closing {}", path, e);
       return -ErrorCodes.EIO();
     }
-    // LOG.warn("Exit releaseInternal, path={}", path);
     return 0;
   }
 
