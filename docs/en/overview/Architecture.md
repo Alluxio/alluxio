@@ -257,6 +257,11 @@ configuring the property
 in the client. This section describes the behaviors of different write types as
 well as the performance implications to the applications.
 
+If you are writing with write type `MUST_CACHE`, `CACHE_THROUGH` or `ASYNC_THROUGH`,
+the data will be consistent with the metadata as long as the data isn't erased in Alluxio and that the data isn't modified in the underlying storage system through some other means.
+Writing with `THROUGH`, Alluxio's metadata about the file will be consistent with what is written, but when reading,
+the data may not be able to be retrieved and is dependent upon the UFS consistency guarantees.
+
 ### Write to Alluxio only (`MUST_CACHE`)
 
 With a write type of MUST_CACHE, the Alluxio client only writes to the local
@@ -298,11 +303,13 @@ close to `MUST_CACHE`, while still being able to persist the data. Since Alluxio
 <img src="{{ '/img/dataflow-async-through.gif' | relativize_url }}" alt="ASYNC_THROUGH data flow"/>
 </p>
 
+If you are writing with `ASYNC_THROUGH` and the worker crashes before you persist the data, then you will incur a data loss.
+
 To provide fault tolerance, one important property working with `ASYNC_THROUGH` is
 `alluxio.user.file.replication.durable`. This property sets a target replication level of new data
 in Alluxio after write completes but before the data is persisted to the under storage, with a
 default value 1. Alluxio will maintain the target replication level of the file before the
-background persist process completes, and reclaim the space in Alluxio afterwards.
+background persist process completes, and reclaim the space in Alluxio afterwards, so the data will only be written to the UFS once.
 
 ### Write to UFS Only (`THROUGH`)
 
