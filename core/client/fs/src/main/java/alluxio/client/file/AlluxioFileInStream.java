@@ -148,6 +148,9 @@ public class AlluxioFileInStream extends FileInStream {
         if (result != -1) {
           mPosition++;
         }
+        if (mBlockInStream.remaining() == 0) {
+          closeBlockInStream(mBlockInStream);
+        }
         return result;
       } catch (IOException e) {
         lastException = e;
@@ -194,6 +197,9 @@ public class AlluxioFileInStream extends FileInStream {
         }
         retry = mRetryPolicySupplier.get();
         lastException = null;
+        if (mBlockInStream.remaining() == 0) {
+          closeBlockInStream(mBlockInStream);
+        }
       } catch (IOException e) {
         lastException = e;
         if (mBlockInStream != null) {
@@ -280,7 +286,13 @@ public class AlluxioFileInStream extends FileInStream {
         len -= bytesRead;
         retry = mRetryPolicySupplier.get();
         lastException = null;
-        triggerAsyncCaching(mCachedPositionedReadStream);
+        if (mCachedPositionedReadStream.getSource() != BlockInStream.BlockInStreamSource.LOCAL) {
+          triggerAsyncCaching(mCachedPositionedReadStream);
+        }
+        if (bytesRead == mBlockSize - offset) {
+          mCachedPositionedReadStream.close();
+          mCachedPositionedReadStream = null;
+        }
       } catch (IOException e) {
         lastException = e;
         if (mCachedPositionedReadStream != null) {

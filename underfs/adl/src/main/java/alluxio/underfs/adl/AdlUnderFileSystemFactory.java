@@ -40,7 +40,7 @@ public class AdlUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public boolean supportsPath(String path) {
     return path != null
-            && (path.startsWith(AdlUnderFileSystem.SCHEME_SECURE)
-            || path.startsWith(AdlUnderFileSystem.SCHEME_INSECURE));
+      && (path.startsWith(AdlUnderFileSystem.SCHEME_SECURE)
+      || path.startsWith(AdlUnderFileSystem.SCHEME_INSECURE));
   }
 }

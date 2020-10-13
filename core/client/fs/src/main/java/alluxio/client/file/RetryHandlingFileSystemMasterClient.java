@@ -26,6 +26,7 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
@@ -38,6 +39,8 @@ import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -70,6 +73,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -232,6 +236,32 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(
+        () -> {
+          ListStatusPOptions lsOptions = ListStatusPOptions.newBuilder()
+              .setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder()
+                      .setSyncIntervalMs(0)
+                      .build())
+              .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+              .setRecursive(options.getRecursive())
+              .build();
+          final AtomicLong num = new AtomicLong();
+          mClient.listStatus(
+              ListStatusPRequest.newBuilder()
+                  .setPath(getTransportPath(path))
+                  .setOptions(lsOptions).build())
+              .forEachRemaining((pListStatusResponse) -> {
+                num.addAndGet(pListStatusResponse.getFileInfosCount());
+              });
+          return num.get();
+        }, RPC_LOG, "loadMetadata", "path=%s,options=%s", path, options
+    );
   }
 
   @Override

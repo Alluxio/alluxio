@@ -22,6 +22,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -29,6 +31,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -151,6 +154,11 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
       throws IOException {
     return Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI)))
         .map(AlluxioHdfsFileSystem::toAlluxioUriStatus).collect(Collectors.toList());
+  }
+
+  @Override
+  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("LoadMetadata is not supported.");
   }
 
   @Override
