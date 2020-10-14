@@ -278,6 +278,13 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   }
 
   /**
+   * @return available resources
+   */
+  public int getAvailableResources() {
+    return mAvailableResources.size();
+  }
+
+  /**
    * Acquires a resource of type {code T} from the pool.
    *
    * @return the acquired resource
