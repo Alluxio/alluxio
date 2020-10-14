@@ -41,8 +41,8 @@ fi
 
 # Check if java is found
 if [[ -z "${JAVA}" ]]; then
-	if [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
-		JAVA="${JAVA_HOME}/bin/java"
+  if [[ -n "${JAVA_HOME}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]];  then
+    JAVA="${JAVA_HOME}/bin/java"
   elif [[ -n "$(which java 2>/dev/null))" ]]; then
     JAVA=$(which java)
   else
