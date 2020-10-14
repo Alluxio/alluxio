@@ -78,7 +78,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     File hddDir = Files.createTempDir();
     String hddPath = hddDir.getAbsolutePath();
 
-//    // Mock no write permission so worker storage paths cannot be initialize
+    // Mock no write permission so worker storage paths cannot be initialize
     PowerMockito.mockStatic(StorageDir.class);
     Mockito.when(StorageDir.newStorageDir(any(StorageTier.class),
         anyInt(),
