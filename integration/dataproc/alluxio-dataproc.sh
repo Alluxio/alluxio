@@ -214,7 +214,7 @@ configure_alluxio_root_mount() {
   if [[ "${root_ufs_uri}" = hdfs://* ]]; then
     local -r hdfs_version=$(/usr/share/google/get_metadata_value attributes/alluxio_hdfs_version || true)
     if [[ "${hdfs_version}" ]]; then
-      append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version "${hdfs_version}"
+      append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
     fi
     # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
     core_site_location="/etc/hadoop/conf/core-site.xml"
