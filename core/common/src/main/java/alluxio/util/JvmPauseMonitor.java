@@ -201,7 +201,7 @@ public class JvmPauseMonitor {
     public void run() {
       Stopwatch sw = Stopwatch.createUnstarted();
       Map<String, GarbageCollectorMXBean> gcBeanMapBeforeSleep = getGarbageCollectorMXBeans();
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         sw.reset().start();
         try {
           sleepMillis(mGcSleepIntervalMs);
