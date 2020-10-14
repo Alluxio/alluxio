@@ -257,7 +257,8 @@ public final class PlanCoordinator {
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
             LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
           }
-          // setStatus after setting the message to propagate error message up through statusChangeCallback
+          // setStatus after setting the message to propagate error message up
+          // through statusChangeCallback
           mPlanInfo.setStatus(Status.FAILED);
           return;
         case CANCELED:
