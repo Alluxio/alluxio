@@ -105,10 +105,15 @@ and the master rpc port (Default:`19998`).
 
 ### Advanced configuration
 
+* `alluxio.master.embedded.journal.snapshot.replication.chunk.size`: The stream chunk size used by masters to replicate snapshots. Default: `4MB`.
 * `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
  Lower values might cause leadership instability when network is slow. Default: `5s`.
 * `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters.
 The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
+* `alluxio.master.embedded.journal.write.local.first.enabled`: Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client. 
+ Disable local first write may impact the metadata performance under heavy load but less error-prone during network flakiness. Default: `true`.
+* `alluxio.master.embedded.journal.catchup.retry.wait`: Time for embedded journal leader to wait before retrying a catch up. 
+ This is added to avoid excessive retries when server is not ready. Default: `1s`.
 
 ### Configuring Job service
 
@@ -340,9 +345,9 @@ Therefore, Alluxio primary master will not create checkpoints by default.
 Restarting the current primary master to transfer the leadership to another running master periodically
 can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
 
-Starting from Alluxio 2.4.0, Alluxio primary master can download checkpoints from standby masters
-and install in its journal folder in embedded journal HA mode. By doing so, Alluxio primary master 
-can truncate its journal size without causing temporary service unavailability.
+Starting from version 2.4, Alluxio embedded journal HA mode supports automatically transferring checkpoints from standby masters to the primary master. 
+Primary master can use those checkpoints as taken locally to truncate its journal size without causing temporary service unavailability. 
+Manually transferring leadership is not needed anymore.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
