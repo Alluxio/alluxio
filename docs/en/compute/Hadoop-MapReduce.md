@@ -87,7 +87,7 @@ Start Alluxio locally:
 $ ./bin/alluxio-start.sh local SudoMount
 ```
 
-You can add a sample file to Alluxio for run MapReduce wordcount on. From your Alluxio directory:
+You can add a sample file to Alluxio to run MapReduce wordcount on. From your Alluxio directory:
 
 ```console
 $ ./bin/alluxio fs mkdir /wordcount
