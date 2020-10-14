@@ -23,7 +23,7 @@
 
   <properties>
     <!-- The hadoop client version adl-hadoop depends on -->
-    <adl.hadoop.version>2.9.1</adl.hadoop.version>
+    <adl.hadoop.version>2.10.0</adl.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
