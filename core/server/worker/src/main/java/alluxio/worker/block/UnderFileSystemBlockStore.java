@@ -147,8 +147,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(new Key(sessionId, blockId));
       if (blockInfo == null) {
-//        LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
-//            blockId, sessionId);
+       LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
+           blockId, sessionId);
         return;
       }
     }
@@ -166,8 +166,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     try (LockResource lr = new LockResource(mLock)) {
       Key key = new Key(sessionId, blockId);
       if (!mBlocks.containsKey(key)) {
-//        LOG.warn("Key (block ID: {}, session ID {}) is not found when releasing the UFS block.",
-//            blockId, sessionId);
+       LOG.warn("Key (block ID: {}, session ID {}) is not found when releasing the UFS block.",
+           blockId, sessionId);
       }
       mBlocks.remove(key);
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);

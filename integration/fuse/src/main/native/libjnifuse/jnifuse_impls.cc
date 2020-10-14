@@ -64,7 +64,6 @@ int flush_wrapper(const char *path, struct fuse_file_info *fi) {
 }
 
 int release_wrapper(const char *path, struct fuse_file_info *fi) {
-  LOGD("release: %s", path);
   return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
 }
 

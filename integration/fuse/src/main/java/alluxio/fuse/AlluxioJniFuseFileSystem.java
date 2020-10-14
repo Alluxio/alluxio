@@ -339,7 +339,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     long fd = fi.fh.get();
     // FileInStream is not thread safe
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
-      // LOG.warn("ReadInternal acquired lock for fileID={}", fd);
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);

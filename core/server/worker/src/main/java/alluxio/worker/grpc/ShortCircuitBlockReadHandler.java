@@ -98,8 +98,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
             .setPath(mWorker.readBlock(mSessionId, mRequest.getBlockId(), mLockId)).build();
-        mWorker.unlockBlock(mLockId);
-        mLockId = BlockLockManager.INVALID_LOCK_ID;
         return response;
       }
 
@@ -145,7 +143,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           mWorker.unlockBlock(mLockId);
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         } else if (mRequest != null) {
-//          LOG.warn("Close a closed block {}.", mRequest.getBlockId());
+         LOG.warn("Close a closed block {}.", mRequest.getBlockId());
         }
         return null;
       }
