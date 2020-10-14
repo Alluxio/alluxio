@@ -267,6 +267,10 @@ The setting `hive.metastore.alluxio.master.address=HOSTNAME:PORT` defines the ho
 Alluxio catalog service, which is the same host and port as the Alluxio master.
 Once configured on each node, restart all presto coordinators and workers.
 
+### JAVA 11 Support
+PrestoSQL 330 or above will only run with Java 11. Starting with the 2.4 version, Alluxio also supports Java 11.
+If you have both Java 8 and 11 installed on the same node, you will need to modify JAVA_HOME environment variable to point to the correct Java installation directory.
+
 ### Using the Alluxio Catalog Service with Presto
 
 In order to utilize the Alluxio Presto plugin start the presto CLI with the following (assuming
