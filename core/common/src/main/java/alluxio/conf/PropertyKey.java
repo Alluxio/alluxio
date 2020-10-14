@@ -1544,7 +1544,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   /**
-   * @deprecated storage level is used by copycat dependency which is removed
+   * @deprecated journal shutdown timeout is used by copycat dependency which is removed
    */
   @Deprecated
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
