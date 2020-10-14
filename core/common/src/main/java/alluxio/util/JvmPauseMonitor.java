@@ -93,7 +93,7 @@ public class JvmPauseMonitor {
     }
     mJvmMonitorThread.interrupt();
     try {
-      mJvmMonitorThread.join(60 * 1000);
+      mJvmMonitorThread.join();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
