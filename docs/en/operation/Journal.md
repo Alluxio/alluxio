@@ -192,13 +192,13 @@ After configuring backup delegation, both manual and scheduled backups will run 
 
 Backup delegation can be configured with below properties:
 - `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to backup masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `1sec`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
 
 There are some advanced properties that controls the communication between Alluxio masters for coordinating the backup:
-- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `5sec`.
+- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
 - `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `10sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `2min`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `30sec`.
+- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
@@ -302,7 +302,7 @@ It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ## Advanced
 
-### Managing the UFS journal size
+### Managing the journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
@@ -317,7 +317,6 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
-
 
 #### Checkpointing on secondary master
 
@@ -340,6 +339,10 @@ Therefore, Alluxio primary master will not create checkpoints by default.
 
 Restarting the current primary master to transfer the leadership to another running master periodically
 can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
+
+Starting from Alluxio 2.4.0, Alluxio primary master can download checkpoints from standby masters
+and install in its journal folder in embedded journal HA mode. By doing so, Alluxio primary master 
+can truncate its journal size without causing temporary service unavailability.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
