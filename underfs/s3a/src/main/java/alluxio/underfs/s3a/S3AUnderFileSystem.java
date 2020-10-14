@@ -198,7 +198,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
-    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+    AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder()
+            .withClientConfiguration(clientConf).withCredentials(credentials).build();
 
     // Set a custom endpoint.
     if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
@@ -452,7 +453,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
@@ -496,7 +497,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
