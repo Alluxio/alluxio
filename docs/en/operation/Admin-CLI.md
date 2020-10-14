@@ -15,12 +15,14 @@ You can invoke the following command line utility to get all the subcommands:
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
-       [backup]
-       [checkpoint]
-       [doctor [category]]
-       [report]
-       [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
-       ...
+	 [backup [directory] [--local]]                            
+	 [doctor [category]]                                       
+	 [getBlockInfo [blockId]]                                  
+	 [journal [checkpoint] [quorum]]                           
+	 [metrics [clear]]                                         
+	 [pathConf [add] [show] [list] [remove]]                   
+	 [report [category] [category args]]                       
+	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>] 
 ```
 
 ## Operations
@@ -33,21 +35,26 @@ Back up to the default backup folder `/alluxio_backups` of the root under storag
 This default backup directory can be configured by setting `alluxio.master.backup.directory`. 
 ```
 ./bin/alluxio fsadmin backup
-Successfully backed up journal to hdfs://host:port/alluxio_backups/alluxio-backup-2018-5-29-1527644810.gz
+Backup Host        : masters-1                          
+Backup URI         : hdfs://masters-1:9000/alluxio_backups/alluxio-backup-2020-10-13-1602619110769.gz
+Backup Entry Count : 4
 ```
 Note that the user running the `backup` command need to have write permission to the backup folder of root under storage system.
 
 Back up to a specific directory in the root under storage system.
 ```
 ./bin/alluxio fsadmin backup /alluxio/special_backups
-Successfully backed up journal to hdfs://host:port/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
+Backup Host        : masters-1                          
+Backup URI         : hdfs://masters-1:9000/alluxio/special_backups/alluxio-backup-2020-10-13-1602619216699.gz
+Backup Entry Count : 4
 ```
 
 Back up to a specific directory on the leading master's local filesystem.
 ```
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
-Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
-```
+Backup Host        : AlluxioSandboxEJSC-masters-1                          
+Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-1602619298086.gz
+Backup Entry Count : 4```
 
 ### journal
 The `journal` command provides several sub-commands for journal management.
