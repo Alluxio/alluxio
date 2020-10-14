@@ -371,4 +371,4 @@ is given to read the Alluxio journal and write it to a directory in a human-read
 $ ./bin/alluxio readJournal
 ```
 
-Run `./bin/alluxio readJournal -help` for more detailed usage.
+See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for more detailed usage.

@@ -1,0 +1,3722 @@
+sequence_number: 1
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 0
+}
+
+sequence_number: 2
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 1
+}
+
+sequence_number: 3
+inode_directory {
+  id: 0
+  parent_id: -1
+  name: ""
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435522795
+  last_modification_time_ms: 1602435522795
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/"
+  last_access_time_ms: 1602435522795
+}
+
+sequence_number: 5
+update_inode {
+  id: 0
+  last_modification_time_ms: 1602435589357
+  last_access_time_ms: 1602435589357
+}
+
+sequence_number: 6
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 2
+}
+
+sequence_number: 7
+inode_directory {
+  id: 1
+  parent_id: 0
+  name: "default_tests_files"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435589361
+  last_modification_time_ms: 1602435589357
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/default_tests_files"
+  last_access_time_ms: 1602435589357
+}
+
+sequence_number: 8
+update_inode {
+  id: 1
+  ufs_fingerprint: "TYPE|DIRECTORY UFS|gcs OWNER|_ GROUP|_ MODE|0 "
+}
+
+sequence_number: 9
+delete_file {
+  id: 1
+  recursive: false
+  op_time_ms: 1602435589431
+  path: "/default_tests_files"
+}
+
+sequence_number: 10
+update_inode {
+  id: 0
+  last_modification_time_ms: 1602435591671
+  last_access_time_ms: 1602435591671
+}
+
+sequence_number: 11
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 3
+}
+
+sequence_number: 12
+inode_directory {
+  id: 2
+  parent_id: 0
+  name: "default_tests_files"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435591672
+  last_modification_time_ms: 1602435591672
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/default_tests_files"
+  last_access_time_ms: 1602435591672
+}
+
+sequence_number: 13
+inode_file {
+  id: 33554431
+  parent_id: 2
+  name: "BASIC_CACHE_PROMOTE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435591672
+  last_modification_time_ms: 1602435591671
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE"
+  last_access_time_ms: 1602435591671
+}
+
+sequence_number: 14
+new_block {
+  id: 33554431
+}
+
+sequence_number: 16
+update_inode {
+  id: 33554431
+  last_modification_time_ms: 1602435591997
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435591997
+}
+
+sequence_number: 17
+update_inode_file {
+  id: 33554431
+  length: 80
+  completed: true
+  set_blocks: 16777216
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE"
+}
+
+sequence_number: 18
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435593210
+  last_access_time_ms: 1602435593210
+}
+
+sequence_number: 19
+inode_file {
+  id: 50331647
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435593211
+  last_modification_time_ms: 1602435593210
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_MUST_CACHE"
+  last_access_time_ms: 1602435593210
+}
+
+sequence_number: 20
+new_block {
+  id: 50331647
+}
+
+sequence_number: 22
+update_inode {
+  id: 50331647
+  last_modification_time_ms: 1602435593278
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435593278
+}
+
+sequence_number: 23
+update_inode_file {
+  id: 50331647
+  length: 84
+  completed: true
+  set_blocks: 33554432
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_MUST_CACHE"
+}
+
+sequence_number: 24
+update_inode {
+  id: 2
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 25
+update_inode {
+  id: 2
+  persistence_state: "PERSISTED"
+}
+
+sequence_number: 26
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435593305
+  last_access_time_ms: 1602435593305
+}
+
+sequence_number: 27
+inode_file {
+  id: 67108863
+  parent_id: 2
+  name: "BASIC_CACHE_PROMOTE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435595189
+  last_modification_time_ms: 1602435593305
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH"
+  last_access_time_ms: 1602435593305
+}
+
+sequence_number: 28
+new_block {
+  id: 67108863
+}
+
+sequence_number: 30
+update_inode {
+  id: 67108863
+  last_modification_time_ms: 1602435596239
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435596239
+}
+
+sequence_number: 31
+update_inode_file {
+  id: 67108863
+  length: 80
+  completed: true
+  set_blocks: 50331648
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH"
+}
+
+sequence_number: 32
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435598572
+  last_access_time_ms: 1602435598572
+}
+
+sequence_number: 33
+inode_file {
+  id: 83886079
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435598572
+  last_modification_time_ms: 1602435598572
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_CACHE_THROUGH"
+  last_access_time_ms: 1602435598572
+}
+
+sequence_number: 34
+new_block {
+  id: 83886079
+}
+
+sequence_number: 36
+update_inode {
+  id: 83886079
+  last_modification_time_ms: 1602435599061
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435599061
+}
+
+sequence_number: 37
+update_inode_file {
+  id: 83886079
+  length: 84
+  completed: true
+  set_blocks: 67108864
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_CACHE_THROUGH"
+}
+
+sequence_number: 38
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435599517
+  last_access_time_ms: 1602435599517
+}
+
+sequence_number: 39
+inode_file {
+  id: 100663295
+  parent_id: 2
+  name: "BASIC_CACHE_PROMOTE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435599518
+  last_modification_time_ms: 1602435599517
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_THROUGH"
+  last_access_time_ms: 1602435599517
+}
+
+sequence_number: 41
+update_inode {
+  id: 100663295
+  last_modification_time_ms: 1602435600106
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435600106
+}
+
+sequence_number: 42
+update_inode_file {
+  id: 100663295
+  length: 80
+  completed: true
+  set_blocks: 83886080
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_THROUGH"
+}
+
+sequence_number: 43
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435602871
+  last_access_time_ms: 1602435602871
+}
+
+sequence_number: 44
+inode_file {
+  id: 117440511
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435602872
+  last_modification_time_ms: 1602435602871
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_THROUGH"
+  last_access_time_ms: 1602435602871
+}
+
+sequence_number: 46
+update_inode {
+  id: 117440511
+  last_modification_time_ms: 1602435603486
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435603486
+}
+
+sequence_number: 47
+update_inode_file {
+  id: 117440511
+  length: 84
+  completed: true
+  set_blocks: 100663296
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_THROUGH"
+}
+
+sequence_number: 48
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435604004
+  last_access_time_ms: 1602435604004
+}
+
+sequence_number: 49
+inode_file {
+  id: 134217727
+  parent_id: 2
+  name: "BASIC_CACHE_PROMOTE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435604005
+  last_modification_time_ms: 1602435604004
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435604004
+}
+
+sequence_number: 50
+new_block {
+  id: 134217727
+}
+
+sequence_number: 52
+update_inode {
+  id: 134217727
+  last_modification_time_ms: 1602435604080
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435604080
+}
+
+sequence_number: 53
+update_inode_file {
+  id: 134217727
+  length: 80
+  completed: true
+  set_blocks: 117440512
+  path: "/default_tests_files/BASIC_CACHE_PROMOTE_ASYNC_THROUGH"
+}
+
+sequence_number: 54
+update_inode {
+  id: 134217727
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 55
+update_inode_file {
+  id: 134217727
+  persist_job_id: 1602435529152
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_CACHE_PROMOTE_ASYNC_THROUGH"
+}
+
+sequence_number: 56
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435605571
+  last_access_time_ms: 1602435605571
+}
+
+sequence_number: 57
+inode_file {
+  id: 150994943
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435605572
+  last_modification_time_ms: 1602435605571
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435605571
+}
+
+sequence_number: 58
+new_block {
+  id: 150994943
+}
+
+sequence_number: 60
+update_inode {
+  id: 150994943
+  last_modification_time_ms: 1602435605636
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435605636
+}
+
+sequence_number: 61
+update_inode_file {
+  id: 150994943
+  length: 84
+  completed: true
+  set_blocks: 134217728
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_ASYNC_THROUGH"
+}
+
+sequence_number: 62
+update_inode {
+  id: 150994943
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 63
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435605663
+  last_access_time_ms: 1602435605663
+}
+
+sequence_number: 64
+inode_file {
+  id: 167772159
+  parent_id: 2
+  name: "BASIC_CACHE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435605664
+  last_modification_time_ms: 1602435605663
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_MUST_CACHE"
+  last_access_time_ms: 1602435605663
+}
+
+sequence_number: 65
+new_block {
+  id: 167772159
+}
+
+sequence_number: 67
+update_inode {
+  id: 167772159
+  last_modification_time_ms: 1602435605735
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435605735
+}
+
+sequence_number: 68
+update_inode_file {
+  id: 167772159
+  length: 80
+  completed: true
+  set_blocks: 150994944
+  path: "/default_tests_files/BASIC_CACHE_MUST_CACHE"
+}
+
+sequence_number: 69
+update_inode_file {
+  id: 150994943
+  persist_job_id: 1602435529153
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_PROMOTE_ASYNC_THROUGH"
+}
+
+sequence_number: 70
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435607174
+  last_access_time_ms: 1602435607174
+}
+
+sequence_number: 71
+inode_file {
+  id: 184549375
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435607175
+  last_modification_time_ms: 1602435607174
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_MUST_CACHE"
+  last_access_time_ms: 1602435607174
+}
+
+sequence_number: 72
+new_block {
+  id: 184549375
+}
+
+sequence_number: 74
+update_inode {
+  id: 184549375
+  last_modification_time_ms: 1602435607236
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435607236
+}
+
+sequence_number: 75
+update_inode_file {
+  id: 184549375
+  length: 84
+  completed: true
+  set_blocks: 167772160
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_MUST_CACHE"
+}
+
+sequence_number: 76
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435607265
+  last_access_time_ms: 1602435607265
+}
+
+sequence_number: 77
+inode_file {
+  id: 201326591
+  parent_id: 2
+  name: "BASIC_CACHE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435607265
+  last_modification_time_ms: 1602435607265
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_CACHE_THROUGH"
+  last_access_time_ms: 1602435607265
+}
+
+sequence_number: 78
+new_block {
+  id: 201326591
+}
+
+sequence_number: 80
+update_inode {
+  id: 201326591
+  last_modification_time_ms: 1602435607814
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435607814
+}
+
+sequence_number: 81
+update_inode_file {
+  id: 201326591
+  length: 80
+  completed: true
+  set_blocks: 184549376
+  path: "/default_tests_files/BASIC_CACHE_CACHE_THROUGH"
+}
+
+sequence_number: 82
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435609017
+  last_access_time_ms: 1602435609017
+}
+
+sequence_number: 83
+inode_file {
+  id: 218103807
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435609018
+  last_modification_time_ms: 1602435609017
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_CACHE_THROUGH"
+  last_access_time_ms: 1602435609017
+}
+
+sequence_number: 84
+new_block {
+  id: 218103807
+}
+
+sequence_number: 86
+update_inode_file {
+  id: 150994943
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 87
+update_inode {
+  id: 150994943
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+}
+
+sequence_number: 88
+update_inode_file {
+  id: 134217727
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 89
+update_inode {
+  id: 134217727
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+}
+
+sequence_number: 90
+update_inode {
+  id: 218103807
+  last_modification_time_ms: 1602435609240
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435609240
+}
+
+sequence_number: 91
+update_inode_file {
+  id: 218103807
+  length: 84
+  completed: true
+  set_blocks: 201326592
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_CACHE_THROUGH"
+}
+
+sequence_number: 92
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435609961
+  last_access_time_ms: 1602435609961
+}
+
+sequence_number: 93
+inode_file {
+  id: 234881023
+  parent_id: 2
+  name: "BASIC_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435609961
+  last_modification_time_ms: 1602435609961
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_THROUGH"
+  last_access_time_ms: 1602435609961
+}
+
+sequence_number: 95
+update_inode {
+  id: 234881023
+  last_modification_time_ms: 1602435610552
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435610552
+}
+
+sequence_number: 96
+update_inode_file {
+  id: 234881023
+  length: 80
+  completed: true
+  set_blocks: 218103808
+  path: "/default_tests_files/BASIC_CACHE_THROUGH"
+}
+
+sequence_number: 97
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435612154
+  last_access_time_ms: 1602435612154
+}
+
+sequence_number: 98
+inode_file {
+  id: 251658239
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435612155
+  last_modification_time_ms: 1602435612154
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_THROUGH"
+  last_access_time_ms: 1602435612154
+}
+
+sequence_number: 100
+update_inode {
+  id: 251658239
+  last_modification_time_ms: 1602435612702
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435612702
+}
+
+sequence_number: 101
+update_inode_file {
+  id: 251658239
+  length: 84
+  completed: true
+  set_blocks: 234881024
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_THROUGH"
+}
+
+sequence_number: 102
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435613221
+  last_access_time_ms: 1602435613221
+}
+
+sequence_number: 103
+inode_file {
+  id: 268435455
+  parent_id: 2
+  name: "BASIC_CACHE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435613221
+  last_modification_time_ms: 1602435613221
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_CACHE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435613221
+}
+
+sequence_number: 104
+new_block {
+  id: 268435455
+}
+
+sequence_number: 106
+update_inode {
+  id: 268435455
+  last_modification_time_ms: 1602435613286
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435613286
+}
+
+sequence_number: 107
+update_inode_file {
+  id: 268435455
+  length: 80
+  completed: true
+  set_blocks: 251658240
+  path: "/default_tests_files/BASIC_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 108
+update_inode {
+  id: 268435455
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 109
+update_inode_file {
+  id: 268435455
+  persist_job_id: 1602435529154
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 110
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435614810
+  last_access_time_ms: 1602435614810
+}
+
+sequence_number: 111
+inode_file {
+  id: 285212671
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_CACHE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435614810
+  last_modification_time_ms: 1602435614810
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435614810
+}
+
+sequence_number: 112
+new_block {
+  id: 285212671
+}
+
+sequence_number: 114
+update_inode {
+  id: 285212671
+  last_modification_time_ms: 1602435614884
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435614884
+}
+
+sequence_number: 115
+update_inode_file {
+  id: 285212671
+  length: 84
+  completed: true
+  set_blocks: 268435456
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 116
+update_inode {
+  id: 285212671
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 117
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435614917
+  last_access_time_ms: 1602435614917
+}
+
+sequence_number: 118
+inode_file {
+  id: 301989887
+  parent_id: 2
+  name: "BASIC_NO_CACHE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435614917
+  last_modification_time_ms: 1602435614917
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NO_CACHE_MUST_CACHE"
+  last_access_time_ms: 1602435614917
+}
+
+sequence_number: 119
+new_block {
+  id: 301989887
+}
+
+sequence_number: 121
+update_inode {
+  id: 301989887
+  last_modification_time_ms: 1602435614983
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435614983
+}
+
+sequence_number: 122
+update_inode_file {
+  id: 301989887
+  length: 80
+  completed: true
+  set_blocks: 285212672
+  path: "/default_tests_files/BASIC_NO_CACHE_MUST_CACHE"
+}
+
+sequence_number: 123
+update_inode_file {
+  id: 285212671
+  persist_job_id: 1602435529155
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_NON_BYTE_BUFFER_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 124
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435616042
+  last_access_time_ms: 1602435616042
+}
+
+sequence_number: 125
+inode_file {
+  id: 318767103
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_NO_CACHE_MUST_CACHE"
+  persistence_state: "NOT_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435616043
+  last_modification_time_ms: 1602435616042
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_MUST_CACHE"
+  last_access_time_ms: 1602435616042
+}
+
+sequence_number: 126
+new_block {
+  id: 318767103
+}
+
+sequence_number: 128
+update_inode {
+  id: 318767103
+  last_modification_time_ms: 1602435616110
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435616110
+}
+
+sequence_number: 129
+update_inode_file {
+  id: 318767103
+  length: 84
+  completed: true
+  set_blocks: 301989888
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_MUST_CACHE"
+}
+
+sequence_number: 130
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435616138
+  last_access_time_ms: 1602435616138
+}
+
+sequence_number: 131
+inode_file {
+  id: 335544319
+  parent_id: 2
+  name: "BASIC_NO_CACHE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435616138
+  last_modification_time_ms: 1602435616138
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NO_CACHE_CACHE_THROUGH"
+  last_access_time_ms: 1602435616138
+}
+
+sequence_number: 132
+new_block {
+  id: 335544319
+}
+
+sequence_number: 134
+update_inode {
+  id: 335544319
+  last_modification_time_ms: 1602435616657
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435616657
+}
+
+sequence_number: 135
+update_inode_file {
+  id: 335544319
+  length: 80
+  completed: true
+  set_blocks: 318767104
+  path: "/default_tests_files/BASIC_NO_CACHE_CACHE_THROUGH"
+}
+
+sequence_number: 136
+update_inode_file {
+  id: 268435455
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 137
+update_inode {
+  id: 268435455
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+}
+
+sequence_number: 138
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435618540
+  last_access_time_ms: 1602435618540
+}
+
+sequence_number: 139
+inode_file {
+  id: 352321535
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_NO_CACHE_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435618541
+  last_modification_time_ms: 1602435618540
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_CACHE_THROUGH"
+  last_access_time_ms: 1602435618540
+}
+
+sequence_number: 140
+new_block {
+  id: 352321535
+}
+
+sequence_number: 141
+update_inode_file {
+  id: 285212671
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 142
+update_inode {
+  id: 285212671
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+}
+
+sequence_number: 144
+update_inode {
+  id: 352321535
+  last_modification_time_ms: 1602435619027
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435619027
+}
+
+sequence_number: 145
+update_inode_file {
+  id: 352321535
+  length: 84
+  completed: true
+  set_blocks: 335544320
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_CACHE_THROUGH"
+}
+
+sequence_number: 146
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435619141
+  last_access_time_ms: 1602435619141
+}
+
+sequence_number: 147
+inode_file {
+  id: 369098751
+  parent_id: 2
+  name: "BASIC_NO_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435619141
+  last_modification_time_ms: 1602435619141
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NO_CACHE_THROUGH"
+  last_access_time_ms: 1602435619141
+}
+
+sequence_number: 149
+update_inode {
+  id: 369098751
+  last_modification_time_ms: 1602435619600
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+  last_access_time_ms: 1602435619600
+}
+
+sequence_number: 150
+update_inode_file {
+  id: 369098751
+  length: 80
+  completed: true
+  set_blocks: 352321536
+  path: "/default_tests_files/BASIC_NO_CACHE_THROUGH"
+}
+
+sequence_number: 151
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435621613
+  last_access_time_ms: 1602435621613
+}
+
+sequence_number: 152
+inode_file {
+  id: 385875967
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_NO_CACHE_THROUGH"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435621614
+  last_modification_time_ms: 1602435621613
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_THROUGH"
+  last_access_time_ms: 1602435621613
+}
+
+sequence_number: 154
+update_inode {
+  id: 385875967
+  last_modification_time_ms: 1602435622226
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+  last_access_time_ms: 1602435622226
+}
+
+sequence_number: 155
+update_inode_file {
+  id: 385875967
+  length: 84
+  completed: true
+  set_blocks: 369098752
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_THROUGH"
+}
+
+sequence_number: 156
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435623762
+  last_access_time_ms: 1602435623762
+}
+
+sequence_number: 157
+inode_file {
+  id: 402653183
+  parent_id: 2
+  name: "BASIC_NO_CACHE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435623763
+  last_modification_time_ms: 1602435623762
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NO_CACHE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435623762
+}
+
+sequence_number: 158
+new_block {
+  id: 402653183
+}
+
+sequence_number: 160
+update_inode {
+  id: 402653183
+  last_modification_time_ms: 1602435623832
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435623832
+}
+
+sequence_number: 161
+update_inode_file {
+  id: 402653183
+  length: 80
+  completed: true
+  set_blocks: 385875968
+  path: "/default_tests_files/BASIC_NO_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 162
+update_inode {
+  id: 402653183
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 163
+update_inode_file {
+  id: 402653183
+  persist_job_id: 1602435529156
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_NO_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 164
+update_inode {
+  id: 2
+  last_modification_time_ms: 1602435625300
+  last_access_time_ms: 1602435625300
+}
+
+sequence_number: 165
+inode_file {
+  id: 419430399
+  parent_id: 2
+  name: "BASIC_NON_BYTE_BUFFER_NO_CACHE_ASYNC_THROUGH"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602435625300
+  last_modification_time_ms: 1602435625300
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_ASYNC_THROUGH"
+  last_access_time_ms: 1602435625300
+}
+
+sequence_number: 166
+new_block {
+  id: 419430399
+}
+
+sequence_number: 168
+update_inode {
+  id: 419430399
+  last_modification_time_ms: 1602435625364
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602435625364
+}
+
+sequence_number: 169
+update_inode_file {
+  id: 419430399
+  length: 84
+  completed: true
+  set_blocks: 402653184
+  path: "/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 170
+update_inode {
+  id: 419430399
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 171
+update_inode_file {
+  id: 419430399
+  persist_job_id: 1602435529157
+  temp_ufs_path: "gs://autobots-test-bucket/default_tests_files/BASIC_NON_BYTE_BUFFER_NO_CACHE_ASYNC_THROUGH"
+}
+
+sequence_number: 172
+update_inode_file {
+  id: 402653183
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 173
+update_inode {
+  id: 402653183
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|1HNwoO2qgeS7LkedT/Ue0Q== "
+}
+
+sequence_number: 174
+update_inode_file {
+  id: 419430399
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 175
+update_inode {
+  id: 419430399
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|gcs OWNER|_ GROUP|_ MODE|0 CONTENT_HASH|HGMgAsJcEoLR+CgcYnE7LA== "
+}
+
+sequence_number: 177
+inode_file {
+  id: 16793993215
+  parent_id: 0
+  name: "LICENSE26"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333681
+  last_modification_time_ms: 1582306388631
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE26"
+  last_access_time_ms: 1582306388631
+}
+
+sequence_number: 179
+update_inode {
+  id: 16793993215
+  last_modification_time_ms: 1582306388631
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306388631) "
+  last_access_time_ms: 1582306388631
+}
+
+sequence_number: 180
+update_inode_file {
+  id: 16793993215
+  length: 27040
+  completed: true
+  set_blocks: 16777216000
+  path: "/LICENSE26"
+}
+
+sequence_number: 181
+inode_file {
+  id: 16810770431
+  parent_id: 0
+  name: "LICENSE6"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333747
+  last_modification_time_ms: 1581034545380
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE6"
+  last_access_time_ms: 1581034545380
+}
+
+sequence_number: 183
+update_inode {
+  id: 16810770431
+  last_modification_time_ms: 1581034545380
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581034545380) "
+  last_access_time_ms: 1581034545380
+}
+
+sequence_number: 184
+update_inode_file {
+  id: 16810770431
+  length: 27040
+  completed: true
+  set_blocks: 16793993216
+  path: "/LICENSE6"
+}
+
+sequence_number: 185
+inode_file {
+  id: 16827547647
+  parent_id: 0
+  name: "LICENSE23"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333781
+  last_modification_time_ms: 1582306332384
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE23"
+  last_access_time_ms: 1582306332384
+}
+
+sequence_number: 187
+update_inode {
+  id: 16827547647
+  last_modification_time_ms: 1582306332384
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306332384) "
+  last_access_time_ms: 1582306332384
+}
+
+sequence_number: 188
+update_inode_file {
+  id: 16827547647
+  length: 27040
+  completed: true
+  set_blocks: 16810770432
+  path: "/LICENSE23"
+}
+
+sequence_number: 189
+inode_file {
+  id: 16844324863
+  parent_id: 0
+  name: "LICENSE3"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333816
+  last_modification_time_ms: 1581030528154
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE3"
+  last_access_time_ms: 1581030528154
+}
+
+sequence_number: 191
+update_inode {
+  id: 16844324863
+  last_modification_time_ms: 1581030528154
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581030528154) "
+  last_access_time_ms: 1581030528154
+}
+
+sequence_number: 192
+update_inode_file {
+  id: 16844324863
+  length: 27040
+  completed: true
+  set_blocks: 16827547648
+  path: "/LICENSE3"
+}
+
+sequence_number: 193
+inode_directory_id_generator {
+  container_id: 1004
+  sequence_number: 0
+}
+
+sequence_number: 194
+inode_directory_id_generator {
+  container_id: 1004
+  sequence_number: 1
+}
+
+sequence_number: 195
+inode_directory {
+  id: 16844324864
+  parent_id: 0
+  name: "what"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333849
+  last_modification_time_ms: 1598553045003
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/what"
+  last_access_time_ms: 1598553045003
+}
+
+sequence_number: 196
+update_inode {
+  id: 16844324864
+  ufs_fingerprint: "TYPE|DIRECTORY UFS|local OWNER|alluxio GROUP|staff MODE|493 "
+}
+
+sequence_number: 197
+inode_file {
+  id: 16877879295
+  parent_id: 0
+  name: "LICENSE5"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333852
+  last_modification_time_ms: 1581031020009
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE5"
+  last_access_time_ms: 1581031020009
+}
+
+sequence_number: 199
+update_inode {
+  id: 16877879295
+  last_modification_time_ms: 1581031020009
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581031020009) "
+  last_access_time_ms: 1581031020009
+}
+
+sequence_number: 200
+update_inode_file {
+  id: 16877879295
+  length: 27040
+  completed: true
+  set_blocks: 16861102080
+  path: "/LICENSE5"
+}
+
+sequence_number: 201
+inode_file {
+  id: 16894656511
+  parent_id: 0
+  name: "LICENSE2"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333874
+  last_modification_time_ms: 1582157283446
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE2"
+  last_access_time_ms: 1582157283446
+}
+
+sequence_number: 203
+update_inode {
+  id: 16894656511
+  last_modification_time_ms: 1582157283446
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582157283446) "
+  last_access_time_ms: 1582157283446
+}
+
+sequence_number: 204
+update_inode_file {
+  id: 16894656511
+  length: 27040
+  completed: true
+  set_blocks: 16877879296
+  path: "/LICENSE2"
+}
+
+sequence_number: 205
+inode_file {
+  id: 16911433727
+  parent_id: 0
+  name: "LICENSE8"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333899
+  last_modification_time_ms: 1581370351580
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE8"
+  last_access_time_ms: 1581370351580
+}
+
+sequence_number: 207
+update_inode {
+  id: 16911433727
+  last_modification_time_ms: 1581370351580
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581370351580) "
+  last_access_time_ms: 1581370351580
+}
+
+sequence_number: 208
+update_inode_file {
+  id: 16911433727
+  length: 27040
+  completed: true
+  set_blocks: 16894656512
+  path: "/LICENSE8"
+}
+
+sequence_number: 209
+inode_file {
+  id: 16928210943
+  parent_id: 0
+  name: "LICENSE25"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333923
+  last_modification_time_ms: 1582306384556
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE25"
+  last_access_time_ms: 1582306384556
+}
+
+sequence_number: 211
+update_inode {
+  id: 16928210943
+  last_modification_time_ms: 1582306384556
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306384556) "
+  last_access_time_ms: 1582306384556
+}
+
+sequence_number: 212
+update_inode_file {
+  id: 16928210943
+  length: 27040
+  completed: true
+  set_blocks: 16911433728
+  path: "/LICENSE25"
+}
+
+sequence_number: 213
+inode_file {
+  id: 16944988159
+  parent_id: 0
+  name: "LICENSE"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333947
+  last_modification_time_ms: 1581017950718
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE"
+  last_access_time_ms: 1581017950718
+}
+
+sequence_number: 215
+update_inode {
+  id: 16944988159
+  last_modification_time_ms: 1581017950718
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581017950718) "
+  last_access_time_ms: 1581017950718
+}
+
+sequence_number: 216
+update_inode_file {
+  id: 16944988159
+  length: 27040
+  completed: true
+  set_blocks: 16928210944
+  path: "/LICENSE"
+}
+
+sequence_number: 217
+inode_file {
+  id: 16961765375
+  parent_id: 0
+  name: "LICENSE4"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333969
+  last_modification_time_ms: 1581030822305
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE4"
+  last_access_time_ms: 1581030822305
+}
+
+sequence_number: 219
+update_inode {
+  id: 16961765375
+  last_modification_time_ms: 1581030822305
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581030822305) "
+  last_access_time_ms: 1581030822305
+}
+
+sequence_number: 220
+update_inode_file {
+  id: 16961765375
+  length: 27040
+  completed: true
+  set_blocks: 16944988160
+  path: "/LICENSE4"
+}
+
+sequence_number: 221
+inode_file {
+  id: 16978542591
+  parent_id: 0
+  name: "LICENSE21"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535333989
+  last_modification_time_ms: 1582306326602
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE21"
+  last_access_time_ms: 1582306326602
+}
+
+sequence_number: 223
+update_inode {
+  id: 16978542591
+  last_modification_time_ms: 1582306326602
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306326602) "
+  last_access_time_ms: 1582306326602
+}
+
+sequence_number: 224
+update_inode_file {
+  id: 16978542591
+  length: 27040
+  completed: true
+  set_blocks: 16961765376
+  path: "/LICENSE21"
+}
+
+sequence_number: 225
+inode_file {
+  id: 16995319807
+  parent_id: 0
+  name: "LICENSE7"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334013
+  last_modification_time_ms: 1581035337423
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE7"
+  last_access_time_ms: 1581035337423
+}
+
+sequence_number: 227
+update_inode {
+  id: 16995319807
+  last_modification_time_ms: 1581035337423
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581035337423) "
+  last_access_time_ms: 1581035337423
+}
+
+sequence_number: 228
+update_inode_file {
+  id: 16995319807
+  length: 27040
+  completed: true
+  set_blocks: 16978542592
+  path: "/LICENSE7"
+}
+
+sequence_number: 229
+inode_file {
+  id: 17012097023
+  parent_id: 0
+  name: "LICENSE22"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334040
+  last_modification_time_ms: 1582306329378
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE22"
+  last_access_time_ms: 1582306329378
+}
+
+sequence_number: 231
+update_inode {
+  id: 17012097023
+  last_modification_time_ms: 1582306329378
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306329378) "
+  last_access_time_ms: 1582306329378
+}
+
+sequence_number: 232
+update_inode_file {
+  id: 17012097023
+  length: 27040
+  completed: true
+  set_blocks: 16995319808
+  path: "/LICENSE22"
+}
+
+sequence_number: 233
+inode_file {
+  id: 17028874239
+  parent_id: 0
+  name: "LICENSE9"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334064
+  last_modification_time_ms: 1581370956552
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE9"
+  last_access_time_ms: 1581370956552
+}
+
+sequence_number: 235
+update_inode {
+  id: 17028874239
+  last_modification_time_ms: 1581370956552
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1581370956552) "
+  last_access_time_ms: 1581370956552
+}
+
+sequence_number: 236
+update_inode_file {
+  id: 17028874239
+  length: 27040
+  completed: true
+  set_blocks: 17012097024
+  path: "/LICENSE9"
+}
+
+sequence_number: 237
+inode_file {
+  id: 17045651455
+  parent_id: 0
+  name: "LICENSE24"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334090
+  last_modification_time_ms: 1582306381551
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE24"
+  last_access_time_ms: 1582306381551
+}
+
+sequence_number: 239
+update_inode {
+  id: 17045651455
+  last_modification_time_ms: 1582306381551
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1582306381551) "
+  last_access_time_ms: 1582306381551
+}
+
+sequence_number: 240
+update_inode_file {
+  id: 17045651455
+  length: 27040
+  completed: true
+  set_blocks: 17028874240
+  path: "/LICENSE24"
+}
+
+sequence_number: 241
+update_inode_directory {
+  id: 0
+  direct_children_loaded: true
+}
+
+sequence_number: 242
+inode_file {
+  id: 17062428671
+  parent_id: 16844324864
+  name: "LICENSE2"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334133
+  last_modification_time_ms: 1598553043813
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/what/LICENSE2"
+  last_access_time_ms: 1598553043813
+}
+
+sequence_number: 244
+update_inode_directory {
+  id: 2
+  direct_children_loaded: true
+}
+
+sequence_number: 245
+update_inode {
+  id: 17062428671
+  last_modification_time_ms: 1598553043813
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1598553043813) "
+  last_access_time_ms: 1598553043813
+}
+
+sequence_number: 246
+update_inode_file {
+  id: 17062428671
+  length: 27040
+  completed: true
+  set_blocks: 17045651456
+  path: "/what/LICENSE2"
+}
+
+sequence_number: 247
+inode_file {
+  id: 17079205887
+  parent_id: 16844324864
+  name: "LICENSE"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1602535334166
+  last_modification_time_ms: 1598552776437
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: WRITE
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/what/LICENSE"
+  last_access_time_ms: 1598552776437
+}
+
+sequence_number: 249
+update_inode {
+  id: 17079205887
+  last_modification_time_ms: 1598552776437
+  overwrite_modification_time: true
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|511 CONTENT_HASH|(len:27040,_modtime:1598552776437) "
+  last_access_time_ms: 1598552776437
+}
+
+sequence_number: 250
+update_inode_file {
+  id: 17079205887
+  length: 27040
+  completed: true
+  set_blocks: 17062428672
+  path: "/what/LICENSE"
+}
+
+sequence_number: 251
+update_inode_directory {
+  id: 16844324864
+  direct_children_loaded: true
+}
+
+sequence_number: 252
+update_inode {
+  id: 0
+  last_access_time_ms: 1602535334190
+}
+
+sequence_number: 253
+update_inode {
+  id: 0
+  last_modification_time_ms: 1602543279667
+  last_access_time_ms: 1602543279667
+}
+
+sequence_number: 255
+inode_file {
+  id: 33571209215
+  parent_id: 0
+  name: "LICENSE222"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602543279698
+  last_modification_time_ms: 1602543279667
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE222"
+  last_access_time_ms: 1602543279667
+}
+
+sequence_number: 256
+update_inode {
+  id: 33571209215
+  last_modification_time_ms: 1602543279801
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602543279801
+}
+
+sequence_number: 257
+update_inode_file {
+  id: 33571209215
+  length: 0
+  completed: true
+  path: "/LICENSE222"
+}
+
+sequence_number: 258
+update_inode {
+  id: 33571209215
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 259
+update_inode_file {
+  id: 33571209215
+  persist_job_id: 1602542598504
+  temp_ufs_path: "/Users/alluxio/alluxioFolder/alluxio/underFSStorage/LICENSE222.alluxio.0x000001751F05E159.tmp"
+}
+
+sequence_number: 260
+update_inode_file {
+  id: 33571209215
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 261
+update_inode {
+  id: 33571209215
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1602543281783) "
+}
+
+sequence_number: 262
+update_inode {
+  id: 0
+  last_modification_time_ms: 1602543295308
+  last_access_time_ms: 1602543295308
+}
+
+sequence_number: 263
+inode_file {
+  id: 33587986431
+  parent_id: 0
+  name: "LICENSE2222"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602543295308
+  last_modification_time_ms: 1602543295308
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE2222"
+  last_access_time_ms: 1602543295308
+}
+
+sequence_number: 264
+update_inode {
+  id: 33587986431
+  last_modification_time_ms: 1602543295380
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602543295380
+}
+
+sequence_number: 265
+update_inode_file {
+  id: 33587986431
+  length: 0
+  completed: true
+  path: "/LICENSE2222"
+}
+
+sequence_number: 266
+update_inode {
+  id: 33587986431
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 267
+update_inode_file {
+  id: 33587986431
+  persist_job_id: 1602542598505
+  temp_ufs_path: "/Users/alluxio/alluxioFolder/alluxio/underFSStorage/LICENSE2222.alluxio.0x000001751F061C1C.tmp"
+}
+
+sequence_number: 268
+update_inode_file {
+  id: 33587986431
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 269
+update_inode {
+  id: 33587986431
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1602543295643) "
+}
+
+sequence_number: 270
+update_inode {
+  id: 0
+  last_modification_time_ms: 1602543557940
+  last_access_time_ms: 1602543557940
+}
+
+sequence_number: 272
+inode_file {
+  id: 50348425215
+  parent_id: 0
+  name: "LICENSE22222"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1602543557991
+  last_modification_time_ms: 1602543557940
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "alluxio"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/LICENSE22222"
+  last_access_time_ms: 1602543557940
+}
+
+sequence_number: 273
+new_block {
+  id: 50348425215
+}
+
+sequence_number: 275
+update_inode {
+  id: 50348425215
+  last_modification_time_ms: 1602543558348
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1602543558348
+}
+
+sequence_number: 276
+update_inode_file {
+  id: 50348425215
+  length: 27040
+  completed: true
+  set_blocks: 50331648000
+  path: "/LICENSE22222"
+}
+
+sequence_number: 277
+update_inode {
+  id: 50348425215
+  persistence_state: "TO_BE_PERSISTED"
+}
+
+sequence_number: 278
+update_inode_file {
+  id: 50348425215
+  persist_job_id: 1602543525532
+  temp_ufs_path: "/Users/alluxio/alluxioFolder/alluxio/underFSStorage/LICENSE22222.alluxio.0x000001751F0A1F2F.tmp"
+}
+
+sequence_number: 279
+update_inode_file {
+  id: 50348425215
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+
+sequence_number: 280
+update_inode {
+  id: 50348425215
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|alluxio GROUP|staff MODE|420 CONTENT_HASH|(len:27040,_modtime:1602543559749) "
+}
+
