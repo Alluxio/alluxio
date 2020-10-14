@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.Constants;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -93,7 +95,7 @@ public class JvmPauseMonitor {
     }
     mJvmMonitorThread.interrupt();
     try {
-      mJvmMonitorThread.join(60 * 1000);
+      mJvmMonitorThread.join(5 * Constants.SECOND_MS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
