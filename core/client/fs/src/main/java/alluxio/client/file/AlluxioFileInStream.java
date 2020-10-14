@@ -390,7 +390,7 @@ public class AlluxioFileInStream extends FileInStream {
       if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
         return;
       }
-     triggerAsyncCaching(stream);
+      triggerAsyncCaching(stream);
     }
   }
 
