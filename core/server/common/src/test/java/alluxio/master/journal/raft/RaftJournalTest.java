@@ -326,9 +326,8 @@ public class RaftJournalTest {
         "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
             .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
         mWaitOptions);
-    // Resuming should fail after becoming primary.
-    mThrown.expect(IllegalStateException.class);
-    mFollowerJournalSystem.resume();
+    // Follower should no longer be suspended after becoming primary.
+    Assert.assertFalse(mFollowerJournalSystem.isSuspended());
   }
 
   @Test
@@ -368,9 +367,8 @@ public class RaftJournalTest {
     CommonUtils.waitFor("full state acquired after resume",
         () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
 
-    // Resuming should fail after becoming primary.
-    mThrown.expect(IllegalStateException.class);
-    mFollowerJournalSystem.resume();
+    // Follower should no longer be suspended after becoming primary.
+    Assert.assertFalse(mFollowerJournalSystem.isSuspended());
   }
 
   @Test
@@ -423,9 +421,8 @@ public class RaftJournalTest {
             .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
         mWaitOptions);
 
-    // Resuming should fail after becoming primary.
-    mThrown.expect(IllegalStateException.class);
-    mFollowerJournalSystem.resume();
+    // Follower should no longer be suspended after becoming primary.
+    Assert.assertFalse(mFollowerJournalSystem.isSuspended());
   }
 
   /**
