@@ -279,8 +279,9 @@ $ JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64" ${PRESTO_HOME}/bin/launcher sta
 ### Update Alluxio client library to the lastest version
 Both PrestoSQL and PrestoDb now includes Alluxio's client library in their release. 
 However, the version included in those releases may not be the latest version.
-To update the client library to the latest version, you can follow 
-follow [instructions]({{ '/en/compute/Presto.html' | relativize_url }}#distribute-the-alluxio-client-jar-to-all-presto-servers) to fix this issue.
+To update the client library to the latest version, first remove the old alluxio client library from `${PRESTO_HOME}/plugin/hive-hadoop2/` directory.
+Then you can follow 
+[instructions]({{ '/en/compute/Presto.html' | relativize_url }}#distribute-the-alluxio-client-jar-to-all-presto-servers) to copy the latest client to presto plugin directory.
 
 ### Using the Alluxio Catalog Service with Presto
 
