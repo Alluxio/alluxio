@@ -81,13 +81,20 @@ You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive informat
 ### Collect Alluxio cluster information
 `collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio fsadmin report` etc.
 When the Alluxio cluster is not running, this command will fail to collect some information.
-> NOTE: The configuration parameters will be collected with `alluxio getConf --master`, which obfuscates the credential fields passed to
-Alluxio as properties.
+This sub-command will run both `alluxio getConf` which collects local configuration properties, 
+and `alluxio getConf --master --source` which prints configuration properties that are received from the master.
+Both of them mask credential properties. The difference is the latter command fails if the Alluxio cluster is not up. 
 
 ### Collect Alluxio configuration files
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
-> WARNING: If you put credential fields in the configuration files, DO NOT share the collected tarball with anybody unless
-you have manually obfuscated them in the tarball!
+From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
+as many users tend to put their plaintext credentials to the UFS in this file.
+Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
+which prints all the configuration properties, with the credential fields masked.
+So in order to collect Alluxio configuration in the tarball,
+please make sure `collectAlluxioInfo` sub-command is run.
+> WARNING: If you put credential fields in the configuration files except alluxio-site.properties, 
+> DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect Alluxio logs
 `collectLog` will collect all the logs under `${alluxio.work.dir}/logs`.
