@@ -48,7 +48,7 @@ their input and output files.
 ### Distributing the Alluxio Client Jar
 
 In order for the MapReduce applications to read and write files in Alluxio, the Alluxio client jar
-must be distributed on the classpath of the application across different nodes.
+must be on the JVM classpath of all nodes of the application.
 
 The Alluxio client jar should also be added to the `HADOOP_CLASSPATH` environment variable.
 This makes the Alluxio client available to JVMs which are created when running `hadoop jar` command:
@@ -71,7 +71,7 @@ Alternative configurations are described in the [Advanced Setup](#advanced-setup
 
 ## Example
 
-For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
+For this example, we will use a pseudo-distributed Hadoop cluster, started by running:
 
 ```console
 $ cd $HADOOP_HOME
@@ -87,7 +87,7 @@ Start Alluxio locally:
 $ ./bin/alluxio-start.sh local SudoMount
 ```
 
-You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
+You can add a sample file to Alluxio to run MapReduce wordcount on. From your Alluxio directory:
 
 ```console
 $ ./bin/alluxio fs mkdir /wordcount
