@@ -228,5 +228,5 @@ that you have already built Alluxio
 (see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
 about how to build Alluxio manually).
 
-Further, the prerequisite for the `fs`, `fsadmin`, `table`, `logLevel`, `runTest`, `runTests`, `runUfsIOTest`, `runUfsTests` 
+Further, the prerequisite for the `fs`, `fsadmin`, `table`, `logLevel`, `runTest`, `runTests`, `runUfsIOTest` and `runUfsTests` 
 commands is that the Alluxio service is up and running.
