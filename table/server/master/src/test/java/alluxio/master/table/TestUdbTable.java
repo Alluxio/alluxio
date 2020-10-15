@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,6 +94,20 @@ public class TestUdbTable implements UdbTable {
                 CreateFilePOptions.newBuilder().setRecursive(true).build())) {
               out.write("1".getBytes());
             } catch (IOException | AlluxioException e) {
+              e.printStackTrace();
+            }
+
+            final AlluxioURI waitLocation = location;
+            try {
+              CommonUtils.waitFor("file to be completed", () -> {
+                try {
+                  return fs.getStatus(waitLocation).isCompleted();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                  return false;
+                }
+              });
+            } catch (InterruptedException | TimeoutException e) {
               e.printStackTrace();
             }
           }
