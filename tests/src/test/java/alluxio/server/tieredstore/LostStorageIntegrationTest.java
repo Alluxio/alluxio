@@ -11,10 +11,16 @@
 
 package alluxio.server.tieredstore;
 
+import static org.mockito.AdditionalMatchers.or;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.startsWith;
+
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
-
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.StorageList;
@@ -23,12 +29,21 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +53,9 @@ import java.util.Map;
 /**
  * Tests for getting worker lost storage information.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({StorageDir.class})
+@PowerMockIgnore({"javax.*.*", "com.sun.*", "org.xml.*"})
 public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final String SSD_TIER = "SSD";
@@ -60,9 +78,21 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     File hddDir = Files.createTempDir();
     String hddPath = hddDir.getAbsolutePath();
 
-    // Set to read only so worker storage paths cannot be initialize
-    ssdDir.setReadOnly();
-    hddDir.setReadOnly();
+    // Mock no write permission so worker storage paths cannot be initialize
+    PowerMockito.mockStatic(StorageDir.class);
+    Mockito.when(StorageDir.newStorageDir(any(StorageTier.class),
+        anyInt(),
+        anyLong(),
+        anyLong(),
+        anyString(),
+        anyString())).thenCallRealMethod();
+    Mockito.when(StorageDir.newStorageDir(any(StorageTier.class),
+        anyInt(),
+        anyLong(),
+        anyLong(),
+        or(startsWith(ssdPath), startsWith(hddPath)),
+        anyString())).thenThrow(
+            new IOException("mock no write permission exception"));
 
     startClusterWithWorkerStorage(ssdPath, hddPath);
     checkLostStorageResults(ssdPath, hddPath);
@@ -92,8 +122,22 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     File hddDir = Files.createTempDir();
     String hddPath = hddDir.getAbsolutePath();
 
-    // Set to read only so worker storage paths cannot be initialize
-    ssdDir.setReadOnly();
+    // Mock no write permission so worker storage paths cannot be initialize
+    PowerMockito.mockStatic(StorageDir.class);
+    Mockito.when(StorageDir.newStorageDir(Matchers.any(StorageTier.class),
+        Matchers.anyInt(),
+        Matchers.anyLong(),
+        Matchers.anyLong(),
+        Matchers.anyString(),
+        Matchers.anyString())).thenCallRealMethod();
+    Mockito.when(StorageDir.newStorageDir(Matchers.any(StorageTier.class),
+        Matchers.anyInt(),
+        Matchers.anyLong(),
+        Matchers.anyLong(),
+        Matchers.startsWith(ssdPath),
+        Matchers.anyString())).thenThrow(
+            new IOException("mock no write permission exception"));
+
     startClusterWithWorkerStorage(ssdPath, hddPath);
 
     FileUtils.deleteDirectory(hddDir);
