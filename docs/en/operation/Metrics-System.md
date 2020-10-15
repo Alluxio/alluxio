@@ -184,7 +184,8 @@ Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/referenc
 `Logical Operations` and `RPC Invocations` present parts of the [master metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#master-metrics).
 
 `Saved Under FileSystem Operations` shows the operations fulfilled by Alluxio's namespace directly
-without accessing UFSes. Benefits could be significant if the target UFS is remote or slow in response.
+without accessing UFSes. Performance improvement can be significant if the target UFS is remote or slow in response.
+Costs can be saved if the underlying storage charges based on requests.
 
 ## References
 
