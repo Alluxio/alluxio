@@ -56,7 +56,7 @@ These tuning parameters primarily affect the behavior of the cache.
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,
 fast performance, but the required memory scales with the number of files in the
-filesystem. With 32GB of Alluxio master memory, Alluxio can support around 40 million files.
+filesystem. With 64GB of Alluxio master memory, Alluxio can support around 30 million files.
 
 To configure Alluxio to use the on-heap metastore, set the following in
 `conf/alluxio-site.properties` for the master nodes:
@@ -81,7 +81,9 @@ $ ./bin/alluxio fsadmin backup
 This will print something like
 
 ```
-Successfully backed up journal to ${BACKUP_PATH}
+Backup Host        : ${HOST_NAME}
+Backup URI         : ${BACKUP_PATH}
+Backup Entry Count : ${ENTRY_COUNT}
 ```
 
 `${BACKUP_PATH}` will be determined by the date, and the configuration of your
