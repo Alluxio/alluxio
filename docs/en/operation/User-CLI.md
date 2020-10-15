@@ -366,6 +366,21 @@ $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
 
 The `readJournal` command parses the current journal and outputs a human readable version to the local folder.
 Note this command may take a while depending on the size of the journal.
+Note that Alluxio master is required to stop before reading the local embedded journal.
+
+`-help` provides detailed guidance.
+`-start <arg>` the start log sequence number (exclusive). Set to `0` by default.
+`-end <arg>` the end log sequence number (exclusive). Set to `+inf` by default.
+`-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration.)
+`-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
+`-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). Set to FileSystemMaster by default.
+
+```console
+$ ./bin/alluxio readJournal
+Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
+2020-10-14 10:56:51,960 INFO  RaftStorageDirectory - Lock on /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/in_use.lock acquired by nodename 78602@alluxio-user
+2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
+```
 
 ### upgradeJournal
 
