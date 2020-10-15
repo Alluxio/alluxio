@@ -131,8 +131,6 @@ public final class ConfigurationTestUtils {
     // Reset the value to avoid raft journal system complaining about log size < 65
     conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
-    // For faster test shutdown
-    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
 
     // faster persists
