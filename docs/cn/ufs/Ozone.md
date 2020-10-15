@@ -19,7 +19,7 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 
 在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
 安装Ozone集群，并遵循[卷命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html)和 
-[桶命令](https://hadoop.apache.org/ozone /docs/1.0.0/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
+[桶命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
 
 ## 基本设置
 
