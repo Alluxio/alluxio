@@ -142,7 +142,7 @@ $ mvn test
 
 This will use the local filesystem as the under storage.
 
-#### Run a single unit test:
+#### Run a single unit test
 
 ```console
 $ mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
@@ -156,7 +156,7 @@ the desired submodule directory. For example, to run tests for HDFS UFS module y
 $ mvn test -pl underfs/hdfs
 ```
 
-#### Run unit tests for HDFS UFS module with a different Hadoop version:
+#### Run unit tests for HDFS UFS module with a different Hadoop version
 
 ```console
 # build and run test on HDFS under storage module for Hadoop 2.7.0
@@ -179,12 +179,12 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
-#### Test interactively
+#### Test interactively in Scala shell
 To quickly test APIs in an interactive manner, you may leverage the Scala shell, as discussed in this 
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
-#### Test fuse
-The fuse tests are ignored if the `libfuse` library is missing.
+#### Test FUSE
+The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
 [the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
 
