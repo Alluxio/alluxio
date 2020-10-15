@@ -25,17 +25,15 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <ufs.ozone.version>1.0.0</ufs.ozone.version>
   </properties>
 
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-ozone-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-ozone-filesystem</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shaded-ozone</artifactId>
+      <version>${ufs.ozone.version}</version>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>
