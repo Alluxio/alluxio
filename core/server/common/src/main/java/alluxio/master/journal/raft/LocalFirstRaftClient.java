@@ -42,20 +42,20 @@ public class LocalFirstRaftClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFirstRaftClient.class);
   private final RaftServer mServer;
   private final Supplier<RaftClient> mClientSupplier;
-  private ClientId mClientId;
+  private ClientId mLocalClientId;
   private volatile RaftClient mClient;
 
   /**
    * @param server the local raft server
    * @param clientSupplier a function for building a remote raft client
-   * @param clientId the client id
+   * @param localClientId the client id for local requests
    * @param configuration the server configuration
    */
   public LocalFirstRaftClient(RaftServer server, Supplier<RaftClient> clientSupplier,
-      ClientId clientId, InstancedConfiguration configuration) {
+      ClientId localClientId, InstancedConfiguration configuration) {
     mServer = server;
     mClientSupplier = clientSupplier;
-    mClientId = clientId;
+    mLocalClientId = localClientId;
     if (!configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
       ensureClient();
     }
@@ -79,14 +79,16 @@ public class LocalFirstRaftClient implements Closeable {
 
   private CompletableFuture<RaftClientReply> sendLocalRequest(Message message,
       TimeDuration timeout) throws IOException {
+    LOG.trace("Sending local message {}", message);
     return mServer.submitClientRequestAsync(
-        new RaftClientRequest(mClientId, null, RaftJournalSystem.RAFT_GROUP_ID,
+        new RaftClientRequest(mLocalClientId, null, RaftJournalSystem.RAFT_GROUP_ID,
             RaftJournalSystem.nextCallId(), message, RaftClientRequest.writeRequestType(), null))
         .thenApply(reply -> handleLocalException(message, reply, timeout));
   }
 
   private RaftClientReply handleLocalException(Message message, RaftClientReply reply,
       TimeDuration timeout) {
+    LOG.trace("Message {} received reply {}", message, reply);
     if (reply.getException() != null) {
       if (reply.getException() instanceof NotLeaderException) {
         LOG.info("Local master is no longer a leader, falling back to remote client.");
@@ -103,18 +105,29 @@ public class LocalFirstRaftClient implements Closeable {
     return reply;
   }
 
+  private void handleRemoteException(Throwable t) {
+    if (t == null) {
+      return;
+    }
+    LOG.trace("Received remote exception", t);
+    if (t instanceof AlreadyClosedException
+        || (t != null && t.getCause() instanceof AlreadyClosedException)) {
+      // create a new client if the current client is already closed
+      LOG.warn("Connection is closed. Creating a new client.");
+      try {
+        mClient.close();
+      } catch (IOException e) {
+        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.getMessage());
+      }
+      mClient = mClientSupplier.get();
+    }
+  }
+
   private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) {
     ensureClient();
+    LOG.trace("Sending remote message {}", message);
     return mClient.sendAsync(message).exceptionally(t -> {
-      if (t instanceof ExecutionException && t.getCause() instanceof AlreadyClosedException) {
-        // create a new client if the current client is already closed
-        try {
-          mClient.close();
-        } catch (IOException e) {
-          LogUtils.warnWithException(LOG, "Failed to close client: {}", e.getMessage());
-        }
-        mClient = mClientSupplier.get();
-      }
+      handleRemoteException(t);
       throw new CompletionException(t.getCause());
     });
   }
