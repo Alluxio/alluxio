@@ -282,6 +282,8 @@ However, the version included in those releases may not be the latest version.
 To update the client library to the latest version, first remove the old alluxio client library from `${PRESTO_HOME}/plugin/hive-hadoop2/` directory.
 Then you can follow 
 [instructions]({{ '/en/compute/Presto.html' | relativize_url }}#distribute-the-alluxio-client-jar-to-all-presto-servers) to copy the latest client to presto plugin directory.
+This client update needs to be performed on all Presto nodes (coordinator and workers). 
+After the files are in place, be sure to restart the presto cluster so the new library is loaded.
 
 ### Using the Alluxio Catalog Service with Presto
 
