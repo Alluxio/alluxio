@@ -197,6 +197,7 @@ import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -4269,7 +4270,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
-    private static final Map<String, Map<UFSOps, Counter>> SAVED_UFS_OPS = new HashMap<>();
+    private static final Map<String, Map<UFSOps, Counter>> SAVED_UFS_OPS = new ConcurrentHashMap<>();
 
     /**
      * UFS operations enum.
@@ -4291,7 +4292,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (v != null) {
           return v;
         } else {
-          return new HashMap<>();
+          return new ConcurrentHashMap<>();
         }
       }).compute(ufsOp, (k, v) -> {
         if (v != null) {
