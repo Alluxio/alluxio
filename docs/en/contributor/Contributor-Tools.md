@@ -16,8 +16,7 @@ Instructions for setting up both IDEs can be found below.
 
 ### Eclipse
 
- You can generate an
-Eclipse configuration file by running:
+You can generate an Eclipse configuration file by running:
 
 ```console
 $ mvn clean -Pdeveloper install -DskipTests
@@ -36,7 +35,7 @@ You will need to mark the directory as a source folder for Eclipse to resolve th
 
 ### IntelliJ IDEA
 
-To use IntelliJ IDEA to contribute to Alluxio simply open IntelliJ and select "Import existing project".
+To use IntelliJ IDEA to contribute to Alluxio, simply open IntelliJ and select "Import existing project".
 Then select the "Maven" project type from the IntelliJ dialog.
 IntelliJ's default configuration works without any modifications. 
 
@@ -54,7 +53,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 
 ## Maven Targets and Plugins
 
-Before pushing changes or submitting pull requests we recommend running various maven targets on
+Before pushing changes or submitting pull requests, we recommend running various maven targets on
 your local machine to make sure your changes do not break existing behavior.
 
 For these maven commands we'll assume that your command terminal is located in the root directory
@@ -128,27 +127,13 @@ Please be patient as the first build may take a while.
 $ mvn -T 2C install -DskipTests
 ```
 
-After the install target executes, you may configure and start a local cluster
-with the following commands:
-
-> If you haven't configured or set up a local cluster yet, run the following commands to configure
-a local installation.
-
-```console
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
-$ ./bin/alluxio format
-```
-
-Once you've run those commands steps you can start a local Alluxio instance with
-
-```console
-$ ./bin/alluxio-start.sh local SudoMount
-```
+After the install target executes, you can follow the instructions at 
+[Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+to start a local cluster.
 
 ### Unit Tests
 
-- Run all unit and integration tests
+#### Run all unit and integration tests
 
 ```console
 $ cd ${ALLUXIO_HOME}
@@ -157,20 +142,21 @@ $ mvn test
 
 This will use the local filesystem as the under storage.
 
-- Run a single unit test:
+#### Run a single unit test:
 
 ```console
 $ mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
 ```
 
-- To run unit tests for a specific module, execute the `maven test` command targeting
+#### Run unit tests for a specific module
+You can execute the `maven test` command targeting
 the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
 ```console
 $ mvn test -pl underfs/hdfs
 ```
 
-Run unit tests for HDFS UFS module with a different Hadoop version:
+#### Run unit tests for HDFS UFS module with a different Hadoop version:
 
 ```console
 # build and run test on HDFS under storage module for Hadoop 2.7.0
@@ -186,16 +172,19 @@ To run more comprehensive tests on HDFS under storage using a real and running H
 $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
-- To have the logs output to STDOUT, append the following arguments to the `mvn` command
+#### Redirect logs to STDOUT
+To have the logs output to STDOUT, append the following arguments to the `mvn` command
 
 ```
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
-- To quickly test APIs in an interactive manner, you may leverage the Scala shell, as discussed in this 
+#### Test interactively
+To quickly test APIs in an interactive manner, you may leverage the Scala shell, as discussed in this 
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
-- The fuse tests are ignored if the `libfuse` library is missing.
+#### Test fuse
+The fuse tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
 [the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
 
@@ -227,26 +216,17 @@ $ mvn clean install -Pgenerate
 ```
 
 ## Usage of `./bin/alluxio`
+ 
+Please refer to [Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
+for all available commands.
 
-Most commands in `bin/alluxio` are for developers. The following table explains the description and
-the syntax of each command.
+Some commands have different prerequisites.
 
-<table class="table table-striped">
-    <tr><th>Command</th><th>Args</th><th>Description</th></tr>
-    {% for dscp in site.data.table.developer-tips %}
-        <tr>
-            <td>{{dscp.command}}</td>
-            <td>{{dscp.args}}</td>
-            <td>{{site.data.table.en.developer-tips[dscp.command]}}</td>
-        </tr>
-    {% endfor %}
-</table>
+The prerequisite for the `format`, `formatMaster`, `formatWorker`, `getConf`, `runClass`, `runHmsTests`, `runHdfsMountTests`, 
+`runJournalCrashTest`, `readJournal`, `upgradeJournal`, `version`, `validateConf`, `validateEnv` and `collectInfo` commands is
+that you have already built Alluxio 
+(see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
+about how to build Alluxio manually).
 
-In addition, these commands have different prerequisites. The prerequisite for the `format`,
-`formatWorker`, `journalCrashTest`, `readJournal`, `runClass`, `version`, `validateConf` and `validateEnv` commands is
-that you have already built Alluxio (see
-[Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to
-build Alluxio manually).
-Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that
-the Alluxio service is up and running.
-
+Further, the prerequisite for the `fs`, `fsadmin`, `table`, `logLevel`, `runTest`, `runTests`, `runUfsIOTest`, `runUfsTests` 
+commands is that the Alluxio service is up and running.
