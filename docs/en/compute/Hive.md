@@ -202,7 +202,7 @@ In addition to altering the table location, we also need to modify the partition
 See the following for an example.
 
 ```
-hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location 'hdfs://namenode:port/table/path/partitionpath";
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
 
 ## Advanced Setup
@@ -268,7 +268,7 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
 See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
-### Experimental: Use Alluxio as the Default Filesystem
+### Use Alluxio as the Default Filesystem
 
 This section talks about how to use Alluxio as the default file system for Hive.
 Apache Hive can also use Alluxio through a generic file system interface to replace the
