@@ -179,10 +179,6 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
-#### Test interactively in Scala shell
-To quickly test APIs in an interactive manner, you may leverage the Scala shell, as discussed in this 
-[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
-
 #### Test FUSE
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
@@ -190,7 +186,7 @@ To run those tests, please install the libraries referenced in
 
 ## Modifying a gRPC definition
 
-Alluxio uses [gRPC](https://grpc.io/) 1.17.1 for RPC communication between clients and servers. The `.proto`
+Alluxio uses [gRPC](https://grpc.io/) 1.28.1 for RPC communication between clients and servers. The `.proto`
 files defined in `core/transport/src/grpc/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
@@ -201,7 +197,7 @@ $ mvn clean install -Pgenerate
 
 ## Modifying a Protocol Buffer Message
 
-Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 2.5.0 to read and write journal entries.
+Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 3.12 to read and write journal entries.
 The `.proto` files defined in `core/transport/src/proto/` are used to auto-generate Java definitions for the protocol
 buffer messages.
 
