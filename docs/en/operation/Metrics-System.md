@@ -154,7 +154,6 @@ Besides the raw metrics shown via metrics servlet or custom metrics configuratio
 users can track key cluster performance metrics in a more human-readable way in the web interface of 
 Alluxio leading master (`http://<leading_master_host>:19999/metrics`).
 
-// TODO(lu) update graph
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
 The web page includes the following information:
