@@ -39,6 +39,7 @@ Hive Metastore, while IO access is performed through Alluxio.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
+* For PrestoSQL version >= 330, you will need to Setup Java 11.
 * [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
 This guide is tested with `presto-315`.
 * Alluxio has been set up and is running.
