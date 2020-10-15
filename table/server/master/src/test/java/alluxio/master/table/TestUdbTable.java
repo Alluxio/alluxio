@@ -13,7 +13,6 @@ package alluxio.master.table;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
