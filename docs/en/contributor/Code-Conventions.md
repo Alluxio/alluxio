@@ -10,7 +10,7 @@ priority: 2
 {:toc}
 
 First off, we thank you for your interest in the Alluxio open source project!
-We greatly appreciate any contribution; whether new features or bug fixes.
+We greatly appreciate any contribution; whether it be new features or bug fixes.
 
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage
 > you to follow the step-by-step instructions within the
@@ -31,23 +31,23 @@ Open an issue detailing the proposed change or the bug description.
 - Submit the patch as a GitHub pull request.
 - If your pull request aims to solve an existing Github issue, please include a link to the Github
 issue in the last line of the description field of the pull request,
-like `Fixes #1234`, `Fixed #1234`, `Fix #1234`, `Closes #1234`, `Closed #1234`, or `Close #1234`.
+such as `Fixes #1234`.
 - Please read our
 [pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
 for details.
 
 ## Coding Style
 
-- Please follow the style of the existing codebase. Specifically, we use
+- Please follow the style of the existing codebase. We mainly follow the
 [Google Java style](https://google.github.io/styleguide/javaguide.html),
-with the following changes or deviations:
+with the following deviations:
   - Maximum line length of **100** characters.
   - Third-party imports are grouped together to make IDE formatting much simpler.
   - Class member variable names should be prefixed with `m`
     - example: `private WorkerClient mWorkerClient;`
   - Static variable names should be prefixed with `s`
     - example: `private static String sUnderFSAddress;`
-- Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
+- Bash scripts follow the [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
 - If you use Eclipse:
     - You can download our
@@ -68,7 +68,7 @@ rearranger, remove the unnecessary comments, then right click, choose "Rearrange
 will be formatted to what you want
 
 - To verify that the coding standards match, you should run
-[checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
+[checkstyle](http://checkstyle.sourceforge.net) before sending a pull request to verify no new
 warnings are introduced:
 
 ```console
@@ -82,14 +82,14 @@ with the following refinements:
 
 - All public classes/interfaces should have a class/interface-level comment that describes the purpose of the class/interface.
 
-- All public members should have a member-level comment the describes the purpose of the member. For example,
+- All public members should have a member-level comment the describes the purpose of the member.
 
 ```java
 /** The number of logical bytes used. */
 public final AtomicLong mBytes = new AtomicLong(0);
 ```
 
-- All public methods (including constructors) should use the following format. For example
+- All public methods (including constructors) should use the following format.
 
 ```java
 /**
@@ -110,11 +110,11 @@ public final AtomicLong mBytes = new AtomicLong(0);
 - An exception to the above rule is that `@throws` doesn’t need to be provided for `@Test` methods,
 or for generic exceptions like IOException when there is nothing interesting to document.
 
-- Only write exception javadoc when you think it will be useful to the developer using the method. There are so many sources of `IOException` that it’s almost never useful to include javadoc for it.
-Do not write javadoc for unchecked exceptions like `RuntimeException` unless it is critical for this methd.
+- Only write exception javadoc when you think it will be useful to the developer using the method.
+There are so many sources of `IOException` that it’s almost never useful to include javadoc for it.
+Do not write javadoc for unchecked exceptions like `RuntimeException` unless it is critical for this method.
 
 - Getters and setters should omit the method description if it is redundant and only use `@param` and `@return` descriptions.
-For example,
 
 ```java
 /**
@@ -123,17 +123,19 @@ For example,
 long getPages();
 ```
 
-- Sentences should start with a capital letter and end with a period.
-An exception to this style are isolated sentences in which case, a sentence does not have to start with a capital letter, but if that's the case, it should not end with a period. For example:
-    - GOOD: this is a short description
-    - GOOD: This is a short description.
-    - GOOD This is a slightly longer description. It has two sentences.
+- Most sentences should start with a capital letter and end with a period.
+An exception to this style is an isolated sentence;
+it does not start with a capital letter nor end with a period.
+    - GOOD (isolated): this is a short description
+    - GOOD (full sentence): This is a short description.
+    - GOOD (2 full sentences): This is a slightly longer description. It has two sentences.
     - BAD: this is a short description.
     - BAD: This is a short description
     - BAD: this is a slightly longer description. It has two sentences
 
-- When writing the description, the first sentence should be a concise summary of the class or method and the description should generally be implementation-independent. Also it is a good idea to write descriptions (not the first sentence) to include any significant performance implications.
-For example,
+- When writing the description, the first sentence should be a concise summary of the class or method
+and the description should generally be implementation-independent.
+It is a good idea to use additional sentences to describe any significant performance implications.
 
 ```java
 /**
@@ -153,7 +155,8 @@ public class DefaultMetaStore implements MetaStore {
  */
 ```
 
-- When descriptions of `@param`, `@return`, `@throw` exceed one line, the text align with the first argument after the tag. For example
+- When descriptions of `@param`, `@return`, `@throw` exceed one line,
+the text should align with the first argument after the tag.
 
 ```java
 @throws FileAlreadyExistsException if there is already a file or directory at the given path
@@ -212,7 +215,7 @@ messages.
 
 * Log levels INFO and above should be easily human readable
   * Log files should be concise and easy to read, noise reduces the value of logs
-* Keep the amount of additional English to a minimum
+* Keep the amount of additional words to a minimum
 * Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
 * Ensure objects being logged have appropriate `toString()` implementations
 * Use appropriate logger names
@@ -405,8 +408,8 @@ See this
 
 #### Never Ignore InterruptedException
 
-InterruptedException means that another thread has signalled that this thread should die. There are
-a few acceptable ways to handle InterruptedException, listed in order of preference.
+An `InterruptedException` means that another thread has signalled that this thread should die. There are
+a few acceptable ways to handle an `InterruptedException`, listed in order of preference.
 
 **Actually stop the thread**
 
@@ -463,8 +466,8 @@ public void myMethod() {
 #### Always release resources, even in the event of an unchecked exception
 
 Assume that any method might throw an unchecked exception and make sure this doesn't cause resource
-leaks. We do not stop servers when RPC threads throw RuntimeExceptions. try-finally and
-try-with-resources blocks can make releasing resources much easier.
+leaks. We do not stop servers when RPC threads throw RuntimeExceptions. `try-finally` and
+`try-with-resources` blocks can make releasing resources much easier.
 
 ```java
 // with try-finally
@@ -559,7 +562,7 @@ try {
 
 ### Use the @Nullable annotation for all methods which may return null
 
-This will improve static analysis of our code so that we can detect potential NullPointerExceptions
+This will improve static analysis of our code so that we can detect potential `NullPointerException`s
 before they happen.
 
 Use the `javax.annotation.Nullable` import.
@@ -625,17 +628,17 @@ import static org.junit.Assert.assertFalse;
 ### Unit Test Goals
 
 1. Unit tests act as examples of how to use the code under test.
-2. Unit tests detect when an object breaks it's specification.
+2. Unit tests detect when an object breaks its specification.
 3. Unit tests *don't* break when an object is refactored but still meets the same specification.
 
 ### How to Write a Unit Test
 
-1. If creating an instance of the class takes some work, create a `@Before` method to perform
-common setup. The `@Before` method gets run automatically before each unit test. Only do general
-setup which will apply to every test. Test-specific setup should be done locally in the tests that
-need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and
-executor service. The executor service and journal we provide are real implementations, and the
-`TestClock` is a fake clock which can be controlled by unit tests.
+1. If creating an instance of the class takes some work, create a `@Before` method to perform shared setup steps.
+The `@Before` method gets run automatically before each unit test.
+Test-specific setup should be done locally in the tests that need it.
+In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service.
+The executor service and journal we provide are real implementations,
+and the `TestClock` is a fake clock which can be controlled by unit tests.
 
 ```java
 @Before
@@ -650,8 +653,8 @@ public void before() throws Exception {
 ```
 
 2. If anything created in `@Before` creates something which needs to be cleaned up (e.g. a
-`BlockMaster`), create an `@After` method to do the cleanup. This method is automatically called
-after each test.
+`BlockMaster`), create an `@After` method to do the cleanup.
+This method is automatically called after each test.
 
 ```java
 @After
@@ -708,7 +711,7 @@ assertEquals(worker1, Iterables.getOnlyElement(info).getId());
 1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
 2. Tests do not need to handle or document specific checked exceptions. Prefer to simply add
 `throws Exception` to the test method signature.
-3. Aim to keep tests short and simple enough that they don't require comments to understand.
+3. Aim to keep tests short and simple enough so that they don't require comments to understand.
 
 ### Patterns to avoid
 

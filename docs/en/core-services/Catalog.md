@@ -267,6 +267,24 @@ The setting `hive.metastore.alluxio.master.address=HOSTNAME:PORT` defines the ho
 Alluxio catalog service, which is the same host and port as the Alluxio master.
 Once configured on each node, restart all presto coordinators and workers.
 
+### JAVA 11 Support
+PrestoSQL 330 or above will only run with Java 11. Starting with the 2.4 version, Alluxio also supports Java 11.
+If you have both Java 8 and 11 installed on the same node, you will need to modify JAVA_HOME environment variable to point to the correct Java installation directory.
+The following is an example of launching presto 
+
+```console
+$ JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64" ${PRESTO_HOME}/bin/launcher start
+```
+
+### Update Alluxio client library to the lastest version
+Both PrestoSQL and PrestoDb now includes Alluxio's client library in their release. 
+However, the version included in those releases may not be the latest version.
+To update the client library to the latest version, first remove the old alluxio client library from `${PRESTO_HOME}/plugin/hive-hadoop2/` directory.
+Then you can follow 
+[instructions]({{ '/en/compute/Presto.html' | relativize_url }}#distribute-the-alluxio-client-jar-to-all-presto-servers) to copy the latest client to presto plugin directory.
+This client update needs to be performed on all Presto nodes (coordinator and workers). 
+After the files are in place, be sure to restart the presto cluster so the new library is loaded.
+
 ### Using the Alluxio Catalog Service with Presto
 
 In order to utilize the Alluxio Presto plugin start the presto CLI with the following (assuming

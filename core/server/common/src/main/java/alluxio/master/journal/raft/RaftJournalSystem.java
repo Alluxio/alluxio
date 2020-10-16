@@ -201,7 +201,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * mode.
    */
   private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
+  /**
+   * The id for submitting a normal raft client request.
+   **/
   private final ClientId mClientId = ClientId.randomId();
+  /**
+   * The id for submitting a raw raft client request.
+   * Should be used for any raft API call that requires a callId.
+   **/
+  private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
 
@@ -373,8 +381,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient, mClientId,
-        ServerConfiguration.global());
+    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+        mRawClientId, ServerConfiguration.global());
 
     Runnable closeClient = () -> {
       try {
@@ -472,6 +480,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  /**
+   * @return whether the journal is suspended
+   */
+  public synchronized boolean isSuspended() {
+    return mStateMachine.isSuspended();
+  }
+
   @Override
   public synchronized CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
     // Given sequences should be the same for each master for embedded journal.
@@ -491,7 +506,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
     try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
-        mClientId, ServerConfiguration.global())) {
+        mRawClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -713,7 +728,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       RaftPeerId server, Message message) {
     RaftClient client = createClient();
     return client.getClientRpc().sendRequestAsync(
-        new RaftClientRequest(mClientId, server, RAFT_GROUP_ID, nextCallId(), message,
+        new RaftClientRequest(mRawClientId, server, RAFT_GROUP_ID, nextCallId(), message,
             RaftClientRequest.staleReadRequestType(0), null)
     ).whenComplete((reply, t) -> {
       try {
@@ -725,8 +740,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private GroupInfoReply getGroupInfo() throws IOException {
-    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mClientId,
-        mPeerId, RAFT_GROUP_ID, nextCallId());
+    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mRawClientId, mPeerId, RAFT_GROUP_ID,
+        nextCallId());
     return mServer.getGroupInfo(groupInfoRequest);
   }
 
@@ -780,7 +795,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     List<RaftPeer> newPeers = new ArrayList<>(peers);
     newPeers.add(newPeer);
     RaftClientReply reply = mServer.setConfiguration(
-        new SetConfigurationRequest(mClientId, mPeerId, RAFT_GROUP_ID, nextCallId(), newPeers));
+        new SetConfigurationRequest(mRawClientId, mPeerId, RAFT_GROUP_ID, nextCallId(), newPeers));
     if (reply.getException() != null) {
       throw reply.getException();
     }

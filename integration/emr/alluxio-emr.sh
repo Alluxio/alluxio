@@ -384,7 +384,7 @@ configure_alluxio_hdfs_root_mount() {
       exit 2
     fi
     hdfs_version=$2
-    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version "${hdfs_version}"
+    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
     # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
     core_site_location="${HADOOP_CONF}/core-site.xml"
     hdfs_site_location="${HADOOP_CONF}/hdfs-site.xml"
@@ -662,19 +662,26 @@ IN
   # set user provided properties
   set_custom_alluxio_properties "${delimited_properties}"
 
-  # Create a symbolic link in presto plugin directory pointing to our connector if alluxio version is above 2.2
-  for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
-    # guard against using an older version by checking for alluxio connector's existence
-    if [ -d "$plugindir" ]; then
-      doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
-      sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
-      sudo mkdir -p /etc/presto/conf/catalog
-      echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      break
-    fi
-  done
+  # Create a symbolic link in presto plugin directory pointing to our connector if:
+  # - emr version is >= 5.28 -> prestodb >= 0.227
+  # - alluxio version is above 2.2
+  local -r emr_version=$(jq ".releaseLabel" /mnt/var/lib/info/extraInstanceData.json  | sed -e 's/^"emr-//' -e 's/"$//')
+  local -r emr_major=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\1/')
+  local -r emr_minor=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\2/')
+  if [ "${emr_major}" -gt 5 ] || [[ "${emr_major}" -eq 5 && "${emr_minor}" -ge 28 ]]; then
+    for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
+      # guard against using an older version by checking for alluxio connector's existence
+      if [ -d "$plugindir" ]; then
+        doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
+        sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
+        sudo mkdir -p /etc/presto/conf/catalog
+        echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        break
+      fi
+    done
+  fi
 
   # start Alluxio cluster
   if [[ "${client_only}" != "true" ]]; then

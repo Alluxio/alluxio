@@ -43,5 +43,9 @@ echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/pas
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
+# Revert back to the image default java version to run the test
+JAVA_HOME=${JAVA_HOME_BACKUP}
+PATH=${PATH_BACKUP}
+
 mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true \
 -Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@

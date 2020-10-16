@@ -185,6 +185,35 @@ These limits are often set for the particular user that launch the Alluxio proce
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
 as set by `alluxio.master.rpc.executor.max.pool.size`.
 
+### Operating System Tuning
+
+The Linux kernel has many tuning parameters.
+Here are the recommended settings for Alluxio components.
+
+#### Disable vm.zone_reclaim_mode
+
+It is strongly recommended to disable `vm.zone_reclaim_mode` for Alluxio servers (masters, workers).
+This is because zone reclaims can induce significantly high rates of memory page scans, which
+can negatively affect the Alluxio server JVMs.
+This can result in unexpected long pauses of the JVM (not due to garbage collection), which will
+hinder the operation of the Alluxio server.
+See the [kernel documentation for zone_reclaim_mode](https://www.kernel.org/doc/Documentation/sysctl/vm.txt)
+which recommends keeping `vm.zone_reclaim_mode` disabled for workloads identical for Alluxio workers.
+
+To disable this for the system, persistent across reboots, update `/etc/sysctl.conf` to include
+```bash
+vm.zone_reclaim_mode=0
+```
+and then run the following to load the settings:
+```bash
+sysctl -p
+```
+
+To disable this for the system temporarily, run:
+```bash
+sysctl -w vm.zone_reclaim_mode=0
+```
+
 ### Heartbeat Intervals and Timeouts
 
 The frequency with which the master checks for lost workers is set by the

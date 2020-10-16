@@ -452,7 +452,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
@@ -496,7 +496,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
