@@ -20,7 +20,7 @@
   <artifactId>alluxio-shaded-ozone</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Ozone</name>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <description>Shaded Ozone Module</description>
 
   <properties>
