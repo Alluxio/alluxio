@@ -134,7 +134,7 @@ $ ./bin/alluxio runTests
 
 当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有两种方法可以在客户端上指定HA Alluxio服务地址:
 
-### 在配置参数中指定Alluxio服务
+### 在配置参数或Java Option中指定Alluxio服务
 
 用户可以在环境变量或站点属性中预先配置Alluxio HA集群的服务地址，然后使用Alluxio URI连接服务， 如`alluxio:///path`其中连接HA集群所需详细信息已使用通过这些参数配置完成。例如，如果使用Hadoop，则可以在`core-site.xml`中配置属性，然后使用Hadoop CLI和Alluxio URI。
 
@@ -144,28 +144,38 @@ $ hadoop fs -ls alluxio:///directory
 
 根据实现HA的不同方法，需要设置不同的属性:
 
-- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如，
+- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如添加如下设置到应用配置中:
+
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
+alluxio.master.journal.type=EMBEDDED
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+```
+
+或者通过Java Option传输给应用程序。比如对于Spark应用，将如下参数传给`spark.executor.extraJavaOptions`和`spark.driver.extraJavaOptions`:
+
+```
+-Dalluxio.master.journal.type=EMBEDDED \
+-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 - 使用Zookeeper连接到Alluxio HA集群时，需要以下属性设置才能连接到Zookeeper以获取leading Master信息。注意，当启用`alluxio.zookeeper.enabled`时必须指定ZooKeeper地址(`alluxio.zookeeper.address`) ，反之亦然。可以通过用逗号间隔来指定多个ZooKeeper地址
+
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
 
-### 使用URL Authority{＃ha-authority}指定Alluxio服务
+### 使用URL Authority指定Alluxio服务{#ha-authority}
 
 用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
 
-- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`,或者指定Java option `-Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.rpc.port=19998`
+- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
 对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998，master_hostname_2:19998，master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181，zkHost2:2181，zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
+
 
 ## 常见操作
 
