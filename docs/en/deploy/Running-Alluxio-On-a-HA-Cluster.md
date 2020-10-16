@@ -223,7 +223,7 @@ When an application interacts with Alluxio in HA mode, the client must know abou
 the Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
 There are two ways to specify the HA Alluxio service address on the client side:
 
-### Specify Alluxio Service in Configuration Parameters
+### Specify Alluxio Service in Configuration Parameters or Java Options
 
 Users can also pre-configure the service address of an Alluxio HA cluster in environment variables
 or site properties, and then connect to the service using Alluxio URI like to
@@ -241,9 +241,16 @@ Depending on the different approach to achieve HA, different properties are requ
 - When connecting to an Alluxio HA cluster using embedded journal,
   set property `alluxio.master.rpc.addresses` to decide the node addresses to query. For
   examples,
+
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+```
+
+Or specify the properties in Java option. For example, for Spark applications, add the following to 
+`spark.executor.extraJavaOptions` and `spark.driver.extraJavaOptions`:
+
+```
+-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 - When connecting to an Alluxio HA cluster using Zookeeper, the following properties are needed to
@@ -269,7 +276,7 @@ master_hostname_2:19998,master_hostname_3:19998/path`
 
 For many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
 delimiter for multiple addresses in the URI, like
-`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` Or specify Java option `-Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.rpc.port=19998`
+`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
 
 For some other applications (e.g., Spark) where comma is not accepted inside a URL authority, you
