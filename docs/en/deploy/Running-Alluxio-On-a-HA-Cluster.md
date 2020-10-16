@@ -222,7 +222,7 @@ When an application interacts with Alluxio in HA mode, the client must know abou
 the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
 The following sections list two ways to specify the HA Alluxio service address on the client side.
 
-### Specify Alluxio Service in Configuration Parameters
+### Specify Alluxio Service in Configuration Parameters or Java Options
 
 Users can pre-configure the service address of an Alluxio HA cluster in environment variables
 or site properties, and then connect to the service using an Alluxio URI such as `alluxio:///path`.
@@ -236,8 +236,16 @@ $ hadoop fs -ls alluxio:///directory
 Depending on the different approaches to achieve HA, different properties are required:
 
 If using embedded journal, set `alluxio.master.rpc.addresses`.
+
 ```
 alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+```
+
+Or specify the properties in Java option. For example, for Spark applications, add the following to 
+`spark.executor.extraJavaOptions` and `spark.driver.extraJavaOptions`:
+
+```
+-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 If using Zookeeper, set the following Zookeeper related properties  
@@ -245,6 +253,7 @@ If using Zookeeper, set the following Zookeeper related properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
+
 Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
 `alluxio.zookeeper.enabled` is enabled and vise versa.
 Multiple ZooKeeper addresses can be specified by delimiting with commas.
