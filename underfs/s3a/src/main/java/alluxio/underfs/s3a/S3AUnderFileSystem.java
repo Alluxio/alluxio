@@ -198,8 +198,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
-    AmazonS3Client amazonS3Client = (AmazonS3Client) AmazonS3Client.builder()
-            .withClientConfiguration(clientConf).withCredentials(credentials).build();
+    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
 
     // Set a custom endpoint.
     if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
