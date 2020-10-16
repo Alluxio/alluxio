@@ -147,14 +147,12 @@ $ hadoop fs -ls alluxio:///directory
 - 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如添加如下设置到应用配置中:
 
 ```
-alluxio.master.journal.type=EMBEDDED
 alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 或者通过Java Option传输给应用程序。比如对于Spark应用，将如下参数传给`spark.executor.extraJavaOptions`和`spark.driver.extraJavaOptions`:
 
 ```
--Dalluxio.master.journal.type=EMBEDDED \
 -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
@@ -175,7 +173,6 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998，master_hostname_2:19998，master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181，zkHost2:2181，zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
-
 
 ## 常见操作
 
