@@ -26,7 +26,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <!-- Decouple hadoop versions between north and south bound -->
-    <ufs.hadoop.version>3.3.1-SNAPSHOT</ufs.hadoop.version>
+    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
     <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
   </properties>
 
