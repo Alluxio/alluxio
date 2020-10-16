@@ -21,7 +21,7 @@ jobs:
           - >-
             alluxio.master.**
           - >-
-            alluxio.server.ft.**
+            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**
           - >-
             alluxio.server.**,!alluxio.server.ft.**
           - >-

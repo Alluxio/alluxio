@@ -1,4 +1,4 @@
-name: Java 11 Integration Tests
+name: Java 11 Embedded Journal Integration Tests
 
 on: [pull_request]
 
@@ -11,21 +11,7 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**
-          - >-
-            alluxio.client.fs.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
-          - >-
-            alluxio.job.**
-          - >-
-            alluxio.master.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
-          - >-
-            alluxio.web.**
+            alluxio.server.ft.journal.raft.**
 
     runs-on: ubuntu-latest
 

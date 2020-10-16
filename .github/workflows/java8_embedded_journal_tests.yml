@@ -1,4 +1,4 @@
-name: Java 11 Integration Tests
+name: Java 8 Embedded Journal Integration Tests
 
 on: [pull_request]
 
@@ -11,21 +11,7 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**
-          - >-
-            alluxio.client.fs.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
-          - >-
-            alluxio.job.**
-          - >-
-            alluxio.master.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
-          - >-
-            alluxio.web.**
+            alluxio.server.ft.journal.raft.**
 
     runs-on: ubuntu-latest
 
@@ -54,7 +40,6 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.5-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 
@@ -67,7 +52,6 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.5-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 
@@ -79,7 +63,6 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.5-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 
@@ -92,3 +75,4 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
             log*
+          retention-days: 7
