@@ -252,12 +252,14 @@ public final class PlanCoordinator {
     for (TaskInfo info : taskInfoList) {
       switch (info.getStatus()) {
         case FAILED:
-          mPlanInfo.setStatus(Status.FAILED);
           if (mPlanInfo.getErrorMessage().isEmpty()) {
             mPlanInfo.setErrorType(info.getErrorType());
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
             LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
           }
+          // setStatus after setting the message to propagate error message up
+          // through statusChangeCallback
+          mPlanInfo.setStatus(Status.FAILED);
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
