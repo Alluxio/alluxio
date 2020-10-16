@@ -268,7 +268,7 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
 See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
-### Use Alluxio as the Default Filesystem
+### Experimental: Use Alluxio as the Default Filesystem
 
 This section talks about how to use Alluxio as the default file system for Hive.
 Apache Hive can also use Alluxio through a generic file system interface to replace the
