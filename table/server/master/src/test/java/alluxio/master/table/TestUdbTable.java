@@ -31,8 +31,8 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-
 import alluxio.util.WaitForOptions;
+
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
