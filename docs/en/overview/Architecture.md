@@ -312,18 +312,20 @@ With `THROUGH`, data is written to under storage synchronously without being cac
 workers. This write type ensures that data will be persisted after the write completes, but the
 speed is limited by the under storage throughput.
 
-### data consistency
+### Data consistency
 
-Regardless of write types, files/dirs in Alluxio space are always strongly consistent as all these write operations will
-go through Alluxio master first and modify Alluxio file system before return the client/applications. 
-So for applications talking to Alluxio, they will always see the latest update as long as the write operation complete successfully.
+Regardless of write types, files/dirs **in Alluxio space** are always strongly consistent as all these write operations will
+go through Alluxio master first and modify Alluxio file system before returning success to the client/applications. 
+Therefore, different Alluxio clients will always see the latest update as long as its corresponding write operation completes successfully.
 
 However, for users or applications taking the state in UFS into account, it might be different across write types:
 
 - `MUST_CACHE` writes no data to UFS, so Alluxio space is never consistent with UFS.
 - `CACHE_THROUGH` writes data synchronously to Alluxio and UFS before returning success to applications.
-If writing to UFS is also strong consistent (e.g., HDFS), Alluxio space will be always consistent with UFS;
-if writing to UFS is eventual consistent (e.g. S3), it is possible that the file is written successfully to Alluxio but shown up in UFS later.
+   - If writing to UFS is also strongly consistent (e.g., HDFS), Alluxio space will be always consistent with UFS if there is no other out-of-band updates in UFS;
+   - if writing to UFS is eventually consistent (e.g. S3), it is possible that the file is written successfully to Alluxio but shown up in UFS later.
+     In this case, Alluxio clients will still see consistent file system as they will always consult Alluxio master which is strongly consistent;
+     Therefore, there may be a window of inconsistence before data finally propagated to UFS despite different Alluxio clients still see consistent state in Alluxio space.
 - `ASYNC_THROUGH` writes data to Alluxio and return to applications, leaving Alluxio to propagate the data to UFS asynchronously.
 From users perspective, the file can be written successfully to Alluxio, but get persisted in UFS later.
 - `THROUGH` writes data to UFS directly without caching the data in Alluxio, however, Alluxio knows the files and its status.
