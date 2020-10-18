@@ -218,11 +218,11 @@ for all available commands.
 
 Some commands have different prerequisites.
 
-The prerequisite for the `format`, `formatMaster`, `formatWorker`, `getConf`, `runClass`, `runHmsTests`, `runHdfsMountTests`, 
-`runJournalCrashTest`, `readJournal`, `upgradeJournal`, `version`, `validateConf`, `validateEnv` and `collectInfo` commands is
-that you have already built Alluxio 
+All commands except `bootstrapConf`, `killAll`, `copyDir` and `clearCache`
+will require that you have already built Alluxio 
 (see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
 about how to build Alluxio manually).
 
-Further, the prerequisite for the `fs`, `fsadmin`, `table`, `logLevel`, `runTest`, `runTests`, `runUfsIOTest` and `runUfsTests` 
-commands is that the Alluxio service is up and running.
+Some commands require the Alluxio cluster to be running, and others do not.
+Please check [all Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
+where each command specifies if it requires the Alluxio cluster to be running.
