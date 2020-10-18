@@ -910,13 +910,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
     // Rehydrate missing block-infos for persisted files.
-    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
-        && inode.isPersisted()) {
+    if (inode.isPersisted() && !fileInfo.isFolder()
+        && (fileInfo.getBlockIds().size() != fileInfo.getFileBlockInfos().size()
+        || fileInfo.getFileBlockInfos().stream().map(FileBlockInfo::getBlockInfo)
+        .mapToLong(BlockInfo::getLength).sum() != fileInfo.getLength())) {
       List<Long> missingBlockIds = fileInfo.getBlockIds().stream()
-          .filter((bId) -> fileInfo.getFileBlockInfo(bId) != null).collect(Collectors.toList());
+          .filter((bId) -> fileInfo.getFileBlockInfo(bId) == null).collect(Collectors.toList());
 
-      LOG.warn("BlockInfo missing for file: {}. BlockIdsWithMissingInfos: {}", inodePath.getUri(),
-          missingBlockIds.stream().map(Object::toString).collect(Collectors.joining(",")));
+      if (missingBlockIds.size() > 0) {
+        LOG.warn("BlockInfo missing for file: {}. BlockIdsWithMissingInfos: {}", inodePath.getUri(),
+            missingBlockIds.stream().map(Object::toString).collect(Collectors.joining(",")));
+      }
       // Remove old block metadata from block-master before re-committing.
       mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
       // Commit all the file blocks (without locations) so the metadata for the block exists.
