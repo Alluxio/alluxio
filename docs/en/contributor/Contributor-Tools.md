@@ -180,6 +180,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 ```
 
 #### Test FUSE
+
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
 [the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
