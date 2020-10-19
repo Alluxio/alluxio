@@ -337,8 +337,33 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (pos < mPos) {
       mEOF = false;
+      closeDataReader();
+    } else if (pos < mLength) {
+      // Try to read data already in queue
+      long curPos = mPos;
+      while (mCurrentChunk != null && curPos < pos) {
+        long nextPos = curPos + mCurrentChunk.readableBytes();
+        if (nextPos <= pos) {
+          curPos = nextPos; 
+          mCurrentChunk.release();
+          mCurrentChunk = mDataReader.readChunkNoWait();
+        } else {
+          // TODO introduce seek in DataBuffer
+          int toRead = (int)(pos - curPos);
+          final byte[] b = new byte[toRead];
+          mCurrentChunk.readBytes(b, 0, toRead);
+          curPos = pos;
+        }
+      }
+
+      if (curPos < pos) {
+        // Not enough data in queue, close the data reader
+        closeDataReader();
+      }
+    } else {
+      closeDataReader();
     }
-    closeDataReader();
+    
     mPos = pos;
   }
 

@@ -29,6 +29,13 @@ public interface DataReader extends Closeable {
   DataBuffer readChunk() throws IOException;
 
   /**
+   * Try to read a chunk without waiting for data ready. 
+   *
+   * @return the data buffer or null if EOF is reached or data is not ready.
+   */
+  DataBuffer readChunkNoWait() throws IOException;
+
+  /**
    * @return the current stream position
    */
   long pos();

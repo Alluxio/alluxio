@@ -78,6 +78,11 @@ public final class LocalFileDataReader implements DataReader {
   }
 
   @Override
+  public DataBuffer readChunkNoWait() throws IOException {
+    return readChunk();
+  }
+
+  @Override
   public long pos() {
     return mPos;
   }
