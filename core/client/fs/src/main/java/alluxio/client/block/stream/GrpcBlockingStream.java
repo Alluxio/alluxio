@@ -173,6 +173,15 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
+   * Check if there are responses in the queue
+   * @return 
+   * @throws IOException if any error occurs
+   */
+  public boolean hasResponseInCache() {
+    return mResponses.size() != 0;
+  }
+
+  /**
    * Closes the outbound stream. If the stream is already closed then invoking this method has no
    * effect.
    */
