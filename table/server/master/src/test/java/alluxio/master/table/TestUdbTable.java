@@ -31,6 +31,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableList;
 
@@ -94,7 +95,7 @@ public class TestUdbTable implements UdbTable {
                 CreateFilePOptions.newBuilder().setRecursive(true).build())) {
               out.write("1".getBytes());
             } catch (IOException | AlluxioException e) {
-              e.printStackTrace();
+              throw new RuntimeException(e);
             }
 
             final AlluxioURI waitLocation = location;
@@ -106,9 +107,9 @@ public class TestUdbTable implements UdbTable {
                   e.printStackTrace();
                   return false;
                 }
-              });
+              }, WaitForOptions.defaults().setTimeoutMs(100));
             } catch (InterruptedException | TimeoutException e) {
-              e.printStackTrace();
+              throw new RuntimeException(e);
             }
           }
           return new TestPartition(new HiveLayout(genPartitionInfo(
