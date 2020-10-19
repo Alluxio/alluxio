@@ -979,6 +979,7 @@
               <jacoco-agent.append>true</jacoco-agent.append>
               <jacoco-agent.destfile>${build.path}/../target/jacoco-combined.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
