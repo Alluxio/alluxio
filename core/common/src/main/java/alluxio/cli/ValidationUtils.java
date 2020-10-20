@@ -53,9 +53,6 @@ public final class ValidationUtils {
    * */
   public static boolean isHdfsScheme(String path) {
     String scheme = new AlluxioURI(path).getScheme();
-    if (scheme == null || !scheme.startsWith("hdfs")) {
-      return false;
-    }
-    return true;
+    return scheme != null && scheme.startsWith("hdfs");
   }
 }
