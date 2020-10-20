@@ -128,7 +128,11 @@ public final class TestRunner {
     for (ReadType readType : readTypes) {
       for (WriteType writeType : writeTypes) {
         for (OperationType opType : operations) {
-          System.out.println(String.format("runTest %s %s %s", opType, readType, writeType));
+          if (readType == ReadType.CACHE_PROMOTE && writeType == WriteType.THROUGH) {
+            System.out.println("Skip this test");
+            continue;
+          }
+          System.out.println(String.format("runTest --operation %s --readType %s --writeType %s", opType, readType, writeType));
           failed += runTest(opType, readType, writeType, fsContext);
         }
       }
