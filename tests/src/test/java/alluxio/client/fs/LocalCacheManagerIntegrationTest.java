@@ -193,13 +193,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
         WaitForOptions.defaults().setTimeoutMs(10000));
     int hits = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
-      if (PAGE_SIZE_BYTES ==
-          mCacheManager.get(new PageId("0", i), PAGE_SIZE_BYTES, mBuffer, 0)) {
+      if (PAGE_SIZE_BYTES
+          == mCacheManager.get(new PageId("0", i), PAGE_SIZE_BYTES, mBuffer, 0)) {
         hits++;
       }
     }
     if (hits < PAGE_COUNT / 2) {
-      fail(String.format("Expected at least %s hits but actually got %s hits", PAGE_COUNT / 2, hits));
+      fail(String.format("Expected at least %s hits but actually got %s hits",
+          PAGE_COUNT / 2, hits));
     }
   }
 
