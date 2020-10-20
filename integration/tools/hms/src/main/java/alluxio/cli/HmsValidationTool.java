@@ -86,7 +86,8 @@ public class HmsValidationTool implements ValidationTool {
       tables = (String) configMap
           .getOrDefault(ValidationConfig.TABLES_CONFIG_NAME, "");
       socketTimeout = Integer.parseInt(configMap
-          .getOrDefault(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, DEFAULT_SOCKET_TIMEOUT).toString());
+          .getOrDefault(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, DEFAULT_SOCKET_TIMEOUT)
+          .toString());
     } catch (RuntimeException e) {
       // Try not to throw exception on the construction function
       // The hms validation tool itself should return failed message if the given config is invalid
