@@ -33,7 +33,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ThreadUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,9 +86,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final Map<Long, FileOutStream> mCreateFileEntries = new ConcurrentHashMap<>();
   private final boolean mIsUserGroupTranslation;
-  private final String mCliEndpointPath;
-  private final long mCliEndpointTimeout;
-  private final String mAlluxioHome;
+
   // To make test build
   @VisibleForTesting
   public static final long ID_NOT_SET_VALUE = -1;
@@ -130,10 +126,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new PathCacheLoader());
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH) ?
-        PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
-    mCliEndpointTimeout = conf.getMs(PropertyKey.FUSE_CLI_ENDPOINT_TIMEOUT);
-    mAlluxioHome = conf.get(PropertyKey.HOME);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mFileLocks[i] = new ReentrantReadWriteLock();
     }
@@ -377,16 +369,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Cannot write more than Integer.MAX_VALUE");
       return ErrorCodes.EIO();
     }
-    if (path.equals(mCliEndpointPath)) {
-      int sz = (int) size;
-      final byte[] bytes = new byte[sz];
-      buf.get(bytes, 0, sz);
-      String cli = new String(bytes, StandardCharsets.UTF_8);
-      if (AlluxioFuseUtils.runCli(cli, mAlluxioHome, mCliEndpointTimeout)) {
-        return 0;
-      }
-      return -ru.serce.jnrfuse.ErrorCodes.EIO();
-    }
     final int sz = (int) size;
     final long fd = fi.fh.get();
     FileOutStream os = mCreateFileEntries.get(fd);
@@ -511,9 +493,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int renameInternal(String oldPath, String newPath) {
-    if (oldPath.equals(mCliEndpointPath)) {
-      return -ru.serce.jnrfuse.ErrorCodes.EIO();
-    }
     final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
     final String name = newUri.getName();
@@ -615,9 +594,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int truncate(String path, long size) {
-    if (path.equals(mCliEndpointPath)) {
-      return 0;
-    }
     LOG.error("Truncate is not supported {}", path);
     return -ErrorCodes.EOPNOTSUPP();
   }
