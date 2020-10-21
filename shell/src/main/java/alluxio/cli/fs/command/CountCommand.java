@@ -15,17 +15,18 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FormatUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,6 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class CountCommand extends AbstractFileSystemCommand {
+  @VisibleForTesting
+  public static final String COUNT_FORMAT = "%-25s%-25s%-15s%n";
 
   private static final String READABLE_OPTION_NAME = "h";
 
@@ -67,8 +70,22 @@ public final class CountCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    long[] values = countHelper(inputPath);
-    printInfo(cl.hasOption(READABLE_OPTION_NAME), values[0], values[1], values[2]);
+    AtomicLong fileCount = new AtomicLong();
+    AtomicLong folderCount = new AtomicLong();
+    AtomicLong folderSize = new AtomicLong();
+
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+    mFileSystem.iterateStatus(inputPath, options, uriStatus -> {
+      if (uriStatus.isFolder()) {
+        folderCount.incrementAndGet();
+      } else {
+        fileCount.incrementAndGet();
+        folderSize.getAndAdd(uriStatus.getLength());
+      }
+    });
+
+    printInfo(cl.hasOption(READABLE_OPTION_NAME), fileCount.get(), folderCount.get(),
+        folderSize.get());
     return 0;
   }
 
@@ -83,33 +100,8 @@ public final class CountCommand extends AbstractFileSystemCommand {
   private void printInfo(boolean readable, long fileCount, long folderCount, long folderSize) {
     String formatFolderSize = readable ? FormatUtils.getSizeFromBytes(folderSize)
             : String.valueOf(folderSize);
-    String format = "%-25s%-25s%-15s%n";
-    System.out.format(format, "File Count", "Folder Count", "Folder Size");
-    System.out.format(format, fileCount, folderCount, formatFolderSize);
-  }
-
-  private long[] countHelper(AlluxioURI path) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(path);
-
-    if (!status.isFolder()) {
-      return new long[]{ 1L, 0L, status.getLength() };
-    }
-
-    long[] rtn = new long[]{ 0L, 1L, 0L };
-
-    List<URIStatus> statuses;
-    try {
-      statuses = mFileSystem.listStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
-    for (URIStatus uriStatus : statuses) {
-      long[] toAdd = countHelper(new AlluxioURI(uriStatus.getPath()));
-      rtn[0] += toAdd[0];
-      rtn[1] += toAdd[1];
-      rtn[2] += toAdd[2];
-    }
-    return rtn;
+    System.out.format(COUNT_FORMAT, "File Count", "Folder Count", "Folder Size");
+    System.out.format(COUNT_FORMAT, fileCount, folderCount, formatFolderSize);
   }
 
   @Override

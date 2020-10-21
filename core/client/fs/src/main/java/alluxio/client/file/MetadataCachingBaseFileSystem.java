@@ -33,6 +33,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,6 +82,31 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       asyncUpdateFileAccessTime(path);
     }
     return status;
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+
+    if (options.getRecursive()) {
+      // Do not cache results of recursive list status,
+      // because some results might be cached multiple times.
+      // Otherwise, needs more complicated logic inside the cache,
+      // that might not worth the effort of caching.
+      super.iterateStatus(path, options, action);
+    }
+
+    List<URIStatus> statuses = mMetadataCache.listStatus(path);
+    if (statuses == null) {
+      super.iterateStatus(path, options, status -> {
+        mMetadataCache.put(path, status);
+        action.accept(status);
+      });
+      return;
+    }
+    statuses.forEach(action);
   }
 
   @Override
