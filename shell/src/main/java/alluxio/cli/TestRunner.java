@@ -128,7 +128,8 @@ public final class TestRunner {
     for (ReadType readType : readTypes) {
       for (WriteType writeType : writeTypes) {
         for (OperationType opType : operations) {
-          System.out.println(String.format("runTest --operation %s --readType %s --writeType %s", opType, readType, writeType));
+          System.out.println(String.format("runTest --operation %s --readType %s --writeType %s",
+                  opType, readType, writeType));
           failed += runTest(opType, readType, writeType, fsContext);
         }
       }
