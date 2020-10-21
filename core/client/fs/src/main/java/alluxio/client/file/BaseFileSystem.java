@@ -79,6 +79,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -286,6 +287,20 @@ public class BaseFileSystem implements FileSystem {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.listStatus(path, mergedOptions);
+    });
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+    rpc(client -> {
+      // TODO(calvin): Fix the exception handling in the master
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      client.iterateStatus(path, mergedOptions, action);
+      return null;
     });
   }
 

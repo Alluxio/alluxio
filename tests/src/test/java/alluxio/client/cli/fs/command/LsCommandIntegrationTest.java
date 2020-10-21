@@ -61,7 +61,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsNoAcl() throws Exception {
     createFiles(null);
-    sFsShell.run("ls", "/testRoot");
+    sFsShell.run("ls", "--sort", "path", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -74,7 +74,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsMultipleDirs() throws Exception {
     createFiles(null);
-    sFsShell.run("ls", "/testRoot", "/testRoot/testDir/");
+    sFsShell.run("ls", "--sort", "path", "/testRoot", "/testRoot/testDir/");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -88,7 +88,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsHumanReadable() throws Exception {
     createFiles(null);
-    sFsShell.run("ls", "-h", "/testRoot");
+    sFsShell.run("ls", "-h", "--sort", "path", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "            10B   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -107,7 +107,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
         SetAttributePOptions.newBuilder().setPinned(true).build());
     sFileSystem.setAttribute(fileURI2,
         SetAttributePOptions.newBuilder().setPinned(true).build());
-    sFsShell.run("ls", "-pR",  "/testRoot");
+    sFsShell.run("ls", "-pR", "--sort", "path", "/testRoot");
     checkOutput(
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA");
@@ -139,7 +139,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void lsWildcardNoAcl() throws Exception {
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    sFsShell.run("ls", testDir + "/*/foo*");
+    sFsShell.run("ls", "--sort", "path", testDir + "/*/foo*");
     checkOutput(
         "             30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "             10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -147,7 +147,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     mOutput.reset();
 
-    sFsShell.run("ls", testDir + "/*");
+    sFsShell.run("ls", "--sort", "path", testDir + "/*");
     checkOutput(
         "             30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "             10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -161,7 +161,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsrNoAcl() throws Exception {
     createFiles(null);
-    sFsShell.run("ls", "-R", "/testRoot");
+    sFsShell.run("ls", "-R", "--sort", "path", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
@@ -297,7 +297,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
             .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils
             .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
-    sFsShell.run("ls", "-r", "/testRoot");
+    sFsShell.run("ls", "-r", "--sort", "path", "/testRoot");
     checkOutput(
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",

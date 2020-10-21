@@ -39,6 +39,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A client to use for interacting with a file system master.
@@ -155,6 +156,20 @@ public interface FileSystemMasterClient extends Client {
    * @return the list of paths
    */
   List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
+
+  /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws NotFoundException if the path does not exist
+   */
+  void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action) throws AlluxioStatusException;
 
   /**
    * @param path the path to list
