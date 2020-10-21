@@ -3131,6 +3131,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
+  public static final PropertyKey PROXY_CLI_TIMEOUT =
+      new Builder(Name.PROXY_CLI_TIMEOUT)
+          .setDescription("The timeout to run CLI using proxy.")
+          .setDefaultValue("5min")
+          .build();
 
   //
   // Locality related properties
@@ -5309,6 +5314,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+    public static final String PROXY_CLI_TIMEOUT = "alluxio.proxy.cli.timeout";
 
     //
     // Locality related properties

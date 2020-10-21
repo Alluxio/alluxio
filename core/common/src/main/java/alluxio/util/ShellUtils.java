@@ -18,13 +18,16 @@ import alluxio.shell.SshCommand;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -182,6 +185,37 @@ public final class ShellUtils {
       System.err.format("Unable to check Alluxio status: %s.%n", e.getMessage());
       return false;
     }
+  }
+
+  /**
+   * @param command alluxio command command
+   * @param timeoutMs timeout value in ms to run command
+   * @return return value of command
+   */
+  public static int runCommand(String command, long timeoutMs) {
+    LOG.debug("runCommand: \"{}\"", command);
+    Process process;
+    try {
+      process = new ProcessBuilder()
+          .command("sh", "-c", command)
+          .redirectErrorStream(true)
+          .start();
+      if (!process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)) {
+        process.destroy();
+      }
+      if (LOG.isDebugEnabled()) {
+        String output = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
+        LOG.debug("Command={}, Output={}", command, output);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to run command \"{}\"", command, e);
+      return -1;
+    } catch (InterruptedException e) {
+      LOG.error("Failed to run command \"{}\"", command, e);
+      Thread.currentThread().interrupt();
+      return -1;
+    }
+    return process.exitValue();
   }
 
   /**
