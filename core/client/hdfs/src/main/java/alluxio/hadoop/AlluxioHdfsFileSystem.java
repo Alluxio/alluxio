@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -151,6 +152,14 @@ public class AlluxioHdfsFileSystem implements alluxio.client.file.FileSystem {
       throws IOException {
     return Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI)))
         .map(AlluxioHdfsFileSystem::toAlluxioUriStatus).collect(Collectors.toList());
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI alluxioURI, ListStatusPOptions options,
+                            Consumer<? super URIStatus> action)
+      throws IOException {
+    Arrays.stream(mFileSystem.listStatus(HadoopUtils.toPath(alluxioURI)))
+        .map(AlluxioHdfsFileSystem::toAlluxioUriStatus);
   }
 
   @Override
