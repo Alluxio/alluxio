@@ -138,7 +138,7 @@
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.29.1</jersey.version>
     <jetty.version>9.4.31.v20200723</jetty.version>
-    <junit.version>4.13</junit.version>
+    <junit.version>4.13.1</junit.version>
     <log4j.version>2.13.3</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
