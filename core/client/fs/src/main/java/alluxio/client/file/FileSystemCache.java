@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -290,6 +291,16 @@ public class FileSystemCache {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }
       return super.listStatus(path, options);
+    }
+
+    @Override
+    public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+                              Consumer<? super URIStatus> action)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      super.iterateStatus(path, options, action);
     }
 
     @Override

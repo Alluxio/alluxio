@@ -63,6 +63,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.security.auth.Subject;
 
@@ -333,6 +334,36 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default void iterateStatus(AlluxioURI path, Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    iterateStatus(path, ListStatusPOptions.getDefaultInstance(), action);
+  }
+
+  /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
