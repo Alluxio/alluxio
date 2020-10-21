@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
+import static alluxio.cli.fs.command.CountCommand.COUNT_FORMAT;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.client.file.FileSystemTestUtils;
@@ -44,14 +45,13 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
     //count a folders
     sFsShell.run("count", "/testRoot");
     String expected = "";
-    String format = "%-25s%-25s%-15s\n";
-    expected += String.format(format, "File Count", "Folder Count", "Folder Size");
-    expected += String.format(format, 3, 2, 60);
+    expected += String.format(COUNT_FORMAT, "File Count", "Folder Count", "Folder Size");
+    expected += String.format(COUNT_FORMAT, 3, 1, 60);
 
     //count a folders
     sFsShell.run("count", "-h", "/testRoot");
-    expected += String.format(format, "File Count", "Folder Count", "Folder Size");
-    expected += String.format(format, 3, 2, "60B");
+    expected += String.format(COUNT_FORMAT, "File Count", "Folder Count", "Folder Size");
+    expected += String.format(COUNT_FORMAT, 3, 1, "60B");
     assertEquals(expected, mOutput.toString());
   }
 }
