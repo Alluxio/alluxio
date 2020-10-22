@@ -138,6 +138,7 @@
             <configuration>
               <!-- Since we don't shade all artifacts, we need to promote the transitive dependencies -->
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <createDependencyReducedPom>${create.dependency.reduced.pom}</createDependencyReducedPom>
               <relocations>
                 <relocation>
                   <pattern>com.google</pattern>
