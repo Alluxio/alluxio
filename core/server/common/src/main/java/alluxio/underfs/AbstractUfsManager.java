@@ -101,7 +101,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   private UfsClient mRootUfsClient;
   protected final Closer mCloser;
 
-  AbstractUfsManager() {
+  protected AbstractUfsManager() {
     mCloser = Closer.create();
   }
 

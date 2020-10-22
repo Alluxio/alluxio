@@ -11,22 +11,21 @@
 
 package alluxio.master;
 
-import alluxio.Server;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
+import alluxio.conf.ServerConfiguration;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.network.NetworkAddressUtils;
+
+import java.io.IOException;
 
 /**
- * This interface contains common operations for all masters.
+ *
  */
-public interface Master extends Journaled, Server<Boolean> {
-  /**
-   * @return a journal context for writing journal entries to the master
-   */
-  JournalContext createJournalContext() throws UnavailableException;
-
-  /**
-   * @return a master context
-   */
-  MasterContext getMasterContext();
+public class NoopUfsManager extends AbstractUfsManager {
+  @Override
+  protected void connectUfs(UnderFileSystem fs) throws IOException {
+    fs.connectFromMaster(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            ServerConfiguration.global()));
+  }
 }
