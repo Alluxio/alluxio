@@ -326,6 +326,7 @@ public final class BlockMetadataManager {
    */
   @Nullable
   public TempBlockMeta getTempBlockMetaOrNull(long blockId) {
+    // TODO(jiacheng): do we wanna reduce the complexity here?
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {

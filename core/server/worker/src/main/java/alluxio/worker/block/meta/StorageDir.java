@@ -80,6 +80,8 @@ public final class StorageDir {
     mBlockIdToBlockMap = new HashMap<>(200);
     mBlockIdToTempBlockMap = new HashMap<>(200);
     mSessionIdToTempBlockIdsMap = new HashMap<>(200);
+
+    LOG.info("Initialized storage dir {} with {} capacity and {} available", dirPath, capacityBytes, mAvailableBytes);
   }
 
   /**

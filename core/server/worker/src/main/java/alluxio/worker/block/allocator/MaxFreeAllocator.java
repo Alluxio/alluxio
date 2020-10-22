@@ -17,6 +17,8 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,6 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MaxFreeAllocator implements Allocator {
+  private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
+
   private BlockMetadataView mMetadataView;
 
   /**
@@ -59,30 +63,42 @@ public final class MaxFreeAllocator implements Allocator {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
+
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
+          LOG.debug("Allocating to {} for anyTier", candidateDirView.toBlockStoreLocation());
           break;
         }
       }
+      LOG.info("Failed to allocate with blockSize={}, location={} for anyTier", blockSize, location);
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+      if (candidateDirView != null) {
+        LOG.debug("Allocating to {} for anyDirInTier", candidateDirView.toBlockStoreLocation());
+      } else {
+        LOG.info("Failed to allocate with blockSize={}, location={} for anyDirInTier", blockSize, location);
+      }
     } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
+          LOG.debug("Allocating to {} for anyDirInTierWithMedium", candidateDirView.toBlockStoreLocation());
           break;
         }
       }
+      LOG.info("Failed to allocate with blockSize={}, location={} for anyDirInTierWithMedium", blockSize, location);
     } else {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView != null && dirView.getAvailableBytes() >= blockSize) {
         candidateDirView = dirView;
+        LOG.debug("Allocating to specific dir {}", candidateDirView.toBlockStoreLocation());
       }
+      LOG.info("Failed to allocate with blockSize={}, location={} for specific dir", blockSize, location);
     }
 
     return candidateDirView;

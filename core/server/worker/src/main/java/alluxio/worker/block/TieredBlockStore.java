@@ -309,6 +309,7 @@ public class TieredBlockStore implements BlockStore {
     // NOTE: a temp block is only visible to its own writer, unnecessary to acquire
     // block lock here since no sharing
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      // TODO(jiacheng): where is this temp block meta?
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
 
       StorageDirView allocationDir = allocateSpace(sessionId,
@@ -320,6 +321,7 @@ public class TieredBlockStore implements BlockStore {
 
       if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
         // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
+        // TODO(jiacheng): this is confusing
         throw new IllegalStateException(
             String.format("Allocation error: location enforcement failed for location: %s",
                 allocationDir.toBlockStoreLocation()));
@@ -427,6 +429,7 @@ public class TieredBlockStore implements BlockStore {
    * Free space is the entry for immediate block deletion in order to open up space for
    * new or ongoing blocks.
    *
+   * TODO(jiacheng): this is not true??
    * - New blocks creations will not try to free space until all tiers are out of space.
    * - Ongoing blocks could end up freeing space oftenly, when the file's origin location is
    * low on space.
@@ -443,7 +446,7 @@ public class TieredBlockStore implements BlockStore {
   public synchronized void freeSpace(long sessionId, long minContiguousBytes,
       long minAvailableBytes, BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
+    LOG.info("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
         sessionId, minAvailableBytes, minAvailableBytes, location);
     freeSpaceInternal(sessionId, minContiguousBytes, minAvailableBytes, location);
   }
@@ -639,6 +642,7 @@ public class TieredBlockStore implements BlockStore {
         return dirView;
       }
 
+      // This means the dirView is null
       if (options.isForceLocation()) {
         if (options.isEvictionAllowed()) {
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
@@ -744,6 +748,20 @@ public class TieredBlockStore implements BlockStore {
     LOG.debug(
         "freeSpaceInternal - locAvailableBytes: {}, minContiguousBytes: {}, minAvailableBytes: {}",
         evictorView.getAvailableBytes(location), minContiguousBytes, minAvailableBytes);
+
+    // TODO(jiacheng)
+    // Report tier usage
+    String[] tierNames = new String[]{"MEM", "SSD", "HDD"};
+    for (String t : tierNames) {
+      try {
+        long avail = mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(t));
+        LOG.info("Available on tier {}: {}", t, avail);
+      } catch (IllegalArgumentException e) {
+        // Just skip this tier
+      }
+    }
+
+
     boolean contiguousSpaceFound = false;
     boolean availableBytesFound = false;
 
@@ -760,6 +778,7 @@ public class TieredBlockStore implements BlockStore {
       if (!contiguousSpaceFound) {
         for (StorageDirView dirView : dirViews) {
           if (dirView.getAvailableBytes() >= minContiguousBytes) {
+            LOG.debug("Found >{} contiguous bytes at {}", minContiguousBytes, dirView.toBlockStoreLocation());
             contiguousSpaceFound = true;
             break;
           }
@@ -769,15 +788,18 @@ public class TieredBlockStore implements BlockStore {
       // Check minAvailableBytes is satisfied.
       if (!availableBytesFound) {
         if (evictorView.getAvailableBytes(location) >= minAvailableBytes) {
+          LOG.debug("Found >{} available bytes at {}", minAvailableBytes, location);
           availableBytesFound = true;
         }
       }
 
       if (contiguousSpaceFound && availableBytesFound) {
+        LOG.debug("Found contiguous space that can satisfy the request.");
         break;
       }
 
       if (!evictionCandidates.hasNext()) {
+        LOG.debug("None of candidates can satisfy the requirement. Abandon.");
         break;
       }
 
@@ -786,6 +808,7 @@ public class TieredBlockStore implements BlockStore {
       if (evictorView.isBlockEvictable(blockToDelete)) {
         try {
           BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
+          LOG.debug("Deleting block {}", blockMeta);
           removeBlockInternal(blockMeta);
           blocksRemoved++;
           synchronized (mBlockStoreEventListeners) {
@@ -800,6 +823,8 @@ public class TieredBlockStore implements BlockStore {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
           continue;
         }
+      } else {
+        LOG.debug("Block {} not evictable", blockToDelete);
       }
     }
 
@@ -951,7 +976,7 @@ public class TieredBlockStore implements BlockStore {
    */
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
-    LOG.debug("updatePinnedInodes: inodes={}", inodes);
+//    LOG.debug("updatePinnedInodes: inodes={}", inodes);
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
