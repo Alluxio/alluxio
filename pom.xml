@@ -1489,7 +1489,7 @@
       </build>
     </profile>
     <profile>
-      <id>release-profile</id>
+      <id>release</id>
       <properties>
         <!--
             The maven shade plugin has a bug where enabling the `createDependencyReducedPom`
