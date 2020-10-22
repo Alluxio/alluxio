@@ -47,7 +47,6 @@ public final class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Performance.class);
 
   private static final int RESULT_ARRAY_SIZE = 64;
-  private static final String FOLDER = "/mnt/ramdisk/";
 
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
@@ -61,6 +60,7 @@ public final class Performance {
   private static long[] sResults = new long[RESULT_ARRAY_SIZE];
   private static int sBaseFileNumber = 0;
   private static boolean sAlluxioStreamingRead = false;
+  private static String sFolder = "/mnt/ramdisk/";
 
   private Performance() {} // prevent instantiation
 
@@ -147,7 +147,7 @@ public final class Performance {
         for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
+            file = new RandomAccessFile(sFolder + (times + sBaseFileNumber), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
@@ -172,7 +172,7 @@ public final class Performance {
         for (int times = mLeft; times < mRight; times++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
+            file = new RandomAccessFile(sFolder + (times + sBaseFileNumber), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
@@ -571,12 +571,12 @@ public final class Performance {
    * @param args the arguments for this example
    */
   public static void main(String[] args) throws Exception {
-    if (args.length != 9) {
+    if (args.length < 9) {
       System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
           + " alluxio.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
-          + "<BaseFileNumber>\n" + "1: Files Write Test\n" + "2: Files Read Test\n"
+          + "<BaseFileNumber> [folderDir] \n" + "1: Files Write Test\n" + "2: Files Read Test\n"
           + "3: RamFile Write Test \n" + "4: RamFile Read Test \n" + "5: ByteBuffer Write Test \n"
           + "6: ByteBuffer Read Test \n");
       System.exit(-1);
@@ -593,6 +593,9 @@ public final class Performance {
     sFiles = Integer.parseInt(args[6]) * sThreads;
     final int testCase = Integer.parseInt(args[7]);
     sBaseFileNumber = Integer.parseInt(args[8]);
+    if (args.length > 9) {
+      sFolder = args[9];
+    }
 
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = sFileBytes * sFiles;
