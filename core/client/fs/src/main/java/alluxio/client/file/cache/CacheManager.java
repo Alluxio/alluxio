@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -108,6 +109,20 @@ public interface CacheManager extends AutoCloseable {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
         throw e;
+      }
+    }
+
+    /**
+     * Removes the current {@link CacheManager} if it exists.
+     */
+    static void clear() {
+      try (LockResource r = new LockResource(CACHE_INIT_LOCK)) {
+        CacheManager manager = CACHE_MANAGER.getAndSet(null);
+        if (manager != null) {
+          manager.close();
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to close CacheManager: {}", e.toString());
       }
     }
 
