@@ -172,6 +172,7 @@
             <configuration>
               <createSourcesJar>true</createSourcesJar>
               <shadeSourcesContent>true</shadeSourcesContent>
+              <createDependencyReducedPom>${create.dependency.reduced.pom}</createDependencyReducedPom>
               <artifactSet>
                 <excludes>
                   <!-- Leave slf4j unshaded so downstream users can configure logging -->
