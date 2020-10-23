@@ -19,9 +19,11 @@ import alluxio.util.network.NetworkAddressUtils;
 import java.io.IOException;
 
 /**
- *
+ * Implementation of UfsManager that does nothing. This is useful for testing and
+ * for situations where we don't want to start a real UfsManager,e.g. when formatting the journal.
  */
 public class NoopUfsManager extends AbstractUfsManager {
+
   @Override
   protected void connectUfs(UnderFileSystem fs) throws IOException {
     fs.connectFromMaster(
