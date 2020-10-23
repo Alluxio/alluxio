@@ -30,12 +30,9 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-ozone-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-ozone-filesystem</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shaded-ozone</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>
