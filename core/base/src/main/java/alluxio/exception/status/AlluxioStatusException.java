@@ -156,6 +156,14 @@ public class AlluxioStatusException extends IOException {
       case DATA_LOSS:
         return new DataLossException(message, cause);
       default:
+        while (cause != null) {
+          if (cause instanceof ClosedChannelException) {
+            // GRPC can mask closed channels as unknown exceptions, but unavailable is more
+            // appropriate
+            return new UnavailableException(message, cause);
+          }
+          cause = cause.getCause();
+        }
         return new UnknownException(message, cause);
     }
   }
