@@ -16,12 +16,14 @@ import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.job.JobConfig;
 import alluxio.job.plan.load.LoadConfig;
 
 import alluxio.job.wire.JobInfo;
@@ -50,7 +52,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class DistributedLoadCommand extends AbstractFileSystemCommand {
-  private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadCommand.class);
   private static final int DEFAULT_REPLICATION = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
@@ -65,76 +66,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
 
-  private class JobAttempt {
-    private final LoadConfig mJobConfig;
-    private final RetryPolicy mRetryPolicy;
-
-    private Long mJobId;
-
-    private JobAttempt(LoadConfig jobConfig, RetryPolicy retryPolicy) {
-      mJobConfig = jobConfig;
-      mRetryPolicy = retryPolicy;
-    }
-
-    private boolean run() {
-      if (mRetryPolicy.attempt()) {
-        mJobId = null;
-        try {
-          mJobId = mClient.run(mJobConfig);
-        } catch (IOException e) {
-          LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
-          // Do nothing. This will be counted as a failed attempt
-        }
-        return true;
-      }
-      System.out.println(String.format("Failed to complete loading %s after %d retries.",
-          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
-      return false;
-    }
-
-    /**
-     * Returns the status of the job attempt.
-     * @return True if finished successfully or cancelled, False if FAILED and should be retried,
-     *              null if the status should be checked again later
-     */
-    private Status check() {
-      if (mJobId == null) {
-        return Status.FAILED;
-      }
-
-      JobInfo jobInfo;
-      try {
-        jobInfo = mClient.getJobStatus(mJobId);
-      } catch (IOException e) {
-        LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
-        return Status.FAILED;
-      }
-
-      // This make an assumption that this job tree only goes 1 level deep
-      boolean finished = true;
-      for (JobInfo child : jobInfo.getChildren()) {
-        if (!child.getStatus().isFinished()) {
-          finished = false;
-          break;
-        }
-      }
-
-      if (finished) {
-        if (jobInfo.getStatus().equals(Status.FAILED)) {
-          System.out.println(String.format("Attempt %d to load %s failed because: %s",
-              mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
-              jobInfo.getErrorMessage()));
-        } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
-          System.out.println(String.format("Successfully loaded path %s after %d attempts",
-                  mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
-        }
-        return jobInfo.getStatus();
-      }
-      return Status.RUNNING;
-    }
-  }
-
-  private List<JobAttempt> mSubmittedJobAttempts;
+  private List<LoadJobAttempt> mSubmittedJobAttempts;
   private int mActiveJobs;
   private JobMasterClient mClient;
 
@@ -188,7 +120,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param replication The replication of file to load into Alluxio memory
    */
   private JobAttempt newJob(AlluxioURI filePath, int replication) {
-    JobAttempt jobAttempt = new JobAttempt(new LoadConfig(filePath.getPath(), replication),
+    JobAttempt jobAttempt = new LoadJobAttempt(mClient, new LoadConfig(filePath.getPath(), replication),
         new CountingRetry(3));
 
     jobAttempt.run();
@@ -283,5 +215,38 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   @Override
   public String getDescription() {
     return "Loads a file or all files in a directory into Alluxio space.";
+  }
+
+  private class LoadJobAttempt extends JobAttempt {
+    private LoadConfig mJobConfig;
+
+    LoadJobAttempt(JobMasterClient client, LoadConfig jobConfig, RetryPolicy retryPolicy) {
+      super(client, retryPolicy);
+      mJobConfig = jobConfig;
+    }
+
+    @Override
+    protected JobConfig getJobConfig() {
+      return mJobConfig;
+    }
+
+    @Override
+    public void logFailedAttempt(JobInfo jobInfo) {
+      System.out.println(String.format("Attempt %d to load %s failed because: %s",
+          mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
+          jobInfo.getErrorMessage()));
+    }
+
+    @Override
+    protected void logFailed() {
+      System.out.println(String.format("Failed to complete loading %s after %d retries.",
+          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
+    }
+
+    @Override
+    public void logCompleted() {
+      System.out.println(String.format("Successfully loaded path %s after %d attempts",
+          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
+    }
   }
 }
