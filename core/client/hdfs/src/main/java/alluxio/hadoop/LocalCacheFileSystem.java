@@ -64,7 +64,7 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param fileSystem File System instance
    */
   public LocalCacheFileSystem(org.apache.hadoop.fs.FileSystem fileSystem) {
-    this(fileSystem, (uriStatus) -> fileSystem.open(new Path(uriStatus.getPath())));
+    this(fileSystem, uriStatus -> fileSystem.open(new Path(uriStatus.getPath())));
   }
 
   /**
@@ -75,7 +75,7 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
       HadoopFileOpener fileOpener) {
     mExternalFileSystem = Preconditions.checkNotNull(fileSystem, "filesystem");
     mHadoopFileOpener = Preconditions.checkNotNull(fileOpener, "fileOpener");
-    mAlluxioFileOpener = (status) -> new AlluxioHdfsInputStream(mHadoopFileOpener.open(status));
+    mAlluxioFileOpener = status -> new AlluxioHdfsInputStream(mHadoopFileOpener.open(status));
   }
 
   @Override
@@ -136,20 +136,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mCacheManager == null) {
       return mExternalFileSystem.open(HadoopUtils.toPath(new AlluxioURI(status.getPath())),
           bufferSize);
-    }
-    return open(status, mHadoopFileOpener);
-  }
-
-  /**
-   * Attempts to open the specified file for reading with a given hadoop file opener.
-   *
-   * @param status the status of the file to open
-   * @param opener stream buffer size in bytes, currently unused
-   * @return an {@link FSDataInputStream} at the indicated path of a file
-   */
-  public FSDataInputStream open(URIStatus status, HadoopFileOpener opener) throws IOException {
-    if (mCacheManager == null) {
-      return opener.open(status);
     }
     return new FSDataInputStream(new HdfsFileInputStream(
         new LocalCacheFileInStream(status, mAlluxioFileOpener, mCacheManager, mAlluxioConf),

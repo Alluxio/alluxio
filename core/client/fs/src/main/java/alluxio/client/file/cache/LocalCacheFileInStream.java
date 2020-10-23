@@ -50,7 +50,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final AlluxioURI mPath;
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
-  private final FileInStreamOpener mFileInStreamOpener;
+  private final FileInStreamOpener mExternalFileInStreamOpener;
 
   /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
@@ -84,7 +84,7 @@ public class LocalCacheFileInStream extends FileInStream {
       CacheManager cacheManager, AlluxioConfiguration conf) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mPath = new AlluxioURI(status.getPath());
-    mFileInStreamOpener = fileOpener;
+    mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
     Metrics.registerGauges();
@@ -260,7 +260,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private FileInStream getExternalFileInStream(long pos) throws IOException {
     try {
       if (mExternalFileInStream == null) {
-        mExternalFileInStream = mFileInStreamOpener.open(mStatus);
+        mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
         mCloser.register(mExternalFileInStream);
       }
     } catch (AlluxioException e) {
