@@ -294,6 +294,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
 
     RaftProperties properties = new RaftProperties();
+    Parameters parameters = new Parameters();
 
     // TODO(feng): implement a custom RpcType to integrate with Alluxio authentication service
     RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
@@ -349,11 +350,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setGroup(mRaftGroup)
         .setStateMachine(mStateMachine)
         .setProperties(properties)
+        .setParameters(parameters)
         .build();
   }
 
   private RaftClient createClient() {
     RaftProperties properties = new RaftProperties();
+    Parameters parameters = new Parameters();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
         TimeDuration.valueOf(15, TimeUnit.SECONDS));
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
@@ -366,7 +369,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setClientId(mClientId)
         .setLeaderId(null)
         .setProperties(properties)
-        .setParameters(new Parameters())
+        .setParameters(parameters)
         .setRetryPolicy(retryPolicy)
         .build();
   }
