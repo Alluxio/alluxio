@@ -22,6 +22,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -479,10 +480,11 @@ public class Database implements Journaled {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
     Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
         toJournalProto(getDatabaseInfo(), mName)).build();
-    return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
+    return CloseableIterator.noopCloseable(
+        Iterators.concat(Iterators.singletonIterator(entry), getTableIterator()));
   }
 
   @Override

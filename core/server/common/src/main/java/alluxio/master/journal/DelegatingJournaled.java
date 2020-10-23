@@ -13,12 +13,11 @@ package alluxio.master.journal;
 
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.function.Supplier;
 
 /**
@@ -57,7 +56,7 @@ public interface DelegatingJournaled extends Journaled {
   }
 
   @Override
-  default Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+  default CloseableIterator<JournalEntry> getJournalEntryIterator() {
     return getDelegate().getJournalEntryIterator();
   }
 

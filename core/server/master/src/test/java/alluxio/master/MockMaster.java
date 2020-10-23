@@ -18,9 +18,9 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 
 import java.util.ArrayDeque;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -73,8 +73,8 @@ public final class MockMaster implements Master {
   public void resetState() {}
 
   @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return mEntries.iterator();
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    return CloseableIterator.noopCloseable(mEntries.iterator());
   }
 
   @Override

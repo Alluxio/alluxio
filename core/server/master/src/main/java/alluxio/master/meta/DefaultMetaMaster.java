@@ -50,6 +50,7 @@ import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
@@ -73,7 +74,6 @@ import java.net.InetSocketAddress;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -206,13 +206,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
       if (mClusterID.equals(INVALID_CLUSTER_ID)) {
-        return Collections.emptyIterator();
+        return CloseableIterator.noopCloseable(Collections.emptyIterator());
       }
-      return Collections.singleton(Journal.JournalEntry.newBuilder()
+      return CloseableIterator.noopCloseable(Collections.singleton(Journal.JournalEntry.newBuilder()
           .setClusterInfo(Meta.ClusterInfoEntry.newBuilder().setClusterId(mClusterID).build())
-          .build()).iterator();
+          .build()).iterator());
     }
   }
 
@@ -566,8 +566,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return com.google.common.collect.Iterators.concat(mPathProperties.getJournalEntryIterator(),
+  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return CloseableIterator.concat(mPathProperties.getJournalEntryIterator(),
         mState.getJournalEntryIterator());
   }
 
