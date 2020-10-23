@@ -153,7 +153,7 @@
     <ratis.version>1.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
-    <ozone.version>0.5.0-beta</ozone.version>
+    <ozone.version>1.0.0</ozone.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
