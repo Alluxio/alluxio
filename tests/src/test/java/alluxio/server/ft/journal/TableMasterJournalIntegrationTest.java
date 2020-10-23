@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -180,6 +181,7 @@ public class TableMasterJournalIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void journalTransformDb() throws Exception {
     LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
