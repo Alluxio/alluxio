@@ -20,7 +20,6 @@
   <artifactId>alluxio-shaded-ozone</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Ozone</name>
-  <version>${ufs.ozone.version}</version>
   <description>Shaded Ozone Module</description>
 
   <properties>
@@ -29,8 +28,6 @@
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <ufs.ozone.version>1.0.0</ufs.ozone.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
-    <!-- Composite jar name with both haozonedoop version and project version included -->
-    <lib.jar.name>${project.artifactId}-${ufs.ozone.version}-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
