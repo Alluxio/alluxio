@@ -130,7 +130,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         LOG.debug("Timeout while connecting to {}", address);
         continue;
       } catch (AlluxioStatusException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            String.format("Received exception from %s. message: %s", address, e.getMessage()), e);
       }
     }
     return null;
