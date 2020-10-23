@@ -163,6 +163,7 @@
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
+    <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
   </properties>
 
   <modules>
@@ -1486,6 +1487,20 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <properties>
+        <!--
+            The maven shade plugin has a bug where enabling the `createDependencyReducedPom`
+            property causes maven to go into an infinite loop (MSHADE-148). This is only an
+            issue for the Alluxio build if the maven version is 3.3.x or newer.
+            However, since disabling this property has the side effect of not resolving
+            variables in the released pom files, we need to enable this during
+            releases.
+        -->
+        <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
+      </properties>
     </profile>
   </profiles>
 </project>
