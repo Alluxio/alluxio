@@ -221,7 +221,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
     for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
-      hdfsConf.addResource(new Path(path));
+      if (!path.isEmpty()) {
+        hdfsConf.addResource(new Path(path));
+      }
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
