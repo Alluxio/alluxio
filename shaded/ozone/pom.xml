@@ -17,20 +17,17 @@
     <artifactId>alluxio-shaded</artifactId>
     <version>2.5.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-shaded-hadoop</artifactId>
+  <artifactId>alluxio-shaded-ozone</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Shaded Libraries - Hadoop</name>
-  <version>${ufs.hadoop.version}</version>
-  <description>Shaded Hadoop Module</description>
+  <name>Alluxio Shaded Libraries - Ozone</name>
+  <description>Shaded Ozone Module</description>
 
   <properties>
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
+    <ufs.ozone.version>1.0.0</ufs.ozone.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
-    <!-- Composite jar name with both hadoop version and project version included -->
-    <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -57,64 +54,26 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile to build this UFS module connecting to hdfs 1 -->
+    <!-- Profile to build this UFS module connecting to ozone 1 -->
     <profile>
-      <!-- Decouple hadoop profiles: hadoop-1 to indicate north bound and ufs-hadoop-1 to indicate the south bound -->
-      <id>ufs-hadoop-1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Profile to build this UFS module connecting to hdfs 2 -->
-    <profile>
-      <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
-      <id>ufs-hadoop-2</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>	
-          <!-- using older version to match dependency version from Hadoop, guava introduced a breaking change between version 14 and later -->	
-          <groupId>com.google.guava</groupId>	
-          <artifactId>guava</artifactId>	
-          <version>14.0.1</version>	
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Profile to build this UFS module connecting to hdfs 3, this is the default profile -->
-    <profile>
-      <id>ufs-hadoop-3</id>
+      <id>ufs-ozone-1</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <artifactId>hadoop-ozone-filesystem</artifactId>
+          <version>${ufs.ozone.version}</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <artifactId>hadoop-ozone-client</artifactId>
+          <version>${ufs.ozone.version}</version>
         </dependency>
       </dependencies>
     </profile>
   </profiles>
-
 
   <build>
     <plugins>
