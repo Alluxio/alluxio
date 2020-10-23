@@ -122,8 +122,8 @@ public class AlluxioStatusException extends IOException {
   public static AlluxioStatusException from(Status status) {
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
-    String message = status.getDescription();
-    Throwable cause = status.getCause();
+    final String message = status.getDescription();
+    final Throwable cause = status.getCause();
     switch (status.getCode()) {
       case CANCELLED:
         return new CancelledException(message, cause);
@@ -156,13 +156,14 @@ public class AlluxioStatusException extends IOException {
       case DATA_LOSS:
         return new DataLossException(message, cause);
       default:
-        while (cause != null) {
-          if (cause instanceof ClosedChannelException) {
+        Throwable nestedCause = cause;
+        while (nestedCause != null) {
+          if (nestedCause instanceof ClosedChannelException) {
             // GRPC can mask closed channels as unknown exceptions, but unavailable is more
             // appropriate
             return new UnavailableException(message, cause);
           }
-          cause = cause.getCause();
+          nestedCause = nestedCause.getCause();
         }
         return new UnknownException(message, cause);
     }
