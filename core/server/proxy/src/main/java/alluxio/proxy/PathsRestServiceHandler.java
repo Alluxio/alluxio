@@ -18,6 +18,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -31,6 +32,8 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.util.ShellUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -81,9 +84,13 @@ public final class PathsRestServiceHandler {
   public static final String RENAME = "rename";
   public static final String SET_ATTRIBUTE = "set-attribute";
   public static final String UNMOUNT = "unmount";
+  public static final String DISTRIBUTED_LOAD = "distributed-load";
 
+  private static final String CLI =
+      PathUtils.concatPath(ServerConfiguration.global().get(PropertyKey.HOME), "bin", "alluxio");
   private final FileSystem mFileSystem;
   private final StreamCache mStreamCache;
+
 
   /**
    * Constructs a new {@link PathsRestServiceHandler}.
@@ -411,5 +418,20 @@ public final class PathsRestServiceHandler {
         return null;
       }
     }, ServerConfiguration.global());
+  }
+
+  /**
+   * @summary distributed load a path
+   * @param path the Alluxio path
+   * @return the response object
+   */
+  @POST
+  @Path(PATH_PARAM + DISTRIBUTED_LOAD)
+  @ApiOperation(value = "DistributedLoad the path", response = java.lang.Void.class)
+  public Response distributedLoad(@PathParam("path") final String path) {
+    return RestUtils.call(() ->
+            ShellUtils.runCommand(CLI + " fs distributedLoad " + path,
+                ServerConfiguration.global().getMs(PropertyKey.PROXY_CLI_TIMEOUT))
+        , ServerConfiguration.global());
   }
 }

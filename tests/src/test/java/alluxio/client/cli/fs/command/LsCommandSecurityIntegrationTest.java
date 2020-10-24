@@ -66,7 +66,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   @Test
   public void ls() throws Exception {
     createFiles();
-    sFsShell.run("ls", "/testRoot");
+    sFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -93,7 +93,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
         "-rw-r--r--  test_user_ls   test_user_ls                20   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar2");
     mOutput.reset();
 
-    sFsShell.run("ls", testDir + "/*");
+    sFsShell.run("ls", "--sort", "path", testDir + "/*");
     checkOutput(
         "-rw-r--r--  test_user_ls   test_user_ls                30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "-rw-r--r--  test_user_ls   test_user_ls                10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -108,7 +108,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   @Test
   public void lsr() throws Exception {
     createFiles();
-    sFsShell.run("ls", "-R", "/testRoot");
+    sFsShell.run("ls", "-R", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -147,7 +147,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     sFileSystem.listStatus(new AlluxioURI(testDir));
     FileSystemTestUtils.loadFile(sFileSystem, testFileA);
     FileSystemTestUtils.loadFile(sFileSystem, testFileC);
-    sFsShell.run("ls", "--timestamp", parameter, "/testRoot");
+    sFsShell.run("ls", "--timestamp", parameter, "--sort", "path", "/testRoot");
     long time1 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testDir)));
     long time2 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testFileA)));
     long time3 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testFileC)));

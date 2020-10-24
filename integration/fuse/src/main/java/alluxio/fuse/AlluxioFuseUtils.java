@@ -25,7 +25,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
-import alluxio.util.io.PathUtils;
 
 import ru.serce.jnrfuse.ErrorCodes;
 
@@ -33,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -149,35 +147,6 @@ public final class AlluxioFuseUtils {
       return false;
     }
     return false;
-  }
-
-  /**
-   * @param cli alluxio cli command
-   * @param alluxioHome alluxio home path
-   * @param timeoutMs timeout value in ms to run command
-   * @return true on success, false otherwise
-   */
-  public static boolean runCli(String cli, String alluxioHome, long timeoutMs) {
-    LOG.debug("executing alluxio command: {}", cli);
-    if (!cli.startsWith("alluxio")) {
-      LOG.error("Failed to run CLI {}: must start with \"alluxio\"", cli);
-      return false;
-    }
-    cli = PathUtils.concatPath(alluxioHome, "bin", cli);
-    try {
-      ProcessBuilder builder = new ProcessBuilder()
-          .command("sh", "-c", cli)
-          .inheritIO();
-      Process process = builder.start();
-      process.waitFor(timeoutMs, TimeUnit.MILLISECONDS);
-    } catch (IOException e) {
-      LOG.error("Failed to run CLI {}", cli, e);
-      return false;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    }
-    return true;
   }
 
   /**
