@@ -16,11 +16,11 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.Iterator;
 
 /**
  * Interface providing default implementations which do nothing.
@@ -52,7 +52,7 @@ public interface NoopJournaled extends Journaled {
   }
 
   @Override
-  default Iterator<JournalEntry> getJournalEntryIterator() {
-    return Collections.emptyIterator();
+  default CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    return CloseableIterator.noopCloseable(Collections.emptyIterator());
   }
 }

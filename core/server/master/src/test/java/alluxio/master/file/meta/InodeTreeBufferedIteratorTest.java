@@ -16,6 +16,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -25,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import java.util.Iterator;
 import java.util.Random;
 
 /**
@@ -50,8 +50,10 @@ public class InodeTreeBufferedIteratorTest {
 
   @Test
   public void noRoot() {
-    Iterator<Journal.JournalEntry> iterator = new InodeTreeBufferedIterator(mInodeStore, null);
-    Assert.assertFalse(iterator.hasNext());
+    try (CloseableIterator<Journal.JournalEntry>
+             iterator = InodeTreeBufferedIterator.create(mInodeStore, null)) {
+      Assert.assertFalse(iterator.get().hasNext());
+    }
   }
 
   @Test
@@ -59,14 +61,14 @@ public class InodeTreeBufferedIteratorTest {
     MutableInode<?> rootInode =
         MutableInodeDirectory.create(0, -1, "root", CreateDirectoryContext.defaults());
     mInodeStore.writeInode(rootInode);
-    Iterator<Journal.JournalEntry> iterator =
-        new InodeTreeBufferedIterator(mInodeStore, InodeDirectory.wrap(rootInode).asDirectory());
-
-    Assert.assertTrue(iterator.hasNext());
-    Journal.JournalEntry rootJournalEntry = iterator.next();
-    Assert.assertTrue(rootJournalEntry.hasInodeDirectory());
-    Assert.assertEquals(0, rootJournalEntry.getInodeDirectory().getId());
-    Assert.assertFalse(iterator.hasNext());
+    try (CloseableIterator<Journal.JournalEntry> iterator = InodeTreeBufferedIterator.create(
+        mInodeStore, InodeDirectory.wrap(rootInode).asDirectory())) {
+      Assert.assertTrue(iterator.get().hasNext());
+      Journal.JournalEntry rootJournalEntry = iterator.get().next();
+      Assert.assertTrue(rootJournalEntry.hasInodeDirectory());
+      Assert.assertEquals(0, rootJournalEntry.getInodeDirectory().getId());
+      Assert.assertFalse(iterator.get().hasNext());
+    }
   }
 
   @Test
@@ -110,24 +112,25 @@ public class InodeTreeBufferedIteratorTest {
       mInodeStore.addChild(inodeDir.getId(), inodeName, inodeFileId);
     }
     // Create iterator.
-    Iterator<Journal.JournalEntry> iterator =
-        new InodeTreeBufferedIterator(mInodeStore, InodeDirectory.wrap(rootInode).asDirectory());
+    try (CloseableIterator<Journal.JournalEntry> iterator = InodeTreeBufferedIterator.create(
+        mInodeStore, InodeDirectory.wrap(rootInode).asDirectory())) {
 
-    // Expect exception during enumeration.
-    boolean excThrown = false;
-    while (iterator.hasNext()) {
-      try {
-        iterator.next();
-      } catch (RuntimeException exc) {
-        // Validate injected exception type.
-        Assert.assertEquals(RuntimeException.class, exc.getCause().getClass());
-        // Validate injected exception message.
-        Assert.assertEquals(excMsg, exc.getCause().getMessage());
-        // Expected exception seen and validated.
-        excThrown = true;
+      // Expect exception during enumeration.
+      boolean excThrown = false;
+      while (iterator.get().hasNext()) {
+        try {
+          iterator.get().next();
+        } catch (RuntimeException exc) {
+          // Validate injected exception type.
+          Assert.assertEquals(RuntimeException.class, exc.getCause().getClass());
+          // Validate injected exception message.
+          Assert.assertEquals(excMsg, exc.getCause().getMessage());
+          // Expected exception seen and validated.
+          excThrown = true;
+        }
       }
+      Assert.assertTrue(excThrown);
     }
-    Assert.assertTrue(excThrown);
   }
 
   /**
