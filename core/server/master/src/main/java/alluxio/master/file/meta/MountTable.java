@@ -31,6 +31,7 @@ import alluxio.proto.journal.File.DeleteMountPointEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
@@ -573,9 +574,9 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
       final Iterator<Map.Entry<String, MountInfo>> it = mMountTable.entrySet().iterator();
-      return new Iterator<Journal.JournalEntry>() {
+      return CloseableIterator.noopCloseable(new Iterator<Journal.JournalEntry>() {
         /** mEntry is always set to the next non-root mount point if exists. */
         private Map.Entry<String, MountInfo> mEntry = null;
 
@@ -627,7 +628,7 @@ public final class MountTable implements DelegatingJournaled {
         public void remove() {
           throw new UnsupportedOperationException("Mountable#Iterator#remove is not supported.");
         }
-      };
+      });
     }
 
     @Override
