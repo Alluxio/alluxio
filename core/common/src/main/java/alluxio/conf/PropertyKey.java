@@ -3131,6 +3131,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
+  public static final PropertyKey PROXY_CLI_TIMEOUT =
+      new Builder(Name.PROXY_CLI_TIMEOUT)
+          .setDescription("The timeout to run CLI using proxy.")
+          .setDefaultValue("5min")
+          .build();
 
   //
   // Locality related properties
@@ -4201,16 +4206,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_CLI_ENDPOINT_PATH =
-      new Builder(Name.FUSE_CLI_ENDPOINT_PATH)
-          .setDescription("Relative path to a file under fuse mount to receive CLI commands.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_CLI_ENDPOINT_TIMEOUT =
-      new Builder(Name.FUSE_CLI_ENDPOINT_TIMEOUT)
-          .setDescription("Relative path to a file under fuse mount to receive CLI commands.")
-          .setDefaultValue("5min")
+  public static final PropertyKey FUSE_MAXCACHE_BYTES =
+      new Builder(Name.FUSE_MAXCACHE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("(Experimental) Maximum cache size of AlluxioJniFuse.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5315,6 +5314,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+    public static final String PROXY_CLI_TIMEOUT = "alluxio.proxy.cli.timeout";
 
     //
     // Locality related properties
@@ -5548,13 +5548,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // FUSE integration related properties
     //
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
-    public static final String FUSE_CLI_ENDPOINT_PATH = "alluxio.fuse.cli.endpoint.path";
-    public static final String FUSE_CLI_ENDPOINT_TIMEOUT = "alluxio.fuse.cli.endpoint.timeout";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_MAXCACHE_BYTES = "alluxio.fuse.maxcache.bytes";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 

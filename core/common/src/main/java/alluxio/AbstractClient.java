@@ -357,12 +357,18 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
       String description, Object... args) throws AlluxioStatusException {
+    return retryRPC(mRetryPolicySupplier.get(), rpc, logger, rpcName, description, args);
+  }
+
+  protected synchronized <V> V retryRPC(RetryPolicy retryPolicy, RpcCallable<V> rpc,
+      Logger logger, String rpcName, String description, Object... args)
+      throws AlluxioStatusException {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
     long startMs = System.currentTimeMillis();
     logger.debug("Enter: {}({})", rpcName, debugDesc);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
-      V ret = retryRPCInternal(rpc, () -> {
+      V ret = retryRPCInternal(retryPolicy, rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
@@ -386,9 +392,8 @@ public abstract class AbstractClient implements Client {
     }
   }
 
-  private synchronized <V> V retryRPCInternal(RpcCallable<V> rpc, Supplier<Void> onRetry)
-      throws AlluxioStatusException {
-    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
+  private synchronized <V> V retryRPCInternal(RetryPolicy retryPolicy, RpcCallable<V> rpc,
+      Supplier<Void> onRetry) throws AlluxioStatusException {
     Exception ex = null;
     while (retryPolicy.attempt()) {
       if (mClosed) {

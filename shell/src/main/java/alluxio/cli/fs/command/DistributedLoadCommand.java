@@ -21,6 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.job.plan.load.LoadConfig;
 
 import alluxio.job.wire.JobInfo;
@@ -227,7 +228,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Add one job.
    */
-  private void addJob(URIStatus status, int replication) throws IOException {
+  private void addJob(URIStatus status, int replication) {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
     if (status.getInAlluxioPercentage() == 100) {
       // The file has already been fully loaded into Alluxio.
@@ -266,21 +267,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    */
   private void load(AlluxioURI filePath, int replication)
       throws IOException, AlluxioException {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    if (status.isFolder()) {
-      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-      System.out.println("Files loaded, starting distribution load");
-      for (URIStatus uriStatus : statuses) {
-        if (uriStatus.isFolder()) {
-          AlluxioURI subPath = new AlluxioURI(uriStatus.getPath());
-          load(subPath, replication);
-        } else {
-          addJob(uriStatus, replication);
-        }
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+    mFileSystem.iterateStatus(filePath, options, uriStatus -> {
+      if (!uriStatus.isFolder()) {
+        addJob(uriStatus, replication);
       }
-    } else {
-      addJob(status, replication);
-    }
+    });
   }
 
   @Override

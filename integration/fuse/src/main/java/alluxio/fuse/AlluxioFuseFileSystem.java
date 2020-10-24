@@ -31,10 +31,12 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -60,7 +62,6 @@ import ru.serce.jnrfuse.struct.Statvfs;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -137,9 +138,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
-  private final String mCliEndpointPath;
-  private final long mCliEndpointTimeout;
-  private final String mAlluxioHome;
+
   // Table of open files with corresponding InputStreams and OutputStreams
   private final IndexedSet<OpenFileEntry> mOpenFiles;
 
@@ -166,10 +165,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
-    mCliEndpointPath = conf.isSet(PropertyKey.FUSE_CLI_ENDPOINT_PATH) ?
-        PathUtils.concatPath("/", conf.get(PropertyKey.FUSE_CLI_ENDPOINT_PATH)) : null;
-    mCliEndpointTimeout = conf.getMs(PropertyKey.FUSE_CLI_ENDPOINT_TIMEOUT);
-    mAlluxioHome = conf.get(PropertyKey.HOME);
+
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
         "alluxio root path should be absolute");
   }
@@ -441,10 +437,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         mode |= FileStat.S_IFDIR;
       } else {
         mode |= FileStat.S_IFREG;
-      }
-      if (path.equals(mCliEndpointPath)) {
-        mode |= FileStat.ALL_READ;
-        mode |= FileStat.ALL_WRITE;
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
@@ -737,9 +729,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   private int renameInternal(String oldPath, String newPath) {
-    if (oldPath.equals(mCliEndpointPath)) {
-      return -ErrorCodes.EIO();
-    }
     final AlluxioURI oldUri = mPathResolverCache.getUnchecked(oldPath);
     final AlluxioURI newUri = mPathResolverCache.getUnchecked(newPath);
     final String name = newUri.getName();
@@ -838,9 +827,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int truncate(String path, long size) {
-    if (path.equals(mCliEndpointPath)) {
-      return 0;
-    }
     LOG.error("Truncate is not supported {}", path);
     return -ErrorCodes.EOPNOTSUPP();
   }
@@ -890,16 +876,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot write more than Integer.MAX_VALUE");
       return ErrorCodes.EIO();
-    }
-    if (path.equals(mCliEndpointPath)) {
-      int sz = (int) size;
-      final byte[] bytes = new byte[sz];
-      buf.get(0, bytes, 0, sz);
-      String cli = new String(bytes, StandardCharsets.UTF_8);
-      if (AlluxioFuseUtils.runCli(cli, mAlluxioHome, mCliEndpointTimeout)) {
-        return 0;
-      }
-      return -ErrorCodes.EIO();
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();

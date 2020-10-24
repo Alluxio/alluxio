@@ -44,6 +44,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A wrapper of a FileSystem instance.
@@ -110,6 +111,13 @@ public class DelegatingFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.getStatus(path, options);
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.iterateStatus(path, options, action);
   }
 
   @Override
