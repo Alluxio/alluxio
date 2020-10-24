@@ -20,11 +20,10 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
-
-import java.util.Iterator;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -108,12 +107,13 @@ public class InodeDirectoryIdGenerator implements Journaled {
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return CommonUtils.singleElementIterator(JournalEntry.newBuilder()
-        .setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.newBuilder()
-            .setContainerId(mNextDirectoryId.getContainerId())
-            .setSequenceNumber(mNextDirectoryId.getSequenceNumber()))
-        .build());
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    return CloseableIterator.noopCloseable(CommonUtils.singleElementIterator(
+        JournalEntry.newBuilder()
+            .setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.newBuilder()
+                .setContainerId(mNextDirectoryId.getContainerId())
+                .setSequenceNumber(mNextDirectoryId.getSequenceNumber()))
+        .build()));
   }
 
   @Override
