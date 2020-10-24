@@ -269,6 +269,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
+      System.out.println("Files loaded, starting distribution load");
       for (URIStatus uriStatus : statuses) {
         if (uriStatus.isFolder()) {
           AlluxioURI subPath = new AlluxioURI(uriStatus.getPath());

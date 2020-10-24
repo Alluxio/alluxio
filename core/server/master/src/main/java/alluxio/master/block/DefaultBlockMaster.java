@@ -908,7 +908,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     registerWorkerInternal(workerId);
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    LOG.info("registerWorker(): {}", worker);
+    LOG.info("registerWorker(): {}", worker.getWorkerAddress());
   }
 
   @Override
