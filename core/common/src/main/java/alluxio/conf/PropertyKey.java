@@ -3568,7 +3568,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
       new Builder(Name.USER_FILE_CREATE_TTL_ACTION)
-          .setDefaultValue("DELETE")
+          .setDefaultValue("FREE")
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
               + "DELETE (default) or FREE")
           .setScope(Scope.CLIENT)
