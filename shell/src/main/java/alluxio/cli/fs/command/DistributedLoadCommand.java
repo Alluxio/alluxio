@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @PublicApi
-public final class DistributedLoadCommand extends AbstractFileSystemCommand {
+public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
@@ -64,12 +64,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
           .build();
 
-  private static final int DEFAULT_ACTIVE_JOBS = 1000;
-
-  private List<LoadJobAttempt> mSubmittedJobAttempts;
-  private int mActiveJobs;
-  private JobMasterClient mClient;
-
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -77,10 +71,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    */
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mSubmittedJobAttempts = Lists.newArrayList();
-    final ClientContext clientContext = mFsContext.getClientContext();
-    mClient = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(clientContext).build());
   }
 
   @Override
@@ -103,7 +93,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    mActiveJobs = DEFAULT_ACTIVE_JOBS;
     distributedLoad(path, replication);
     return 0;
   }
@@ -119,42 +108,13 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
    */
-  private JobAttempt newJob(AlluxioURI filePath, int replication) {
-    JobAttempt jobAttempt = new LoadJobAttempt(mClient, new LoadConfig(filePath.getPath(), replication),
+  private LoadJobAttempt newJob(AlluxioURI filePath, int replication) {
+    LoadJobAttempt jobAttempt = new LoadJobAttempt(mClient, new LoadConfig(filePath.getPath(), replication),
         new CountingRetry(3));
 
     jobAttempt.run();
 
     return jobAttempt;
-  }
-
-  /**
-   * Waits for at least one job to complete.
-   */
-  private void waitJob() {
-    AtomicBoolean removed = new AtomicBoolean(false);
-    while (true) {
-      mSubmittedJobAttempts = mSubmittedJobAttempts.stream().filter((jobAttempt) -> {
-        Status check = jobAttempt.check();
-        switch (check) {
-          case CREATED:
-          case RUNNING:
-            return true;
-          case CANCELED:
-          case COMPLETED:
-            removed.set(true);
-            return false;
-          case FAILED:
-            removed.set(true);
-            return false;
-          default:
-            throw new IllegalStateException(String.format("Unexpected Status: %s", check));
-        }
-      }).collect(Collectors.toList());
-      if (removed.get()) {
-        return;
-      }
-    }
   }
 
   /**
@@ -185,9 +145,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     load(filePath, replication);
     // Wait remaining jobs to complete.
-    while (!mSubmittedJobAttempts.isEmpty()) {
-      waitJob();
-    }
+    drain();
   }
 
   /**
@@ -231,7 +189,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     }
 
     @Override
-    public void logFailedAttempt(JobInfo jobInfo) {
+    protected void logFailedAttempt(JobInfo jobInfo) {
       System.out.println(String.format("Attempt %d to load %s failed because: %s",
           mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
           jobInfo.getErrorMessage()));
@@ -244,7 +202,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     }
 
     @Override
-    public void logCompleted() {
+    protected void logCompleted() {
       System.out.println(String.format("Successfully loaded path %s after %d attempts",
           mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
     }

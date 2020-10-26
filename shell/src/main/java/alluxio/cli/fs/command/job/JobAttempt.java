@@ -5,10 +5,14 @@ import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.retry.RetryPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public abstract class JobAttempt {
+abstract public class JobAttempt {
+  private static final Logger LOG = LoggerFactory.getLogger(JobAttempt.class);
+
   protected final JobMasterClient mClient;
   protected final RetryPolicy mRetryPolicy;
 
@@ -25,7 +29,7 @@ public abstract class JobAttempt {
       try {
         mJobId = mClient.run(getJobConfig());
       } catch (IOException e) {
-        System.out.println(String.format("Failed to run job (jobId={})", mJobId, e));
+        LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
         // Do nothing. This will be counted as a failed attempt
       }
       return true;
@@ -48,7 +52,7 @@ public abstract class JobAttempt {
     try {
       jobInfo = mClient.getJobStatus(mJobId);
     } catch (IOException e) {
-      System.out.println(String.format("Failed to get status for job (jobId={})", mJobId, e));
+      LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
       return Status.FAILED;
     }
 
@@ -63,7 +67,7 @@ public abstract class JobAttempt {
 
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
-        logFailedAttempt(jobInfo);
+        logFailedAttempt();
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
       }
@@ -72,11 +76,11 @@ public abstract class JobAttempt {
     return Status.RUNNING;
   }
 
-  protected abstract JobConfig getJobConfig();
+  abstract protected JobConfig getJobConfig();
 
-  protected abstract void logFailedAttempt(JobInfo jobInfo);
+  abstract protected void logFailedAttempt(JobInfo jobInfo);
 
-  protected abstract void logFailed();
+  abstract protected void logFailed();
 
-  protected abstract void logCompleted();
+  abstract protected void logCompleted();
 }
