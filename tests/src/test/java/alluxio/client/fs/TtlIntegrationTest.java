@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -68,7 +69,9 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
       long ttl = i % 2 == 0 ? TTL_INTERVAL_MS / 2 : TTL_INTERVAL_MS * 1000;
       mFileSystem.createFile(files[i],
           CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
-              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)).build())
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                  .setTtl(ttl)
+                  .setTtlAction(TtlAction.DELETE)).build())
           .close();
       // Delete some of the even files to make sure this doesn't trip up the TTL checker.
       if (i % 20 == 0) {
