@@ -5,12 +5,16 @@ import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.retry.RetryPolicy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-abstract public class JobAttempt {
+/**
+ * Abstract class for handling submission for a job.
+ */
+public abstract class JobAttempt {
   private static final Logger LOG = LoggerFactory.getLogger(JobAttempt.class);
 
   protected final JobMasterClient mClient;
@@ -18,11 +22,15 @@ abstract public class JobAttempt {
 
   private Long mJobId;
 
-  public JobAttempt(JobMasterClient client, RetryPolicy retryPolicy) {
+  protected JobAttempt(JobMasterClient client, RetryPolicy retryPolicy) {
     mClient = client;
     mRetryPolicy = retryPolicy;
   }
 
+  /**
+   * Runs the job.
+   * @return true if an attempt was made, false if attempts ran out
+   */
   public boolean run() {
     if (mRetryPolicy.attempt()) {
       mJobId = null;
@@ -67,7 +75,7 @@ abstract public class JobAttempt {
 
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
-        logFailedAttempt();
+        logFailedAttempt(jobInfo);
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
       }
@@ -76,11 +84,11 @@ abstract public class JobAttempt {
     return Status.RUNNING;
   }
 
-  abstract protected JobConfig getJobConfig();
+  protected abstract JobConfig getJobConfig();
 
-  abstract protected void logFailedAttempt(JobInfo jobInfo);
+  protected abstract void logFailedAttempt(JobInfo jobInfo);
 
-  abstract protected void logFailed();
+  protected abstract void logFailed();
 
-  abstract protected void logCompleted();
+  protected abstract void logCompleted();
 }

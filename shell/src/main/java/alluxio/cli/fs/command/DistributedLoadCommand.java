@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
@@ -25,24 +24,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.load.LoadConfig;
-
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.worker.job.JobMasterClientContext;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -109,8 +99,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @param replication The replication of file to load into Alluxio memory
    */
   private LoadJobAttempt newJob(AlluxioURI filePath, int replication) {
-    LoadJobAttempt jobAttempt = new LoadJobAttempt(mClient, new LoadConfig(filePath.getPath(), replication),
-        new CountingRetry(3));
+    LoadJobAttempt jobAttempt = new LoadJobAttempt(mClient, new
+        LoadConfig(filePath.getPath(), replication), new CountingRetry(3));
 
     jobAttempt.run();
 
