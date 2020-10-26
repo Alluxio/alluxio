@@ -56,6 +56,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.StorageList;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -1653,7 +1654,9 @@ public final class FileSystemMasterTest {
   public void ttlDirectoryDelete() throws Exception {
     CreateDirectoryContext context =
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0)));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(0)));
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, context);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
@@ -1669,7 +1672,9 @@ public final class FileSystemMasterTest {
   public void ttlDirectoryDeleteReplay() throws Exception {
     CreateDirectoryContext context =
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0)));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(0)
+                .setTtlAction(TtlAction.DELETE)));
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, context);
 
     // Simulate restart.
@@ -1795,7 +1800,9 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1822,7 +1829,9 @@ public final class FileSystemMasterTest {
     // Set ttl.
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file and directory should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1838,7 +1847,9 @@ public final class FileSystemMasterTest {
   @Test
   public void setSmallerTtlForFileWithTtl() throws Exception {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setTtl(Constants.HOUR_MS)
+            .setTtlAction(TtlAction.DELETE))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1848,7 +1859,9 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1863,7 +1876,9 @@ public final class FileSystemMasterTest {
   public void setSmallerTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryContext directoryContext =
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(Constants.HOUR_MS))
             .setRecursive(true));
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1871,7 +1886,9 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName() != null);
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setTtlAction(TtlAction.DELETE)
+                .setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
