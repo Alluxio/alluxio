@@ -59,23 +59,7 @@ import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.AlluxioMasterInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.Capacity;
-import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.FileInfo;
-import alluxio.wire.MasterWebUIBrowse;
-import alluxio.wire.MasterWebUIConfiguration;
-import alluxio.wire.MasterWebUIData;
-import alluxio.wire.MasterWebUIInit;
-import alluxio.wire.MasterWebUILogs;
-import alluxio.wire.MasterWebUIMetrics;
-import alluxio.wire.MasterWebUIOverview;
-import alluxio.wire.MasterWebUIWorkers;
-import alluxio.wire.MountPointInfo;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.*;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -143,6 +127,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String WEBUI_CONFIG = "webui_config";
   public static final String WEBUI_WORKERS = "webui_workers";
   public static final String WEBUI_METRICS = "webui_metrics";
+  public static final String WEBUI_MOUNTTABLE = "webui_mounttable";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -799,6 +784,26 @@ public final class AlluxioMasterRestServiceHandler {
       List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
       NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
       response.setFailedNodeInfos(failedNodeInfos);
+
+      return response;
+    }, ServerConfiguration.global());
+  }
+
+  /**
+   * Gets Web UI mount table page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_MOUNTTABLE)
+  public Response getWebUIMountTable() {
+    return RestUtils.call(() -> {
+      MasterWebUIMountTable response = new MasterWebUIMountTable();
+
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG));
+      Map<String, MountPointInfo> mountPointInfo = getMountPointsInternal();
+
+      response.setMountPointInfos(mountPointInfo);
 
       return response;
     }, ServerConfiguration.global());

@@ -18,3 +18,4 @@ export { default as Overview } from './pages/Overview/Overview';
 export { default as MasterLogs } from './pages/MasterLogs/MasterLogs';
 export { default as Workers } from './pages/Workers/Workers';
 export { default as Metrics } from './pages/Metrics/Metrics';
+export { default as MountTable } from './pages/Mounttable/MountTable';
