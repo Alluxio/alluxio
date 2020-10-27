@@ -171,7 +171,6 @@ public final class MigrateDefinition
     if (source.equals(destination)) {
       return Sets.newHashSet();
     }
-    checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source, context.getFileSystem());
