@@ -11,7 +11,9 @@
 
 package alluxio.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -35,7 +37,7 @@ public class HdfsValidationTool implements ValidationTool {
    * @param ufsConf the ufs configuration
    * */
   public HdfsValidationTool(String ufsPath, UnderFileSystemConfiguration ufsConf) {
-    mUfsPath = ufsPath;
+    mUfsPath = PathUtils.normalizePath(ufsPath, AlluxioURI.SEPARATOR);
     mUfsConf = ufsConf;
   }
 
