@@ -97,16 +97,20 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
-    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-    mFileSystem.iterateStatus(srcPath, options, srcInnerStatus -> {
+    mFileSystem.createDirectory(dstPath);
 
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+
+
+    mFileSystem.listStatus(srcPath).stream().forEach((srcInnerStatus) -> {
       String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
           srcPath.getPath(), dstPath.getPath());
+      System.out.println(srcInnerStatus.getPath() + " " + dstInnerPath);
       if (srcInnerStatus.isFolder()) {
         try {
-          mFileSystem.createDirectory(new AlluxioURI(dstInnerPath));
+          copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
         } catch (IOException | AlluxioException e) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
       } else {
         addJob(srcInnerStatus.getPath(), dstInnerPath);
