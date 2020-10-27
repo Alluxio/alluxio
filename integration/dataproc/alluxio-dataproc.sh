@@ -208,7 +208,7 @@ EOF
 configure_alluxio_root_mount() {
   local root_ufs_uri=$(/usr/share/google/get_metadata_value attributes/alluxio_root_ufs_uri)
   if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
-    root_ufs_uri="hdfs://${MASTER_FQDN}:8020"
+    root_ufs_uri="hdfs://${MASTER_FQDN}:8020/"
   fi
   append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
   if [[ "${root_ufs_uri}" = hdfs://* ]]; then
