@@ -3589,6 +3589,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_DURATION =
+      new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_DURATION)
+          .setDefaultValue("-1")
+          .setDescription("The timeout duration for local cache I/O operations ("
+              + "reading/writing/deleting). When this property is a positive value,"
+              + "local cache operations after timing out will fail and fallback to external "
+              + "file system but transparent to applications; "
+              + "when this property is a negative value, this feature is disabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_THREADS =
+      new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_THREADS)
+          .setDefaultValue("32")
+          .setDescription("The number of threads to handle cache I/O operation timeout, "
+              + "when " + Name.USER_CLIENT_CACHE_TIMEOUT_DURATION + " is positive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
@@ -5357,6 +5376,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =
         "alluxio.user.client.cache.store.type";
+    public static final String USER_CLIENT_CACHE_TIMEOUT_DURATION =
+        "alluxio.user.client.cache.timeout.duration";
+    public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
+        "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
