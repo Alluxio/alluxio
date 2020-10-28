@@ -109,20 +109,20 @@ public class LocalCacheManager implements CacheManager {
     } catch (IOException e) {
       pageStore = PageStore.create(options);
     }
-    return create(conf, metaStore, pageStore, options);
+    return create(conf, metaStore, pageStore);
   }
 
   /**
    * @param conf the Alluxio configuration
    * @param metaStore the meta store manages the metadata
    * @param pageStore the page store manages the cache data
-   * @param options page store options
    * @return an instance of {@link LocalCacheManager}
    */
   @VisibleForTesting
   static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
-      PageStore pageStore, PageStoreOptions options) throws IOException {
+      PageStore pageStore) throws IOException {
     LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStore);
+    PageStoreOptions options = PageStoreOptions.create(conf);
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
       manager.mInitService.submit(() -> {
         try {
