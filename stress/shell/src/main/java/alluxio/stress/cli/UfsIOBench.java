@@ -43,12 +43,13 @@ import java.util.stream.Collectors;
 public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsIOBench.class);
   private static final int BUFFER_SIZE = 1024 * 1024;
-  private static final UUID TASK_NAME = UUID.randomUUID();
 
   @ParametersDelegate
   private UfsIOParameters mParameters = new UfsIOParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
+
+  private final UUID mTaskId = UUID.randomUUID();
 
   @Override
   public IOTaskResult runLocal() throws Exception {
@@ -100,7 +101,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private String getFilePathStr(int idx) {
-    return mParameters.mPath + String.format("io-benchmark-%s-%d", TASK_NAME.toString(), idx);
+    return mParameters.mPath + String.format("io-benchmark-%s-%d", mTaskId.toString(), idx);
   }
 
   private IOTaskResult runIOBench(ExecutorService pool) throws Exception {
