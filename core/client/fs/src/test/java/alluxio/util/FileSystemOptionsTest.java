@@ -39,7 +39,6 @@ public class FileSystemOptionsTest {
   public void loadMetadataOptionsDefaults() {
     LoadMetadataPOptions options = FileSystemOptions.loadMetadataDefaults(mConf);
     assertNotNull(options);
-    assertFalse(options.getRecursive());
     assertFalse(options.getCreateAncestors());
     assertEquals(options.getLoadDescendantType(), LoadDescendantPType.NONE);
   }

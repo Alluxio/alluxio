@@ -193,10 +193,16 @@ message ListStatusPRequest {
 
 message LoadMetadataPOptions {
   /** whether to load metadata recursively */
-  optional bool recursive = 1;
-  optional bool createAncestors = 2;
-  optional fscommon.LoadDescendantPType loadDescendantType = 3;
-  optional FileSystemMasterCommonPOptions commonOptions = 4;
+  //  optional bool recursive = 1;
+  optional bool createAncestors = 1;
+  optional fscommon.LoadDescendantPType loadDescendantType = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+}
+
+message ListStatusCliPResponse {}
+message ListStatusCliPRequest {
+  optional string path = 1;
+  optional LoadMetadataPOptions loadMetadataPOptions = 2;
 }
 
 enum PAclEntryType {
@@ -524,6 +530,7 @@ service FileSystemMasterClientService {
    */
   rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
 
+  rpc ListStatusCli(ListStatusCliPRequest) returns (ListStatusCliPResponse);
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
