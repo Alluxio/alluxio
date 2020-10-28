@@ -89,7 +89,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 25L;
   private static final long UFS_SPACE_FREE = 75L;
-  private static final String TEST_PATH = "test://test";
+  private static final String TEST_PATH = "test://test/";
   private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM", 10L,
       "SSD", 20L);
   private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM",
