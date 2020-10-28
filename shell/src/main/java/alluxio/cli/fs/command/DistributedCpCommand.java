@@ -101,7 +101,6 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
 
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
 
-
     mFileSystem.listStatus(srcPath).stream().forEach((srcInnerStatus) -> {
       String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
           srcPath.getPath(), dstPath.getPath());
