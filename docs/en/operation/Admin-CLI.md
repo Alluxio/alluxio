@@ -251,20 +251,26 @@ hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not sh
 `report jobservice` will report a summary of the job service.
 
 ```console
-$ ./bin/alluxio fsadmin report jobservice
-Status: CREATED   Count: 0
+$ bin/alluxio fsadmin report jobservice
+Worker: MigrationTest-workers-2  Task Pool Size: 10     Unfinished Tasks: 1303   Active Tasks: 10     Load Avg: 1.08, 0.64, 0.27
+Worker: MigrationTest-workers-3  Task Pool Size: 10     Unfinished Tasks: 1766   Active Tasks: 10     Load Avg: 1.02, 0.48, 0.21
+Worker: MigrationTest-workers-1  Task Pool Size: 10     Unfinished Tasks: 1808   Active Tasks: 10     Load Avg: 0.73, 0.5, 0.23
+
+Status: CREATED   Count: 4877
 Status: CANCELED  Count: 0
 Status: FAILED    Count: 1
-Status: RUNNING   Count: 118
-Status: COMPLETED Count: 223
+Status: RUNNING   Count: 0
+Status: COMPLETED Count: 8124
 
 10 Most Recently Modified Jobs:
-Timestamp: 10-24-2019 17:15:25:014       Id: 1571936656844       Name: Persist             Status: COMPLETED
-Timestamp: 10-24-2019 17:15:24:340       Id: 1571936656957       Name: Persist             Status: RUNNING
+Timestamp: 10-28-2020 22:02:34:001       Id: 1603922371976       Name: Persist             Status: COMPLETED
+Timestamp: 10-28-2020 22:02:34:001       Id: 1603922371982       Name: Persist             Status: COMPLETED
 (only a subset of the results is shown)
 
 10 Most Recently Failed Jobs:
-Timestamp: 10-24-2019 17:15:22:946       Id: 1571936656839       Name: Persist             Status: FAILED
+Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist             Status: FAILED
+
+10 Longest Running Jobs:
 ```
 
 ### ufs
