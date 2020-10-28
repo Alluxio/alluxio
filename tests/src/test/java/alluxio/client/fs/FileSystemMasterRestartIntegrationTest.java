@@ -225,7 +225,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void unavailableUfsRecursiveCreate() throws Exception {
-    String ufsBase = "test://test";
+    String ufsBase = "test://test/";
 
     UnderFileSystemFactory mockUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
     Mockito.when(mockUfsFactory.supportsPath(Matchers.anyString(), Matchers.any()))
