@@ -13,7 +13,6 @@ package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.cli.fs.command.MvCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.util.io.PathUtils;
 
@@ -26,21 +25,21 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 
 /**
- * Tests for cross-mount {@link MvCommand}.
+ * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
  */
-public final class DistributedMvCommandTest extends AbstractFileSystemShellTest {
+public final class DistributedCpCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
-  public void crossMountMove() throws Exception {
+  public void crossMountCopy() throws Exception {
     File file = mFolder.newFile();
     Files.write("hello".getBytes(), file);
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
-    run("distributedMv", PathUtils.concatPath("/cross", file.getName()), "/moved");
+    run("distributedCp", PathUtils.concatPath("/cross", file.getName()), "/copied");
     mOutput.reset();
-    run("cat", "/moved");
+    run("cat", "/copied");
     assertEquals("hello", mOutput.toString());
   }
 

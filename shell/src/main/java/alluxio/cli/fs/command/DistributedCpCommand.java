@@ -21,6 +21,7 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -70,6 +71,12 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
+
+    if (PathUtils.hasPrefix(dstPath.toString(), srcPath.toString())) {
+      throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
+          srcPath, dstPath));
+    }
+
     mActiveJobs = DEFAULT_ACTIVE_JOBS;
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
@@ -97,7 +104,7 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
     drain();
   }
 
-  public void createFolders(AlluxioURI srcPath, AlluxioURI dstPath)
+  private void createFolders(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
 
     try {
@@ -153,7 +160,7 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
   }
 
   private static String computeTargetPath(String path, String source, String destination)
-      throws InvalidPathException{
+      throws InvalidPathException {
     String relativePath = PathUtils.subtractPaths(path, source);
 
     return PathUtils.concatPath(destination, relativePath);
