@@ -84,11 +84,12 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "-1");
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
     mEvictor = new FIFOEvictor();
     mMetaStore = MetaStore.create(mEvictor);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
   }
 
   private byte[] page(int i, int pageLen) {
@@ -171,7 +172,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -185,7 +186,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -206,7 +207,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -232,7 +233,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
     for (int i = 0; i < numPages; i++) {
@@ -255,7 +256,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     PageId bigPageId = pageId(-1, 0);
     assertTrue(mCacheManager.put(bigPageId, page(0, PAGE_SIZE_BYTES)));
     int smallPageLen = 8;
@@ -359,7 +360,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -372,7 +373,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mCacheManager.close();
     mPageStore.put(PAGE_ID1, PAGE1);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
         () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
@@ -392,7 +393,7 @@ public final class LocalCacheManagerTest {
     slowGetPageStore.put(PAGE_ID1, PAGE1);
     slowGetPageStore.put(pageUuid, PAGE2);
     mCacheManager = LocalCacheManager.create(
-        mConf, mMetaStore, slowGetPageStore, mPageStoreOptions);
+        mConf, mMetaStore, slowGetPageStore);
     assertEquals(CacheManager.State.READ_ONLY, mCacheManager.state());
     Thread.sleep(1000); // some buffer to restore page1
     // In READ_ONLY mode we still get previously added page
@@ -424,7 +425,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
@@ -439,7 +440,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
         () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
@@ -458,7 +459,7 @@ public final class LocalCacheManagerTest {
     File rootParent = new File(rootDir).getParentFile();
     try {
       rootParent.setWritable(false);
-      LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+      LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     } catch (Exception e) {
       // expected case
     } finally {
@@ -478,13 +479,13 @@ public final class LocalCacheManagerTest {
     File rootParent = new File(rootDir).getParentFile();
     rootParent.setWritable(false);
     try {
-      mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+      mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
       assertEquals(-1, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-      assertEquals(false, mCacheManager.put(PAGE_ID2, PAGE2));
-      assertEquals(false, mCacheManager.delete(PAGE_ID1));
+      assertFalse(mCacheManager.put(PAGE_ID2, PAGE2));
+      assertFalse(mCacheManager.delete(PAGE_ID1));
     } finally {
       rootParent.setWritable(true);
     }
@@ -501,7 +502,7 @@ public final class LocalCacheManagerTest {
         PAGE1.length + PAGE2.length + 1));
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.open(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
@@ -521,7 +522,7 @@ public final class LocalCacheManagerTest {
         PAGE1.length + PAGE2.length + 1));
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.open(mPageStoreOptions);
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
         () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(1000000));
@@ -538,19 +539,20 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    PutDelayedPageStore pageStore = new PutDelayedPageStore();
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore, mPageStoreOptions);
+    HangingPageStore pageStore = new HangingPageStore(PageStoreOptions.create(mConf).toOptions());
+    pageStore.setPutHanging(true);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore);
     for (int i = 0; i < threads; i++) {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
     // fail due to full queue
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
-    pageStore.setHanging(false);
+    pageStore.setPutHanging(false);
     while (pageStore.getPuts() < threads) {
       Thread.sleep(1000);
     }
-    pageStore.setHanging(true);
+    pageStore.setPutHanging(true);
     for (int i = 0; i < threads; i++) {
       PageId pageId = new PageId("6", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
@@ -563,22 +565,23 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    PutDelayedPageStore pageStore = new PutDelayedPageStore();
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore, mPageStoreOptions);
+    HangingPageStore pageStore = new HangingPageStore(PageStoreOptions.create(mConf).toOptions());
+    pageStore.setPutHanging(true);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
-    pageStore.setHanging(false);
+    pageStore.setPutHanging(false);
     while (pageStore.getPuts() < 1) {
       Thread.sleep(1000);
     }
-    pageStore.setHanging(true);
+    pageStore.setPutHanging(true);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
   }
 
   @Test
   public void recoverCacheFromFailedPut() throws Exception {
     FaultyPageStore pageStore = new FaultyPageStore();
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore);
     pageStore.setPutFaulty(true);
     // a failed put
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -598,7 +601,7 @@ public final class LocalCacheManagerTest {
   public void failedPageStoreDeleteOnEviction() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     FaultyPageStore pageStore = new FaultyPageStore();
-    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore, mPageStoreOptions);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore, pageStore);
     pageStore.setDeleteFaulty(true);
     // first put should be ok
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -610,6 +613,45 @@ public final class LocalCacheManagerTest {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
+  }
+
+  @Test
+  public void putTimeout() throws Exception {
+    HangingPageStore pageStore = new HangingPageStore(mPageStoreOptions);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
+    mPageStoreOptions = PageStoreOptions.create(mConf);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore,
+        new TimeBoundPageStore(pageStore, mPageStoreOptions));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setPutHanging(true);
+    assertFalse(mCacheManager.put(PAGE_ID2, PAGE2));
+    pageStore.setPutHanging(false);
+  }
+
+  @Test
+  public void getTimeout() throws Exception {
+    HangingPageStore pageStore = new HangingPageStore(mPageStoreOptions);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
+    mPageStoreOptions = PageStoreOptions.create(mConf);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore,
+        new TimeBoundPageStore(pageStore, mPageStoreOptions));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setGetHanging(true);
+    assertEquals(-1, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    pageStore.setGetHanging(false);
+  }
+
+  @Test
+  public void deleteTimeout() throws Exception {
+    HangingPageStore pageStore = new HangingPageStore(mPageStoreOptions);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
+    mPageStoreOptions = PageStoreOptions.create(mConf);
+    mCacheManager = LocalCacheManager.create(mConf, mMetaStore,
+        new TimeBoundPageStore(pageStore, mPageStoreOptions));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setDeleteHanging(true);
+    assertFalse(mCacheManager.delete(PAGE_ID1));
+    pageStore.setDeleteHanging(false);
   }
 
   /**
@@ -645,34 +687,6 @@ public final class LocalCacheManagerTest {
 
     void setDeleteFaulty(boolean faulty) {
       mDeleteFaulty.set(faulty);
-    }
-  }
-
-  /**
-   * A PageStore where put will always hang.
-   */
-  private class PutDelayedPageStore extends LocalPageStore {
-    private AtomicBoolean mHanging = new AtomicBoolean(true);
-    private AtomicInteger mPut = new AtomicInteger(0);
-
-    public PutDelayedPageStore() {
-      super(PageStoreOptions.create(mConf).toOptions());
-    }
-
-    @Override
-    public void put(PageId pageId, byte[] page) throws IOException {
-      // never quit
-      while (mHanging.get()) {}
-      super.put(pageId, page);
-      mPut.getAndIncrement();
-    }
-
-    void setHanging(boolean value) {
-      mHanging.set(value);
-    }
-
-    int getPuts() {
-      return mPut.get();
     }
   }
 
