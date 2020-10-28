@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -829,10 +830,12 @@ public final class CommonUtils {
    *
    * @param hostname host name of the network address
    * @param port port of the network address
+   * @param timeoutMs duration to attempt connection before returning false
    * @return whether the network address is reachable
    */
-  public static boolean isAddressReachable(String hostname, int port) {
-    try (Socket socket = new Socket(hostname, port)) {
+  public static boolean isAddressReachable(String hostname, int port, int timeoutMs) {
+    try (Socket socket = new Socket()) {
+      socket.connect(new InetSocketAddress(hostname, port), timeoutMs);
       return true;
     } catch (IOException e) {
       return false;
