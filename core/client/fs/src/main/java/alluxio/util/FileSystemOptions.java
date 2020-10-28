@@ -180,7 +180,6 @@ public class FileSystemOptions {
   public static LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
     return LoadMetadataPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setRecursive(false)
         .setCreateAncestors(false)
         .setLoadDescendantType(LoadDescendantPType.NONE)
         .build();

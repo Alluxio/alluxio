@@ -42,8 +42,11 @@ import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.ListStatusCliPRequest;
+import alluxio.grpc.ListStatusCliPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -74,6 +77,7 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
+import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
@@ -81,7 +85,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
-import alluxio.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -235,6 +238,19 @@ public final class FileSystemMasterClientServiceHandler
     } finally {
       resultStream.complete();
     }
+  }
+
+  @Override
+  public void listStatusCli(ListStatusCliPRequest request,
+      StreamObserver<ListStatusCliPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      AlluxioURI pathUri = getAlluxioURI(request.getPath());
+      if (request.hasLoadMetadataPOptions()) {
+        mFileSystemMaster.loadMetaData(pathUri,
+            LoadMetadataContext.create(request.getLoadMetadataPOptions().toBuilder()));
+      }
+      return ListStatusCliPResponse.newBuilder().build();
+    }, "ListStatusCli", "request=%s", responseObserver, request);
   }
 
   @Override
