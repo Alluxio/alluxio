@@ -16,13 +16,14 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.wire.JobInfo;
@@ -90,31 +91,46 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
+    createFolders(srcPath, dstPath);
     copy(srcPath, dstPath);
     // Wait remaining jobs to complete.
     drain();
   }
 
+  public void createFolders(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+
+    try {
+      mFileSystem.createDirectory(dstPath);
+      System.out.println("Created directory at " + dstPath.getPath());
+    } catch (FileAlreadyExistsException e) {
+      if (!mFileSystem.getStatus(dstPath).isFolder()) {
+        throw e;
+      }
+    }
+
+    for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
+      if (srcInnerStatus.isFolder()) {
+        String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
+            srcPath.getPath(), dstPath.getPath());
+        createFolders(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
+      }
+    }
+  }
+
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
-    mFileSystem.createDirectory(dstPath);
 
-    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-
-    mFileSystem.listStatus(srcPath).stream().forEach((srcInnerStatus) -> {
+    for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
           srcPath.getPath(), dstPath.getPath());
       System.out.println(srcInnerStatus.getPath() + " " + dstInnerPath);
       if (srcInnerStatus.isFolder()) {
-        try {
-          copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
-        } catch (IOException | AlluxioException e) {
-          throw new RuntimeException(e);
-        }
+        copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
       } else {
         addJob(srcInnerStatus.getPath(), dstInnerPath);
       }
-    });
+    }
   }
 
   private void addJob(String srcPath, String dstPath) {
@@ -136,13 +152,10 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
     return "Copies a file or directory in parallel at file level.";
   }
 
-  private static String computeTargetPath(String path, String source, String destination) {
-    String relativePath = null;
-    try {
-      relativePath = PathUtils.subtractPaths(path, source);
-    } catch (InvalidPathException e) {
-      throw new RuntimeException(e);
-    }
+  private static String computeTargetPath(String path, String source, String destination)
+      throws InvalidPathException{
+    String relativePath = PathUtils.subtractPaths(path, source);
+
     return PathUtils.concatPath(destination, relativePath);
   }
 
