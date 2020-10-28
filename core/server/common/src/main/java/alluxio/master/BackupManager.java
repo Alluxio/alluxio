@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
@@ -32,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -128,11 +128,12 @@ public class BackupManager {
     activeTasks.add(completionService.submit(() -> {
       try {
         for (Master master : mRegistry.getServers()) {
-          Iterator<JournalEntry> it = master.getJournalEntryIterator();
-          while (it.hasNext()) {
-            journalEntryQueue.put(it.next());
-            if (Thread.interrupted()) {
-              throw new InterruptedException();
+          try (CloseableIterator<JournalEntry> it = master.getJournalEntryIterator()) {
+            while (it.get().hasNext()) {
+              journalEntryQueue.put(it.get().next());
+              if (Thread.interrupted()) {
+                throw new InterruptedException();
+              }
             }
           }
         }

@@ -25,6 +25,7 @@ import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
@@ -34,7 +35,6 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.StreamUtils;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -457,11 +457,12 @@ public class AlluxioCatalog implements Journaled {
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
+  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
+    List<CloseableIterator<Journal.JournalEntry>> componentIters = StreamUtils
         .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
 
-    return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
+    return CloseableIterator.concat(
+        CloseableIterator.noopCloseable(getDbIterator()), CloseableIterator.concat(componentIters));
   }
 
   @Override

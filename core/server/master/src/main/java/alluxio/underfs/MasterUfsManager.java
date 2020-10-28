@@ -21,6 +21,7 @@ import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -129,7 +129,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
     return mState.getJournalEntryIterator();
   }
 
@@ -174,13 +174,13 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
     }
 
     @Override
-    public Iterator<JournalEntry> getJournalEntryIterator() {
-      return mUfsModes.entrySet().stream()
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      return CloseableIterator.noopCloseable(mUfsModes.entrySet().stream()
           .map(e -> JournalEntry.newBuilder().setUpdateUfsMode(UpdateUfsModeEntry.newBuilder()
               .setUfsPath(e.getKey())
               .setUfsMode(File.UfsMode.valueOf(e.getValue().name())))
               .build())
-          .iterator();
+          .iterator());
     }
 
     @Override

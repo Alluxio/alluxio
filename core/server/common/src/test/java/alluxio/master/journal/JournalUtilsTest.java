@@ -19,6 +19,7 @@ import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +30,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -98,9 +98,9 @@ public final class JournalUtilsTest {
     }
 
     @Override
-    public Iterator<JournalEntry> getJournalEntryIterator() {
-      return Arrays.asList(JournalEntry.newBuilder()
-          .setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build()).iterator();
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      return CloseableIterator.noopCloseable(Arrays.asList(JournalEntry.newBuilder()
+          .setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build()).iterator());
     }
 
     @Override

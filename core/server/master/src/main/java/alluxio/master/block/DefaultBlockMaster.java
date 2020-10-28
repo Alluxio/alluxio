@@ -58,6 +58,7 @@ import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -337,7 +338,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
     Iterator<Block> it = mBlockStore.iterator();
     Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
       @Override
@@ -363,8 +364,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       }
     };
 
-    return Iterators
-        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator);
+    return CloseableIterator.noopCloseable(Iterators
+        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
   @Override

@@ -35,6 +35,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Table.AddTransformJobInfoEntry;
 import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.security.user.UserState;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.TransformDefinition;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -440,18 +440,19 @@ public class TransformManager implements DelegatingJournaled {
     }
 
     @Override
-    public Iterator<JournalEntry> getJournalEntryIterator() {
-      return Iterators.transform(mRunningJobs.values().iterator(), job -> {
-        AddTransformJobInfoEntry journal = AddTransformJobInfoEntry.newBuilder()
-            .setDbName(job.getDb())
-            .setTableName(job.getTable())
-            .setDefinition(job.getDefinition())
-            .setJobId(job.getJobId())
-            .putAllTransformedLayouts(Maps.transformValues(
-                job.getTransformedLayouts(), Layout::toProto))
-            .build();
-        return JournalEntry.newBuilder().setAddTransformJobInfo(journal).build();
-      });
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      return CloseableIterator.noopCloseable(
+          Iterators.transform(mRunningJobs.values().iterator(), job -> {
+            AddTransformJobInfoEntry journal = AddTransformJobInfoEntry.newBuilder()
+                .setDbName(job.getDb())
+                .setTableName(job.getTable())
+                .setDefinition(job.getDefinition())
+                .setJobId(job.getJobId())
+                .putAllTransformedLayouts(Maps.transformValues(
+                    job.getTransformedLayouts(), Layout::toProto))
+                .build();
+            return JournalEntry.newBuilder().setAddTransformJobInfo(journal).build();
+          }));
     }
 
     @Override
