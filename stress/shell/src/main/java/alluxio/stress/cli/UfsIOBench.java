@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsIOBench.class);
   private static final int BUFFER_SIZE = 1024 * 1024;
+  private static final UUID TASK_NAME = UUID.randomUUID();
 
   @ParametersDelegate
   private UfsIOParameters mParameters = new UfsIOParameters();
@@ -98,7 +100,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private String getFilePathStr(int idx) {
-    return mParameters.mPath + String.format("io-benchmark-%d", idx);
+    return mParameters.mPath + String.format("io-benchmark-%s-%d", TASK_NAME.toString(), idx);
   }
 
   private IOTaskResult runIOBench(ExecutorService pool) throws Exception {
