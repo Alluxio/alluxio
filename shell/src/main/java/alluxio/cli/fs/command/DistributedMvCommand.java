@@ -12,15 +12,18 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DeletePOptions;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 
+/**
+ * Moves a file or directory specified by args.
+ */
 public class DistributedMvCommand extends AbstractDistributedJobCommand {
 
   private DistributedCpCommand mCpCommand;
@@ -44,6 +47,7 @@ public class DistributedMvCommand extends AbstractDistributedJobCommand {
     mCpCommand.validateArgs(cl);
   }
 
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mCpCommand.run(cl);
 
@@ -66,6 +70,6 @@ public class DistributedMvCommand extends AbstractDistributedJobCommand {
 
   @Override
   public String getDescription() {
-    return "Copies a file or directory in parallel at file level and then deletes the src on success.";
+    return "Moves a file or directory in parallel at file level";
   }
 }
