@@ -98,7 +98,9 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
-    createFolders(srcPath, dstPath);
+    if (mFileSystem.getStatus(srcPath).isFolder()) {
+      createFolders(srcPath, dstPath);
+    }
     copy(srcPath, dstPath);
     // Wait remaining jobs to complete.
     drain();
