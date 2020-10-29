@@ -47,7 +47,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -269,16 +268,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int readdirInternal(String path, long buff, FuseFillDir filter, long offset,
       FuseFileInfo fi) {
-    final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      final List<URIStatus> ls = mFileSystem.listStatus(turi);
       // standard . and .. entries
       filter.apply(buff, ".", null, 0);
       filter.apply(buff, "..", null, 0);
 
-      for (final URIStatus file : ls) {
+      mFileSystem.iterateStatus(uri, file -> {
         filter.apply(buff, file.getName(), null, 0);
-      }
+      });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);
       return -ErrorCodes.EIO();
