@@ -278,13 +278,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
-                            Consumer<? super URIStatus> action)
-          throws FileDoesNotExistException, IOException, AlluxioException {
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
       // TODO(calvin): Fix the exception handling in the master
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
-              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.iterateStatus(path, mergedOptions, action);
       return null;
     });
