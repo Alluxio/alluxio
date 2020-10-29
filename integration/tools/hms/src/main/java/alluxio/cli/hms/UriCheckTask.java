@@ -29,15 +29,18 @@ import java.util.List;
 public class UriCheckTask extends MetastoreValidationTask<Void, String> {
 
   private final String mUris;
+  private final int mTimeoutMs;
 
   /**
    * Creates a new {@link UriCheckTask}.
    *
    * @param inputUri the input URI(s) to check
+   * @param timeoutMs the duration to attempt to connect to the URI before failing
    */
-  public UriCheckTask(String inputUri) {
+  public UriCheckTask(String inputUri, int timeoutMs) {
     super(null);
     mUris = inputUri;
+    mTimeoutMs = timeoutMs;
   }
 
   @Override
@@ -78,10 +81,11 @@ public class UriCheckTask extends MetastoreValidationTask<Void, String> {
             "Please make sure the hostname in given hive metastore uri(s) is resolvable"), null);
       }
 
-      if (!CommonUtils.isAddressReachable(uri.getHost(), uri.getPort())) {
+      if (!CommonUtils.isAddressReachable(uri.getHost(), uri.getPort(), mTimeoutMs)) {
         String errorMessage = "Hive metastore uris are unreachable";
         return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-            errorMessage, "Please make sure the given hive metastore uris are reachable"), null);
+            errorMessage, "Please make sure the given hive metastore uris are reachable. Check"
+            + " that both the host and port are correct."), null);
       }
     }
 
