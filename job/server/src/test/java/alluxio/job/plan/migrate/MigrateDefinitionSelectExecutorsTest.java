@@ -21,7 +21,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
