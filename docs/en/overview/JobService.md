@@ -29,7 +29,7 @@ with specified amount of replication
 ### Migrate
 
 Migrate Job is used as part of the `fs distributedCp` and `fs distributedMv` CLI command and is responsible
-for copying/moving with a specified [WriteType]({{ 'en/overview/Architecture.html#data-flow-write' | relativize_url }}). 
+for copying/moving with a specified [WriteType]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}). 
 
 ### Persist
 
