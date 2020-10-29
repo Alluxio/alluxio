@@ -43,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @PublicApi
-public final class DistributedCpCommand extends AbstractDistributedJobCommand {
+public class DistributedCpCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
 
   private int mActiveJobs;
@@ -133,7 +133,6 @@ public final class DistributedCpCommand extends AbstractDistributedJobCommand {
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
           srcPath.getPath(), dstPath.getPath());
-      System.out.println(srcInnerStatus.getPath() + " " + dstInnerPath);
       if (srcInnerStatus.isFolder()) {
         copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
       } else {
