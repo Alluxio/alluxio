@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
@@ -55,7 +56,7 @@ public final class SshValidationTask extends AbstractValidationTask {
 
     ValidationUtils.State state = ValidationUtils.State.OK;
     for (String nodeName : nodes) {
-      if (!CommonUtils.isAddressReachable(nodeName, 22)) {
+      if (!CommonUtils.isAddressReachable(nodeName, 22, 30 * Constants.SECOND_MS)) {
         msg.append(String.format("Unable to reach ssh port 22 on node %s.%n", nodeName));
         advice.append(String.format("Please configure password-less ssh to node %s.%n", nodeName));
         state = ValidationUtils.State.FAILED;
