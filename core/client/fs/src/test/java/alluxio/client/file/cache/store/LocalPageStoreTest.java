@@ -46,13 +46,6 @@ public class LocalPageStoreTest {
   }
 
   @Test
-  public void testSmallBuffer() throws Exception {
-    mOptions.setBufferSize(1).setBufferPoolSize(1);
-    LocalPageStore pageStore = new LocalPageStore(mOptions);
-    helloWorldTest(pageStore);
-  }
-
-  @Test
   public void testSingleFileBucket() throws Exception {
     mOptions.setFileBuckets(1);
     LocalPageStore pageStore = new LocalPageStore(mOptions);
