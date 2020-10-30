@@ -56,7 +56,7 @@ public class HmsValidationTool implements ValidationTool {
     mTables = tables;
     mSocketTimeout = socketTimeout > 0 ? socketTimeout : DEFAULT_SOCKET_TIMEOUT;
     mTasks = new HashMap<>();
-    UriCheckTask uriCheck = new UriCheckTask(mMetastoreUri);
+    UriCheckTask uriCheck = new UriCheckTask(mMetastoreUri, mSocketTimeout);
     CreateHmsClientValidationTask clientTask =
         new CreateHmsClientValidationTask(mSocketTimeout, uriCheck);
     DatabaseValidationTask dbTask = new DatabaseValidationTask(mDatabase, clientTask);
