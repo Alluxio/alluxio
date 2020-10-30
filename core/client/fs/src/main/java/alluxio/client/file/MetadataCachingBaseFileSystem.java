@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -99,17 +100,20 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       // Otherwise, needs more complicated logic inside the cache,
       // that might not worth the effort of caching.
       super.iterateStatus(path, options, action);
-    }
-
-    List<URIStatus> statuses = mMetadataCache.listStatus(path);
-    if (statuses == null) {
-      super.iterateStatus(path, options, status -> {
-        mMetadataCache.put(path, status);
-        action.accept(status);
-      });
       return;
     }
-    statuses.forEach(action);
+
+    List<URIStatus> cachedStatuses = mMetadataCache.listStatus(path);
+    if (cachedStatuses == null) {
+      List<URIStatus> statuses = new ArrayList<>();
+      super.iterateStatus(path, options, status -> {
+        statuses.add(status);
+        action.accept(status);
+      });
+      mMetadataCache.put(path, statuses);
+      return;
+    }
+    cachedStatuses.forEach(action);
   }
 
   @Override
