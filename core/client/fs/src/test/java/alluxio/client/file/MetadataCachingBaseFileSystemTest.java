@@ -13,15 +13,13 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.resource.CloseableResource;
@@ -35,41 +33,41 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
+@PrepareForTest({FileSystemContext.class})
 public class MetadataCachingBaseFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final ListStatusPOptions LIST_STATUS_OPTIONS =
       ListStatusPOptions.getDefaultInstance();
-  private static final URIStatus FILE_STATUS = new URIStatus(
-      new FileInfo().setPath(FILE.getPath()).setCompleted(true));
+  private static final URIStatus FILE_STATUS =
+      new URIStatus(new FileInfo().setPath(FILE.getPath()).setCompleted(true));
 
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
-  private FileSystemMasterClient mFileSystemMasterClient;
+  private RpcCountingFileSystemMasterClient mFileSystemMasterClient;
   private MetadataCachingBaseFileSystem mFs;
 
   @Before
   public void before() throws Exception {
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    when(mFileContext.acquireMasterClientResource()).thenReturn(
-        new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
+    mFileSystemMasterClient = new RpcCountingFileSystemMasterClient();
+    when(mFileContext.acquireMasterClientResource())
+        .thenReturn(new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
           public void close() {
             // Noop.
           }
         });
-    when(mFileSystemMasterClient.listStatus(eq(DIR), any(ListStatusPOptions.class)))
-        .thenReturn(Arrays.asList(FILE_STATUS));
-    when(mFileSystemMasterClient.getStatus(eq(FILE), any(GetStatusPOptions.class)))
-        .thenReturn(FILE_STATUS);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
@@ -85,57 +83,110 @@ public class MetadataCachingBaseFileSystemTest {
   @Test
   public void getStatus() throws Exception {
     mFs.getStatus(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
     // The following getStatus gets from cache, so no RPC will be made.
     mFs.getStatus(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
+  }
+
+  @Test
+  public void iterateStatus() throws Exception {
+    List<URIStatus> expectedStatuses = new ArrayList<>();
+    mFs.iterateStatus(DIR, expectedStatuses::add);
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
+    // List status has cached the file status, so no RPC will be made.
+    mFs.getStatus(FILE);
+    assertEquals(0, mFileSystemMasterClient.getStatusRpcCount(FILE));
+    List<URIStatus> gotStatuses = new ArrayList<>();
+    mFs.iterateStatus(DIR, gotStatuses::add);
+    // List status results have been cached, so listStatus RPC was only called once
+    // at the beginning of the method.
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
+    assertEquals(expectedStatuses, gotStatuses);
+  }
+
+  @Test
+  public void iterateStatusRecursive() throws Exception {
+    mFs.iterateStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build(), ignored -> {
+    });
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
+    mFs.iterateStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build(), ignored -> {
+    });
+    assertEquals(2, mFileSystemMasterClient.listStatusRpcCount(DIR));
   }
 
   @Test
   public void listStatus() throws Exception {
     List<URIStatus> expectedStatuses = mFs.listStatus(DIR);
-    verifyListStatusThroughRPC(DIR, 1);
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
     // List status has cached the file status, so no RPC will be made.
     mFs.getStatus(FILE);
-    verifyGetStatusThroughRPC(FILE, 0);
+    assertEquals(0, mFileSystemMasterClient.getStatusRpcCount(FILE));
     List<URIStatus> gotStatuses = mFs.listStatus(DIR);
     // List status results have been cached, so listStatus RPC was only called once
     // at the beginning of the method.
-    verifyListStatusThroughRPC(DIR, 1);
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
     assertEquals(expectedStatuses, gotStatuses);
   }
 
   @Test
   public void listStatusRecursive() throws Exception {
     mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
-    verifyListStatusThroughRPC(DIR, 1);
+    assertEquals(1, mFileSystemMasterClient.listStatusRpcCount(DIR));
     mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
-    verifyListStatusThroughRPC(DIR, 2);
+    assertEquals(2, mFileSystemMasterClient.listStatusRpcCount(DIR));
   }
 
   @Test
   public void openFile() throws Exception {
     mFs.openFile(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
     mFs.openFile(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
   }
 
   @Test
   public void getBlockLocations() throws Exception {
     mFs.getBlockLocations(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
     mFs.getBlockLocations(FILE);
-    verifyGetStatusThroughRPC(FILE, 1);
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
   }
 
-  private void verifyGetStatusThroughRPC(AlluxioURI path, int totalTimes) throws Exception {
-    verify(mFileSystemMasterClient, times(totalTimes))
-        .getStatus(eq(path), any(GetStatusPOptions.class));
-  }
+  class RpcCountingFileSystemMasterClient extends MockFileSystemMasterClient {
+    RpcCountingFileSystemMasterClient() {
+    }
 
-  private void verifyListStatusThroughRPC(AlluxioURI path, int totalTimes) throws Exception {
-    verify(mFileSystemMasterClient, times(totalTimes))
-        .listStatus(eq(path), any(ListStatusPOptions.class));
+    private Map<AlluxioURI, Integer> mGetStatusCount = new HashMap<>();
+    private Map<AlluxioURI, Integer> mListStatusCount = new HashMap<>();
+
+    int getStatusRpcCount(AlluxioURI uri) {
+      return mGetStatusCount.getOrDefault(uri, 0);
+    }
+
+    int listStatusRpcCount(AlluxioURI uri) {
+      return mListStatusCount.getOrDefault(uri, 0);
+    }
+
+    @Override
+    public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+        throws AlluxioStatusException {
+      mGetStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
+      return FILE_STATUS;
+    }
+
+    @Override
+    public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+        Consumer<? super URIStatus> action) throws AlluxioStatusException {
+      mListStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
+      action.accept(FILE_STATUS);
+    }
+
+    @Override
+    public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+        throws AlluxioStatusException {
+      mListStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
+      return Arrays.asList(FILE_STATUS);
+    }
   }
 }
