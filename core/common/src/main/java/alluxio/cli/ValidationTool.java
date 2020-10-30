@@ -43,12 +43,14 @@ public interface ValidationTool {
    * @param results a result from a validation tool
    * @return a map representing the result input
    */
-  static Map<ValidationUtils.State, List<ValidationTaskResult>> convertResults(
+  static ValidationResults convertResults(
       List<ValidationTaskResult> results) {
     // group by state
     Map<ValidationUtils.State, List<ValidationTaskResult>> map = new HashMap<>();
     results.forEach(r -> map.computeIfAbsent(r.getState(), k -> new ArrayList<>()).add(r));
-    return map;
+    ValidationResults finalResults = new ValidationResults();
+    finalResults.setResult(map);
+    return finalResults;
   }
 
   /**
@@ -57,7 +59,7 @@ public interface ValidationTool {
    * @param map result stored in a map
    * @return a string containing json representation of the result
    */
-  static String toJson(Map<ValidationUtils.State, List<ValidationTaskResult>> map) {
+  static String toJson(ValidationResults map) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     return gson.toJson(map);
   }
