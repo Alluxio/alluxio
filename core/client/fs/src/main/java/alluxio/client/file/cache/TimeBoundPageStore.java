@@ -68,7 +68,7 @@ public class TimeBoundPageStore implements PageStore {
       Metrics.STORE_PUT_TIMEOUT.inc();
       throw new IOException(e);
     } catch (RejectedExecutionException e) {
-      Metrics.STORE_THREAD_REJECTED.inc();
+      Metrics.STORE_THREADS_REJECTED.inc();
       throw new IOException(e);
     } catch (Throwable t) {
       Throwables.propagateIfPossible(t, IOException.class);
@@ -90,7 +90,7 @@ public class TimeBoundPageStore implements PageStore {
       Metrics.STORE_GET_TIMEOUT.inc();
       throw new IOException(e);
     } catch (RejectedExecutionException e) {
-      Metrics.STORE_THREAD_REJECTED.inc();
+      Metrics.STORE_THREADS_REJECTED.inc();
       throw new IOException(e);
     } catch (Throwable t) {
       Throwables.propagateIfPossible(t, IOException.class, PageNotFoundException.class);
@@ -113,7 +113,7 @@ public class TimeBoundPageStore implements PageStore {
       Metrics.STORE_DELETE_TIMEOUT.inc();
       throw new IOException(e);
     } catch (RejectedExecutionException e) {
-      Metrics.STORE_THREAD_REJECTED.inc();
+      Metrics.STORE_THREADS_REJECTED.inc();
       throw new IOException(e);
     } catch (Throwable t) {
       Throwables.propagateIfPossible(t, IOException.class, PageNotFoundException.class);
@@ -151,7 +151,9 @@ public class TimeBoundPageStore implements PageStore {
      * Number of rejection of I/O threads on submitting tasks to thread pool,
      * likely due to unresponsive local file system.
      **/
-    private static final Counter STORE_THREAD_REJECTED =
+    private static final Counter STORE_THREADS_REJECTED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_STORE_THREADS_REJECTED.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }
