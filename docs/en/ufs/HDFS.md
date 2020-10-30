@@ -31,7 +31,7 @@ directory:
 $ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
-Alluxio provides predefined build profiles for `hadoop-2` and `hadoop-3` (enabled by default)  for the major Hadoop versions 2.x and 3.x. 
+Alluxio provides predefined build profiles for `hadoop-2` and `hadoop-3` (enabled by default) for the major Hadoop versions 2.x and 3.x.
 If you want to build Alluxio with a specific Hadoop release version, you can also specify the version in the command. 
 For example,
 
