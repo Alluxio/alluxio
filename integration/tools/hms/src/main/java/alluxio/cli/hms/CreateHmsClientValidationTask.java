@@ -31,7 +31,7 @@ import java.util.Map;
 public class CreateHmsClientValidationTask extends
     MetastoreValidationTask<String, IMetaStoreClient> {
 
-  private final int mSocketTimeout;
+  private final int mSocketTimeoutSeconds;
 
   /**
    * Create a new instance of {@link CreateHmsClientValidationTask}.
@@ -42,7 +42,7 @@ public class CreateHmsClientValidationTask extends
   public CreateHmsClientValidationTask(int socketTimeout,
       MetastoreValidationTask<?, String> input) {
     super(input);
-    mSocketTimeout = socketTimeout;
+    mSocketTimeoutSeconds = socketTimeout;
   }
 
   @Override
@@ -88,7 +88,7 @@ public class CreateHmsClientValidationTask extends
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
         HiveConf conf = new HiveConf();
         conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
-        conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeout);
+        conf.setIntVar(HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT, mSocketTimeoutSeconds);
         action = new ConnectHmsAction(conf);
         UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
         ugi.doAs(action);

@@ -47,6 +47,7 @@ public final class Constants {
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
+  public static final int MINUTE_SECONDS = 60;
 
   public static final int BYTES_IN_INTEGER = 4;
 
