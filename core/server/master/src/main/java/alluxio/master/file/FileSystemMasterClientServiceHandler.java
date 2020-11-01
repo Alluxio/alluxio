@@ -45,8 +45,8 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.ListStatusCliPRequest;
-import alluxio.grpc.ListStatusCliPResponse;
+import alluxio.grpc.LoadMetadataPRequest;
+import alluxio.grpc.LoadMetadataPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -241,16 +241,16 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void listStatusCli(ListStatusCliPRequest request,
-      StreamObserver<ListStatusCliPResponse> responseObserver) {
+  public void loadMetadata(LoadMetadataPRequest request,
+      StreamObserver<LoadMetadataPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       if (request.hasLoadMetadataPOptions()) {
         mFileSystemMaster.loadMetaData(pathUri,
             LoadMetadataContext.create(request.getLoadMetadataPOptions().toBuilder()));
       }
-      return ListStatusCliPResponse.newBuilder().build();
-    }, "ListStatusCli", "request=%s", responseObserver, request);
+      return LoadMetadataPResponse.newBuilder().build();
+    }, "loadMetadata", "request=%s", responseObserver, request);
   }
 
   @Override

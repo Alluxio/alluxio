@@ -30,6 +30,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Load Metadata for the path.
+ * This command as a client-side optimization without
+ * storing all returned `ls` results, preventing OOM
+ * for massive amount of small files.
  */
 @ThreadSafe
 @PublicApi
@@ -78,16 +81,10 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   private void loadMetadata(AlluxioURI path, boolean recursive) throws IOException {
     LoadMetadataPOptions options;
     try {
-      if (recursive) {
-        // LoadDescendantPType determines the number of descendant inodes to sync
-        options = LoadMetadataPOptions.newBuilder()
-            .setLoadDescendantType(LoadDescendantPType.ALL)
-            .build();
-      } else {
-        options = LoadMetadataPOptions.newBuilder()
-            .setLoadDescendantType(LoadDescendantPType.ONE)
-            .build();
-      }
+      // LoadDescendantPType determines the number of descendant inodes to sync
+      options = LoadMetadataPOptions.newBuilder()
+          .setLoadDescendantType(recursive ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
+          .build();
       mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());

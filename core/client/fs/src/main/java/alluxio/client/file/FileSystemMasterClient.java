@@ -171,7 +171,7 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * Loads the metadata of a file from the under file system.
+   * Loads the metadata of a path from the under file system.
    *
    * @param path the path of the file to load metadata for
    * @param options method options
