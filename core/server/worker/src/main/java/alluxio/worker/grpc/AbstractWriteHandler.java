@@ -25,7 +25,6 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
-import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -63,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
   private static final Logger SLOW_WRITE_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
-  private static long SLOW_WRITE_MS = 10 * Constants.SECOND_MS;
+  private static final long SLOW_WRITE_MS = 10 * Constants.SECOND_MS;
 
   /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
@@ -286,7 +285,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
         SLOW_WRITE_LOG.warn(prefix + " id: {} location: {} bytes: {} durationMs: {}",
             mContext.getRequest().getId(), getLocation(mContext), readableBytes, writeMs);
       }
-
 
       incrementMetrics(readableBytes);
     } catch (Exception e) {
