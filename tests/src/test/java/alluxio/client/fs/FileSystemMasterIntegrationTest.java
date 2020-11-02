@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
@@ -59,6 +60,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
+import alluxio.stress.worker.IOTaskSummary;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.FsMasterResource;
@@ -66,6 +68,7 @@ import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsMode;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.JsonSerializable;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -733,6 +736,15 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
+  }
+
+  @Test
+  public void ufsIOBench() throws Exception {
+    String output = mFsMaster.runUfsIOBench(new AlluxioURI(
+        PathUtils.concatPath(mFsMaster.getUfsAddress(), "in_ufs_src")),
+        "100M", "1", "2");
+    IOTaskSummary result = (IOTaskSummary) JsonSerializable.fromJson(output);
+    assertTrue(result.getErrors().isEmpty());
   }
 
   @Test
