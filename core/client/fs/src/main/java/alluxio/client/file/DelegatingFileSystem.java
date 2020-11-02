@@ -179,6 +179,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public String runUfsIOBench(AlluxioURI ufs, String ioSize, String clusterParallism,
+      String nodeParallelism) throws IOException, AlluxioException {
+    return mDelegatedFileSystem.runUfsIOBench(ufs, ioSize, clusterParallism, nodeParallelism);
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.setAcl(path, action, entries, options);

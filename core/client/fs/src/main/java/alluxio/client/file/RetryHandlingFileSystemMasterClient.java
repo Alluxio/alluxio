@@ -53,6 +53,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StopSyncPRequest;
+import alluxio.grpc.UfsIOBenchPRequest;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
@@ -298,6 +299,18 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> new AlluxioURI(mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
         .setUfsUri(ufsUri.toString()).build()).getAlluxioPath()), RPC_LOG, "ReverseResolve",
         "ufsUri=%s", ufsUri);
+  }
+
+  @Override
+  public String runUfsIOBench(AlluxioURI path, String ioSize, String clusterParallelism,
+      String nodeParallelism) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.ufsIOBench(
+        UfsIOBenchPRequest.newBuilder().setUfsUri(path.toString()).setIoSize(ioSize)
+            .setClusterParallelism(clusterParallelism)
+            .setNodeParallelism(nodeParallelism).build()).getResponse(),
+        RPC_LOG, "UfsIOBench",
+        "path=%s,ioSize=%s,clusterParallelism=%s,nodeParallelism=%s",
+        path, ioSize, clusterParallelism, nodeParallelism);
   }
 
   @Override

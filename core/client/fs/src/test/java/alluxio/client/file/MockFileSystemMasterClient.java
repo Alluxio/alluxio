@@ -135,6 +135,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public String runUfsIOBench(AlluxioURI path, String ioSize, String clusterParallelism,
+      String nodeParallelism) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws AlluxioStatusException {
   }

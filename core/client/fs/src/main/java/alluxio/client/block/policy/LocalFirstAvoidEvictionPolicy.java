@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
+
 @ThreadSafe
 public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy {
   private final LocalFirstPolicy mPolicy;

@@ -53,6 +53,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsIOBenchPRequest;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
@@ -393,6 +394,19 @@ public class BaseFileSystem implements FileSystem {
       AlluxioURI path = client.reverseResolve(ufsUri);
       LOG.debug("Reverse resolved {} to {}", ufsUri, path.getPath());
       return path;
+    });
+  }
+
+  @Override
+  public String runUfsIOBench(AlluxioURI ufs, String ioSize, String clusterParallism,
+      String nodeParallelism) throws IOException, AlluxioException {
+    checkUri(ufs);
+    return rpc(client -> {
+      UfsIOBenchPRequest request = UfsIOBenchPRequest.newBuilder().setUfsUri(ufs.toString())
+          .setIoSize(ioSize).setClusterParallelism(clusterParallism)
+          .setNodeParallelism(nodeParallelism).build();
+      LOG.debug("Run UfsIOBench through FileSystem for {}", ufs.toString());
+      return client.runUfsIOBench(ufs, ioSize, clusterParallism, nodeParallelism);
     });
   }
 

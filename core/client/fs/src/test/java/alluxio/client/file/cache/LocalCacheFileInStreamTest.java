@@ -562,6 +562,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public String runUfsIOBench(AlluxioURI ufs, String ioSize, String clusterParallism,
+        String nodeParallelism) throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();

@@ -223,6 +223,18 @@ public interface FileSystemMasterClient extends Client {
   AlluxioURI reverseResolve(AlluxioURI ufsUri) throws AlluxioStatusException;
 
   /**
+   * Run ufs IO bench mark.
+   *
+   * @param path ufs path
+   * @param ioSize io size to test
+   * @param clusterParallelism the number of machines to launch the test
+   * @param nodeParallelism the number threads per machine
+   * @return result of the benchmark
+   */
+  String runUfsIOBench(AlluxioURI path, String ioSize, String clusterParallelism,
+      String nodeParallelism) throws AlluxioStatusException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the file or directory path
