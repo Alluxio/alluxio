@@ -445,6 +445,17 @@ enum UfsPMode {
   READ_WRITE = 3;
 }
 
+message UfsIOBenchPRequest {
+  optional string ufsUri = 1;
+  optional string ioSize = 2;
+  optional string clusterParallelism = 3;
+  optional string nodeParallelism = 4;
+}
+
+message UfsIOBenchPResponse {
+  optional string response = 1;
+}
+
 message UpdateMountPRequest {
   /** the path of alluxio mount point */
   optional string alluxioPath = 1;
@@ -576,6 +587,11 @@ service FileSystemMasterClientService {
    * will be persisted before they are removed from the Alluxio namespace.
    */
   rpc Unmount(UnmountPRequest) returns (UnmountPResponse);
+
+  /**
+   * Run UfsIOBench through filesystem master so that configurations can be obtained
+   */
+  rpc UfsIOBench(UfsIOBenchPRequest) returns (UfsIOBenchPResponse);
 
   /**
    * Updates an existing "mount point", changing its mount properties

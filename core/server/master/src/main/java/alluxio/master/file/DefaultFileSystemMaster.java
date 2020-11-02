@@ -175,6 +175,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -4481,5 +4482,36 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Nullable
   public String getRootInodeOwner() {
     return mInodeTree.getRootUserName();
+  }
+
+  @Override
+  public String runUfsIOBench(AlluxioURI ufsUri, String dataSize, String clusterParallelism,
+      String nodeParallelism)
+      throws IOException, InvalidPathException {
+    MountTable.ReverseResolution resolution = mMountTable.reverseResolve(ufsUri);
+    if (resolution == null) {
+      throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
+    }
+    String ufsPath = ufsUri.toString();
+
+    List<String> argList = new ArrayList<>();
+    String[] args = new String[]{
+        "--io-size", dataSize,
+        "--threads", nodeParallelism, "--path", ufsPath,
+        "--cluster-limit", clusterParallelism, "--cluster"
+    };
+    Collections.addAll(argList, args);
+    MountPointInfo mountInfo = resolution.getMountInfo().toMountPointInfo();
+    List<String> confArgs = mountInfo.getProperties().entrySet().stream()
+        .map(entry -> ImmutableList.of("--conf", entry.getKey() + "=" + entry.getValue()))
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
+    argList.addAll(confArgs);
+    alluxio.stress.cli.UfsIOBench bench = new alluxio.stress.cli.UfsIOBench();
+    try {
+      return bench.run(argList.toArray(new String[0]));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

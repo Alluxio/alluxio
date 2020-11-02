@@ -541,6 +541,18 @@ public interface FileSystem extends Closeable {
   AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException;
 
   /**
+   * Run UFS IO Benchmark.
+   *
+   * @param ufs ufs uri, will be validated to be a valid ufs path
+   * @param ioSize the size to test
+   * @param clusterParallism cluster level parallelism, the number of nodes running this test
+   * @param nodeParallelism the number of threads running the test per node.
+   *
+   * @return json serialied result
+   */
+  String runUfsIOBench(AlluxioURI ufs, String ioSize, String clusterParallism, String nodeParallelism);
+
+  /**
    * Convenience method for {@link #setAcl(AlluxioURI, SetAclAction, List, SetAclPOptions)} with
    * default options.
    *

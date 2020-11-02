@@ -60,6 +60,8 @@ import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StartSyncPResponse;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
+import alluxio.grpc.UfsIOBenchPRequest;
+import alluxio.grpc.UfsIOBenchPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateMountPRequest;
@@ -303,6 +305,17 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return RenamePResponse.newBuilder().build();
     }, "Rename", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void ufsIOBench(UfsIOBenchPRequest request,
+      StreamObserver<UfsIOBenchPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      AlluxioURI ufsUri = new AlluxioURI(request.getUfsUri());
+      String response = mFileSystemMaster.runUfsIOBench(ufsUri, request.getIoSize(),
+          request.getClusterParallelism(), request.getNodeParallelism());
+      return UfsIOBenchPResponse.newBuilder().setResponse(response).build();
+    }, "UfsIOBench", "request=%s", responseObserver, request);
   }
 
   @Override

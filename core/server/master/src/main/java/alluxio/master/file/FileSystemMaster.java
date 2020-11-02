@@ -584,4 +584,15 @@ public interface FileSystemMaster extends Master {
    * @return the owner of the root inode, null if the inode tree is not initialized
    */
   String getRootInodeOwner();
+
+  /**
+   * Run UFS IO Bench.
+   * @param ufsUri ufs URI
+   * @param ioSize Total IO size to be tested
+   * @param clusterParallelism number of nodes to run the benchmark
+   * @param nodeParallelism number of therads per node
+   * @return Json string representing result
+   */
+  String runUfsIOBench(AlluxioURI ufsUri, String ioSize, String clusterParallelism,
+      String nodeParallelism) throws IOException, InvalidPathException;
 }
