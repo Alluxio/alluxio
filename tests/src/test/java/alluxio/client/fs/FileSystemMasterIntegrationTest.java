@@ -741,6 +741,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void ufsIOBench() throws Exception {
+    ServerConfiguration.set(PropertyKey.HOME,
+        Paths.get(System.getProperty("user.dir")).getParent().toString());
     LocalAlluxioJobCluster jobCluster = new LocalAlluxioJobCluster();
     jobCluster.start();
     String output = mFsMaster.runUfsIOBench(new AlluxioURI(
