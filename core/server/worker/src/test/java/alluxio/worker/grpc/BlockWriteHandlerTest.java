@@ -71,8 +71,8 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
   @Test
   public void getLocation() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
-    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation2()));
-    assertTrue(mWriteHandler.getLocation2().startsWith("temp-block-"));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("temp-block-"));
   }
 
   @Override

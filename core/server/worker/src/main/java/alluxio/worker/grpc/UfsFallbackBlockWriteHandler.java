@@ -208,7 +208,7 @@ public final class UfsFallbackBlockWriteHandler
   }
 
   @Override
-  protected String getLocation(BlockWriteRequestContext context) {
+  protected String getLocationInternal(BlockWriteRequestContext context) {
     Protocol.CreateUfsBlockOptions createUfsBlockOptions =
         context.getRequest().getCreateUfsBlockOptions();
 

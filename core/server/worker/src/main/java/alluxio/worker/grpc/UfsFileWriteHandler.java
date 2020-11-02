@@ -143,7 +143,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
   }
 
   @Override
-  protected String getLocation(UfsFileWriteRequestContext context) {
+  protected String getLocationInternal(UfsFileWriteRequestContext context) {
     return context.getRequest().getCreateUfsFileOptions().getUfsPath();
   }
 

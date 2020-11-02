@@ -139,8 +139,8 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   @Test
   public void getLocation() throws Exception {
     mWriteHandler.write(newFallbackInitRequest(0));
-    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation2()));
-    assertTrue(mWriteHandler.getLocation2().startsWith("/.alluxio_ufs_blocks"));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("/.alluxio_ufs_blocks"));
   }
 
   protected WriteRequest newFallbackInitRequest(long bytesInBlockStore) {

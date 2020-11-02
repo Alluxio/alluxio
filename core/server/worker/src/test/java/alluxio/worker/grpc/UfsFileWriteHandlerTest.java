@@ -78,8 +78,8 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
   @Test
   public void getLocation() throws Exception {
     mWriteHandler.write(newWriteRequestCommand(0));
-    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation2()));
-    assertEquals("/test", mWriteHandler.getLocation2());
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertEquals("/test", mWriteHandler.getLocation());
   }
 
   @Override

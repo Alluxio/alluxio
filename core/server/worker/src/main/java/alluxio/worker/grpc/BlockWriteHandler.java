@@ -142,7 +142,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected String getLocation(BlockWriteRequestContext context) {
+  protected String getLocationInternal(BlockWriteRequestContext context) {
     return String.format("temp-block-session-%d-id-%d", context.getRequest().getSessionId(),
         context.getRequest().getId());
   }

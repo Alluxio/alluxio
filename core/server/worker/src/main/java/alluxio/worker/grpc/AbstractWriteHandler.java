@@ -283,7 +283,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
         // Do not template the handler class, so the sampling log can distinguish between
         // different handler types
         SLOW_WRITE_LOG.warn(prefix + " id: {} location: {} bytes: {} durationMs: {}",
-            mContext.getRequest().getId(), getLocation(mContext), readableBytes, writeMs);
+            mContext.getRequest().getId(), getLocation(), readableBytes, writeMs);
       }
 
       incrementMetrics(readableBytes);
@@ -377,13 +377,16 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param context the context of the request
    * @return an informational string of the location the writer is writing to
    */
-  protected abstract String getLocation(T context);
+  protected abstract String getLocationInternal(T context);
 
-  public String getLocation2() {
+  /**
+   * @return an informational string of the location the writer is writing to
+   */
+  public String getLocation() {
     if (mContext == null) {
       return "null";
     }
-    return getLocation(mContext);
+    return getLocationInternal(mContext);
   }
 
   /**
