@@ -137,6 +137,7 @@ import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
+import alluxio.stress.cli.UfsIOBench;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
@@ -4507,7 +4508,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         .flatMap(List::stream)
         .collect(Collectors.toList());
     argList.addAll(confArgs);
-    alluxio.stress.cli.UfsIOBench bench = new alluxio.stress.cli.UfsIOBench(ServerConfiguration.global());
+    UfsIOBench bench = new UfsIOBench(ServerConfiguration.global());
     try {
       return bench.run(argList.toArray(new String[0]));
     } catch (Exception e) {
