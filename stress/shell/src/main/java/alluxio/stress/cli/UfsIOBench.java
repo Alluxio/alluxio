@@ -12,7 +12,7 @@
 package alluxio.stress.cli;
 
 import alluxio.cli.ValidationUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
@@ -47,9 +47,23 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   @ParametersDelegate
   private UfsIOParameters mParameters = new UfsIOParameters();
 
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-
   private final UUID mTaskId = UUID.randomUUID();
+
+  /**
+   * Defaut constructor.
+   */
+  public UfsIOBench() {
+
+  }
+
+  /**
+   * Construct a UFSIOBench with a configuration.
+   * @param conf coniguration
+   */
+  public UfsIOBench(AlluxioConfiguration conf) {
+    this();
+    mConf = conf;
+  }
 
   @Override
   public IOTaskResult runLocal() throws Exception {

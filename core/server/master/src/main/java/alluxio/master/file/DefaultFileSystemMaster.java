@@ -4507,7 +4507,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         .flatMap(List::stream)
         .collect(Collectors.toList());
     argList.addAll(confArgs);
-    alluxio.stress.cli.UfsIOBench bench = new alluxio.stress.cli.UfsIOBench();
+    alluxio.stress.cli.UfsIOBench bench = new alluxio.stress.cli.UfsIOBench(ServerConfiguration.global());
     try {
       return bench.run(argList.toArray(new String[0]));
     } catch (Exception e) {

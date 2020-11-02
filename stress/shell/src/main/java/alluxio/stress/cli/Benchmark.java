@@ -56,6 +56,8 @@ public abstract class Benchmark<T extends TaskResult> {
 
   @ParametersDelegate
   protected BaseParameters mBaseParameters = new BaseParameters();
+  protected AlluxioConfiguration mConf
+      = new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
    * Runs the test locally, in process.
@@ -127,14 +129,13 @@ public abstract class Benchmark<T extends TaskResult> {
           + "=" + BaseParameters.AGENT_OUTPUT_PATH);
     }
 
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     String className = this.getClass().getCanonicalName();
 
     if (mBaseParameters.mCluster) {
       // run on job service
       long jobId =
-          JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
-      JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
+          JobGrpcClientUtils.run(generateJobConfig(args), 0, mConf);
+      JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, mConf, true);
       return jobInfo.getResult().toString();
     }
 
@@ -152,7 +153,7 @@ public abstract class Benchmark<T extends TaskResult> {
     } else {
       // Spawn a new process
       List<String> command = new ArrayList<>();
-      command.add(conf.get(PropertyKey.HOME) + "/bin/alluxio");
+      command.add(mConf.get(PropertyKey.HOME) + "/bin/alluxio");
       command.add("runClass");
       command.add(className);
       command.addAll(Arrays.asList(args));
