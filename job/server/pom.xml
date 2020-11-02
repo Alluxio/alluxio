@@ -87,7 +87,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-stress</artifactId>
+      <artifactId>alluxio-stress-shelll</artifactId>
       <version>${project.version}</version>
     </dependency>
 
