@@ -1082,8 +1082,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       DescendantType syncDescendantType =
           GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
       FileSystemMasterCommonPOptions commonOptions = context.getOptions().getCommonOptions();
-      InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.WRITE_EDGE, true),
-          this, rpcContext, syncDescendantType, commonOptions, false, true, false);
+      InodeSyncStream sync =
+          new InodeSyncStream(new LockingScheme(path, LockPattern.WRITE_EDGE, true), this,
+              rpcContext, syncDescendantType, commonOptions, false, true, false);
       if (!sync.sync()) {
         LOG.debug("Failed to load metadata for path from UFS: {}", path);
       }
