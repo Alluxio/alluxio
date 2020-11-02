@@ -46,7 +46,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
 
-  private int mActiveJobs;
   private String mWriteType;
 
   /**
