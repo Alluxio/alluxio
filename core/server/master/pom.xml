@@ -100,7 +100,7 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-stress-shell</artifactId>
-      <version>alluxio-stress-shell</version>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- External test dependencies -->
