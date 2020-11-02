@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.Constants;
 import alluxio.cli.ValidationUtils.State;
 import alluxio.cli.hms.CreateHmsClientValidationTask;
 import alluxio.cli.hms.DatabaseValidationTask;
@@ -32,13 +33,13 @@ public class HmsValidationTool implements ValidationTool {
   private static final Logger LOG = LoggerFactory.getLogger(HmsValidationTool.class);
 
   // Default hive metastore client socket timeout in minutes
-  public static final int DEFAULT_SOCKET_TIMEOUT = 12;
+  public static final int DEFAULT_SOCKET_TIMEOUT_MINUTES = 12;
   public static final String DEFAULT_DATABASE = "default";
 
   private final String mMetastoreUri;
   private final String mDatabase;
   private final String mTables;
-  private final int mSocketTimeout;
+  private final int mSocketTimeoutMinutes;
   private final Map<String, ValidationTask> mTasks;
 
   /**
@@ -54,11 +55,13 @@ public class HmsValidationTool implements ValidationTool {
     mMetastoreUri = metastoreUri;
     mDatabase = database == null || database.isEmpty() ? DEFAULT_DATABASE : database;
     mTables = tables;
-    mSocketTimeout = socketTimeout > 0 ? socketTimeout : DEFAULT_SOCKET_TIMEOUT;
+    mSocketTimeoutMinutes = socketTimeout > 0 ? socketTimeout : DEFAULT_SOCKET_TIMEOUT_MINUTES;
     mTasks = new HashMap<>();
-    UriCheckTask uriCheck = new UriCheckTask(mMetastoreUri, mSocketTimeout);
+    UriCheckTask uriCheck = new UriCheckTask(mMetastoreUri,
+        mSocketTimeoutMinutes * Constants.MINUTE_MS);
     CreateHmsClientValidationTask clientTask =
-        new CreateHmsClientValidationTask(mSocketTimeout, uriCheck);
+        new CreateHmsClientValidationTask(
+            mSocketTimeoutMinutes * Constants.MINUTE_SECONDS, uriCheck);
     DatabaseValidationTask dbTask = new DatabaseValidationTask(mDatabase, clientTask);
     TableValidationTask tableTask = new TableValidationTask(mDatabase, mTables, clientTask);
     mTasks.put(uriCheck.getName(), uriCheck);
@@ -77,7 +80,7 @@ public class HmsValidationTool implements ValidationTool {
     String metastoreUri = "";
     String database = DEFAULT_DATABASE;
     String tables = "";
-    int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
+    int socketTimeout = DEFAULT_SOCKET_TIMEOUT_MINUTES;
     try {
       metastoreUri = (String) configMap
           .getOrDefault(ValidationConfig.METASTORE_URI_CONFIG_NAME, "");
@@ -86,7 +89,7 @@ public class HmsValidationTool implements ValidationTool {
       tables = (String) configMap
           .getOrDefault(ValidationConfig.TABLES_CONFIG_NAME, "");
       socketTimeout = Integer.parseInt(configMap
-          .getOrDefault(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, DEFAULT_SOCKET_TIMEOUT)
+          .getOrDefault(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, DEFAULT_SOCKET_TIMEOUT_MINUTES)
           .toString());
     } catch (RuntimeException e) {
       // Try not to throw exception on the construction function
