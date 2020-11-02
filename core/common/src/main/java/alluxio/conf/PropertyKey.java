@@ -1037,6 +1037,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_BOS_CONNECT_MAX =
+      new Builder(Name.UNDERFS_BOS_CONNECT_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of BOS connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_BOS_CONNECT_TIMEOUT =
+      new Builder(Name.UNDERFS_BOS_CONNECT_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.bos.connection.timeout.ms"})
+          .setDefaultValue(5000)
+          .setDescription("The timeout when connecting to BOS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_BOS_SOCKET_TIMEOUT =
+      new Builder(Name.UNDERFS_BOS_SOCKET_TIMEOUT)
+          .setAlias(new String[]{"alluxio.underfs.bos.socket.timeout.ms"})
+          .setDefaultValue(2000)
+          .setDescription("The timeout of BOS socket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -1191,6 +1214,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The endpoint of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey BOS_ACCESS_KEY = new Builder(Name.BOS_ACCESS_KEY)
+          .setDescription("The access key of BOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey BOS_ENDPOINT_KEY = new Builder(Name.BOS_ENDPOINT_KEY)
+          .setDescription("The endpoint key of BOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey BOS_SECRET_KEY = new Builder(Name.BOS_SECRET_KEY)
+          .setDescription("The secret key of BOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
 
   //
@@ -4860,6 +4900,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
+    public static final String UNDERFS_BOS_CONNECT_MAX = "alluxio.underfs.bos.connection.max";
+    public static final String UNDERFS_BOS_CONNECT_TIMEOUT =
+        "alluxio.underfs.bos.connection.timeout";
+    public static final String UNDERFS_BOS_SOCKET_TIMEOUT = "alluxio.underfs.bos.socket.timeout";
 
     //
     // UFS access control related properties
@@ -4887,6 +4931,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
+    public static final String BOS_ACCESS_KEY = "fs.bos.accessKeyId";
+    public static final String BOS_ENDPOINT_KEY = "fs.bos.endpoint";
+    public static final String BOS_SECRET_KEY = "fs.bos.accessKeySecret";
 
     //
     // Master related properties

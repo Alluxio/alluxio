@@ -24,6 +24,7 @@
 
   <modules>
     <module>adl</module>
+    <module>bos</module>
     <module>cos</module>
     <module>gcs</module>
     <module>hdfs</module>

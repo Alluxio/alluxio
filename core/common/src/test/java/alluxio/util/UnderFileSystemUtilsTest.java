@@ -31,5 +31,7 @@ public final class UnderFileSystemUtilsTest {
         UnderFileSystemUtils.getBucketName(new AlluxioURI("swift://container&/folder/file")));
     assertEquals("oss",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("oss://oss/folder/.file")));
+    assertEquals("bos",
+        UnderFileSystemUtils.getBucketName(new AlluxioURI("bos://bos/folder/.file")));
   }
 }

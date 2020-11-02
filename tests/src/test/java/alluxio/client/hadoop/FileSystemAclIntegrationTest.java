@@ -568,6 +568,22 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void bosGetPermission() throws Exception {
+    Assume.assumeTrue(UnderFileSystemUtils.isBos(sUfs));
+
+    Path fileA = new Path("/objectfileA");
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Verify the owner, group and permission of BOS UFS is not supported and thus returns default
+    // values.
+    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
+    Assert.assertNotEquals("", ufsStatus.getOwner());
+    Assert.assertNotEquals("", ufsStatus.getGroup());
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE, ufsStatus.getMode());
+  }
+
+  @Test
   public void objectStoreSetOwner() throws Exception {
     Assume.assumeTrue(sUfs.isObjectStorage());
 
