@@ -52,9 +52,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   /**
    * Defaut constructor.
    */
-  public UfsIOBench() {
-
-  }
+  public UfsIOBench() { }
 
   /**
    * Construct a UFSIOBench with a configuration.
