@@ -99,7 +99,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-stress-shell</artifactId>
+      <artifactId>alluxio-stress</artifactId>
       <version>${project.version}</version>
     </dependency>
 

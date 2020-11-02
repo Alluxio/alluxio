@@ -46,6 +46,7 @@ import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -740,11 +741,14 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void ufsIOBench() throws Exception {
+    LocalAlluxioJobCluster jobCluster = new LocalAlluxioJobCluster();
+    jobCluster.start();
     String output = mFsMaster.runUfsIOBench(new AlluxioURI(
         PathUtils.concatPath(mFsMaster.getUfsAddress(), "in_ufs_src")),
         "100M", "1", "2");
     IOTaskSummary result = (IOTaskSummary) JsonSerializable.fromJson(output);
     assertTrue(result.getErrors().isEmpty());
+    jobCluster.stop();
   }
 
   @Test
