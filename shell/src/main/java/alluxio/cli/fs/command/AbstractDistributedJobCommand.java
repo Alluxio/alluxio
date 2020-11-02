@@ -16,6 +16,7 @@ import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.job.wire.Status;
+import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
@@ -76,6 +77,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       if (removed.get()) {
         return;
       }
+      CommonUtils.sleepMs(5);
     }
   }
 }
