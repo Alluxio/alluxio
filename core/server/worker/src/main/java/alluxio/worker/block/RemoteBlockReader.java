@@ -106,6 +106,11 @@ public class RemoteBlockReader extends BlockReader {
     mClosed = true;
   }
 
+  @Override
+  public String getLocation() {
+    return mDataSource.toString();
+  }
+
   private void init() {
     if (mInputStream != null) {
       return;

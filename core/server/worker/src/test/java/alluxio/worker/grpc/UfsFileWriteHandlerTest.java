@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
@@ -18,6 +20,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.util.CommonUtils;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -70,6 +73,13 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     waitForResponses();
     checkErrorCode(mResponseObserver, Status.Code.UNKNOWN);
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mWriteHandler.write(newWriteRequestCommand(0));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation2()));
+    assertEquals("/test", mWriteHandler.getLocation2());
   }
 
   @Override

@@ -30,6 +30,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -58,6 +60,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
+  private static long SLOW_BUFFER_MS = 10 * Constants.SECOND_MS;
 
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The Block Worker. */
@@ -105,17 +109,45 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected DataBuffer getDataBuffer(BlockReadRequestContext context, long offset, int len)
         throws Exception {
-      openBlock(context);
-      BlockReader blockReader = context.getBlockReader();
-      Preconditions.checkState(blockReader != null);
-      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+      @Nullable
+      BlockReader blockReader = null;
+      // timings
+      long openMs = -1;
+      long transferMs = -1;
+      long startMs = System.currentTimeMillis();
       try {
-        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        openBlock(context);
+        openMs = System.currentTimeMillis() - startMs;
+        blockReader = context.getBlockReader();
+        Preconditions.checkState(blockReader != null);
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+        try {
+          long startTransferMs = System.currentTimeMillis();
+          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+          }
+          transferMs = System.currentTimeMillis() - startTransferMs;
+          return new NettyDataBuffer(buf);
+        } catch (Throwable e) {
+          buf.release();
+          throw e;
         }
-        return new NettyDataBuffer(buf);
-      } catch (Throwable e) {
-        buf.release();
-        throw e;
+      } finally {
+        long durationMs = System.currentTimeMillis() - startMs;
+        if (durationMs >= SLOW_BUFFER_MS) {
+          // This buffer took much longer than expected
+          String prefix = String
+              .format("Getting buffer for remote read took longer than %s ms. ", SLOW_BUFFER_MS)
+              + "reader: " + (blockReader == null ? "null" : blockReader.getClass().getName());
+
+          String location = blockReader == null ? "null" : blockReader.getLocation();
+
+          // Do not template the reader class, so the sampling log can distinguish between
+          // different reader types
+          SLOW_BUFFER_LOG.warn(prefix
+                  + " location: {} bytes: {} openMs: {} transferMs: {} durationMs: {}",
+              location, len, openMs, transferMs, durationMs);
+
+        }
       }
     }
 

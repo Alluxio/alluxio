@@ -12,10 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -284,6 +284,11 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   @Override
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @Override
+  public String getLocation() {
+    return mBlockMeta.getUnderFileSystemPath();
   }
 
   /**

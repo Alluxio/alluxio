@@ -142,6 +142,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     buf.readBytes(context.getOutputStream(), buf.readableBytes());
   }
 
+  @Override
+  protected String getLocation(UfsFileWriteRequestContext context) {
+    return context.getRequest().getCreateUfsFileOptions().getUfsPath();
+  }
+
   private void createUfsFile(UfsFileWriteRequestContext context)
       throws IOException {
     UfsFileWriteRequest request = context.getRequest();
