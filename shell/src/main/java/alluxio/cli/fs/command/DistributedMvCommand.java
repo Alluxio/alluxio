@@ -12,35 +12,29 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.job.JobGrpcClientUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.plan.migrate.MigrateConfig;
-import alluxio.util.CommonUtils;
+import alluxio.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Moves a file or directory specified by args.
  */
-@ThreadSafe
-@PublicApi
-public final class DistributedMvCommand extends AbstractFileSystemCommand {
+public class DistributedMvCommand extends AbstractDistributedJobCommand {
+
+  private DistributedCpCommand mCpCommand;
 
   /**
-   * @param fsContext the filesystem of Alluxio
+   * @param fsContext the filesystem context of Alluxio
    */
   public DistributedMvCommand(FileSystemContext fsContext) {
     super(fsContext);
+
+    mCpCommand = new DistributedCpCommand(fsContext);
   }
 
   @Override
@@ -50,31 +44,28 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    mCpCommand.validateArgs(cl);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    try {
+      mCpCommand.run(cl);
+    } catch (AlluxioException | IOException e) {
+      System.out.println("Copy operation portion of Move failed. If the error below is "
+          + "intermittent, you can rerun this by deleting the destination first.");
+      throw e;
+    }
+
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
-    AlluxioURI dstPath = new AlluxioURI(args[1]);
-    if (mFileSystem.exists(dstPath)) {
-      throw new RuntimeException(dstPath + " already exists");
-    }
-    Thread thread = CommonUtils.createProgressThread(System.out);
-    thread.start();
-    try {
-      AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
-      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
-          conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
-          true), 1, mFsContext.getPathConf(dstPath));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return -1;
-    } finally {
-      thread.interrupt();
-    }
-    System.out.println("Moved " + srcPath + " to " + dstPath);
+
+    // ## MigrateDeleteUnchecked
+    // Delete the source unchecked because there is no guarantee that the source
+    // has been fulled persisted yet if the source was written using ASYNC_THROUGH
+    System.out.println("Deleting " + srcPath);
+    mFileSystem.delete(srcPath,
+        DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true).build());
     return 0;
   }
 
@@ -85,6 +76,6 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Moves a file or directory in parallel at file level.";
+    return "Moves a file or directory in parallel at file level";
   }
 }
