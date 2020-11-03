@@ -397,7 +397,7 @@ public final class S3RestServiceHandler {
           // TODO(cc): Consider how to respond with the object's ETag.
           return Response.ok()
               .lastModified(new Date(status.getLastModificationTimeMs()))
-              .header(S3Constants.S3_ETAG_HEADER, status.getLastModificationTimeMs())
+              .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
               .build();
         } catch (Exception e) {
@@ -479,7 +479,7 @@ public final class S3RestServiceHandler {
           // TODO(cc): Consider how to respond with the object's ETag.
           return Response.ok(is)
               .lastModified(new Date(status.getLastModificationTimeMs()))
-              .header(S3Constants.S3_ETAG_HEADER, status.getLastModificationTimeMs())
+              .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
               .build();
         } catch (Exception e) {
