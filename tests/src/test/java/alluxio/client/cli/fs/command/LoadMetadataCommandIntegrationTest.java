@@ -22,6 +22,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
 
@@ -34,18 +35,18 @@ public final class LoadMetadataCommandIntegrationTest extends AbstractFileSystem
   @Test
   public void loadMetadataDir() throws IOException, AlluxioException {
     String dirPath = "/testRoot/layer1/layer2/layer3/";
-    String filePathA = dirPath + "testFileA";
-    String filePathB = dirPath + "testFileB";
+    String filePathA = PathUtils.concatPath(dirPath, "testFileA");
+    String filePathB = PathUtils.concatPath(dirPath, "testFileB");
     FileSystemTestUtils
         .createByteFile(sFileSystem, filePathA, WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils
-        .createByteFile(sFileSystem, filePathB, WritePType.THROUGH, 30);
+        .createByteFile(sFileSystem, filePathB, WritePType.CACHE_THROUGH, 30);
     AlluxioURI uriDir = new AlluxioURI(dirPath);
     AlluxioURI uriA = new AlluxioURI(filePathA);
     AlluxioURI uriB = new AlluxioURI(filePathB);
     URIStatus statusBeforeA = sFileSystem.getStatus(uriA);
     URIStatus statusBeforeB = sFileSystem.getStatus(uriB);
-    // Delete layer3 directory metadata recursive.
+    // Delete layer3 directory metadata recursively.
     DeletePOptions deletePOptions =
         DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
     sFileSystem.delete(uriDir, deletePOptions);
@@ -106,8 +107,8 @@ public final class LoadMetadataCommandIntegrationTest extends AbstractFileSystem
   @Test
   public void loadMetadataFileWithWildcard() throws IOException, AlluxioException {
     String dirPath = "/testRoot/layer1/layer2/layer3/";
-    String filePathA = dirPath + "testFileA";
-    String filePathB = dirPath + "testFileB";
+    String filePathA = PathUtils.concatPath(dirPath, "testFileA");
+    String filePathB = PathUtils.concatPath(dirPath, "testFileB");
     FileSystemTestUtils
         .createByteFile(sFileSystem, filePathA, WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils

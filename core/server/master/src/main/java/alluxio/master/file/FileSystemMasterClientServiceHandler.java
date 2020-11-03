@@ -250,7 +250,7 @@ public final class FileSystemMasterClientServiceHandler
             LoadMetadataContext.create(request.getLoadMetadataPOptions().toBuilder()));
       }
       return LoadMetadataPResponse.newBuilder().build();
-    }, "loadMetadata", "request=%s", responseObserver, request);
+    }, "LoadMetadata", "request=%s", responseObserver, request);
   }
 
   @Override

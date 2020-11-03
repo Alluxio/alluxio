@@ -271,7 +271,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .setPath(path.getPath())
                   .setLoadMetadataPOptions(options)
                   .build()),
-        RPC_LOG, "loadMetadata", "path=%s,options=%s", path, options
+        RPC_LOG, "LoadMetadata", "path=%s,options=%s", path, options
     );
   }
 

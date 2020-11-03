@@ -1066,15 +1066,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return fileInfos;
   }
 
-  /**
-   * {@link DefaultFileSystemMaster} has two private methods associated with sync metadata:
-   * 1. {@link DefaultFileSystemMaster#loadMetadataIfNotExist} sync metadata in load-only mode,
-   * 2. {@link DefaultFileSystemMaster#syncMetadata} sync metadata not in force mode.
-   * Due to loadMetaData need work on both non-load-only mode and force mode, we need custom a
-   * InodeSyncStream object which foreSync param is true and loadOnly param is false.
-   * Further more, synchronize metadata may modify the structure of the inode tree, the lock
-   * pattern of the InodeSyncStream object should be LockPattern.WRITE_EDGE.
-   */
   @Override
   public void loadMetaData(AlluxioURI path, LoadMetadataContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {

@@ -29,10 +29,9 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Load Metadata for the path.
- * This command as a client-side optimization without
- * storing all returned `ls` results, preventing OOM
- * for massive amount of small files.
+ * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+ * This command is a client-side optimization without storing all returned `ls`
+ * results, preventing OOM for massive amount of small files.
  */
 @ThreadSafe
 @PublicApi

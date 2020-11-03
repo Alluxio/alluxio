@@ -162,7 +162,7 @@ public interface FileSystemMaster extends Master {
       UnavailableException, IOException;
 
   /**
-   * Load metadata from ufs for given path.
+   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
    *
    * @param path the path to load metadata for
    * @param context the method context
