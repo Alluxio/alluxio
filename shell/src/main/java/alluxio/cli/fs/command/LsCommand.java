@@ -255,8 +255,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
       boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
       throws AlluxioException, IOException {
     Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
-    URIStatus pathStatus = mFileSystem.getStatus(path);
     if (dirAsFile) {
+      URIStatus pathStatus = mFileSystem.getStatus(path);
       printLsString(pathStatus, hSize, timestampFunction, pinnedOnly, pathStatus.isPinned());
       return;
     }
