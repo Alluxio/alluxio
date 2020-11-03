@@ -67,7 +67,6 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -82,6 +81,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+
+import javax.annotation.Nullable;
 
 /**
  * This class is responsible for maintaining the logic which surrounds syncing metadata between
@@ -563,9 +564,16 @@ public class InodeSyncStream {
       }
     }
 
-    syncChildren = syncChildren
-        && inode.isDirectory()
-        && mDescendantType != DescendantType.NONE;
+    // Only sync children when
+    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
+    if (mDescendantType == DescendantType.ONE) {
+      syncChildren =
+          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.ALL) {
+      syncChildren = syncChildren && inode.isDirectory();
+    } else {
+      syncChildren = false;
+    }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
     if (syncChildren) {
