@@ -118,8 +118,8 @@ public class HdfsConfValidationTaskTest {
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(String.format("Failed to parse %s", hdfsSite)));
     assertThat(result.getResult(), containsString(String.format("Failed to parse %s", coreSite)));
-    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", hdfsSite)));
-    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", coreSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Failed to parse %s", hdfsSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Failed to parse %s", coreSite)));
   }
 
   @Test
