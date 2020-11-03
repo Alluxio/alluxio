@@ -66,4 +66,9 @@ public abstract class BlockReader extends BlockClient {
    * @return true if this reader is closed
    */
   public abstract boolean isClosed();
+
+  /**
+   * @return an informational string of the location the reader is reading from
+   */
+  public abstract String getLocation();
 }
