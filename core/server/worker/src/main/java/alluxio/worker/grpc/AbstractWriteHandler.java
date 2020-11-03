@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.Constants;
 import alluxio.client.block.stream.GrpcDataWriter;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -23,6 +24,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -59,6 +61,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
+  private static final Logger SLOW_WRITE_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
+  private static final long SLOW_WRITE_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
 
   /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
@@ -264,7 +269,24 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       }
       int readableBytes = buf.readableBytes();
       mContext.setPos(mContext.getPos() + readableBytes);
+
+      long writeStartMs = System.currentTimeMillis();
       writeBuf(mContext, mResponseObserver, buf, mContext.getPos());
+      long writeMs = System.currentTimeMillis() - writeStartMs;
+
+      if (writeMs >= SLOW_WRITE_MS) {
+        // A single write call took much longer than expected.
+
+        String prefix = String
+            .format("Writing buffer for remote write took longer than %s ms. handler: %s",
+                SLOW_WRITE_MS, this.getClass().getName());
+
+        // Do not template the handler class, so the sampling log can distinguish between
+        // different handler types
+        SLOW_WRITE_LOG.warn(prefix + " id: {} location: {} bytes: {} durationMs: {}",
+            mContext.getRequest().getId(), getLocation(), readableBytes, writeMs);
+      }
+
       incrementMetrics(readableBytes);
     } catch (Exception e) {
       LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
@@ -350,6 +372,22 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   protected abstract void writeBuf(T context, StreamObserver<WriteResponse> responseObserver,
       DataBuffer buf, long pos) throws Exception;
+
+  /**
+   * @param context the context of the request
+   * @return an informational string of the location the writer is writing to
+   */
+  protected abstract String getLocationInternal(T context);
+
+  /**
+   * @return an informational string of the location the writer is writing to
+   */
+  public String getLocation() {
+    if (mContext == null) {
+      return "null";
+    }
+    return getLocationInternal(mContext);
+  }
 
   /**
    * Handles a command in the write request.
