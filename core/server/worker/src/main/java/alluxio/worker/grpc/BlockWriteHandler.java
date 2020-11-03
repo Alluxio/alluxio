@@ -23,9 +23,7 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
-
 import io.grpc.stub.StreamObserver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,5 +139,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();
     Preconditions.checkState(context.getBlockWriter().append(buf)  == sz);
+  }
+
+  @Override
+  protected String getLocationInternal(BlockWriteRequestContext context) {
+    return String.format("temp-block-session-%d-id-%d", context.getRequest().getSessionId(),
+        context.getRequest().getId());
   }
 }

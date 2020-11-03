@@ -278,6 +278,11 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     return mClosed;
   }
 
+  @Override
+  public String getLocation() {
+    return mBlockMeta.getUnderFileSystemPath();
+  }
+
   /**
    * @return the mount point URI of the UFS that this reader is currently reading from
    */

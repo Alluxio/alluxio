@@ -63,4 +63,9 @@ public final class MockBlockReader extends BlockReader {
   public ReadableByteChannel getChannel() {
     return Channels.newChannel(new ByteArrayInputStream(mBytes));
   }
+
+  @Override
+  public String getLocation() {
+    return "mock";
+  }
 }

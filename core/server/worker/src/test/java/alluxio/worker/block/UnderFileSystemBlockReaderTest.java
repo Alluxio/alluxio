@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
@@ -104,7 +105,7 @@ public final class UnderFileSystemBlockReaderTest {
     BlockReader reader = mAlluxioBlockStore.getBlockReader(SESSION_ID, BLOCK_ID, lockId);
     Assert.assertEquals(length, reader.getLength());
     ByteBuffer buffer = reader.read(0, length);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer((int) start, (int) length, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer((int) start, (int) length, buffer));
     reader.close();
   }
 
@@ -113,7 +114,7 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         mAlluxioBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
     checkTempBlock(0, TEST_BLOCK_SIZE);
   }
@@ -123,7 +124,7 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         mAlluxioBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE - 1);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 1, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 1, buffer));
     mReader.close();
     // partial block should not be cached
     Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
@@ -134,7 +135,7 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         mAlluxioBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
-    Assert.assertTrue(BufferUtils
+    assertTrue(BufferUtils
         .equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
     mReader.close();
     // partial block should not be cached
@@ -146,11 +147,11 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 2, false,
         mAlluxioBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(2, TEST_BLOCK_SIZE - 2);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
     buffer = mReader.read(0, TEST_BLOCK_SIZE - 2);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 2, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 2, buffer));
     buffer = mReader.read(3, TEST_BLOCK_SIZE);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(3, (int) TEST_BLOCK_SIZE - 3, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(3, (int) TEST_BLOCK_SIZE - 3, buffer));
     mReader.close();
     // block should be cached as two reads covers the full block
     checkTempBlock(0, TEST_BLOCK_SIZE);
@@ -164,7 +165,7 @@ public final class UnderFileSystemBlockReaderTest {
         mAlluxioBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     // read should succeed even if error is thrown when caching
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
     Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
   }
@@ -178,7 +179,7 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         errorThrowingBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
     Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
   }
@@ -191,7 +192,7 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         errorThrowingBlockStore, mUfsManager);
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
     Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
   }
@@ -205,7 +206,7 @@ public final class UnderFileSystemBlockReaderTest {
     try {
       while (buf.writableBytes() > 0 && mReader.transferTo(buf) != -1) {
       }
-      Assert.assertTrue(BufferUtils
+      assertTrue(BufferUtils
           .equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buf.nioBuffer()));
       mReader.close();
     } finally {
@@ -223,7 +224,7 @@ public final class UnderFileSystemBlockReaderTest {
     try {
       while (buf.writableBytes() > 0 && mReader.transferTo(buf) != -1) {
       }
-      Assert.assertTrue(BufferUtils
+      assertTrue(BufferUtils
           .equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE / 2, buf.nioBuffer()));
       mReader.close();
     } finally {
@@ -231,5 +232,12 @@ public final class UnderFileSystemBlockReaderTest {
     }
     // partial block should not be cached
     Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsManager);
+    assertTrue(mReader.getLocation().startsWith(mOpenUfsBlockOptions.getUfsPath()));
   }
 }
