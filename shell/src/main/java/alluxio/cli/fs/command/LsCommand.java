@@ -259,12 +259,26 @@ public final class LsCommand extends AbstractFileSystemCommand {
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
       boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
       throws AlluxioException, IOException {
+<<<<<<< HEAD
     URIStatus pathStatus = mFileSystem.getStatus(path);
+||||||| parent of 63d565de53... Prevent unnecessary inode syncing
+    Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
+    URIStatus pathStatus = mFileSystem.getStatus(path);
+=======
+    Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
+>>>>>>> 63d565de53... Prevent unnecessary inode syncing
     if (dirAsFile) {
+<<<<<<< HEAD
       if (pinnedOnly && !pathStatus.isPinned()) {
         return;
       }
       printLsString(pathStatus, hSize, timestampOption);
+||||||| parent of 63d565de53... Prevent unnecessary inode syncing
+      printLsString(pathStatus, hSize, timestampFunction, pinnedOnly, pathStatus.isPinned());
+=======
+      URIStatus pathStatus = mFileSystem.getStatus(path);
+      printLsString(pathStatus, hSize, timestampFunction, pinnedOnly, pathStatus.isPinned());
+>>>>>>> 63d565de53... Prevent unnecessary inode syncing
       return;
     }
 

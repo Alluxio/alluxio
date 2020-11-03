@@ -47,6 +47,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -161,6 +162,23 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     checkGetStatus(EXISTING_DIR, options, true);
   }
 
+  // https://github.com/Alluxio/alluxio/issues/12372
+  @Test
+  public void getStatusDirSyncOnlyTouchingChildren() throws Exception {
+    String dir1 = PathUtils.concatPath(EXISTING_DIR, "dir_should_sync");
+    String dir2 = PathUtils.concatPath(dir1, "dir_should_not_sync");
+    new File(ufsPath(dir1)).mkdirs();
+    new File(ufsPath(dir2)).mkdirs();
+    GetStatusPOptions optionsAlways = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(PSYNC_ALWAYS).build();
+    checkGetStatus(EXISTING_DIR, optionsAlways, true);
+    ListStatusPOptions optionsNever = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER)
+        .setRecursive(false).build();
+    checkListStatus(dir2, optionsNever, false);
+  }
+
   @Test
   public void listDirSync() throws Exception {
     ListStatusPOptions options = ListStatusPOptions.newBuilder()
@@ -172,6 +190,23 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(NEW_FILE), 2);
 
     checkListStatus(ROOT_DIR, options, true);
+  }
+
+  // https://github.com/Alluxio/alluxio/issues/12372
+  @Test
+  public void listDirSyncOnlyTouchingChildren() throws Exception {
+    String dir1 = PathUtils.concatPath(EXISTING_DIR, "dir_should_sync");
+    String dir2 = PathUtils.concatPath(dir1, "dir_should_not_sync");
+    new File(ufsPath(dir1)).mkdirs();
+    new File(ufsPath(dir2)).mkdirs();
+    ListStatusPOptions optionsAlways = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setRecursive(false)
+        .setCommonOptions(PSYNC_ALWAYS).build();
+    checkListStatus(EXISTING_DIR, optionsAlways, true);
+    ListStatusPOptions optionsNever = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER)
+        .setRecursive(false).build();
+    checkListStatus(dir2, optionsNever, false);
   }
 
   @Test
