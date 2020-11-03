@@ -237,7 +237,7 @@ public final class UnderFileSystemBlockReaderTest {
   @Test
   public void getLocation() throws Exception {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
-        mAlluxioBlockStore, mUfsManager, mUfsInstreamManager);
+        mAlluxioBlockStore, mUfsManager);
     assertTrue(mReader.getLocation().startsWith(mOpenUfsBlockOptions.getUfsPath()));
   }
 }
