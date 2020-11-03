@@ -2857,6 +2857,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
+      new Builder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
+          .setDefaultValue("10s")
+          .setDescription(
+              "The time threshold for when a worker remote IO (read or write) of a single buffer "
+                  + "is considered slow. When slow IO occurs, it is logged by a sampling logger.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   // The default is set to 11. One client is reserved for some light weight operations such as
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
   // master.
@@ -5252,6 +5261,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
+        "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";

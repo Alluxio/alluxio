@@ -12,11 +12,11 @@
 package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -61,7 +61,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
-  private static final long SLOW_BUFFER_MS = 10 * Constants.SECOND_MS;
+  private static final long SLOW_BUFFER_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
 
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The Block Worker. */
