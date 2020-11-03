@@ -44,8 +44,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
-  private static final int DEFAULT_ACTIVE_JOBS = 1000;
-
   private String mWriteType;
 
   /**
@@ -75,8 +73,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
           srcPath, dstPath));
     }
-
-    mActiveJobs = DEFAULT_ACTIVE_JOBS;
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
     mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);

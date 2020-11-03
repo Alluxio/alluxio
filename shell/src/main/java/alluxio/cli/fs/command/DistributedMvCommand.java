@@ -49,7 +49,13 @@ public class DistributedMvCommand extends AbstractDistributedJobCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mCpCommand.run(cl);
+    try {
+      mCpCommand.run(cl);
+    } catch (AlluxioException | IOException e) {
+      System.out.println("Copy operation portion of Move failed. If the error below is "
+          + "intermittent, you can rerun this by deleting the destination first.");
+      throw e;
+    }
 
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
