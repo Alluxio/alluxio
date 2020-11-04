@@ -11,9 +11,9 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,17 @@ final class GrpcExecutors {
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true)));
+
+  /** This executor is responsible for asynchronously sending keepalive chunks to the client. */
+  public static final ScheduledThreadPoolExecutor BLOCK_READ_KEEPALIVE_EXECUTOR =
+      new ScheduledThreadPoolExecutor(16, ThreadFactoryUtils.build("BlockReadKeepalive-%d", true));
+
+  static {
+    // initialize the block read keepalive executor settings.
+    BLOCK_READ_KEEPALIVE_EXECUTOR.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+    BLOCK_READ_KEEPALIVE_EXECUTOR.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    BLOCK_READ_KEEPALIVE_EXECUTOR.setRemoveOnCancelPolicy(true);
+  }
 
   /**
    * Private constructor.

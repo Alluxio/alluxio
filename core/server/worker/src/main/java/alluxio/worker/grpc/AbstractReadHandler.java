@@ -19,6 +19,7 @@ import alluxio.grpc.Chunk;
 import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
@@ -33,12 +34,15 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.internal.SerializingExecutor;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -75,6 +79,18 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
   private static final long MAX_BYTES_IN_FLIGHT =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
+
+  /**
+   * Constants for keepalive, sending empty buffers to clients periodically.
+   */
+  private static final long KEEPALIVE_INTERVAL_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_READ_KEEPALIVE_INTERVAL);
+  private static final DataBuffer EMPTY_DATA_BUFFER =
+      new NettyDataBuffer(PooledByteBufAllocator.DEFAULT.buffer(0));
+  private static final ReadResponse EMPTY_RESPONSE = ReadResponse.newBuilder()
+      .setChunk(Chunk.newBuilder()
+          .setData(UnsafeByteOperations.unsafeWrap(EMPTY_DATA_BUFFER.getReadOnlyByteBuffer())))
+      .build();
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
@@ -310,6 +326,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     private final ReadRequest mRequest;
     private final long mChunkSize;
 
+    private ScheduledFuture mKeepAliveFuture = null;
+
     /**
      * Creates an instance of the {@link DataReader}.
      *
@@ -330,6 +348,12 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       } catch (Throwable e) {
         LOG.error("Failed to run DataReader.", e);
         throw new RuntimeException(e);
+      } finally {
+        // cancel the keepalive future
+        if (mKeepAliveFuture != null) {
+          mKeepAliveFuture.cancel(true);
+          mKeepAliveFuture = null;
+        }
       }
     }
 
@@ -357,6 +381,26 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
           // chunkSize should always be > 0 here when reaches here.
           Preconditions.checkState(chunkSize > 0);
+        }
+
+        // start the keepalive periodic task, if not started yet
+        if (mKeepAliveFuture == null && KEEPALIVE_INTERVAL_MS > 0) {
+          // schedule a periodic ping back to the client
+          mKeepAliveFuture =
+              GrpcExecutors.BLOCK_READ_KEEPALIVE_EXECUTOR.scheduleWithFixedDelay(() -> {
+                mSerializingExecutor.execute(() -> {
+                  try {
+                    if (mResponse instanceof DataMessageServerStreamObserver) {
+                      ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
+                          .onNext(new DataMessage<>(EMPTY_RESPONSE, EMPTY_DATA_BUFFER));
+                    } else {
+                      mResponse.onNext(EMPTY_RESPONSE);
+                    }
+                  } catch (Exception e) {
+                    // ignore exceptions for ping messages
+                  }
+                });
+              }, KEEPALIVE_INTERVAL_MS, KEEPALIVE_INTERVAL_MS, TimeUnit.MILLISECONDS);
         }
 
         DataBuffer chunk = null;

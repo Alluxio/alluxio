@@ -258,10 +258,20 @@ public final class GrpcDataReaderTest {
     while (remaining > 0) {
       int bytesToSend = (int) Math.min(remaining, CHUNK_SIZE);
       byte[] data = new byte[bytesToSend];
+
+      // add an empty buffer message
+      responses.add(
+          ReadResponse.newBuilder().setChunk(Chunk.newBuilder().setData(ByteString.EMPTY)).build());
+
+      // add the real buffer
       RANDOM.nextBytes(data);
       responses.add(ReadResponse.newBuilder()
           .setChunk(Chunk.newBuilder().setData(ByteString.copyFrom(data))).build());
       remaining -= bytesToSend;
+
+      // add an empty buffer message
+      responses.add(
+          ReadResponse.newBuilder().setChunk(Chunk.newBuilder().setData(ByteString.EMPTY)).build());
 
       for (int i = 0; i < data.length; i++) {
         if (pos >= start && pos <= end) {

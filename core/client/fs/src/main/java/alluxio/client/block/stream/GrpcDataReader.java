@@ -150,12 +150,15 @@ public final class GrpcDataReader implements DataReader {
       return null;
     }
     mPosToRead += buffer.readableBytes();
-    try {
-      mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
-    } catch (Exception e) {
-      // nothing is done as the receipt is sent at best effort
-      LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
-          mReadRequest, e.getMessage());
+    if (buffer.readableBytes() > 0) {
+      // Only send the offset received ack for non-empty chunks
+      try {
+        mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
+      } catch (Exception e) {
+        // nothing is done as the receipt is sent at best effort
+        LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
+            mReadRequest, e.getMessage());
+      }
     }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;

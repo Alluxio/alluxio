@@ -2857,6 +2857,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_READ_KEEPALIVE_INTERVAL =
+      new Builder(Name.WORKER_READ_KEEPALIVE_INTERVAL)
+          .setDefaultValue("15s")
+          .setDescription(String.format(
+              "The interval of time that the worker will send back empty messages to the client "
+                  + "during remote reads, to keep the channel alive. -1 will disable the keepalive "
+                  + "functionality. If this is too short, the too many packets will be sent by "
+                  + "the worker, and if this is too long, read timeouts may occur. To avoid "
+                  + "unnecessary read timeouts, this should be set to a value less than %s.",
+              Name.USER_STREAMING_DATA_TIMEOUT))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       new Builder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -5261,6 +5274,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_READ_KEEPALIVE_INTERVAL =
+        "alluxio.worker.read.keepalive.interval";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
