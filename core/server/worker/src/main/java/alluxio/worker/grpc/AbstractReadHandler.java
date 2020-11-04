@@ -83,14 +83,16 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   /**
    * Constants for keepalive, sending empty buffers to clients periodically.
    */
-  private static final long KEEPALIVE_INTERVAL_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_READ_KEEPALIVE_INTERVAL);
   private static final DataBuffer EMPTY_DATA_BUFFER =
       new NettyDataBuffer(PooledByteBufAllocator.DEFAULT.buffer(0));
   private static final ReadResponse EMPTY_RESPONSE = ReadResponse.newBuilder()
       .setChunk(Chunk.newBuilder()
           .setData(UnsafeByteOperations.unsafeWrap(EMPTY_DATA_BUFFER.getReadOnlyByteBuffer())))
       .build();
+
+  /** The interval (ms) to send back keep alive chunks. */
+  private final long mKeepAliveIntervalMs =
+      ServerConfiguration.getMs(PropertyKey.WORKER_READ_KEEPALIVE_INTERVAL);
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
@@ -384,7 +386,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         }
 
         // start the keepalive periodic task, if not started yet
-        if (mKeepAliveFuture == null && KEEPALIVE_INTERVAL_MS > 0) {
+        if (mKeepAliveFuture == null && mKeepAliveIntervalMs > 0) {
           // schedule a periodic ping back to the client
           mKeepAliveFuture =
               GrpcExecutors.BLOCK_READ_KEEPALIVE_EXECUTOR.scheduleWithFixedDelay(() -> {
@@ -400,7 +402,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
                     // ignore exceptions for ping messages
                   }
                 });
-              }, KEEPALIVE_INTERVAL_MS, KEEPALIVE_INTERVAL_MS, TimeUnit.MILLISECONDS);
+              }, mKeepAliveIntervalMs, mKeepAliveIntervalMs, TimeUnit.MILLISECONDS);
         }
 
         DataBuffer chunk = null;

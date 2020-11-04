@@ -11,16 +11,20 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -28,9 +32,12 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.netty.util.ResourceLeakDetector;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.nio.ByteBuffer;
 
 public final class BlockReadHandlerTest extends ReadHandlerTest {
   private BlockWorker mBlockWorker;
@@ -64,6 +71,11 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
         mBlockWorker, mResponseObserver, new AuthenticatedUserInfo(), false);
   }
 
+  @After
+  public void after() {
+    ServerConfiguration.reset();
+  }
+
   /**
    * Tests read failure.
    */
@@ -74,6 +86,40 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     mBlockReader.close();
     mReadHandlerNoException.onNext(buildReadRequest(0, fileSize));
     checkErrorCode(mResponseObserver, Status.Code.FAILED_PRECONDITION);
+  }
+
+  @Test
+  public void keepAlive() throws Exception {
+    // Set the configuration to send keep alive chunks frequently
+    ServerConfiguration.set(PropertyKey.WORKER_READ_KEEPALIVE_INTERVAL, "1ms");
+    // Add a short delay to the response processing, to force at least 1 keep alive chunk
+    doAnswer((args) -> {
+      // make a copy of response data before it is released
+      mResponses.add(ReadResponse.parseFrom(
+          args.getArgument(0, ReadResponse.class).toByteString()));
+
+      // have a short delay to force keepalive packets
+      CommonUtils.sleepMs(2);
+      return null;
+    }).when(mResponseObserver).onNext(any(ReadResponse.class));
+    // recreate the read handler
+    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+        mResponseObserver, new AuthenticatedUserInfo(), false);
+
+    // run a simple remote read
+    long checksumExpected = populateInputFile(CHUNK_SIZE * 10, 0, CHUNK_SIZE * 10 - 1);
+    mReadHandler.onNext(buildReadRequest(0, CHUNK_SIZE * 10));
+    checkAllReadResponses(mResponses, checksumExpected);
+
+    // verify that there were empty chunks for the keep alive
+    int keepAliveChunks = 0;
+    for (ReadResponse response : mResponses) {
+      ByteBuffer byteBuffer = response.getChunk().getData().asReadOnlyByteBuffer();
+      if (byteBuffer.remaining() == 0) {
+        keepAliveChunks++;
+      }
+    }
+    assertTrue("Keep alive chunks were expected, but none were found.", keepAliveChunks > 0);
   }
 
   @Override
