@@ -11,7 +11,10 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.grpc.RequestType;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -63,6 +66,13 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     waitForResponses();
     checkErrorCode(mResponseObserver, Status.Code.FAILED_PRECONDITION);
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mWriteHandler.write(newWriteRequestCommand(0));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("temp-block-"));
   }
 
   @Override

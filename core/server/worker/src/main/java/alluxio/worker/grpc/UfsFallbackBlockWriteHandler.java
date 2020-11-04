@@ -19,9 +19,9 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
@@ -205,6 +205,25 @@ public final class UfsFallbackBlockWriteHandler
       context.setPos(context.getPos() + ufsFallbackInitBytes);
       initUfsFallback(context);
     }
+  }
+
+  @Override
+  protected String getLocationInternal(BlockWriteRequestContext context) {
+    Protocol.CreateUfsBlockOptions createUfsBlockOptions =
+        context.getRequest().getCreateUfsBlockOptions();
+
+    if (createUfsBlockOptions == null) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    UfsManager.UfsClient ufsClient;
+    try {
+      ufsClient = mUfsManager.get(createUfsBlockOptions.getMountId());
+    } catch (Throwable e) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    return BlockUtils.getUfsBlockPath(ufsClient, context.getRequest().getId());
   }
 
   private void initUfsFallback(BlockWriteRequestContext context) throws Exception {
