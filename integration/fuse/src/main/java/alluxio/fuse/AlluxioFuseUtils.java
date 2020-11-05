@@ -50,7 +50,7 @@ public final class AlluxioFuseUtils {
    * Retrieves the uid of the given user.
    *
    * @param userName the user name
-   * @return uid
+   * @return uid or -1 on failures
    */
   public static long getUid(String userName) {
     return getIdInfo("-u", userName);
@@ -60,7 +60,7 @@ public final class AlluxioFuseUtils {
    * Retrieves the primary gid of the given user.
    *
    * @param userName the user name
-   * @return gid
+   * @return gid or -1 on failures
    */
   public static long getGid(String userName) {
     return getIdInfo("-g", userName);
@@ -70,21 +70,21 @@ public final class AlluxioFuseUtils {
    * Retrieves the gid of the given group.
    *
    * @param groupName the group name
-   * @return gid
+   * @return gid or -1 on failures
    */
-  public static long getGidFromGroupName(String groupName) throws IOException {
+  public static long getGidFromGroupName(String groupName) {
     String result = "";
-    if (OSUtils.isLinux()) {
-      String script = "getent group " + groupName + " | cut -d: -f3";
-      result = ShellUtils.execCommand("bash", "-c", script).trim();
-    } else if (OSUtils.isMacOS()) {
-      String script =
-          "dscl . -read /Groups/" + groupName + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
-      result = ShellUtils.execCommand("bash", "-c", script).trim();
-    }
     try {
+      if (OSUtils.isLinux()) {
+        String script = "getent group " + groupName + " | cut -d: -f3";
+        result = ShellUtils.execCommand("bash", "-c", script).trim();
+      } else if (OSUtils.isMacOS()) {
+        String script = "dscl . -read /Groups/" + groupName
+            + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
+        result = ShellUtils.execCommand("bash", "-c", script).trim();
+      }
       return Long.parseLong(result);
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
       return -1;
     }

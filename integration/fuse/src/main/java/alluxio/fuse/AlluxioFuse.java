@@ -19,11 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.FuseException;
-import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
-import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

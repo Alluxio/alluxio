@@ -72,6 +72,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final Path mAlluxioRootPath;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  private final LoadingCache<String, Long> mUidCache;
+  private final LoadingCache<String, Long> mGidCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final AtomicLong mOpenOps = new AtomicLong(0);
   private final AtomicLong mReleaseOps = new AtomicLong(0);
@@ -104,8 +106,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private static final String USER_NAME = System.getProperty("user.name");
   private static final String GROUP_NAME = System.getProperty("user.name");
-  private static final long UID = AlluxioFuseUtils.getUid(USER_NAME);
-  private static final long GID = AlluxioFuseUtils.getGid(GROUP_NAME);
+  private static final long DEFAULT_UID = AlluxioFuseUtils.getUid(USER_NAME);
+  private static final long DEFAULT_GID = AlluxioFuseUtils.getGid(GROUP_NAME);
 
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
@@ -123,7 +125,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
-        .build(new PathCacheLoader());
+        .build(new CacheLoader<String, AlluxioURI>() {
+          @Override
+          public AlluxioURI load(String fusePath) {
+            // fusePath is guaranteed to always be an absolute path (i.e., starts
+            // with a fwd slash) - relative to the FUSE mount point
+            final String relPath = fusePath.substring(1);
+            final Path tpath = mAlluxioRootPath.resolve(relPath);
+            return new AlluxioURI(tpath.toString());
+          }
+        });
+    mUidCache = CacheBuilder.newBuilder()
+        .maximumSize(100)
+        .build(new CacheLoader<String, Long>() {
+          @Override
+          public Long load(String userName) {
+            return AlluxioFuseUtils.getUid(userName);
+          }
+        });
+    mGidCache = CacheBuilder.newBuilder()
+        .maximumSize(100)
+        .build(new CacheLoader<String, Long>() {
+          @Override
+          public Long load(String groupName) {
+            return AlluxioFuseUtils.getGidFromGroupName(groupName);
+          }
+        });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mFileLocks[i] = new ReentrantReadWriteLock();
@@ -146,7 +173,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
-    if (gid != GID) {
+    if (gid != DEFAULT_GID) {
       String groupName = AlluxioFuseUtils.getGroupName(gid);
       if (groupName.isEmpty()) {
         // This should never be reached since input gid is always valid
@@ -155,7 +182,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       }
       attributeOptionsBuilder.setGroup(groupName);
     }
-    if (uid != UID) {
+    if (uid != DEFAULT_UID) {
       String userName = AlluxioFuseUtils.getUserName(uid);
       if (userName.isEmpty()) {
         // This should never be reached since input uid is always valid
@@ -165,7 +192,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       attributeOptionsBuilder.setOwner(userName);
     }
     SetAttributePOptions setAttributePOptions =  attributeOptionsBuilder.build();
-    if (gid != GID || uid != UID) {
+    if (gid != DEFAULT_GID || uid != DEFAULT_UID) {
       LOG.debug("Set attributes of path {} to {}", uri, setAttributePOptions);
       mFileSystem.setAttribute(uri, setAttributePOptions);
     }
@@ -233,11 +260,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         // Translate the file owner/group to unix uid/gid
         // Show as uid==-1 (nobody) if owner does not exist in unix
         // Show as gid==-1 (nogroup) if group does not exist in unix
-        stat.st_uid.set(AlluxioFuseUtils.getUid(status.getOwner()));
-        stat.st_gid.set(AlluxioFuseUtils.getGidFromGroupName(status.getGroup()));
+        stat.st_uid.set(mUidCache.get(status.getOwner()));
+        stat.st_gid.set(mGidCache.get(status.getGroup()));
       } else {
-        stat.st_uid.set(UID);
-        stat.st_gid.set(GID);
+        stat.st_uid.set(DEFAULT_UID);
+        stat.st_gid.set(DEFAULT_GID);
       }
 
       int mode = status.getMode();
@@ -322,7 +349,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.info("read: cached {} bytes, missed {} bytes, ratio {}",
           cachedBytes, missedBytes, 1.0 * cachedBytes / (cachedBytes + missedBytes + 1));
     }
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int nread = 0;
     int rd = 0;
     final int sz = (int) size;
@@ -354,7 +380,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     return nread;
   }
-
 
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
@@ -623,26 +648,5 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
-  }
-
-  /**
-   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
-   */
-  private final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
-
-    /**
-     * Constructs a new {@link PathCacheLoader}.
-     */
-    public PathCacheLoader() {}
-
-    @Override
-    public AlluxioURI load(String fusePath) {
-      // fusePath is guaranteed to always be an absolute path (i.e., starts
-      // with a fwd slash) - relative to the FUSE mount point
-      final String relPath = fusePath.substring(1);
-      final Path tpath = mAlluxioRootPath.resolve(relPath);
-
-      return new AlluxioURI(tpath.toString());
-    }
   }
 }
