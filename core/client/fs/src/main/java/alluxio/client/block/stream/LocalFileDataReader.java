@@ -78,7 +78,7 @@ public final class LocalFileDataReader implements DataReader {
   }
 
   @Override
-  public DataBuffer readChunkNoWait() throws IOException {
+  public DataBuffer readChunkIfReady() throws IOException {
     return readChunk();
   }
 

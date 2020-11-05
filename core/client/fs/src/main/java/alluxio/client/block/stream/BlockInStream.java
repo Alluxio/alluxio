@@ -180,8 +180,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory;
-    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_GRPC_DATA_READER) && (blockSize > (chunkSize * 4))) {
-      factory = new NaiveSharedGrpcDataReader.Factory(context, address, readRequestBuilder.build());
+    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_GRPC_DATA_READER)
+        && (blockSize > (chunkSize * 4))) {
+      factory = new NaiveSharedGrpcDataReader
+          .Factory(context, address, readRequestBuilder.build(), blockSize);
     } else {
       factory = new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
     }
@@ -342,7 +344,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos < mPos) {
       mEOF = false;
       if (mDataReader instanceof NaiveSharedGrpcDataReader) {
-        NaiveSharedGrpcDataReader reader = (NaiveSharedGrpcDataReader)mDataReader;
+        NaiveSharedGrpcDataReader reader = (NaiveSharedGrpcDataReader) mDataReader;
         reader.seek(pos);
         if (mCurrentChunk != null) {
           mCurrentChunk.release();
@@ -351,18 +353,18 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       } else {
         closeDataReader();
       }
-    } else if (pos < mLength) {
-      // Try to read data already in queue
+    } else {
+      // Try to read data already received but haven't processed
       long curPos = mPos;
       while (mCurrentChunk != null && curPos < pos) {
         long nextPos = curPos + mCurrentChunk.readableBytes();
         if (nextPos <= pos) {
-          curPos = nextPos; 
+          curPos = nextPos;
           mCurrentChunk.release();
-          mCurrentChunk = mDataReader.readChunkNoWait();
+          mCurrentChunk = mDataReader.readChunkIfReady();
         } else {
-          // TODO introduce seek in DataBuffer
-          int toRead = (int)(pos - curPos);
+          // TODO(chaowang) introduce seek in DataBuffer
+          int toRead = (int) (pos - curPos);
           final byte[] b = new byte[toRead];
           mCurrentChunk.readBytes(b, 0, toRead);
           curPos = pos;
@@ -373,10 +375,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         // Not enough data in queue, close the data reader
         closeDataReader();
       }
-    } else {
-      closeDataReader();
     }
-    
     mPos = pos;
   }
 

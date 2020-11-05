@@ -48,7 +48,7 @@ public class TestDataReader implements DataReader {
 
   @Override
   @Nullable
-  public DataBuffer readChunkNoWait() {
+  public DataBuffer readChunkIfReady() {
     return readChunk();
   }
 
