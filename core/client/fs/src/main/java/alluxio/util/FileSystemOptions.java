@@ -182,6 +182,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setCreateAncestors(false)
         .setLoadDescendantType(LoadDescendantPType.NONE)
+        .setRecursive(false)
         .build();
   }
 
