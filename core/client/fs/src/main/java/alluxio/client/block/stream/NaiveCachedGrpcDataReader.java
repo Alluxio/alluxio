@@ -25,6 +25,7 @@ import alluxio.resource.LockResource;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,12 @@ public final class NaiveCachedGrpcDataReader {
 
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
   private final ReadResponseMarshaller mMarshaller;
+  /**
+   * Count the number of threads that are accessing the same block together.
+   * When no thread is accessing this block, the cached data will be GCed.
+   */
+  private final AtomicInteger mRefCount = new AtomicInteger(0);
+  private final Closer mCloser;
 
   private volatile int mBufferCount = 0;
   private final DataBuffer[] mDataBuffers;
@@ -65,27 +72,23 @@ public final class NaiveCachedGrpcDataReader {
   private long mPosToRead;
 
   /**
-   * Count the number of threads that are accessing the same block together.
-   * When no thread is accessing this block, the cached data will be GCed.
-   */
-  private final AtomicInteger mRefCount = new AtomicInteger(0);
-
-  /**
    * Creates an instance of {@link NaiveCachedGrpcDataReader}.
    *
    * @param address the data server address
    * @param client the block worker client to read data from
+   * @param closer the closer
    * @param dataBuffers the data buffers to cache block data in chunk
    * @param dataTimeoutMs the maximum time to wait for a data response
    * @param readRequest the read request
    * @param stream the underlying gRPC stream to read data
    */
   private NaiveCachedGrpcDataReader(WorkerNetAddress address,
-      CloseableResource<BlockWorkerClient> client, DataBuffer[] dataBuffers,
+      CloseableResource<BlockWorkerClient> client, Closer closer, DataBuffer[] dataBuffers,
       long dataTimeoutMs, ReadRequest readRequest,
       GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
     mClient = client;
+    mCloser = closer;
     mDataBuffers = dataBuffers;
     mDataTimeoutMs = dataTimeoutMs;
     mMarshaller = new ReadResponseMarshaller();
@@ -154,16 +157,14 @@ public final class NaiveCachedGrpcDataReader {
    * Closes the {@link NaiveCachedGrpcDataReader}.
    */
   public void close() throws IOException {
-    try {
-      if (mClient.get().isShutdown()) {
-        return;
-      }
+    if (mClient.get().isShutdown()) {
+      return;
+    }
+    mCloser.register(() -> {
       mStream.close();
       mStream.waitForComplete(mDataTimeoutMs);
-    } finally {
-      mMarshaller.close();
-      mClient.close();
-    }
+    });
+    mCloser.close();
   }
 
   /**
@@ -222,7 +223,9 @@ public final class NaiveCachedGrpcDataReader {
       int readerBufferSizeMessages = alluxioConf
           .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+      Closer closer = Closer.create();
       CloseableResource<BlockWorkerClient> client = mContext.acquireBlockWorkerClient(mAddress);
+      closer.register(client);
       long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
       long chunkSize = mReadRequest.getChunkSize();
       int buffCount = (int) (blockSize / chunkSize);
@@ -251,7 +254,7 @@ public final class NaiveCachedGrpcDataReader {
         client.close();
         throw e;
       }
-      return new NaiveCachedGrpcDataReader(mAddress, client,
+      return new NaiveCachedGrpcDataReader(mAddress, client, closer,
           dataBuffers, dataTimeoutMs, mReadRequest, stream);
     }
   }
