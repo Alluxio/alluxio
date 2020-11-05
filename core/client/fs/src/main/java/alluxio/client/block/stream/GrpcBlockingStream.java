@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -93,21 +94,38 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CancelledException(
-          formatErrorMessage("Failed to send request %s: stream is already closed or cancelled.",
-              LogUtils.truncateMessageLineLength(request)));
+      throw new CancelledException(formatErrorMessage(
+          "Failed to send request %s: stream is already closed or cancelled. clientClosed: %s "
+              + "clientCancelled: %s serverClosed: %s",
+          LogUtils.truncateMessageLineLength(request), mClosed, mCanceled, mClosedFromRemote));
     }
     try (LockResource lr = new LockResource(mLock)) {
+      long startMs = System.currentTimeMillis();
       while (true) {
         checkError();
         if (mRequestObserver.isReady()) {
           break;
         }
+
+        long waitedForMs = System.currentTimeMillis() - startMs;
+        if (waitedForMs >= timeoutMs) {
+          throw new DeadlineExceededException(formatErrorMessage(
+              "Timeout sending request %s after %dms. clientClosed: %s clientCancelled: %s "
+                  + "serverClosed: %s",
+              LogUtils.truncateMessageLineLength(request), timeoutMs, mClosed, mCanceled,
+              mClosedFromRemote));
+        }
+
         try {
-          if (!mReadyOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
-            throw new DeadlineExceededException(
-                formatErrorMessage("Timeout sending request %s after %dms.",
-                    LogUtils.truncateMessageLineLength(request), timeoutMs));
+          // Wait for a minute max
+          long awaitMs = Math.min(timeoutMs - waitedForMs, Constants.MINUTE_MS);
+          if (!mReadyOrFailed.await(awaitMs, TimeUnit.MILLISECONDS)) {
+            // Log a warning before looping again
+            LOG.warn(
+                "Stream is not ready for client to send request, will wait again. totalWaitMs: {} "
+                    + "clientClosed: {} clientCancelled: {} serverClosed: {} description: {}",
+                System.currentTimeMillis() - startMs, mClosed, mCanceled, mClosedFromRemote,
+                mDescription);
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -130,8 +148,11 @@ public class GrpcBlockingStream<ReqT, ResT> {
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Failed to send request {}: stream is already closed or cancelled. ({})",
-            LogUtils.truncateMessageLineLength(request), mDescription);
+        LOG.debug(
+            "Failed to send request {}: stream is already closed or cancelled. clientClosed: {} "
+                + "clientCancelled: {} serverClosed: {} ({})",
+            LogUtils.truncateMessageLineLength(request), mClosed, mCanceled, mClosedFromRemote,
+            mDescription);
       }
       return;
     }
@@ -157,24 +178,40 @@ public class GrpcBlockingStream<ReqT, ResT> {
     if (mCanceled) {
       throw new CancelledException(formatErrorMessage("Stream is already canceled."));
     }
-    try {
-      Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
-      if (response == null) {
-        checkError(); // The stream could have errored while we were waiting
-        DeadlineExceededException e = new DeadlineExceededException(
-            formatErrorMessage("Timeout waiting for response after %dms.", timeoutMs));
-        throw e;
+
+    long startMs = System.currentTimeMillis();
+    while (true) {
+      long waitedForMs = System.currentTimeMillis() - startMs;
+      if (waitedForMs >= timeoutMs) {
+        throw new DeadlineExceededException(formatErrorMessage(
+            "Timeout waiting for response after %dms. clientClosed: %s clientCancelled: %s "
+                + "serverClosed: %s", timeoutMs, mClosed, mCanceled, mClosedFromRemote));
       }
-      if (response == mResponseObserver) {
-        mCompleted = true;
-        return null;
+
+      // Wait for a minute max
+      long waitMs = Math.min(timeoutMs - waitedForMs, Constants.MINUTE_MS);
+      try {
+        Object response = mResponses.poll(waitMs, TimeUnit.MILLISECONDS);
+        if (response == null) {
+          checkError(); // The stream could have errored while we were waiting
+          // Log a warning before looping again
+          LOG.warn("Client did not receive message from stream, will wait again. totalWaitMs: {} "
+                  + "clientClosed: {} clientCancelled: {} serverClosed: {} description: {}",
+              System.currentTimeMillis() - startMs, mClosed, mCanceled, mClosedFromRemote,
+              mDescription);
+          continue;
+        }
+        if (response == mResponseObserver) {
+          mCompleted = true;
+          return null;
+        }
+        checkError();
+        return (ResT) response;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new CancelledException(
+            formatErrorMessage("Interrupted while waiting for response."), e);
       }
-      checkError();
-      return (ResT) response;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CancelledException(
-          formatErrorMessage("Interrupted while waiting for response."), e);
     }
   }
 
