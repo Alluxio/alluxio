@@ -2511,7 +2511,7 @@ public final class FileSystemMasterTest {
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
-    return new AlluxioURI("file://", null, path);
+    return new AlluxioURI("file", null, path);
   }
   /**
    * Creates a file in a temporary UFS folder.
