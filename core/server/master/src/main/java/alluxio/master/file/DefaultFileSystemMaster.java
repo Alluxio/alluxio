@@ -1041,6 +1041,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           if (context.getOptions().getLoadMetadataOnly()) {
+            auditContext.setSucceeded(true);
             continue;
           }
 
