@@ -24,7 +24,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -169,15 +168,6 @@ public interface FileSystemMasterClient extends Client {
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
-
-  /**
-   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
-   *
-   * @param path the path of the file to load metadata for
-   * @param options method options
-   * @throws NotFoundException if the path does not exist
-   */
-  void loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws AlluxioStatusException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.

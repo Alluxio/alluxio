@@ -46,7 +46,6 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -291,13 +290,13 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void loadMetadata(AlluxioURI path, final LoadMetadataPOptions options)
+  public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     rpc(client -> {
-      LoadMetadataPOptions mergedOptions = FileSystemOptions.loadMetadataDefaults(
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      client.loadMetadata(path, mergedOptions);
+      client.listStatus(path, mergedOptions);
       return null;
     });
   }

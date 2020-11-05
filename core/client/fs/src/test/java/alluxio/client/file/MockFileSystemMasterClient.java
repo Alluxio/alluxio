@@ -22,7 +22,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -104,11 +103,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException {
     return null;
-  }
-
-  @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
-      throws AlluxioStatusException {
   }
 
   @Override

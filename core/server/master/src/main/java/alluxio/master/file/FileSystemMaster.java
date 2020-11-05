@@ -34,7 +34,6 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
@@ -160,18 +159,6 @@ public interface FileSystemMaster extends Master {
   void listStatus(AlluxioURI path, ListStatusContext context, ResultStream<FileInfo> resultStream)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException, IOException;
-
-  /**
-   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
-   *
-   * @param path the path to load metadata for
-   * @param context the method context
-   * @throws AccessControlException if permission checking fails
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the path is invalid
-   */
-  void loadMetaData(AlluxioURI path, LoadMetadataContext context)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException;
 
   /**
    * @return a read-only view of the file system master

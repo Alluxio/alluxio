@@ -184,6 +184,8 @@ message ListStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool recursive = 4;
+  // Only loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+  optional bool loadMetadataOnly = 5;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -197,11 +199,6 @@ message LoadMetadataPOptions {
   optional bool createAncestors = 2;
   optional fscommon.LoadDescendantPType loadDescendantType = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
-}
-message LoadMetadataPResponse {}
-message LoadMetadataPRequest {
-  optional string path = 1;
-  optional LoadMetadataPOptions loadMetadataPOptions = 2;
 }
 
 enum PAclEntryType {
@@ -528,11 +525,6 @@ service FileSystemMasterClientService {
    * directory contents.
    */
   rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
-
-  /**
-   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
-   */
-  rpc LoadMetadata(LoadMetadataPRequest) returns (LoadMetadataPResponse);
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given

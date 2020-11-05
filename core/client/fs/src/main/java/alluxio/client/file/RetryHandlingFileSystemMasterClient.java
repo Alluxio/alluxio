@@ -36,8 +36,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.MountPOptions;
@@ -260,19 +258,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
-  }
-
-  @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
-      throws AlluxioStatusException {
-    retryRPC(
-        () -> mClient.loadMetadata(
-              LoadMetadataPRequest.newBuilder()
-                  .setPath(path.getPath())
-                  .setLoadMetadataPOptions(options)
-                  .build()),
-        RPC_LOG, "LoadMetadata", "path=%s,options=%s", path, options
-    );
   }
 
   @Override

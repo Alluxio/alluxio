@@ -45,8 +45,6 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.LoadMetadataPRequest;
-import alluxio.grpc.LoadMetadataPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -77,7 +75,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
@@ -238,19 +235,6 @@ public final class FileSystemMasterClientServiceHandler
     } finally {
       resultStream.complete();
     }
-  }
-
-  @Override
-  public void loadMetadata(LoadMetadataPRequest request,
-      StreamObserver<LoadMetadataPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      if (request.hasLoadMetadataPOptions()) {
-        mFileSystemMaster.loadMetaData(pathUri,
-            LoadMetadataContext.create(request.getLoadMetadataPOptions().toBuilder()));
-      }
-      return LoadMetadataPResponse.newBuilder().build();
-    }, "LoadMetadata", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -1040,6 +1040,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
           ensureFullPathAndUpdateCache(inodePath);
 
+          if (context.getOptions().getLoadMetadataOnly()) {
+            continue;
+          }
+
           auditContext.setSrcInode(inodePath.getInode());
           DescendantType descendantTypeForListStatus =
               (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
@@ -1064,22 +1068,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     final List<FileInfo> fileInfos = new ArrayList<>();
     listStatus(path, context, (item) -> fileInfos.add(item));
     return fileInfos;
-  }
-
-  @Override
-  public void loadMetaData(AlluxioURI path, LoadMetadataContext context)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
-    try (RpcContext rpcContext = createRpcContext(context)) {
-      DescendantType syncDescendantType =
-          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
-      FileSystemMasterCommonPOptions commonOptions = context.getOptions().getCommonOptions();
-      InodeSyncStream sync =
-          new InodeSyncStream(new LockingScheme(path, LockPattern.WRITE_EDGE, true), this,
-              rpcContext, syncDescendantType, commonOptions, false, true, false);
-      if (!sync.sync()) {
-        LOG.debug("Failed to load metadata for path from UFS: {}", path);
-      }
-    }
   }
 
   /**

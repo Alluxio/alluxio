@@ -17,8 +17,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -78,12 +78,11 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   }
 
   private void loadMetadata(AlluxioURI path, boolean recursive) throws IOException {
-    LoadMetadataPOptions options;
     try {
-      // LoadDescendantPType determines the number of descendant inodes to sync
-      options = LoadMetadataPOptions.newBuilder()
-          .setLoadDescendantType(recursive ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
-          .build();
+      ListStatusPOptions options = ListStatusPOptions.newBuilder()
+          .setLoadMetadataOnly(true)
+          .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+          .setRecursive(recursive).build();
       mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
