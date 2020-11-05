@@ -201,7 +201,7 @@ public final class NaiveCachedGrpcDataReader {
     private final ReadRequest mReadRequest;
 
     /**
-     * Creates an instance of {@link GrpcDataReader.Factory} for block reads.
+     * Creates an instance of {@link NaiveCachedGrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
@@ -216,16 +216,17 @@ public final class NaiveCachedGrpcDataReader {
 
     /**
      * @return a new {@link NaiveCachedGrpcDataReader}
-     * @throws IOException
      */
     public NaiveCachedGrpcDataReader create() throws IOException {
       AlluxioConfiguration alluxioConf = mContext.getClusterConf();
       int readerBufferSizeMessages = alluxioConf
           .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+
       Closer closer = Closer.create();
       CloseableResource<BlockWorkerClient> client = mContext.acquireBlockWorkerClient(mAddress);
       closer.register(client);
+
       long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
       long chunkSize = mReadRequest.getChunkSize();
       int buffCount = (int) (blockSize / chunkSize);

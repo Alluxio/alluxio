@@ -42,13 +42,14 @@ public final class NaiveSharedGrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(NaiveSharedGrpcDataReader.class);
 
   private static final ReentrantReadWriteLock BLOCK_LOCK = new ReentrantReadWriteLock();
-  // A map from block id to the block's cached data reader
+  /** A map from block id to the block's cached data reader. */
   @GuardedBy("mBlockLocks")
   private static final Map<Long, NaiveCachedGrpcDataReader> BLOCK_READERS = new HashMap<>();
 
-  private final NaiveCachedGrpcDataReader mCachedDataReader;
   private final long mBlockId;
-  private long mChunkSize;
+  private final NaiveCachedGrpcDataReader mCachedDataReader;
+  private final long mChunkSize;
+
   /** The next pos to read. */
   private long mPosToRead;
 
@@ -71,7 +72,7 @@ public final class NaiveSharedGrpcDataReader implements DataReader {
   }
 
   /**
-   * Seek to a specific position.
+   * Seeks to a specific position.
    *
    * @param pos the position to seek to
    */
