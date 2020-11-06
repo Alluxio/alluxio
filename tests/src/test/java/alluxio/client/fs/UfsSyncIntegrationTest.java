@@ -21,6 +21,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -44,6 +45,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -555,6 +557,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsDeleteSync() throws Exception {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
+    FileSystemUtils
+        .waitForAlluxioPercentage(mFileSystem, new AlluxioURI(alluxioPath(EXISTING_FILE)), 100);
     new File(ufsPath(EXISTING_FILE)).delete();
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
         ExistsPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
@@ -568,7 +572,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
   }
 
   @Test
