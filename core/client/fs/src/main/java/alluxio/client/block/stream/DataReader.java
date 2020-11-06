@@ -31,7 +31,8 @@ public interface DataReader extends Closeable {
   DataBuffer readChunk() throws IOException;
 
   /**
-   * Try to read a chunk if the data is ready.
+   * Tries to read a chunk if there is data ready.
+   * If the chunk is not null, the caller needs to release it.
    *
    * @return the data buffer or null if EOF is reached or data is not ready
    */

@@ -41,20 +41,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * The current implementation cached the block data from the beginning to
  * the largest index being read.
- *
- * It follows GrpcDataReader protocol and takes strong assumption:
- * Parallel read to the same file happens on the same time, so that read request is
- * serialized by kernel
  */
 @NotThreadSafe
-public final class NaiveCachedGrpcDataReader {
-  private static final Logger LOG = LoggerFactory.getLogger(NaiveCachedGrpcDataReader.class);
+public class BufferCachingGrpcDataReader {
+  private static final Logger LOG = LoggerFactory.getLogger(BufferCachingGrpcDataReader.class);
 
   private final WorkerNetAddress mAddress;
   private final CloseableResource<BlockWorkerClient> mClient;
   private final long mDataTimeoutMs;
   private final ReadRequest mReadRequest;
-
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
   private final ReadResponseMarshaller mMarshaller;
   /**
@@ -64,7 +59,7 @@ public final class NaiveCachedGrpcDataReader {
   private final AtomicInteger mRefCount = new AtomicInteger(0);
   private final Closer mCloser;
 
-  private volatile int mBufferCount = 0;
+  private AtomicInteger mBufferCount = new AtomicInteger(0);
   private final DataBuffer[] mDataBuffers;
   private final ReentrantReadWriteLock mBufferLocks = new ReentrantReadWriteLock();
 
@@ -72,29 +67,39 @@ public final class NaiveCachedGrpcDataReader {
   private long mPosToRead;
 
   /**
-   * Creates an instance of {@link NaiveCachedGrpcDataReader}.
+   * Creates an instance of {@link BufferCachingGrpcDataReader}.
    *
    * @param address the data server address
    * @param client the block worker client to read data from
-   * @param closer the closer
-   * @param dataBuffers the data buffers to cache block data in chunk
    * @param dataTimeoutMs the maximum time to wait for a data response
    * @param readRequest the read request
    * @param stream the underlying gRPC stream to read data
    */
-  private NaiveCachedGrpcDataReader(WorkerNetAddress address,
-      CloseableResource<BlockWorkerClient> client, Closer closer, DataBuffer[] dataBuffers,
-      long dataTimeoutMs, ReadRequest readRequest,
-      GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
+  private BufferCachingGrpcDataReader(WorkerNetAddress address,
+      CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
+      ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
     mClient = client;
-    mCloser = closer;
-    mDataBuffers = dataBuffers;
     mDataTimeoutMs = dataTimeoutMs;
     mMarshaller = new ReadResponseMarshaller();
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
     mStream = stream;
+
+    mCloser = Closer.create();
+    mCloser.register(mClient);
+    mCloser.register(() -> {
+      mStream.close();
+      mStream.waitForComplete(mDataTimeoutMs);
+    });
+
+    long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
+    long chunkSize = mReadRequest.getChunkSize();
+    int buffCount = (int) (blockSize / chunkSize);
+    if ((blockSize % chunkSize) != 0) {
+      buffCount += 1;
+    }
+    mDataBuffers = new DataBuffer[buffCount];
   }
 
   /**
@@ -108,12 +113,12 @@ public final class NaiveCachedGrpcDataReader {
       return null;
     }
 
-    if (index >= mBufferCount) {
+    if (index >= mBufferCount.get()) {
       try (LockResource r1 = new LockResource(mBufferLocks.writeLock())) {
-        while (index >= mBufferCount) {
+        while (index >= mBufferCount.get()) {
           DataBuffer buffer = readChunk();
-          mDataBuffers[mBufferCount] = buffer;
-          ++mBufferCount;
+          mDataBuffers[mBufferCount.get()] = buffer;
+          mBufferCount.incrementAndGet();
         }
       }
     }
@@ -154,16 +159,12 @@ public final class NaiveCachedGrpcDataReader {
   }
 
   /**
-   * Closes the {@link NaiveCachedGrpcDataReader}.
+   * Closes the {@link BufferCachingGrpcDataReader}.
    */
   public void close() throws IOException {
     if (mClient.get().isShutdown()) {
       return;
     }
-    mCloser.register(() -> {
-      mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
-    });
     mCloser.close();
   }
 
@@ -193,7 +194,7 @@ public final class NaiveCachedGrpcDataReader {
   }
 
   /**
-   * Factory class to create {@link NaiveCachedGrpcDataReader}s.
+   * Factory class to create {@link BufferCachingGrpcDataReader}s.
    */
   public static class Factory {
     private final FileSystemContext mContext;
@@ -201,7 +202,7 @@ public final class NaiveCachedGrpcDataReader {
     private final ReadRequest mReadRequest;
 
     /**
-     * Creates an instance of {@link NaiveCachedGrpcDataReader.Factory} for block reads.
+     * Creates an instance of {@link BufferCachingGrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
@@ -215,29 +216,19 @@ public final class NaiveCachedGrpcDataReader {
     }
 
     /**
-     * @return a new {@link NaiveCachedGrpcDataReader}
+     * @return a new {@link BufferCachingGrpcDataReader}
      */
-    public NaiveCachedGrpcDataReader create() throws IOException {
+    public BufferCachingGrpcDataReader create() throws IOException {
       AlluxioConfiguration alluxioConf = mContext.getClusterConf();
       int readerBufferSizeMessages = alluxioConf
           .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
 
-      Closer closer = Closer.create();
       CloseableResource<BlockWorkerClient> client = mContext.acquireBlockWorkerClient(mAddress);
-      closer.register(client);
-
-      long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
-      long chunkSize = mReadRequest.getChunkSize();
-      int buffCount = (int) (blockSize / chunkSize);
-      if ((blockSize % chunkSize) != 0) {
-        buffCount += 1;
-      }
-      DataBuffer[] dataBuffers = new DataBuffer[buffCount];
 
       GrpcBlockingStream<ReadRequest, ReadResponse> stream;
       try {
-        String desc = "NaiveCachedGrpcDataReader";
+        String desc = "BufferCachingGrpcDataReader";
         if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
           desc = MoreObjects.toStringHelper(this)
               .add("request", mReadRequest)
@@ -255,8 +246,7 @@ public final class NaiveCachedGrpcDataReader {
         client.close();
         throw e;
       }
-      return new NaiveCachedGrpcDataReader(mAddress, client, closer,
-          dataBuffers, dataTimeoutMs, mReadRequest, stream);
+      return new BufferCachingGrpcDataReader(mAddress, client, dataTimeoutMs, mReadRequest, stream);
     }
   }
 }

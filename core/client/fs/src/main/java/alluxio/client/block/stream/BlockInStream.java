@@ -180,9 +180,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory;
-    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_GRPC_DATA_READER)
+    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
         && (blockSize > (chunkSize * 4))) {
-      factory = new NaiveSharedGrpcDataReader
+      factory = new SharedGrpcDataReader
           .Factory(context, address, readRequestBuilder.build(), blockSize);
     } else {
       factory = new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
@@ -343,8 +343,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (pos < mPos) {
       mEOF = false;
-      if (mDataReader instanceof NaiveSharedGrpcDataReader) {
-        NaiveSharedGrpcDataReader reader = (NaiveSharedGrpcDataReader) mDataReader;
+      if (mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)) {
+        SharedGrpcDataReader reader = (SharedGrpcDataReader) mDataReader;
         reader.seek(pos);
         if (mCurrentChunk != null) {
           mCurrentChunk.release();
