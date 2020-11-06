@@ -259,7 +259,6 @@ public final class GrpcDataWriter implements DataWriter {
       mStream.close();
       mStream.waitForComplete(mWriterCloseTimeoutMs);
     } finally {
-      mMarshaller.close();
       mClient.close();
     }
   }
