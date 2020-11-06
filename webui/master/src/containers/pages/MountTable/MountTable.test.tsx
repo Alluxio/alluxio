@@ -17,13 +17,13 @@ import sinon from 'sinon';
 
 import { initialState } from '../../../store';
 import { initialInitState } from '../../../store/init/reducer';
-import { AllProps, MountTablePresenter } from './Mounttable';
+import { AllProps, MountTablePresenter } from './MountTable';
 import { routePaths } from '../../../constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
 configure({ adapter: new Adapter() });
 
-describe('Mounttable', () => {
+describe('MountTable', () => {
   let history: History<LocationState>;
   let props: AllProps;
 
