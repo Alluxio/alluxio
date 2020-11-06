@@ -168,7 +168,9 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
+
+      // When a reader is closed, there is nothing to wait for from the server.
+      // Intentionally not invoking mStream.waitForComplete() here to avoid waiting for server.
     } finally {
       mMarshaller.close();
       mClient.close();

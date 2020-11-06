@@ -27,8 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,9 +51,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
   /** Buffer that stores responses to be consumed by {@link GrpcBlockingStream#receive(long)}. */
   private final BlockingQueue<Object> mResponses;
   private final String mDescription;
-  private boolean mCompleted = false;
-  private boolean mClosed = false;
-  private boolean mCanceled = false;
+  private volatile boolean mCompleted = false;
+  private volatile boolean mClosed = false;
+  private volatile boolean mCanceled = false;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -78,7 +78,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
   public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
       int bufferSize, String description) {
     LOG.debug("Opening stream ({})", description);
-    mResponses = new ArrayBlockingQueue<>(bufferSize);
+    // Use an unlimited queue to avoid blocking the network threads. Depend on custom flow
+    // control to limit the size of buffer.
+    mResponses = new LinkedBlockingQueue<>();
     mResponseObserver = new ResponseStreamObserver();
     mRequestObserver = (ClientCallStreamObserver) rpcFunc.apply(mResponseObserver);
     mDescription = description;
