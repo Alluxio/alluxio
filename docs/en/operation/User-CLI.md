@@ -1121,7 +1121,7 @@ If set TTL is run on a directory, the same TTL attributes is set on all its chil
 If a directory's TTL expires, all its children will also expire.
 
 Action parameter `--action` will indicate the action to perform once the file or directory expires.
-The default action, `delete`, deletes the file or directory from both Alluxio and the under storage system,
+**The default action, delete, deletes the file or directory from both Alluxio and the under storage system**,
 whereas the action `free` frees the file from Alluxio even if pinned.
 
 For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary after a period of time,

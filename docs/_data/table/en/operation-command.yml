@@ -80,7 +80,8 @@ setfacl:
   Set the Access Control List of a file or directory.
 setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
-  or "free" after expiry of ttl interval.
+  or "free" after expiry of ttl interval. NOTICE "delete" is the default value,
+  will cause the file to be permanently removed from Alluxio namespace and under store.
 stat:
   Display info for the specified file or directory.
 tail:
