@@ -51,7 +51,6 @@ public class BufferCachingGrpcDataReader {
   private final long mDataTimeoutMs;
   private final ReadRequest mReadRequest;
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
-  private final ReadResponseMarshaller mMarshaller;
   /**
    * Count the number of threads that are accessing the same block together.
    * When no thread is accessing this block, the cached data will be GCed.
@@ -79,7 +78,6 @@ public class BufferCachingGrpcDataReader {
     mAddress = address;
     mClient = client;
     mDataTimeoutMs = dataTimeoutMs;
-    mMarshaller = new ReadResponseMarshaller();
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
     mStream = stream;
@@ -160,7 +158,6 @@ public class BufferCachingGrpcDataReader {
       mStream.close();
       mStream.waitForComplete(mDataTimeoutMs);
     } finally {
-      mMarshaller.close();
       mClient.close();
     }
   }

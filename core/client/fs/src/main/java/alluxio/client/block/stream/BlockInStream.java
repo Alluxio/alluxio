@@ -343,7 +343,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (pos < mPos) {
       mEOF = false;
-      if (mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)) {
+      if (mDataReader instanceof SharedGrpcDataReader) {
         SharedGrpcDataReader reader = (SharedGrpcDataReader) mDataReader;
         reader.seek(pos);
         if (mCurrentChunk != null) {
