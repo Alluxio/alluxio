@@ -25,7 +25,6 @@ import alluxio.resource.LockResource;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,9 +57,7 @@ public class BufferCachingGrpcDataReader {
    * When no thread is accessing this block, the cached data will be GCed.
    */
   private final AtomicInteger mRefCount = new AtomicInteger(0);
-  private final Closer mCloser;
-
-  private AtomicInteger mBufferCount = new AtomicInteger(0);
+  private final AtomicInteger mBufferCount = new AtomicInteger(0);
   private final DataBuffer[] mDataBuffers;
   private final ReentrantReadWriteLock mBufferLocks = new ReentrantReadWriteLock();
 
@@ -85,14 +83,6 @@ public class BufferCachingGrpcDataReader {
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
     mStream = stream;
-
-    mCloser = Closer.create();
-    mCloser.register(mClient);
-    mCloser.register(() -> {
-      mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
-    });
-
     long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
     long chunkSize = mReadRequest.getChunkSize();
     int buffCount = (int) (blockSize / chunkSize);
@@ -108,6 +98,7 @@ public class BufferCachingGrpcDataReader {
    * @param index the chunk index
    * @return the chunk data if exists
    */
+  @Nullable
   public DataBuffer readChunk(int index) throws IOException {
     if (index >= mDataBuffers.length) {
       return null;
@@ -131,21 +122,21 @@ public class BufferCachingGrpcDataReader {
    *
    * @return a chunk of data
    */
+  @Nullable
   private DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
     ReadResponse response = null;
     response = mStream.receive(mDataTimeoutMs);
-    if (response != null) {
-      Preconditions.checkState(response.hasChunk() && response.getChunk().hasData(),
-          "response should always contain chunk");
-
-      ByteBuffer byteBuffer = response.getChunk().getData().asReadOnlyByteBuffer();
-      buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
-    } else {
+    if (response == null) {
       return null;
     }
+    Preconditions.checkState(response.hasChunk() && response.getChunk().hasData(),
+        "response should always contain chunk");
+
+    ByteBuffer byteBuffer = response.getChunk().getData().asReadOnlyByteBuffer();
+    buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
     mPosToRead += buffer.readableBytes();
     try {
       mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
@@ -162,16 +153,22 @@ public class BufferCachingGrpcDataReader {
    * Closes the {@link BufferCachingGrpcDataReader}.
    */
   public void close() throws IOException {
-    if (mClient.get().isShutdown()) {
-      return;
+    try {
+      if (mClient.get().isShutdown()) {
+        return;
+      }
+      mStream.close();
+      mStream.waitForComplete(mDataTimeoutMs);
+    } finally {
+      mMarshaller.close();
+      mClient.close();
     }
-    mCloser.close();
   }
 
   /**
    * Increases the reference count and return the current count.
    *
-   * @return the current count
+   * @return the incremented count
    */
   public int ref() {
     return mRefCount.incrementAndGet();
@@ -180,7 +177,7 @@ public class BufferCachingGrpcDataReader {
   /**
    * Decreases the reference count and return the current count.
    *
-   * @return the current count
+   * @return the decremented count
    */
   public int deRef() {
     return mRefCount.decrementAndGet();
@@ -226,15 +223,15 @@ public class BufferCachingGrpcDataReader {
 
       CloseableResource<BlockWorkerClient> client = mContext.acquireBlockWorkerClient(mAddress);
 
-      GrpcBlockingStream<ReadRequest, ReadResponse> stream;
+      String desc = "BufferCachingGrpcDataReader";
+      if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+        desc = MoreObjects.toStringHelper(this)
+            .add("request", mReadRequest)
+            .add("address", mAddress)
+            .toString();
+      }
+      GrpcBlockingStream<ReadRequest, ReadResponse> stream = null;
       try {
-        String desc = "BufferCachingGrpcDataReader";
-        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
-          desc = MoreObjects.toStringHelper(this)
-              .add("request", mReadRequest)
-              .add("address", mAddress)
-              .toString();
-        }
         // Stream here cannot be GrpcDataMessagingBlockingStream
         // DataBuffer.getReadOnlyByteBuffer is used to clone a copy in SharedDataReader.readChunk.
         // getReadOnlyByteBuffer is not implemented in DataBuffer
@@ -243,6 +240,9 @@ public class BufferCachingGrpcDataReader {
             desc);
         stream.send(mReadRequest, dataTimeoutMs);
       } catch (Exception e) {
+        if (stream != null) {
+          stream.close();
+        }
         client.close();
         throw e;
       }

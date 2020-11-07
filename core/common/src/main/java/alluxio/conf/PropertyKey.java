@@ -4216,16 +4216,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_SHARED_CACHING_READER_LOCKS =
-      new Builder(Name.FUSE_SHARED_CACHING_READER_LOCKS)
-          .setDefaultValue(8)
-          .setDescription("(Experimental) Total number of locks for creating and managing "
-              + "the block buffer caching readers. Large value leads to finer locking granularity "
-              + "when reading a large amount of files or the total data size read is large, "
-              + "but uses more space.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_MAXCACHE_BYTES =
       new Builder(Name.FUSE_MAXCACHE_BYTES)
           .setDefaultValue("1MB")
@@ -5573,8 +5563,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
-    public static final String FUSE_SHARED_CACHING_READER_LOCKS
-        = "alluxio.fuse.shared.caching.reader.locks";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MAXCACHE_BYTES = "alluxio.fuse.maxcache.bytes";

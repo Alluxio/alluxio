@@ -12,14 +12,10 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.LockResource;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -30,6 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -43,6 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class SharedGrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(SharedGrpcDataReader.class);
+  private static final int BLOCK_LOCK_NUM = 32;
   private static final ReentrantReadWriteLock[] BLOCK_LOCKS;
   /** A map from block id to the block's cached data reader. */
   @GuardedBy("BLOCK_LOCKS")
@@ -50,12 +48,14 @@ public class SharedGrpcDataReader implements DataReader {
       = new ConcurrentHashMap<>();
 
   static {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    int lockNum = conf.getInt(PropertyKey.FUSE_SHARED_CACHING_READER_LOCKS);
-    BLOCK_LOCKS = new ReentrantReadWriteLock[lockNum];
-    for (int i = 0; i < lockNum; i++) {
+    BLOCK_LOCKS = new ReentrantReadWriteLock[BLOCK_LOCK_NUM];
+    for (int i = 0; i < BLOCK_LOCK_NUM; i++) {
       BLOCK_LOCKS[i] = new ReentrantReadWriteLock();
     }
+  }
+
+  private static ReentrantReadWriteLock getBlockLock(long blockId) {
+    return BLOCK_LOCKS[(int) (blockId % BLOCK_LOCKS.length)];
   }
 
   private final long mBlockId;
@@ -93,6 +93,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   @Override
+  @Nullable
   public DataBuffer readChunk() throws IOException {
     int index = (int) (mPosToRead / mChunkSize);
     DataBuffer chunk = mCachedDataReader.readChunk(index);
@@ -108,6 +109,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   @Override
+  @Nullable
   public DataBuffer readChunkIfReady() throws IOException {
     // I'm naive, I'm reading chunks anyway
     return readChunk();
@@ -115,16 +117,17 @@ public class SharedGrpcDataReader implements DataReader {
 
   @Override
   public void close() throws IOException {
-    if (mCachedDataReader.deRef() == 0) {
-      try (LockResource lockResource = new LockResource(
-          BLOCK_LOCKS[(int) (mBlockId % BLOCK_LOCKS.length)].writeLock())) {
-        if (mCachedDataReader.getRefCount() == 0) {
-          BLOCK_READERS.remove(mBlockId);
-        }
-      }
+    if (mCachedDataReader.deRef() > 0) {
+      return;
+    }
+    try (LockResource lockResource = new LockResource(
+        getBlockLock(mBlockId).writeLock())) {
       if (mCachedDataReader.getRefCount() == 0) {
-        mCachedDataReader.close();
+        BLOCK_READERS.remove(mBlockId);
       }
+    }
+    if (mCachedDataReader.getRefCount() == 0) {
+      mCachedDataReader.close();
     }
   }
 
@@ -158,7 +161,7 @@ public class SharedGrpcDataReader implements DataReader {
       long blockId = mReadRequestPartial.getBlockId();
       BufferCachingGrpcDataReader reader;
       try (LockResource lockResource = new LockResource(
-          BLOCK_LOCKS[(int) (blockId % BLOCK_LOCKS.length)].writeLock())) {
+          getBlockLock(blockId).writeLock())) {
         reader = BLOCK_READERS.get(blockId);
         if (reader == null) {
           // I'm naive, I always read from 0 and read the whole block
