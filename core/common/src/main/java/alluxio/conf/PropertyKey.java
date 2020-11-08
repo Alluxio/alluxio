@@ -4218,6 +4218,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
+      new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) Use share grpc data reader for better performance "
+              + "on multi-process file reading through Alluxio JNI Fuse. "
+              + "Blocks data will be cached on the client side "
+              + "so more memory is required for the Fuse process.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_MAXCACHE_BYTES =
       new Builder(Name.FUSE_MAXCACHE_BYTES)
           .setDefaultValue("1MB")
@@ -5565,6 +5575,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_SHARED_CACHING_READER_ENABLED
+        = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MAXCACHE_BYTES = "alluxio.fuse.maxcache.bytes";

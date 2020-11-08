@@ -16,6 +16,8 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import java.io.Closeable;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 /**
  * The interface to read data chunks.
  */
@@ -27,6 +29,15 @@ public interface DataReader extends Closeable {
    * @return the data buffer or null if EOF is reached
    */
   DataBuffer readChunk() throws IOException;
+
+  /**
+   * Tries to read a chunk if there is data ready.
+   * If the chunk is not null, the caller needs to release it.
+   *
+   * @return the data buffer or null if EOF is reached or data is not ready
+   */
+  @Nullable
+  DataBuffer readChunkIfReady() throws IOException;
 
   /**
    * @return the current stream position
