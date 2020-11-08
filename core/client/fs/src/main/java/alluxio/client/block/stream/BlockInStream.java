@@ -341,6 +341,17 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos == mPos) {
       return;
     }
+    // Protect the original seek logic under fuse flag to minimize and isolate
+    // the fuse related changes
+    if (!mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)) {
+      if (pos < mPos) {
+        mEOF = false;
+      }
+      closeDataReader();
+      mPos = pos;
+      return;
+    }
+
     if (pos < mPos) {
       mEOF = false;
       if (mDataReader instanceof SharedGrpcDataReader) {
@@ -354,6 +365,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         closeDataReader();
       }
     } else {
+      // TODO(lu) combine the original seek logic and the following general improvements
+      // that are helpful in both fuse and non-fuse scenarios
       // Try to read data already received but haven't processed
       long curPos = mPos;
       while (mCurrentChunk != null && curPos < pos) {
