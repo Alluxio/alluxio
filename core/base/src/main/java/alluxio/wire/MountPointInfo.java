@@ -35,6 +35,7 @@ public class MountPointInfo implements Serializable {
 
   private String mUfsUri = "";
   private String mUfsType = "";
+  private long mMountId = 0;
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
@@ -45,6 +46,13 @@ public class MountPointInfo implements Serializable {
    * Creates a new instance of {@link MountPointInfo}.
    */
   public MountPointInfo() {}
+
+  /**
+   * @return the mount id
+   */
+  public long getMountId() {
+    return mMountId;
+  }
 
   /**
    * @return the uri of the under filesystem
@@ -93,6 +101,15 @@ public class MountPointInfo implements Serializable {
    */
   public boolean getShared() {
     return mShared;
+  }
+
+  /**
+   * @param mountId set mountId
+   * @return the mount point information
+   */
+  public MountPointInfo setMountId(long mountId) {
+    mMountId = mountId;
+    return this;
   }
 
   /**
@@ -170,18 +187,19 @@ public class MountPointInfo implements Serializable {
     return mUfsUri.equals(that.mUfsUri) && mUfsType.equals(that.mUfsType)
         && mUfsCapacityBytes == that.mUfsCapacityBytes && mUfsUsedBytes == that.mUfsUsedBytes
         && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties)
-        && mShared == that.mShared;
+        && mShared == that.mShared && mMountId == that.mMountId;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes, mReadOnly,
+    return Objects.hashCode(mMountId, mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes, mReadOnly,
         mProperties, mShared);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
+    return MoreObjects.toStringHelper(this).add("mountId", mMountId)
+        .add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
         .add("ufsCapacityBytes", mUfsCapacityBytes).add("ufsUsedBytes", mUfsUsedBytes)
         .add("readOnly", mReadOnly).add("properties", mProperties)
         .add("shared", mShared).toString();

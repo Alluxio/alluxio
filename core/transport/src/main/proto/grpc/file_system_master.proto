@@ -311,6 +311,7 @@ message MountPointInfo {
   optional bool readOnly = 5;
   map<string, string> properties = 6;
   optional bool shared = 7;
+  optional int64 mountId = 8;
 }
 
 message FileSystemCommandOptions {

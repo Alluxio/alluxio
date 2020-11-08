@@ -38,6 +38,7 @@ public class MountPointInfoTest {
     Assert.assertEquals(a.getUfsUsedBytes(), b.getUfsUsedBytes());
     Assert.assertEquals(a.getReadOnly(), b.getReadOnly());
     Assert.assertEquals(a.getProperties(), b.getProperties());
+    Assert.assertEquals(a.getMountId(), b.getMountId());
     Assert.assertEquals(a, b);
   }
 
