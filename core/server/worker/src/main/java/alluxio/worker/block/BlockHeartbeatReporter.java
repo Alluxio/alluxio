@@ -12,8 +12,6 @@
 package alluxio.worker.block;
 
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +29,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockHeartbeatReporter.class);
-
   /** Lock for operations on the removed and added block collections. */
   private final Object mLock;
 
@@ -151,10 +147,8 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   private void addBlockToAddedBlocks(long blockId, BlockStoreLocation location) {
     if (mAddedBlocks.containsKey(location)) {
       mAddedBlocks.get(location).add(blockId);
-      LOG.info("reporter add blockId: {}", blockId);
     } else {
       mAddedBlocks.put(location, Lists.newArrayList(blockId));
-      LOG.info("reporter put blockId: {}", blockId);
     }
   }
 
@@ -170,7 +164,6 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       List<Long> blockList = entry.getValue();
       if (blockList.contains(blockId)) {
         blockList.remove(blockId);
-        LOG.info("reporter added list remove blockId: {}", blockId);
         if (blockList.isEmpty()) {
           iterator.remove();
         }

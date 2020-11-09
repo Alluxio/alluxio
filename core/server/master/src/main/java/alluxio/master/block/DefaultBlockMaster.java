@@ -990,10 +990,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
-      LOG.info("master adding blockIds: {}", entry.getValue());
-    }
-
-    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
@@ -1005,7 +1001,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
                 .setMediumType(entry.getKey().getMediumType())
                 .build();
             mBlockStore.addLocation(blockId, blockLocation);
-            LOG.info("master added blockId: {}", blockId);
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,

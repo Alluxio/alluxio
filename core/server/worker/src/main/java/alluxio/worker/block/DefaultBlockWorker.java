@@ -537,7 +537,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
         try {
           commitBlock(sessionId, blockId, false);
-          LOG.info("Commit ufs blockId: {}", blockId);
         } catch (BlockDoesNotExistException e) {
           // This can only happen if the session is expired. Ignore this exception if that happens.
           LOG.warn("Block {} does not exist while being committed.", blockId);
@@ -546,13 +545,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
           // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
           // the sessionId.
           LOG.debug("Invalid worker state while committing block.", e);
-          LOG.info("Invalid worker state while committing blockId: {}", blockId, e);
         }
       }
     } finally {
       mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
     }
-    LOG.info("closeUfsBlock done blockId: {}", blockId);
   }
 
   @Override
