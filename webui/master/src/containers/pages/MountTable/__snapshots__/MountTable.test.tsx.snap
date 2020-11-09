@@ -24,7 +24,7 @@ exports[`MountTable Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                mount point
+                Mount Point
               </th>
               <th>
                 UFS URI
@@ -33,16 +33,16 @@ exports[`MountTable Shallow component Matches snapshot 1`] = `
                 UFS Type
               </th>
               <th>
-                UFS CapacityBytes
+                UFS Capacity Bytes
               </th>
               <th>
-                UFS UsedBytes
+                UFS Used Bytes
               </th>
               <th>
-                readOnly
+                ReadOnly
               </th>
               <th>
-                shared
+                Shared
               </th>
             </tr>
           </thead>
