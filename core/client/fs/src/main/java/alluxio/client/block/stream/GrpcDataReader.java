@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -169,8 +170,18 @@ public final class GrpcDataReader implements DataReader {
       }
       mStream.close();
 
-      // When a reader is closed, there is nothing to wait for from the server.
-      // Intentionally not invoking mStream.waitForComplete() here to avoid waiting for server.
+      // When a reader is closed, there is technically nothing the client requires from the server.
+      // However, the server does need to cleanup resources for a client close(), including closing
+      // or canceling any temp blocks. Therefore, we should wait for some amount of time for the
+      // server to finish cleanup, but it should not be very long (since the client is finished
+      // with the read). Also, if there is any error when waiting for the complete, it should be
+      // ignored since again, the client is completely finished with the read.
+      try {
+        // Wait a short time for the server to finish the close, and then let the client continue.
+        mStream.waitForComplete(5 * Constants.SECOND_MS);
+      } catch (Throwable e) {
+        // ignore any errors
+      }
     } finally {
       mMarshaller.close();
       mClient.close();
