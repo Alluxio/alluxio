@@ -714,6 +714,8 @@ public class TieredBlockStore implements BlockStore {
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
       TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, options.getSize());
+      LOG.info("created temp blockId: {} sessionId: {}", blockId, sessionId,
+          (new IOException("stack")));
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.
