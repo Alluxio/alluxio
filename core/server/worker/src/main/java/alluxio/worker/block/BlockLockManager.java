@@ -113,8 +113,8 @@ public final class BlockLockManager {
     }
     try {
       if (!lock.tryLock(1L, TimeUnit.MINUTES)) {
-        LOG.warn("tryLock {} block {} for session {} failed after 1 min, " +
-            "lock reference count = {}",
+        LOG.warn("tryLock {} block {} for session {} failed after 1 min, "
+                + "lock reference count = {}",
             blockLockType, blockId, sessionId, blockLock.getReferenceCount());
         lock.lock();
       }
