@@ -35,7 +35,6 @@ public class MigrateConfig implements PlanConfig {
   private final String mDestination;
   private final String mWriteType;
   private final boolean mOverwrite;
-  private final boolean mDeleteSource;
 
   /**
    * @param source the source path
@@ -99,12 +98,12 @@ public class MigrateConfig implements PlanConfig {
     return Objects.equal(mSource, that.mSource)
         && Objects.equal(mDestination, that.mDestination)
         && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mOverwrite, that.mOverwrite)
+        && Objects.equal(mOverwrite, that.mOverwrite);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite, mDeleteSource);
+    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite);
   }
 
   @Override

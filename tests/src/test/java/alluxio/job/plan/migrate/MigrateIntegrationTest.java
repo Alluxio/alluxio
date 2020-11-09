@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.io.File;
@@ -46,9 +45,6 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     return Arrays.asList(new Object[][] { {true}, {false} });
   }
 
-  @Parameter
-  public boolean mDeleteSource;
-
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -62,14 +58,9 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     String destination = "/mount2/destination";
     createFileWithTestBytes(source);
     long jobId = mJobMaster
-        .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true,
-            mDeleteSource));
+        .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true));
     JobInfo info = waitForJobToFinish(jobId);
-    if (mDeleteSource) {
-      Assert.assertFalse(mFileSystem.exists(new AlluxioURI(source)));
-    } else {
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI(source)));
-    }
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(source)));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(destination)));
     checkFileContainsTestBytes(destination);
     // One worker task is needed when moving within the same mount point.
@@ -88,13 +79,9 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     mFileSystem.createDirectory(new AlluxioURI("/mount1/source/baz"));
     createFileWithTestBytes("/mount1/source/baz/bat");
     long jobId = mJobMaster.run(new MigrateConfig("/mount1/source", "/mount2/destination",
-        WriteType.CACHE_THROUGH.toString(), true, mDeleteSource));
+        WriteType.CACHE_THROUGH.toString(), true));
     waitForJobToFinish(jobId);
-    if (mDeleteSource) {
-      Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/mount1/source")));
-    } else {
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount1/source")));
-    }
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount1/source")));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount2/destination")));
     checkFileContainsTestBytes("/mount2/destination/foo");
     checkFileContainsTestBytes("/mount2/destination/bar");

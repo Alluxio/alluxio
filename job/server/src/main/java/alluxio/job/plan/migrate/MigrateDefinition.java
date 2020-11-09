@@ -142,6 +142,7 @@ public final class MigrateDefinition
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
     migrate(command, writeType.toProto(), context.getFileSystem());
+    return null;
   }
 
   /**

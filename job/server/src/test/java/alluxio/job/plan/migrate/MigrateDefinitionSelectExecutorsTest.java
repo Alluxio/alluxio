@@ -11,8 +11,6 @@
 
 package alluxio.job.plan.migrate;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -43,8 +41,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -102,52 +98,6 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
   }
 
   @Test
-  public void assignToLocalWorkerWithMostBlocksMultipleFiles() throws Exception {
-    createDirectory("/dir");
-    // Should go to worker 0.
-    FileInfo info1 = createFileWithBlocksOnWorkers("/dir/src1", 0, 1, 2, 3, 0);
-    // Should go to worker 2.
-    FileInfo info2 = createFileWithBlocksOnWorkers("/dir/src2", 1, 1, 2, 2, 2);
-    // Should go to worker 0.
-    FileInfo info3 = createFileWithBlocksOnWorkers("/dir/src3", 2, 0, 0, 1, 1, 0);
-    setChildren("/dir", info1, info2, info3);
-    // Say the destination doesn't exist.
-    setPathToNotExist("/dst");
-
-    List<MigrateCommand> migrateCommandsWorker0 = Lists.newArrayList(
-        new MigrateCommand("/dir/src1", "/dst/src1"),
-        new MigrateCommand("/dir/src3", "/dst/src3"));
-    List<MigrateCommand> migrateCommandsWorker2 =
-        Lists.newArrayList(new MigrateCommand("/dir/src2", "/dst/src2"));
-    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
-        ImmutableSet.of(
-            new Pair<>(JOB_WORKERS.get(0), ImmutableList.of(migrateCommandsWorker0.get(0))),
-            new Pair<>(JOB_WORKERS.get(0), ImmutableList.of(migrateCommandsWorker0.get(1))),
-            new Pair<>(JOB_WORKERS.get(2), ImmutableList.of(migrateCommandsWorker2.get(0))));
-    Assert.assertEquals(expected, assignMigrates("/dir", "/dst"));
-  }
-
-  @Test
-  public void migrateEmptyDirectory() throws Exception {
-    createDirectory("/src");
-    createDirectory("/dst");
-    setPathToNotExist("/dst/src");
-    assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")));
-  }
-
-  @Test
-  public void migrateNestedEmptyDirectory() throws Exception {
-    createDirectory("/src");
-    FileInfo nested = createDirectory("/src/nested");
-    setChildren("/src", nested);
-    createDirectory("/dst");
-    setPathToNotExist("/dst/src");
-    assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")));
-  }
-
-  @Test
   public void migrateToSubpath() throws Exception {
     try {
       assignMigratesFail("/src", "/src/dst");
@@ -170,46 +120,6 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
   }
 
   @Test
-  public void migrateFileToExistingDestinationWithOverwrite() throws Exception {
-    createFileWithBlocksOnWorkers("/src", 0);
-    createFile("/dst");
-
-    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
-        JOB_WORKERS.get(0), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
-    // Set overwrite to true.
-    Assert.assertEquals(expected, assignMigrates(new MigrateConfig("/src", "/dst", "THROUGH",
-        true, false)));
-  }
-
-  @Test
-  public void migrateDirectoryIntoDirectoryWithOverwrite() throws Exception {
-    createDirectory("/src");
-    FileInfo nested = createDirectory("/src/nested");
-    FileInfo moreNested = createDirectory("/src/nested/moreNested");
-    FileInfo file1 = createFileWithBlocksOnWorkers("/src/file1", 2);
-    FileInfo file2 = createFileWithBlocksOnWorkers("/src/nested/file2", 1);
-    FileInfo file3 = createFileWithBlocksOnWorkers("/src/nested/moreNested/file3", 1);
-    setChildren("/src", nested, file1);
-    setChildren("/src/nested", moreNested, file2);
-    setChildren("/src/nested/moreNested", file3);
-    createDirectory("/dst");
-
-    List<MigrateCommand> migrateCommandsWorker1 =
-        Lists.newArrayList(new MigrateCommand("/src/nested/file2", "/dst/nested/file2"),
-            new MigrateCommand("/src/nested/moreNested/file3",
-                    "/dst/nested/moreNested/file3"));
-    List<MigrateCommand> migrateCommandsWorker2 =
-        Lists.newArrayList(new MigrateCommand("/src/file1", "/dst/file1"));
-    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
-        ImmutableSet.of(
-            new Pair<>(JOB_WORKERS.get(1), ImmutableList.of(migrateCommandsWorker1.get(0))),
-            new Pair<>(JOB_WORKERS.get(1), ImmutableList.of(migrateCommandsWorker1.get(1))),
-            new Pair<>(JOB_WORKERS.get(2), ImmutableList.of(migrateCommandsWorker2.get(0))));
-    Assert.assertEquals(expected, assignMigrates(new MigrateConfig(
-            "/src", "/dst", "THROUGH", true, false)));
-  }
-
-  @Test
   public void migrateUncachedFile() throws Exception {
     createFileWithBlocksOnWorkers("/src");
     setPathToNotExist("/dst");
@@ -221,30 +131,30 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
 
-    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignments =
+    Set<Pair<WorkerInfo, MigrateCommand>> assignments =
         new MigrateDefinition().selectExecutors(
-            new MigrateConfig("/src", "/dst", "THROUGH", true, false),
+            new MigrateConfig("/src", "/dst", "THROUGH", true),
             ImmutableList.of(JOB_WORKER_3),
             new SelectExecutorsContext(1,
                 new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
 
     Assert.assertEquals(ImmutableSet.of(new Pair<>(JOB_WORKER_3,
-        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst"))))), assignments);
+        new MigrateCommand("/src", "/dst"))), assignments);
   }
 
   /**
    * Runs selectExecutors for the migrate from source to destination.
    */
-  private Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(String source,
+  private Set<Pair<WorkerInfo, MigrateCommand>> assignMigrates(String source,
       String destination) throws Exception {
-    return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false, false));
+    return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false));
   }
 
   /**
    * Runs selectExecutors for the migrate from source to destination with the given writeType and
    * overwrite value.
    */
-  private Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(MigrateConfig config)
+  private Set<Pair<WorkerInfo, MigrateCommand>> assignMigrates(MigrateConfig config)
       throws Exception {
     return new MigrateDefinition().selectExecutors(config,
         JOB_WORKERS, new SelectExecutorsContext(1,
@@ -263,14 +173,10 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
    */
   private void assignMigratesFail(String source, String destination, String writeType,
       boolean overwrite) throws Exception {
-    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignment =
-        assignMigrates(new MigrateConfig(source, destination, writeType, overwrite, false));
+    Set<Pair<WorkerInfo, MigrateCommand>> assignment =
+        assignMigrates(new MigrateConfig(source, destination, writeType, overwrite));
     Assert.fail(
         "Selecting executors should have failed, but it succeeded with assignment " + assignment);
-  }
-
-  private void createFile(String name) throws Exception {
-    createFileWithBlocksOnWorkers(name);
   }
 
   private FileInfo createFileWithBlocksOnWorkers(String testFile, int... workerInds)
@@ -314,18 +220,6 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
     FileInfo info = new FileInfo().setFolder(true).setPath(name).setMountPoint(true);
     when(mMockFileSystem.getStatus(new AlluxioURI(name))).thenReturn(new URIStatus(info));
     return info;
-  }
-
-  /**
-   * Informs the mock that the given fileInfos are children of the parent.
-   */
-  private void setChildren(String parent, FileInfo... children) throws Exception {
-    List<URIStatus> statuses = new ArrayList<>();
-    for (FileInfo child : children) {
-      statuses.add(new URIStatus(child));
-    }
-    when(mMockFileSystem.listStatus(new AlluxioURI(parent)))
-        .thenReturn(Lists.newArrayList(statuses));
   }
 
   /**
