@@ -46,13 +46,13 @@ export class MountTablePresenter extends React.Component<AllProps> {
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>mount point</th>
+                    <th>Mount Point</th>
                     <th>UFS URI</th>
                     <th>UFS Type</th>
-                    <th>UFS CapacityBytes</th>
-                    <th>UFS UsedBytes</th>
-                    <th>readOnly</th>
-                    <th>shared</th>
+                    <th>UFS Capacity Bytes</th>
+                    <th>UFS Used Bytes</th>
+                    <th>ReadOnly</th>
+                    <th>Shared</th>
                   </tr>
                 </thead>
                 <tbody>
