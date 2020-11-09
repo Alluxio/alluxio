@@ -140,7 +140,11 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       @Override
       public OpenLocalBlockResponse call() throws Exception {
         if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
-          mWorker.unlockBlock(mLockId);
+          try {
+            mWorker.unlockBlock(mLockId);
+          } catch (BlockDoesNotExistException e) {
+            LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
+          }
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         } else if (mRequest != null) {
           LOG.warn("Close a closed block {}.", mRequest.getBlockId());
