@@ -412,7 +412,6 @@ public class AlluxioFileInStream extends FileInStream {
           blockWorker.get().asyncCache(request);
           mLastBlockIdCached = blockId;
         }
-        LOG.info("sent async cache request: blockId: {}", blockId);
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
             worker, e.getMessage());

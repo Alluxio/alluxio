@@ -104,7 +104,6 @@ public class AsyncCacheRequestManager {
           // Check if the block has already been cached on this worker
           long lockId =
               mBlockWorker.lockBlockNoException(sessionId, blockId);
-          LOG.info("starting async cache for blockId: {}", blockId);
           if (lockId != BlockLockManager.INVALID_LOCK_ID) {
             try {
               mBlockWorker.unlockBlock(lockId);
@@ -166,7 +165,6 @@ public class AsyncCacheRequestManager {
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     // Check if the block has been requested in UFS block store
-    LOG.info("caching block from UFS blockId: {}", blockId);
     try {
       if (!mBlockWorker
           .openUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, openUfsBlockOptions)) {
@@ -175,7 +173,6 @@ public class AsyncCacheRequestManager {
       }
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
-      LOG.info("already cached. blockId: {}", blockId);
       return true;
     }
     try (BlockReader reader = mBlockWorker
