@@ -180,7 +180,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory;
-    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
+    if (context.getClusterConf().getBoolean(PropertyKey.USER_SHARED_CACHING_READER_ENABLED)
         && (blockSize > (chunkSize * 4))) {
       factory = new SharedGrpcDataReader
           .Factory(context, address, readRequestBuilder.build(), blockSize);
@@ -343,7 +343,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     // Protect the original seek logic under fuse flag to minimize and isolate
     // the fuse related changes
-    if (!mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)) {
+    if (!mContext.getClusterConf().getBoolean(PropertyKey.USER_SHARED_CACHING_READER_ENABLED)) {
       if (pos < mPos) {
         mEOF = false;
       }

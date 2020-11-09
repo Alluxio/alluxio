@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A gRPC data reader that responsible for reading from a specific block.
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The current implementation cached the block data from the beginning to
  * the largest index being read.
  */
-@NotThreadSafe
+@ThreadSafe
 public class BufferCachingGrpcDataReader {
   private static final Logger LOG = LoggerFactory.getLogger(BufferCachingGrpcDataReader.class);
 

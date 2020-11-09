@@ -28,16 +28,12 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A shared gRPC data reader that cache blocks data for multi-thread accessing.
- *
- * It follows GrpcDataReader protocol and takes strong assumption:
- * Parallel read to the same file happens on the same time, so that read request is
- * serialized by kernel
  */
-@NotThreadSafe
+@ThreadSafe
 public class SharedGrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(SharedGrpcDataReader.class);
   private static final int BLOCK_LOCK_NUM = 32;

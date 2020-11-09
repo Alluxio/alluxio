@@ -3744,6 +3744,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
+  public static final PropertyKey USER_SHARED_CACHING_READER_ENABLED =
+      new Builder(Name.USER_SHARED_CACHING_READER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) Use share grpc data reader for better performance "
+              + "on multi-thread file reading through a single Alluxio client "
+              + "(e.g. multi-process file reading through Alluxio JNI Fuse). "
+              + "Blocks data will be cached on the client side "
+              + "so more memory is required for the Fuse process.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
@@ -4215,16 +4226,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
           .setDefaultValue(false)
           .setDescription("(Experimental) Use experimental JNIFUSE library for better performance.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
-      new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("(Experimental) Use share grpc data reader for better performance "
-              + "on multi-process file reading through Alluxio JNI Fuse. "
-              + "Blocks data will be cached on the client side "
-              + "so more memory is required for the Fuse process.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5491,6 +5492,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.writer.flush.timeout";
     public static final String USER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.user.network.zerocopy.enabled";
+    public static final String USER_SHARED_CACHING_READER_ENABLED =
+        "alluxio.user.shared.caching.reader.enabled";
     public static final String USER_STREAMING_DATA_TIMEOUT =
         "alluxio.user.streaming.data.timeout";
     public static final String USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
@@ -5575,8 +5578,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
-    public static final String FUSE_SHARED_CACHING_READER_ENABLED
-        = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MAXCACHE_BYTES = "alluxio.fuse.maxcache.bytes";
