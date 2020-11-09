@@ -198,6 +198,7 @@ public class AsyncCacheRequestManager {
     } finally {
       try {
         mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId);
+        LOG.info("Close UFS block done blockId: {}", blockId);
       } catch (AlluxioException | IOException ee) {
         LOG.warn("Failed to close UFS block {}: {}", blockId, ee);
         return false;
