@@ -45,18 +45,15 @@ public class MigrateConfig implements PlanConfig {
    * @param overwrite whether an existing file should be overwritten; if the source and destination
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
-   * @param deleteSource whether to delete the source path after migration
    */
   public MigrateConfig(@JsonProperty("source") String source,
                        @JsonProperty("destination") String dst,
                        @JsonProperty("writeType") String writeType,
-                       @JsonProperty("overwrite") boolean overwrite,
-                       @JsonProperty("deleteSource") boolean deleteSource) {
+                       @JsonProperty("overwrite") boolean overwrite) {
     mSource = Preconditions.checkNotNull(source, "source must be set");
     mDestination = Preconditions.checkNotNull(dst, "destination must be set");
     mWriteType = writeType;
     mOverwrite = overwrite;
-    mDeleteSource = deleteSource;
   }
 
   /**
@@ -87,13 +84,6 @@ public class MigrateConfig implements PlanConfig {
     return mOverwrite;
   }
 
-  /**
-   * @return whether to delete the source path after migration
-   */
-  public boolean isDeleteSource() {
-    return mDeleteSource;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -110,7 +100,6 @@ public class MigrateConfig implements PlanConfig {
         && Objects.equal(mDestination, that.mDestination)
         && Objects.equal(mWriteType, that.mWriteType)
         && Objects.equal(mOverwrite, that.mOverwrite)
-        && Objects.equal(mDeleteSource, that.mDeleteSource);
   }
 
   @Override
@@ -125,7 +114,6 @@ public class MigrateConfig implements PlanConfig {
         .add("destination", mDestination)
         .add("writeType", mWriteType)
         .add("overwrite", mOverwrite)
-        .add("deleteSource", mDeleteSource)
         .toString();
   }
 
