@@ -13,13 +13,13 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -38,8 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +50,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(FileInStreamIntegrationTest.class);
   // The block size needs to be sufficiently large based on TCP send/receive buffers, set to 1MB.
   private static final int BLOCK_SIZE = Constants.MB;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
@@ -502,17 +499,13 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
-        LOG.info("readType: {}", readType);
         CommonUtils.waitFor("First block to be cached.", () -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
-            LOG.info("in alluxio %: {}", st.getInAlluxioPercentage());
             boolean achieved = true;
             // Expect only first block to be cached, other blocks should be empty in Alluxio
             for (int i = 0; i < st.getFileBlockInfos().size(); i++) {
               FileBlockInfo info = st.getFileBlockInfos().get(i);
-              LOG.info("    {}: block locations size: {}", st.getInAlluxioPercentage(),
-                  info.getBlockInfo().getLocations().size());
               if (i == 0) {
                 achieved = achieved && !info.getBlockInfo().getLocations().isEmpty();
               } else {
