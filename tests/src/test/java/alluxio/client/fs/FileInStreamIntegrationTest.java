@@ -485,9 +485,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    LOG.info("fs: {}", mFileSystem.getClass().getName());
-    LOG.info("cache enabled: {}",
-        mFileSystem.getConf().get(PropertyKey.USER_METADATA_CACHE_ENABLED));
     for (ReadType readType : ReadType.values()) {
       mFileSystem.free(uri);
       CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", () -> {

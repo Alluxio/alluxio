@@ -166,8 +166,7 @@ public class AsyncCacheRequestManager {
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     // Check if the block has been requested in UFS block store
-    LOG.info("caching block from UFS blockId: {} noCache: {}", blockId,
-        openUfsBlockOptions.getNoCache());
+    LOG.info("caching block from UFS blockId: {}", blockId);
     try {
       if (!mBlockWorker
           .openUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, openUfsBlockOptions)) {
@@ -190,7 +189,6 @@ public class AsyncCacheRequestManager {
         reader.read(offset, bufferSize);
         offset += bufferSize;
       }
-      LOG.info("Done reading block UFS blockId: {} offset: {}", blockId, offset);
     } catch (AlluxioException | IOException e) {
       // This is only best effort
       LOG.warn("Failed to async cache block {} from UFS on copying the block: {}", blockId, e);
