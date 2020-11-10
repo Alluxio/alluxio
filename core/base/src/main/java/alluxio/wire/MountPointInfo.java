@@ -192,8 +192,8 @@ public class MountPointInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMountId, mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes, mReadOnly,
-        mProperties, mShared);
+    return Objects.hashCode(mMountId, mUfsUri, mUfsType, mUfsCapacityBytes,
+        mUfsUsedBytes, mReadOnly, mProperties, mShared);
   }
 
   @Override
