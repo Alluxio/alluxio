@@ -208,7 +208,7 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
 
   @Override
   public AlluxioConfiguration getConfiguration() throws IOException {
-    return new ManagedBlockingUfsMethod<AlluxioConfiguration> () {
+    return new ManagedBlockingUfsMethod<AlluxioConfiguration>() {
       @Override
       public AlluxioConfiguration execute() throws IOException {
         return mUfs.getConfiguration();
