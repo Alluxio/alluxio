@@ -248,7 +248,8 @@ public class JournalStateMachine extends BaseStateMachine {
       applyJournalEntryCommand(trx);
       RaftProtos.LogEntryProto entry = Objects.requireNonNull(trx.getLogEntry());
       updateLastAppliedTermIndex(entry.getTerm(), entry.getIndex());
-      // no response message is expected
+      // explicitly return empty future since no response message is expected by the journal writer
+      // avoid using super.applyTransaction() since it will echo the message and add overhead
       return EMPTY_FUTURE;
     } catch (Exception e) {
       return RaftJournalUtils.completeExceptionally(e);
