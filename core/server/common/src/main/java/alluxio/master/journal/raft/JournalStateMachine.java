@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -82,6 +83,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public class JournalStateMachine extends BaseStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
+
+  private static final CompletableFuture<Message> EMPTY_FUTURE =
+      CompletableFuture.completedFuture(Message.EMPTY);
 
   /** Journals managed by this applier. */
   private final Map<String, RaftJournal> mJournals;
@@ -242,7 +246,10 @@ public class JournalStateMachine extends BaseStateMachine {
   public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
     try {
       applyJournalEntryCommand(trx);
-      return super.applyTransaction(trx);
+      RaftProtos.LogEntryProto entry = Objects.requireNonNull(trx.getLogEntry());
+      updateLastAppliedTermIndex(entry.getTerm(), entry.getIndex());
+      // no response message is expected
+      return EMPTY_FUTURE;
     } catch (Exception e) {
       return RaftJournalUtils.completeExceptionally(e);
     }
