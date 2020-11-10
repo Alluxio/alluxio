@@ -34,18 +34,17 @@ public class UfsIOParameters extends Parameters {
           description = "size of data to write and then read for each thread")
   public String mDataSize = "4G";
 
-  @Parameter(names = {"--path"},
+  @Parameter(names = {PATH},
           description = "the Ufs Path to write temporary data in",
           required = true)
   public String mPath;
 
-  @Parameter(names = {"--use-ufs-conf"},
-      description = "If true, use the existing ufs configuration to read/write to the base path")
-  @Parameters.BooleanDescription(trueDescription = "UseUFSConf",
-      falseDescription = "UseExternalConf")
+  @Parameter(names = {USE_UFS_CONF},
+      description = "If true, attempt to load the ufs configuration from an existing mount point "
+          + "to read/write to the base path")
   public boolean mUseUfsConf = false;
 
-  @DynamicParameter(names = "--conf",
+  @DynamicParameter(names = CONF,
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
           + "configuration values.")
   public Map<String, String> mConf = new HashMap<>();
