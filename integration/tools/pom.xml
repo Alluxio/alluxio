@@ -42,6 +42,12 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shaded-hadoop</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
   </dependencies>
 
 </project>
