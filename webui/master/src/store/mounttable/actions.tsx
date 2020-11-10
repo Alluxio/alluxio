@@ -9,14 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export const routePaths = {
-  root: '/',
-  overview: '/overview',
-  browse: '/browse',
-  config: '/config',
-  data: '/data',
-  logs: '/logs',
-  metrics: '/metrics',
-  workers: '/workers',
-  mounttable: '/mounttable',
-};
+import { AxiosResponse } from 'axios';
+import { action } from 'typesafe-actions';
+
+import { MountTableActionTypes } from './types';
+import { AnyAction } from 'redux';
+
+export const fetchRequest = (): AnyAction => action(MountTableActionTypes.FETCH_REQUEST);
+export const fetchSuccess = (response: AxiosResponse): AnyAction =>
+  action(MountTableActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string): AnyAction => action(MountTableActionTypes.FETCH_ERROR, message);
