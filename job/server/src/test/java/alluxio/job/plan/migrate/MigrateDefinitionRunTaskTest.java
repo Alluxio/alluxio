@@ -58,7 +58,6 @@ import java.util.Collection;
  * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, MigrateCommand, RunTaskContext)}.
  */
 @RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(Parameterized.class)
 @PrepareForTest({FileSystemContext.class})
 public final class MigrateDefinitionRunTaskTest {
   private static final String TEST_DIR = "/DIR";
@@ -71,11 +70,6 @@ public final class MigrateDefinitionRunTaskTest {
   private MockFileInStream mMockInStream;
   private MockFileOutStream mMockOutStream;
   private UfsManager mMockUfsManager;
-
-  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] { {true}, {false} });
-  }
 
   @Before
   public void before() throws Exception {

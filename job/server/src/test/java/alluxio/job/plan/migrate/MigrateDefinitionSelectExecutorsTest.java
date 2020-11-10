@@ -83,8 +83,8 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
   public void assignToLocalWorker() throws Exception {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
-    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
-        JOB_WORKERS.get(0), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
+    Set<Pair<WorkerInfo, MigrateCommand>> expected = ImmutableSet.of(new Pair<>(
+        JOB_WORKERS.get(0), new MigrateCommand("/src", "/dst")));
     Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 
@@ -92,8 +92,8 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
   public void assignToWorkerWithMostBlocks() throws Exception {
     createFileWithBlocksOnWorkers("/src", 3, 1, 1, 3, 1);
     setPathToNotExist("/dst");
-    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
-        JOB_WORKERS.get(1), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
+    Set<Pair<WorkerInfo, MigrateCommand>> expected = ImmutableSet.of(new Pair<>(
+        JOB_WORKERS.get(1), new MigrateCommand("/src", "/dst")));
     Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 

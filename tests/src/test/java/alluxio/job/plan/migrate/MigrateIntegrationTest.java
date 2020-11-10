@@ -25,25 +25,14 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * Integration test for the migrate job.
  */
-@RunWith(Parameterized.class)
 public final class MigrateIntegrationTest extends JobIntegrationTest {
   private static final byte[] TEST_BYTES = "hello".getBytes();
-
-  @Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] { {true}, {false} });
-  }
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -80,12 +69,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     createFileWithTestBytes("/mount1/source/baz/bat");
     long jobId = mJobMaster.run(new MigrateConfig("/mount1/source", "/mount2/destination",
         WriteType.CACHE_THROUGH.toString(), true));
-    waitForJobToFinish(jobId);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount1/source")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount2/destination")));
-    checkFileContainsTestBytes("/mount2/destination/foo");
-    checkFileContainsTestBytes("/mount2/destination/bar");
-    checkFileContainsTestBytes("/mount2/destination/baz/bat");
+    waitForJobFailure(jobId);
   }
 
   /**
