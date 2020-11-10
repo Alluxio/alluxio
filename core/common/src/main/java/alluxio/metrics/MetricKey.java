@@ -740,6 +740,30 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_TAKE_COUNT =
+      new Builder(Name.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_TAKE_COUNT)
+          .setDescription("Total number of asyncBlockRemover take block count")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SUCCESS_COUNT =
+      new Builder(Name.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SUCCESS_COUNT)
+          .setDescription("Total number of asyncBlockRemover successfully removed block count")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SIZE =
+      new Builder(Name.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SIZE)
+          .setDescription("Total number of asyncBlockRemover block to removed size")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE =
+      new Builder(Name.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE)
+          .setDescription("Total number of asyncBlockRemover removing blocks size")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
@@ -1175,6 +1199,14 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";
     public static final String WORKER_CAPACITY_USED = "Worker.CapacityUsed";
     public static final String WORKER_CAPACITY_FREE = "Worker.CapacityFree";
+    public static final String WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_TAKE_COUNT
+        = "Worker.Block.Remover.BlocksToRemoved.Take.Count";
+    public static final String WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SUCCESS_COUNT
+        = "Worker.Block.Remover.BlocksToRemoved.Success.Count";
+    public static final String WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SIZE
+        = "Worker.Block.Remover.BlocksToRemoved.Size";
+    public static final String WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE
+        = "Worker.Block.Remover.RemovingBlocks.Size";
 
     // Client metrics
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";

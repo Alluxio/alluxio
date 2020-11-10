@@ -14,8 +14,11 @@ package alluxio.worker.block;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,8 @@ public class AsyncBlockRemover {
   /** This set is used for recording blocks in BlockRemover. */
   private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
+  private final Counter takeCount;
+  private final Counter removedSuccessCount;
 
   private volatile boolean mShutdown = false;
 
@@ -57,6 +62,16 @@ public class AsyncBlockRemover {
     mBlockWorker = worker;
     mBlocksToRemove = new LinkedBlockingQueue<>();
     mRemovingBlocks = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    takeCount = MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_TAKE_COUNT
+        .getName());
+    removedSuccessCount =
+        MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SUCCESS_COUNT
+            .getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SIZE.getName(),
+        () -> mBlocksToRemove.size());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(),
+        () -> mRemovingBlocks.size());
+
     mRemoverPool = Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE,
         ThreadFactoryUtils.build("block-removal-service-%d", true));
     for (int i = 0; i < DEFAULT_BLOCK_REMOVER_POOL_SIZE; i++) {
@@ -103,7 +118,9 @@ public class AsyncBlockRemover {
         blockToBeRemoved = INVALID_BLOCK_ID;
         try {
           blockToBeRemoved = mBlocksToRemove.take();
+          takeCount.inc();
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
+          removedSuccessCount.inc();
           LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
