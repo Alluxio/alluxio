@@ -98,7 +98,9 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
 
     ValidationTaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.getState() != ValidationUtils.State.OK) {
-      return loadConfig;
+      mAdvice.insert(0, "Validating the proxy user requires additional HDFS "
+          + "configuration. ");
+      return loadConfig.setAdvice(mAdvice.toString());
     }
 
     // TODO(jiacheng): validate proxyuser.hosts for the cluster
