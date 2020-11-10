@@ -566,6 +566,7 @@ public final class GrpcUtils {
         .setReadOnly(info.getReadOnly()).putAllProperties(info.getProperties())
         .setShared(info.getShared())
         .setMountId(info.getMountId())
+        .setUfsUsedBytes(info.getUfsUsedBytes())
         .build();
   }
 
