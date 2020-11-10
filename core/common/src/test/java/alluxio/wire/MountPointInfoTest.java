@@ -39,11 +39,6 @@ public class MountPointInfoTest {
     checkEquality(mountPointInfo, other);
   }
 
-  @Test
-  public void equality() {
-
-  }
-
   public void checkEquality(MountPointInfo a, MountPointInfo b) {
     Assert.assertEquals(a.getUfsUri(), b.getUfsUri());
     Assert.assertEquals(a.getUfsType(), b.getUfsType());
