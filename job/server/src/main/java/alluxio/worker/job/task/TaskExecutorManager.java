@@ -203,7 +203,8 @@ public class TaskExecutorManager {
     }
     finishTask(id);
     LOG.info("Task {} for job {} failed: {}", taskId, jobId, errorMessage);
-    SAMPLING_LOGGER.info(Throwables.getStackTraceAsString(t));
+    SAMPLING_LOGGER.info("Stack trace for taskId: {} jobId: {} : {}", taskId, jobId,
+        Throwables.getStackTraceAsString(t));
   }
 
   /**
