@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -163,5 +164,25 @@ public final class FileSystemUtils {
       }
     }, (status) -> status.isPersisted(),
         WaitForOptions.defaults().setTimeoutMs(timeoutMs).setInterval(100));
+  }
+
+  /**
+   * Waits until the specified file has the desired percentage in Alluxio.
+   *
+   * @param fs the file system
+   * @param uri the uri to check the percentage for
+   * @param expectedPercentage the desired percentage
+   */
+  public static void waitForAlluxioPercentage(final FileSystem fs, final AlluxioURI uri,
+      int expectedPercentage) throws TimeoutException, InterruptedException {
+    CommonUtils
+        .waitFor(uri.toString() + " is " + expectedPercentage + "% stored in Alluxio", () -> {
+          try {
+            return fs.getStatus(uri).getInAlluxioPercentage() == expectedPercentage;
+          } catch (Exception e) {
+            // ignore
+            return false;
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
   }
 }

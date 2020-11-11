@@ -11,27 +11,25 @@
 
 package alluxio.client.cli.fs.command;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests for load command.
  */
 public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
-  public void loadDir() throws IOException, AlluxioException {
+  public void loadDir() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
@@ -45,26 +43,23 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
     assertTrue(statusB.getInAlluxioPercentage() == 100);
     // Testing loading of a directory
     sFsShell.run("load", "/testRoot");
-    statusA = sFileSystem.getStatus(uriA);
-    statusB = sFileSystem.getStatus(uriB);
-    assertTrue(statusA.getInAlluxioPercentage() == 100);
-    assertTrue(statusB.getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uriA, 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uriB, 100);
   }
 
   @Test
-  public void loadFile() throws IOException, AlluxioException {
+  public void loadFile() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = sFileSystem.getStatus(uri);
     assertFalse(status.getInAlluxioPercentage() == 100);
     // Testing loading of a single file
     sFsShell.run("load", "/testFile");
-    status = sFileSystem.getStatus(uri);
-    assertTrue(status.getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uri, 100);
   }
 
   @Test
-  public void loadFileWithLocalOption() throws IOException, AlluxioException {
+  public void loadFileWithLocalOption() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH,
         10);
     AlluxioURI uri = new AlluxioURI("/testFile");
@@ -79,12 +74,11 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
     status = sFileSystem.getStatus(uri);
     assertFalse(status.getInAlluxioPercentage() == 100);
     sFsShell.run("load", "--local", "/testFile2");
-    status = sFileSystem.getStatus(uri);
-    assertTrue(status.getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uri, 100);
   }
 
   @Test
-  public void loadFileWithWildcard() throws IOException, AlluxioException {
+  public void loadFileWithWildcard() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir1/testFile1", WritePType.THROUGH,
         10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFile2", WritePType.THROUGH,
@@ -99,10 +93,8 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
     // Testing loading with wild card
     sFsShell.run("load", "/*/testFile*");
     uri = new AlluxioURI("/testDir1/testFile1");
-    status = sFileSystem.getStatus(uri);
-    assertTrue(status.getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uri, 100);
     uri = new AlluxioURI("/testDir2/testFile2");
-    status = sFileSystem.getStatus(uri);
-    assertTrue(status.getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(sFileSystem, uri, 100);
   }
 }

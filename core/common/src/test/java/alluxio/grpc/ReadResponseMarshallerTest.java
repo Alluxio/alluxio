@@ -14,6 +14,7 @@ package alluxio.grpc;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -52,6 +53,30 @@ public final class ReadResponseMarshallerTest {
   @Test
   public void parseMessage() throws Exception {
     validateParse(buildResponse("test".getBytes()));
+  }
+
+  @Test
+  public void close() {
+    ReadResponseMarshaller marshaller = new ReadResponseMarshaller();
+
+    ReadResponse msg1 = buildResponse("test1".getBytes());
+    marshaller.offerBuffer(new NettyDataBuffer(
+        Unpooled.wrappedBuffer(msg1.getChunk().getData().asReadOnlyByteBuffer())), msg1);
+
+    DataBuffer data = marshaller.pollBuffer(msg1);
+    assertNotNull(data);
+    data.release();
+
+    // close the marshaller
+    marshaller.close();
+
+    ReadResponse msg2 = buildResponse("test2".getBytes());
+    marshaller.offerBuffer(new NettyDataBuffer(
+        Unpooled.wrappedBuffer(msg2.getChunk().getData().asReadOnlyByteBuffer())), msg2);
+
+    // No buffers should not exist, since the marshaller is already closed
+    assertNull(marshaller.pollBuffer(msg1));
+    assertNull(marshaller.pollBuffer(msg2));
   }
 
   private void validateStream(ReadResponse message) throws IOException {

@@ -13,11 +13,12 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -116,7 +117,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
@@ -265,6 +266,6 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals((byte) i, is.read());
     }
     is.close();
-    Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+    FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
   }
 }
