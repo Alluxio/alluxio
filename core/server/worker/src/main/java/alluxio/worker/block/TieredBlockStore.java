@@ -705,10 +705,6 @@ public class TieredBlockStore implements BlockStore {
       }
 
       // Allocate space.
-      LOG.warn("createBlockMetaInternal allocating space with options {}", options);
-      LOG.warn("Allocate more than necessary to force allocation go to lower tiers.");
-      long blockSize = ServerConfiguration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      options.setSize(blockSize * 2);
       StorageDirView dirView = allocateSpace(sessionId, options);
 
       if (dirView == null) {
