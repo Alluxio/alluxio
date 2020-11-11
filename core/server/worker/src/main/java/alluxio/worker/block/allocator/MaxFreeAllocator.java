@@ -13,10 +13,14 @@ package alluxio.worker.block.allocator;
 
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
+import alluxio.worker.block.reviewer.Reviewer;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,7 +30,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MaxFreeAllocator implements Allocator {
+  private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
+
   private BlockMetadataView mMetadataView;
+  private Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
@@ -35,6 +42,7 @@ public final class MaxFreeAllocator implements Allocator {
    */
   public MaxFreeAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
+    mReviewer = Reviewer.Factory.create();
   }
 
   @Override
@@ -64,18 +72,32 @@ public final class MaxFreeAllocator implements Allocator {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
-          break;
+          if (mReviewer.reviewAllocation(candidateDirView)) {
+            break;
+          } else {
+            LOG.debug("Allocation rejected for anyTier: {}", candidateDirView.toBlockStoreLocation());
+          }
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+      if (!mReviewer.reviewAllocation(candidateDirView)) {
+        LOG.debug("Allocation rejected for anyDirInTier: {}",
+                candidateDirView.toBlockStoreLocation());
+        candidateDirView = null;
+      }
     } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
             location.mediumType()))) {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
-          break;
+          if (mReviewer.reviewAllocation(candidateDirView)) {
+            break;
+          } else {
+            LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
+                    candidateDirView.toBlockStoreLocation());
+          }
         }
       }
     } else {

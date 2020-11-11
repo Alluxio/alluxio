@@ -16,7 +16,11 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
+import alluxio.worker.block.reviewer.ProbabilisticReviewer;
+import alluxio.worker.block.reviewer.Reviewer;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
@@ -27,7 +31,10 @@ import javax.annotation.Nullable;
  */
 @NotThreadSafe
 public final class GreedyAllocator implements Allocator {
+  private static final Logger LOG = LoggerFactory.getLogger(GreedyAllocator.class);
+
   private BlockMetadataView mMetadataView;
+  private Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link GreedyAllocator}.
@@ -36,6 +43,7 @@ public final class GreedyAllocator implements Allocator {
    */
   public GreedyAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
+    mReviewer = Reviewer.Factory.create();
   }
 
   @Override
@@ -65,7 +73,12 @@ public final class GreedyAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
-            return dirView;
+            if (mReviewer.reviewAllocation(dirView)) {
+              return dirView;
+            } else {
+              // Try the next dir
+              LOG.debug("Allocation rejected for anyTier: {}", dirView.toBlockStoreLocation());
+            }
           }
         }
       }
@@ -79,7 +92,13 @@ public final class GreedyAllocator implements Allocator {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getMediumType().equals(mediumType)
               && dirView.getAvailableBytes() >= blockSize) {
-            return dirView;
+            if (mReviewer.reviewAllocation(dirView)) {
+              return dirView;
+            } else {
+              // Try the next dir
+              LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
+                      dirView.toBlockStoreLocation());
+            }
           }
         }
       }
@@ -92,7 +111,13 @@ public final class GreedyAllocator implements Allocator {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
-          return dirView;
+          if (mReviewer.reviewAllocation(dirView)) {
+            return dirView;
+          } else {
+            // Try the next dir
+            LOG.debug("Allocation rejected for anyDirInTier: {}",
+                    dirView.toBlockStoreLocation());
+          }
         }
       }
       return null;
