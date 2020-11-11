@@ -1040,16 +1040,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
           ensureFullPathAndUpdateCache(inodePath);
 
-          if (context.getOptions().getLoadMetadataOnly()) {
-            auditContext.setSucceeded(true);
-            continue;
-          }
-
           auditContext.setSrcInode(inodePath.getInode());
-          DescendantType descendantTypeForListStatus =
-              (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-          listStatusInternal(context, rpcContext, inodePath, auditContext,
-              descendantTypeForListStatus, resultStream, 0);
+          if (context.getOptions().getResultsRequired()) {
+            DescendantType descendantTypeForListStatus =
+                (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
+            listStatusInternal(context, rpcContext, inodePath, auditContext,
+                descendantTypeForListStatus, resultStream, 0);
+          }
           auditContext.setSucceeded(true);
           Metrics.FILE_INFOS_GOT.inc();
           if (!ufsAccessed) {

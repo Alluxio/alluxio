@@ -80,8 +80,6 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   private void loadMetadata(AlluxioURI path, boolean recursive) throws IOException {
     try {
       ListStatusPOptions options = ListStatusPOptions.newBuilder()
-          .setLoadMetadataOnly(true)
-          .setLoadMetadataType(LoadMetadataPType.ALWAYS)
           .setRecursive(recursive).build();
       mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {

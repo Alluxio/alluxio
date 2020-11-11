@@ -405,9 +405,9 @@ public interface FileSystem extends Closeable {
   default void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder()
-        .setLoadMetadataOnly(true)
         .setLoadMetadataType(LoadMetadataPType.ALWAYS)
-        .setRecursive(LoadMetadataPOptions.getDefaultInstance().getRecursive()).build();
+        .setRecursive(LoadMetadataPOptions.getDefaultInstance().getRecursive())
+        .setResultsRequired(false).build();
     loadMetadata(path, options);
   }
 

@@ -46,6 +46,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -295,7 +296,8 @@ public class BaseFileSystem implements FileSystem {
     checkUri(path);
     rpc(client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options)
+          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setResultsRequired(false).build();
       client.listStatus(path, mergedOptions);
       return null;
     });
