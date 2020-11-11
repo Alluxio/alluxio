@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -59,6 +58,7 @@ public final class GrpcDataReader implements DataReader {
 
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
   private final ReadResponseMarshaller mMarshaller;
+  private final long mCloseWaitMs;
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -82,6 +82,7 @@ public final class GrpcDataReader implements DataReader {
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
+    mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
 
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
@@ -178,7 +179,9 @@ public final class GrpcDataReader implements DataReader {
       // ignored since again, the client is completely finished with the read.
       try {
         // Wait a short time for the server to finish the close, and then let the client continue.
-        mStream.waitForComplete(5 * Constants.SECOND_MS);
+        if (mCloseWaitMs > 0) {
+          mStream.waitForComplete(mCloseWaitMs);
+        }
       } catch (Throwable e) {
         // ignore any errors
       }
