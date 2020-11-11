@@ -23,7 +23,7 @@ import java.util.Map;
  * Parameters used in the UFS I/O throughput test.
  * */
 public class UfsIOParameters extends Parameters {
-  public static final String USE_UFS_CONF = "--use-ufs-conf";
+  public static final String USE_MOUNT_CONF = "--use-mount-conf";
   public static final String CONF = "--conf";
   public static final String PATH = "--path";
 
@@ -39,9 +39,10 @@ public class UfsIOParameters extends Parameters {
           required = true)
   public String mPath;
 
-  @Parameter(names = {USE_UFS_CONF},
+  @Parameter(names = {USE_MOUNT_CONF},
       description = "If true, attempt to load the ufs configuration from an existing mount point "
-          + "to read/write to the base path")
+          + "to read/write to the base path, it will override the configuration specified through "
+          + "--conf parameter")
   public boolean mUseUfsConf = false;
 
   @DynamicParameter(names = CONF,

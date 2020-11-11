@@ -128,11 +128,11 @@ public final class StressBenchDefinition
         .collect(Collectors.toList());
 
     if (commandArgs.stream().anyMatch(
-        (s) -> s.equalsIgnoreCase(UfsIOParameters.USE_UFS_CONF))) {
+        (s) -> s.equalsIgnoreCase(UfsIOParameters.USE_MOUNT_CONF))) {
       // get ufs Uri from --path=blah://blah
       String ufsUri = commandArgs.stream().filter(s -> !s.startsWith(UfsIOParameters.PATH))
           .findFirst().map(param -> param.substring("--path".length())).orElse("");
-      commandArgs = commandArgs.stream().filter((s) -> !UfsIOParameters.USE_UFS_CONF.equals(s)
+      commandArgs = commandArgs.stream().filter((s) -> !UfsIOParameters.USE_MOUNT_CONF.equals(s)
               && !s.startsWith(UfsIOParameters.CONF)).collect(Collectors.toList());
 
       List<String> properties = getUfsConf(ufsUri, runTaskContext).entrySet().stream()
