@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
