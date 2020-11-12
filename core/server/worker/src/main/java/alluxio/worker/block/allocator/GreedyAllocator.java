@@ -48,9 +48,9 @@ public final class GreedyAllocator implements Allocator {
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataView metadataView) {
+      BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location);
+    return allocateBlock(sessionId, blockSize, location, skipReview);
   }
 
   /**
@@ -65,7 +65,7 @@ public final class GreedyAllocator implements Allocator {
    */
   @Nullable
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location) {
+      BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
@@ -73,7 +73,7 @@ public final class GreedyAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
-            if (mReviewer.reviewAllocation(dirView)) {
+            if (skipReview || mReviewer.reviewAllocation(dirView)) {
               return dirView;
             } else {
               // Try the next dir

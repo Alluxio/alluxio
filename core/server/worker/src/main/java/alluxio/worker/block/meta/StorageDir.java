@@ -312,6 +312,8 @@ public final class StorageDir {
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
+    LOG.warn("{} - Reserved space in addBlockMeta {}:{}, avail={}, committed={}", Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
   }
 
   /**
@@ -345,6 +347,9 @@ public final class StorageDir {
       sessionTempBlocks.add(blockId);
     }
     reserveSpace(blockSize, false);
+    LOG.warn("{} - Reserved space in addTempBlockMeta {}:{}, avail={}, committed={}",
+            Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
   }
 
   /**
@@ -361,6 +366,9 @@ public final class StorageDir {
       throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     reclaimSpace(blockMeta.getBlockSize(), true);
+    LOG.warn("{} - Reclaimed space by removeBlockMeta in {}:{}, avail={}, committed={}",
+            Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
   }
 
   /**
@@ -387,6 +395,9 @@ public final class StorageDir {
       mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
     reclaimSpace(tempBlockMeta.getBlockSize(), false);
+    LOG.warn("{} - Reclaimed space by removeTempBlockMeta in {}:{}, avail={}, committed={}",
+            Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
   }
 
   /**
@@ -401,6 +412,9 @@ public final class StorageDir {
     long oldSize = tempBlockMeta.getBlockSize();
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
+      LOG.warn("{} - Resized tempBlockMeta in {}:{}, avail={}, committed={}",
+              Thread.currentThread().getName(),
+              mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
       tempBlockMeta.setBlockSize(newSize);
     } else if (newSize < oldSize) {
       throw new InvalidWorkerStateException("Shrinking block, not supported!");
@@ -430,6 +444,9 @@ public final class StorageDir {
       TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(tempBlockId);
       if (tempBlockMeta != null) {
         reclaimSpace(tempBlockMeta.getBlockSize(), false);
+        LOG.warn("{} - Reclaimed space clean up session temp blocks in {}:{}, avail={}, committed={}",
+                Thread.currentThread().getName(),
+                mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
       } else {
         LOG.error("Cannot find blockId {} when cleanup sessionId {}", tempBlockId, sessionId);
       }
@@ -481,8 +498,14 @@ public final class StorageDir {
     Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
         "Available bytes should always be less than total capacity bytes");
     mAvailableBytes.addAndGet(size);
+    LOG.warn("{} - Reclaimed space in {}:{}, avail={}, committed={}",
+            Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
     if (committed) {
       mCommittedBytes.addAndGet(-size);
+      LOG.warn("{} - Committed in reclaimSpace {}:{}, avail={}, committed={}",
+              Thread.currentThread().getName(),
+              mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
     }
   }
 
@@ -490,8 +513,14 @@ public final class StorageDir {
     Preconditions.checkState(size <= mAvailableBytes.get() + mReservedBytes.get(),
         "Available bytes should always be non-negative");
     mAvailableBytes.getAndSet(Math.max(0, mAvailableBytes.get() - size));
+    LOG.warn("{} - Reserved space in {}:{}, avail={}, committed={}",
+            Thread.currentThread().getName(),
+            mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
     if (committed) {
       mCommittedBytes.addAndGet(size);
+      LOG.warn("{} - Committed in reserveSpace {}:{}, avail={}, committed={}",
+              Thread.currentThread().getName(),
+              mTier, mDirIndex, mAvailableBytes, mCommittedBytes);
     }
   }
 }

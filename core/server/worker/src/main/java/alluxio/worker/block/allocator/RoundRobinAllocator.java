@@ -59,9 +59,9 @@ public final class RoundRobinAllocator implements Allocator {
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataView metadataView) {
+      BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location);
+    return allocateBlock(sessionId, blockSize, location, skipReview);
   }
 
   /**
@@ -77,7 +77,7 @@ public final class RoundRobinAllocator implements Allocator {
    */
   @Nullable
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location) {
+      BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
@@ -87,7 +87,7 @@ public final class RoundRobinAllocator implements Allocator {
             BlockStoreLocation.ANY_MEDIUM);
         if (dirViewIndex >= 0) {
           StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
-          if (mReviewer.reviewAllocation(candidateDir)) {
+          if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
             mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
             return candidateDir;
           } else {
@@ -106,7 +106,7 @@ public final class RoundRobinAllocator implements Allocator {
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
         if (dirViewIndex >= 0) {
           StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
-          if (mReviewer.reviewAllocation(candidateDir)) {
+          if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
             mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
             return tierView.getDirView(dirViewIndex);
           } else {
@@ -132,7 +132,7 @@ public final class RoundRobinAllocator implements Allocator {
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, location.mediumType());
         if (dirViewIndex >= 0) {
           StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
-          if (mReviewer.reviewAllocation(candidateDir)) {
+          if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
             mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
             return tierView.getDirView(dirViewIndex);
           } else {

@@ -89,13 +89,14 @@ public class AlignTask extends AbstractBlockManagementTask {
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
 
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
-      LOG.debug("Acquired {} block pairs to align tiers {} - {}", swapLists.getFirst().size(),
+      LOG.warn("Acquired {} block pairs to align tiers {} - {}", swapLists.getFirst().size(),
           tierUpLoc.tierAlias(), tierDownLoc.tierAlias());
 
       // Create exception handler to trigger swap-restore task when swap fails
       // due to insufficient reserved space.
       Consumer<Exception> excHandler = (e) -> {
         if (e instanceof WorkerOutOfSpaceException) {
+          LOG.warn("No sufficient space for worker swap space, swap restore task called.");
           // Mark the need for running swap-space restoration task.
           TierManagementTaskProvider.setSwapRestoreRequired(true);
         }
