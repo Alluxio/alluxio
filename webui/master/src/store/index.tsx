@@ -40,6 +40,9 @@ import { IOverviewState } from './overview/types';
 import { initialWorkersState, workersReducer } from './workers/reducer';
 import { workersSaga } from './workers/sagas';
 import { IWorkersState } from './workers/types';
+import { IMountTableState } from './mounttable/types';
+import { initialMountTableState, mountTableReducer } from './mounttable/reducer';
+import { mountTableSaga } from './mounttable/sagas';
 
 export interface IApplicationState {
   browse: IBrowseState;
@@ -52,6 +55,7 @@ export interface IApplicationState {
   refresh: IRefreshState;
   router?: RouterState;
   workers: IWorkersState;
+  mountTable: IMountTableState;
 }
 
 export const rootReducer = (history: History): Reducer<IApplicationState> =>
@@ -66,6 +70,7 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
     refresh: refreshReducer,
     router: connectRouter(history),
     workers: workersReducer,
+    mountTable: mountTableReducer,
   });
 
 export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
@@ -78,6 +83,7 @@ export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
     fork(metricsSaga),
     fork(overviewSaga),
     fork(workersSaga),
+    fork(mountTableSaga),
   ]);
 };
 
@@ -91,4 +97,5 @@ export const initialState: IApplicationState = {
   overview: initialOverviewState,
   refresh: initialRefreshState,
   workers: initialWorkersState,
+  mountTable: initialMountTableState,
 };

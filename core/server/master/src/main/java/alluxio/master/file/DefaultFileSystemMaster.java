@@ -496,7 +496,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
           && ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       boolean readonly = ServerConfiguration.getBoolean(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfsUri = PathUtils.normalizePath(
+          ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+          AlluxioURI.SEPARATOR);
       Map<String, String> rootUfsConf =
           ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountPOptions mountOptions = MountContext
@@ -1039,10 +1041,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           auditContext.setSrcInode(inodePath.getInode());
-          DescendantType descendantTypeForListStatus =
-              (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-          listStatusInternal(context, rpcContext, inodePath, auditContext,
-              descendantTypeForListStatus, resultStream, 0);
+          if (context.getOptions().getResultsRequired()) {
+            DescendantType descendantTypeForListStatus =
+                (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
+            listStatusInternal(context, rpcContext, inodePath, auditContext,
+                descendantTypeForListStatus, resultStream, 0);
+          }
           auditContext.setSucceeded(true);
           Metrics.FILE_INFOS_GOT.inc();
           if (!ufsAccessed) {
@@ -2736,6 +2740,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
+      ufsPath = new AlluxioURI(PathUtils.normalizePath(ufsPath.toString(), AlluxioURI.SEPARATOR));
 
       syncMetadata(rpcContext,
           alluxioPath,

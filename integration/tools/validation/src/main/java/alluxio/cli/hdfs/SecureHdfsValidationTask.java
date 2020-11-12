@@ -98,9 +98,12 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
               mMsg.toString(), mAdvice.toString());
     }
 
+    // superclass which uses its own msg and advice objects
     ValidationTaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.getState() != ValidationUtils.State.OK) {
-      return loadConfig;
+      String extraAdvice = "Validating a secure HDFS connection requires specifying additional "
+          + "HDFS configuration files. ";
+      return loadConfig.setAdvice(extraAdvice + loadConfig.getAdvice());
     }
 
     // The state is OK when the HDFS is secured

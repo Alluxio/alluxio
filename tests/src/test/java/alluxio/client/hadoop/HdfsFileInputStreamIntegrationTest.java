@@ -12,12 +12,13 @@
 package alluxio.client.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
@@ -393,8 +394,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   public void positionedReadCache() throws Exception {
     createUfsInStream(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
-    URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(100, statusUfsOnlyFile.getInAlluxioPercentage());
+    FileSystemUtils.waitForAlluxioPercentage(mFileSystem, new AlluxioURI(UFS_ONLY_FILE), 100);
   }
 
   @Test

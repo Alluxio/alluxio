@@ -21,7 +21,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
@@ -166,81 +165,6 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
       assignMigratesFail("/notExist", "/dst");
     } catch (FileDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/notExist"),
-          e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateMissingDestinationParent() throws Exception {
-    createDirectory("/src");
-    setPathToNotExist("/dst");
-    setPathToNotExist("/dst/missing");
-    try {
-      assignMigratesFail("/src", "/dst/missing");
-    } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/dst"), e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateIntoFile() throws Exception {
-    createFile("/src");
-    createFile("/dst");
-    setPathToNotExist("/dst/src");
-    try {
-      assignMigratesFail("/src", "/dst/src");
-    } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MIGRATE_TO_FILE_AS_DIRECTORY.getMessage("/dst/src",
-          "/dst"), e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateFileToDirectory() throws Exception {
-    createFile("/src");
-    createDirectory("/dst");
-    try {
-      assignMigratesFail("/src", "/dst");
-    } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MIGRATE_FILE_TO_DIRECTORY.getMessage("/src", "/dst"),
-          e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateDirectoryToFile() throws Exception {
-    createDirectory("/src");
-    createFile("/dst");
-    try {
-      assignMigratesFail("/src", "/dst");
-    } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MIGRATE_DIRECTORY_TO_FILE.getMessage("/src", "/dst"),
-          e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateFileToExistingDestinationWithoutOverwrite() throws Exception {
-    createFile("/src");
-    createFile("/dst");
-    // Test with source being a file.
-    try {
-      assignMigratesFail("/src", "/dst");
-    } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage("/dst"),
-          e.getMessage());
-    }
-  }
-
-  @Test
-  public void migrateDirectoryToExistingDestinationWithoutOverwrite() throws Exception {
-    // Test with the source being a folder.
-    createDirectory("/src");
-    createDirectory("/dst");
-    try {
-      assignMigratesFail("/src", "/dst");
-    } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage("/dst"),
           e.getMessage());
     }
   }

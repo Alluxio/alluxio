@@ -120,9 +120,15 @@ public class DelegatingFileSystem implements FileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
-                            Consumer<? super URIStatus> action)
+      Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.iterateStatus(path, options, action);
+  }
+
+  @Override
+  public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.loadMetadata(path, options);
   }
 
   @Override

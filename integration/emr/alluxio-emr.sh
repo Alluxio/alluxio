@@ -641,7 +641,7 @@ IN
 
   # set root ufs uri
   if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
-    root_ufs_uri="hdfs://${master}:8020"
+    root_ufs_uri="hdfs://${master}:8020/"
   fi
 
   # wait until hadoop process is running

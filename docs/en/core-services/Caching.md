@@ -433,7 +433,7 @@ Passive TTL works with the following configuration options:
 * `alluxio.user.file.create.ttl` - The TTL duration to set on files in Alluxio.
 By default, no TTL duration is set.
 * `alluxio.user.file.create.ttl.action` - The TTL action to set on files
-in Alluxio. By default, this action is `DELETE`.
+in Alluxio. NOTE: By default, this action is `DELETE`, `DELETE` will cause the file to be permanently removed from Alluxio namespace and under store.
 
 TTL is disabled by default and should only be enabled by clients which have strict data
 access patterns.

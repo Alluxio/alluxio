@@ -2857,6 +2857,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
+      new Builder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
+          .setDefaultValue("10s")
+          .setDescription(
+              "The time threshold for when a worker remote IO (read or write) of a single buffer "
+                  + "is considered slow. When slow IO occurs, it is logged by a sampling logger.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   // The default is set to 11. One client is reserved for some light weight operations such as
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
   // master.
@@ -3648,6 +3657,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_DURATION =
+      new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_DURATION)
+          .setDefaultValue("-1")
+          .setDescription("The timeout duration for local cache I/O operations ("
+              + "reading/writing/deleting). When this property is a positive value,"
+              + "local cache operations after timing out will fail and fallback to external "
+              + "file system but transparent to applications; "
+              + "when this property is a negative value, this feature is disabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_THREADS =
+      new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_THREADS)
+          .setDefaultValue("32")
+          .setDescription("The number of threads to handle cache I/O operation timeout, "
+              + "when " + Name.USER_CLIENT_CACHE_TIMEOUT_DURATION + " is positive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
@@ -3796,9 +3824,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("1h")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
-              + "(e.g. block reads and block writes) from Alluxio worker.")
+              + "(e.g. block reads and block writes) from Alluxio worker. Keep in mind that some "
+              + "streaming operations may take an unexpectedly long time, such as UFS io. In "
+              + "order to handle occasional slow operations, it is recommended for this parameter"
+              + " to be set to a large value, to avoid spurious timeouts.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3817,6 +3848,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_STREAMING_READER_CLOSE_TIMEOUT =
+      new Builder(Name.USER_STREAMING_READER_CLOSE_TIMEOUT)
+          .setDefaultValue("5s")
+          .setDescription("The timeout to close a grpc streaming reader client. If too long,"
+              + " it may add delays to closing clients. If too short, the client will complete the"
+              + " close() before the server confirms the close()")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4437,7 +4477,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
           .setDescription("The length of time the Alluxio Job Master should save information about "
               + "completed jobs before they are discarded.")
-          .setDefaultValue("300sec")
+          .setDefaultValue("60sec")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
@@ -5233,6 +5273,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
+        "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -5346,6 +5388,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =
         "alluxio.user.client.cache.store.type";
+    public static final String USER_CLIENT_CACHE_TIMEOUT_DURATION =
+        "alluxio.user.client.cache.timeout.duration";
+    public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
+        "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -5431,6 +5477,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.streaming.reader.buffer.size.messages";
     public static final String USER_STREAMING_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.streaming.reader.chunk.size.bytes";
+    public static final String USER_STREAMING_READER_CLOSE_TIMEOUT =
+        "alluxio.user.streaming.reader.close.timeout";
     public static final String USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.streaming.writer.buffer.size.messages";
     public static final String USER_STREAMING_WRITER_CHUNK_SIZE_BYTES =

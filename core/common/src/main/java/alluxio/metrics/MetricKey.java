@@ -962,6 +962,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_STORE_DELETE_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_DELETE_TIMEOUT)
+          .setDescription("Number of timeouts when deleting pages from page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_GET_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_GET_TIMEOUT)
+          .setDescription("Number of timeouts when reading pages from page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_PUT_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_PUT_TIMEOUT)
+          .setDescription("Number of timeouts when writing new pages to page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_THREADS_REJECTED =
+      new Builder(Name.CLIENT_CACHE_STORE_THREADS_REJECTED)
+          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
+              + "likely due to unresponsive local file system.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_STATE =
       new Builder(Name.CLIENT_CACHE_STATE)
           .setDescription("State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)")
@@ -1203,6 +1228,14 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
+    public static final String CLIENT_CACHE_STORE_DELETE_TIMEOUT =
+        "Client.CacheStoreDeleteTimeout";
+    public static final String CLIENT_CACHE_STORE_GET_TIMEOUT =
+        "Client.CacheStoreGetTimeout";
+    public static final String CLIENT_CACHE_STORE_PUT_TIMEOUT =
+        "Client.CacheStorePutTimeout";
+    public static final String CLIENT_CACHE_STORE_THREADS_REJECTED =
+        "Client.CacheStoreThreadsRejected";
     public static final String CLIENT_CACHE_STATE = "Client.CacheState";
     public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
 

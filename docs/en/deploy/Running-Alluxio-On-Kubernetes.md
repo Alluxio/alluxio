@@ -738,10 +738,37 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
 ```console
-$ kubectl port-forward alluxio-master-$i 19999:19999
+$ kubectl port-forward alluxio-master-$i <local-port>:19999
 ```
-Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+The command above allocates a port on the local node `<local-port>` and forwards traffic
+on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
+The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
+
+> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
+
+For example, you are on a node with hostname `master-node-1` and you would like to serve
+the Alluxio master web UI for `alluxio-master-0` on `master-node-1:8080`.
+Here's the command you can run:
+```console
+[alice@master-node-1 ~]$ kubectl port-forward --address 0.0.0.0 pods/alluxio-master-0 8080:19999
+``` 
+This forwards the local port `master-node-1:8080` to the port on the Pod `alluxio-master-0:19999`.
+The Pod `alluxio-master-0` does NOT need to be running on `master-node-1`.
+
+You will see messages like below when there are incoming connections. 
+```console
+[alice@master-node-1 ~]$ kubectl port-forward --address 0.0.0.0 alluxio-master-0 8080:19999
+Forwarding from 0.0.0.0:8080 -> 19999
+Handling connection for 8080
+Handling connection for 8080
+Handling connection for 8080
+Handling connection for 8080
+```
+You can terminate the process to stop the port forwarding,
+with either `Ctrl + C` or `kill`.
+
+For more information about K8s port-forward see the [K8s doc](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#port-forward).
 
 ### Verify
 

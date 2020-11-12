@@ -11,9 +11,9 @@
 
 package alluxio.cli.hdfs;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
@@ -116,10 +116,11 @@ public class HdfsConfValidationTaskTest {
             new HdfsConfValidationTask("hdfs://namenode:9000/alluxio", sConf);
     ValidationTaskResult result = task.loadHdfsConfig();
     assertEquals(ValidationUtils.State.FAILED, result.getState());
-    assertThat(result.getResult(), containsString(String.format("Failed to parse %s", hdfsSite)));
+    assertThat(result.getResult(),
+        containsString(String.format("Failed to parse %s", hdfsSite)));
     assertThat(result.getResult(), containsString(String.format("Failed to parse %s", coreSite)));
-    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", hdfsSite)));
-    assertThat(result.getAdvice(), containsString(String.format("Please check your %s", coreSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Failed to parse %s", hdfsSite)));
+    assertThat(result.getAdvice(), containsString(String.format("Failed to parse %s", coreSite)));
   }
 
   @Test

@@ -95,6 +95,7 @@ fi
 ALLUXIO_JAVA_OPTS+=" -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties"
 ALLUXIO_JAVA_OPTS+=" -Dorg.apache.jasper.compiler.disablejsr199=true"
 ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
+ALLUXIO_JAVA_OPTS+=" -Dorg.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads=false"
 
 ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" ]]; then
