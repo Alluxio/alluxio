@@ -50,9 +50,8 @@ func Single(args []string) error {
 
 	if customUfsModuleFlag != "" {
 		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, ",")
-		if len(customUfsModuleFlagArray) == 3 {
-			ufsModules[customUfsModuleFlagArray[0]] =
-				module{customUfsModuleFlagArray[1], true, customUfsModuleFlagArray[2]}
+		if len(customUfsModuleFlagArray) == 2 {
+			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
 		} else {
 			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
 			os.Exit(1)
@@ -349,7 +348,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	chdir(cwd)
 	os.Setenv("COPYFILE_DISABLE", "1")
 	run("creating the new distribution tarball", "tar", "-czvf", tarball, dstDir)
-	run("removing the temporary repositories", "ls", "-l", srcPath, dstPath)
+	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
 	return nil
 }
