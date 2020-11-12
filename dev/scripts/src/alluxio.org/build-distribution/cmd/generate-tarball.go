@@ -48,6 +48,16 @@ func Single(args []string) error {
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
+	if customUfsModuleFlag != "" {
+		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, ",")
+		if len(customUfsModuleFlagArray) == 3 {
+			ufsModules[customUfsModuleFlagArray[0]] =
+				module{customUfsModuleFlagArray[1], true, customUfsModuleFlagArray[2]}
+		} else {
+			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+			os.Exit(1)
+		}
+	}
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
@@ -232,7 +242,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		hadoopVersion = parseVersion(hadoopDistributionFlag)
- 		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
+		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -339,7 +349,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	chdir(cwd)
 	os.Setenv("COPYFILE_DISABLE", "1")
 	run("creating the new distribution tarball", "tar", "-czvf", tarball, dstDir)
-	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
+	run("removing the temporary repositories", "ls", "-l", srcPath, dstPath)
 
 	return nil
 }

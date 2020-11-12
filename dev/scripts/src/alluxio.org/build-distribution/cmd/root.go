@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	debugFlag bool
-	ufsModulesFlag string
+	debugFlag           bool
+	ufsModulesFlag      string
+	customUfsModuleFlag string
 )
 
 func updateRootFlags() error {
@@ -44,4 +45,5 @@ func additionalFlags(cmd *flag.FlagSet) {
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
+	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "", "ufs-hadoop-x.x,hadoop-x.x,-pl underfs/hdfs -Pufs-hadoop-X -Dufs.hadoop.version=X.X.X")
 }
