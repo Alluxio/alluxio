@@ -83,6 +83,29 @@ public class RaftJournalTest {
   }
 
   @Test
+  public void writeJournal() throws Exception {
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+    mFollowerJournalSystem.createJournal(countingMaster);
+
+    // Create entries on the leader journal context.
+    // These will be replicated to follower journal context.
+    final int entryCount = 10;
+    try (JournalContext journalContext =
+             mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+      for (int i = 0; i < entryCount; i++) {
+        journalContext.append(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+                File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
+      }
+    }
+
+    // Wait for sequences to be caught up.
+    CommonUtils.waitFor("full state acquired", () -> countingMaster.getApplyCount() == entryCount,
+        mWaitOptions);
+  }
+
+  @Test
   public void joinCluster() throws Exception {
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.

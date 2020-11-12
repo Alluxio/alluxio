@@ -11,18 +11,21 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.grpc.RequestType;
-import alluxio.grpc.WriteRequest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.RequestType;
+import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
@@ -131,6 +134,13 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     waitForResponses();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, PARTIAL_WRITTEN + CHUNK_SIZE);
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mWriteHandler.write(newFallbackInitRequest(0));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("/.alluxio_ufs_blocks"));
   }
 
   protected WriteRequest newFallbackInitRequest(long bytesInBlockStore) {

@@ -245,7 +245,7 @@ public final class ValidateEnv {
   private boolean validateRemote(String node, String target, String name,
                                  CommandLine cmd) throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
-    if (!CommonUtils.isAddressReachable(node, 22)) {
+    if (!CommonUtils.isAddressReachable(node, 22, 30 * Constants.SECOND_MS)) {
       System.err.format("Unable to reach ssh port 22 on node %s.%n", node);
       return false;
     }

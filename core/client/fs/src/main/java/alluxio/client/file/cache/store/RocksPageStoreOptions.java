@@ -130,14 +130,16 @@ public class RocksPageStoreOptions extends PageStoreOptions {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("MaxPageSize", mMaxPageSize)
-        .add("WriteBufferSize", mWriteBufferSize)
-        .add("MaxBufferPoolSize", mMaxBufferPoolSize)
-        .add("CompressionType", mCompressionType)
-        .add("RootDir", mRootDir)
-        .add("PageSize", mPageSize)
-        .add("CacheSize", mCacheSize)
         .add("AlluxioVersion", mAlluxioVersion)
+        .add("CacheSize", mCacheSize)
+        .add("CompressionType", mCompressionType)
+        .add("MaxBufferPoolSize", mMaxBufferPoolSize)
+        .add("MaxPageSize", mMaxPageSize)
+        .add("PageSize", mPageSize)
+        .add("RootDir", mRootDir)
+        .add("TimeoutDuration", mTimeoutDuration)
+        .add("TimeoutThreads", mTimeoutThreads)
+        .add("WriteBufferSize", mWriteBufferSize)
         .toString();
   }
 }

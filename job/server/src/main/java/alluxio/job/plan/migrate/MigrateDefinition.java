@@ -23,7 +23,6 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -126,33 +125,6 @@ public final class MigrateDefinition
     if (PathUtils.hasPrefix(destination.toString(), source.toString())) {
       throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
           source, config.getDestination()));
-    }
-
-    // This will throw an appropriate exception if the source does not exist.
-    boolean sourceIsDirectory = fs.getStatus(source).isFolder();
-    try {
-      URIStatus destinationStatus = fs.getStatus(destination);
-      // Handle the case where the destination exists.
-      boolean destinationIsDirectory = destinationStatus.isFolder();
-      if (sourceIsDirectory && !destinationIsDirectory) {
-        throw new RuntimeException(
-            ExceptionMessage.MIGRATE_DIRECTORY_TO_FILE.getMessage(source, destination));
-      } else if (!sourceIsDirectory && destinationIsDirectory) {
-        throw new RuntimeException(
-            ExceptionMessage.MIGRATE_FILE_TO_DIRECTORY.getMessage(source, destination));
-      }
-      if (!config.isOverwrite()) {
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage(destination));
-      }
-    } catch (FileDoesNotExistException e) {
-      // Handle the case where the destination does not exist.
-      // This will throw an appropriate exception if the destination's parent does not exist.
-      URIStatus destinationParentStatus = fs.getStatus(destination.getParent());
-      if (!destinationParentStatus.isFolder()) {
-        throw new RuntimeException(ExceptionMessage.MIGRATE_TO_FILE_AS_DIRECTORY
-            .getMessage(destination, destination.getParent()));
-      }
     }
   }
 

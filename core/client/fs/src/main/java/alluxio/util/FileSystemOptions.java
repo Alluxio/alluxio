@@ -170,6 +170,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
+        .setResultsRequired(true)
         .build();
   }
 
@@ -180,9 +181,9 @@ public class FileSystemOptions {
   public static LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
     return LoadMetadataPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setRecursive(false)
         .setCreateAncestors(false)
         .setLoadDescendantType(LoadDescendantPType.NONE)
+        .setRecursive(false)
         .build();
   }
 
