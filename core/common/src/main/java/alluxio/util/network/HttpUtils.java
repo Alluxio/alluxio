@@ -12,10 +12,13 @@
 package alluxio.util.network;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.HttpHeaders;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -27,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Utility methods for working with http.
@@ -40,11 +44,12 @@ public final class HttpUtils {
    * Uses the post method to send a url with arguments by http, this method can call RESTful Api.
    *
    * @param url the http url
+   * @param cookies the cookies to use in the request
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @param processInputStream the response body stream processor
    */
-  public static void post(String url, Integer timeout, IProcessInputStream processInputStream)
-      throws IOException {
+  public static void post(String url, String cookies, Integer timeout,
+                          IProcessInputStream processInputStream) throws IOException {
     Preconditions.checkNotNull(timeout, "timeout");
     Preconditions.checkNotNull(processInputStream, "processInputStream");
 
@@ -55,13 +60,27 @@ public final class HttpUtils {
         .build();
     try (CloseableHttpClient client =
              HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
-      HttpResponse response = client.execute(RequestBuilder.post(url).build());
+      HttpUriRequest req;
+      if (cookies.isEmpty()) {
+        req = RequestBuilder.post(url).build();
+      } else {
+        req = RequestBuilder.post(url).setHeader(HttpHeaders.COOKIE, cookies).build();
+      }
+
+      HttpResponse response = client.execute(req);
       int statusCode = response.getStatusLine().getStatusCode();
       if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
         InputStream inputStream = response.getEntity().getContent();
         processInputStream.process(inputStream);
       } else {
-        throw new IOException("Failed to perform POST request. Status code: " + statusCode);
+        // Print the full content for debugging
+        if (LOG.isDebugEnabled()) {
+          String content = IOUtils.toString(response.getEntity().getContent(),
+                  StandardCharsets.ISO_8859_1);
+          LOG.debug("Full content: {}", content);
+        }
+        throw new IOException(String.format("Failed to perform POST request: %s",
+                response.getStatusLine()));
       }
     }
   }
@@ -75,8 +94,9 @@ public final class HttpUtils {
    */
   public static String post(String url, Integer timeout) throws IOException {
     final StringBuilder contentBuffer = new StringBuilder();
-    post(url, timeout, inputStream -> {
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+    post(url, "", timeout, inputStream -> {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream,
+              StandardCharsets.UTF_8))) {
         String line;
         while ((line = br.readLine()) != null) {
           contentBuffer.append(line);
