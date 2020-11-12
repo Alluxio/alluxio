@@ -1192,7 +1192,44 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-
+  public static final PropertyKey COSN_ACCESS_KEY =
+      new Builder(Name.COSN_ACCESS_KEY)
+          .setDescription("The access key of COSN bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey COSN_REGION =
+      new Builder(Name.COSN_REGION)
+          .setDescription("The region name of COSN bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COSN_SECRET_KEY =
+      new Builder(Name.COSN_SECRET_KEY)
+          .setDescription("The secret key of COSN bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey COSN_BLOCK_SIZE_KEY =
+      new Builder(Name.COSN_BLOCK_SIZE_KEY)
+          .setDefaultValue(134217728)
+          .setDescription("The size of COSN bucket.")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COSN_UPLOAD_THREAD_POOL_SIZE_KEY =
+      new Builder(Name.COSN_UPLOAD_THREAD_POOL_SIZE_KEY)
+          .setDefaultValue(8)
+          .setDescription("The num of COSN upload thread.")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey COSN_READ_AHEAD_QUEUE_SIZE =
+      new Builder(Name.COSN_READ_AHEAD_QUEUE_SIZE)
+          .setDefaultValue(8)
+          .setDescription("The num of COSN READ ahead queue size.")
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -4908,6 +4945,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
+    public static final String COSN_REGION = "fs.cosn.bucket.region";
+    public static final String COSN_SECRET_KEY = "fs.cosn.userinfo.secretKey";
+    public static final String COSN_ACCESS_KEY = "fs.cosn.userinfo.secretId";
+    public static final String COSN_UPLOAD_THREAD_POOL_SIZE_KEY = "fs.cosn.upload_thread_pool";
+    public static final String COSN_BLOCK_SIZE_KEY = "fs.cosn.block.size";
+    public static final String COSN_READ_AHEAD_QUEUE_SIZE = "fs.cosn.read.ahead.queue.size";
 
     //
     // Master related properties
