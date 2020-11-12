@@ -343,7 +343,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @return the configuration
    */
-  default AlluxioConfiguration getConfiguration() {
+  default AlluxioConfiguration getConfiguration() throws IOException {
     return InstancedConfiguration.EMPTY_CONFIGURATION;
   }
 
