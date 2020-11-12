@@ -14,6 +14,7 @@ package alluxio.testutils.underfs.delegating;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -132,6 +133,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     return mUfs.getBlockSizeByte(path);
+  }
+
+  @Override
+  public AlluxioConfiguration getConfiguration() throws IOException {
+    return mUfs.getConfiguration();
   }
 
   @Override
