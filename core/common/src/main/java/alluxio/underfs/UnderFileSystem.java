@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.SyncInfo;
@@ -342,7 +343,9 @@ public interface UnderFileSystem extends Closeable {
    *
    * @return the configuration
    */
-  AlluxioConfiguration getConfiguration() throws IOException;
+  default AlluxioConfiguration getConfiguration() {
+    return InstancedConfiguration.EMPTY_CONFIGURATION;
+  }
 
   /**
    * Gets the directory status. The caller must already know the path is a directory. This method
