@@ -67,8 +67,10 @@ To stop Alluxio, you can run:
 $ ./bin/alluxio-stop.sh local
 ```
 
-## Contributed by Alluxio Community
+## Contributed by the Alluxio Community
 
-GlusterFS UFS integration is contributed and maintained by Alluxio community.
-Source code locates at [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs).
-Welcome to submit pull requests to improve the integration!
+GlusterFS UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs).
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/edit/master/docs/en/ufs/GlusterFS.md) 
+if any information is missing or out of date.
