@@ -96,3 +96,9 @@ To stop Alluxio, you can run:
 ```console
 $ ./bin/alluxio-stop.sh local
 ```
+
+## Contributed by Alluxio Community
+
+Qiniu KODO UFS integration is contributed and maintained by Alluxio community.
+Source code locates at [here](https://github.com/Alluxio/alluxio/tree/master/underfs/kodo).
+Welcome to submit pull requests to improve the integration!

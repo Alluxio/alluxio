@@ -136,3 +136,9 @@ Make sure the related config file is on all servers nodes running Alluxio.
 ### Supported Ozone Versions
 
 Currently, the only tested Ozone version with Alluxio is `1.0.0`.
+
+## Contributed by Alluxio Community
+
+Ozone UFS integration is contributed and maintained by Alluxio community.
+Source code locates at [here](https://github.com/Alluxio/alluxio/tree/master/underfs/ozone).
+Welcome to submit pull requests to improve the integration!
