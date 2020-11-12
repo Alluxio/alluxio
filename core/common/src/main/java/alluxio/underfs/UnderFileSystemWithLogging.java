@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.Metric;
@@ -411,6 +412,26 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public AlluxioConfiguration getConfiguration() throws IOException {
+    return call(new UfsCallable<AlluxioConfiguration>() {
+      @Override
+      public AlluxioConfiguration call() throws IOException {
+        return mUnderFileSystem.getConfiguration();
+      }
+
+      @Override
+      public String methodName() {
+        return "GetConfiguration";
+      }
+
+      @Override
+      public String toString() {
+        return "";
       }
     });
   }
