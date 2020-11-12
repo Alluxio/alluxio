@@ -2426,6 +2426,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.WORKER)
                   .build();
+  public static final PropertyKey WORKER_TIER_CUTOFF_BYTES =
+          new Builder(Name.WORKER_TIER_CUTOFF_BYTES)
+                  .setDefaultValue("256MB")
+                  .setDescription("")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -5190,7 +5197,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
     public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
-
+    public static final String WORKER_TIER_CUTOFF_BYTES = "alluxio.worker.tier.cutoff.bytes";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
         "alluxio.worker.block.heartbeat.interval";

@@ -1,5 +1,7 @@
 package alluxio.worker.block.reviewer;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.meta.StorageDirView;
@@ -16,35 +18,41 @@ import java.util.Random;
 public class ProbabilisticReviewer implements Reviewer {
     private static final Logger LOG = LoggerFactory.getLogger(ProbabilisticReviewer.class);
 
-    // TODO(jiacheng): Make this a property
-    private static final double CUTOFF = 0.1;
     private static final Random RANDOM = new Random();
 
-    public ProbabilisticReviewer() {}
+    private final long mDefaultBlockSizeBytes;
+    private final long mCutOffBytes;
+    private final InstancedConfiguration mConf;
+
+    public ProbabilisticReviewer() {
+      mConf = ServerConfiguration.global();
+      mDefaultBlockSizeBytes = mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      mCutOffBytes = mConf.getBytes(PropertyKey.WORKER_TIER_CUTOFF_BYTES);
+    }
 
     public boolean reviewAllocation(StorageDirView dirView) {
       long availableBytes = dirView.getAvailableBytes();
       long capacityBytes = dirView.getCapacityBytes();
-      long blockSize = ServerConfiguration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      long cutoffSize = (long) Math.floor(CUTOFF * capacityBytes);
+
       // Rules:
       // 1. If more than CUTOFF left, we use this tier. Prob=100%
-      // 2. If less that block size left, we ignore this tier. Prob=0%
+      // 2. If the tier is less than block size, ignore this tier. Prob=0%
       // 3. If in the middle, the probability is linear to the space left, the less space the lower.
-      if (availableBytes > cutoffSize) {
+      if (availableBytes > mCutOffBytes) {
         return true;
       }
-      double usage = (capacityBytes - availableBytes + 0.01) / (capacityBytes - blockSize);
+      double usage = (capacityBytes - availableBytes + 0.01) / (capacityBytes - mDefaultBlockSizeBytes);
       if (usage >= 1.0) {
         return false;
       }
+      double cutoffRatio = (capacityBytes - mCutOffBytes + 0.01) / (capacityBytes - mDefaultBlockSizeBytes);
       // 2 points:
       // Axis X: space usage (commitment)
       // Axis Y: Probability of using this tier
-      // (1.0 - CUTOFF, 1.0)
+      // (1.0 - cutoffRatio, 1.0)
       // (1.0, 0)
-      double k = -1.0 / CUTOFF; // What if CUTOFF == 0?
-      double b = 1.0 / CUTOFF;
+      double k = -1.0 / cutoffRatio; // What if CUTOFF == 0?
+      double b = 1.0 / cutoffRatio;
       double y = k * usage + b;
       LOG.warn("Space usage in tier {} is {}. Probability of staying is {}.", dirView.getParentTierView().getTierViewAlias(), usage, y);
       // Throw a dice
