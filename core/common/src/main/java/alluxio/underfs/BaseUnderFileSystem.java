@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -90,6 +91,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     // Noop here by default
+  }
+
+  @Override
+  public AlluxioConfiguration getConfiguration() {
+    return mUfsConf;
   }
 
   @Override
