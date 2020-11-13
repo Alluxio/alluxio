@@ -425,21 +425,22 @@ public class AlluxioFileInStream extends FileInStream {
           mLastBlockIdCached = blockId;
         }
       } catch (Exception e) {
-        LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
-            worker, e.getMessage());
+        LOG.warn("Failed to complete async cache request for block {} of file {} at worker {}: {}",
+            blockId, mStatus.getPath(), worker, e.getMessage());
       }
     }
   }
 
   private void handleRetryableException(BlockInStream stream, IOException e) {
     WorkerNetAddress workerAddress = stream.getAddress();
-    LOG.warn("Failed to read block {} from worker {}, will retry: {}",
-        stream.getId(), workerAddress, e.getMessage());
+    LOG.warn("Failed to read block {} of file {} from worker {}, will retry: {}",
+        stream.getId(), mStatus.getPath(), workerAddress, e.getMessage());
     try {
       stream.close();
     } catch (Exception ex) {
       // Do not throw doing a best effort close
-      LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
+      LOG.warn("Failed to close input stream for block {} of file {}: {}",
+          stream.getId(), mStatus.getPath(), ex.getMessage());
     }
 
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
