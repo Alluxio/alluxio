@@ -41,7 +41,7 @@ public class ProbabilisticReviewer implements Reviewer {
       mCutOffBytes = mConf.getBytes(PropertyKey.WORKER_TIER_CUTOFF_BYTES);
     }
 
-    public boolean reviewAllocation(StorageDirView dirView) {
+    public double getProbability(StorageDirView dirView) {
       long availableBytes = dirView.getAvailableBytes();
       long capacityBytes = dirView.getCapacityBytes();
 
@@ -50,25 +50,30 @@ public class ProbabilisticReviewer implements Reviewer {
       // 2. If the tier is less than block size, ignore this tier. Prob=0%
       // 3. If in the middle, the probability is linear to the space left, the less space the lower.
       if (availableBytes > mCutOffBytes) {
-        return true;
+        return 1.0;
       }
-      double usage = (capacityBytes - availableBytes + 0.01) / (capacityBytes - mDefaultBlockSizeBytes);
-      if (usage >= 1.0) {
-        return false;
+      if (availableBytes <= mDefaultBlockSizeBytes) {
+        return 0.0;
       }
-      double cutoffRatio = (capacityBytes - mCutOffBytes + 0.01) / (capacityBytes - mDefaultBlockSizeBytes);
+      double cutoffRatio = (capacityBytes - mCutOffBytes + 0.0) / (capacityBytes - mDefaultBlockSizeBytes);
       // 2 points:
       // Axis X: space usage (commitment)
       // Axis Y: Probability of using this tier
-      // (1.0 - cutoffRatio, 1.0)
-      // (1.0, 0)
-      double k = -1.0 / cutoffRatio; // What if CUTOFF == 0?
-      double b = 1.0 / cutoffRatio;
-      double y = k * usage + b;
-      LOG.warn("Space usage in tier {} is {}. Probability of staying is {}.", dirView.getParentTierView().getTierViewAlias(), usage, y);
+      // (capacity - cutoff, 1.0)
+      // (capacity - block, 0.0)
+      double x = capacityBytes - availableBytes;
+      double k = 1.0 / (mDefaultBlockSizeBytes - mCutOffBytes); // TODO(jiacheng): 0!
+      double b = (capacityBytes - mDefaultBlockSizeBytes + 0.0) / (mCutOffBytes - mDefaultBlockSizeBytes);
+      double y = k * x + b;
+//      LOG.warn("Space usage in tier {} is {}. Probability of staying is {}.", dirView.getParentTierView().getTierViewAlias(), usage, y);
+      return y;
+    }
+
+    public boolean reviewAllocation(StorageDirView dirView) {
+      double chance = getProbability(dirView);
       // Throw a dice
       double dice = RANDOM.nextDouble();
-      boolean stay = dice < y;
+      boolean stay = dice < chance;
       LOG.warn("Dice={}, do we stay: {}", dice, stay);
       return stay;
     }
