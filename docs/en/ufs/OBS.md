@@ -121,3 +121,11 @@ $ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
   --option fs.obs.endpoint=<OBS_ENDPOINT> \
   /obs obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
 ```
+
+## Contributed by the Alluxio Community
+
+OBS UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs).
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/edit/master/docs/en/ufs/OBS.md) 
+if any information is missing or out of date.
