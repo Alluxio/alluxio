@@ -42,7 +42,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -60,6 +62,9 @@ public class TableMasterJournalIntegrationTest {
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
           .setNumWorkers(1).build();
 
+  @Rule
+  public TestRule mResetRule = sClusterResource.getResetResource();
+
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
@@ -68,8 +73,14 @@ public class TableMasterJournalIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    sClusterResource.get().formatAndRestartMasters();
-    sClusterResource.get().waitForWorkersRegistered(10 * Constants.SECOND_MS);
+    TableMaster tableMaster = sClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(TableMaster.class);
+    try {
+      // detach any previously attached db.
+      tableMaster.detachDatabase(DB_NAME);
+    } catch (IOException e) {
+      // ignore, since the db may not have been attached previously
+    }
   }
 
   @Test
