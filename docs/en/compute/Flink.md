@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache Flink on Alluxio
 nickname: Apache Flink
-group: Frameworks
+group: Compute Integrations
 priority: 2
 ---
 

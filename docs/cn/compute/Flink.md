@@ -3,7 +3,7 @@ layout: global
 title: 在Alluxio上运行Apache Flink
 nickname: Apache Flink
 group: Compute Integrations
-priority: 6
+priority: 2
 ---
 
 * 内容列表
