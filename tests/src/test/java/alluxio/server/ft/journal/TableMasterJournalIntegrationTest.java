@@ -42,8 +42,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -61,6 +62,9 @@ public class TableMasterJournalIntegrationTest {
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
           .setNumWorkers(1).build();
 
+  @Rule
+  public TestRule mResetRule = sClusterResource.getResetResource();
+
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
@@ -68,8 +72,15 @@ public class TableMasterJournalIntegrationTest {
   private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
   @Before
-  public void reset() throws Exception {
-    sClusterResource.get().formatAndRestartMasters();
+  public void before() throws Exception {
+    TableMaster tableMaster = sClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(TableMaster.class);
+    try {
+      // detach any previously attached db.
+      tableMaster.detachDatabase(DB_NAME);
+    } catch (IOException e) {
+      // ignore, since the db may not have been attached previously
+    }
   }
 
   @Test
@@ -98,8 +109,7 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.syncDatabase(DB_NAME);
     checkTable(tableMaster, DB_NAME, 2, 3);
 
-    mCluster.stopMasters();
-    mCluster.startMasters();
+    restartMaster();
 
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
@@ -149,8 +159,8 @@ public class TableMasterJournalIntegrationTest {
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
-    mCluster.stopMasters();
-    mCluster.startMasters();
+    restartMaster();
+
     // Update Udb, the table should stay the same, until we detach / reattach
     genTable(2, 2, true);
     TableMaster tableMasterRestart =
@@ -173,15 +183,15 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
     genTable(2, 2, true);
-    mCluster.stopMasters();
-    mCluster.startMasters();
+
+    restartMaster();
+
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
   }
 
   @Test
-  @Ignore
   public void journalTransformDb() throws Exception {
     LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
@@ -211,8 +221,9 @@ public class TableMasterJournalIntegrationTest {
     // all partitions are transformed, so baselayout should be different as layout
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
         partition -> partition.getBaseLayout() != partition.getLayout()));
-    mCluster.stopMasters();
-    mCluster.startMasters();
+
+    restartMaster();
+
     genTable(1, 4, true);
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
@@ -225,5 +236,15 @@ public class TableMasterJournalIntegrationTest {
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
         partition -> (partition.getSpec().endsWith("0") || partition.getSpec().endsWith("1"))
             == (partition.getBaseLayout() != partition.getLayout())));
+  }
+
+  /**
+   * Restarts the masters (without formatting) and waits for the workers to re-register.
+   */
+  private void restartMaster() throws Exception {
+    LocalAlluxioCluster mCluster = sClusterResource.get();
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    mCluster.waitForWorkersRegistered(10 * Constants.SECOND_MS);
   }
 }
