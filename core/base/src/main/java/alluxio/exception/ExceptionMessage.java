@@ -285,7 +285,7 @@ public enum ExceptionMessage {
 
   // migrate job (either move or copy)
   MIGRATE_CANNOT_BE_TO_SUBDIRECTORY("Cannot migrate because {0} is a prefix of {1}"),
-  MIGRATE_DIRECTORY_TO_FILE("Cannot migrate a directory ({0}) to a file ({1})"),
+  MIGRATE_DIRECTORY("Cannot migrate directory"),
   MIGRATE_FILE_TO_DIRECTORY("Cannot migrate a file ({0}) to a directory ({1})"),
   MIGRATE_NEED_OVERWRITE("Cannot migrate to {0} because it exists and overwrite is set to false"),
   MIGRATE_OVERWRITE_DIRECTORY(
