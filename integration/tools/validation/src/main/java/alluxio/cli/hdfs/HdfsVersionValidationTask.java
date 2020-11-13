@@ -95,6 +95,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     for (String prefix : new String[] {CDH_PREFIX, HADOOP_PREFIX}) {
       if (version.startsWith(prefix)) {
         version = version.substring(prefix.length());
+        break;
       }
     }
     if (hadoopVersion.contains(version)) {
