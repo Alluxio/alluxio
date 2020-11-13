@@ -63,14 +63,29 @@ public final class UfsInputStreamCacheTest {
     mManager = new UfsInputStreamCache();
   }
 
-  /**
-   * Test that verifies a released input stream can be reused for the next acquisition.
-   */
   @Test
-  public void testAcquireAndRelease() throws Exception {
-    SeekableUnderFileInputStream mockedStrem = mock(SeekableUnderFileInputStream.class);
+  public void notSeekable() throws Exception {
+    when(mUfs.isSeekable()).thenReturn(false);
+
+    SeekableUnderFileInputStream mockedStream = mock(SeekableUnderFileInputStream.class);
     when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class)))
-        .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
+        .thenReturn(mockedStream).thenThrow(new IllegalStateException("Should be called once"));
+
+    // acquire a stream
+    InputStream instream1 =
+        mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(2));
+    // release
+    mManager.release(instream1);
+
+    // ensure the second time the released instream is the same one but repositioned
+    verify(mockedStream).close();
+  }
+
+  @Test
+  public void acquireAndRelease() throws Exception {
+    SeekableUnderFileInputStream mockedStream = mock(SeekableUnderFileInputStream.class);
+    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class)))
+        .thenReturn(mockedStream).thenThrow(new IllegalStateException("Should be called once"));
 
     // acquire a stream
     InputStream instream1 =
@@ -83,14 +98,11 @@ public final class UfsInputStreamCacheTest {
 
     Assert.assertEquals(instream1, instream2);
     // ensure the second time the released instream is the same one but repositioned
-    verify(mockedStrem).seek(4);
+    verify(mockedStream).seek(4);
   }
 
-  /**
-   * Tests acquiring multiple times will open new input streams.
-   */
   @Test
-  public void testMultipleCheckIn() throws Exception {
+  public void multipleCheckIn() throws Exception {
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(2));
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(4));
     mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(6));
@@ -99,11 +111,8 @@ public final class UfsInputStreamCacheTest {
         any(OpenOptions.class));
   }
 
-  /**
-   * Tests the input stream is closed after the resource is expired.
-   */
   @Test
-  public void testExpire() throws Exception {
+  public void expire() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
@@ -122,11 +131,58 @@ public final class UfsInputStreamCacheTest {
     }
   }
 
-  /**
-   * Tests concurrent acquisitions without expiration do not hit deadlock.
-   */
   @Test
-  public void testConcurrency() throws Exception {
+  public void releaseExpiredSameFile() throws Exception {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      mManager = new UfsInputStreamCache();
+      // check out a stream
+      InputStream instream =
+          mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(2));
+      // wait a bit for a stream to be expired
+      Thread.sleep(100);
+      // check out another stream should trigger the timeout
+      mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(4));
+
+      // wait a bit so release occurs after removal listener
+      Thread.sleep(100);
+      mManager.release(instream);
+
+      // verify the stream was closed once
+      verify(mSeekableInStreams[0], timeout(2000).times(1)).close();
+    }
+  }
+
+  @Test
+  public void releaseExpiredDifferentFile() throws Exception {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      mManager = new UfsInputStreamCache();
+      // check out a stream
+      InputStream instream =
+          mManager.acquire(mUfs, FILE_NAME, FILE_ID, OpenOptions.defaults().setOffset(2));
+      // wait a bit for a stream to be expired
+      Thread.sleep(100);
+      // check out another stream should trigger the timeout
+      mManager.acquire(mUfs, FILE_NAME + "2", FILE_ID + 1, OpenOptions.defaults().setOffset(4));
+
+      // wait a bit so release occurs after removal listener
+      Thread.sleep(100);
+      mManager.release(instream);
+
+      // verify the stream was closed once
+      verify(mSeekableInStreams[0], timeout(2000).times(1)).close();
+    }
+  }
+
+  @Test
+  public void concurrency() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         // use very large number
@@ -168,11 +224,8 @@ public final class UfsInputStreamCacheTest {
     }
   }
 
-  /**
-   * Tests concurrent acquisitions with expiration do not hit deadlock.
-   */
   @Test
-  public void testConcurrencyWithExpiration() throws Exception {
+  public void concurrencyWithExpiration() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "20");

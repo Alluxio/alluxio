@@ -63,6 +63,9 @@ public final class UfsInputStreamCache {
   /** Thread pool for asynchronously removing the expired input streams. */
   private final ExecutorService mRemovalThreadPool;
 
+  /**
+   * Constructs a new UFS input stream cache.
+   */
   public UfsInputStreamCache() {
     mFileIdToStreamIds = new ConcurrentHashMap<>();
     mRemovalThreadPool = ExecutorServiceFactories
@@ -77,7 +80,7 @@ public final class UfsInputStreamCache {
           final long resourceId = removal.getKey();
           boolean shouldClose = false;
 
-          StreamIdSet streamIds = mFileIdToStreamIds.get(inputStream.getFileId());
+          StreamIdSet streamIds = mFileIdToStreamIds.get(fileId);
           if (streamIds == null) {
             LOG.warn(
                 "Removed UFS input stream (fileId: {} resourceId: {}) but does not exist",
