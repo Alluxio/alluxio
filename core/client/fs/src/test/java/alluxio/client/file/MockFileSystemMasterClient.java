@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -47,6 +48,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AlluxioStatusException {
     return null;
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException {
   }
 
   @Override
