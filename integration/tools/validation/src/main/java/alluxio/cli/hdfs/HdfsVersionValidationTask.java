@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 @ApplicableUfsType(ApplicableUfsType.Type.HDFS)
 public class HdfsVersionValidationTask extends AbstractValidationTask {
   private final AlluxioConfiguration mConf;
+  public static final String HADOOP_PREFIX = "hadoop-";
+  public static final String CDH_PREFIX = "cdh-";
 
   // An example output from "hadoop version" command:
   //    Hadoop 2.7.2
@@ -90,6 +92,12 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     }
 
     String version = mConf.get(PropertyKey.UNDERFS_VERSION);
+    for (String prefix : new String[] {CDH_PREFIX, HADOOP_PREFIX}) {
+      if (version.startsWith(prefix)) {
+        version = version.substring(prefix.length());
+        break;
+      }
+    }
     if (hadoopVersion.contains(version)) {
       return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
               String.format("Hadoop version %s contains UFS version defined in alluxio %s=%s.",
