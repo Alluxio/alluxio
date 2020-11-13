@@ -83,7 +83,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private CopyJobAttempt newJob(String srcPath, String dstPath) {
     CopyJobAttempt jobAttempt = new CopyJobAttempt(mClient,
-        new MigrateConfig(srcPath, dstPath, mWriteType, true, false),
+        new MigrateConfig(srcPath, dstPath, mWriteType, true),
         new CountingRetry(3));
 
     jobAttempt.run();
