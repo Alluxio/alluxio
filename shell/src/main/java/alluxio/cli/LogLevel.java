@@ -113,7 +113,7 @@ public final class LogLevel {
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level);
+      setLogLevel(targetInfo, logName, level, alluxioConf);
     }
   }
 
@@ -180,7 +180,8 @@ public final class LogLevel {
     return null;
   }
 
-  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
+                                  AlluxioConfiguration alluxioConf)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -191,7 +192,7 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    HttpUtils.post(uriBuilder.toString(), 5000, inputStream -> {
+    HttpUtils.post(uriBuilder.toString(), "", 5000, inputStream -> {
       ObjectMapper mapper = new ObjectMapper();
       LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
       System.out.println(targetInfo.toString() + logInfo.toString());
@@ -211,8 +212,8 @@ public final class LogLevel {
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
     } catch (IOException e) {
+      System.err.println("Failed to set log level:");
       e.printStackTrace();
-      System.err.println(String.format("Failed to set log level: %s", e.getMessage()));
     }
     System.exit(exitCode);
   }
