@@ -48,6 +48,15 @@ func Single(args []string) error {
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
+	if customUfsModuleFlag != "" {
+		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, ",")
+		if len(customUfsModuleFlagArray) == 2 {
+			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+		} else {
+			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+			os.Exit(1)
+		}
+	}
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
@@ -232,7 +241,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		hadoopVersion = parseVersion(hadoopDistributionFlag)
-		fmt.Errorf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
+		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {

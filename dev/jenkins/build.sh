@@ -65,7 +65,7 @@ export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simple
 
 if [ -z "${ALLUXIO_BUILD_FORKCOUNT}" ]
 then
-  ALLUXIO_BUILD_FORKCOUNT=4
+  ALLUXIO_BUILD_FORKCOUNT=1
 fi
 if [ "$RUN_MAVEN" == "true" ]; then
   # Always use java 8 to compile the source code

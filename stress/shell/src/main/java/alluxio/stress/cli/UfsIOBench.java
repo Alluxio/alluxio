@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +48,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private UfsIOParameters mParameters = new UfsIOParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
+
+  private final UUID mTaskId = UUID.randomUUID();
 
   @Override
   public IOTaskResult runLocal() throws Exception {
@@ -88,7 +91,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
-  public void prepare() {}
+  public void prepare() {
+    if (mParameters.mUseUfsConf && !mBaseParameters.mCluster) {
+      throw new IllegalArgumentException(String.format(
+          "%s can not use the ufs conf if it is not running in cluster mode",
+          getClass().getName()));
+    }
+  }
 
   /**
    * @param args command-line arguments
@@ -98,7 +107,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private String getFilePathStr(int idx) {
-    return mParameters.mPath + String.format("io-benchmark-%d", idx);
+    return mParameters.mPath + String.format("io-benchmark-%s-%d", mTaskId.toString(), idx);
   }
 
   private IOTaskResult runIOBench(ExecutorService pool) throws Exception {

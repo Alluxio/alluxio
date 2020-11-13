@@ -43,6 +43,9 @@ import javax.annotation.Nonnull;
 public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(InstancedConfiguration.class);
 
+  public static final AlluxioConfiguration EMPTY_CONFIGURATION
+      = new InstancedConfiguration(new AlluxioProperties());
+
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */

@@ -16,6 +16,8 @@ jobs:
             alluxio.master.metastore.rocks.**
 
     runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
+        !contains(github.event.pull_request.title, 'SKIPCI')"
 
     steps:
       - name: checkout repo

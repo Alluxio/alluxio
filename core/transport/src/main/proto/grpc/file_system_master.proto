@@ -184,6 +184,8 @@ message ListStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool recursive = 4;
+  // Only loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+  optional bool resultsRequired = 5;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -311,6 +313,7 @@ message MountPointInfo {
   optional bool readOnly = 5;
   map<string, string> properties = 6;
   optional bool shared = 7;
+  optional int64 mountId = 8;
 }
 
 message FileSystemCommandOptions {

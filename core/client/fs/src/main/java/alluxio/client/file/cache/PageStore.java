@@ -70,6 +70,9 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
     }
+    if (options.getTimeoutDuration() > 0) {
+      return new TimeBoundPageStore(pageStore, options);
+    }
     return pageStore;
   }
 
