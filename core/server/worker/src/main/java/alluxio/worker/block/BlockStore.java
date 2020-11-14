@@ -42,6 +42,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @param blockId the id of the block to lock
    * @return the lock id (non-negative) if the lock is acquired successfully
    * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   * @throws FailedToLockBlockException if fails to lock the given block
    */
   long tryLockBlock(long sessionId, long blockId)
       throws BlockDoesNotExistException, FailedToLockBlockException;
@@ -147,12 +148,13 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException, FailedToLockBlockException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, FailedToLockBlockException,
+      InvalidWorkerStateException, IOException, WorkerOutOfSpaceException;
 
   /**
    * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
@@ -164,6 +166,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @return the lock id
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
@@ -241,6 +244,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
    *         newLocation
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
@@ -260,6 +264,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
    *         newLocation
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
@@ -276,6 +281,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @param blockId the id of an existing block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    */
   void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
       BlockDoesNotExistException, FailedToLockBlockException, IOException;
@@ -288,6 +294,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @param location the location of the block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException,

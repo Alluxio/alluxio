@@ -12,7 +12,7 @@
 package alluxio.exception;
 
 /**
- * The exception thrown when a block does not exist in Alluxio.
+ * The exception thrown when fails to lock a block during a certain timeframe.
  */
 public class FailedToLockBlockException extends AlluxioException {
   private static final long serialVersionUID = -2313208021235706634L;

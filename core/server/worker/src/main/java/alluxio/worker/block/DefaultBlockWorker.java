@@ -282,7 +282,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
     } catch (FailedToLockBlockException e) {
-      LOG.debug("Failed to lock block {}", blockId, e);
+      LOG.debug("Failed to lock block when committing block {} of session {}",
+          blockId, sessionId, e);
     }
 
     // TODO(calvin): Reconsider how to do this without heavy locking.

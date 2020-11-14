@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
@@ -48,7 +49,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
   private static final int TRY_LOCK_MIN = 1;
-  private static final int TRY_LOCK_RETRY_TIMES = 5;
 
   /** Invalid lock ID. */
   public static final long INVALID_LOCK_ID = -1;
@@ -83,10 +83,16 @@ public final class BlockLockManager {
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mSharedMapsLock = new ReentrantReadWriteLock();
 
+  private final int mTryLockRetries;
+
   /**
    * Constructs a new {@link BlockLockManager}.
    */
-  public BlockLockManager() {}
+  public BlockLockManager() {
+    int retryTimes = (int) (ServerConfiguration
+        .getMs(PropertyKey.WORKER_BLOCK_TRY_LOCK_TIMEOUT) / Constants.MINUTE_MS);
+    mTryLockRetries = Math.max(retryTimes, 1);
+  }
 
   /**
    * Tries to lock a block. Note that even if this block does not exist,
@@ -100,6 +106,7 @@ public final class BlockLockManager {
    * @param blockId the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
    * @return lock id
+   * @throws FailedToLockBlockException if fails to lock block before timeout
    */
   public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType)
       throws FailedToLockBlockException {
@@ -107,10 +114,10 @@ public final class BlockLockManager {
     int retryTime = 1;
     boolean locked = false;
     try {
-      while (retryTime < TRY_LOCK_RETRY_TIMES) {
+      while (retryTime <  mTryLockRetries) {
         if (!lock.tryLock(TRY_LOCK_MIN, TimeUnit.MINUTES)) {
-          LOG.debug("Failed in attempt {} out of {} to {} lock block {}",
-              retryTime, TRY_LOCK_RETRY_TIMES, blockLockType, blockId);
+          LOG.debug("Failed in attempt {}/{} to {} lock block of id {} and session {}",
+              retryTime, mTryLockRetries, blockLockType, blockId, sessionId);
         } else {
           locked = true;
           break;
@@ -118,7 +125,8 @@ public final class BlockLockManager {
         retryTime++;
       }
     } catch (InterruptedException e) {
-      LOG.warn("Interrupted when trying to {} lock block {}", blockLockType, blockId);
+      LOG.warn("Interrupted when trying to {} lock block of id {} and session {}",
+          blockLockType, blockId, sessionId);
       lock.unlock();
       locked = false;
     }
@@ -148,6 +156,14 @@ public final class BlockLockManager {
     return recordLockInfo(sessionId, blockId, lock);
   }
 
+  /**
+   * Gets the id of the given lock and records the block lock info.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param lock the lock to record
+   * @return the lock id
+   */
   private long recordLockInfo(long sessionId, long blockId, Lock lock) {
     try {
       long lockId = LOCK_ID_GEN.getAndIncrement();
@@ -169,6 +185,16 @@ public final class BlockLockManager {
     }
   }
 
+  /**
+   * Returns the block lock for the given block id and block type,
+   * acquiring such a lock if it doesn't exist yet.
+   *
+   * If all locks have been allocated, this method will block until one can be acquired.
+   *
+   * @param blockId the block id to get the lock for
+   * @param blockLockType the block lock type
+   * @return the block lock
+   */
   private Lock getBlockLockWithType(long sessionId, long blockId, BlockLockType blockLockType) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock;

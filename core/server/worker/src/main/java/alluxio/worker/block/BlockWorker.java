@@ -278,6 +278,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
@@ -336,6 +337,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to be freed
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws BlockDoesNotExistException if block cannot be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    */
   void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
       BlockDoesNotExistException, FailedToLockBlockException, IOException;
@@ -419,6 +421,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *         because the block exists in the Alluxio block store
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    *         {@link UnderFileSystemBlockStore}
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   void closeUfsBlock(long sessionId, long blockId)
