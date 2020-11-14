@@ -36,27 +36,6 @@ import javax.annotation.Nullable;
 public interface BlockStore extends SessionCleanable, Closeable {
 
   /**
-   * Locks an existing block and guards subsequent reads on this block.
-   *
-   * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
-   * @return the lock id (non-negative) if the lock is acquired successfully
-   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
-   */
-  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
-
-  /**
-   * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
-   * {@link BlockLockManager#INVALID_LOCK_ID}.
-   *
-   * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
-   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
-   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
-   */
-  long lockBlockNoException(long sessionId, long blockId);
-
-  /**
    * Tries to lock an existing block and guards subsequent reads on this block.
    *
    * @param sessionId the id of the session to lock this block
@@ -79,9 +58,10 @@ public interface BlockStore extends SessionCleanable, Closeable {
   long tryLockBlockNoException(long sessionId, long blockId);
 
   /**
-   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
+   * Releases an acquired block lock based on a lockId
+   * (returned by {@link #tryLockBlock(long, long)}.
    *
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @param lockId the id of the lock returned by {@link #tryLockBlock(long, long)}
    * @throws BlockDoesNotExistException if lockId can not be found
    */
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
@@ -133,7 +113,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * Gets the metadata of a specific block from local storage.
    * <p>
    * This method requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
+   * {@link #tryLockBlock(long, long)}.
    *
    * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
@@ -238,11 +218,11 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * Creates a reader of an existing block to read data from this block.
    * <p>
    * This operation requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
+   * {@link #tryLockBlock(long, long)}.
    *
    * @param sessionId the id of the session to get the reader
    * @param blockId the id of an existing block
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @param lockId the id of the lock returned by {@link #tryLockBlock(long, long)}
    * @return a {@link BlockReader} instance on this block
    * @throws BlockDoesNotExistException if lockId is not found
    * @throws InvalidWorkerStateException if session id or block id is not the same as that in the

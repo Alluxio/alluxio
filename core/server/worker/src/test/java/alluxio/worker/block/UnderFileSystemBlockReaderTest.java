@@ -101,7 +101,7 @@ public final class UnderFileSystemBlockReaderTest {
   private void checkTempBlock(long start, long length) throws Exception {
     Assert.assertNotNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
     mAlluxioBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
-    long lockId = mAlluxioBlockStore.lockBlock(SESSION_ID, BLOCK_ID);
+    long lockId = mAlluxioBlockStore.tryLockBlock(SESSION_ID, BLOCK_ID);
     BlockReader reader = mAlluxioBlockStore.getBlockReader(SESSION_ID, BLOCK_ID, lockId);
     Assert.assertEquals(length, reader.getLength());
     ByteBuffer buffer = reader.read(0, length);

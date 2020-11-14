@@ -408,16 +408,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    return mBlockStore.lockBlock(sessionId, blockId);
-  }
-
-  @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
-    return mBlockStore.lockBlockNoException(sessionId, blockId);
-  }
-
-  @Override
   public long tryLockBlock(long sessionId, long blockId)
       throws BlockDoesNotExistException, FailedToLockBlockException {
     return mBlockStore.tryLockBlock(sessionId, blockId);

@@ -78,10 +78,10 @@ public final class BlockLockManagerTest {
    * Tests the {@link BlockLockManager#lockBlock(long, long, BlockLockType)} method.
    */
   @Test
-  public void lockBlock() {
+  public void lockBlock() throws Exception {
     // Read-lock on can both get through
-    long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
-    long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId1 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     assertNotEquals(lockId1, lockId2);
   }
 
@@ -115,7 +115,7 @@ public final class BlockLockManagerTest {
    */
   @Test
   public void validateLockIdWithWrongSessionId() throws Exception {
-    long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongSessionId = TEST_SESSION_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION.getMessage(lockId,
@@ -130,7 +130,7 @@ public final class BlockLockManagerTest {
    */
   @Test
   public void validateLockIdWithWrongBlockId() throws Exception {
-    long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
     mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK.getMessage(lockId,
@@ -147,8 +147,8 @@ public final class BlockLockManagerTest {
   public void cleanupSession() throws Exception {
     long sessionId1 = TEST_SESSION_ID;
     long sessionId2 = TEST_SESSION_ID + 1;
-    long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
-    long lockId2 = mLockManager.lockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId1 = mLockManager.tryLockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId2 = mLockManager.tryLockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupSession(sessionId2);

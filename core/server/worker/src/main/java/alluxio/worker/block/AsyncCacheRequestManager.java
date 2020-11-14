@@ -103,7 +103,7 @@ public class AsyncCacheRequestManager {
               : Sessions.ASYNC_CACHE_WORKER_SESSION_ID;
           // Check if the block has already been cached on this worker
           long lockId =
-              mBlockWorker.lockBlockNoException(sessionId, blockId);
+              mBlockWorker.tryLockBlockNoException(sessionId, blockId);
           if (lockId != BlockLockManager.INVALID_LOCK_ID) {
             try {
               mBlockWorker.unlockBlock(lockId);

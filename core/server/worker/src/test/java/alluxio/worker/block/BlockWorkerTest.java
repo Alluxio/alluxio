@@ -178,7 +178,7 @@ public class BlockWorkerTest {
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
-    when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
+    when(mBlockStore.tryLockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
@@ -212,7 +212,7 @@ public class BlockWorkerTest {
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
-    when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
+    when(mBlockStore.tryLockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
@@ -371,14 +371,14 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#lockBlock(long, long)} method.
+   * Tests the {@link BlockWorker#tryLockBlock(long, long)} method.
    */
   @Test
-  public void lockBlock() throws Exception {
+  public void tryLockBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.lockBlock(sessionId, blockId);
-    verify(mBlockStore).lockBlock(sessionId, blockId);
+    mBlockWorker.tryLockBlock(sessionId, blockId);
+    verify(mBlockStore).tryLockBlock(sessionId, blockId);
   }
 
   /**

@@ -137,38 +137,6 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
-      return lockId;
-    }
-
-    mLockManager.unlockBlock(lockId);
-    throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
-  }
-
-  @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
-    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
-      return lockId;
-    }
-
-    mLockManager.unlockBlockNoException(lockId);
-    return BlockLockManager.INVALID_LOCK_ID;
-  }
-
-  @Override
   public long tryLockBlock(long sessionId, long blockId)
       throws BlockDoesNotExistException, FailedToLockBlockException {
     LOG.debug("tryLockBlock: sessionId={}, blockId={}", sessionId, blockId);
