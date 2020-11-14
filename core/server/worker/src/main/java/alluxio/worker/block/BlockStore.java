@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.FailedToLockBlockException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.SessionCleanable;
@@ -54,6 +55,28 @@ public interface BlockStore extends SessionCleanable, Closeable {
    *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
    */
   long lockBlockNoException(long sessionId, long blockId);
+
+  /**
+   * Tries to lock an existing block and guards subsequent reads on this block.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) if the lock is acquired successfully
+   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   */
+  long tryLockBlock(long sessionId, long blockId)
+      throws BlockDoesNotExistException, FailedToLockBlockException;
+
+  /**
+   * Tries to lock an existing block and guards subsequent reads on this block.
+   * If the lock fails, return {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long tryLockBlockNoException(long sessionId, long blockId);
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
@@ -149,7 +172,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      IOException, WorkerOutOfSpaceException, FailedToLockBlockException;
 
   /**
    * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
@@ -165,8 +188,8 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, FailedToLockBlockException,
+      InvalidWorkerStateException, IOException, WorkerOutOfSpaceException;
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
@@ -243,8 +266,8 @@ public interface BlockStore extends SessionCleanable, Closeable {
    *         block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, FailedToLockBlockException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Moves an existing block to a new location.
@@ -263,8 +286,8 @@ public interface BlockStore extends SessionCleanable, Closeable {
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
       AllocateOptions moveOptions) throws BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
-      IOException;
+      BlockAlreadyExistsException, FailedToLockBlockException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
@@ -275,7 +298,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws BlockDoesNotExistException if block can not be found
    */
   void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
-      BlockDoesNotExistException, IOException;
+      BlockDoesNotExistException, FailedToLockBlockException, IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
@@ -287,7 +310,8 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws BlockDoesNotExistException if block can not be found
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+      throws InvalidWorkerStateException, BlockDoesNotExistException,
+      FailedToLockBlockException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

@@ -13,8 +13,8 @@ package alluxio.worker.block;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.FailedToLockBlockException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
@@ -75,12 +75,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block cannot be found
+   * @throws FailedToLockBlockException if fails to lock the given block
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, FailedToLockBlockException,
+      InvalidWorkerStateException, IOException, WorkerOutOfSpaceException;
 
   /**
    * Commits a block in UFS.
@@ -247,6 +248,28 @@ public interface BlockWorker extends Worker, SessionCleanable {
   long lockBlockNoException(long sessionId, long blockId);
 
   /**
+   * Tries to obtain a read lock the block.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be locked
+   * @return the lock id that uniquely identifies the lock obtained
+   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
+   */
+  long tryLockBlock(long sessionId, long blockId)
+      throws BlockDoesNotExistException, FailedToLockBlockException;
+
+  /**
+   * Tries to obtain a read lock the block without throwing an exception. If the lock fails, return
+   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to be locked
+   * @return the lock id that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long tryLockBlockNoException(long sessionId, long blockId);
+
+  /**
    * Moves a block from its current location to a target location, currently only tier level moves
    * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
    * tiered storage.
@@ -262,8 +285,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *         block
    */
   void moveBlock(long sessionId, long blockId, String tierAlias)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, FailedToLockBlockException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Moves a block from its current location to a target location, with a specific medium type.
@@ -281,8 +304,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *         block
    */
   void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, FailedToLockBlockException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Gets the path to the block file in local storage. The block must be a permanent block, and the
@@ -335,8 +358,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws BlockDoesNotExistException if block cannot be found
    */
-  void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
+      BlockDoesNotExistException, FailedToLockBlockException, IOException;
 
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
@@ -420,8 +443,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
-      WorkerOutOfSpaceException;
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, FailedToLockBlockException,
+      IOException, WorkerOutOfSpaceException;
 
   /**
    * Clears the worker metrics.

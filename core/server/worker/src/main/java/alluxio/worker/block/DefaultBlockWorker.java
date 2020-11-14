@@ -22,6 +22,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FailedToLockBlockException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.GrpcService;
@@ -272,20 +273,22 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, FailedToLockBlockException,
+      InvalidWorkerStateException, IOException, WorkerOutOfSpaceException {
     long lockId = -1;
     try {
       lockId = mBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate);
     } catch (BlockAlreadyExistsException e) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
+    } catch (FailedToLockBlockException e) {
+      LOG.debug("Failed to lock block {}", blockId, e);
     }
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     if (lockId == -1) {
-      lockId = mBlockStore.lockBlock(sessionId, blockId);
+      lockId = mBlockStore.tryLockBlock(sessionId, blockId);
     }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
@@ -415,13 +418,25 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public long tryLockBlock(long sessionId, long blockId)
+      throws BlockDoesNotExistException, FailedToLockBlockException {
+    return mBlockStore.tryLockBlock(sessionId, blockId);
+  }
+
+  @Override
+  public long tryLockBlockNoException(long sessionId, long blockId) {
+    return mBlockStore.tryLockBlockNoException(sessionId, blockId);
+  }
+
+  @Override
   public void moveBlock(long sessionId, long blockId, String tierAlias)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, BlockAlreadyExistsException,
+      FailedToLockBlockException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
     // Because the move operation is expensive, we first check if the operation is necessary
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
-    long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    long lockId = mBlockStore.tryLockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       if (meta.getBlockLocation().belongsTo(dst)) {
@@ -436,10 +451,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, FailedToLockBlockException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTierWithMedium(mediumType);
-    long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    long lockId = mBlockStore.tryLockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       if (meta.getBlockLocation().belongsTo(dst)) {
@@ -473,7 +488,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws InvalidWorkerStateException, BlockDoesNotExistException,
+      FailedToLockBlockException, IOException {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
@@ -531,7 +547,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, FailedToLockBlockException,
+      IOException, WorkerOutOfSpaceException {
     try {
       mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
       if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {

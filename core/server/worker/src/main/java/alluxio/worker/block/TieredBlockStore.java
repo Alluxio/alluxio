@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FailedToLockBlockException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.master.block.BlockId;
@@ -168,6 +169,44 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public long tryLockBlock(long sessionId, long blockId)
+      throws BlockDoesNotExistException, FailedToLockBlockException {
+    LOG.debug("tryLockBlock: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlock(lockId);
+    throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+  }
+
+  @Override
+  public long tryLockBlockNoException(long sessionId, long blockId) {
+    LOG.debug("tryLockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId;
+    try {
+      lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.READ);
+    } catch (FailedToLockBlockException e) {
+      return BlockLockManager.INVALID_LOCK_ID;
+    }
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlockNoException(lockId);
+    return BlockLockManager.INVALID_LOCK_ID;
+  }
+
+  @Override
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     LOG.debug("unlockBlock: lockId={}", lockId);
     mLockManager.unlockBlock(lockId);
@@ -250,10 +289,10 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
-      IOException {
+      FailedToLockBlockException, IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       synchronized (mBlockStoreEventListeners) {
@@ -269,10 +308,10 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
-      IOException {
+      FailedToLockBlockException, IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       synchronized (mBlockStoreEventListeners) {
@@ -337,16 +376,16 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, FailedToLockBlockException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), moveOptions);
   }
 
   @Override
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      AllocateOptions moveOptions)
-          throws BlockDoesNotExistException, BlockAlreadyExistsException,
-          InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
+      AllocateOptions moveOptions) throws BlockDoesNotExistException, BlockAlreadyExistsException,
+      FailedToLockBlockException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, options={}", sessionId,
         blockId, oldLocation, moveOptions);
     MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
@@ -366,16 +405,17 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+  public void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
+      BlockDoesNotExistException, FailedToLockBlockException, IOException {
     removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
   }
 
   @Override
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws InvalidWorkerStateException, BlockDoesNotExistException,
+      FailedToLockBlockException, IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
 
     BlockMeta blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
@@ -844,8 +884,8 @@ public class TieredBlockStore implements BlockStore {
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
       BlockStoreLocation oldLocation, AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
-          InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+          FailedToLockBlockException, InvalidWorkerStateException, IOException {
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;
       String srcFilePath;

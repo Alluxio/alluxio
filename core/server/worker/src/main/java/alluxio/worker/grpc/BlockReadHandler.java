@@ -181,9 +181,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
             .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
             .getBlockInUfsTier())) {
-          lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
+          lockId = mWorker.tryLockBlockNoException(request.getSessionId(), request.getId());
         } else {
-          lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+          lockId = mWorker.tryLockBlock(request.getSessionId(), request.getId());
         }
         if (lockId != BlockLockManager.INVALID_LOCK_ID) {
           try {

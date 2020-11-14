@@ -88,7 +88,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
               LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
             }
           }
-          mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
+          mLockId = mWorker.tryLockBlock(mSessionId, mRequest.getBlockId());
           mWorker.accessBlock(mSessionId, mRequest.getBlockId());
         } else {
           LOG.warn("Lock block {} without releasing previous block lock {}.",
