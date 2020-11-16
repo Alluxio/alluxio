@@ -107,7 +107,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           try {
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException ee) {
-            LOG.error("Failed to unlock block {}.", mRequest.getBlockId(), e);
+            LOG.warn("Failed to unlock lock {} of block {} with error {}.",
+                mLockId, mRequest.getBlockId(), e);
           }
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         }
@@ -124,7 +125,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       try {
         mWorker.unlockBlock(mLockId);
       } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
+        LOG.warn("Failed to unlock lock {} of block {} with error {}.",
+            mLockId, mRequest.getBlockId(), e.getMessage());
       }
       mWorker.cleanupSession(mSessionId);
     }
@@ -143,7 +145,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           try {
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException e) {
-            LOG.warn("Failed to unlock lock {} with error {}.", mLockId, e.getMessage());
+            LOG.warn("Failed to unlock lock {} of block {} with error {}.",
+                mLockId, mRequest.getBlockId(), e.getMessage());
           }
           mLockId = BlockLockManager.INVALID_LOCK_ID;
         } else if (mRequest != null) {

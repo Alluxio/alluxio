@@ -62,13 +62,13 @@ public class AsyncBlockRemover {
     mBlockWorker = worker;
     mBlocksToRemove = new LinkedBlockingQueue<>();
     mRemovingBlocks = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    mTakeCount = MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_TAKE_COUNT
+    mTakeCount = MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT
         .getName());
     mRemovedSuccessCount =
-        MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SUCCESS_COUNT
+        MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT
             .getName());
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVED_SIZE.getName(),
+        MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVE_SIZE.getName(),
         () -> mBlocksToRemove.size());
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(),
