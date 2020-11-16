@@ -26,6 +26,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.IdUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
@@ -70,6 +71,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   private boolean mClosed;
   /** The manager for different ufs. */
   private final UfsManager mUfsManager;
+  /** The cache for all ufs instream. */
+  private final UfsInputStreamCache mUfsInstreamCache;
   /** The ufs client resource. */
   private CloseableResource<UnderFileSystem> mUfsResource;
   private boolean mIsPositionShort;
@@ -91,12 +94,15 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param localBlockStore the Local block store
    * @param ufsManager the manager of ufs
    * @param positionShort whether the client op is a positioned read to a small buffer
+   * @param ufsInStreamCache the UFS in stream cache
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean positionShort, BlockStore localBlockStore, UfsManager ufsManager) throws IOException {
+      boolean positionShort, BlockStore localBlockStore, UfsManager ufsManager,
+      UfsInputStreamCache ufsInStreamCache) throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsManager);
+        new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsManager,
+            ufsInStreamCache);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -108,15 +114,17 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param localBlockStore the Local block store
    * @param ufsManager the manager of ufs
    * @param positionShort whether the client op is a positioned read to a small buffer
+   * @param ufsInStreamCache the UFS in stream cache
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
-      BlockStore localBlockStore, UfsManager ufsManager)
+      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache)
       throws IOException {
     mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
     mUfsManager = ufsManager;
+    mUfsInstreamCache = ufsInStreamCache;
     UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
     mUfsResource = ufsClient.acquireUfsResource();
     mUfsMountPointUri = ufsClient.getUfsMountPointUri();
@@ -259,7 +267,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       updateBlockWriter(mBlockMeta.getBlockSize());
 
       if (mUnderFileSystemInputStream != null) {
-        mUnderFileSystemInputStream.close();
+        mUfsInstreamCache.release(mUnderFileSystemInputStream);
         mUnderFileSystemInputStream = null;
       }
 
@@ -297,16 +305,18 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    */
   private void updateUnderFileSystemInputStream(long offset) throws IOException {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      mUnderFileSystemInputStream.close();
+      mUfsInstreamCache.release(mUnderFileSystemInputStream);
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
       UnderFileSystem ufs = mUfsResource.get();
-      mUnderFileSystemInputStream = ufs.openExistingFile(mBlockMeta.getUnderFileSystemPath(),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset)
-              .setPositionShort(mIsPositionShort));
+      mUnderFileSystemInputStream = mUfsInstreamCache
+          .acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
+              IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
+              OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset)
+                  .setPositionShort(mIsPositionShort));
       mInStreamPos = offset;
     }
   }
