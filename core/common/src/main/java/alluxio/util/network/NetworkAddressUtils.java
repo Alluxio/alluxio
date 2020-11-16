@@ -253,6 +253,7 @@ public final class NetworkAddressUtils {
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
+   * <th>Enable Service Using IP</th>
    * <th>Returned Connect Host</th>
    * </tr>
    * </thead>
@@ -260,22 +261,32 @@ public final class NetworkAddressUtils {
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>hostname</td>
    * <td>0.0.0.0 or not defined</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>0.0.0.0 or not defined</td>
-   * <td>localhost</td>
+   * <td>false</td>
+   * <td>local hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>true</td>
+   * <td>local IP address</td>
    * </tr>
    * </tbody>
    * </table>
@@ -297,6 +308,9 @@ public final class NetworkAddressUtils {
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
+    }
+    if (conf.getBoolean(PropertyKey.SERVICE_USE_IP)) {
+      return getLocalIpAddress((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
