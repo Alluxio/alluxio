@@ -92,7 +92,8 @@ public final class RoundRobinAllocator implements Allocator {
         mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
         return tierView.getDirView(dirViewIndex);
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTierWithMedium(location.mediumType()))) {
+    } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
+            location.mediumType()))) {
       String medium = location.mediumType();
       int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mMetadataView.getTierViews().size(); i++) {
