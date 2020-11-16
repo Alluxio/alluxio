@@ -66,6 +66,7 @@ import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -315,7 +316,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
             && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          throw new IllegalStateException("It should not get here.");
+          LOG.info("Shouldn't be getting here during tests {}",
+              ExceptionUtils.getStackTrace(new Exception()));
           /*getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
