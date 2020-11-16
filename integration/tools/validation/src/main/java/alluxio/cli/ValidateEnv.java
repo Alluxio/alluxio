@@ -147,6 +147,9 @@ public final class ValidateEnv {
             new SshValidationTask(mConf), mCommonTasks);
 
     // UFS validations
+    registerTask("ufs.version",
+        "This validates the a configured UFS library version is available on the system.",
+        new UfsVersionValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.path.accessible",
             "This validates the under file system location is accessible to Alluxio.",
             new UfsDirectoryValidationTask(mPath, mConf), mCommonTasks);
