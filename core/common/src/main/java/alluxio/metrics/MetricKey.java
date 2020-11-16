@@ -742,29 +742,29 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
       new Builder(Name.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT)
-          .setDescription("The total number of blocks tried to be removed from this worker " +
-              "by asynchronous block remover.")
+          .setDescription("The total number of blocks tried to be removed from this worker "
+              + "by asynchronous block remover.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_REMOVED_COUNT =
       new Builder(Name.WORKER_BLOCK_REMOVER_REMOVED_COUNT)
-          .setDescription("The total number of blocks was removed from this worker " +
-              "by asynchronous block remover.")
+          .setDescription("The total number of blocks was removed from this worker "
+              + "by asynchronous block remover.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVE_SIZE =
       new Builder(Name.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVE_SIZE)
-          .setDescription("The size of blocks to remove from this worker " +
-              "by asynchronous block remover.")
+          .setDescription("The size of blocks to remove from this worker "
+              + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE =
       new Builder(Name.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE)
-          .setDescription("The size of blocks is removing from this worker " +
-              "by asynchronous block remover.")
+          .setDescription("The size of blocks is removing from this worker "
+              + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
