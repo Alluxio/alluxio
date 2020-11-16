@@ -21,13 +21,15 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -77,8 +79,12 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   protected Pair<String, String> getHdfsConfPaths() {
     // If ServerConfiguration does not contain the key, then a {@link RuntimeException} will be
     // thrown before calling the {@link String#split} method.
-    String[] clientHadoopConfFilePaths =
-            mConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(SEPARATOR);
+    String confVal = mConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
+    String[] clientHadoopConfFilePaths = confVal.split(SEPARATOR);
+    mMsg.append(String.format(
+        "%d file path(s) detected in for HDFS configuration files for \"%s\"%n",
+        clientHadoopConfFilePaths.length, confVal));
+
     String clientCoreSiteFilePath = null;
     String clientHdfsSiteFilePath = null;
     for (String path : clientHadoopConfFilePaths) {
@@ -87,6 +93,13 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
       } else if (path.contains("hdfs-site.xml")) {
         clientHdfsSiteFilePath = path;
       }
+    }
+    if (clientHadoopConfFilePaths.length < 2 || clientCoreSiteFilePath == null
+        || clientHdfsSiteFilePath == null) {
+      mAdvice.append(String.format("Additional HDFS configuration can be specified with your"
+          + " Alluxio mount point by configuring the property %s. The value for this property "
+          + "should be in the format \"{core-site.xml path}:{hdfs-site.xml path}\"%n",
+          PropertyKey.UNDERFS_HDFS_CONFIGURATION.getName()));
     }
     return new Pair<>(clientCoreSiteFilePath, clientHdfsSiteFilePath);
   }
@@ -107,7 +120,47 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     }
 
     // no conflicts between these two
-    return checkConflicts();
+    ValidationTaskResult last = checkConflicts();
+    if (last.getState() == ValidationUtils.State.OK) {
+      last = checkNameservice();
+    }
+
+    return last;
+  }
+
+  protected ValidationTaskResult checkNameservice() {
+    ValidationUtils.State state;
+    String nsKey = "dfs.nameservices";
+    String nameservices = mCoreConf.get(nsKey);
+    if (nameservices == null) {
+      nameservices = mHdfsConf.get(nsKey);
+    }
+    if (nameservices == null) {
+      return new ValidationTaskResult(ValidationUtils.State.OK, getName(), "No nameservice "
+          + "detected", "");
+    }
+    List<String> nsList =
+        Arrays.stream(nameservices.split(",")).map(String::trim).collect(Collectors.toList());
+
+    try {
+      URI u = URI.create(mPath);
+      String uriHost = u.getHost().toLowerCase();
+      long nsCount = nsList.stream().filter(s -> uriHost.equals(s.toLowerCase())).count();
+      state = ValidationUtils.State.OK;
+      if (nsCount < 1) {
+        state = ValidationUtils.State.FAILED;
+        mAdvice.append(String.format("One or more nameservices (%s) were detected in the HDFS "
+            + "configuration, but not used in the URI to connect to HDFS.", nameservices));
+        mMsg.append(String.format("Could not find any of the configured nameservices (%s) in the "
+            + "given HDFS connection URI (%s)", nameservices, u));
+      }
+    } catch (IllegalArgumentException e) {
+      state = ValidationUtils.State.FAILED;
+      mMsg.append("HDFS path not parsable as a URI.");
+      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mAdvice.append("Make sure the HDFS URI is in a valid format.");
+    }
+    return new ValidationTaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
   }
 
   // Verify core-site.xml and hdfs.site.xml has no conflicts
@@ -139,8 +192,6 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     if (path == null || path.isEmpty()) {
       mMsg.append(String.format("%s is not configured in Alluxio property %s%n", configName,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
-      mAdvice.append(String.format("Please configure %s in %s%n", configName,
-              PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       mState = ValidationUtils.State.SKIPPED;
       return null;
     }
@@ -155,12 +206,22 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
     }
-    if (!Files.isReadable(Paths.get(path))) {
+    Path confPath = Paths.get(path);
+    if (!Files.exists(confPath)) {
       mState = ValidationUtils.State.WARNING;
       mMsg.append(String.format("File does not exist at %s in Alluxio property %s.%n", path,
           PropertyKey.UNDERFS_HDFS_CONFIGURATION));
-      mAdvice.append(String.format("Please correct the path for %s in %s%n", configName,
-          PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mAdvice.append(String.format("Could not file file at \"%s\". Correct the path in %s%n",
+          configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      return null;
+    }
+    if (!Files.isReadable(Paths.get(path))) {
+      mState = ValidationUtils.State.WARNING;
+      mMsg.append(String.format("\"%s\" is not readable from Alluxio property %s.%n",
+          path, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
+      mAdvice.append(String.format("Grant more accessible permissions on the file"
+              + " %s from %s%n",
+          configName, PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
     }
     HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
@@ -168,22 +229,17 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     try {
       properties = parser.parseXmlConfiguration(path);
       mMsg.append(String.format("Successfully loaded %s. %n", path));
-    } catch (ParserConfigurationException e) {
-      mState = ValidationUtils.State.FAILED;
-      mMsg.append(String.format("Failed to create instance of DocumentBuilder for file: %s. %s.%n",
-              path, e.getMessage()));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
-      mAdvice.append("Please check your configuration for javax.xml.parsers.DocumentBuilder.%n");
     } catch (IOException e) {
       mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
-    } catch (SAXException e) {
+    } catch (RuntimeException e) {
       mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
-      mAdvice.append(String.format("Please check your %s.%n", path));
+      mAdvice.append(String.format("Failed to parse %s as valid XML. Please check that the file "
+          + "path is correct and the content is valid XML.%n", path));
     }
     return properties;
   }

@@ -498,6 +498,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();

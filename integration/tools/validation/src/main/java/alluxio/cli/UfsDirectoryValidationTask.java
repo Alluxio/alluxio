@@ -22,8 +22,8 @@ import java.util.Map;
  */
 @ApplicableUfsType(ApplicableUfsType.Type.ALL)
 public final class UfsDirectoryValidationTask extends AbstractValidationTask {
-  private final UnderFileSystem mUfs;
   private final String mPath;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a new instance of {@link UfsDirectoryValidationTask}
@@ -34,7 +34,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
    */
   public UfsDirectoryValidationTask(String path, AlluxioConfiguration conf) {
     mPath = path;
-    mUfs = UnderFileSystem.Factory.create(mPath, conf);
+    mConf = conf;
   }
 
   @Override
@@ -47,7 +47,8 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
     try {
-      UfsStatus[] listStatus = mUfs.listStatus(mPath);
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(mPath, mConf);
+      UfsStatus[] listStatus = ufs.listStatus(mPath);
       if (listStatus == null) {
         msg.append(String.format("Unable to list under file system path %s. ", mPath));
         advice.append(String.format("Please check if path %s denotes a directory. ", mPath));

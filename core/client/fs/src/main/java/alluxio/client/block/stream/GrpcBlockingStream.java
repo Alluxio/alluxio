@@ -52,9 +52,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
   /** Buffer that stores responses to be consumed by {@link GrpcBlockingStream#receive(long)}. */
   private final BlockingQueue<Object> mResponses;
   private final String mDescription;
-  private boolean mCompleted = false;
-  private boolean mClosed = false;
-  private boolean mCanceled = false;
+  private volatile boolean mCompleted = false;
+  private volatile boolean mClosed = false;
+  private volatile boolean mCanceled = false;
 
   /**
    * Uses to guarantee the operation ordering.
@@ -68,7 +68,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private Throwable mError;
   /** This condition is met if mError != null or client is ready to send data. */
   private final Condition mReadyOrFailed = mLock.newCondition();
-  private boolean mClosedFromRemote = false;
+  /** This is set by the grpc threads, and checked/read by the client. */
+  private volatile boolean mClosedFromRemote = false;
 
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function

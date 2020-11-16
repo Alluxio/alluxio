@@ -3860,6 +3860,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_STREAMING_READER_CLOSE_TIMEOUT =
+      new Builder(Name.USER_STREAMING_READER_CLOSE_TIMEOUT)
+          .setDefaultValue("5s")
+          .setDescription("The timeout to close a grpc streaming reader client. If too long,"
+              + " it may add delays to closing clients. If too short, the client will complete the"
+              + " close() before the server confirms the close()")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES)
           .setAlias(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
@@ -4477,7 +4486,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
           .setDescription("The length of time the Alluxio Job Master should save information about "
               + "completed jobs before they are discarded.")
-          .setDefaultValue("300sec")
+          .setDefaultValue("60sec")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
@@ -5478,6 +5487,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.streaming.reader.buffer.size.messages";
     public static final String USER_STREAMING_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.streaming.reader.chunk.size.bytes";
+    public static final String USER_STREAMING_READER_CLOSE_TIMEOUT =
+        "alluxio.user.streaming.reader.close.timeout";
     public static final String USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.streaming.writer.buffer.size.messages";
     public static final String USER_STREAMING_WRITER_CHUNK_SIZE_BYTES =

@@ -48,11 +48,32 @@ func Single(args []string) error {
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
+	if customUfsModuleFlag != "" {
+		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, "|")
+		if len(customUfsModuleFlagArray) == 2 {
+			customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
+			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+		} else {
+			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+			os.Exit(1)
+		}
+	}
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
 	if err := checkRootFlags(); err != nil {
 		return err
+	}
+	if debugFlag {
+		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
+		fmt.Fprintf(os.Stdout, "customUfsModuleFlag=: %s\n", customUfsModuleFlag)
+		fmt.Fprintf(os.Stdout, "mvnArgsFlag=: %s\n", mvnArgsFlag)
+		fmt.Fprintf(os.Stdout, "targetFlag=: %s\n", targetFlag)
+		fmt.Fprintf(os.Stdout, "ufs-modules=: %s\n", ufsModulesFlag)
+
+		for _, ufsModule := range ufsModules {
+			fmt.Fprintf(os.Stdout, "ufsModule=: %s\n", ufsModule)
+		}
 	}
 	if err := generateTarball([]string{}, skipUIFlag, skipHelmFlag); err != nil {
 		return err
@@ -232,7 +253,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		hadoopVersion = parseVersion(hadoopDistributionFlag)
- 		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
+		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
