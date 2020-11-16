@@ -315,10 +315,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
             && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
+          throw new IllegalStateException("It should not get here.");
+          /*getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
-              ServerConfiguration.global(), mMasterContext.getUserState()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));*/
         }
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
