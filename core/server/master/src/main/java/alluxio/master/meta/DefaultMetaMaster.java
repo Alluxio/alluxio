@@ -70,6 +70,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Clock;
@@ -316,8 +318,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
             && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          LOG.info("Shouldn't be getting here during tests {}",
-              ExceptionUtils.getStackTrace(new Exception()));
+          throw new IllegalStateException("test");
           /*getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
