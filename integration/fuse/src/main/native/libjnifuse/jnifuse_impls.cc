@@ -85,3 +85,7 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
       path, buf, size, off, fi);
 }
+
+int rename_wrapper(const char *oldPath, const char *newPath) {
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
+}

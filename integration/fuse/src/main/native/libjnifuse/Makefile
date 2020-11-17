@@ -30,7 +30,7 @@ LDFLAGS = -shared ${FUSE_LIBS}
 OBJS = jnifuse_helper.o jnifuse_fs.o jnifuse_impls.o operation.o
 
 ${TARGET_LIB}: ${OBJS}
-	${CXX} ${CXXFLAGS} ${LDFLAGS} -o ${TARGET_LIB} ${OBJS}
+	${CXX} ${CXXFLAGS} -o ${TARGET_LIB} ${OBJS} ${LDFLAGS}
 
 install: ${TARGET_LIB}
 	sudo mv ${TARGET_LIB} /usr/lib/
