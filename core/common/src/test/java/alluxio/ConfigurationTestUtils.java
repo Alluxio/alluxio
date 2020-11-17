@@ -149,6 +149,8 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
+    conf.put(PropertyKey.TEST_MODE, "true");
+
     return conf;
   }
 
