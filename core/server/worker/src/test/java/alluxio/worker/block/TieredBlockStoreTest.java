@@ -93,6 +93,7 @@ public final class TieredBlockStoreTest {
   }
 
   private void init(long reservedBytes) throws Exception {
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_ENABLED, "false");
     // No reserved space for tests that are not swap related.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
 
