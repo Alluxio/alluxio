@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.reviewer;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -26,55 +25,66 @@ import java.util.Random;
  * The more full a StorageDir, the higher the chance that this reviewer decides
  * not to use it for a new block.
  * */
-public class ProbabilisticReviewer implements Reviewer {
-    private static final Logger LOG = LoggerFactory.getLogger(ProbabilisticReviewer.class);
+public class ProbabilisticBufferReviewer implements Reviewer {
+    private static final Logger LOG = LoggerFactory.getLogger(ProbabilisticBufferReviewer.class);
 
     private static final Random RANDOM = new Random();
 
-    private final long mDefaultBlockSizeBytes;
-    private final long mCutOffBytes;
+    private final long mHardLimitBytes;
+    private final long mSoftLimitBytes;
     private final InstancedConfiguration mConf;
 
-    public ProbabilisticReviewer() {
+    public ProbabilisticBufferReviewer() {
       mConf = ServerConfiguration.global();
-      mDefaultBlockSizeBytes = mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      mCutOffBytes = mConf.getBytes(PropertyKey.WORKER_TIER_CUTOFF_BYTES);
+      mHardLimitBytes = mConf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES);
+      long stopSoftBytes = mConf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES);
+      if (stopSoftBytes <= mHardLimitBytes) {
+        LOG.warn("{} should be greater than or equal to {}. Setting {} to {}.",
+                PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES.toString(),
+                PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES.toString(),
+                PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES.toString(),
+                mHardLimitBytes);
+        mSoftLimitBytes = mHardLimitBytes;
+      } else {
+        mSoftLimitBytes = stopSoftBytes;
+      }
     }
 
-    public double getProbability(StorageDirView dirView) {
+    double getProbability(StorageDirView dirView) {
       long availableBytes = dirView.getAvailableBytes();
       long capacityBytes = dirView.getCapacityBytes();
 
       // Rules:
-      // 1. If more than CUTOFF left, we use this tier. Prob=100%
+      // 1. If more than the SOFT limit left, we use this tier. Prob=100%
       // 2. If the tier is less than block size, ignore this tier. Prob=0%
-      // 3. If in the middle, the probability is linear to the space left, the less space the lower.
-      if (availableBytes > mCutOffBytes) {
+      // 3. If in the middle, the probability is linear to the space left,
+      //    the less space the lower.
+      if (availableBytes > mSoftLimitBytes) {
         return 1.0;
       }
-      if (availableBytes <= mDefaultBlockSizeBytes) {
+      if (availableBytes <= mHardLimitBytes) {
         return 0.0;
       }
-      double cutoffRatio = (capacityBytes - mCutOffBytes + 0.0) / (capacityBytes - mDefaultBlockSizeBytes);
       // 2 points:
       // Axis X: space usage (commitment)
       // Axis Y: Probability of using this tier
-      // (capacity - cutoff, 1.0)
-      // (capacity - block, 0.0)
+      // (capacity - soft, 1.0)
+      // (capacity - hard, 0.0)
       double x = capacityBytes - availableBytes;
-      double k = 1.0 / (mDefaultBlockSizeBytes - mCutOffBytes); // TODO(jiacheng): 0!
-      double b = (capacityBytes - mDefaultBlockSizeBytes + 0.0) / (mCutOffBytes - mDefaultBlockSizeBytes);
+      // If HardLimit = SoftLimit, then we would have returned in the previous if-else
+      double k = 1.0 / (mHardLimitBytes - mSoftLimitBytes);
+      double b = (capacityBytes - mHardLimitBytes + 0.0) / (mSoftLimitBytes - mHardLimitBytes);
       double y = k * x + b;
-//      LOG.warn("Space usage in tier {} is {}. Probability of staying is {}.", dirView.getParentTierView().getTierViewAlias(), usage, y);
+      LOG.debug("{} bytes available in {}. Probability of staying is {}.", availableBytes,
+              dirView.toBlockStoreLocation(), y);
       return y;
     }
 
+    @Override
     public boolean reviewAllocation(StorageDirView dirView) {
       double chance = getProbability(dirView);
       // Throw a dice
       double dice = RANDOM.nextDouble();
-      boolean stay = dice < chance;
-      LOG.warn("Dice={}, do we stay: {}", dice, stay);
-      return stay;
+      return dice < chance;
     }
 }

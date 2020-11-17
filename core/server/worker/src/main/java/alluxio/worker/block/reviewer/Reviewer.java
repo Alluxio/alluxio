@@ -15,11 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockMetadataView;
-import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.allocator.MaxFreeAllocator;
 import alluxio.worker.block.meta.StorageDirView;
-import com.google.common.base.Preconditions;
 
 @PublicApi
 public interface Reviewer {
@@ -36,7 +32,7 @@ public interface Reviewer {
     /**
      * Factory for {@link Reviewer}.
      *
-     * @return the generated {@link Reviewer}, it will be a {@link ProbabilisticReviewer} by default
+     * @return the generated {@link Reviewer}, it will be a {@link ProbabilisticBufferReviewer} by default
      */
     public static Reviewer create() {
       return CommonUtils.createNewClassInstance(

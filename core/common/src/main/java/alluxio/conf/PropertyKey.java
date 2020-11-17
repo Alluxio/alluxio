@@ -2421,15 +2421,39 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REVIEWER_CLASS =
           new Builder(Name.WORKER_REVIEWER_CLASS)
-                  .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticReviewer")
-                  .setDescription("")
+                  .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticBufferReviewer")
+                  .setDescription("The strategy that a worker uses to review space allocation "
+                  + "in the Allocator. Each time a block allocation decision is made by"
+                          + "the Allocator, the Reviewer will review the decision and rejects it,"
+                  + "if the allocation does not meet certain criteria of the Reviewer."
+                  + "The Reviewer prevents the worker to make a bad block allocation decision."
+                  + "Valid options include:"
+                  + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.WORKER)
                   .build();
-  public static final PropertyKey WORKER_TIER_CUTOFF_BYTES =
-          new Builder(Name.WORKER_TIER_CUTOFF_BYTES)
+  public static final PropertyKey WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES =
+          new Builder(Name.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES)
                   .setDefaultValue("256MB")
-                  .setDescription("")
+                  .setDescription("This is used by the "
+                          + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
+                          + "We attempt to leave a buffer in each storage directory. "
+                  + "When the free space in a certain storage directory on the worker falls "
+                  + "below this size, there is a chance that the worker rejects new block "
+                  + "allocations to this directory. The chance goes up as the free space "
+                  + "gets less.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
+  public static final PropertyKey WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES =
+          new Builder(Name.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES)
+                  .setDefaultValue("64MB")
+                  .setDescription("This is used by the "
+                          + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
+                          + "When the free space in a storage dir falls below this size, "
+                  + "the ProbabilisticBufferReviewer will stop accepting new blocks into this directory."
+                  + "This is because we may load more data into existing blocks in the directory "
+                  + "and their sizes may expand.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.WORKER)
                   .build();
@@ -5197,7 +5221,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
     public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
-    public static final String WORKER_TIER_CUTOFF_BYTES = "alluxio.worker.tier.cutoff.bytes";
+    public static final String WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES =
+            "alluxio.worker.reviewer.buffer.hardlimit.bytes";
+    public static final String WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES =
+            "alluxio.worker.reviewer.buffer.softlimit.bytes";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
         "alluxio.worker.block.heartbeat.interval";
