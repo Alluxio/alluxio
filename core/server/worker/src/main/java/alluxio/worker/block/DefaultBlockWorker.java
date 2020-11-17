@@ -325,7 +325,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     if (medium.isEmpty()) {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
     } else {
-      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
     }
     TempBlockMeta createdBlock;
     try {
@@ -353,7 +353,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     if (medium.isEmpty()) {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
     } else {
-      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
+      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
     }
     mBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(initialBytes, loc));
   }
@@ -438,7 +438,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTierWithMedium(mediumType);
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType);
     long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);

@@ -420,13 +420,13 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void createBlockMetaWithMediumType() throws Exception {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         AllocateOptions.forCreate(1, loc));
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir2, tempBlockMeta.getParentDir());
 
-    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInAnyTierWithMedium("SSD");
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
         AllocateOptions.forCreate(1, loc2));
     assertEquals(1, tempBlockMeta2.getBlockSize());
