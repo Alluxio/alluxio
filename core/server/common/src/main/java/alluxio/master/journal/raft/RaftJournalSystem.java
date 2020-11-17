@@ -326,7 +326,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     RaftServerConfigKeys.RetryCache.setExpiryTime(properties,
         TimeDuration.valueOf(
-            ServerConfiguration.global()
+            ServerConfiguration
                 .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
             TimeUnit.MILLISECONDS));
 
