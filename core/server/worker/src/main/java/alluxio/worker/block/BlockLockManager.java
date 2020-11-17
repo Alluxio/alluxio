@@ -111,18 +111,7 @@ public final class BlockLockManager {
       }
       lock = blockLock.writeLock();
     }
-    try {
-      if (!lock.tryLock(1L, TimeUnit.MINUTES)) {
-        LOG.warn("tryLock {} block {} for session {} failed after 1 min, "
-                + "lock reference count = {}",
-            blockLockType, blockId, sessionId, blockLock.getReferenceCount());
-        lock.lock();
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      lock.lock();
-    }
-
+    lock.lock();
     try {
       long lockId = LOCK_ID_GEN.getAndIncrement();
       try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {

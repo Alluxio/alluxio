@@ -68,7 +68,7 @@ public class AsyncBlockRemover {
         MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT
             .getName());
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.WORKER_BLOCK_REMOVER_BLOCKS_TO_REMOVE_SIZE.getName(),
+        MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE.getName(),
         () -> mBlocksToRemove.size());
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(),
