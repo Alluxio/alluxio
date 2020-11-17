@@ -2920,6 +2920,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REVIEWER_ENABLED =
+          new Builder(Name.WORKER_REVIEWER_ENABLED)
+                  .setDefaultValue("true")
+                  .setDescription("Whether the allocation reviewing is enabled.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
@@ -5221,11 +5228,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Worker related properties
     //
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
-    public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
-    public static final String WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES =
-            "alluxio.worker.reviewer.buffer.hardlimit.bytes";
-    public static final String WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES =
-            "alluxio.worker.reviewer.buffer.softlimit.bytes";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
         "alluxio.worker.block.heartbeat.interval";
@@ -5323,6 +5325,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
+    public static final String WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES =
+            "alluxio.worker.reviewer.buffer.hardlimit.bytes";
+    public static final String WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES =
+            "alluxio.worker.reviewer.buffer.softlimit.bytes";
+    public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
+    public static final String WORKER_REVIEWER_ENABLED = "alluxio.worker.reviewer.enabled";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =

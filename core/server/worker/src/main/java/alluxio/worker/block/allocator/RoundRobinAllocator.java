@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
@@ -39,6 +41,7 @@ public final class RoundRobinAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(RoundRobinAllocator.class);
 
   private BlockMetadataView mMetadataView;
+  private boolean mReviewerEnabled;
   private Reviewer mReviewer;
 
   // We need to remember the last dir index for every storage tier
@@ -54,6 +57,7 @@ public final class RoundRobinAllocator implements Allocator {
     for (StorageTierView tierView : mMetadataView.getTierViews()) {
       mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), -1);
     }
+    mReviewerEnabled = ServerConfiguration.getBoolean(PropertyKey.WORKER_REVIEWER_ENABLED);
     mReviewer = Reviewer.Factory.create();
   }
 
@@ -142,7 +146,7 @@ public final class RoundRobinAllocator implements Allocator {
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
           || dir.getMediumType().equals(mediumType))
           && dir.getAvailableBytes() >= blockSize) {
-        if (skipReview || mReviewer.reviewAllocation(dir)) {
+        if (skipReview || (!mReviewerEnabled) ||mReviewer.reviewAllocation(dir)) {
           return dir.getDirViewIndex();
         }
         // The allocation is rejected. Try the next dir.

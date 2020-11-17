@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
@@ -33,6 +35,7 @@ public final class GreedyAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(GreedyAllocator.class);
 
   private BlockMetadataView mMetadataView;
+  private boolean mReviewerEnabled;
   private Reviewer mReviewer;
 
   /**
@@ -42,6 +45,7 @@ public final class GreedyAllocator implements Allocator {
    */
   public GreedyAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
+    mReviewerEnabled = ServerConfiguration.getBoolean(PropertyKey.WORKER_REVIEWER_ENABLED);
     mReviewer = Reviewer.Factory.create();
   }
 
@@ -72,7 +76,7 @@ public final class GreedyAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
-            if (skipReview || mReviewer.reviewAllocation(dirView)) {
+            if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(dirView)) {
               return dirView;
             } else {
               // The allocation is rejected. Try the next dir.
@@ -91,7 +95,7 @@ public final class GreedyAllocator implements Allocator {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getMediumType().equals(mediumType)
               && dirView.getAvailableBytes() >= blockSize) {
-            if (skipReview || mReviewer.reviewAllocation(dirView)) {
+            if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(dirView)) {
               return dirView;
             } else {
               // Try the next dir
@@ -110,7 +114,7 @@ public final class GreedyAllocator implements Allocator {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
-          if (skipReview || mReviewer.reviewAllocation(dirView)) {
+          if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(dirView)) {
             return dirView;
           } else {
             // Try the next dir
