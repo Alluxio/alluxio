@@ -133,6 +133,7 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
 
+    // We skip the review here as we do not want the Reviewer's opinion to affect the test
     StorageDirView dirView =
         allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =

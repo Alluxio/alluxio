@@ -11,10 +11,13 @@
 
 package alluxio.worker.block.reviewer;
 
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.meta.StorageDirView;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
@@ -29,8 +32,10 @@ public class ProbabilisticBufferReviewerTest {
   private static final String HARD_LIMIT = "64MB";
   private static final long HARD_LIMIT_BYTES = FormatUtils.parseSpaceSize(HARD_LIMIT);
 
-  @Test
-  public void testProbabilityFunction() throws Exception {
+  private ProbabilisticBufferReviewer mReviewer;
+
+  @Before
+  public void createReviewerInstance() {
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             ProbabilisticBufferReviewer.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES, HARD_LIMIT);
@@ -38,55 +43,64 @@ public class ProbabilisticBufferReviewerTest {
 
     Reviewer reviewer = Reviewer.Factory.create();
     assertTrue(reviewer instanceof ProbabilisticBufferReviewer);
-    ProbabilisticBufferReviewer probReviewer = (ProbabilisticBufferReviewer) reviewer;
+    mReviewer = (ProbabilisticBufferReviewer) reviewer;
+  }
 
+  @After
+  public void reset() {
+    mReviewer = null;
+    ServerConfiguration.reset();
+  }
+
+  @Test
+  public void testProbabilityFunction() throws Exception {
     // Empty - 100%
     StorageDirView mockEmptyDir = mock(StorageDirView.class);
     when(mockEmptyDir.getAvailableBytes()).thenReturn(DISK_SIZE);
     when(mockEmptyDir.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probEmptyDir = probReviewer.getProbability(mockEmptyDir);
+    double probEmptyDir = mReviewer.getProbability(mockEmptyDir);
     assertEquals(1.0, probEmptyDir, 1e-6);
 
     // Higher than soft limit - 100%
     StorageDirView mockMoreThanSoft = mock(StorageDirView.class);
     when(mockMoreThanSoft.getAvailableBytes()).thenReturn(SOFT_LIMIT_BYTES + 1);
     when(mockMoreThanSoft.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probMoreThanSoft = probReviewer.getProbability(mockMoreThanSoft);
+    double probMoreThanSoft = mReviewer.getProbability(mockMoreThanSoft);
     assertEquals(1.0, probMoreThanSoft, 1e-6);
 
     // Lower than soft limit - less than 100%
     StorageDirView mockLessThanSoft = mock(StorageDirView.class);
     when(mockLessThanSoft.getAvailableBytes()).thenReturn(SOFT_LIMIT_BYTES - 1);
     when(mockLessThanSoft.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probLessThanSoft = probReviewer.getProbability(mockLessThanSoft);
+    double probLessThanSoft = mReviewer.getProbability(mockLessThanSoft);
     assertEquals(0.99999999, probLessThanSoft, 1e-4);
 
     // Between soft limit and hard limit - linear
     StorageDirView mockMoreThanHard = mock(StorageDirView.class);
     when(mockMoreThanHard.getAvailableBytes()).thenReturn(FormatUtils.parseSpaceSize("128MB"));
     when(mockMoreThanHard.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probMoreThanHard = probReviewer.getProbability(mockMoreThanHard);
+    double probMoreThanHard = mReviewer.getProbability(mockMoreThanHard);
     assertEquals(1.0 / 3, probMoreThanHard, 1e-6);
 
     // Hard limit reached - 0.0
     StorageDirView mockHardLimit = mock(StorageDirView.class);
     when(mockHardLimit.getAvailableBytes()).thenReturn(HARD_LIMIT_BYTES);
     when(mockHardLimit.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probHardLimit = probReviewer.getProbability(mockHardLimit);
+    double probHardLimit = mReviewer.getProbability(mockHardLimit);
     assertEquals(0.0, probHardLimit, 1e-6);
 
     // Below hard limit - 0.0
     StorageDirView mockLessThanHard = mock(StorageDirView.class);
     when(mockLessThanHard.getAvailableBytes()).thenReturn(HARD_LIMIT_BYTES - 1);
     when(mockLessThanHard.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probLessThanHard = probReviewer.getProbability(mockLessThanHard);
+    double probLessThanHard = mReviewer.getProbability(mockLessThanHard);
     assertEquals(0.0, probLessThanHard, 1e-6);
 
     // Full - 0.0
     StorageDirView mockFull = mock(StorageDirView.class);
     when(mockFull.getAvailableBytes()).thenReturn(0L);
     when(mockFull.getCapacityBytes()).thenReturn(DISK_SIZE);
-    double probFull = probReviewer.getProbability(mockFull);
+    double probFull = mReviewer.getProbability(mockFull);
     assertEquals(0.0, probFull, 1e-6);
   }
 }
