@@ -36,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RoundRobinAllocator implements Allocator {
-  private static final Logger LOG = LoggerFactory.getLogger(GreedyAllocator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RoundRobinAllocator.class);
 
   private BlockMetadataView mMetadataView;
   private Reviewer mReviewer;
@@ -100,7 +100,7 @@ public final class RoundRobinAllocator implements Allocator {
         return tierView.getDirView(dirViewIndex);
       }
     } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
-                location.mediumType()))) {
+            location.mediumType()))) {
       for (int i = 0; i < mMetadataView.getTierViews().size(); i++) {
         StorageTierView tierView = mMetadataView.getTierViews().get(i);
         // The review logic is handled in getNextAvailDirInTier
@@ -140,8 +140,8 @@ public final class RoundRobinAllocator implements Allocator {
       dirIndex = (dirIndex + 1) % dirs.size();
       StorageDirView dir = dirs.get(dirIndex);
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-              || dir.getMediumType().equals(mediumType))
-              && dir.getAvailableBytes() >= blockSize) {
+          || dir.getMediumType().equals(mediumType))
+          && dir.getAvailableBytes() >= blockSize) {
         if (skipReview || mReviewer.reviewAllocation(dir)) {
           return dir.getDirViewIndex();
         }
