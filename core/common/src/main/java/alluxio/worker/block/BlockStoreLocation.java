@@ -72,7 +72,7 @@ public final class BlockStoreLocation {
    * @param mediumType mediumType this returned block store location will represent
    * @return a BlockStoreLocation of any dir in any tier with a specific medium
    */
-  public static BlockStoreLocation anyDirInTierWithMedium(String mediumType) {
+  public static BlockStoreLocation anyDirInAnyTierWithMedium(String mediumType) {
     return new BlockStoreLocation(ANY_TIER, ANY_DIR, mediumType);
   }
 
