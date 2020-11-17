@@ -11,9 +11,12 @@
 
 package alluxio.worker.block.allocator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.proto.meta.Block;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
@@ -30,8 +33,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.HashSet;
-
-import static org.junit.Assert.*;
 
 /**
  * Base class for allocator tests.
@@ -107,7 +108,8 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView(), true);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+                getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -136,7 +138,8 @@ public class AllocatorTestBase {
 
     // We skip the review here as we do not want the Reviewer's opinion to affect the test
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getMetadataEvictorView(), true);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+                getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -165,7 +168,7 @@ public class AllocatorTestBase {
    * */
   protected void assertAllocationAnyDirInTier() throws Exception {
     BlockStoreLocation[] locations = new BlockStoreLocation[]{mAnyDirInTierLoc1,
-            mAnyDirInTierLoc2, mAnyDirInTierLoc3};
+        mAnyDirInTierLoc2, mAnyDirInTierLoc3};
     for (int i = 0; i < locations.length; i++) {
       StorageDirView dirView =
               mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1,

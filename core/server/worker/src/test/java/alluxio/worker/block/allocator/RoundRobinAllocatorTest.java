@@ -24,7 +24,8 @@ import org.junit.Test;
 public final class RoundRobinAllocatorTest extends AllocatorTestBase {
   @Before
   public void initialize() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+            RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getMetadataEvictorView());
   }
 

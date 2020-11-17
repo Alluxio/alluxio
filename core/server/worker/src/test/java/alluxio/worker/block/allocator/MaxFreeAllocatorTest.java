@@ -14,13 +14,9 @@ package alluxio.worker.block.allocator;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.meta.StorageDirView;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link MaxFreeAllocator}.

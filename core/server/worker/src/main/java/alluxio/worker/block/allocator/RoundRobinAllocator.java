@@ -15,8 +15,8 @@ import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
-
 import alluxio.worker.block.reviewer.Reviewer;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,7 +130,8 @@ public final class RoundRobinAllocator implements Allocator {
    * @param mediumType the medium type to find a dir
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType, boolean skipReview) {
+  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType,
+                                    boolean skipReview) {
     int lastDirIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
     List<StorageDirView> dirs = tierView.getDirViews();
     for (int i = 0; i < dirs.size(); i++) { // try this many times

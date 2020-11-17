@@ -13,11 +13,10 @@ package alluxio.worker.block.allocator;
 
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
-
 import alluxio.worker.block.reviewer.Reviewer;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

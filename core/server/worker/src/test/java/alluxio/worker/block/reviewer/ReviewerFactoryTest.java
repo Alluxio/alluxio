@@ -11,11 +11,12 @@
 
 package alluxio.worker.block.reviewer;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 /**
  * Test {@link Reviewer.Factory} by passing different allocate strategy class names with alluxio
@@ -24,7 +25,8 @@ import static org.junit.Assert.assertTrue;
 public class ReviewerFactoryTest {
   @Test
   public void createGreedyAllocator() {
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS, ProbabilisticBufferReviewer.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            ProbabilisticBufferReviewer.class.getName());
     Reviewer allocator = Reviewer.Factory.create();
     assertTrue(allocator instanceof ProbabilisticBufferReviewer);
   }

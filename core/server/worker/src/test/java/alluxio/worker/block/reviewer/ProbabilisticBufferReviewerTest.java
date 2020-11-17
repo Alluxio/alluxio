@@ -11,19 +11,19 @@
 
 package alluxio.worker.block.reviewer;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.util.FormatUtils;
-import alluxio.worker.block.meta.StorageDirView;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.util.FormatUtils;
+import alluxio.worker.block.meta.StorageDirView;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ProbabilisticBufferReviewerTest {
   private static final long DISK_SIZE = FormatUtils.parseSpaceSize("16GB");

@@ -15,10 +15,27 @@ import alluxio.annotation.PublicApi;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
 
+/**
+ * Interface for the review policy of allocation decision made by {@link Allocator}.
+ *
+ * Each {@link Allocator} has a Reviewer instance according to the policy definition.
+ * For each block allocation decision, the Reviewer reviews it according to the criteria
+ * defined in the policy.
+ * If the allocation does not meet the criteria, the Reviewer will reject it.
+ * */
 @PublicApi
 public interface Reviewer {
+  /**
+   * Reviews an allocation proposed by the {@link Allocator}.
+   * Returning true means the allocation is accepted.
+   * Returning false meanes the allocation is rejected.
+   *
+   * @param dirView the storage dir that the block is allocated to
+   * @return whether the allocation is accepted
+   * */
   boolean reviewAllocation(StorageDirView dirView);
 
   /**
@@ -28,11 +45,11 @@ public interface Reviewer {
 
     private Factory() {} // prevent instantiation
 
-    // TODO(jiacheng): Is it possible we need a list of reviewers in the future, each checking one criteria?
     /**
      * Factory for {@link Reviewer}.
      *
-     * @return the generated {@link Reviewer}, it will be a {@link ProbabilisticBufferReviewer} by default
+     * @return the generated {@link Reviewer}, it will be a {@link ProbabilisticBufferReviewer}
+     *         by default
      */
     public static Reviewer create() {
       return CommonUtils.createNewClassInstance(

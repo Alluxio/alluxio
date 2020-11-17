@@ -152,7 +152,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           StorageDirEvictorView nextDirView
               = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
                   Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mMetadataView, true);
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
+                  mMetadataView, true);
           if (nextDirView == null) {
             nextDirView = cascadingEvict(block.getBlockSize(),
                 BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
