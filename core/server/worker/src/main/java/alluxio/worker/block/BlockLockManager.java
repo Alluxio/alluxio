@@ -103,7 +103,6 @@ public final class BlockLockManager {
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
    * @return lock id
    */
-  // TODO(lu) reconsider exception thrown
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock;
