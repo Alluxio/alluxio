@@ -48,4 +48,4 @@ JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
 mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true  -Dmaven.javadoc.skip -Dlicense.skip=true \
--Dcheckstyle.skip=true -Dfindbugs.skip=true -DargLine="-Dalluxio.test.mode=true" -Dsurefire.forkCount=2 ${mvn_args} $@
+-Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@
