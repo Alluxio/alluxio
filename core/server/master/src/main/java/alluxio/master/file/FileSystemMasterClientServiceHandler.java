@@ -16,6 +16,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CheckAccessPRequest;
+import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
@@ -67,6 +69,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -113,6 +116,18 @@ public final class FileSystemMasterClientServiceHandler
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
+  }
+
+  @Override
+  public void checkAccess(CheckAccessPRequest request,
+      StreamObserver<CheckAccessPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> {
+          AlluxioURI pathUri = getAlluxioURI(request.getPath());
+          mFileSystemMaster.checkAccess(pathUri,
+              CheckAccessContext.create(request.getOptions().toBuilder()));
+          return CheckAccessPResponse.getDefaultInstance();
+        }, "CheckAccess", "request=%s", responseObserver, request);
   }
 
   @Override
