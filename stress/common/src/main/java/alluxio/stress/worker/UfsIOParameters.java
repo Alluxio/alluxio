@@ -23,6 +23,10 @@ import java.util.Map;
  * Parameters used in the UFS I/O throughput test.
  * */
 public class UfsIOParameters extends Parameters {
+  public static final String USE_MOUNT_CONF = "--use-mount-conf";
+  public static final String CONF = "--conf";
+  public static final String PATH = "--path";
+
   @Parameter(names = {"--threads"}, description = "the number of threads to use")
   public int mThreads = 4;
 
@@ -30,12 +34,18 @@ public class UfsIOParameters extends Parameters {
           description = "size of data to write and then read for each thread")
   public String mDataSize = "4G";
 
-  @Parameter(names = {"--path"},
-          description = "the Alluxio directory to write temporary data in",
+  @Parameter(names = {PATH},
+          description = "the Ufs Path to write temporary data in",
           required = true)
   public String mPath;
 
-  @DynamicParameter(names = "--conf",
+  @Parameter(names = {USE_MOUNT_CONF},
+      description = "If true, attempt to load the ufs configuration from an existing mount point "
+          + "to read/write to the base path, it will override the configuration specified through "
+          + "--conf parameter")
+  public boolean mUseUfsConf = false;
+
+  @DynamicParameter(names = CONF,
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
           + "configuration values.")
   public Map<String, String> mConf = new HashMap<>();

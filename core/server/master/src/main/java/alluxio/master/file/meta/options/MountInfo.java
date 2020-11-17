@@ -88,6 +88,7 @@ public class MountInfo {
     info.setReadOnly(mOptions.getReadOnly());
     info.setProperties(mOptions.getProperties());
     info.setShared(mOptions.getShared());
+    info.setMountId(mMountId);
     return info;
   }
 

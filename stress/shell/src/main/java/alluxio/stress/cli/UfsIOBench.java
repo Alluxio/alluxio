@@ -91,7 +91,13 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
-  public void prepare() {}
+  public void prepare() {
+    if (mParameters.mUseUfsConf && !mBaseParameters.mCluster) {
+      throw new IllegalArgumentException(String.format(
+          "%s can not use the ufs conf if it is not running in cluster mode",
+          getClass().getName()));
+    }
+  }
 
   /**
    * @param args command-line arguments
