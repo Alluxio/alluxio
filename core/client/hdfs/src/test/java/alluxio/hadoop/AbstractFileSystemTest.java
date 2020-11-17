@@ -48,7 +48,9 @@ import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -359,6 +361,45 @@ public class AbstractFileSystemTest {
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
     assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+    alluxioHadoopFs.close();
+  }
+
+  @Test
+  public void listLocatedStatus() throws Exception {
+    FileInfo fileInfo1 = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+    FileInfo fileInfo2 = new FileInfo()
+        .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
+        .setFolder(true)
+        .setOwner("user2")
+        .setGroup("group2")
+        .setMode(00644);
+
+    Path path = new Path("/dir");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+
+    FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
+
+    // call listLocatedStatus and match with listStatus.
+    RemoteIterator<LocatedFileStatus> it = alluxioHadoopFs.listLocatedStatus(path);
+    List<LocatedFileStatus> locatedStatuses = new ArrayList<>();
+    while (it.hasNext()) {
+      locatedStatuses.add(it.next());
+    }
+    assertEquals(fileStatuses.length, locatedStatuses.size());
+    assertEquals(fileStatuses[0], locatedStatuses.get(0));
+    assertEquals(fileStatuses[1], locatedStatuses.get(1));
+
     alluxioHadoopFs.close();
   }
 

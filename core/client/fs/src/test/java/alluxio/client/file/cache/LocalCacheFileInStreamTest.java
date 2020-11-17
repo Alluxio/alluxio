@@ -470,6 +470,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status) throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public AlluxioConfiguration getConf() {
       return sConf;
     }

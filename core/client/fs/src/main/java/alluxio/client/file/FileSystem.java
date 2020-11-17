@@ -311,6 +311,17 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Equivalent to {@link #getBlockLocations(AlluxioURI)} but for an existing {@link URIStatus}.
+   *
+   * @param status a status to get the block locations for
+   * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
+   *         necessarily be stored in Alluxio. The blocks are returned in the order of their
+   *         sequences in file.
+   * @throws IOException
+   */
+  List<BlockLocationInfo> getBlockLocations(URIStatus status) throws IOException;
+
+  /**
    * @return the configuration which the FileSystem is using to connect to Alluxio
    */
   AlluxioConfiguration getConf();
