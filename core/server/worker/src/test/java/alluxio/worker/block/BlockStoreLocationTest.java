@@ -52,7 +52,7 @@ public final class BlockStoreLocationTest {
     BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
     BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
     BlockStoreLocation dirWithMediumType = new BlockStoreLocation("MEM", 1, "MEM");
-    BlockStoreLocation anyTierWithMEM = BlockStoreLocation.anyDirInTierWithMedium("MEM");
+    BlockStoreLocation anyTierWithMEM = BlockStoreLocation.anyDirInAnyTierWithMedium("MEM");
 
     assertTrue(anyTier.belongsTo(anyTier));
     assertFalse(anyTier.belongsTo(anyDirInTierMEM));
