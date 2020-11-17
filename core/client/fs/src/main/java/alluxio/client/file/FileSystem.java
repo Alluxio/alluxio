@@ -28,6 +28,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -166,6 +167,17 @@ public interface FileSystem extends Closeable {
    * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
+
+  /**
+   * Checks access to a path.
+   *
+   * @param path the path of the directory to create in Alluxio space
+   * @param options options to associate with this operation
+   * @throws InvalidPathException if the path is invalid
+   * @throws alluxio.exception.AccessControlException if the access is denied
+   */
+  void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with

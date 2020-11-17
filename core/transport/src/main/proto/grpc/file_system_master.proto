@@ -36,6 +36,17 @@ message FileSystemMasterCommonPOptions {
   optional grpc.TtlAction ttlAction = 3;
 }
 
+message CheckAccessPRequest {
+  optional string path = 1;
+  optional CheckAccessPOptions options = 2;
+}
+
+message CheckAccessPResponse {}
+message CheckAccessPOptions {
+  optional Bits bits = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
 message CheckConsistencyPResponse {
   repeated string inconsistentPaths = 1;
 }
@@ -467,6 +478,11 @@ message UpdateUfsModePRequest {
  * This interface contains file system master service endpoints for Alluxio clients.
  */
 service FileSystemMasterClientService {
+
+  /**
+   * Checks access to path.
+   */
+  rpc CheckAccess(CheckAccessPRequest) returns (CheckAccessPResponse);
 
   /**
    * Checks the consistency of the files and directores with the path as the root of the subtree
