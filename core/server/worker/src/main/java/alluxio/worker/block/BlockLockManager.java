@@ -20,6 +20,7 @@ import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,6 +143,9 @@ public final class BlockLockManager {
   private void removeTimeOutBlockLocks(long blockId) {
     long currentTime = System.currentTimeMillis();
     try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+      if (!mBlockIdToLockIdsMap.containsKey(blockId)) {
+        return;
+      }
       for (long lockId : mBlockIdToLockIdsMap.get(blockId)) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (currentTime - record.getLastAccessTime() > LOCK_TIMEOUT_MS) {
@@ -370,15 +374,11 @@ public final class BlockLockManager {
   /**
    * Gets a set of currently locked blocks.
    *
-   * @return a set of locked blocks
+   * @return a immutable set of locked blocks
    */
   public Set<Long> getLockedBlocks() {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
-      Set<Long> set = new HashSet<>();
-      for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
-        set.add(lockRecord.getBlockId());
-      }
-      return set;
+      return ImmutableSet.copyOf(mBlockIdToLockIdsMap.keySet());
     }
   }
 

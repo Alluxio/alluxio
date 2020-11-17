@@ -48,7 +48,7 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
   private final Set<Long> mPinnedInodes = new HashSet<>();
 
   /** Indices of locks that are being used. */
-  private final Set<Long> mInUseBlocks = new HashSet<>();
+  private final Set<Long> mInUseBlocks;
 
   /**
    * Creates a new instance of {@link BlockMetadataEvictorView}. Now we always create a new view
@@ -64,7 +64,7 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
     super(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes, "pinnedInodes"));
     Preconditions.checkNotNull(lockedBlocks, "lockedBlocks");
-    mInUseBlocks.addAll(lockedBlocks);
+    mInUseBlocks = lockedBlocks;
   }
 
   @Override
