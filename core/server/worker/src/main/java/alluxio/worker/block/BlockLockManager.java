@@ -20,7 +20,6 @@ import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
+  private static final long LOCK_TIMEOUT_MS
+      = ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_LOCK_TIMEOUT);
 
   /** Invalid lock ID. */
   public static final long INVALID_LOCK_ID = -1;
@@ -69,9 +70,14 @@ public final class BlockLockManager {
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, ClientRWLock> mLocks = new HashMap<>();
 
+  // TODO(lu) Reconsider if session concept can be removed completely
   /** A map from a session id to all the locks hold by this session. */
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<>();
+
+  /** A map from a block id to all the locks hold by this session. */
+  @GuardedBy("mSharedMapsLock")
+  private final Map<Long, Set<Long>> mBlockIdToLockIdsMap = new HashMap<>();
 
   /** A map from a lock id to the lock record of it. */
   @GuardedBy("mSharedMapsLock")
@@ -97,6 +103,7 @@ public final class BlockLockManager {
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
    * @return lock id
    */
+  // TODO(lu) reconsider exception thrown
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock;
@@ -110,24 +117,44 @@ public final class BlockLockManager {
                 + " holds a lock on the block", sessionId, blockId));
       }
       lock = blockLock.writeLock();
+      removeTimeOutBlockLocks(blockId);
     }
     lock.lock();
     try {
       long lockId = LOCK_ID_GEN.getAndIncrement();
       try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
         mLockIdToRecordMap.put(lockId, new LockRecord(sessionId, blockId, lock));
-        Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-        if (sessionLockIds == null) {
-          mSessionIdToLockIdsMap.put(sessionId, Sets.newHashSet(lockId));
-        } else {
-          sessionLockIds.add(lockId);
-        }
+        mSessionIdToLockIdsMap.computeIfAbsent(sessionId, k -> new HashSet<>()).add(lockId);
+        mBlockIdToLockIdsMap.computeIfAbsent(blockId, k -> new HashSet<>()).add(lockId);
       }
       return lockId;
     } catch (RuntimeException e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
       throw e;
+    }
+  }
+
+  /**
+   * Removes the timeout locks belong to the given block id.
+   *
+   * @param blockId the block id
+   */
+  private void removeTimeOutBlockLocks(long blockId) {
+    long currentTime = System.currentTimeMillis();
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+      for (long lockId : mBlockIdToLockIdsMap.get(blockId)) {
+        LockRecord record = mLockIdToRecordMap.get(lockId);
+        if (currentTime - record.getLastAccessTime() > LOCK_TIMEOUT_MS) {
+          if (unlockBlockNoException(lockId)) {
+            LOG.debug("Removed outdated lock {} of block {}, session {}",
+                lockId, blockId, record.getSessionId());
+          } else {
+            LOG.info("Failed to remove outdated lock {} of block {}, session {}",
+                lockId, blockId, record.getSessionId());
+          }
+        }
+      }
     }
   }
 
@@ -209,12 +236,18 @@ public final class BlockLockManager {
         return false;
       }
       long sessionId = record.getSessionId();
+      long blockId = record.getBlockId();
       lock = record.getLock();
       mLockIdToRecordMap.remove(lockId);
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       sessionLockIds.remove(lockId);
       if (sessionLockIds.isEmpty()) {
         mSessionIdToLockIdsMap.remove(sessionId);
+      }
+      Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
+      blockLockIds.remove(lockId);
+      if (blockLockIds.isEmpty()) {
+        mBlockIdToLockIdsMap.remove(blockId);
       }
     }
     unlock(lock, record.getBlockId());
@@ -248,6 +281,7 @@ public final class BlockLockManager {
       if (sessionLockIds == null) {
         return false;
       }
+      Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
@@ -259,6 +293,10 @@ public final class BlockLockManager {
           sessionLockIds.remove(lockId);
           if (sessionLockIds.isEmpty()) {
             mSessionIdToLockIdsMap.remove(sessionId);
+          }
+          blockLockIds.remove(lockId);
+          if (blockLockIds.isEmpty()) {
+            mBlockIdToLockIdsMap.remove(sessionId);
           }
           Lock lock = record.getLock();
           unlock(lock, blockId);
@@ -295,6 +333,7 @@ public final class BlockLockManager {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
             record.getBlockId(), blockId);
       }
+      record.updateLastAccessTime();
     }
   }
 
@@ -318,6 +357,12 @@ public final class BlockLockManager {
         Lock lock = record.getLock();
         unlock(lock, record.getBlockId());
         mLockIdToRecordMap.remove(lockId);
+        long blockId = record.getBlockId();
+        Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
+        blockLockIds.remove(lockId);
+        if (blockLockIds.isEmpty()) {
+          mBlockIdToLockIdsMap.remove(blockId);
+        }
       }
       mSessionIdToLockIdsMap.remove(sessionId);
     }
@@ -410,6 +455,17 @@ public final class BlockLockManager {
           }
         }
       }
+
+      for (Entry<Long, Set<Long>> entry : mBlockIdToLockIdsMap.entrySet()) {
+        for (Long lockId : entry.getValue()) {
+          LockRecord record = mLockIdToRecordMap.get(lockId);
+          if (record.getBlockId() != entry.getKey()) {
+            throw new IllegalStateException("The block id map contains lock id " + lockId
+                + "under block id " + entry.getKey() + ", but the record for that lock id ("
+                + record + ")" + " doesn't contain that block id");
+          }
+        }
+      }
     }
   }
 
@@ -421,6 +477,7 @@ public final class BlockLockManager {
     private final long mSessionId;
     private final long mBlockId;
     private final Lock mLock;
+    private long mLastAcessTime;
 
     /** Creates a new instance of {@link LockRecord}.
      *
@@ -432,6 +489,21 @@ public final class BlockLockManager {
       mSessionId = sessionId;
       mBlockId = blockId;
       mLock = lock;
+      mLastAcessTime = System.currentTimeMillis();
+    }
+
+    /**
+     * Updates the last access time to current time.
+     */
+    void updateLastAccessTime() {
+      mLastAcessTime = System.currentTimeMillis();
+    }
+
+    /**
+     * @return the session id
+     */
+    long getLastAccessTime() {
+      return mLastAcessTime;
     }
 
     /**

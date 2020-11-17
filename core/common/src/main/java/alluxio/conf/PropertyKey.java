@@ -2444,6 +2444,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_LOCK_TIMEOUT =
+      new Builder(Name.WORKER_BLOCK_LOCK_TIMEOUT)
+          .setDefaultValue("3min")
+          .setDescription("The timeout value of block locks lifetime. If a block lock "
+              + "is holding for more than the given timeout without updates, "
+              + "the lock will be invalidated to not block other block write operations.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       new Builder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -5187,6 +5196,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.heartbeat.interval";
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
         "alluxio.worker.block.heartbeat.timeout";
+    public static final String WORKER_BLOCK_LOCK_TIMEOUT =
+        "alluxio.worker.block.lock.timeout";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
