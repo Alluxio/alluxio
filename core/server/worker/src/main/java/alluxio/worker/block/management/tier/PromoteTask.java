@@ -136,11 +136,11 @@ public class PromoteTask extends AbstractBlockManagementTask {
         continue;
       }
     }
-//    if (LOG.isDebugEnabled()) {
-      LOG.warn("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",
           transferInfos.size(), tierDownLocation.tierAlias(), tierUpLocation.tierAlias(),
           transferInfos.stream().map(Objects::toString).collect(Collectors.joining("\n ->")));
-//    }
+    }
     return transferInfos;
   }
 }
