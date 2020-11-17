@@ -76,7 +76,8 @@ public final class MaxFreeAllocator implements Allocator {
           if (skipReview || mReviewer.reviewAllocation(candidateDirView)) {
             break;
           }
-          // The allocation is not good enough. Move on and try a lower tier.
+          // We tried the dir on this tier with max free bytes but that is not good enough.
+          // So we move on to the lower tier.
           LOG.debug("Allocation rejected for anyTier: {}",
                   candidateDirView.toBlockStoreLocation());
         }
@@ -86,7 +87,7 @@ public final class MaxFreeAllocator implements Allocator {
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (candidateDirView != null) {
         // The allocation is not good enough. Revert it.
-        if (! (skipReview || mReviewer.reviewAllocation(candidateDirView))) {
+        if (!skipReview && !mReviewer.reviewAllocation(candidateDirView)) {
           LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
@@ -100,12 +101,15 @@ public final class MaxFreeAllocator implements Allocator {
           if (skipReview || mReviewer.reviewAllocation(candidateDirView)) {
             break;
           }
-          // The allocation is not good enough. Move on and try a lower tier.
+          // We tried the dir on this tier with max free bytes but that is not good enough.
+          // So we move on to the lower tier.
           LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
                   candidateDirView.toBlockStoreLocation());
         }
       }
     } else {
+      // For allocation in a specific directory, we are not checking the reviewer,
+      // because we do not want the reviewer to reject it.
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView != null && dirView.getAvailableBytes() >= blockSize) {

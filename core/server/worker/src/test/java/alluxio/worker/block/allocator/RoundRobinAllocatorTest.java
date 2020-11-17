@@ -14,21 +14,30 @@ package alluxio.worker.block.allocator;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link RoundRobinAllocator}.
  */
 public final class RoundRobinAllocatorTest extends AllocatorTestBase {
+  @Before
+  public void initialize() {
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getMetadataEvictorView());
+  }
+
+  @After
+  public void reset() {
+    ServerConfiguration.reset();
+  }
 
   /**
    * Tests that blocks are allocated in a round robin fashion.
    */
   @Test
   public void allocateBlock() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
-        RoundRobinAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(getMetadataEvictorView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -218,6 +227,20 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 700   <--- alloc
     //  2               └─── 0
     //
-    ServerConfiguration.reset();
+  }
+
+  @Test
+  public void testAnyDirInTier() throws Exception {
+    assertAllocationAnyDirInTier();
+  }
+
+  @Test
+  public void testAnyDirInAnyTierWithMedium() throws Exception {
+    assertAllocationAnyDirInAnyTierWithMedium();
+  }
+
+  @Test
+  public void testSpecificDir() throws Exception {
+    assertAllocationInSpecificDir();
   }
 }

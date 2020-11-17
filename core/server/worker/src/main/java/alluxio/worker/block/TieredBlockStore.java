@@ -634,19 +634,19 @@ public class TieredBlockStore implements BlockStore {
       // Allocate from given location.
       dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
           options.getLocation(), allocatorView, false);
-
       if (dirView != null) {
         return dirView;
       }
-      LOG.warn("Strict allocation failed for {} on {}. ", options.getSize(), options.getLocation());
 
       if (options.isForceLocation()) {
         if (options.isEvictionAllowed()) {
-          LOG.warn("Free space for block expansion: free {} on {}. ", options.getSize(), options.getLocation());
+          LOG.debug("Free space for block expansion: freeing {} on {}. ",
+                  options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
+          // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-              options.getLocation(), allocatorView.refreshView(), false);
-
+              options.getLocation(), allocatorView.refreshView(), true);
+          LOG.debug("Allocation after free space: {}", dirView);
           if (dirView == null) {
             LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
                 options.getLocation(), options.getSize(), sessionId);
@@ -658,7 +658,7 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
-        LOG.warn("Allocate to anyTier for {} on {}", options.getSize(), options.getLocation());
+        LOG.debug("Allocate to anyTier for {} on {}", options.getSize(), options.getLocation());
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
 
@@ -678,7 +678,7 @@ public class TieredBlockStore implements BlockStore {
           // Skip the review as we want the allocation to be in the place we just freed
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
-          LOG.debug("Allocation after free space is {}", dirView);
+          LOG.debug("Allocation after free space: {}", dirView);
         }
       }
     } catch (Exception e) {

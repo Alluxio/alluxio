@@ -16,7 +16,6 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
-import alluxio.worker.block.reviewer.ProbabilisticReviewer;
 import alluxio.worker.block.reviewer.Reviewer;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -92,7 +91,7 @@ public final class GreedyAllocator implements Allocator {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getMediumType().equals(mediumType)
               && dirView.getAvailableBytes() >= blockSize) {
-            if (mReviewer.reviewAllocation(dirView)) {
+            if (skipReview || mReviewer.reviewAllocation(dirView)) {
               return dirView;
             } else {
               // Try the next dir
@@ -111,7 +110,7 @@ public final class GreedyAllocator implements Allocator {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
-          if (mReviewer.reviewAllocation(dirView)) {
+          if (skipReview || mReviewer.reviewAllocation(dirView)) {
             return dirView;
           } else {
             // Try the next dir
@@ -123,6 +122,8 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
+    // For allocation in a specific directory, we are not checking the reviewer,
+    // because we do not want the reviewer to reject it.
     int dirIndex = location.dir();
     StorageDirView dirView = tierView.getDirView(dirIndex);
     if (dirView != null && dirView.getAvailableBytes() >= blockSize) {

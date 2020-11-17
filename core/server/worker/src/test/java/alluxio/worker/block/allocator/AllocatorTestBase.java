@@ -11,11 +11,9 @@
 
 package alluxio.worker.block.allocator;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.proto.meta.Block;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
@@ -33,6 +31,8 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.util.HashSet;
 
+import static org.junit.Assert.*;
+
 /**
  * Base class for allocator tests.
  */
@@ -46,6 +46,7 @@ public class AllocatorTestBase {
   public static final long DEFAULT_SSD_SIZE = 2000;
   public static final long DEFAULT_HDD_SIZE = 3000;
 
+  public static final String[] MEDIA_TYPES = {"MEM", "SSD", "HDD"};
   public static final int[] TIER_LEVEL = {0, 1, 2};
   public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
@@ -157,5 +158,49 @@ public class AllocatorTestBase {
 
   protected BlockMetadataEvictorView getMetadataEvictorView() {
     return new BlockMetadataEvictorView(mManager, new HashSet<Long>(), new HashSet<Long>());
+  }
+
+  /**
+   * For each tier, test if anyDirInTier location gives a dir in the target tier.
+   * */
+  protected void assertAllocationAnyDirInTier() throws Exception {
+    BlockStoreLocation[] locations = new BlockStoreLocation[]{mAnyDirInTierLoc1,
+            mAnyDirInTierLoc2, mAnyDirInTierLoc3};
+    for (int i = 0; i < locations.length; i++) {
+      StorageDirView dirView =
+              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1,
+                      locations[i], getMetadataEvictorView(), true);
+      assertNotNull(dirView);
+      assertEquals(TIER_ALIAS[i], dirView.getParentTierView().getTierViewAlias());
+    }
+  }
+
+  /**
+   * For each medium, test if anyDirInAnyTierWithMedium gives a dir with the target medium.
+   * */
+  protected void assertAllocationAnyDirInAnyTierWithMedium() throws Exception {
+    for (String medium : MEDIA_TYPES) {
+      BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
+      StorageDirView dirView =
+              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+                      getMetadataEvictorView(), true);
+      assertNotNull(dirView);
+      assertEquals(medium, dirView.getMediumType());
+    }
+  }
+
+  protected void assertAllocationInSpecificDir() throws Exception {
+    for (int i = 0; i < TIER_ALIAS.length; i++) {
+      String tier = TIER_ALIAS[i];
+      for (int j = 0; j < TIER_PATH[i].length; j++) {
+        BlockStoreLocation loc = new BlockStoreLocation(tier, j);
+        StorageDirView dirView =
+                mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+                        getMetadataEvictorView(), true);
+        assertNotNull(dirView);
+        assertEquals(tier, dirView.getParentTierView().getTierViewAlias());
+        assertEquals(j, dirView.getDirViewIndex());
+      }
+    }
   }
 }
