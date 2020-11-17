@@ -59,6 +59,7 @@ public final class MaxFreeAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
+   * @param skipReview whether the review should be skipped
    * @return a {@link StorageDirView} in which to create the temp block meta if success,
    *         null otherwise
    */
@@ -73,22 +74,20 @@ public final class MaxFreeAllocator implements Allocator {
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
           if (skipReview || mReviewer.reviewAllocation(candidateDirView)) {
-            LOG.warn("Allocation accepted for anyTier: {}", candidateDirView.toBlockStoreLocation());
             break;
-          } else {
-            LOG.warn("Allocation rejected for anyTier: {}", candidateDirView.toBlockStoreLocation());
           }
+          // The allocation is not good enough. Move on and try a lower tier.
+          LOG.debug("Allocation rejected for anyTier: {}",
+                  candidateDirView.toBlockStoreLocation());
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (candidateDirView != null) {
-        if (skipReview || mReviewer.reviewAllocation(candidateDirView)) {
-          LOG.warn("Allocation accepted for anyDirInTier: {}",
-                  candidateDirView.toBlockStoreLocation());
-        } else {
-          LOG.warn("Allocation rejected for anyDirInTier: {}",
+        // The allocation is not good enough. Revert it.
+        if (! (skipReview || mReviewer.reviewAllocation(candidateDirView))) {
+          LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
         }
@@ -99,13 +98,11 @@ public final class MaxFreeAllocator implements Allocator {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
           if (skipReview || mReviewer.reviewAllocation(candidateDirView)) {
-            LOG.warn("Allocation accepted for anyDirInTierWithMedium: {}",
-                    candidateDirView.toBlockStoreLocation());
             break;
-          } else {
-            LOG.warn("Allocation rejected for anyDirInTierWithMedium: {}",
-                    candidateDirView.toBlockStoreLocation());
           }
+          // The allocation is not good enough. Move on and try a lower tier.
+          LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
+                  candidateDirView.toBlockStoreLocation());
         }
       }
     } else {

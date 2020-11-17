@@ -91,7 +91,8 @@ public final class RoundRobinAllocator implements Allocator {
             mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
             return candidateDir;
           } else {
-            // Try the next dir
+            // TODO(jiacheng): make it go to the next dir?
+            // The allocation is rejected. Try the next dir.
             LOG.debug("Allocation rejected for anyTier: {}",
                     candidateDir.toBlockStoreLocation());
           }
@@ -100,17 +101,19 @@ public final class RoundRobinAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+      // TODO(jiacheng): test this
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       int offset = 0;
       while (offset < tierView.getDirViews().size() && offset > -1) {
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize,
+                BlockStoreLocation.ANY_MEDIUM, offset);
         if (dirViewIndex >= 0) {
           StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
           if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
             mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
             return tierView.getDirView(dirViewIndex);
           } else {
-            // Reject the allocation
+            // The allocation is rejected. Try the next dir.
             LOG.debug("Allocation to dirIndex {} rejected for anyDirInTier: {}", dirViewIndex,
                     candidateDir.toBlockStoreLocation());
           }

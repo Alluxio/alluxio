@@ -76,7 +76,7 @@ public final class GreedyAllocator implements Allocator {
             if (skipReview || mReviewer.reviewAllocation(dirView)) {
               return dirView;
             } else {
-              // Try the next dir
+              // The allocation is rejected. Try the next dir.
               LOG.debug("Allocation rejected for anyTier: {}", dirView.toBlockStoreLocation());
             }
           }
