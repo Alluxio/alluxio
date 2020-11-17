@@ -1530,6 +1530,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19200)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME)
+          .setDefaultValue("60s")
+          .setDescription("The time for embedded journal server retry cache to expire. Setting a "
+              + "bigger value allows embedded journal server to cache the responses for a longer "
+              + "time in case of journal writer retries, but will take up more memory in master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated storage level is used by copycat dependency which is removed
    */
@@ -5020,6 +5029,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
+    public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
+        "alluxio.master.embedded.journal.retry.cache.expiry.time";
     public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
