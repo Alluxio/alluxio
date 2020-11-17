@@ -36,6 +36,7 @@ jobs:
         timeout-minutes: 60
 
       - name: Archive artifacts
+        continue-on-error: true
         uses: actions/upload-artifact@v2
         if: always()
         with:
