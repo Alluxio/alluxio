@@ -146,7 +146,7 @@ public final class RoundRobinAllocator implements Allocator {
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
           || dir.getMediumType().equals(mediumType))
           && dir.getAvailableBytes() >= blockSize) {
-        if (skipReview || (!mReviewerEnabled) ||mReviewer.reviewAllocation(dir)) {
+        if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(dir)) {
           return dir.getDirViewIndex();
         }
         // The allocation is rejected. Try the next dir.
