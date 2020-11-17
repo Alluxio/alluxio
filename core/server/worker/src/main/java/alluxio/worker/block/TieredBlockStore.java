@@ -671,13 +671,14 @@ public class TieredBlockStore implements BlockStore {
           // Free more than requested by configured free-ahead size.
           long freeAheadBytes =
               ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
-          LOG.warn("Allocation on anyTier failed. Free space for {} on anyTier", options.getSize() + freeAheadBytes);
-          freeSpace(sessionId, options.getSize(), options.getSize() + freeAheadBytes,
+          long toFreeBytes = options.getSize() + freeAheadBytes;
+          LOG.debug("Allocation on anyTier failed. Free space for {} on anyTier", toFreeBytes);
+          freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
-          LOG.warn("Free space finished, try again.");
+          // Skip the review as we want the allocation to be in the place we just freed
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
-          LOG.warn("Allocation is {}", dirView);
+          LOG.debug("Allocation after free space is {}", dirView);
         }
       }
     } catch (Exception e) {

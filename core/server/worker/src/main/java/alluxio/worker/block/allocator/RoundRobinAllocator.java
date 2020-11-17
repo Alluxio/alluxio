@@ -123,29 +123,25 @@ public final class RoundRobinAllocator implements Allocator {
       }
     } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
                 location.mediumType()))) {
-      StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
-      int offset = 0;
-
-      String medium = location.mediumType();
-      int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mMetadataView.getTierViews().size(); i++) {
-      }
-
-      while (offset < tierView.getDirViews().size() && offset > -1) {
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, location.mediumType());
-        if (dirViewIndex >= 0) {
-          StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
-          if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
-            mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
-            return tierView.getDirView(dirViewIndex);
-          } else {
-            // Reject the allocation
-            LOG.debug("Allocation to dirIndex {} rejected for anyDirInTier: {}", dirViewIndex,
-                    candidateDir.toBlockStoreLocation());
+        StorageTierView tierView = mMetadataView.getTierViews().get(i);
+        int offset = 0;
+        while (offset < tierView.getDirViews().size() && offset > -1) {
+          int dirViewIndex = getNextAvailDirInTier(tierView, blockSize, location.mediumType());
+          if (dirViewIndex >= 0) {
+            StorageDirView candidateDir = tierView.getDirView(dirViewIndex);
+            if (skipReview || mReviewer.reviewAllocation(candidateDir)) {
+              mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), dirViewIndex);
+              return tierView.getDirView(dirViewIndex);
+            } else {
+              // Reject the allocation
+              LOG.debug("Allocation to dirIndex {} rejected for anyDirInTier: {}", dirViewIndex,
+                      candidateDir.toBlockStoreLocation());
+            }
           }
+          // Either the dirViewIndex is -1, or we rejected the allocation to a dirViewIndex > 0
+          offset = dirViewIndex;
         }
-        // Either the dirViewIndex is -1, or we rejected the allocation to a dirViewIndex > 0
-        offset = dirViewIndex;
       }
     } else {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
