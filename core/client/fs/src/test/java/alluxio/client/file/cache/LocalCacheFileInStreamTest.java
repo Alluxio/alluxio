@@ -27,6 +27,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -428,6 +429,12 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public boolean isClosed() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+        throws InvalidPathException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

@@ -28,6 +28,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -47,6 +48,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
@@ -104,6 +106,20 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * Constructs a new {@link AbstractFileSystem} instance.
    */
   protected AbstractFileSystem() {}
+
+  @Override
+  public void access(Path path, FsAction mode) throws IOException {
+    LOG.debug("access({}, {})", path, mode);
+    AlluxioURI uri = getAlluxioPath(path);
+    CheckAccessPOptions options = CheckAccessPOptions.newBuilder()
+        .setBits(Mode.Bits.fromShort((short) mode.ordinal()).toProto())
+        .build();
+    try {
+      mFileSystem.checkAccess(uri, options);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)

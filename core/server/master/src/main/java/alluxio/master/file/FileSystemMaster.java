@@ -27,6 +27,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
+import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -164,6 +165,19 @@ public interface FileSystemMaster extends Master {
    * @return a read-only view of the file system master
    */
   FileSystemMasterView getFileSystemMasterView();
+
+  /**
+   * Checks access to path.
+   *
+   * @param path the path to check access to
+   * @param context the method context
+   *
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   */
+  void checkAccess(AlluxioURI path, CheckAccessContext context)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**
    * Checks the consistency of the files and directories in the subtree under the path.
