@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -626,6 +627,7 @@ public class TieredBlockStore implements BlockStore {
     return loc;
   }
 
+  @Nullable
   private StorageDirView allocateSpace(long sessionId, AllocateOptions options) {
     StorageDirView dirView = null;
     BlockMetadataView allocatorView =
@@ -684,7 +686,7 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     } catch (Exception e) {
-      LOG.error("Allocation failure. Options: {}. Error: {}", options, e);
+      LOG.error("Allocation failure. Options: {}. Error:", options, e);
       return null;
     }
 
@@ -703,6 +705,7 @@ public class TieredBlockStore implements BlockStore {
    *         {@link WorkerOutOfSpaceException} because allocation failure could be an expected case)
    * @throws BlockAlreadyExistsException if there is already a block with the same block id
    */
+  @Nullable
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
       AllocateOptions options) throws BlockAlreadyExistsException {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
@@ -812,13 +815,12 @@ public class TieredBlockStore implements BlockStore {
     }
 
     if (!contiguousSpaceFound || !availableBytesFound) {
-      LOG.error(
-          "Failed to free space. Min contiguous requested: {}, Min available requested: {}, "
-              + "Blocks iterated: {}, Blocks removed: {}, " + "Space freed: {}",
-          minContiguousBytes, minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed);
-
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
-          .getMessage(minAvailableBytes, location.tierAlias()));
+      throw new WorkerOutOfSpaceException(
+          String.format("Failed to free %d bytes space at location %s. "
+                  + "Min contiguous requested: %d, Min available requested: %d, "
+                  + "Blocks iterated: %d, Blocks removed: %d, Space freed: %d",
+              minAvailableBytes, location.tierAlias(), minContiguousBytes, minAvailableBytes,
+              blocksIterated, blocksRemoved, spaceFreed));
     }
   }
 
