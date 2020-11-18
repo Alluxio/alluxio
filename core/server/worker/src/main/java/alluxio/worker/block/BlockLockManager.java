@@ -71,7 +71,7 @@ public final class BlockLockManager {
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, ClientRWLock> mLocks = new HashMap<>();
 
-  /** A map from a block id to all the locks hold by this session. */
+  /** A map from a block id to all the locks of this block. */
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, Set<Long>> mBlockIdToLockIdsMap = new HashMap<>();
 
@@ -141,7 +141,8 @@ public final class BlockLockManager {
             LOG.debug("Removed outdated lock {} of block {}",
                 lockId, blockId);
           } else {
-            LOG.info("Failed to remove outdated lock {} of block {}",
+            // Should not reach here
+            LOG.warn("Record of lock {} belonging to block {} is missing.",
                 lockId, blockId);
           }
         }
@@ -365,7 +366,7 @@ public final class BlockLockManager {
   private static final class LockRecord {
     private final long mBlockId;
     private final Lock mLock;
-    private AtomicLong mLastAcessTime;
+    private AtomicLong mLastAccessTime;
 
     /** Creates a new instance of {@link LockRecord}.
      *
@@ -375,21 +376,21 @@ public final class BlockLockManager {
     LockRecord(long blockId, Lock lock) {
       mBlockId = blockId;
       mLock = lock;
-      mLastAcessTime = new AtomicLong(System.currentTimeMillis());
+      mLastAccessTime = new AtomicLong(System.currentTimeMillis());
     }
 
     /**
      * Updates the last access time to current time.
      */
     void updateLastAccessTime() {
-      mLastAcessTime.getAndSet(System.currentTimeMillis());
+      mLastAccessTime.set(System.currentTimeMillis());
     }
 
     /**
-     * @return the session id
+     * @return the last access time of this lock
      */
     long getLastAccessTime() {
-      return mLastAcessTime.get();
+      return mLastAccessTime.get();
     }
 
     /**

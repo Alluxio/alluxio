@@ -2446,7 +2446,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_LOCK_TIMEOUT =
       new Builder(Name.WORKER_BLOCK_LOCK_TIMEOUT)
-          .setDefaultValue("3min")
+          .setDefaultValue("5min")
           .setDescription("The timeout value of block locks lifetime. If a block lock "
               + "is holding for more than the given timeout without updates, "
               + "the lock will be invalidated to not block other block write operations.")

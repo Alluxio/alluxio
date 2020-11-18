@@ -162,7 +162,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         throws Exception {
       if (context.getBlockReader() != null) {
         if (!mWorker.blockLockHeartbeat(mLockId)) {
-          LOG.warn("Cannot find lock {} of block {}", mLockId, context.getRequest().getId());
+          LOG.warn("Lock {} of block {} cannot be found and may be deleted "
+              + "due to long unresponsive time.",
+              mLockId, context.getRequest().getId());
         }
         return;
       }
