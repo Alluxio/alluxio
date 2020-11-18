@@ -2910,7 +2910,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_REVIEWER_CLASS =
       new Builder(Name.WORKER_REVIEWER_CLASS)
           .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticBufferReviewer")
-          .setDescription("The strategy that a worker uses to review space allocation "
+          .setDescription("(Experimental) The API is subject to change in the future."
+              + "The strategy that a worker uses to review space allocation "
               + "in the Allocator. Each time a block allocation decision is made by "
               + "the Allocator, the Reviewer will review the decision and rejects it,"
               + "if the allocation does not meet certain criteria of the Reviewer."

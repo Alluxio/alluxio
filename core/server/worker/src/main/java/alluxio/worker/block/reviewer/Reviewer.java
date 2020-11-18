@@ -19,6 +19,7 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
 
 /**
+ * (Experimental) The API is subject to change in the future.
  * Interface for the review policy of allocation decision made by {@link Allocator}.
  *
  * Each {@link Allocator} has a Reviewer instance according to the policy definition.
