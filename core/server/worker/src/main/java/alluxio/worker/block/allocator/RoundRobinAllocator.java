@@ -41,7 +41,6 @@ public final class RoundRobinAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(RoundRobinAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private boolean mReviewerEnabled;
   private Reviewer mReviewer;
 
   // We need to remember the last dir index for every storage tier
@@ -57,7 +56,6 @@ public final class RoundRobinAllocator implements Allocator {
     for (StorageTierView tierView : mMetadataView.getTierViews()) {
       mTierAliasToLastDirMap.put(tierView.getTierViewAlias(), -1);
     }
-    mReviewerEnabled = ServerConfiguration.getBoolean(PropertyKey.WORKER_REVIEWER_ENABLED);
     mReviewer = Reviewer.Factory.create();
   }
 
@@ -146,7 +144,7 @@ public final class RoundRobinAllocator implements Allocator {
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
           || dir.getMediumType().equals(mediumType))
           && dir.getAvailableBytes() >= blockSize) {
-        if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(dir)) {
+        if (skipReview || mReviewer.acceptAllocation(dir)) {
           return dir.getDirViewIndex();
         }
         // The allocation is rejected. Try the next dir.

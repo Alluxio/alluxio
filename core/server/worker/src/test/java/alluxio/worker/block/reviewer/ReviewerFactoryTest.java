@@ -24,7 +24,7 @@ import org.junit.Test;
  * */
 public class ReviewerFactoryTest {
   @Test
-  public void createGreedyAllocator() {
+  public void createProbabilisticBufferReviewer() {
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             ProbabilisticBufferReviewer.class.getName());
     Reviewer allocator = Reviewer.Factory.create();

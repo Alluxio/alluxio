@@ -2920,13 +2920,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_REVIEWER_ENABLED =
-          new Builder(Name.WORKER_REVIEWER_ENABLED)
-                  .setDefaultValue("true")
-                  .setDescription("Whether the allocation reviewing is enabled.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.WORKER)
-                  .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
@@ -5330,7 +5323,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES =
             "alluxio.worker.reviewer.buffer.softlimit.bytes";
     public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
-    public static final String WORKER_REVIEWER_ENABLED = "alluxio.worker.reviewer.enabled";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =

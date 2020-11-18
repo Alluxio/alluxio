@@ -34,7 +34,6 @@ public final class MaxFreeAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private boolean mReviewerEnabled;
   private Reviewer mReviewer;
 
   /**
@@ -44,7 +43,6 @@ public final class MaxFreeAllocator implements Allocator {
    */
   public MaxFreeAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
-    mReviewerEnabled = ServerConfiguration.getBoolean(PropertyKey.WORKER_REVIEWER_ENABLED);
     mReviewer = Reviewer.Factory.create();
   }
 
@@ -76,7 +74,7 @@ public final class MaxFreeAllocator implements Allocator {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
-          if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(candidateDirView)) {
+          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.
@@ -90,7 +88,7 @@ public final class MaxFreeAllocator implements Allocator {
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (candidateDirView != null) {
         // The allocation is not good enough. Revert it.
-        if (!skipReview && mReviewerEnabled && !mReviewer.reviewAllocation(candidateDirView)) {
+        if (!skipReview && !mReviewer.acceptAllocation(candidateDirView)) {
           LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
@@ -101,7 +99,7 @@ public final class MaxFreeAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
-          if (skipReview || (!mReviewerEnabled) || mReviewer.reviewAllocation(candidateDirView)) {
+          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.

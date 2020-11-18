@@ -88,7 +88,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
             Files.createTempDir().getAbsolutePath())
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
             String.valueOf(CAPACITY_BYTES))
-        .setProperty(PropertyKey.WORKER_REVIEWER_ENABLED, String.valueOf(false))
+        .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.AcceptingReviewer")
         .build();
   }
 

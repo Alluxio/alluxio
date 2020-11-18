@@ -36,7 +36,7 @@ public interface Reviewer {
    * @param dirView the storage dir that the block is allocated to
    * @return whether the allocation is accepted
    * */
-  boolean reviewAllocation(StorageDirView dirView);
+  boolean acceptAllocation(StorageDirView dirView);
 
   /**
    * Factory for {@link Reviewer}.

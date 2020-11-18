@@ -60,7 +60,8 @@ public abstract class BaseTierManagementTaskTest {
    */
   protected void init() throws Exception {
     // Disable reviewer to make sure the allocator behavior stays deterministic
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.AcceptingReviewer");
     // Use LRU for stronger overlap guarantee.
     ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS, LRUAnnotator.class.getName());
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);

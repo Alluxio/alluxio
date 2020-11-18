@@ -38,15 +38,14 @@ public class ProbabilisticBufferReviewer implements Reviewer {
 
   private final long mHardLimitBytes;
   private final long mSoftLimitBytes;
-  private final InstancedConfiguration mConf;
 
   /**
    * Constructor the instance from configuration.
    * */
   public ProbabilisticBufferReviewer() {
-    mConf = ServerConfiguration.global();
-    mHardLimitBytes = mConf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES);
-    long stopSoftBytes = mConf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES);
+    InstancedConfiguration conf = ServerConfiguration.global();
+    mHardLimitBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES);
+    long stopSoftBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES);
     if (stopSoftBytes <= mHardLimitBytes) {
       LOG.warn("{} should be greater than or equal to {}. Setting {} to {}.",
               PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES.toString(),
@@ -94,7 +93,7 @@ public class ProbabilisticBufferReviewer implements Reviewer {
   }
 
   @Override
-  public boolean reviewAllocation(StorageDirView dirView) {
+  public boolean acceptAllocation(StorageDirView dirView) {
     double chance = getProbability(dirView);
     // Throw a dice
     double dice = RANDOM.nextDouble();
