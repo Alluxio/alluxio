@@ -96,7 +96,7 @@ public class AlignTask extends AbstractBlockManagementTask {
       // due to insufficient reserved space.
       Consumer<Exception> excHandler = (e) -> {
         if (e instanceof WorkerOutOfSpaceException) {
-          LOG.warn("No sufficient space for worker swap space, swap restore task called.");
+          LOG.warn("Insufficient space for worker swap space, swap restore task called.");
           // Mark the need for running swap-space restoration task.
           TierManagementTaskProvider.setSwapRestoreRequired(true);
         }
