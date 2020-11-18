@@ -38,8 +38,8 @@ public class ProbabilisticBufferReviewerTest {
   public void createReviewerInstance() {
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             ProbabilisticBufferReviewer.class.getName());
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES, HARD_LIMIT);
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES, SOFT_LIMIT);
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES, HARD_LIMIT);
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES, SOFT_LIMIT);
 
     Reviewer reviewer = Reviewer.Factory.create();
     assertTrue(reviewer instanceof ProbabilisticBufferReviewer);

@@ -13,6 +13,10 @@ package alluxio.worker.block.reviewer;
 
 import alluxio.worker.block.meta.StorageDirView;
 
+/**
+ * An implementation of {@link Reviewer} that never rejects.
+ * This is used to turn the Reviewer logic off.
+ * */
 public class AcceptingReviewer implements Reviewer {
   @Override
   public boolean acceptAllocation(StorageDirView dirView) {

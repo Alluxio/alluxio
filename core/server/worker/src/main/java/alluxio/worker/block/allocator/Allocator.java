@@ -54,6 +54,8 @@ public interface Allocator {
    * specific location, or {@link BlockStoreLocation#anyTier()} or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
    *
+   * TODO(jiacheng): Refactor Allocator interface to decouple Reviewer logic from Allocator.
+   *
    * The proposed allocation will be reviewed by a {@link Reviewer}.
    * The reviewer will check certain aspects of the allocation and may reject the allocation if
    * it does not meet certain criteria.

@@ -11,8 +11,6 @@
 
 package alluxio.worker.block.allocator;
 
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;

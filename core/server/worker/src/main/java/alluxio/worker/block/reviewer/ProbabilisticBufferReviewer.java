@@ -44,13 +44,13 @@ public class ProbabilisticBufferReviewer implements Reviewer {
    * */
   public ProbabilisticBufferReviewer() {
     InstancedConfiguration conf = ServerConfiguration.global();
-    mHardLimitBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES);
-    long stopSoftBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES);
+    mHardLimitBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES);
+    long stopSoftBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES);
     if (stopSoftBytes <= mHardLimitBytes) {
       LOG.warn("{} should be greater than or equal to {}. Setting {} to {}.",
-              PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_BUFFER_HARDLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_BUFFER_SOFTLIMIT_BYTES.toString(),
+              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
+              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES.toString(),
+              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
               mHardLimitBytes);
       mSoftLimitBytes = mHardLimitBytes;
     } else {
