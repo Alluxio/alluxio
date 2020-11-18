@@ -19,6 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class S3Constants {
   public static final String S3_CONTENT_LENGTH_HEADER = "Content-Length";
+  public static final String S3_ETAG_HEADER = "ETAG";
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final int S3_DEFAULT_MAX_KEYS = 1000;
   public static final String S3_EMPTY_ETAG = "";
