@@ -640,7 +640,7 @@ public class TieredBlockStore implements BlockStore {
 
       if (options.isForceLocation()) {
         if (options.isEvictionAllowed()) {
-          LOG.debug("Free space for block expansion: freeing {} on {}. ",
+          LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
                   options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
