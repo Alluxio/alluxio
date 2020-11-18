@@ -2890,6 +2890,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =
+          new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES)
+          .setDefaultValue("256MB")
+          .setDescription("This is used by the "
+              + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
+              + "We attempt to leave a buffer in each storage directory. "
+              + "When the free space in a certain storage directory on the worker falls "
+              + "below this soft limit, the chance that the Reviewer accepts new blocks "
+              + "into this directory goes down. "
+              + "This chance keeps falling linearly until it reaches 0, when the available "
+              + "space reaches the hard limit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
+          new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES)
+          .setDefaultValue("64MB")
+          .setDescription("This is used by the "
+              + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
+              + "When the free space in a storage dir falls below this hard limit, "
+              + "the ProbabilisticBufferReviewer will stop accepting new blocks into it."
+              + "This is because we may load more data into existing blocks in the directory "
+              + "and their sizes may expand.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REVIEWER_CLASS =
+      new Builder(Name.WORKER_REVIEWER_CLASS)
+          .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticBufferReviewer")
+          .setDescription("(Experimental) The API is subject to change in the future."
+              + "The strategy that a worker uses to review space allocation "
+              + "in the Allocator. Each time a block allocation decision is made by "
+              + "the Allocator, the Reviewer will review the decision and rejects it,"
+              + "if the allocation does not meet certain criteria of the Reviewer."
+              + "The Reviewer prevents the worker to make a bad block allocation decision."
+              + "Valid options include:"
+              + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
@@ -5290,6 +5330,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
+    public static final String WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
+            "alluxio.worker.reviewer.probabilistic.hardlimit.bytes";
+    public static final String WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =
+            "alluxio.worker.reviewer.probabilistic.softlimit.bytes";
+    public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =

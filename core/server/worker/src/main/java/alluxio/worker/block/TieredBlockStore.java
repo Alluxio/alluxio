@@ -633,18 +633,20 @@ public class TieredBlockStore implements BlockStore {
     try {
       // Allocate from given location.
       dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-          options.getLocation(), allocatorView);
-
+          options.getLocation(), allocatorView, false);
       if (dirView != null) {
         return dirView;
       }
 
       if (options.isForceLocation()) {
         if (options.isEvictionAllowed()) {
+          LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
+                  options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
+          // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-              options.getLocation(), allocatorView.refreshView());
-
+              options.getLocation(), allocatorView.refreshView(), true);
+          LOG.debug("Allocation after freeing space for block expansion: {}", dirView);
           if (dirView == null) {
             LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
                 options.getLocation(), options.getSize(), sessionId);
@@ -656,8 +658,10 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
+        LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
+                options.getLocation());
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-            BlockStoreLocation.anyTier(), allocatorView);
+            BlockStoreLocation.anyTier(), allocatorView, false);
 
         if (dirView != null) {
           return dirView;
@@ -668,11 +672,15 @@ public class TieredBlockStore implements BlockStore {
           // Free more than requested by configured free-ahead size.
           long freeAheadBytes =
               ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
-          freeSpace(sessionId, options.getSize(), options.getSize() + freeAheadBytes,
+          long toFreeBytes = options.getSize() + freeAheadBytes;
+          LOG.debug("Allocation on anyTier failed. Free space for {} bytes on anyTier",
+                  toFreeBytes);
+          freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
-
+          // Skip the review as we want the allocation to be in the place we just freed
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-              BlockStoreLocation.anyTier(), allocatorView.refreshView());
+              BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
+          LOG.debug("Allocation after freeing space for block creation: {}", dirView);
         }
       }
     } catch (Exception e) {
