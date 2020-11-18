@@ -271,46 +271,6 @@ public final class BlockLockManager {
   }
 
   /**
-   * Releases the lock with the specified session and block id.
-   *
-   * @param sessionId the session id
-   * @param blockId the block id
-   * @return whether the block has been successfully unlocked
-   */
-  // TODO(bin): Temporary, remove me later.
-  public boolean unlockBlock(long sessionId, long blockId) {
-    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
-      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-      if (sessionLockIds == null) {
-        return false;
-      }
-      Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
-      for (long lockId : sessionLockIds) {
-        LockRecord record = mLockIdToRecordMap.get(lockId);
-        if (record == null) {
-          // TODO(peis): Should this be a check failure?
-          return false;
-        }
-        if (blockId == record.getBlockId()) {
-          mLockIdToRecordMap.remove(lockId);
-          sessionLockIds.remove(lockId);
-          if (sessionLockIds.isEmpty()) {
-            mSessionIdToLockIdsMap.remove(sessionId);
-          }
-          blockLockIds.remove(lockId);
-          if (blockLockIds.isEmpty()) {
-            mBlockIdToLockIdsMap.remove(sessionId);
-          }
-          Lock lock = record.getLock();
-          unlock(lock, blockId);
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  /**
    * Validates the lock is hold by the given session for the given block.
    *
    * @param sessionId the session id
@@ -337,37 +297,6 @@ public final class BlockLockManager {
             record.getBlockId(), blockId);
       }
       record.updateLastAccessTime();
-    }
-  }
-
-  /**
-   * Cleans up the locks currently hold by a specific session.
-   *
-   * @param sessionId the id of the session to cleanup
-   */
-  public void cleanupSession(long sessionId) {
-    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
-      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-      if (sessionLockIds == null) {
-        return;
-      }
-      for (long lockId : sessionLockIds) {
-        LockRecord record = mLockIdToRecordMap.get(lockId);
-        if (record == null) {
-          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
-          continue;
-        }
-        Lock lock = record.getLock();
-        unlock(lock, record.getBlockId());
-        mLockIdToRecordMap.remove(lockId);
-        long blockId = record.getBlockId();
-        Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
-        blockLockIds.remove(lockId);
-        if (blockLockIds.isEmpty()) {
-          mBlockIdToLockIdsMap.remove(blockId);
-        }
-      }
-      mSessionIdToLockIdsMap.remove(sessionId);
     }
   }
 

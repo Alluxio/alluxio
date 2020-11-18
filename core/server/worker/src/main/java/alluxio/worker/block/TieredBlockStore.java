@@ -174,12 +174,6 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean unlockBlock(long sessionId, long blockId) {
-    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
-    return mLockManager.unlockBlock(sessionId, blockId);
-  }
-
-  @Override
   public BlockWriter getBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
@@ -451,8 +445,6 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void cleanupSession(long sessionId) {
     LOG.debug("cleanupSession: sessionId={}", sessionId);
-    // Release all locks the session is holding.
-    mLockManager.cleanupSession(sessionId);
 
     // Collect a list of temp blocks the given session owns and abort all of them with best effort
     List<TempBlockMeta> tempBlocksToRemove;

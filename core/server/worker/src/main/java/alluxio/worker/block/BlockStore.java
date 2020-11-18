@@ -64,16 +64,6 @@ public interface BlockStore extends SessionCleanable, Closeable {
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
 
   /**
-   * Releases an acquired block lock based on a session id and block id.
-   * TODO(calvin): temporary, will be removed after changing client side code.
-   *
-   * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
-   * @return false if it fails to unlock due to the lock is not found
-   */
-  boolean unlockBlock(long sessionId, long blockId);
-
-  /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
    * location named after session id) to store its data. The location can be a location with
    * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or

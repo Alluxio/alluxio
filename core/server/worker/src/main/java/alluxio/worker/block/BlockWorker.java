@@ -361,16 +361,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
 
   /**
-   * Releases the lock with the specified session and block id.
-   *
-   * @param sessionId the session id
-   * @param blockId the block id
-   * @return false if it fails to unlock due to the lock is not found
-   */
-  // TODO(calvin): Remove when lock and reads are separate operations.
-  boolean unlockBlock(long sessionId, long blockId);
-
-  /**
    * Handles the heartbeat from a client.
    *
    * @param sessionId the id of the client

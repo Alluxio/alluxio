@@ -77,6 +77,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   public final class BlockDataReader extends DataReader {
     /** The Block Worker. */
     private final BlockWorker mWorker;
+    private long mLockId;
 
     BlockDataReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
         BlockWorker blockWorker) {
@@ -96,8 +97,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         LOG.warn("Failed to close block reader for block {} with error {}.",
             context.getRequest().getId(), e.getMessage());
       } finally {
-        if (!mWorker.unlockBlock(context.getRequest().getSessionId(),
-            context.getRequest().getId())) {
+        try {
+          mWorker.unlockBlock(mLockId);
+        } catch (BlockDoesNotExistException e) {
           if (reader != null) {
             mWorker.closeUfsBlock(context.getRequest().getSessionId(),
                 context.getRequest().getId());
@@ -177,24 +179,23 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
       while (retryPolicy.attempt()) {
-        long lockId;
         if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
             .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
             .getBlockInUfsTier())) {
-          lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
+          mLockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
         } else {
-          lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+          mLockId = mWorker.lockBlock(request.getSessionId(), request.getId());
         }
-        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+        if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
           try {
             BlockReader reader =
-                mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+                mWorker.readBlockRemote(request.getSessionId(), request.getId(), mLockId);
             context.setBlockReader(reader);
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
           } catch (Exception e) {
-            mWorker.unlockBlock(lockId);
+            mWorker.unlockBlock(mLockId);
             throw e;
           }
         }
