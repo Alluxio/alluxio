@@ -25,7 +25,6 @@ import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -101,7 +100,7 @@ public final class StressBenchDefinition
       throws Exception {
     Map<String, MountPointInfo> mountTable = runTaskContext.getFileSystem().getMountTable();
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
-      if (PathUtils.hasPrefix(ufsUri, entry.getKey())) {
+      if (ufsUri.startsWith(entry.getValue().getUfsUri())) {
         try (CloseableResource<UnderFileSystem> resource = runTaskContext.getUfsManager()
             .get(entry.getValue().getMountId()).acquireUfsResource()) {
           return resource.get().getConfiguration().toMap();
@@ -123,20 +122,36 @@ public final class StressBenchDefinition
     command.add(BaseParameters.DISTRIBUTED_FLAG);
     command.add(BaseParameters.IN_PROCESS_FLAG);
 
-    List<String> commandArgs = config.getArgs().stream().filter((s) ->
-        !BaseParameters.CLUSTER_FLAG.equals(s) && !s.isEmpty())
-        .collect(Collectors.toList());
-
+    List<String> commandArgs = config.getArgs();
+    List<String> newArgs = new ArrayList<>();
     if (commandArgs.stream().anyMatch(
-        (s) -> s.equalsIgnoreCase(UfsIOParameters.USE_MOUNT_CONF))) {
-      // get ufs Uri from --path=blah://blah
-      String ufsUri = commandArgs.stream().filter(s -> !s.startsWith(UfsIOParameters.PATH))
-          .findFirst().map(param -> param.substring("--path".length())).orElse("");
-      commandArgs = commandArgs.stream().filter((s) -> !UfsIOParameters.USE_MOUNT_CONF.equals(s)
-              && !s.startsWith(UfsIOParameters.CONF)).collect(Collectors.toList());
+        (s) -> s.equals(UfsIOParameters.USE_MOUNT_CONF))) {
+      boolean nextElem = false;
+      boolean removeNext = false;
+      String ufsUri = "";
+      for (String elem : commandArgs) {
+        if (elem.equals(UfsIOParameters.CONF)) {
+          removeNext = true;
+        } else {
+          if (!removeNext) {
+            newArgs.add(elem);
+          }
+          removeNext = false;
+        }
+        if (elem.equals(UfsIOParameters.PATH)) {
+          nextElem = true;
+        } else {
+          if (nextElem) {
+            ufsUri = elem;
+            break;
+          }
+          nextElem = false;
+        }
+      }
+      commandArgs = newArgs;
 
       List<String> properties = getUfsConf(ufsUri, runTaskContext).entrySet().stream()
-          .map(entry -> "--conf=" + entry.getKey() + "=" + entry.getValue())
+          .map(entry -> "--conf" + entry.getKey() + "=" + entry.getValue())
           .collect(Collectors.toList());
       commandArgs.addAll(properties);
     }
@@ -148,7 +163,6 @@ public final class StressBenchDefinition
 
     command.addAll(commandArgs);
     command.addAll(args);
-    LOG.info("running command: " + String.join(" ", command));
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;
   }
