@@ -20,7 +20,7 @@ import alluxio.worker.block.meta.StorageDirView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Reviews a block allocation, and probably rejects a bad block allocation.
@@ -34,7 +34,7 @@ import java.util.Random;
  * */
 public class ProbabilisticBufferReviewer implements Reviewer {
   private static final Logger LOG = LoggerFactory.getLogger(ProbabilisticBufferReviewer.class);
-  private static final Random RANDOM = new Random();
+  private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
 
   private final long mHardLimitBytes;
   private final long mSoftLimitBytes;
