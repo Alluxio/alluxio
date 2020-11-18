@@ -226,6 +226,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean hasBlockMeta(long blockId);
 
   /**
+   * Handles the block lock heartbeat.
+   *
+   * @param lockId the block lock id
+   * @return true if heartbeat successfully, false if unable to find the lock id
+   */
+  boolean blockLockHeartbeat(long lockId);
+
+  /**
    * Obtains a read lock the block.
    *
    * @param sessionId the id of the client

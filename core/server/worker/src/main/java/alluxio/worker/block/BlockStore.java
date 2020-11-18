@@ -315,6 +315,14 @@ public interface BlockStore extends SessionCleanable, Closeable {
   boolean hasBlockMeta(long blockId);
 
   /**
+   * Handles the block lock heartbeat.
+   *
+   * @param lockId the block lock id
+   * @return true if heartbeat successfully, false if unable to find the lock id
+   */
+  boolean blockLockHeartbeat(long lockId);
+
+  /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up
    * entails unlocking the block locks of this session, reclaiming space of temp blocks created by
    * this session, and deleting the session temporary folder.

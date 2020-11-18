@@ -405,6 +405,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public boolean blockLockHeartbeat(long lockId) {
+    return mBlockStore.blockLockHeartbeat(lockId);
+  }
+
+  @Override
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     return mBlockStore.lockBlock(sessionId, blockId);
   }

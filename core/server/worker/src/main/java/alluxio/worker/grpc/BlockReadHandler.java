@@ -161,6 +161,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     private void openBlock(BlockReadRequestContext context)
         throws Exception {
       if (context.getBlockReader() != null) {
+        if (!mWorker.blockLockHeartbeat(mLockId)) {
+          LOG.warn("Cannot find lock {} of block {}", mLockId, context.getRequest().getId());
+        }
         return;
       }
       BlockReadRequest request = context.getRequest();

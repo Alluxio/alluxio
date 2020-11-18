@@ -136,6 +136,14 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public boolean blockLockHeartbeat(long lockId) {
+    LOG.debug("blockLockHeartbeat: lockId={}", lockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mLockManager.blockLockHeartbeat(lockId);
+    }
+  }
+
+  @Override
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);

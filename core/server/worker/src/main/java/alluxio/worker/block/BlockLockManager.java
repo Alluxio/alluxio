@@ -71,11 +71,6 @@ public final class BlockLockManager {
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, ClientRWLock> mLocks = new HashMap<>();
 
-  // TODO(lu) Reconsider if session concept can be removed completely
-  /** A map from a session id to all the locks hold by this session. */
-  @GuardedBy("mSharedMapsLock")
-  private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<>();
-
   /** A map from a block id to all the locks hold by this session. */
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, Set<Long>> mBlockIdToLockIdsMap = new HashMap<>();
@@ -110,12 +105,6 @@ public final class BlockLockManager {
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
     } else {
-      // Make sure the session isn't already holding the block lock.
-      if (sessionHoldsLock(sessionId, blockId)) {
-        throw new IllegalStateException(String
-            .format("Session %s attempted to take a write lock on block %s, but the session already"
-                + " holds a lock on the block", sessionId, blockId));
-      }
       lock = blockLock.writeLock();
       removeTimeOutBlockLocks(blockId);
     }
@@ -123,8 +112,7 @@ public final class BlockLockManager {
     try {
       long lockId = LOCK_ID_GEN.getAndIncrement();
       try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
-        mLockIdToRecordMap.put(lockId, new LockRecord(sessionId, blockId, lock));
-        mSessionIdToLockIdsMap.computeIfAbsent(sessionId, k -> new HashSet<>()).add(lockId);
+        mLockIdToRecordMap.put(lockId, new LockRecord(blockId, lock));
         mBlockIdToLockIdsMap.computeIfAbsent(blockId, k -> new HashSet<>()).add(lockId);
       }
       return lockId;
@@ -150,35 +138,14 @@ public final class BlockLockManager {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (currentTime - record.getLastAccessTime() > LOCK_TIMEOUT_MS) {
           if (unlockBlockNoException(lockId)) {
-            LOG.debug("Removed outdated lock {} of block {}, session {}",
-                lockId, blockId, record.getSessionId());
+            LOG.debug("Removed outdated lock {} of block {}",
+                lockId, blockId);
           } else {
-            LOG.info("Failed to remove outdated lock {} of block {}, session {}",
-                lockId, blockId, record.getSessionId());
+            LOG.info("Failed to remove outdated lock {} of block {}",
+                lockId, blockId);
           }
         }
       }
-    }
-  }
-
-  /**
-   * @param sessionId the session id to check
-   * @param blockId the block id to check
-   * @return whether the specified session holds a lock on the specified block
-   */
-  private boolean sessionHoldsLock(long sessionId, long blockId) {
-    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
-      Set<Long> sessionLocks = mSessionIdToLockIdsMap.get(sessionId);
-      if (sessionLocks == null) {
-        return false;
-      }
-      for (Long lockId : sessionLocks) {
-        LockRecord lockRecord = mLockIdToRecordMap.get(lockId);
-        if (lockRecord.getBlockId() == blockId) {
-          return true;
-        }
-      }
-      return false;
     }
   }
 
@@ -238,15 +205,9 @@ public final class BlockLockManager {
       if (record == null) {
         return false;
       }
-      long sessionId = record.getSessionId();
       long blockId = record.getBlockId();
       lock = record.getLock();
       mLockIdToRecordMap.remove(lockId);
-      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-      sessionLockIds.remove(lockId);
-      if (sessionLockIds.isEmpty()) {
-        mSessionIdToLockIdsMap.remove(sessionId);
-      }
       Set<Long> blockLockIds = mBlockIdToLockIdsMap.get(blockId);
       blockLockIds.remove(lockId);
       if (blockLockIds.isEmpty()) {
@@ -288,16 +249,29 @@ public final class BlockLockManager {
         throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
             lockId);
       }
-      if (sessionId != record.getSessionId()) {
-        throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
-            lockId, record.getSessionId(), sessionId);
-      }
       if (blockId != record.getBlockId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
             record.getBlockId(), blockId);
       }
       record.updateLastAccessTime();
     }
+  }
+
+  /**
+   * Handles the block lock heartbeat.
+   *
+   * @param lockId the block lock id
+   * @return true if heartbeat successfully, false if unable to find the lock id
+   */
+  public boolean blockLockHeartbeat(long lockId) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
+      LockRecord record = mLockIdToRecordMap.get(lockId);
+      if (record == null) {
+        return false;
+      }
+      record.updateLastAccessTime();
+    }
+    return true;
   }
 
   /**
@@ -371,19 +345,6 @@ public final class BlockLockManager {
         }
       }
 
-      // Check that if a lock id is mapped to by a session id, the lock record for that lock id
-      // contains that session id.
-      for (Entry<Long, Set<Long>> entry : mSessionIdToLockIdsMap.entrySet()) {
-        for (Long lockId : entry.getValue()) {
-          LockRecord record = mLockIdToRecordMap.get(lockId);
-          if (record.getSessionId() != entry.getKey()) {
-            throw new IllegalStateException("The session id map contains lock id " + lockId
-                + "under session id " + entry.getKey() + ", but the record for that lock id ("
-                + record + ")" + " doesn't contain that session id");
-          }
-        }
-      }
-
       for (Entry<Long, Set<Long>> entry : mBlockIdToLockIdsMap.entrySet()) {
         for (Long lockId : entry.getValue()) {
           LockRecord record = mLockIdToRecordMap.get(lockId);
@@ -402,43 +363,33 @@ public final class BlockLockManager {
    */
   @ThreadSafe
   private static final class LockRecord {
-    private final long mSessionId;
     private final long mBlockId;
     private final Lock mLock;
-    private long mLastAcessTime;
+    private AtomicLong mLastAcessTime;
 
     /** Creates a new instance of {@link LockRecord}.
      *
-     * @param sessionId the session id
      * @param blockId the block id
      * @param lock the lock
      */
-    LockRecord(long sessionId, long blockId, Lock lock) {
-      mSessionId = sessionId;
+    LockRecord(long blockId, Lock lock) {
       mBlockId = blockId;
       mLock = lock;
-      mLastAcessTime = System.currentTimeMillis();
+      mLastAcessTime = new AtomicLong(System.currentTimeMillis());
     }
 
     /**
      * Updates the last access time to current time.
      */
     void updateLastAccessTime() {
-      mLastAcessTime = System.currentTimeMillis();
+      mLastAcessTime.getAndSet(System.currentTimeMillis());
     }
 
     /**
      * @return the session id
      */
     long getLastAccessTime() {
-      return mLastAcessTime;
-    }
-
-    /**
-     * @return the session id
-     */
-    long getSessionId() {
-      return mSessionId;
+      return mLastAcessTime.get();
     }
 
     /**
