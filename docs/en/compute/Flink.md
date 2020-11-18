@@ -14,12 +14,9 @@ that you can easily work with files stored in Alluxio.
 
 ## Prerequisites
 
-The prerequisite for this part is that you have
-[Java](Java-Setup.html). We also assume that you have set up
-Alluxio in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html).
-
-Please find the guides for setting up Flink on the Apache Flink [website](http://flink.apache.org/).
+* Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
+* Alluxio has been set up and is running.
+* Flink has been set up and is running.
 
 ## Configuration
 
@@ -105,14 +102,16 @@ This example assumes you have set up Alluxio and Flink as previously described.
 
 Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
 
-```bash
+```console
 $ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
 ```
 
 Run the following command from the top level Flink project directory:
 
-```bash
-$ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
+```console
+$ bin/flink run examples/batch/WordCount.jar \
+  --input alluxio://localhost:19998/LICENSE \
+  --output alluxio://localhost:19998/output
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
