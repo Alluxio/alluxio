@@ -672,7 +672,7 @@ public class TieredBlockStore implements BlockStore {
           long freeAheadBytes =
               ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
           long toFreeBytes = options.getSize() + freeAheadBytes;
-          LOG.debug("Allocation on anyTier failed. Free space for {} on anyTier", toFreeBytes);
+          LOG.debug("Allocation on anyTier failed. Free space for {} bytes on anyTier", toFreeBytes);
           freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
