@@ -658,7 +658,7 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
-        LOG.debug("Allocate to anyTier for {} on {}", options.getSize(), options.getLocation());
+        LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(), options.getLocation());
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
 
