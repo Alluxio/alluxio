@@ -152,7 +152,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           StorageDirEvictorView nextDirView
               = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
                   Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mMetadataView);
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
+                  mMetadataView, true);
           if (nextDirView == null) {
             nextDirView = cascadingEvict(block.getBlockSize(),
                 BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
@@ -217,8 +218,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   protected void onRemoveBlockFromIterator(long blockId) {}
 
   /**
-   * Updates the block store location if the evictor wants to free space in a specific location. For
-   * example, {@link PartialLRUEvictor} always evicts blocks from a dir with max free space.
+   * Updates the block store location if the evictor wants to free space in a specific location.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location the original block store location
