@@ -14,8 +14,6 @@ package alluxio.worker.block;
 import alluxio.AlluxioURI;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -119,7 +117,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
       BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache)
       throws IOException {
-    mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
+    mInitialBlockSize = blockMeta.getBlockSize();
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
