@@ -29,7 +29,7 @@ fi
 mvn_compile_args=""
 if [ -n "${ALLUXIO_MVN_SKIP_SLOW_COMPILE}" ]
 then
-  mvn_compile_args+=" -pl \!webui,\!shaded/client,\!shaded/hadoop"
+  mvn_compile_args+=" -pl !webui,!shaded/client,!shaded/hadoop"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
