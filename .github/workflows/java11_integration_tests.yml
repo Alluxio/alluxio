@@ -25,6 +25,8 @@ jobs:
           - >-
             alluxio.server.**,!alluxio.server.ft.**
           - >-
+            alluxio.stress.**
+          - >-
             alluxio.web.**
 
     runs-on: ubuntu-latest
