@@ -43,9 +43,9 @@ function main {
     run_args+=" -e ALLUXIO_MVN_RUNTOEND=true"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_MVN_SKIP_SLOW_COMPILE}" ]
+  if [ -n "${ALLUXIO_DOCKER_MVN_PROJECT_LIST}" ]
   then
-    run_args+=" -e ALLUXIO_MVN_SKIP_SLOW_COMPILE=true"
+    run_args+=" -e ALLUXIO_MVN_PROJECT_LIST=${ALLUXIO_DOCKER_MVN_PROJECT_LIST}"
   fi
 
   if [ -n "${ALLUXIO_SONAR_ARGS}" ]

@@ -26,10 +26,10 @@ then
   mvn_args+=" -fn -DfailIfNoTests=false --fail-at-end"
 fi
 
-mvn_compile_args=""
-if [ -n "${ALLUXIO_MVN_SKIP_SLOW_COMPILE}" ]
+mvn_project_list=""
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]
 then
-  mvn_compile_args+=" -pl !webui,!shaded/client,!shaded/hadoop"
+  mvn_project_list+=" -pl ${ALLUXIO_MVN_PROJECT_LIST}"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
@@ -40,7 +40,7 @@ PATH_BACKUP=${PATH}
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
--Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args} ${mvn_compile_args}
+-Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args} ${mvn_project_list}
 
 # Set things up so that the current user has a real name and can authenticate.
 myuid=$(id -u)
