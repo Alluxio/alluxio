@@ -57,10 +57,18 @@ public class GenerateReport {
     new GenerateReport().run(args);
   }
 
-  GenerateReport() {
+  /**
+   * Creates an instance.
+   */
+  public GenerateReport() {
   }
 
-  private void run(String[] args) {
+  /**
+   * Runs the report generation tool.
+   *
+   * @param args the args
+   */
+  public void run(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
