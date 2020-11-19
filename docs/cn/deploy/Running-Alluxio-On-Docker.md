@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在 Docker 上运行Alluxio
-nickname: 在 Docker 上运行Alluxio
+title: 在Docker上运行Alluxio
+nickname: 在Docker上运行Alluxio
 group: Install Alluxio
 priority: 3
 ---
