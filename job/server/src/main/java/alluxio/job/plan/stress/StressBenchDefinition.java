@@ -126,10 +126,11 @@ public final class StressBenchDefinition
     List<String> newArgs = new ArrayList<>();
     if (commandArgs.stream().anyMatch(
         (s) -> s.equals(UfsIOParameters.USE_MOUNT_CONF))) {
-      boolean nextElem = false;
+      boolean nextElemIsPath = false;
       boolean removeNext = false;
       String ufsUri = "";
       for (String elem : commandArgs) {
+        // Go through the parameters and remove any conf parameters and record the path parameter
         if (elem.equals(UfsIOParameters.CONF)) {
           removeNext = true;
         } else {
@@ -139,13 +140,12 @@ public final class StressBenchDefinition
           removeNext = false;
         }
         if (elem.equals(UfsIOParameters.PATH)) {
-          nextElem = true;
+          nextElemIsPath = true;
         } else {
-          if (nextElem) {
+          if (nextElemIsPath) {
             ufsUri = elem;
-            break;
           }
-          nextElem = false;
+          nextElemIsPath = false;
         }
       }
       commandArgs = newArgs;
