@@ -74,7 +74,7 @@ standalone cluster setups)
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-```bash
+```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
