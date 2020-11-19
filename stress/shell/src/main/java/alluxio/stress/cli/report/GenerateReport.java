@@ -12,13 +12,14 @@
 package alluxio.stress.cli.report;
 
 import alluxio.stress.GraphGenerator;
-import alluxio.util.JsonSerializable;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.Graph;
+import alluxio.util.JsonSerializable;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,7 @@ public class GenerateReport {
    *
    * @param args the args
    */
+  @VisibleForTesting
   public void run(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());

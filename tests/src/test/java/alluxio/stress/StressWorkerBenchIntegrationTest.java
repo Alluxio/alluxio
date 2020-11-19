@@ -11,43 +11,18 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertTrue;
-
-import alluxio.stress.cli.report.GenerateReport;
 import alluxio.stress.cli.worker.StressWorkerBench;
-import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.LocalAlluxioClusterResource;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Tests {@link StressWorkerBench}.
  */
-public class StressWorkerBenchIntegrationTest extends BaseIntegrationTest {
-  @ClassRule
-  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
-
-  @Rule
-  public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
-
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
+public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
-  public void readArray() throws Exception {
+  public void readThroughput() throws Exception {
     // Only in-process will work for unit testing.
     String output = new StressWorkerBench().run(new String[] {
         "--in-process",
@@ -60,32 +35,5 @@ public class StressWorkerBenchIntegrationTest extends BaseIntegrationTest {
     });
 
     generateAndVerifyReport(Collections.singletonList("Worker Throughput"), output);
-  }
-
-  private void generateAndVerifyReport(List<String> expectedGraphNames, String... outputJson)
-      throws Exception {
-    List<String> args = new ArrayList<>();
-
-    // write out the jsons outputs to files (for the input of generate)
-    for (String output : outputJson) {
-      File input = mFolder.newFile();
-      try (FileWriter writer = new FileWriter(input)) {
-        writer.write(output);
-      }
-      args.add("--input");
-      args.add(input.getAbsolutePath());
-    }
-
-    // generate the output
-    File output = mFolder.newFile("report.html");
-    args.add("--output");
-    args.add(output.getAbsolutePath());
-    new GenerateReport().run(args.toArray(new String[0]));
-
-    // validate the generated report
-    String result = new String(Files.readAllBytes(Paths.get(output.getAbsolutePath())));
-    for (String expectedName : expectedGraphNames) {
-      assertTrue("report must contain graph name: " + expectedName, result.contains(expectedName));
-    }
   }
 }
