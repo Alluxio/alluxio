@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   build:
-    name: "Test modules: "
+    name: "modules: "
 
     strategy:
       fail-fast: false
