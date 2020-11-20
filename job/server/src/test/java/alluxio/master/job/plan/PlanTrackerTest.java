@@ -163,6 +163,6 @@ public class PlanTrackerTest {
 
   private void finishAllJobs(PlanTracker tracker) {
     // Put all jobs in a failed state
-    tracker.coordinators().forEach(c -> c.setJobAsFailed("failed for test"));
+    tracker.coordinators().forEach(c -> c.setJobAsFailed("TestError", "failed for test"));
   }
 }

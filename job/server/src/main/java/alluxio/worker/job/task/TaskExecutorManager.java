@@ -12,14 +12,19 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -40,6 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
+  private static final SamplingLogger SAMPLING_LOGGER = new SamplingLogger(LOG, 30 * 1000);
 
   private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 10000;
 
@@ -177,17 +183,28 @@ public class TaskExecutorManager {
    *
    * @param jobId the job id
    * @param taskId the task id
-   * @param errorMessage the error message
+   * @param t the thrown exception
    */
-  public synchronized void notifyTaskFailure(long jobId, long taskId, String errorMessage) {
+  public synchronized void notifyTaskFailure(long jobId, long taskId, Throwable t) {
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.FAILED);
+
+    String errorMessage;
+    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
+      errorMessage = Throwables.getStackTraceAsString(t);
+    } else {
+      errorMessage = t.getMessage();
+    }
+
+    taskInfo.setErrorType(ErrorUtils.getErrorType(t));
     if (errorMessage != null) {
       taskInfo.setErrorMessage(errorMessage);
     }
     finishTask(id);
     LOG.info("Task {} for job {} failed: {}", taskId, jobId, errorMessage);
+    SAMPLING_LOGGER.info("Stack trace for taskId: {} jobId: {} : {}", taskId, jobId,
+        Throwables.getStackTraceAsString(t));
   }
 
   /**
@@ -229,12 +246,12 @@ public class TaskExecutorManager {
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
+      taskInfo.setErrorType("FailedCancel");
       taskInfo.setErrorMessage("Failed to cancel the task");
-      finishTask(id);
     } else {
       taskInfo.setStatus(Status.CANCELED);
-      finishTask(id);
     }
+    finishTask(id);
   }
 
   /**

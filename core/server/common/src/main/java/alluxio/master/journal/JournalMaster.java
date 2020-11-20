@@ -25,15 +25,16 @@ public interface JournalMaster {
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
    * @return the quorum info
+   * @throws IOException if error occurs while performing the operation
    */
-  GetQuorumInfoPResponse getQuorumInfo();
+  GetQuorumInfoPResponse getQuorumInfo() throws IOException;
 
   /**
    * Removes a server from journal quorum. This method is supported only for
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
    * @param serverAddress server address to remove from quorum
-   * @throws IOException
+   * @throws IOException if error occurs while performing the operation
    */
   void removeQuorumServer(NetAddress serverAddress) throws IOException;
 }

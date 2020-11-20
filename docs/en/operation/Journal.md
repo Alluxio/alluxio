@@ -104,13 +104,16 @@ If this is not set, clients will look for masters using the hostnames from `allu
 and the master rpc port (Default:`19998`).
 
 ### Advanced configuration
+
+* `alluxio.master.embedded.journal.snapshot.replication.chunk.size`: The stream chunk size used by masters to replicate snapshots. Default: `4MB`.
 * `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
  Lower values might cause leadership instability when network is slow. Default: `5s`.
-* `alluxio.master.embedded.journal.appender.batch.size`: Size of a single internal knowledge batch sent from leader to secondary masters.
- Lower values could potentially slow down secondary masters' catching up with the leader. Higher values might be reasonable in the network environment so that packets
- don't get timed out. Default: `512KB`.
 * `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters.
 The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
+* `alluxio.master.embedded.journal.write.local.first.enabled`: Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client. 
+ Disable local first write may impact the metadata performance under heavy load but less error-prone during network flakiness. Default: `true`.
+* `alluxio.master.embedded.journal.catchup.retry.wait`: Time for embedded journal leader to wait before retrying a catch up. 
+ This is added to avoid excessive retries when server is not ready. Default: `1s`.
 
 ### Configuring Job service
 
@@ -194,13 +197,13 @@ After configuring backup delegation, both manual and scheduled backups will run 
 
 Backup delegation can be configured with below properties:
 - `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to backup masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `1sec`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
 
 There are some advanced properties that controls the communication between Alluxio masters for coordinating the backup:
-- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `5sec`.
+- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
 - `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `10sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `2min`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `30sec`.
+- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
@@ -304,7 +307,7 @@ It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ## Advanced
 
-### Managing the UFS journal size
+### Managing the journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
@@ -319,7 +322,6 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
-
 
 #### Checkpointing on secondary master
 
@@ -342,6 +344,10 @@ Therefore, Alluxio primary master will not create checkpoints by default.
 
 Restarting the current primary master to transfer the leadership to another running master periodically
 can help avoiding primary master journal logs from growing unbounded when Alluxio is running in HA mode.
+
+Starting from version 2.4, Alluxio embedded journal HA mode supports automatically transferring checkpoints from standby masters to the primary master. 
+Primary master can use those checkpoints as taken locally to truncate its journal size without causing temporary service unavailability. 
+Manually transferring leadership is not needed anymore.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
@@ -370,4 +376,4 @@ is given to read the Alluxio journal and write it to a directory in a human-read
 $ ./bin/alluxio readJournal
 ```
 
-Run `./bin/alluxio readJournal -help` for more detailed usage.
+See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for more detailed usage.

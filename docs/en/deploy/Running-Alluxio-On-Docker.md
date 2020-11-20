@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Docker can be used to simplify the deployment and management of Alluxio servers.
-Using the [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/) Docker
+Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker
 image available on Dockerhub, you can go from
 zero to a running Alluxio cluster with a couple of `docker run` commands.
 This document provides a tutorial for running Dockerized Alluxio on a single node
@@ -73,13 +73,16 @@ the host volume is recommended, since it is the easiest type of volume
 to use and very performant. More importantly, you know where to refer to the data in the host
 file system and you can manipulate the files directly and easily outside the containers.
 
-Therefore, we will use the host volume and mount the host directory `/alluxio_ufs` to the
+Therefore, we will use the host volume and mount the host directory `/tmp/alluxio_ufs` to the
 container location `/opt/alluxio/underFSStorage`, which is the default setting for the
 Alluxio UFS root mount point in the Alluxio docker image:
-  ```console
-  $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
-  ```
-Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
+
+```console
+$ mkdir -p /tmp/alluxio_ufs
+$ docker run -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage   ...
+```
+
+Of course, you can choose to mount a different path instead of `/tmp/alluxio_ufs`.
 From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
 Please make sure it is writable by the user the Docker image is run as.
@@ -101,59 +104,65 @@ In order to make sure this works for either local or remote clients, we have to 
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
-+ A: Use [host network](https://docs.docker.com/network/host/) or
-+ B: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
++ Option1: Use [host network](https://docs.docker.com/network/host/) or
++ Option2: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
 
 Host network shares ip-address and networking namespace between the container and the Docker host.
 User-defined bridge network allows containers connected to communicate,
 while providing isolation from containers not connected to that bridge network.
 It is recommended to use host network, option A, for testing.
 
-### Option A: Launch Docker Alluxio Containers Using Host Network
+{% navtabs network %}
+{% navtab Using Host Network %}
+
+Launch the Alluxio Master
 
 ```console
-# Launch the Alluxio Master
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.master.hostname=$(hostname -i) \
+       -Dalluxio.master.hostname=localhost \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
-    alluxio/alluxio master
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
+```
 
-#Launch the Alluxio Worker
+Launch the Alluxio Worker
+
+```console
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-worker \
     --shm-size=1G \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.worker.memory.size=1G \
-       -Dalluxio.master.hostname=$(hostname -i)" \
-    alluxio/alluxio worker
+       -Dalluxio.worker.ramdisk.size=1G \
+       -Dalluxio.master.hostname=localhost" \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 Notes:
 
   1. The argument `--net=host ` tells Docker to use the host network.
-     Under this setup, the containers are directly using the host's network adapter.  
+     Under this setup, the containers are directly using the host's network adapter.
      All containers will have the same hostname and IP address as the Docker host,
      and all the host's ports are directly mapped to containers. Therefore, all the required container
      ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
      You can find more details about this setting [here](https://docs.docker.com/network/host/).
-  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
-     allocates the worker's memory capacity and bind the master address. 
+  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.ramdisk.size=1G -Dalluxio.master.hostname=localhost"`
+     allocates the worker's memory capacity and binds the master address.
      When using the `host` network driver, the master can't be referenced to by the master container name `alluxio-master` or
      it will throw `"No Alluxio worker available" ` error.
      Instead, it should be referenced to by the host IP address.
-     The substitution `$(hostname -i)` uses the docker host's name instead.
+     The substitution `localhost` uses the docker host's name instead.
   1. The argument  `--shm-size=1G` will allocate a `1G` tmpfs for the worker to store Alluxio data.
-  1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
-     and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, 
+  1. The argument `-v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
+     and persist the Alluxio UFS root data in the host directory `/tmp/alluxio_ufs`,
      as explained above in the Docker volume section.
 
-### Option B: Launch Docker Alluxio Containers Using User-Defined Network
+{% endnavtab %}
+{% navtab Using User-Defined Network %}
 
 Using host network is simple, but it has disadvantages. For example
 
@@ -164,11 +173,15 @@ Using host network is simple, but it has disadvantages. For example
 The better way is using the user-defined network, but we need to explicitly expose the required ports
 so that the external clients can reach out the containers' services:
 
-```console
-# Prepare the network
-$ docker network create alluxio_network
+Prepare the network
 
-# Launch the Alluxio master
+```console
+$ docker network create alluxio_network
+```
+
+Launch the Alluxio master
+
+```console
 $ docker run -d  --rm \
     -p 19999:19999 \
     -p 19998:19998 \
@@ -177,22 +190,24 @@ $ docker run -d  --rm \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    alluxio/alluxio master
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
+```
 
-# Launch the Alluxio worker
+Launch the Alluxio worker
+```console
 $ docker run -d --rm \
     -p 29999:29999 \
     -p 30000:30000 \
     --net=alluxio_network \
     --name=alluxio-worker \
     --shm-size=1G \
-    -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.worker.memory.size=1G \
+       -Dalluxio.worker.ramdisk.size=1G \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.worker.hostname=alluxio-worker" \
-    alluxio/alluxio worker
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 Notes:
@@ -201,10 +216,10 @@ Notes:
      All containers will use their own container IDs as their hostname, and each of them has a different IP
      address within the network's subnet.
      Containers connected to the same user-defined bridge network effectively expose all ports to each other,
-     unless firewall policies are defined. 
+     unless firewall policies are defined.
      You can find more details about the bridge network driver [here](https://docs.docker.com/network/bridge/).
   1. Only the specified ports (`-p` option) are exposed to the outside network, where the client may be run.
-     The command `-p <host-port>:<container-port>` maps the container port to a host port. 
+     The command `-p <host-port>:<container-port>` maps the container port to a host port.
      Therefore, you must explicitly expose the two ports 19999 and 19998 for the master container and the port
      29999 and 30000 for the worker container.
      Otherwise, the clients can't communicate with the master and worker.
@@ -220,14 +235,17 @@ Notes:
      Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
 
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Verify the Cluster
 
 To verify that the services came up, check `docker ps`. You should see something like
 ```console
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
-1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
-27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
+1fef7c714d25        alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
+27f92f702ac2        alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
 ```
 
 If you don't see the containers, run `docker logs` on their container ids to see what happened.
@@ -261,7 +279,7 @@ for line in textFile_RDD.collect():
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
-## Operations
+## Advanced Setup
 
 ### Set server configuration
 
@@ -296,7 +314,12 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 A lone Alluxio master is a single point of failure. To guard against this, a production
 cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
-#### Option A: Internal Leader Election
+There are two ways to enable HA mode in Alluxio, either with internal leader election and embedded journal, or external Zookeeper and a shared journal storage.
+Please read [running Alluxio with HA]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#overview' | relativize_url }}) for more details.
+It is recommended to use the second option for production use case.
+
+{% navtabs HA %}
+{% navtab Internal Leader Election %}
 
 Alluxio uses internal leader election by default.
 
@@ -305,7 +328,9 @@ Provide the master embedded journal addresses and set the hostname of the curren
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 \
+    -Dalluxio.master.hostname=master-hostname-1" \
   alluxio master
 ```
 
@@ -314,13 +339,15 @@ Set the master rpc addresses for all the workers so that they can query the mast
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
   alluxio worker
 ```
 
 You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
 
-#### Option B: Zookeeper and Shared Journal Storage
+{% endnavtab %}
+{% navtab Zookeeper and Shared Journal Storage %}
 
 To run in HA mode with Zookeeper, Alluxio needs a shared journal directory
 that all masters have access to, usually either NFS or HDFS.
@@ -330,7 +357,11 @@ Point them to a shared journal and set their Zookeeper configuration.
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  -e ALLUXIO_JAVA_OPTS=" \
+    -Dalluxio.master.journal.type=UFS \
+    -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal \
+    -Dalluxio.zookeeper.enabled=true \
+    -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio master
 ```
 
@@ -340,39 +371,16 @@ to discover the current leader.
 ```console
 $ docker run -d \
   ...
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
+  -e ALLUXIO_JAVA_OPTS="
+    -Dalluxio.zookeeper.enabled=true \
+    -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio worker
 ```
 
 You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
 
-### Enable short-circuit reads and writes
-
-If your compute applications will run on the same nodes as your Alluxio workers,
-you can improve performance by enabling short-circuit reads
-and writes. This allows applications to read from and write to their
-local Alluxio worker without going over the loopback network. Instead, they will
-read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket).
-
-On worker host machines, create a directory for the shared domain socket.
-
-```console
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
-```
-
-When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
-to share the domain socket directory. Also set domain socket properties by passing
-`alluxio.worker.data.server.domain.socket.address=/opt/domain` and
-`alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
-
-```console
-$ docker run -d \
-  ...
-  -v /tmp/domain:/opt/domain \
-  -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
-  alluxio worker
-```
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Relaunch Alluxio Servers
 
@@ -383,20 +391,93 @@ a fresh state.
 
 ### Enable POSIX API access
 
-Using the [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/), you can enable
-access to Alluxio using the POSIX API.
+Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
+access to Alluxio on Docker host using the POSIX API.
 
-Launch the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
-capability. This runs the FUSE daemon on a client node that needs to access Alluxio using the POSIX
-API with a mount accessible at `/alluxio-fuse`.
+For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
 ```console
-$ docker run -e \
-  ... \
-  --cap-add SYS_ADMIN \
-  --device /dev/fuse \
-  alluxio-fuse fuse \
+$ docker run --rm \
+    --net=host \
+    --name=alluxio-fuse \
+    -v /tmp/mnt:/mnt:rshared \
+    -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
+    --cap-add SYS_ADMIN \
+    --device /dev/fuse \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
+
+Notes
+- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
+To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability.
+- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
+
+## Performance Optimiztion
+
+### Enable short-circuit reads and writes
+
+If your application pods will run on the same host as your Alluxio worker pods,
+performance can be greatly improved by enabling short-circuit reads and writes.
+This allows applications to read from and write to their
+local Alluxio worker without going over the loopback network.
+In dockerized enviroments, there are two ways to enable short-circuit reads and writes in Alluxio.
+
++ Option1: use [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) or
++ Option2: use [shared volumes](https://docs.docker.com/storage/volumes/).
+
+Using shared volumes is slightly easier and may yield higher performance, but may result in inaccurate resource accounting.
+Using domain sockets is recommended for production deployment.
+
+{% navtabs Short-circuit %}
+{% navtab Domain socket %}
+
+On worker host machines, create a directory for the shared domain socket.
+
+```console
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+```
+
+When starting both workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
+to share the domain socket directory.
+Also set domain socket properties by passing
+`alluxio.worker.data.server.domain.socket.address=/opt/domain` and
+`alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
+
+```console
+$ docker run -d \
+  ...
+  -v /tmp/domain:/opt/domain \
+  -e ALLUXIO_JAVA_OPTS=" \
+     ...
+     -Dalluxio.worker.data.server.domain.socket.address=/opt/domain \
+     -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
+  alluxio worker
+```
+
+{% endnavtab %}
+{% navtab Shared volume %}
+
+When starting both workers and clients, run their docker containers with the worker storage as shared volumes across host, worker and client pods.
+With default Alluxio setting on docker,  `MEM` is the main storage on host path `/dev/shm`.
+In this case, pass  `-v /dev/shm:/dev/shm` when running both containers so both worker and clients and access this path directly.
+
+For example, run worker container using:
+
+```console
+$ docker run -d \
+  ...
+  --shm-size=1G \
+  -v /dev/shm:/dev/shm \
+  alluxio worker
+```
+
+To run application containers, also pass `alluxio.user.hostname=<host ip>`.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Troubleshooting
 
@@ -404,3 +485,25 @@ Alluxio server logs can be accessed by running `docker logs $container_id`.
 Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
 your issue, you can get help on the
 [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users).
+
+## FAQ
+
+### AvailableProcessors: returns 0 in docker container
+
+When you execute `alluxio ls` in the alluxio master container and got the following error.
+
+```bash
+bash-4.4$ alluxio fs ls /
+Exception in thread "main" java.lang.ExceptionInInitializerError
+...
+Caused by: java.lang.IllegalArgumentException: availableProcessors: 0 (expected: > 0)
+        at io.netty.util.internal.ObjectUtil.checkPositive(ObjectUtil.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.setAvailableProcessors(NettyRuntime.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.availableProcessors(NettyRuntime.java:70)
+        at io.netty.util.NettyRuntime.availableProcessors(NettyRuntime.java:98)
+        at io.grpc.netty.Utils$DefaultEventLoopGroupResource.<init>(Utils.java:394)
+        at io.grpc.netty.Utils.<clinit>(Utils.java:84)
+        ... 20 more
+```
+
+This error can be fixed by adding `-XX:ActiveProcessorCount=4` as jvm parameter.

@@ -158,10 +158,9 @@ public class S3AOutputStream extends OutputStream {
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
+      // Set the closed flag, close can be retried until mFile.delete is called successfully
+      mClosed = true;
     }
-
-    // Set the closed flag, close can be retried until mFile.delete is called successfully
-    mClosed = true;
   }
 
   /**

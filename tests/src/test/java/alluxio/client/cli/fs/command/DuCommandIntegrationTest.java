@@ -40,23 +40,41 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
     sFsShell.run("du", "/testRoot/noneExisting");
     expected += "File Size     In Alluxio       Path\n";
     expected += ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testRoot/noneExisting") + "\n";
+    Assert.assertEquals(expected, mOutput.toString());
 
     // du a folder
+    mOutput.reset();
     sFsShell.run("du", "/testRoot/");
-    expected += "File Size     In Alluxio       Path\n"
+    expected = "File Size     In Alluxio       Path\n"
         + "532982        0 (0%)           /testRoot/testDir/testDir/testFileD\n"
         + "9712654       0 (0%)           /testRoot/testDir/testFileC\n"
         + "0             0 (0%)           /testRoot/testFileA\n"
         + "21243         21243 (100%)     /testRoot/testFileB\n";
+    Assert.assertEquals(expected, mOutput.toString());
 
     // du a folder with options
+    mOutput.reset();
     sFsShell.run("du", "-h", "-s", "/testRoot/testDir");
-    expected += "File Size     In Alluxio       Path\n"
+    expected = "File Size     In Alluxio       Path\n"
         + "9.77MB        0B (0%)          /testRoot/testDir\n";
+    Assert.assertEquals(expected, mOutput.toString());
 
+    mOutput.reset();
     sFsShell.run("du", "-h", "-s", "--memory", "/testRoot");
-    expected += "File Size     In Alluxio       In Memory        Path\n"
+    expected = "File Size     In Alluxio       In Memory        Path\n"
         + "9.79MB        20.75KB (0%)     20.75KB (0%)     /testRoot\n";
+    Assert.assertEquals(expected, mOutput.toString());
+
+    String workerHostName = sLocalAlluxioCluster.getWorkerAddress().getHost();
+    String format;
+
+    mOutput.reset();
+    format = "%-13s %-16s %-25s %s";
+    sFsShell.run("du", "-h", "-s", "-g", "/testRoot");
+    expected = "File Size     In Alluxio       Worker Host Name          Path\n"
+            + "9.79MB        20.75KB (0%)     total                     /testRoot\n"
+            + String.format(format, "", "20.75KB", workerHostName, "")
+            + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 

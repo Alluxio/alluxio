@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.task;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
@@ -22,7 +20,6 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,11 +98,8 @@ public final class TaskExecutor implements Runnable {
   }
 
   private void fail(Throwable t, JobConfig jobConfig, Serializable taskArgs) {
-    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
-      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
-    } else {
-      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
-    }
+    mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t);
+
     LOG.warn("Exception running task for job {}({}) : {}",
         (jobConfig == null) ? "Undefined" : jobConfig.getName(),
         (taskArgs == null) ? "Undefined" : taskArgs.toString(), t.getMessage());

@@ -75,7 +75,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BLOCK_SIZE_BYTES)
-        .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
+        .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
@@ -87,7 +87,10 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
             Files.createTempDir().getAbsolutePath())
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
-            String.valueOf(CAPACITY_BYTES)).build();
+            String.valueOf(CAPACITY_BYTES))
+        .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.AcceptingReviewer")
+        .build();
   }
 
   @LocalAlluxioClusterResource.Config(confParams = {

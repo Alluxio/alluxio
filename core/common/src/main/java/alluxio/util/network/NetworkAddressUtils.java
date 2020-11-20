@@ -42,6 +42,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -670,7 +671,9 @@ public final class NetworkAddressUtils {
         .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+              .withDeadlineAfter(conf.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                  TimeUnit.MILLISECONDS);
       versionClient.getServiceVersion(
           GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
     } catch (Throwable t) {

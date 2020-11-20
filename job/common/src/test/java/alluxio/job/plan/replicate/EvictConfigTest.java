@@ -32,7 +32,7 @@ public final class EvictConfigTest {
   @Test
   public void negativeReplicas() {
     try {
-      new EvictConfig(0, -1);
+      new EvictConfig("", 0, -1);
       Assert.fail("Cannot create EvictConfig with negative replicas");
     } catch (IllegalArgumentException e) {
       // expected exception thrown. test passes
@@ -42,7 +42,7 @@ public final class EvictConfigTest {
   @Test
   public void zeroReplicas() {
     try {
-      new EvictConfig(0, 0);
+      new EvictConfig("", 0, 0);
       Assert.fail("Cannot create EvictConfig with zero replicas");
     } catch (IllegalArgumentException e) {
       // expected exception thrown. test passes
@@ -57,7 +57,8 @@ public final class EvictConfigTest {
 
   public static EvictConfig createRandom() {
     Random random = new Random();
-    EvictConfig config = new EvictConfig(random.nextLong(), random.nextInt(Integer.MAX_VALUE) + 1);
+    EvictConfig config = new EvictConfig("", random.nextLong(),
+        random.nextInt(Integer.MAX_VALUE) + 1);
     return config;
   }
 }

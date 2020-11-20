@@ -93,6 +93,8 @@ public final class TieredBlockStoreTest {
   }
 
   private void init(long reservedBytes) throws Exception {
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.AcceptingReviewer");
     // No reserved space for tests that are not swap related.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
 
@@ -420,13 +422,13 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void createBlockMetaWithMediumType() throws Exception {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         AllocateOptions.forCreate(1, loc));
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir2, tempBlockMeta.getParentDir());
 
-    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInAnyTierWithMedium("SSD");
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
         AllocateOptions.forCreate(1, loc2));
     assertEquals(1, tempBlockMeta2.getBlockSize());

@@ -75,6 +75,10 @@ public final class ConfigurationTestUtils {
       conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
+
+    // Sets up the block allocation and review policy
+    conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
+
     // Sets up the journal folder
     conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
@@ -115,7 +119,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
-    conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
+    conf.put(PropertyKey.WORKER_RAMDISK_SIZE, "100MB");
     conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
@@ -125,14 +129,12 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    // Election timeout should be bigger than the default copycat heartbeat interval 250
+
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
     // Reset the value to avoid raft journal system complaining about log size < 65
     conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
-    // For faster test shutdown
-    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
 
     // faster persists
@@ -148,6 +150,8 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
+
+    conf.put(PropertyKey.TEST_MODE, "true");
 
     return conf;
   }

@@ -27,6 +27,7 @@ public abstract class WorkflowExecution {
 
   private Status mStatus;
   private long mLastUpdated;
+  private String mErrorType;
   private String mErrorMessage;
 
   /**
@@ -34,6 +35,7 @@ public abstract class WorkflowExecution {
    */
   public WorkflowExecution() {
     setStatus(Status.RUNNING);
+    mErrorType = null;
     mErrorMessage = null;
   }
 
@@ -60,12 +62,14 @@ public abstract class WorkflowExecution {
   /**
    * stops future execution.
    * @param status status of the failure: either CANCELLED or FAILED
+   * @param errorType error type
    * @param errorMessage error message
    */
-  public final void stop(Status status, String errorMessage) {
+  public final void stop(Status status, String errorType, String errorMessage) {
     Preconditions.checkArgument(status.equals(Status.CANCELED) || status.equals(Status.FAILED));
     setStatus(status);
     if (mErrorMessage == null) {
+      mErrorType = errorType;
       mErrorMessage = errorMessage;
     }
   }
@@ -82,6 +86,14 @@ public abstract class WorkflowExecution {
    */
   public final long getLastUpdated() {
     return mLastUpdated;
+  }
+
+  /**
+   * @return the error type
+   */
+  @Nullable
+  public final String getErrorType() {
+    return mErrorType;
   }
 
   /**

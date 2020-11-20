@@ -79,6 +79,11 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public State state() {
+    return mCacheManager.state();
+  }
+
+  @Override
   public void close() throws Exception {
     try {
       mCacheManager.close();

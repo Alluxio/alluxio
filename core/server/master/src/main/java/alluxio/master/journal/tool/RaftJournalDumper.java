@@ -13,37 +13,32 @@ package alluxio.master.journal.tool;
 
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.master.journal.raft.JournalEntryCommand;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.raft.SnapshotReaderStream;
+import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.proto.journal.Journal;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
-import io.atomix.catalyst.concurrent.SingleThreadContext;
-import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.copycat.Command;
-import io.atomix.copycat.protocol.ClientRequestTypeResolver;
-import io.atomix.copycat.protocol.ClientResponseTypeResolver;
-import io.atomix.copycat.server.storage.Log;
-import io.atomix.copycat.server.storage.Storage;
-import io.atomix.copycat.server.storage.entry.CommandEntry;
-import io.atomix.copycat.server.storage.snapshot.Snapshot;
-import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
-import io.atomix.copycat.server.storage.snapshot.SnapshotStore;
-import io.atomix.copycat.server.storage.util.StorageSerialization;
-import io.atomix.copycat.server.util.ServerSerialization;
-import io.atomix.copycat.util.ProtocolSerialization;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.impl.RaftServerConstants;
+import org.apache.ratis.server.raftlog.segmented.LogSegment;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.storage.RaftStorageDirectory;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Paths;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * Implementation of {@link AbstractJournalDumper} for RAFT journals.
@@ -67,8 +62,6 @@ public class RaftJournalDumper extends AbstractJournalDumper {
 
   @Override
   void dumpJournal() throws Throwable {
-    // Copycat freaks out shown directory is not an actual copycat dir.
-    // At least verify that it exists.
     if (!FileUtils.exists(mInputDir)) {
       throw new FileNotFoundException(String.format("Input dir does not exist: %s", mInputDir));
     }
@@ -81,74 +74,70 @@ public class RaftJournalDumper extends AbstractJournalDumper {
    * way may be stale, but it can still be useful for debugging while the cluster is offline.
    */
   private void readFromDir() throws Throwable {
-    Serializer serializer = RaftJournalSystem.createSerializer();
-    serializer.resolve(new ClientRequestTypeResolver());
-    serializer.resolve(new ClientResponseTypeResolver());
-    serializer.resolve(new ProtocolSerialization());
-    serializer.resolve(new ServerSerialization());
-    serializer.resolve(new StorageSerialization());
-
-    SingleThreadContext context = new SingleThreadContext("readJournal", serializer);
-
-    try {
-      // Read through the whole journal content, starting from snapshot.
-      context.execute(this::readCopycatSnapshotFromDir).get();
-      context.execute(this::readCopycatLogFromDir).get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw e;
-    } catch (ExecutionException e) {
-      throw e.getCause();
-    } finally {
-      context.close();
-    }
+    // Read through the whole journal content, starting from snapshot.
+    readRatisSnapshotFromDir();
+    readRatisLogFromDir();
   }
 
-  private void readCopycatLogFromDir() {
+  private void readRatisLogFromDir() {
     try (
         PrintStream out =
             new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
-        Log log = Storage.builder().withDirectory(mInputDir).build().openLog("copycat")) {
-      for (long i = log.firstIndex(); i < log.lastIndex(); i++) {
-        io.atomix.copycat.server.storage.entry.Entry entry = log.get(i);
-        if (entry instanceof CommandEntry) {
-          Command command = ((CommandEntry) entry).getCommand();
-          if (command instanceof JournalEntryCommand) {
-            byte[] entryBytes = ((JournalEntryCommand) command).getSerializedJournalEntry();
-            try {
-              writeSelected(out, Journal.JournalEntry.parseFrom(entryBytes));
-            } catch (Exception e) {
-              throw new RuntimeException(e);
-            }
-          }
-        }
+        RaftStorage storage = new RaftStorage(getJournalDir(),
+            RaftServerConstants.StartupOption.REGULAR)) {
+      List<RaftStorageDirectory.LogPathAndIndex> paths =
+          storage.getStorageDir().getLogSegmentFiles();
+      for (RaftStorageDirectory.LogPathAndIndex path : paths) {
+        final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
+            path.getStartIndex(), path.getEndIndex(), path.isOpen(),
+            RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION, null, (proto) -> {
+              if (proto.hasStateMachineLogEntry()) {
+                try {
+                  Journal.JournalEntry entry = Journal.JournalEntry.parseFrom(
+                      proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
+                  writeSelected(out, entry);
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
+                }
+              }
+            });
+        LOG.info("Read {} entries from log {}.", entryCount, path.getPath());
       }
     } catch (Exception e) {
       LOG.error("Failed to read logs from journal.", e);
     }
   }
 
-  private void readCopycatSnapshotFromDir() {
-    Storage journalStorage = Storage.builder().withDirectory(mInputDir).build();
-    Snapshot currentSnapshot;
-    try (final SnapshotStore copycat = journalStorage.openSnapshotStore("copycat")) {
-      if (copycat.snapshots().isEmpty()) {
-        LOG.debug("No snapshot found.");
+  private File getJournalDir() {
+    return new File(RaftJournalUtils.getRaftJournalDir(new File(mInputDir)),
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
+  }
+
+  private void readRatisSnapshotFromDir() throws IOException {
+    try (RaftStorage storage = new RaftStorage(getJournalDir(),
+        RaftServerConstants.StartupOption.REGULAR)) {
+      SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
+      stateMachineStorage.init(storage);
+      SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();
+      if (currentSnapshot == null) {
+        LOG.debug("No snapshot found");
         return;
       }
-      currentSnapshot = copycat.currentSnapshot();
-    }
+      final File snapshotFile = currentSnapshot.getFile().getPath().toFile();
+      String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.getIndex(),
+          snapshotFile.lastModified());
 
-    SnapshotReader snapshotReader = currentSnapshot.reader();
-    String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.index(),
-        currentSnapshot.timestamp());
-
-    LOG.debug("Reading snapshot-Id: {}", snapshotReader.readLong());
-    try (CheckpointInputStream checkpointStream =
-        new CheckpointInputStream(new SnapshotReaderStream(snapshotReader))) {
-      readCheckpoint(checkpointStream, Paths.get(checkpointPath));
-    } catch (Exception e) {
-      LOG.error("Failed to read snapshot from journal.", e);
+      try (DataInputStream inputStream = new DataInputStream(new FileInputStream(snapshotFile))) {
+        LOG.debug("Reading snapshot-Id: {}", inputStream.readLong());
+        try (CheckpointInputStream checkpointStream = new CheckpointInputStream(inputStream)) {
+          readCheckpoint(checkpointStream, Paths.get(checkpointPath));
+        } catch (Exception e) {
+          LOG.error("Failed to read snapshot from journal.", e);
+        }
+      } catch (Exception e) {
+        LOG.error("Failed to load snapshot {}", snapshotFile, e);
+        throw e;
+      }
     }
   }
 

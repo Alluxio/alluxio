@@ -169,6 +169,32 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
+   * Tests copying a list of files with special characters in folder name
+   * specified through a wildcard expression.
+   */
+  @Test
+  public void copyWildcardWithSpecialCharacters() throws Exception {
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    char[] specialChars = new char[]{'.', '+', '^', '$'};
+    for (char specialChar : specialChars) {
+      copyWildcardWithSpecialChar(testDir, specialChar);
+    }
+  }
+
+  private void copyWildcardWithSpecialChar(String testDir, char specialChar) throws Exception {
+    String specialFolderName = String.format("%s/folder%sname", testDir, specialChar);
+    sFsShell.run("mkdir", specialFolderName);
+    sFsShell.run("mkdir", "/result");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName)));
+    sFsShell.run("cp", testDir + "/foobar4", specialFolderName + "/foobar4");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName + "/foobar4")));
+    sFsShell.run("cp", specialFolderName + "/*", "/result/");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
+    sFsShell.run("rm", "/result/foobar4");
+    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
+  }
+
+  /**
    * Tests copying a file with attributes preserved.
    */
   @Test
@@ -469,8 +495,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"cp", "file://" +  testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
-    Assert.assertThat(mOutput.toString(),
-        containsString(alluxioFilePath.getPath() + " already exists"));
+    Assert.assertThat(mOutput.toString(), containsString(
+        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));

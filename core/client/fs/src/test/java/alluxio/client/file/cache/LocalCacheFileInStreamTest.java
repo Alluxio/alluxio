@@ -27,6 +27,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -67,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -274,8 +276,8 @@ public class LocalCacheFileInStreamTest {
 
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
-    LocalCacheFileInStream stream = new LocalCacheFileInStream(
-        testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
+    LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize];
@@ -307,26 +309,36 @@ public class LocalCacheFileInStreamTest {
     }
   }
 
-  private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
+  private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
+      throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
     files.put(testFilename, data);
 
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
-    return new LocalCacheFileInStream(
-        testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
+    return new LocalCacheFileInStream(fs.getStatus(testFilename),
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
   }
 
   private  Map<AlluxioURI, LocalCacheFileInStream> setupWithMultipleFiles(Map<String, byte[]> files,
       CacheManager manager) {
     Map<AlluxioURI, byte[]> fileMap = files.entrySet().stream()
         .collect(Collectors.toMap(entry -> new AlluxioURI(entry.getKey()), Map.Entry::getValue));
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(fileMap);
+    final ByteArrayFileSystem fs = new ByteArrayFileSystem(fileMap);
 
-    return fileMap.entrySet().stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, entry -> new LocalCacheFileInStream(
-            entry.getKey(), OpenFilePOptions.getDefaultInstance(), fs, manager)));
+    Map<AlluxioURI, LocalCacheFileInStream> ret = new HashMap<>();
+    fileMap.entrySet().forEach(entry -> {
+      try {
+        ret.put(entry.getKey(),
+            new LocalCacheFileInStream(fs.getStatus(entry.getKey()),
+                (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
+                sConf));
+      } catch (Exception e) {
+        // skip
+      }
+    });
+    return ret;
   }
 
   private URIStatus generateURIStatus(String path, long len) {
@@ -395,6 +407,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public State state() {
+      return State.READ_WRITE;
+    }
+
+    @Override
     public void close() throws Exception {
       // no-op
     }
@@ -413,6 +430,12 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public boolean isClosed() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+        throws InvalidPathException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 
@@ -469,7 +492,20 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+        Consumer<? super URIStatus> action)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

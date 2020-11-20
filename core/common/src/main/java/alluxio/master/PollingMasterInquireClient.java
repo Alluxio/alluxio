@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.joining;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -124,8 +126,12 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
+      } catch (DeadlineExceededException e) {
+        LOG.debug("Timeout while connecting to {}", address);
+        continue;
       } catch (AlluxioStatusException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            String.format("Received exception from %s. message: %s", address, e.getMessage()), e);
       }
     }
     return null;
@@ -138,7 +144,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
             .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
             .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+            .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                TimeUnit.MILLISECONDS);
     ServiceType serviceType
         = address.getPort() == mConfiguration.getInt(PropertyKey.JOB_MASTER_RPC_PORT)
         ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;

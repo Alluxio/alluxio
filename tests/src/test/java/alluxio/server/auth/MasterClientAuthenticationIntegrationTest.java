@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.List;
@@ -115,11 +116,14 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
 
     // Get the current context class loader to retrieve the classpath URLs.
     ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-    Assert.assertTrue(contextClassLoader instanceof URLClassLoader);
-
     // Set the context class loader to an isolated class loader.
-    ClassLoader isolatedClassLoader =
-        new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(), null);
+    ClassLoader isolatedClassLoader;
+    if (contextClassLoader instanceof URLClassLoader) {
+      isolatedClassLoader = new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(),
+          null);
+    } else {
+      isolatedClassLoader = new URLClassLoader(new URL[0], contextClassLoader);
+    }
     Thread.currentThread().setContextClassLoader(isolatedClassLoader);
     try {
       masterClient.connect();

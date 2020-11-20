@@ -36,6 +36,17 @@ message FileSystemMasterCommonPOptions {
   optional grpc.TtlAction ttlAction = 3;
 }
 
+message CheckAccessPRequest {
+  optional string path = 1;
+  optional CheckAccessPOptions options = 2;
+}
+
+message CheckAccessPResponse {}
+message CheckAccessPOptions {
+  optional Bits bits = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
 message CheckConsistencyPResponse {
   repeated string inconsistentPaths = 1;
 }
@@ -184,6 +195,8 @@ message ListStatusPOptions {
   optional LoadMetadataPType loadMetadataType = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool recursive = 4;
+  // Only loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+  optional bool resultsRequired = 5;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -311,6 +324,7 @@ message MountPointInfo {
   optional bool readOnly = 5;
   map<string, string> properties = 6;
   optional bool shared = 7;
+  optional int64 mountId = 8;
 }
 
 message FileSystemCommandOptions {
@@ -466,6 +480,11 @@ message UpdateUfsModePRequest {
  * This interface contains file system master service endpoints for Alluxio clients.
  */
 service FileSystemMasterClientService {
+
+  /**
+   * Checks access to path.
+   */
+  rpc CheckAccess(CheckAccessPRequest) returns (CheckAccessPResponse);
 
   /**
    * Checks the consistency of the files and directores with the path as the root of the subtree

@@ -12,14 +12,16 @@
 package alluxio.underfs;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -109,16 +111,7 @@ public final class UnderFileSystemFactoryRegistry {
     List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf);
     if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
       String configuredVersion = ufsConf.get(PropertyKey.UNDERFS_VERSION);
-      // Versioned factories ignore version if not set
-      ufsConf.unset(PropertyKey.UNDERFS_VERSION);
-      // Check if any versioned factory supports the default configuration
-      List<UnderFileSystemFactory> factories = sRegistryInstance.findAll(path, ufsConf);
-      List<String> supportedVersions = new java.util.ArrayList<>();
-      for (UnderFileSystemFactory factory : factories) {
-        if (!factory.getVersion().isEmpty()) {
-          supportedVersions.add(factory.getVersion());
-        }
-      }
+      List<String> supportedVersions = getSupportedVersions(path, ufsConf);
       if (!supportedVersions.isEmpty()) {
         LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",
             StringUtils.join(supportedVersions, ","), path,
@@ -127,6 +120,32 @@ public final class UnderFileSystemFactoryRegistry {
       ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);
     }
     return eligibleFactories;
+  }
+
+  /**
+   * Get a list of supported versions for a particular UFS path.
+   *
+   * @param path the UFS URI to test
+   * @param ufsConf the UFS configuration for the mount
+   * @return a list of supported versions. The list will be empty if the particular UFS type does
+   *         not support setting a version on the mount.
+   */
+  public static List<String> getSupportedVersions(String path,
+      UnderFileSystemConfiguration ufsConf) {
+    // copy properties to not modify the original conf.
+    UnderFileSystemConfiguration ufsConfCopy = UnderFileSystemConfiguration
+        .defaults(new InstancedConfiguration(ufsConf.copyProperties()));
+    // unset the configuration to make sure any supported factories for the path are returned.
+    ufsConfCopy.unset(PropertyKey.UNDERFS_VERSION);
+    // Check if any versioned factory supports the default configuration
+    List<UnderFileSystemFactory> factories = sRegistryInstance.findAll(path, ufsConfCopy);
+    List<String> supportedVersions = new ArrayList<>();
+    for (UnderFileSystemFactory factory : factories) {
+      if (!factory.getVersion().isEmpty()) {
+        supportedVersions.add(factory.getVersion());
+      }
+    }
+    return supportedVersions;
   }
 
   private static synchronized void init() {

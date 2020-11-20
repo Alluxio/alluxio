@@ -22,11 +22,14 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,6 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractFileSystemCommand implements Command {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemCommand.class);
 
   protected FileSystem mFileSystem;
   protected FileSystemContext mFsContext;
@@ -91,6 +95,7 @@ public abstract class AbstractFileSystemCommand implements Command {
       try {
         runPlainPath(path, cl);
       } catch (AlluxioException | IOException e) {
+        LOG.error(String.format("error processing path: %s", path), e);
         errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
       }
     }

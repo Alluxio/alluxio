@@ -67,7 +67,6 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -82,6 +81,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+
+import javax.annotation.Nullable;
 
 /**
  * This class is responsible for maintaining the logic which surrounds syncing metadata between
@@ -387,9 +388,15 @@ public class InodeSyncStream {
           syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount, end - start,
           mRootScheme);
     }
+    boolean success = syncPathCount > 0;
+    if (success) {
+      // update the sync path cache for the root of the sync
+      // TODO(gpang): Do we need special handling for failures and thread interrupts?
+      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath().getPath(), mDescendantType);
+    }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
-    return syncPathCount > 0;
+    return success;
   }
 
   /**
@@ -563,9 +570,16 @@ public class InodeSyncStream {
       }
     }
 
-    syncChildren = syncChildren
-        && inode.isDirectory()
-        && mDescendantType != DescendantType.NONE;
+    // Only sync children when
+    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
+    if (mDescendantType == DescendantType.ONE) {
+      syncChildren =
+          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.ALL) {
+      syncChildren = syncChildren && inode.isDirectory();
+    } else {
+      syncChildren = false;
+    }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
     if (syncChildren) {
@@ -598,7 +612,6 @@ public class InodeSyncStream {
     if (loadMetadata) {
       loadMetadataForPath(inodePath);
     }
-    mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), DescendantType.ONE);
 
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
@@ -634,15 +647,17 @@ public class InodeSyncStream {
     loadMetadata(inodePath, ctx);
   }
 
+  /**
+  * This method creates inodes containing the metadata from the UFS. The {@link UfsStatus} object
+  * must be set in the {@link LoadMetadataContext} in order to successfully create the inodes.
+  */
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      if (context.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
+    try {
+      if (context.getUfsStatus() == null) {
         // uri does not exist in ufs
         Inode inode = inodePath.getInode();
         if (inode.isFile()) {
@@ -654,13 +669,8 @@ public class InodeSyncStream {
         mInodeTree.setDirectChildrenLoaded(mRpcContext, inode.asDirectory());
         return;
       }
-      boolean isFile;
-      if (context.getUfsStatus() != null) {
-        isFile = context.getUfsStatus().isFile();
-      } else {
-        isFile = ufs.isFile(ufsUri.toString());
-      }
-      if (isFile) {
+
+      if (context.getUfsStatus().isFile()) {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
         loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);

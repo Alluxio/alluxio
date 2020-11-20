@@ -73,7 +73,7 @@ public final class GrpcBlockingStreamTest {
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     when(mClient.writeBlock(any(StreamObserver.class))).thenAnswer((args) -> {
-      mResponseObserver = args.getArgumentAt(0, ClientResponseObserver.class);
+      mResponseObserver = args.getArgument(0, ClientResponseObserver.class);
       return mRequestObserver;
     });
     when(mRequestObserver.isReady()).thenReturn(true);
@@ -230,7 +230,7 @@ public final class GrpcBlockingStreamTest {
   public void sendAfterStreamReady() throws Exception {
     when(mRequestObserver.isReady()).thenReturn(false);
     doAnswer((args) -> {
-      mOnReadyHandler = args.getArgumentAt(0, Runnable.class);
+      mOnReadyHandler = args.getArgument(0, Runnable.class);
       return null;
     }).when(mRequestObserver).setOnReadyHandler(any(Runnable.class));
     mResponseObserver.beforeStart(mRequestObserver);

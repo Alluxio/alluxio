@@ -299,13 +299,13 @@ public abstract class AbstractWriteHandlerTest {
     }).when(mResponseObserver).onCompleted();
     doAnswer(args -> {
       mResponseCompleted = true;
-      mError = args.getArgumentAt(0, Throwable.class);
+      mError = args.getArgument(0, Throwable.class);
       return null;
     }).when(mResponseObserver).onError(any(Throwable.class));
     doAnswer((args) -> {
       // make a copy of response data before it is released
       mResponses.add(WriteResponse.parseFrom(
-          args.getArgumentAt(0, WriteResponse.class).toByteString()));
+          args.getArgument(0, WriteResponse.class).toByteString()));
       return null;
     }).when(mResponseObserver).onNext(any(WriteResponse.class));
   }

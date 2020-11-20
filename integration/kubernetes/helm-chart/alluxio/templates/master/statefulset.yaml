@@ -82,7 +82,7 @@ spec:
           {{- if .Values.master.resources  }}
 {{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.master.args }}
           args:
 {{ toYaml .Values.master.args | trim | indent 12 }}
@@ -107,8 +107,9 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-{{ include "alluxio.master.readinessProbe" . | indent 10 }}
-{{ include "alluxio.master.livenessProbe" . | indent 10 }}
+{{- $probePort := $isHaEmbedded | ternary "embedded" "rpc" }}
+{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
+{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
           ports:
           - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
@@ -147,7 +148,7 @@ spec:
           {{- if .Values.jobMaster.resources  }}
 {{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.jobMaster.args }}
           args:
 {{ toYaml .Values.jobMaster.args | trim | indent 12 }}
@@ -172,8 +173,9 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-{{ include "alluxio.jobMaster.readinessProbe" . | indent 10 }}
-{{ include "alluxio.jobMaster.livenessProbe" . | indent 10 }}
+{{- $probePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
+{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
+{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
           ports:
           - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc

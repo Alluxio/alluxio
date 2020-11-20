@@ -11,12 +11,13 @@
 
 package alluxio.master.job;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -26,6 +27,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
+import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.plan.PlanConfig;
@@ -34,10 +36,8 @@ import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
-import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
@@ -48,13 +48,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Tests {@link JobMaster}.
@@ -116,10 +117,10 @@ public final class JobMasterTest {
   @Test
   public void run() throws Exception {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
-    PowerMockito.mockStatic(PlanCoordinator.class);
+    mockStatic(PlanCoordinator.class);
     when(
-        PlanCoordinator.create(any(CommandManager.class),
-            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(null)))
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -131,10 +132,10 @@ public final class JobMasterTest {
   @Test
   public void flowControl() throws Exception {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
-    PowerMockito.mockStatic(PlanCoordinator.class);
+    mockStatic(PlanCoordinator.class);
     when(
-        PlanCoordinator.create(any(CommandManager.class),
-            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(null)))
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -162,12 +163,14 @@ public final class JobMasterTest {
 
   @Test
   public void cancel() throws Exception {
-    PlanCoordinator coordinator = mock(PlanCoordinator.class);
-    long jobId = 1L;
-    PlanTracker tracker = new PlanTracker(10, 0, -1, mock(WorkflowTracker.class));
-    ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
-        .put(jobId, coordinator);
-    Whitebox.setInternalState(mJobMaster, "mPlanTracker", tracker);
+    mockStatic(PlanCoordinator.class);
+    PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
+    when(
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
+        .thenReturn(coordinator);
+    SleepJobConfig config = new SleepJobConfig(10000);
+    long jobId = mJobMaster.run(config);
     mJobMaster.cancel(jobId);
     verify(coordinator).cancel();
   }
@@ -178,6 +181,11 @@ public final class JobMasterTest {
     @Override
     public String getName() {
       return "dummy";
+    }
+
+    @Override
+    public Collection<String> affectedPaths() {
+      return Collections.EMPTY_LIST;
     }
   }
 }

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
@@ -45,6 +46,7 @@ import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -64,7 +66,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -215,7 +216,8 @@ public final class InodeTreeTest {
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
-    mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
+    mThrown
+        .expectMessage("Not allowed to create directory because path already exists: " + TEST_URI);
     createPath(mTree, TEST_URI, CreateDirectoryContext
         .mergeFrom(CreateDirectoryPOptions.newBuilder().setAllowExists(false)));
   }
@@ -291,10 +293,10 @@ public final class InodeTreeTest {
     // creating the directory path again results in no new inodes.
     try {
       createPath(mTree, NESTED_URI, dirContext);
-      assertTrue("createPath should throw FileAlreadyExistsException", false);
+      fail("createPath should throw FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
-      assertEquals(e.getMessage(),
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI));
+      assertEquals("Not allowed to create directory because path already exists: " + NESTED_URI,
+          e.getMessage());
     }
 
     // create a file
@@ -307,6 +309,15 @@ public final class InodeTreeTest {
     // file was created
     assertEquals(1, created.size());
     assertEquals("file", created.get(0).getName());
+
+    // creating the file path again results in no new inodes.
+    try {
+      createPath(mTree, NESTED_FILE_URI, options);
+      fail("createPath should throw FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      assertEquals("Not allowed to create file because path already exists: " + NESTED_FILE_URI,
+          e.getMessage());
+    }
   }
 
   /**
@@ -739,16 +750,17 @@ public final class InodeTreeTest {
 
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<MutableInode<?>> journaled) {
-    Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
-    // Read entries from InodeTree.
-    List<Journal.JournalEntry> treeEntries = new LinkedList<>();
-    while (it.hasNext()) {
-      treeEntries.add(it.next());
-    }
+    try (CloseableIterator<Journal.JournalEntry> it = root.getJournalEntryIterator()) {
+      // Read entries from InodeTree.
+      List<Journal.JournalEntry> treeEntries = new LinkedList<>();
+      while (it.get().hasNext()) {
+        treeEntries.add(it.get().next());
+      }
 
-    // Validate InodeTree entries match given entries.
-    for (MutableInode<?> node : journaled) {
-      assertTrue(treeEntries.contains(node.toJournalEntry()));
+      // Validate InodeTree entries match given entries.
+      for (MutableInode<?> node : journaled) {
+        assertTrue(treeEntries.contains(node.toJournalEntry()));
+      }
     }
   }
 

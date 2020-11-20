@@ -66,6 +66,17 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
+  /**
+   * Constructs a new stream for reading a file from HDFS.
+   *
+   * @param inputStream the input stream
+   * @param stats filesystem statistics
+   */
+  public HdfsFileInputStream(FileInStream inputStream, Statistics stats) {
+    mInputStream = inputStream;
+    mStatistics = stats;
+  }
+
   @Override
   public int available() throws IOException {
     if (mClosed) {

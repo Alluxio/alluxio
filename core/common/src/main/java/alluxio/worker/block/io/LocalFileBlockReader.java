@@ -121,4 +121,9 @@ public class LocalFileBlockReader extends BlockReader {
   public boolean isClosed() {
     return mClosed;
   }
+
+  @Override
+  public String getLocation() {
+    return mFilePath;
+  }
 }

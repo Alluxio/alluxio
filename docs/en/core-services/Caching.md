@@ -32,12 +32,11 @@ into two distinct categories.
     storages results in vastly improved I/O performance.
     - Alluxio storage is mainly aimed at storing hot, transient data and is not focused on long term
     persistence.
-    - The amount and type of storage for each Alluxio node to manage is determined by user
+    - The amount and type of storage for each Alluxio worker node to manage is determined by user
     configuration.
     - Even if data is not currently within Alluxio storage, files within a connected UFS are still
     visible to Alluxio clients. The data is copied into Alluxio storage when a client attempts to
     read a file that is only available from a UFS.
-
 
 ![Alluxio storage diagram]({{ '/img/stack.png' | relativize_url }})
 
@@ -74,7 +73,7 @@ A common modification to the default is to set the ramdisk size explicitly. For 
 ramdisk size to be 16GB on each worker:
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
@@ -107,13 +106,14 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 Note that the ordering of the quotas must match with the ordering of the paths.
 
-
-There is a subtle difference between `alluxio.worker.memory.size` and
-`alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
-provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. This ramdisk
-will have its size determined by `alluxio.worker.memory.size` regardless of the value set in
-`alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
-of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
+Alluxio will provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. 
+This ramdisk will have its size determined by `alluxio.worker.ramdisk.size` 
+In the default case where tier 0 is MEM and is allocated the entire ramdisk, 
+`alluxio.worker.tieredstore.level0.dirs.quota` has the same value as 
+`alluxio.worker.ramdisk.size`. 
+However, if tier 0 is not MEM or if it is not allocated the entire space of the ramdisk,
+`alluxio.worker.tieredstore.level0.dirs.quota` should be configured explicitly to indicate
+the amount allocated for tier 0.
 
 ### Multiple-Tier Storage
 
@@ -190,6 +190,17 @@ alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 
 There are no restrictions on how many tiers can be configured
 but each tier must be identified with a unique alias.
+
+For each tier, the following parameters are available:
+  * `alluxio.worker.tieredstore.level{x}.dirs.path`:
+  comma-separated list of directories for that tier. Example: `/mnt/hdd1,/mnt/hdd2,/mnt/hdd3`
+  * `alluxio.worker.tieredstore.level{x}.dirs.quota`:
+  comma-separated list of the quotas of the corresponding directories specified in
+  `alluxio.worker.tieredstore.level{x}.dirs.path`. Example: `2TB,5TB,500GB`
+  * `alluxio.worker.tieredstore.level{x}.dirs.mediumtype`:
+  comma-separated list of the medium types of the corresponding directories specified in
+  `alluxio.worker.tieredstore.level{x}.dirs.path`. Example: `HDD,HDD,HDD`
+
 A typical configuration will have three tiers for Memory, SSD, and HDD.
 To use multiple hard drives in the HDD tier, specify multiple paths when configuring
 `alluxio.worker.tieredstore.level{x}.dirs.path`.
@@ -226,14 +237,16 @@ available options are:
 #### Evictor Emulation
 The old eviction policies are now removed and Alluxio provided implementations are replaced with appropriate annotation policies.
 Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
-Also, the old watermark based configuration is invalidated. So below configuration options are ineffective:
+Also, the old watermark based configuration is invalidated. So the following previous configuration options are ineffective:
 - `alluxio.worker.tieredstore.levelX.watermark.low.ratio`
 - `alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 
-However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
+However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation.
+The emulation assumes the configured eviction policy creates
 an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
 
-The old evictor configurations should be changes as below. (Failing to change the lef-over configuration will cause class load exceptions as old evictor implementations are deleted.)
+The old evictor configurations should be changes as below.
+(Failing to change the left-over configuration will cause class load exceptions as old evictor implementations are removed.)
 - LRUEvictor -> LRUAnnotator
 - GreedyEvictor -> LRUAnnotator
 - PartialLRUEvictor -> LRUAnnotator
@@ -270,7 +283,7 @@ Reserved space can get exhausted due to fact that Alluxio supports variable bloc
 When a higher tier has free space, blocks from a lower tier is moved up in order to better utilize faster disks as it's assumed the higher tiers are configured with faster disks.
 
 To control dynamic tier promotion:
-- `alluxio.worker.management.tier.promote.enabled` : Whether tier promition task is enabled. (Default:`true`)
+- `alluxio.worker.management.tier.promote.enabled` : Whether tier promotion task is enabled. (Default:`true`)
 - `alluxio.worker.management.tier.promote.range`: How many blocks to promote in a single task run. (Default:`100`)
 - `alluxio.worker.management.tier.promote.quota.percent`: The max percentage of each tier that could be used for promotions.
 Promotions will be stopped to a tier once its used space go over this value. (0 means never promote, and, 100 means always promote.)
@@ -420,7 +433,7 @@ Passive TTL works with the following configuration options:
 * `alluxio.user.file.create.ttl` - The TTL duration to set on files in Alluxio.
 By default, no TTL duration is set.
 * `alluxio.user.file.create.ttl.action` - The TTL action to set on files
-in Alluxio. By default, this action is `DELETE`.
+in Alluxio. NOTE: By default, this action is `DELETE`, `DELETE` will cause the file to be permanently removed from Alluxio namespace and under store.
 
 TTL is disabled by default and should only be enabled by clients which have strict data
 access patterns.

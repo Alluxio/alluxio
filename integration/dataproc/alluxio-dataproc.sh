@@ -23,7 +23,7 @@ readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
 readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
-readonly ALLUXIO_VERSION="2.4.0-SNAPSHOT"
+readonly ALLUXIO_VERSION="2.5.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
@@ -32,7 +32,7 @@ readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
 # Helper functions #
 ####################
 # Appends a property KV pair to the alluxio-site.properties file
-# 
+#
 # Args:
 #   $1: property
 #   $2: value
@@ -43,16 +43,16 @@ append_alluxio_property() {
   fi
   local property="$1"
   local value="$2"
-  
+
   if grep -qe "^\s*${property}=" ${ALLUXIO_SITE_PROPERTIES} 2> /dev/null; then
     echo "Property ${property} already exists in ${ALLUXIO_SITE_PROPERTIES}" >&2
   else
-    echo "${property}=${value}" >> ${ALLUXIO_SITE_PROPERTIES}
+    doas alluxio "echo '${property}=${value}' >> ${ALLUXIO_SITE_PROPERTIES}"
   fi
 }
 
 # Gets a value from a KV pair in the alluxio-site.properties file
-# 
+#
 # Args:
 #   $1: property
 get_alluxio_property() {
@@ -61,8 +61,25 @@ get_alluxio_property() {
     exit 2
   fi
   local property="$1"
-  
+
   grep -e "^\s*${property}=" ${ALLUXIO_SITE_PROPERTIES} | cut -d "=" -f2
+}
+
+# Run a command as a specific user
+# Assumes the provided user already exists on the system and user running script has sudo access
+#
+# Args:
+#   $1: user
+#   $2: cmd
+doas() {
+  if [[ "$#" -ne "2" ]]; then
+    echo "Incorrect number of arguments passed into function doas, expecting 2"
+    exit 2
+  fi
+  local user="$1"
+  local cmd="$2"
+
+  sudo runuser -l "${user}" -c "${cmd}"
 }
 
 # Downloads a file to the local machine into the cwd
@@ -70,7 +87,7 @@ get_alluxio_property() {
 # s3://   -> aws s3 cp
 # gs://   -> gsutil cp
 # default -> wget
-# 
+#
 # Args:
 #   $1: uri - S3, GS, or HTTP(S) URI to download from
 download_file() {
@@ -79,7 +96,7 @@ download_file() {
     exit 2
   fi
   local uri="$1"
-  
+
   if [[ "${uri}" == s3://* ]]; then
     aws s3 cp "${uri}" ./
   elif [[ "${uri}" == gs://* ]]; then
@@ -100,56 +117,27 @@ get_default_mem_size() {
   echo "${mem_size}MB"
 }
 
-# Start the Alluxio server process
-start_alluxio() {
-  if [[ "${ROLE}" == "Master" ]]; then
-    ${ALLUXIO_HOME}/bin/alluxio formatMaster
-    systemctl restart alluxio-master alluxio-job-master
+####################
+# Task functions #
+####################
 
-    local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
-    local path_delimiter=";"
-    if [[ "${sync_list}" ]]; then
-      IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
-      for path in "${paths[@]}"; do
-        ${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}
-      done
-    fi
-  else
-    if [[ $(get_alluxio_property alluxio.worker.tieredstore.level0.alias) == "MEM" ]]; then
-      ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
-    fi
-    ${ALLUXIO_HOME}/bin/alluxio formatWorker
-    systemctl restart alluxio-worker alluxio-job-worker
+# Configure client applications
+expose_alluxio_client_jar() {
+  sudo mkdir -p "${SPARK_HOME}/jars/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${SPARK_HOME}/jars/alluxio-client.jar"
+  sudo mkdir -p "${HIVE_HOME}/lib/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HIVE_HOME}/lib/alluxio-client.jar"
+  sudo mkdir -p "${HADOOP_HOME}/lib/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HADOOP_HOME}/lib/alluxio-client.jar"
+  if [[ "${ROLE}" == "Master" ]]; then
+    systemctl restart hive-metastore hive-server2
   fi
+  sudo mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
+  sudo ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
+  systemctl restart presto || echo "Presto service cannot be restarted"
 }
 
-# Download the Alluxio tarball and untar to ALLUXIO_HOME
-bootstrap_alluxio() {
-  # Download the Alluxio tarball
-  mkdir ${ALLUXIO_HOME}
-  local download_url="${ALLUXIO_DOWNLOAD_URL}"
-  if [ -n "${ALLUXIO_DOWNLOAD_PATH}" ]; then
-    download_url=${ALLUXIO_DOWNLOAD_PATH}
-  fi
-  download_file "${download_url}"
-  local tarball_name=${download_url##*/}
-  tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
-  ln -s ${ALLUXIO_HOME}/client/alluxio-${ALLUXIO_VERSION}-client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
-
-  # Download files to /opt/alluxio/conf
-  local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)
-  local download_delimiter=";"
-  IFS="${download_delimiter}" read -ra files_to_be_downloaded <<< "${download_files_list}"
-  if [ "${#files_to_be_downloaded[@]}" -gt "0" ]; then
-    local filename
-    for file in "${files_to_be_downloaded[@]}"; do
-      filename="$(basename "${file}")"
-      download_file "${file}"
-      mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
-    done
-  fi
-
-  # Configure systemd services
+configure_alluxio_systemd_services() {
   if [[ "${ROLE}" == "Master" ]]; then
     # The master role runs 2 daemons: AlluxioMaster and AlluxioJobMaster
     # Service for AlluxioMaster JVM
@@ -159,7 +147,7 @@ Description=Alluxio Master
 After=default.target
 [Service]
 Type=simple
-User=root
+User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process master -c
 Restart=on-failure
@@ -174,7 +162,7 @@ Description=Alluxio Job Master
 After=default.target
 [Service]
 Type=simple
-User=root
+User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_master -c
 Restart=on-failure
@@ -191,7 +179,7 @@ Description=Alluxio Worker
 After=default.target
 [Service]
 Type=simple
-User=root
+User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process worker -c
 Restart=on-failure
@@ -206,7 +194,7 @@ Description=Alluxio Job Worker
 After=default.target
 [Service]
 Type=simple
-User=root
+User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_worker -c
 Restart=on-failure
@@ -215,33 +203,35 @@ WantedBy=multi-user.target
 EOF
     systemctl enable alluxio-job-worker
   fi
-  # Configure client applications
-  mkdir -p "${SPARK_HOME}/jars/"
-  ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${SPARK_HOME}/jars/alluxio-client.jar"
-  mkdir -p "${HIVE_HOME}/lib/"
-  ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HIVE_HOME}/lib/alluxio-client.jar"
-  mkdir -p "${HADOOP_HOME}/lib/"
-  ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${HADOOP_HOME}/lib/alluxio-client.jar"
-  if [[ "${ROLE}" == "Master" ]]; then
-    systemctl restart hive-metastore hive-server2
+}
+
+configure_alluxio_root_mount() {
+  local root_ufs_uri=$(/usr/share/google/get_metadata_value attributes/alluxio_root_ufs_uri)
+  if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
+    root_ufs_uri="hdfs://${MASTER_FQDN}:8020/"
   fi
-  mkdir -p "${PRESTO_HOME}/plugin/hive-hadoop2/"
-  ln -s "${ALLUXIO_HOME}/client/alluxio-client.jar" "${PRESTO_HOME}/plugin/hive-hadoop2/alluxio-client.jar"
-  systemctl restart presto || echo "Presto service cannot be restarted"
-
-  # Add ${ALLUXIO_HOME}/bin to PATH for all users
-  echo "export PATH=$PATH:${ALLUXIO_HOME}/bin" | sudo tee /etc/profile.d/alluxio.sh
-
-  # Optionally configure license
-  if [ -n "${ALLUXIO_LICENSE_BASE64}" ]; then
-    echo "${ALLUXIO_LICENSE_BASE64}" | base64 -d > ${ALLUXIO_HOME}/license.json
+  append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
+  if [[ "${root_ufs_uri}" = hdfs://* ]]; then
+    local -r hdfs_version=$(/usr/share/google/get_metadata_value attributes/alluxio_hdfs_version || true)
+    if [[ "${hdfs_version}" ]]; then
+      append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
+    fi
+    # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
+    core_site_location="/etc/hadoop/conf/core-site.xml"
+    hdfs_site_location="/etc/hadoop/conf/hdfs-site.xml"
+    if [[ -f "${ALLUXIO_HOME}/conf/core-site.xml" ]]; then
+      core_site_location="${ALLUXIO_HOME}/conf/core-site.xml"
+    fi
+    if [[ -f "${ALLUXIO_HOME}/conf/hdfs-site.xml" ]]; then
+      hdfs_site_location="${ALLUXIO_HOME}/conf/hdfs-site.xml"
+    fi
+    append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration "${core_site_location}:${hdfs_site_location}"
   fi
 }
 
 # Configure SSD if necessary and relevant alluxio-site.properties
 configure_alluxio_storage() {
   local -r mem_size=$(get_default_mem_size)
-  local -r owner="root"
   local -r ssd_capacity_usage=$(/usr/share/google/get_metadata_value attributes/alluxio_ssd_capacity_usage || true)
   local use_mem="true"
 
@@ -281,9 +271,9 @@ configure_alluxio_storage() {
     	  quota_p=$((path_cap * ssd_capacity_usage / 100))
     	  # if alluxio doesn't have permissions to write to this directory it will fail
     	  mnt_path+="/alluxio"
-    	  mkdir -p "${mnt_path}"
-    	  chown -R ${owner} "${mnt_path}"
-    	  chmod 777 "${mnt_path}"
+    	  sudo mkdir -p "${mnt_path}"
+    	  sudo chown -R alluxio:alluxio "${mnt_path}"
+    	  sudo chmod 777 "${mnt_path}"
     	  paths+="${mnt_path},"
     	  quotas+="${quota_p}MB,"
     	  medium_type+="SSD,"
@@ -291,7 +281,7 @@ configure_alluxio_storage() {
       paths="${paths::-1}"
       quotas="${quotas::-1}"
       medium_type="${medium_type::-1}"
-    
+
       use_mem=""
       append_alluxio_property alluxio.worker.tieredstore.level0.alias "SSD"
       append_alluxio_property alluxio.worker.tieredstore.level0.dirs.mediumtype "${medium_type}"
@@ -301,19 +291,62 @@ configure_alluxio_storage() {
   fi
 
   if [[ "${use_mem}" ]]; then
-    append_alluxio_property alluxio.worker.memory.size "${mem_size}"
+    append_alluxio_property alluxio.worker.ramdisk.size "${mem_size}"
     append_alluxio_property alluxio.worker.tieredstore.level0.alias "MEM"
     append_alluxio_property alluxio.worker.tieredstore.level0.dirs.path "/mnt/ramdisk"
   fi
 }
 
+# Download the Alluxio tarball and untar to ALLUXIO_HOME
+bootstrap_alluxio() {
+  # Download the Alluxio tarball
+  mkdir ${ALLUXIO_HOME}
+  local download_url="${ALLUXIO_DOWNLOAD_URL}"
+  if [ -n "${ALLUXIO_DOWNLOAD_PATH}" ]; then
+    download_url=${ALLUXIO_DOWNLOAD_PATH}
+  fi
+  download_file "${download_url}"
+  local tarball_name=${download_url##*/}
+  tar -zxf "${tarball_name}" -C ${ALLUXIO_HOME} --strip-components 1
+  ln -s ${ALLUXIO_HOME}/client/*client.jar ${ALLUXIO_HOME}/client/alluxio-client.jar
+
+  # Download files to /opt/alluxio/conf
+  local -r download_files_list=$(/usr/share/google/get_metadata_value attributes/alluxio_download_files_list || true)
+  local download_delimiter=";"
+  IFS="${download_delimiter}" read -ra files_to_be_downloaded <<< "${download_files_list}"
+  if [ "${#files_to_be_downloaded[@]}" -gt "0" ]; then
+    local filename
+    for file in "${files_to_be_downloaded[@]}"; do
+      filename="$(basename "${file}")"
+      download_file "${file}"
+      mv "${filename}" "${ALLUXIO_HOME}/conf/${filename}"
+    done
+  fi
+
+  # add alluxio user
+  id -u alluxio &>/dev/null || sudo useradd alluxio
+  # dataproc by default will install alluxio as user kafka
+  # change the user and group to alluxio
+  sudo chown -R alluxio:alluxio "${ALLUXIO_HOME}"
+  # Allow bash/all users to execute alluxio command
+  echo -e '#!/bin/bash\nexec /opt/alluxio/bin/alluxio $@' | sudo tee /usr/bin/alluxio
+  sudo chmod 755 /usr/bin/alluxio
+
+  configure_alluxio_systemd_services
+  expose_alluxio_client_jar
+
+  # Optionally configure license
+  if [ -n "${ALLUXIO_LICENSE_BASE64}" ]; then
+    echo "${ALLUXIO_LICENSE_BASE64}" | base64 -d > ${ALLUXIO_HOME}/license.json
+  fi
+}
+
 # Configure alluxio-site.properties
 configure_alluxio() {
-  cp ${ALLUXIO_HOME}/conf/alluxio-site.properties.template ${ALLUXIO_SITE_PROPERTIES}
+  doas alluxio "cp ${ALLUXIO_HOME}/conf/alluxio-site.properties.template ${ALLUXIO_SITE_PROPERTIES}"
   append_alluxio_property alluxio.master.hostname "${MASTER_FQDN}"
   append_alluxio_property alluxio.master.journal.type "UFS"
-  local -r root_ufs_uri=$(/usr/share/google/get_metadata_value attributes/alluxio_root_ufs_uri)
-  append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
+  configure_alluxio_root_mount
   configure_alluxio_storage
   append_alluxio_property alluxio.worker.tieredstore.levels "1"
   append_alluxio_property alluxio.master.security.impersonation.root.users "*"
@@ -332,6 +365,29 @@ configure_alluxio() {
       local value=${property#*"="}
       append_alluxio_property "${key}" "${value}"
     done
+  fi
+}
+
+# Start the Alluxio server process
+start_alluxio() {
+  if [[ "${ROLE}" == "Master" ]]; then
+    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatMaster"
+    systemctl restart alluxio-master alluxio-job-master
+
+    local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
+    local path_delimiter=";"
+    if [[ "${sync_list}" ]]; then
+      IFS="${path_delimiter}" read -ra paths <<< "${sync_list}"
+      for path in "${paths[@]}"; do
+        doas alluxio "${ALLUXIO_HOME}/bin/alluxio fs startSync ${path}"
+      done
+    fi
+  else
+    if [[ $(get_alluxio_property alluxio.worker.tieredstore.level0.alias) == "MEM" ]]; then
+      ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
+    fi
+    doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatWorker"
+    systemctl restart alluxio-worker alluxio-job-worker
   fi
 }
 

@@ -12,15 +12,16 @@ priority: 2
 ## Overview
 
 This section describes the basic setup to run Alluxio with a single master in a cluster.
-This is the simplest way to deploy Alluxio on a cluster, meanwhile this single master may also 
-become the single point of failure (SPOF) in an Alluxio cluster.
-If that machine or process becomes unavailable, the cluster as a whole would become unavailable.
+This is the simplest way to deploy Alluxio on a cluster.
+Deploying with only a single master also allows it to become the single point of failure (SPOF) in
+an Alluxio cluster.
+If the master machine or process becomes unavailable, the entire cluster would become unavailable.
 To deploy Alluxio in production, we highly recommend running Alluxio masters in
 [High Availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode.
 
 ## Prerequisites
 
-* To deploy a Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled
+* To deploy an Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled
   Alluxio binary file, extract the tarball with the below command, and copy the extracted 
   directory to all nodes (including nodes running masters and workers).
   
@@ -28,13 +29,13 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   $ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
   ```
   
-* Enable SSH login without password from master node to worker nodes.
+* Enable SSH login without password from the master node to worker nodes.
   You can add a public SSH key for the host into `~/.ssh/authorized_keys`.
   See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed.
-  For basic functionality make sure RPC port (default :19998) is open on all nodes.
+  For basic functionality, make sure RPC port (default:19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
-  This is only needed if you expect Alluxio to automatically mount a RAMFS on the workers.
+  This is only needed if you expect Alluxio to mount a RAMFS on the workers automatically.
 
 ## Basic Setup
 
@@ -56,7 +57,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
   `alluxio.master.hostname=1.2.3.4` or `alluxio.master.hostname=node1.a.com`.
 - The second property `alluxio.master.mount.table.root.ufs` sets to the URI of the under store to
   mount to the Alluxio root.
-  This shared shared storage system must be accessible by the master node and all worker nodes.
+  This shared storage system must be accessible by the master node and all worker nodes.
   Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, or 
   `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
 
@@ -72,7 +73,7 @@ This command will copy the `conf/` directory to all the workers specified in the
 file.
 Once this command succeeds, all the Alluxio nodes will be correctly configured.
 
-This is the minimal configuration to start Alluxio, but additional configuration may be added.
+It is the minimal configuration to start Alluxio, and the additional configurations may be added.
 
 ## Start an Alluxio Cluster
 
@@ -180,7 +181,8 @@ On any master node, format the Alluxio journal with the following command:
 $ ./bin/alluxio formatMaster
 ```
 
-Formatting the journal will delete all metadata from Alluxio. However, the data in under storage will be untouched.
+Formatting the journal will delete all metadata from Alluxio.
+However, the data in under storage will be untouched.
 
 ### Add/Remove Workers Dynamically
 
@@ -203,7 +205,7 @@ Removing a worker is as simple as stopping the worker process.
 $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
-Once the worker is stopped,the master will flag the worker as lost after a predetermined timeout 
+Once the worker is stopped, the master will flag the worker as lost after a predetermined timeout 
 value (configured by master parameter `alluxio.master.worker.timeout`).
 The master will consider the worker as "lost", and no longer include it as part of the cluster.
 
@@ -218,5 +220,7 @@ and then [restart the service](#restart-alluxio).
 
 If you only need to update some local configuration for a worker (e.g., change the mount
 of storage capacity allocated to this worker or update the storage directory), the master node does
-not need to be stopped and restarted. One can simply stop the local worker, update the configuration
-(e.g., `conf/alluxio-site.properties`) file on this worker, and then restart the worker.
+not need to be stopped and restarted.
+Simply stop the desired worker, update the configuration
+(e.g., `conf/alluxio-site.properties`) file on that node, and then restart the process.
+

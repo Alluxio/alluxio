@@ -47,6 +47,25 @@ fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 
 执行完以上步骤后，Alluxio应该已经配置GCS作为其底层文件系统，然后你可以尝试[使用GCS本地运行Alluxio](#running-alluxio-locally-with-gcs).
 
+### 嵌套挂载点
+
+可以将GCS存储路径挂载到Alluxio命名空间中的一个嵌套目录，以便允许统一访问
+多个底层存储系统。 可用Alluxio的[命令行界面]({{ '/en/operation/User-CLI.html' | relativize_url }})来实现。
+
+首先，在`conf/alluxio-site.properties`中，指定master主机：
+
+```properties
+alluxio.master.hostname=localhost
+```
+
+然后，挂载GCS：
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
+  --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
+  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
+```
+
 ## 使用GCS本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。

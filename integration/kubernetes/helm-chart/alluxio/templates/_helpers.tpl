@@ -166,11 +166,11 @@ resources:
         {{- if contains "," .mediumtype }}
           {{- $type := .type }}
           {{- $path := .path }}
-          {{- $split := split "," .mediumtype }}
-          {{- range $key, $val := $split }}
+          {{- $parts := splitList "," .mediumtype }}
+          {{- range $i, $val := $parts }}
             {{- /* Example: For path="/tmp/mem,/tmp/ssd", mountPath resolves to /tmp/mem and /tmp/ssd */}}
-            - mountPath: {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ replace $key "_" "" }}
+            - mountPath: {{ index ($path | splitList ",") $i }}
+              name: {{ $val | lower }}-{{ $i }}
           {{- end}}
         {{- /* The mediumtype is a single value. */}}
         {{- else}}
@@ -195,24 +195,24 @@ resources:
       {{- if .mediumtype }}
         {{- /* The mediumtype can have multiple parts like MEM,SSD */}}
         {{- if contains "," .mediumtype }}
-          {{- $split := split "," .mediumtype }}
+          {{- $parts := splitList "," .mediumtype }}
           {{- $type := .type }}
           {{- $path := .path }}
           {{- $volumeName := .name }}
           {{- /* A volume will be generated for each part */}}
-          {{- range $key, $val := $split }}
+          {{- range $i, $val := $parts }}
             {{- /* Example: For mediumtype="MEM,SSD", mediumName resolves to mem-0 and ssd-1 */}}
-            {{- $mediumName := printf "%v-%v" (lower $val) (replace $key "_" "") }}
+            {{- $mediumName := printf "%v-%v" (lower $val) $i }}
             {{- if eq $type "hostPath"}}
         - hostPath:
-            path: {{ index ($path | split ",") $key }}
+            path: {{ index ($path | splitList ",") $i }}
             type: DirectoryOrCreate
           name: {{ $mediumName }}
             {{- else if eq $type "persistentVolumeClaim" }}
         - name: {{ $mediumName }}
           persistentVolumeClaim:
             {{- /* Example: For volumeName="/tmp/mem,/tmp/ssd", claimName resolves to /tmp/mem and /tmp/ssd */}}
-            claimName: {{ index ($volumeName | split ",") $key }}
+            claimName: {{ index ($volumeName | splitList ",") $i }}
             {{- else }}
         - name: {{ $mediumName }}
           emptyDir:
@@ -272,32 +272,32 @@ resources:
 
 {{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+    port: {{ index . "port" }}
 {{- end -}}
 
 {{- define "alluxio.jobMaster.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+    port: {{ index . "port" }}
 {{- end -}}
 
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
 {{- end -}}
 
 {{- define "alluxio.jobWorker.readinessProbe" -}}
 readinessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "master"]
+  tcpSocket:
+    port: {{ index . "port" }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -306,8 +306,8 @@ livenessProbe:
 
 {{- define "alluxio.jobMaster.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_master"]
+  tcpSocket:
+    port: {{ index . "port" }}
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -316,8 +316,8 @@ livenessProbe:
 
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "worker"]
+  tcpSocket:
+    port: rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -326,8 +326,8 @@ livenessProbe:
 
 {{- define "alluxio.jobWorker.livenessProbe" -}}
 livenessProbe:
-  exec:
-    command: ["alluxio-monitor.sh", "job_worker"]
+  tcpSocket:
+    port: job-rpc
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5

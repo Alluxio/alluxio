@@ -19,10 +19,11 @@ import alluxio.exception.PageNotFoundException;
 public interface MetaStore {
 
   /**
+   * @param evictor cache evictor
    * @return an instance of MetaStore
    */
-  static MetaStore create() {
-    return new DefaultMetaStore();
+  static MetaStore create(CacheEvictor evictor) {
+    return new DefaultMetaStore(evictor);
   }
 
   /**
@@ -66,4 +67,9 @@ public interface MetaStore {
    * Resets the meta store.
    */
   void reset();
+
+  /**
+   * @return a page to evict
+   */
+  PageInfo evict();
 }

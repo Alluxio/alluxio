@@ -97,17 +97,36 @@ The default target value is all masters and workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
+For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
 ```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
+$ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
+And the following command returns the log level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` among all the workers:
 ```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
+$ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem --target=workers
+```
+
+You can also update the log level at a package level.
+For example, you can update the log level of all classes in `alluxio.underfs` package with the following command:
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.underfs --target=workers --level=DEBUG
+```
+This works because log4j loggers will inherit the log level from their ancestors.
+In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level if it is set on `alluxio.underfs`
+ or `alluxio.underfs.hdfs`.
+
+Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
+in a running cluster, and turn it off when you are done.
+```console
+# Turn on Alluxio debug logging and start debugging
+$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=DEBUG
+
+# Turn off Alluxio debug logging when you are done
+$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=INFO
 ```
 
 For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`

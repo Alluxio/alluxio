@@ -175,7 +175,7 @@ public class S3ALowLevelOutputStreamTest {
    */
   private void mockFileAndOutputStream() throws Exception {
     File file = Mockito.mock(File.class);
-    PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(file);
+    PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(file);
 
     mMockOutputStream = PowerMockito.mock(BufferedOutputStream.class);
     PowerMockito.whenNew(BufferedOutputStream.class)

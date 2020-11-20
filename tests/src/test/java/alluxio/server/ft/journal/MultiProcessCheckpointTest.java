@@ -60,7 +60,7 @@ public class MultiProcessCheckpointTest {
           new URI(journal));
       cluster.stopMasters();
       cluster.startMasters();
-      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+      cluster.waitForAllNodesRegistered(40 * Constants.SECOND_MS);
       fs = cluster.getFileSystemClient();
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
       assertEquals(numFiles + 1, (long) metricsClient.getMetrics()

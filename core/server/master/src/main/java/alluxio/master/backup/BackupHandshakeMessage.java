@@ -11,12 +11,13 @@
 
 package alluxio.master.backup;
 
+import alluxio.master.transport.GrpcMessagingConnection;
+
 import com.google.common.base.MoreObjects;
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Connection;
 
 /**
  * The backup message used for introducing backup-worker to leader.
@@ -26,7 +27,7 @@ public class BackupHandshakeMessage implements CatalystSerializable {
   private String mBackupWorkerHostname;
 
   /** Used to attach connection to message when arrived at the target. */
-  private Connection mConnection;
+  private GrpcMessagingConnection mConnection;
 
   /**
    * Empty constructor as per deserialization requirement.
@@ -54,14 +55,14 @@ public class BackupHandshakeMessage implements CatalystSerializable {
   /**
    * @param connection connection from which this message is coming from
    */
-  public void setConnection(Connection connection) {
+  public void setConnection(GrpcMessagingConnection connection) {
     mConnection = connection;
   }
 
   /**
    * @return connection from which this message is coming from
    */
-  public Connection getConnection() {
+  public GrpcMessagingConnection getConnection() {
     return mConnection;
   }
 

@@ -15,12 +15,14 @@ You can invoke the following command line utility to get all the subcommands:
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
-       [backup]
-       [checkpoint]
-       [doctor [category]]
-       [report]
-       [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
-       ...
+	 [backup [directory] [--local]]                            
+	 [doctor [category]]                                       
+	 [getBlockInfo [blockId]]                                  
+	 [journal [checkpoint] [quorum]]                           
+	 [metrics [clear]]                                         
+	 [pathConf [add] [show] [list] [remove]]                   
+	 [report [category] [category args]]                       
+	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>] 
 ```
 
 ## Operations
@@ -33,21 +35,26 @@ Back up to the default backup folder `/alluxio_backups` of the root under storag
 This default backup directory can be configured by setting `alluxio.master.backup.directory`. 
 ```
 ./bin/alluxio fsadmin backup
-Successfully backed up journal to hdfs://host:port/alluxio_backups/alluxio-backup-2018-5-29-1527644810.gz
+Backup Host        : masters-1                          
+Backup URI         : hdfs://masters-1:9000/alluxio_backups/alluxio-backup-2020-10-13-1602619110769.gz
+Backup Entry Count : 4
 ```
 Note that the user running the `backup` command need to have write permission to the backup folder of root under storage system.
 
 Back up to a specific directory in the root under storage system.
 ```
 ./bin/alluxio fsadmin backup /alluxio/special_backups
-Successfully backed up journal to hdfs://host:port/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
+Backup Host        : masters-1                          
+Backup URI         : hdfs://masters-1:9000/alluxio/special_backups/alluxio-backup-2020-10-13-1602619216699.gz
+Backup Entry Count : 4
 ```
 
 Back up to a specific directory on the leading master's local filesystem.
 ```
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
-Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
-```
+Backup Host        : AlluxioSandboxEJSC-masters-1                          
+Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-1602619298086.gz
+Backup Entry Count : 4```
 
 ### journal
 The `journal` command provides several sub-commands for journal management.
@@ -244,20 +251,26 @@ hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not sh
 `report jobservice` will report a summary of the job service.
 
 ```console
-$ ./bin/alluxio fsadmin report jobservice
-Status: CREATED   Count: 0
+$ bin/alluxio fsadmin report jobservice
+Worker: MigrationTest-workers-2  Task Pool Size: 10     Unfinished Tasks: 1303   Active Tasks: 10     Load Avg: 1.08, 0.64, 0.27
+Worker: MigrationTest-workers-3  Task Pool Size: 10     Unfinished Tasks: 1766   Active Tasks: 10     Load Avg: 1.02, 0.48, 0.21
+Worker: MigrationTest-workers-1  Task Pool Size: 10     Unfinished Tasks: 1808   Active Tasks: 10     Load Avg: 0.73, 0.5, 0.23
+
+Status: CREATED   Count: 4877
 Status: CANCELED  Count: 0
 Status: FAILED    Count: 1
-Status: RUNNING   Count: 118
-Status: COMPLETED Count: 223
+Status: RUNNING   Count: 0
+Status: COMPLETED Count: 8124
 
 10 Most Recently Modified Jobs:
-Timestamp: 10-24-2019 17:15:25:014       Id: 1571936656844       Name: Persist             Status: COMPLETED
-Timestamp: 10-24-2019 17:15:24:340       Id: 1571936656957       Name: Persist             Status: RUNNING
+Timestamp: 10-28-2020 22:02:34:001       Id: 1603922371976       Name: Persist             Status: COMPLETED
+Timestamp: 10-28-2020 22:02:34:001       Id: 1603922371982       Name: Persist             Status: COMPLETED
 (only a subset of the results is shown)
 
 10 Most Recently Failed Jobs:
-Timestamp: 10-24-2019 17:15:22:946       Id: 1571936656839       Name: Persist             Status: FAILED
+Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist             Status: FAILED
+
+10 Longest Running Jobs:
 ```
 
 ### ufs

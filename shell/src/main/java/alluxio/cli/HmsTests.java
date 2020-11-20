@@ -30,10 +30,6 @@ import java.util.Map;
  */
 public class HmsTests {
   private static final String HELP_OPTION_NAME = "h";
-  private static final String METASTORE_URI_OPTION_NAME = "m";
-  private static final String DATABASE_OPTION_NAME = "d";
-  private static final String TABLES_OPTION_NAME = "t";
-  private static final String SOCKET_TIMEOUT_OPTION_NAME = "st";
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -43,26 +39,26 @@ public class HmsTests {
           .build();
 
   private static final Option METASTORE_URI_OPTION =
-      Option.builder(METASTORE_URI_OPTION_NAME)
+      Option.builder(ValidationConfig.METASTORE_URI_OPTION_NAME)
           .required(true)
           .hasArg(true)
           .desc("Uri(s) to connect to hive metastore.")
           .build();
 
   private static final Option DATABASE_OPTION =
-      Option.builder(DATABASE_OPTION_NAME)
+      Option.builder(ValidationConfig.DATABASE_OPTION_NAME)
           .required(false)
           .hasArg(true)
           .desc("Database to run tests against.")
           .build();
   private static final Option TABLES_OPTION =
-      Option.builder(TABLES_OPTION_NAME)
+      Option.builder(ValidationConfig.TABLES_OPTION_NAME)
           .required(false)
           .hasArg(true)
           .desc("Tables to run tests against. Multiple tables should be separated with comma.")
           .build();
   private static final Option SOCKET_TIMEOUT_OPTION =
-      Option.builder(SOCKET_TIMEOUT_OPTION_NAME)
+      Option.builder(ValidationConfig.SOCKET_TIMEOUT_OPTION_NAME)
           .required(false)
           .hasArg(true)
           .desc("Socket timeout of hive metastore client in minutes. "
@@ -99,10 +95,11 @@ public class HmsTests {
       printUsage();
       return;
     }
-    String metastoreUri = cmd.getOptionValue(METASTORE_URI_OPTION_NAME);
-    String database = cmd.getOptionValue(DATABASE_OPTION_NAME, "");
-    String tables = cmd.getOptionValue(TABLES_OPTION_NAME, "");
-    int socketTimeout = Integer.parseInt(cmd.getOptionValue(SOCKET_TIMEOUT_OPTION_NAME, "-1"));
+    String metastoreUri = cmd.getOptionValue(ValidationConfig.METASTORE_URI_OPTION_NAME);
+    String database = cmd.getOptionValue(ValidationConfig.DATABASE_OPTION_NAME, "");
+    String tables = cmd.getOptionValue(ValidationConfig.TABLES_OPTION_NAME, "");
+    int socketTimeout = Integer.parseInt(cmd
+        .getOptionValue(ValidationConfig.SOCKET_TIMEOUT_OPTION_NAME, "-1"));
 
     ValidationToolRegistry registry
         = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
@@ -116,7 +113,7 @@ public class HmsTests {
     configMap.put(ValidationConfig.SOCKET_TIMEOUT_CONFIG_NAME, socketTimeout);
 
     ValidationTool tests = registry.create(ValidationConfig.HMS_TOOL_TYPE, configMap);
-    String result = tests.runTests();
+    String result = ValidationTool.toJson(ValidationTool.convertResults(tests.runAllTests()));
     System.out.println(result);
     if (result.contains(ValidationUtils.State.FAILED.toString())) {
       System.exit(-1);

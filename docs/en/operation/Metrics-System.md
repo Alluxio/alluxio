@@ -151,9 +151,17 @@ For more details about the metric types, please refer to [the metrics library do
 ## Master Web UI Metrics
 
 Besides the raw metrics shown via metrics servlet or custom metrics configuration,
-users can view more human-readable metrics stored in the leading master via leading master web UI metrics page.
+users can track key cluster performance metrics in a more human-readable way in the web interface of 
+Alluxio leading master (`http://<leading_master_host>:19999/metrics`).
 
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
+
+The web page includes the following information:
+* Timeseries for Alluxio space and root UFS space percentage usage information
+* Timeseries for aggregated cluster throughput which is essential for determining the effectiveness of the Alluxio cache
+* Cumulative RPC invocations and operations performed by the Alluxio cluster
+* Cumulative API calls served per mount point that can served as a strong metric for quantifying the latency 
+ and potential cost savings provided by Alluxio's namespace virtualization
 
 The nickname and original metric name corresponding are shown:
 
@@ -174,6 +182,10 @@ Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/referenc
 `Mounted Under FileSystem Write` shows the `cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 
 `Logical Operations` and `RPC Invocations` present parts of the [master metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#master-metrics).
+
+`Saved Under FileSystem Operations` shows the operations fulfilled by Alluxio's namespace directly
+without accessing UFSes. Performance improvement can be significant if the target UFS is remote or slow in response.
+Costs can be saved if the underlying storage charges based on requests.
 
 ## References
 

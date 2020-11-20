@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.4.0-SNAPSHOT</version>
+  <version>2.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -117,6 +117,17 @@
       </snapshots>
     </repository>
     <repository>
+      <id>bintray-repo</id>
+      <name>bintray</name>
+      <url>https://jcenter.bintray.com</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
@@ -127,31 +138,33 @@
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <copycat.version>1.2.15</copycat.version>
+    <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
-    <netty.version>4.1.45.Final</netty.version>
+    <netty.version>4.1.51.Final</netty.version>
     <rocksdb.version>5.15.10</rocksdb.version>
-    <hadoop.version>2.7.3</hadoop.version>
+    <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
+    <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.29.1</jersey.version>
-    <jetty.version>9.4.28.v20200408</jetty.version>
-    <junit.version>4.12</junit.version>
-    <log4j.version>1.2.17</log4j.version>
+    <jetty.version>9.4.31.v20200723</jetty.version>
+    <junit.version>4.13</junit.version>
+    <log4j.version>2.13.3</log4j.version>
     <maven.version>3.3.9</maven.version>
-    <metrics.version>3.1.2</metrics.version>
-    <orc.version>1.6.2</orc.version>
-    <oshi.version>4.2.0</oshi.version>
-    <powermock.version>1.6.2</powermock.version>
+    <metrics.version>4.1.11</metrics.version>
+    <orc.version>1.6.3</orc.version>
+    <oshi.version>5.3.5</oshi.version>
+    <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>27.0.1-jre</guava.version>
-    <parquet.version>1.10.0</parquet.version>
-    <protobuf.version>3.11.0</protobuf.version>
+    <guava.version>29.0-jre</guava.version>
+    <parquet.version>1.11.0</parquet.version>
+    <protobuf.version>3.12.4</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <slf4j.version>1.7.2</slf4j.version>
-    <jackson.version>2.10.1</jackson.version>
-    <ozone.version>0.5.0-beta</ozone.version>
+    <ratis.version>1.0.0</ratis.version>
+    <slf4j.version>1.7.30</slf4j.version>
+    <jackson.version>2.11.1</jackson.version>
+    <ozone.version>1.0.0</ozone.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -161,6 +174,7 @@
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
+    <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
   </properties>
 
   <modules>
@@ -201,7 +215,7 @@
       <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
-        <version>1.48</version>
+        <version>1.78</version>
       </dependency>
       <dependency>
         <groupId>com.esotericsoftware</groupId>
@@ -234,16 +248,14 @@
         <version>0.5.3</version>
       </dependency>
       <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.8.6</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
-      </dependency>
-      <dependency>
-        <!-- using older version to match dependency version from Hadoop -->
-        <groupId>com.google.inject</groupId>
-        <artifactId>guice</artifactId>
-        <version>3.0</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.google.protobuf</groupId>
@@ -253,7 +265,12 @@
       <dependency>
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
-        <version>0.4</version>
+        <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>${jaxb.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
@@ -266,24 +283,14 @@
         <version>1.13</version>
       </dependency>
       <dependency>
-        <groupId>commons-httpclient</groupId>
-        <artifactId>commons-httpclient</artifactId>
-        <version>3.1</version>
-      </dependency>
-      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>2.6</version>
+        <version>2.7</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.1.1</version>
+        <version>1.2</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
@@ -303,6 +310,11 @@
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-json</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jmx</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
@@ -375,12 +387,12 @@
       <dependency>
         <groupId>io.swagger</groupId>
         <artifactId>swagger-annotations</artifactId>
-        <version>1.5.22</version>
+        <version>1.6.2</version>
       </dependency>
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.0.1</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>2.1.6</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -388,13 +400,18 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
-        <groupId>jline</groupId>
+        <groupId>org.jline</groupId>
         <artifactId>jline</artifactId>
-        <version>2.14.6</version>
+        <version>3.16.0</version>
       </dependency>
       <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
@@ -410,7 +427,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.4</version>
+        <version>3.11</version>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
@@ -452,15 +469,15 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${jaxb.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minicluster</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
@@ -521,12 +538,12 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.3</version>
+        <version>4.5.11</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.6</version>
+        <version>4.4.13</version>
       </dependency>
       <dependency>
         <groupId>org.apache.orc</groupId>
@@ -544,26 +561,9 @@
         <version>${parquet.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-server</artifactId>
-        <version>${copycat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-client</artifactId>
-        <version>${copycat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.mesos</groupId>
-        <artifactId>mesos</artifactId>
-        <version>0.23.0</version>
-        <exclusions>
-          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-transport</artifactId>
+        <version>${catalyst.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.sling</groupId>
@@ -573,7 +573,14 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.8</version>
+        <!-- conflicts with netty-all -->
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -635,11 +642,6 @@
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with javax.ws.rs:javax.ws.rs-api -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
           <exclusion>
             <groupId>com.sun.jersey</groupId>
@@ -660,7 +662,7 @@
       <dependency>
         <groupId>org.javaswift</groupId>
         <artifactId>joss</artifactId>
-        <version>0.9.10</version>
+        <version>0.10.4</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
@@ -678,9 +680,19 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-server</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-grpc</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
       </dependency>
 
       <!-- Test scope -->
@@ -727,13 +739,13 @@
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.10.19</version>
+        <artifactId>mockito-core</artifactId>
+        <version>3.4.4</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
+        <artifactId>powermock-api-mockito2</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
@@ -770,7 +782,7 @@
 
       <!-- Provided scope -->
       <!--
-         Dependency for FindBugs Plugin annotations.
+         Dependency for SpotBugs Plugin annotations.
          This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
          This library is a super set of com.google.code.findbugs:jsr305
          Note that this package can be unnecessary for runtime, and the
@@ -778,9 +790,9 @@
          but not be packaged into the jar.
        -->
       <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>annotations</artifactId>
-        <version>3.0.1</version>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-annotations</artifactId>
+        <version>4.0.4</version>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -789,23 +801,27 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- FindBugs and concurrency annotations. -->
+    <!-- Spotbugs and concurrency annotations. -->
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
     </dependency>
     <!-- System logging. -->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
 
     <!-- Dependencies in the test scope. -->
@@ -826,12 +842,12 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -877,7 +893,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>2.9</version>
+          <version>4.0.rc1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -914,8 +930,13 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.0.0-M1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4</version>
+          <version>3.0.0-M3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -956,7 +977,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19.1</version>
+          <version>2.22.2</version>
           <configuration>
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
@@ -970,6 +991,7 @@
               <jacoco-agent.append>true</jacoco-agent.append>
               <jacoco-agent.destfile>${build.path}/../target/jacoco-combined.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
@@ -989,9 +1011,17 @@
           <version>1.4.0</version>
         </plugin>
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>2.7</version>
+          <configuration>
+            <generateBackupPoms>false</generateBackupPoms>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12.2</version>
+          <version>4.0.4</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1007,7 +1037,7 @@
         <plugin>
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.1.7</version>
           <executions>
             <execution>
               <phase>compile</phase>
@@ -1080,7 +1110,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
-        <version>1.4</version>
+        <version>3.0.0-M3</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -1301,15 +1331,8 @@
     <profile>
       <id>hadoop-3</id>
       <properties>
-        <hadoop.version>3.0.0</hadoop.version>
+        <hadoop.version>3.3.0</hadoop.version>
       </properties>
-    </profile>
-
-    <profile>
-      <id>mesos</id>
-      <modules>
-        <module>integration/mesos</module>
-      </modules>
     </profile>
 
     <!-- Requires hadoop.version to be 2.4.0 or later -->
@@ -1326,7 +1349,7 @@
         <jdk>11</jdk>
       </activation>
       <properties>
-        <java.version>11</java.version>
+        <java.version>1.8</java.version>
       </properties>
       <dependencyManagement>
         <dependencies>
@@ -1346,6 +1369,13 @@
               <source>8</source>
             </configuration>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>--add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -1355,10 +1385,9 @@
       <id>developer</id>
       <modules>
         <module>integration/yarn</module>
-        <module>integration/mesos</module>
       </modules>
       <properties>
-        <hadoop.version>2.6.0</hadoop.version>
+        <hadoop.version>3.3.0</hadoop.version>
       </properties>
     </profile>
 
@@ -1469,6 +1498,20 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <properties>
+        <!--
+            The maven shade plugin has a bug where enabling the `createDependencyReducedPom`
+            property causes maven to go into an infinite loop (MSHADE-148). This is only an
+            issue for the Alluxio build if the maven version is 3.3.x or newer.
+            However, since disabling this property has the side effect of not resolving
+            variables in the released pom files, we need to enable this during
+            releases.
+        -->
+        <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
+      </properties>
     </profile>
   </profiles>
 </project>

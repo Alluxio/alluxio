@@ -61,16 +61,6 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 - 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
 - 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
-### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
-
-解决办法: 可按照[EC2上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-EC2.html' | relativize_url }})提示操作。
-
-典型问题:
-
-- 请确定 AWS access keys 和 Key Pairs 已安装
-- 如果底层文件存储系统是S3，检查 `ufs.yml`文件中的S3 bucket名称是否为已存在的bucket的名称，不包括`s3://` 、`s3a://`或者`s3n://`前缀
-- 如果不能访问UI，检查安全组是否限制了端口19999
-
 ## ALLuxio使用常见问题
 
 ### 问题：出现“No FileSystem for scheme: alluxio”这种错误信息是什么原因？
@@ -134,7 +124,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用�
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})获取更多信息。
-- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
+- 通过改变`alluxio.worker.ramdisk.size`属性值增加worker节点可用内存的容量，查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
 
 ### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
 

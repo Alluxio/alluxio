@@ -108,7 +108,7 @@ public final class AlluxioBlockStoreTest {
    * A mock class used to return controlled result when selecting workers.
    */
   @ThreadSafe
-  private static class MockBlockLocationPolicy implements BlockLocationPolicy {
+  public static class MockBlockLocationPolicy implements BlockLocationPolicy {
     private List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;
 
@@ -231,7 +231,7 @@ public final class AlluxioBlockStoreTest {
         .thenAnswer(new Answer() {
           public Object answer(InvocationOnMock invocation) {
             StreamObserver<CreateLocalBlockResponse> observer =
-                invocation.getArgumentAt(0, StreamObserver.class);
+                invocation.getArgument(0, StreamObserver.class);
             observer.onNext(response);
             return mStreamObserver;
           }
@@ -268,7 +268,7 @@ public final class AlluxioBlockStoreTest {
         .thenAnswer(new Answer() {
           public Object answer(InvocationOnMock invocation) {
             StreamObserver<CreateLocalBlockResponse> observer =
-                invocation.getArgumentAt(0, StreamObserver.class);
+                invocation.getArgument(0, StreamObserver.class);
             observer.onNext(response);
             return mStreamObserver;
           }
@@ -347,7 +347,7 @@ public final class AlluxioBlockStoreTest {
     // Mock away gRPC usage.
     OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
     when(mWorkerClient.openLocalBlock(any(StreamObserver.class))).thenAnswer(invocation -> {
-      mResponseObserver = invocation.getArgumentAt(0, StreamObserver.class);
+      mResponseObserver = invocation.getArgument(0, StreamObserver.class);
       return mStreamObserver;
     });
     doAnswer(invocation -> {
@@ -466,7 +466,7 @@ public final class AlluxioBlockStoreTest {
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     BlockLocationPolicy mockPolicy = mock(BlockLocationPolicy.class);
     when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
-        .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
+        .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
@@ -505,7 +505,7 @@ public final class AlluxioBlockStoreTest {
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     BlockLocationPolicy mockPolicy = mock(BlockLocationPolicy.class);
     when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
-        .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
+        .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);

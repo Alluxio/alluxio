@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -98,5 +100,14 @@ public final class CompositeConfig implements WorkflowConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    final ArrayList<String> paths = new ArrayList<>();
+    for (JobConfig job : mJobs) {
+      paths.addAll(job.affectedPaths());
+    }
+    return Collections.unmodifiableList(paths);
   }
 }

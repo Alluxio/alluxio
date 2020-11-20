@@ -27,12 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,6 +83,34 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       asyncUpdateFileAccessTime(path);
     }
     return status;
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+
+    if (options.getRecursive()) {
+      // Do not cache results of recursive list status,
+      // because some results might be cached multiple times.
+      // Otherwise, needs more complicated logic inside the cache,
+      // that might not worth the effort of caching.
+      super.iterateStatus(path, options, action);
+      return;
+    }
+
+    List<URIStatus> cachedStatuses = mMetadataCache.listStatus(path);
+    if (cachedStatuses == null) {
+      List<URIStatus> statuses = new ArrayList<>();
+      super.iterateStatus(path, options, status -> {
+        statuses.add(status);
+        action.accept(status);
+      });
+      mMetadataCache.put(path, statuses);
+      return;
+    }
+    cachedStatuses.forEach(action);
   }
 
   @Override

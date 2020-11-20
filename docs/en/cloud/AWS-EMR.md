@@ -17,9 +17,9 @@ AWS EMR provides great options for running clusters on-demand to handle compute 
 It manages the deployment of various Hadoop Services and allows for hooks into these services for
 customizations.
 Alluxio can run on EMR to provide functionality above what EMRFS currently provides.
-Aside from the added performance benefits of caching, Alluxio also enables users to run compute 
-workloads against on-premise storage or even a different cloud provider's storage i.e. GCS, Azure
-Blob Store.
+Aside from the added performance benefits of caching, Alluxio enables users to run compute
+workloads against on-premise storage or a different cloud provider's storage such as GCS and
+Azure Blob Store.
 
 ## Prerequisites
 
@@ -27,13 +27,13 @@ Blob Store.
 * IAM Account with the default EMR Roles
 * Key Pair for EC2
 * An S3 Bucket
-* AWS CLI: Make sure that the AWS CLI is set up and ready with the required AWS Access/Secret key
+* AWS CLI: configured with your AWS access key id and secret access key
 
 The majority of the pre-requisites can be found by going through the
 [AWS EMR Getting Started](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-gs.html) guide.
 An S3 bucket is needed as Alluxio's root Under File System and to serve as the location for the
 bootstrap script.
-If required, the root UFS can be reconfigured to be HDFS.
+If desired, the root UFS can be configured to be HDFS or any other supported under storage.
 
 ## Basic Setup
 
@@ -112,14 +112,19 @@ Use `hadoop` as the username.
 $ ssh -i /path/to/keypair.pem hadoop@<masterPublicDns>
 ```
 
-If a security group isn't specified in the `create-cluster` command,
-the default EMR security group created for you will **not** allow inbound SSH.
-In order to continue, you will need to edit the security group and open port 22.
-See more details [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access).
+Note that in the example `create-cluster` command, a security group was not specified,
+so a security group is automatically created for the new cluster.
+This security group is **not** configured to allow inbound SSH.
+In order for the above SSH command to work, edit the `ElasticMapReduce-master`
+security group in the EC2 console, adding an inbound rule for port 22 with source `0.0.0.0/0`.
+Read [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access)
+for more details.
 
   {% endcollapsible %}
   {% collapsible Test that Alluxio is running %}
-Once inside the master instance, run the following command to run a series of basic tests to ensure Alluxio can read and write files.
+Once inside the master instance, run the following command to run a series of basic tests to ensure
+Alluxio can read and write files.
+
 ```console
 $ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
 ```
@@ -137,11 +142,13 @@ By default, the Alluxio worker is allocated one third of the instance's maximum 
 
 ## Creating a Table
 
-The simplest step to using EMR with Alluxio is to create a table on Alluxio and query it using Presto/Hive.
+The simplest step to using EMR with Alluxio is to create a table on Alluxio and query it using
+Presto/Hive.
 
 {% accordion table %}
   {% collapsible SSH into the master node %}
-From your terminal, SSH into the master instance using the key pair provided in the `create-cluster` command.
+From your terminal, SSH into the master instance using the key pair provided in the `create-cluster`
+command.
 ```console
 $ ssh -i /path/to/keypair.pem hadoop@<masterPublicDns>
 ```
@@ -164,7 +171,8 @@ Open the Hive CLI.
 $ hive
 ```
 
-Create a database, then check in the [Glue console](https://console.aws.amazon.com/glue/home) to see if the database is created.
+Create a database, then check in the [Glue console](https://console.aws.amazon.com/glue/home) to see
+if the database is created.
 ```sql
 CREATE DATABASE glue;
 ```
@@ -184,7 +192,7 @@ LOCATION 'alluxio:///testTable';
 
 Exit the Hive CLI.
 ```console
-$ exit
+$ exit;
 ```
 
   {% endcollapsible %}
@@ -228,28 +236,32 @@ In the above example, we used the `-p` and `-s` flags to specify additional Allu
 and the delimiting string between properties.
 ```
 Usage: alluxio-emr.sh <root-ufs-uri>
-                             [-b <backup_uri>]
-                             [-d <alluxio-download-uri>]
-                             [-f <file_uri>]
-                             [-i <journal_backup_uri>]
-                             [-n <storage percentage>]
-                             [-p <delimited_properties>]
-                             [-s <property_delimiter>]
-                             
+                      [-b <backup_uri>]
+                      [-c]
+                      [-d <alluxio_download_uri>]
+                      [-f <file_uri>]
+                      [-i <journal_backup_uri>]
+                      [-l <sync_list>]
+                      [-n <storage percentage>]
+                      [-p <delimited_properties>]
+                      [-s <delimiter>]
+                      [-v <hdfs_version>]
+
 alluxio-emr.sh is a script which can be used to bootstrap an AWS EMR cluster
 with Alluxio. It can download and install Alluxio as well as add properties
 specified as arguments to the script.
-  
+
 By default, if the environment this script executes in does not already contain
 an Alluxio install at ${ALLUXIO_HOME} then it will download, untar, and configure
 the environment at ${ALLUXIO_HOME}. If an install already exists at ${ALLUXIO_HOME},
 nothing will be installed over it, even if -d is specified.
-  
-If a specific Alluxio tarball is desired, see the -d option.
-  
-  <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio
-                    namespace.
-                    
+
+If a different Alluxio version is desired, see the -d option.
+
+  <root-ufs-uri>    (Required) The URI of the root UFS in the Alluxio namespace.
+                    If this is the string "LOCAL", the EMR HDFS root will be used
+                    as the root UFS.
+
   -b                An s3:// URI that the Alluxio master will write a backup
                     to upon shutdown of the EMR cluster. The backup and and
                     upload MUST be run within 60 seconds. If the backup cannot
@@ -257,42 +269,50 @@ If a specific Alluxio tarball is desired, see the -d option.
                     be uploaded. This option is not recommended for production
                     or mission critical use cases where the backup is relied
                     upon to restore cluster state after a previous shutdown.
-                    
+
+  -c                Install the alluxio client jars only.
 
   -d                An s3:// or http(s):// URI which points to an Alluxio
                     tarball. This script will download and untar the
                     Alluxio tarball and install Alluxio at ${ALLUXIO_HOME} if an
                     Alluxio installation doesn't already exist at that location.
-                    
 
   -f                An s3:// or http(s):// URI to any remote file. This property
                     can be specified multiple times. Any file specified through
                     this property will be downloaded and stored with the same
                     name to ${ALLUXIO_HOME}/conf/
-                    
 
   -i                An s3:// or http(s):// URI which represents the URI of a
                     previous Alluxio journal backup. If supplied, the backup
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
 
+  -l                A string containing a delimited list of Alluxio paths.
+                    Active sync will be enabled for the given paths. UFS
+                    metadata will be periodically synced with the Alluxio
+                    namespace. The delimiter by default is a semicolon ";". If a
+                    different delimiter is desired use the [-s] argument.
+
   -n                Automatically configure NVMe storage for Alluxio workers at
                     tier 0 instead of MEM. When present, the script will attempt
                     to locate mounted NVMe storage locations and configure them
                     to be used with Alluxio. The argument provided is an
                     integer between 1 and 100 that represents the percentage of
-                    each disk that will be allocated to Alluxio.                    
+                    each disk that will be allocated to Alluxio.
 
   -p                A string containing a delimited set of properties which
                     should be added to the
                     ${ALLUXIO_HOME}/conf/alluxio-site.properties file. The
                     delimiter by default is a semicolon ";". If a different
                     delimiter is desired use the [-s] argument.
-                    
 
   -s                A string containing a single character representing what
                     delimiter should be used to split the Alluxio properties
-                    provided in the [-p] argument.
+                    provided in the [-p] argument and the sync list provided
+                    in the [-l] argument.
+
+  -v                Version of HDFS used as the root UFS. Required when
+                    root UFS is HDFS.
 ```
 
   {% endcollapsible %}

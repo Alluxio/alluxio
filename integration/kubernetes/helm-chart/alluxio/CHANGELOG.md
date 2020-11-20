@@ -123,3 +123,18 @@
 
 - Add environment variables to master, worker, fuse
 
+0.6.8
+
+- Fixed parsing issue with multiple medium types for tiered storage #11778
+
+0.6.9
+
+- Pass alluxio.user.hostname via ALLUXIO_USER_JAVA_OPTS for FUSE
+
+0.6.10
+
+- Change liveness and readiness probes to TCP probes
+
+0.6.11
+
+- Pass alluxio.user.hostname via ALLUXIO_FUSE_JAVA_OPTS for FUSE

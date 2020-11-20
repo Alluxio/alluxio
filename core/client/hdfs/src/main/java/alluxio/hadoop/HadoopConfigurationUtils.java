@@ -12,17 +12,13 @@
 package alluxio.hadoop;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,34 +30,6 @@ public final class HadoopConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HadoopConfigurationUtils.class);
 
   private HadoopConfigurationUtils() {} // Prevent instantiation.
-
-  /**
-   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} with Alluxio properties.
-   *
-   * @param hadoopConf the {@link org.apache.hadoop.conf.Configuration} to merge
-   * @param alluxioProps the Alluxio properties to merge
-   * @return a configuration with properties all merged
-   */
-  //TODO(binfan): remove this method after Presto code updated
-  public static InstancedConfiguration mergeHadoopConfiguration(
-      org.apache.hadoop.conf.Configuration hadoopConf, AlluxioProperties alluxioProps) {
-    // Load Alluxio configuration if any and merge to the one in Alluxio file system
-    // Push Alluxio configuration to the Job configuration
-    Properties alluxioConfProperties = new Properties();
-    // Load any Alluxio configuration parameters existing in the Hadoop configuration.
-    for (Map.Entry<String, String> entry : hadoopConf) {
-      String propertyName = entry.getKey();
-      if (PropertyKey.isValid(propertyName)) {
-        alluxioConfProperties.put(propertyName, entry.getValue());
-      }
-    }
-    // Merge the relevant Hadoop configuration into Alluxio's configuration.
-    alluxioProps.merge(alluxioConfProperties, Source.RUNTIME);
-    // Creting a new instanced configuration from an AlluxioProperties object isn't expensive.
-    InstancedConfiguration mergedConf = new InstancedConfiguration(alluxioProps);
-    mergedConf.validate();
-    return mergedConf;
-  }
 
   /**
    * Extracts relevant configuration from Hadoop {@link org.apache.hadoop.conf.Configuration}.

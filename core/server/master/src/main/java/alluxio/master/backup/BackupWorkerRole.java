@@ -29,19 +29,19 @@ import alluxio.master.MasterInquireClient;
 import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.transport.GrpcMessagingClient;
+import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.Listener;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
-import io.atomix.catalyst.concurrent.Listener;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -68,9 +68,9 @@ public class BackupWorkerRole extends AbstractBackupRole {
   private final long mBackupHeartbeatIntervalMs;
 
   /** Connection with the leader. */
-  private Connection mLeaderConnection;
+  private GrpcMessagingConnection mLeaderConnection;
   /** Close listener for leader connection. */
-  private Listener<Connection> mLeaderConnectionCloseListener;
+  private Listener<GrpcMessagingConnection> mLeaderConnectionCloseListener;
 
   /** Future to control ongoing backup. */
   private Future<?> mBackupFuture;
@@ -96,9 +96,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     mLeaderConnectionIntervalMax =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
     // Submit a task to establish and maintain connection with the leader.
-    mExecutorService.submit(() -> {
-      establishConnectionToLeader();
-    });
+    mExecutorService.submit(this::establishConnectionToLeader);
   }
 
   @Override
@@ -166,7 +164,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     CompletableFuture<Void> msgFuture = CompletableFuture.completedFuture(null);
 
     try {
-      mJournalSystem.suspend();
+      mJournalSystem.suspend(this::interruptBackup);
       LOG.info("Suspended journals for backup.");
     } catch (IOException e) {
       String failMessage = "Failed to suspended journals for backup.";
@@ -180,6 +178,28 @@ public class BackupWorkerRole extends AbstractBackupRole {
     }, BACKUP_ABORT_AFTER_SUSPEND_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
     return msgFuture;
+  }
+
+  private void interruptBackup() {
+    LOG.info("Interrupting ongoing backup.");
+    if (mBackupFuture != null && !mBackupFuture.isDone()) {
+      LOG.info("Attempt to cancel backup task.");
+      mBackupFuture.cancel(true);
+    }
+    boolean shouldResume = true;
+    if (mBackupTimeoutTask != null) {
+      LOG.info("Attempt to cancel backup timeout task.");
+      shouldResume = mBackupTimeoutTask.cancel(true);
+    }
+    if (shouldResume) {
+      try {
+        LOG.info("Attempt to resume journal application.");
+        mJournalSystem.resume();
+      } catch (Exception e) {
+        LOG.warn("Failed to resume journal application: {}", e.getMessage());
+      }
+    }
+    LOG.warn("Backup interrupted successfully.");
   }
 
   /**
@@ -234,6 +254,10 @@ public class BackupWorkerRole extends AbstractBackupRole {
         } catch (Exception e) {
           LOG.warn("Failed to wait for backup heartbeat completion. ", e);
         }
+      } catch (InterruptedException e) {
+        LOG.error("Backup interrupted at worker", e);
+        mBackupTracker.updateError(
+            new BackupException("Backup interrupted at worker", e));
       } catch (Exception e) {
         LOG.error("Backup failed at worker", e);
         mBackupTracker.updateError(
@@ -290,7 +314,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
   /**
    * Prepares new leader connection.
    */
-  private void activateLeaderConnection(Connection leaderConnection) throws IOException {
+  private void activateLeaderConnection(GrpcMessagingConnection leaderConnection)
+      throws IOException {
     // Register connection error listener.
     leaderConnection.onException((error) -> {
       LOG.warn("Backup-leader connection failed.", error);
@@ -311,7 +336,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     });
     // Register message handlers under catalyst context.
     try {
-      mCatalystContext.execute(() -> {
+      mGrpcMessagingContext.execute(() -> {
         // Register suspend message handler.
         leaderConnection.handler(BackupSuspendMessage.class, this::handleSuspendJournalsMessage);
         // Register backup message handler.
@@ -339,20 +364,20 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
     while (infiniteRetryPolicy.attempt()) {
       // Get leader address.
-      Address leaderAddress;
+      InetSocketAddress leaderAddress;
       try {
         // Create inquire client to determine leader address.
         MasterInquireClient inquireClient =
             MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
                 .build().getMasterInquireClient();
 
-        leaderAddress = new Address(inquireClient.getPrimaryRpcAddress());
+        leaderAddress = inquireClient.getPrimaryRpcAddress();
       } catch (Throwable t) {
         LOG.warn("Failed to get backup-leader address. {}. Error:{}. Attempt:{}", t.toString(),
             infiniteRetryPolicy.getAttemptCount());
         continue;
       }
-      // Address acquired. Establish messaging connection with the leader.
+      // InetSocketAddress acquired. Establish messaging connection with the leader.
       try {
         // Create messaging client for backup-leader.
         GrpcMessagingClient messagingClient = new GrpcMessagingClient(ServerConfiguration.global(),
@@ -360,7 +385,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
         // Initiate the connection to backup-leader on catalyst context and wait.
         mLeaderConnection =
-            mCatalystContext.execute(() -> messagingClient.connect(leaderAddress)).get().get();
+            mGrpcMessagingContext.execute(() -> messagingClient.connect(leaderAddress)).get().get();
 
         // Activate the connection.
         activateLeaderConnection(mLeaderConnection);

@@ -92,7 +92,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, 1000)
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
@@ -225,7 +225,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void unavailableUfsRecursiveCreate() throws Exception {
-    String ufsBase = "test://test";
+    String ufsBase = "test://test/";
 
     UnderFileSystemFactory mockUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
     Mockito.when(mockUfsFactory.supportsPath(Matchers.anyString(), Matchers.any()))

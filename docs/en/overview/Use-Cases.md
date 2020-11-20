@@ -2,7 +2,7 @@
 layout: global
 title: Use Cases
 group: Overview
-priority: 5
+priority: 6
 ---
 
 * Table of Contents
@@ -75,7 +75,7 @@ Alluxio, they are enabled to access different persistent storage systems without
 source code changes in the application. Once connected to Alluxio, applications are
 automatically integrated with the most popular storage options without implementing any connectors.
 
-See example use cases from [Starburst Presto](https://www.starburstdata.com/technical-blog/starburst-presto-alluxio-better-together/),
+See example use cases from
 [TensorFlow on Azure](https://blogs.msdn.microsoft.com/cloudai/2018/05/01/tensorflow-on-azure-enabling-blob-storage-via-alluxio/).
 
 ## A Single Entry Point for Multiple Data Sources (Data Unification)

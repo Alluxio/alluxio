@@ -14,7 +14,7 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 
 ## Prerequisites
 
-- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio 
+- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio
 workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
 parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
@@ -63,7 +63,7 @@ If you are using UFS journal and use an external journal location like HDFS, the
 section can be skipped.
 
 There are multiple ways to create a PersistentVolume.
-This is an example which defines one with `hostPath`: 
+This is an example which defines one with `hostPath`:
 ```yaml
 # Name the file alluxio-master-journal-pv.yaml
 kind: PersistentVolume
@@ -164,7 +164,7 @@ journal:
     - ReadWriteOnce
 ```
   {% endcollapsible %}
-  
+
   {% collapsible Example: Single Master and Journal in an `emptyDir` Volume %}
 The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 with an `emptyDir` volume mounted locally to the master Pod at location `/journal`.
@@ -185,7 +185,7 @@ journal:
   medium: ""
 ```
 
->Note: An `emptyDir` volume has the same lifetime as the Pod. 
+>Note: An `emptyDir` volume has the same lifetime as the Pod.
 It is NOT a persistent storage.
 The Alluxio journal will be LOST when the Pod is restarted or rescheduled.
 Please only use this for experimental use cases.
@@ -236,12 +236,12 @@ journal:
     - ReadWriteOnce
 ```
   {% endcollapsible %}
-  
+
   {% collapsible Example: Multi-master with Embedded Journal in `emptyDir` Volumes %}
 ```properties
 master:
   count: 3
-  
+
 journal:
   type: "UFS"
   ufsType: "local"
@@ -254,7 +254,7 @@ journal:
   medium: ""
 ```
 
->Note: An `emptyDir` volume has the same lifetime as the Pod. 
+>Note: An `emptyDir` volume has the same lifetime as the Pod.
 It is NOT a persistent storage.
 The Alluxio journal will be LOST when the Pod is restarted or rescheduled.
 Please only use this for experimental use cases.
@@ -300,7 +300,7 @@ metastore:
    - ReadWriteOnce
 ```
   {% endcollapsible %}
-  
+
   {% collapsible Example: Off-heap Metastore Management in `emptyDir` Volumes %}
 The following configuration creates an `emptyDir` Volume for each Alluxio master Pod with the
 specified configuration and configures the Pod to use the volume for an on-disk RocksDB-based
@@ -319,7 +319,7 @@ metastore:
   medium: ""
 ```
 
->Note: An `emptyDir` volume has the same lifetime as the Pod. 
+>Note: An `emptyDir` volume has the same lifetime as the Pod.
 It is NOT a persistent storage.
 The Alluxio metadata will be LOST when the Pod is restarted or rescheduled.
 Please only use this for experimental use cases.
@@ -346,7 +346,7 @@ Alluxio manages local storage, including memory, on the worker Pods.
 [Multiple-Tier Storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }})
 can be configured using the following reference configurations.
 
-There 3 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath), [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) 
+There 3 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath), [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
 and [persistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim).
 
 **Memory Tier Only**
@@ -382,9 +382,9 @@ tieredstore:
 ```
 
 > Note: If a `hostPath` file or directory is created at runtime, it can only be used by the `root` user.
-`hostPath` volumes do not have resource limits. 
-You can either run Alluxio containers with `root` or make sure the local paths exist and are accessible to 
-the user `alluxio` with UID and GID 1000. 
+`hostPath` volumes do not have resource limits.
+You can either run Alluxio containers with `root` or make sure the local paths exist and are accessible to
+the user `alluxio` with UID and GID 1000.
 You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath).
 
 **Memory and SSD Storage in Multiple-Tiers, using PVC**
@@ -392,7 +392,7 @@ You can find more details [here](https://kubernetes.io/docs/concepts/storage/vol
 You can also use PVCs for each tier and provision [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 For worker tiered storage please use either `hostPath` or `local` volume so that the worker will
 read and write locally to achieve the best performance.
- 
+
 ```properties
 tieredstore:
   levels:
@@ -414,7 +414,7 @@ tieredstore:
     low: 0.7
 ```
 
-> Note: There is one PVC per tier. 
+> Note: There is one PVC per tier.
 When the PVC is bound to a PV of type `hostPath` or `local`, each worker Pod will resolve to the
 local path on the Node.
 Please also note that a `local` volumes requires `nodeAffinity` and Pods using this volume can only
@@ -458,7 +458,7 @@ $ helm delete alluxio
 #### Format Journal
 
 The master Pods in the StatefulSet use a `initContainer` to format the journal on startup..
-This `initContainer` is switched on by `journal.format.runFormat=true`. 
+This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
 You can trigger the journal formatting by upgrading the existing helm deployment with
@@ -619,8 +619,8 @@ $ kubectl delete -f ./worker/
 $ kubectl delete -f ./master/
 $ kubectl delete configmap alluxio-config
 ```
-> Note: This will delete all resources under `./master/` and `./worker/`. 
-Be careful if you have persistent volumes or other important resources you want to keep under those directories.  
+> Note: This will delete all resources under `./master/` and `./worker/`.
+Be careful if you have persistent volumes or other important resources you want to keep under those directories.
 
 #### Format Journal
 
@@ -639,9 +639,9 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
       mountPath: /journal
 ```
 
-> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` 
-with UID 1000 and GID 1000 by default. 
-You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as. 
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
+with UID 1000 and GID 1000 by default.
+You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
 
 #### Upgrade
 
@@ -697,7 +697,7 @@ If no format is needed, you are ready to skip the rest of this section and move 
 Alluxio master and worker Pods.
 
 You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
-to format the Alluxio journals. 
+to format the Alluxio journals.
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
@@ -738,10 +738,37 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
 ```console
-$ kubectl port-forward alluxio-master-$i 19999:19999
+$ kubectl port-forward alluxio-master-$i <local-port>:19999
 ```
-Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+The command above allocates a port on the local node `<local-port>` and forwards traffic
+on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
+The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
+
+> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
+
+For example, you are on a node with hostname `master-node-1` and you would like to serve
+the Alluxio master web UI for `alluxio-master-0` on `master-node-1:8080`.
+Here's the command you can run:
+```console
+[alice@master-node-1 ~]$ kubectl port-forward --address 0.0.0.0 pods/alluxio-master-0 8080:19999
+``` 
+This forwards the local port `master-node-1:8080` to the port on the Pod `alluxio-master-0:19999`.
+The Pod `alluxio-master-0` does NOT need to be running on `master-node-1`.
+
+You will see messages like below when there are incoming connections. 
+```console
+[alice@master-node-1 ~]$ kubectl port-forward --address 0.0.0.0 alluxio-master-0 8080:19999
+Forwarding from 0.0.0.0:8080 -> 19999
+Handling connection for 8080
+Handling connection for 8080
+Handling connection for 8080
+Handling connection for 8080
+```
+You can terminate the process to stop the port forwarding,
+with either `Ctrl + C` or `kill`.
+
+For more information about K8s port-forward see the [K8s doc](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#port-forward).
 
 ### Verify
 
@@ -797,7 +824,10 @@ Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running
 If Alluxio has already been deployed with helm and now you want to enable FUSE, you use
 `helm upgrade` to add the FUSE daemons.
 ```console
-$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
+$ helm upgrade alluxio -f config.yaml \
+  --set fuse.enabled=true \
+  --set fuse.clientEnabled=true \
+  alluxio-charts/alluxio
 ```
 
 {% endnavtab %}
@@ -829,7 +859,7 @@ across multiple containers.
 {% endnavtab %}
 {% endnavtabs %}
 
-### Short-circuit Access
+### Enable Short-circuit Access
 
 Short-circuit access enables clients to perform read and write operations directly against the
 worker bypassing the networking interface.
@@ -837,48 +867,14 @@ For performance-critical applications it is recommended to enable short-circuit 
 against Alluxio because it can increase a client's read and write throughput when co-located with
 an Alluxio worker.
 
-***Properties to Enable Short-Circuit Operations.***
-This feature is enabled by default, however requires extra configuration to work properly in
+This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
 Kubernetes environments.
-See sections below for how to configure short-circuit access.
 
-***Disable Short-Circuit Operations.***
-To disable short-circuit operations, the operation depends on how you deploy Alluxio.
+There are two modes for using short-circuit.
 
-> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in 
-worse I/O throughput
+#### Option1: Use local mode
 
-{% navtabs shortCircuit %}
-{% navtab helm %}
-
-You can disable short circuit by setting the properties as below:
-
-```properties
-shortCircuit:
-  enabled: false
-```
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
-`ALLUXIO_WORKER_JAVA_OPTS`.
-```properties
--Dalluxio.user.short.circuit.enabled=false
-```
-
-You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition 
-and `volumeMounts` of each container if existing.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-
-***Short-Circuit Modes.***
-There are 2 modes for using short-circuit.
-
-A. `local`
-In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname 
+In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname
 matches the worker hostname.
 This is called *Hostname Introspection*.
 In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
@@ -900,7 +896,8 @@ shortCircuit:
 In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
 
 ```properties
--Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.as.uuid=false
+-Dalluxio.user.short.circuit.enabled=true \
+-Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
 
 Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
@@ -908,7 +905,8 @@ Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.
 {% endnavtab %}
 {% endnavtabs %}
 
-B. `uuid`
+#### Option2: Use uuid (default)
+
 This is the **default** policy used for short-circuit in Kubernetes.
 
 If the client or worker container is using virtual networking, their hostnames may not match.
@@ -1024,13 +1022,45 @@ volumes:
 {% endnavtab %}
 {% endnavtabs %}
 
-***Verify.***
+### Verify Short-circuit Operations
+
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
 1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
 `cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
 1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
 `Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
+
+### Disable Short-Circuit Operations
+To disable short-circuit operations, the operation depends on how you deploy Alluxio.
+
+> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in
+worse I/O throughput
+
+{% navtabs shortCircuit %}
+{% navtab helm %}
+
+You can disable short circuit by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: false
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
+`ALLUXIO_WORKER_JAVA_OPTS`.
+```properties
+-Dalluxio.user.short.circuit.enabled=false
+```
+
+You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
+and `volumeMounts` of each container if existing.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Troubleshooting
 
@@ -1059,7 +1089,7 @@ $ nc -zv <IP> 29999
 From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with
 UID 1000 and GID 1000 by default.
 Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
-are only writable by root so you need to update the permission accordingly. 
+are only writable by root so you need to update the permission accordingly.
   {% endcollapsible %}
 
   {% collapsible Enable Debug Logging %}
@@ -1115,5 +1145,39 @@ If there are issues accessing Alluxio using the POSIX API:
 that node.
 1. Tail logs for the identified Pod to view any errors encountered:
 `kubectl logs -f alluxio-fuse-<id>`.
+  {% endcollapsible %}
+  {% collapsible Filename too long %}
+Alluxio workers create a domain socket used for short-circuit access by default.
+On Mac OS X, Alluxio workers may fail to start if the location for this domain socket is a path
+which is longer than what the filesystem accepts.
+```
+2020-07-27 21:39:06,030 ERROR GrpcDataServer - Alluxio worker gRPC server failed to start on /opt/domain/1d6d7c85-dee0-4ac5-bbd1-86eb496a2a50
+java.io.IOException: Failed to bind
+	at io.grpc.netty.NettyServer.start(NettyServer.java:252)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:184)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:90)
+	at alluxio.grpc.GrpcServer.lambda$start$0(GrpcServer.java:77)
+	at alluxio.retry.RetryUtils.retry(RetryUtils.java:39)
+	at alluxio.grpc.GrpcServer.start(GrpcServer.java:77)
+	at alluxio.worker.grpc.GrpcDataServer.<init>(GrpcDataServer.java:107)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at alluxio.util.CommonUtils.createNewClassInstance(CommonUtils.java:273)
+	at alluxio.worker.DataServer$Factory.create(DataServer.java:47)
+	at alluxio.worker.AlluxioWorkerProcess.<init>(AlluxioWorkerProcess.java:162)
+	at alluxio.worker.WorkerProcess$Factory.create(WorkerProcess.java:46)
+	at alluxio.worker.WorkerProcess$Factory.create(WorkerProcess.java:38)
+	at alluxio.worker.AlluxioWorker.main(AlluxioWorker.java:72)
+Caused by: io.netty.channel.unix.Errors$NativeIoException: bind(..) failed: Filename too long
+```
+
+If this is the case, set the following properties to limit the path length:
+- `alluxio.worker.data.server.domain.socket.as.uuid=false`
+- `alluxio.worker.data.server.domain.socket.address=/opt/domain/d`
+
+> Note: You may see performance degradation due to lack of node locality.
+
   {% endcollapsible %}
 {% endaccordion %}

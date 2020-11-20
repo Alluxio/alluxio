@@ -17,7 +17,9 @@
 # - https://github.com/moby/moby/issues/6119
 FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.4.0-SNAPSHOT/alluxio-2.4.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.5.0-SNAPSHOT/alluxio-2.5.0-SNAPSHOT-bin.tar.gz
+# (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing 
+ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # if the tarball was remote, it needs to be untarred
@@ -26,13 +28,18 @@ RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
 
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
+       chmod -R 777 /opt/* ; \
+    fi
+
 FROM openjdk:8-jdk-alpine
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
+ARG ENABLE_DYNAMIC_USER=false
 
-RUN apk --no-cache --update add bash libc6-compat shadow && \
+RUN apk --no-cache --update add bash libc6-compat shadow tini && \
     rm -rf /var/cache/apk/*
 
 # disable JVM DNS cache
@@ -60,6 +67,11 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=extractor /opt/ /opt/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
+
+
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
+       chmod -R 777 /journal; \
+    fi
 
 USER ${ALLUXIO_UID}
 

@@ -66,7 +66,7 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 <p align="center">
 <a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-aws/">
+<a href="https://www.alluxio.io/products/aws/alluxio-presto-sandbox-aws/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
@@ -84,12 +84,12 @@ Alluxio微信公众号二维码（下图）
 <img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2019/04/public_account_qrcode.png" width="120" alt="QRCode"/>
 </p>
 
-[下载](https://alluxio.io/download/) | 
-[用户文档]({{ '/cn/overview/Getting-Started.html' | relativize_url }}) | 
-[开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }}) | 
-[Meetup](https://www.meetup.com/Alluxio/) | 
-[Issue Tracking](https://github.com/Alluxio/alluxio/issues) | 
-[社区Slack频道](https://alluxio.io/slack) | 
+[下载](https://alluxio.io/download/) |
+[用户文档]({{ '/cn/overview/Getting-Started.html' | relativize_url }}) |
+[开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }}) |
+[Meetup](https://www.meetup.com/Alluxio/) |
+[Issue Tracking](https://github.com/Alluxio/alluxio/issues) |
+[社区Slack频道](https://alluxio.io/slack) |
 [用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [视频](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
 [Github](https://github.com/alluxio/alluxio/) |

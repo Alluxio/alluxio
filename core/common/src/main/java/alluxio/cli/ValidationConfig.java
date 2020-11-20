@@ -21,6 +21,10 @@ public class ValidationConfig {
   public static final String DATABASE_CONFIG_NAME = "database";
   public static final String TABLES_CONFIG_NAME = "tables";
   public static final String SOCKET_TIMEOUT_CONFIG_NAME = "socket_timeout";
+  public static final String METASTORE_URI_OPTION_NAME = "m";
+  public static final String DATABASE_OPTION_NAME = "d";
+  public static final String TABLES_OPTION_NAME = "t";
+  public static final String SOCKET_TIMEOUT_OPTION_NAME = "st";
   // Hdfs validation tool config
   public static final String HDFS_TOOL_TYPE = "hdfs";
   public static final String UFS_PATH = "ufsPath";

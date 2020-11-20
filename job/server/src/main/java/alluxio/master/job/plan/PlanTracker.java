@@ -27,8 +27,8 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +36,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -77,6 +80,8 @@ public class PlanTracker {
   /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
 
+  private final SortedSet<PlanInfo> mFailed;
+
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
   private final LinkedBlockingQueue<PlanInfo> mFinished;
 
@@ -92,13 +97,20 @@ public class PlanTracker {
    */
   public PlanTracker(long capacity, long retentionMs,
                      long maxJobPurgeCount, WorkflowTracker workflowTracker) {
-    Preconditions.checkArgument(capacity >= 0);
+    Preconditions.checkArgument(capacity >= 0 && capacity <= Integer.MAX_VALUE);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
+    mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
+      long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
+      if (diffTime != 0) {
+        return Long.signum(diffTime);
+      }
+      return Long.signum(right.getId() - left.getId());
+    }));
     mFinished = new LinkedBlockingQueue<>();
     mWorkflowTracker = workflowTracker;
   }
@@ -112,6 +124,14 @@ public class PlanTracker {
     if (!status.isFinished()) {
       return;
     }
+
+    if (status.equals(Status.FAILED)) {
+      while (mFailed.size() >= mCapacity) {
+        mFailed.remove(mFailed.last());
+      }
+      mFailed.add(planInfo);
+    }
+
     // Retry if offering to mFinished doesn't work
     for (int i = 0; i < 2; i++) {
       if (mFinished.offer(planInfo)) {
@@ -252,5 +272,12 @@ public class PlanTracker {
    */
   public Collection<PlanCoordinator> coordinators() {
     return Collections.unmodifiableCollection(mCoordinators.values());
+  }
+
+  /**
+   * @return list of failed plans
+   */
+  public Stream<PlanInfo> failed() {
+    return mFailed.stream();
   }
 }

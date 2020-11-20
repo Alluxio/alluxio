@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>2.4.0-SNAPSHOT</version>
+    <version>2.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-client</artifactId>
   <packaging>jar</packaging>
@@ -52,19 +52,26 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
       <scope>runtime</scope>
     </dependency>
     <!-- Move log4j to optional, since it is mainly used in test-->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
@@ -96,6 +103,12 @@
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
           <scope>compile</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-core</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
       </dependencies>
     </profile>
@@ -159,6 +172,7 @@
             <configuration>
               <createSourcesJar>true</createSourcesJar>
               <shadeSourcesContent>true</shadeSourcesContent>
+              <createDependencyReducedPom>${create.dependency.reduced.pom}</createDependencyReducedPom>
               <artifactSet>
                 <excludes>
                   <!-- Leave slf4j unshaded so downstream users can configure logging -->
@@ -167,6 +181,9 @@
                   <exclude>commons-logging:commons-logging</exclude>
                   <!-- Leave log4j unshaded so downstream users can configure logging -->
                   <exclude>log4j:log4j</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-api</exclude>  
+                  <exclude>org.apache.logging.log4j:log4j-core</exclude> 
+                  <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude> 
                 </excludes>
               </artifactSet>
               <filters>
@@ -185,6 +202,12 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>mozilla/public-suffix-list.txt</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -265,6 +288,11 @@
                     <resource>NOTICE.txt</resource>
                     <resource>NOTICE</resource>
                     <resource>LICENSE</resource>
+                    <resource>Log4j-charsets.properties</resource>
+                    <resource>Log4j-config.xsd</resource>
+                    <resource>Log4j-events.dtd</resource>
+                    <resource>Log4j-events.xsd</resource>
+                    <resource>Log4j-levels.xsd</resource>
                   </resources>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">

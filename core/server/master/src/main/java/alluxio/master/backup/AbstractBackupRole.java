@@ -18,6 +18,8 @@ import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.GrpcMessagingContext;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.UserState;
 import alluxio.underfs.UfsManager;
@@ -28,10 +30,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Closer;
-import io.atomix.catalyst.concurrent.SingleThreadContext;
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.Serializer;
-import io.atomix.catalyst.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +65,7 @@ public abstract class AbstractBackupRole implements BackupRole {
   protected ExecutorService mExecutorService;
 
   /** Catalyst context used for sending/receiving messages. */
-  protected ThreadContext mCatalystContext;
+  protected GrpcMessagingContext mGrpcMessagingContext;
 
   /** Journal system. */
   protected JournalSystem mJournalSystem;
@@ -115,16 +114,17 @@ public abstract class AbstractBackupRole implements BackupRole {
   private void initializeCatalystContext() {
     Serializer messageSerializer = new Serializer().register(BackupRequestMessage.class)
         .register(BackupHeartbeatMessage.class).register(BackupSuspendMessage.class);
-    mCatalystContext = new SingleThreadContext("backup-context-%d", messageSerializer);
+    mGrpcMessagingContext = new GrpcMessagingContext("backup-context-%d", messageSerializer);
   }
 
   /**
    * Used to send message via connection and wait until response is received. Response is discarded
    * since backup messages are one-way.
    */
-  protected void sendMessageBlocking(Connection connection, Object message) throws IOException {
+  protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message)
+      throws IOException {
     try {
-      mCatalystContext.execute(() -> {
+      mGrpcMessagingContext.execute(() -> {
         return connection.sendAndReceive(message);
       }).get().get(); // First get is for the task, second is for the messaging future.
     } catch (InterruptedException ie) {
@@ -186,6 +186,8 @@ public abstract class AbstractBackupRole implements BackupRole {
           // Create the backup from master state.
           mBackupManager.backup(ufsStream, entryCounter);
         }
+        // Add a marker file indicating the file is completed.
+        ufs.create(backupFilePath + ".complete").close();
       } catch (IOException e) {
         try {
           ufs.deleteExistingFile(backupFilePath);
@@ -209,7 +211,7 @@ public abstract class AbstractBackupRole implements BackupRole {
       mTaskScheduler.shutdownNow();
     }
     // Close messaging context.
-    mCatalystContext.close();
+    mGrpcMessagingContext.close();
     // Shutdown backup executor.
     mExecutorService.shutdownNow();
     // Reset backup tracker.

@@ -12,6 +12,7 @@
 package alluxio;
 
 import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.junit.After;
@@ -50,6 +51,16 @@ public class TestLoggerRule extends AbstractResourceRule {
   }
 
   /**
+   * Determine if a specific pattern appears in log output with the specified level.
+   *
+   * @param pattern a pattern text to search for in log events
+   * @return true if a log message containing the pattern exists, false otherwise
+   */
+  public boolean wasLoggedWithLevel(String pattern, Level level) {
+    return mAppender.wasLoggedWithLevel(Pattern.compile(".*" + pattern + ".*"), level);
+  }
+
+  /**
    * Count the number of times a specific pattern appears in log messages.
    *
    * @param pattern Pattern to search for in log events
@@ -72,7 +83,7 @@ public class TestLoggerRule extends AbstractResourceRule {
 
   public class TestAppender extends AppenderSkeleton {
     @GuardedBy("this")
-    private List<LoggingEvent> mEvents = new ArrayList<>();
+    private final List<LoggingEvent> mEvents = new ArrayList<>();
 
     public void close() { }
 
@@ -82,6 +93,18 @@ public class TestLoggerRule extends AbstractResourceRule {
     public synchronized boolean wasLogged(Pattern pattern) {
       for (LoggingEvent e : mEvents) {
         if (pattern.matcher(e.getRenderedMessage()).matches()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Determines whether a message with the given pattern was logged.
+     */
+    public synchronized boolean wasLoggedWithLevel(Pattern pattern, Level level) {
+      for (LoggingEvent e : mEvents) {
+        if (e.getLevel().equals(level) && pattern.matcher(e.getRenderedMessage()).matches()) {
           return true;
         }
       }

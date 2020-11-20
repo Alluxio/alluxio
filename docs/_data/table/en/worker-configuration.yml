@@ -2,12 +2,20 @@ alluxio.worker.allocator.class:
   'The strategy that a worker uses to allocate space among storage directories in certain storage layer. Valid options include: `alluxio.worker.block.allocator.MaxFreeAllocator`, `alluxio.worker.block.allocator.GreedyAllocator`, `alluxio.worker.block.allocator.RoundRobinAllocator`.'
 alluxio.worker.bind.host:
   'The hostname Alluxio''s worker node binds to.'
+alluxio.worker.block.annotator.class:
+  'The strategy that a worker uses to annotate blocks in order to have an ordered view of them during internalmanagement tasks such as eviction and promotion/demotion.  Valid options include: `alluxio.worker.block.annotator.LRFUAnnotator`, `alluxio.worker.block.annotator.LRUAnnotator`, '
+alluxio.worker.block.annotator.lrfu.attenuation.factor:
+  'A attenuation factor in [2, INF) to control the behavior of LRFU annotator.'
+alluxio.worker.block.annotator.lrfu.step.factor:
+  'A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.'
 alluxio.worker.block.heartbeat.interval:
   'The interval between block workers'' heartbeats to update block status, storage health and other workers'' information to Alluxio Master.'
 alluxio.worker.block.heartbeat.timeout:
   'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:
   'The block master client pool size on the Alluxio workers.'
+alluxio.worker.container.hostname:
+  'The container hostname if worker is running in a container.'
 alluxio.worker.data.folder:
   'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
 alluxio.worker.data.folder.permissions:
@@ -24,10 +32,6 @@ alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in ${alluxio.worker.data.tmp.folder}.'
 alluxio.worker.evictor.class:
   'The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid options include `alluxio.worker.block.evictor.LRFUEvictor`, `alluxio.worker.block.evictor.GreedyEvictor`, `alluxio.worker.block.evictor.LRUEvictor`, `alluxio.worker.block.evictor.PartialLRUEvictor`.'
-alluxio.worker.evictor.lrfu.attenuation.factor:
-  'A attenuation factor in [2, INF) to control the behavior of LRFU.'
-alluxio.worker.evictor.lrfu.step.factor:
-  'A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.'
 alluxio.worker.file.buffer.size:
   'The buffer size for worker to write data into the tiered storage.'
 alluxio.worker.free.space.timeout:
@@ -35,13 +39,35 @@ alluxio.worker.free.space.timeout:
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.jvm.monitor.enabled:
-  'Whether to enable start JVM monitor thread on worker.'
+  'Whether to enable start JVM monitor thread on the worker. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.worker.keytab.file:
   'Kerberos keytab file for Alluxio worker.'
+alluxio.worker.management.backoff.strategy:
+  'Defines the backoff scope respected by background tasks. Supported values are ANY / DIRECTORY. ANY: Management tasks will backoff from worker when there is any user I/O.This mode will ensure low management task overhead in order to favor immediate user I/O performance. However, making progress on management tasks will require quite periods on the worker.DIRECTORY: Management tasks will backoff from directories with ongoing user I/O.This mode will give better chance of making progress on management tasks.However, immediate user I/O throughput might be reduced due to increased management task activity.'
+alluxio.worker.management.block.transfer.concurrency.limit:
+  'Puts a limit to how many block transfers are executed concurrently during management.'
+alluxio.worker.management.load.detection.cool.down.time:
+  'Management tasks will not run for this long after load detected. Any user I/O will still register as a load for this period of time after it is finished. Short durations might cause interference between user I/O and background tier management tasks. Long durations might cause starvation for background tasks.'
+alluxio.worker.management.task.thread.count:
+  'The number of threads for management task executor'
+alluxio.worker.management.tier.align.enabled:
+  'Whether to align tiers based on access pattern.'
+alluxio.worker.management.tier.align.range:
+  'Maximum number of blocks to consider from one tier for a single alignment task.'
+alluxio.worker.management.tier.align.reserved.bytes:
+  'The amount of space that is reserved from each storage directory for internal management tasks.'
+alluxio.worker.management.tier.promote.enabled:
+  'Whether to promote blocks to higher tiers.'
+alluxio.worker.management.tier.promote.quota.percent:
+  'Max percentage of each tier that could be used for promotions. Promotions will be stopped to a tier once its used space go over this value. (0 means never promote, and, 100 means always promote.'
+alluxio.worker.management.tier.promote.range:
+  'Maximum number of blocks to consider from one tier for a single promote task.'
+alluxio.worker.management.tier.swap.restore.enabled:
+  'Whether to run management swap-restore task when tier alignment cannot make progress.'
 alluxio.worker.master.connect.retry.timeout:
   'Retry period before workers give up on connecting to master and exit.'
-alluxio.worker.memory.size:
-  'Memory capacity of each worker node.'
+alluxio.worker.master.periodical.rpc.timeout:
+  'Timeout for periodical RPC between workers and the leading master. This property is added to prevent workers from hanging in periodical RPCs with previous leading master during flaky network situations. If the timeout is too short, periodical RPCs may not have enough time to get response from the leading master during heavy cluster load and high network latency.'
 alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:
@@ -80,6 +106,8 @@ alluxio.worker.network.zerocopy.enabled:
   'Whether zero copy is enabled on worker when processing data streams.'
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
+alluxio.worker.ramdisk.size:
+  'Memory capacity of each worker node.'
 alluxio.worker.rpc.port:
   'The port for Alluxio worker''s RPC service.'
 alluxio.worker.session.timeout:
@@ -90,6 +118,8 @@ alluxio.worker.tieredstore.block.lock.readers:
   'The max number of concurrent readers for a block lock.'
 alluxio.worker.tieredstore.block.locks:
   'Total number of block locks for an Alluxio block worker. Larger value leads to finer locking granularity, but uses more space.'
+alluxio.worker.tieredstore.free.ahead.bytes:
+  'Amount to free ahead when worker storage is full. Higher values will help decrease CPU utilization under peak storage. Lower values will increase storage utilization.'
 alluxio.worker.tieredstore.level0.alias:
   'The alias of the top storage tier on this worker. It must match one of the global storage tiers from the master configuration. We disable placing an alias lower in the global hierarchy before an alias with a higher position on the worker hierarchy. So by default, SSD cannot come before MEM on any worker.'
 alluxio.worker.tieredstore.level0.dirs.mediumtype:
@@ -128,8 +158,6 @@ alluxio.worker.tieredstore.level2.watermark.low.ratio:
   'The low watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.levels:
   'The number of storage tiers on the worker.'
-alluxio.worker.tieredstore.reserver.interval:
-  'The time period of space reserver service, which keeps certain portion of available space on each layer.'
 alluxio.worker.ufs.block.open.timeout:
   'Timeout to open a block from UFS.'
 alluxio.worker.ufs.instream.cache.enabled:

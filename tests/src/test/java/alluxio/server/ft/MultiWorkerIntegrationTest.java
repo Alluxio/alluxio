@@ -78,7 +78,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setNumWorkers(NUM_WORKERS)
@@ -108,7 +108,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readRecoverFromLostWorker() throws Exception {
     int offset = 17 * Constants.MB;
     int length = 33 * Constants.MB;
@@ -134,7 +134,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
     int offset = 1 * Constants.MB;
     int length = 5 * Constants.MB;
@@ -160,7 +160,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void positionReadRecoverFromLostWorker() throws Exception {
     int offset = 1 * Constants.MB;
     int length = 7 * Constants.MB;

@@ -40,4 +40,6 @@ public class ProtoUtils {
         throw new IllegalStateException(String.format("Unexpected Type: %s", jobInfo.getType()));
     }
   }
+
+  private ProtoUtils() {} // prevent instantiation
 }

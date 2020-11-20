@@ -286,6 +286,9 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         synchronized (mCheckpointingLock) {
           if (mShutdownInitiated) {
+            // This checkpoint thread is signaled to shutdown, so any checkpoint in progress must be
+            // canceled/invalidated.
+            journalWriter.cancel();
             return;
           }
           mCheckpointing = true;

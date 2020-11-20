@@ -11,8 +11,7 @@
 
 package alluxio.master.transport;
 
-import io.atomix.catalyst.transport.Address;
-
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ import java.util.Map;
  * Used to provide external proxy configuration to messaging servers/clients.
  */
 public class GrpcMessagingProxy {
-  private Map<Address, Address> mProxyConf;
+  private Map<InetSocketAddress, InetSocketAddress> mProxyConf;
 
   /**
    * Creates new proxy configuration.
@@ -36,7 +35,7 @@ public class GrpcMessagingProxy {
    * @param proxy proxy address for source address
    * @return the updated proxy configuration
    */
-  public GrpcMessagingProxy addProxy(Address address, Address proxy) {
+  public GrpcMessagingProxy addProxy(InetSocketAddress address, InetSocketAddress proxy) {
     mProxyConf.put(address, proxy);
     return this;
   }
@@ -45,7 +44,7 @@ public class GrpcMessagingProxy {
    * @param address address to check for proxy configuration
    * @return {@code true} if given address has proxy configuration
    */
-  public boolean hasProxyFor(Address address) {
+  public boolean hasProxyFor(InetSocketAddress address) {
     return mProxyConf.containsKey(address);
   }
 
@@ -53,7 +52,7 @@ public class GrpcMessagingProxy {
    * @param address source address
    * @return proxy address for given address
    */
-  public Address getProxyFor(Address address) {
+  public InetSocketAddress getProxyFor(InetSocketAddress address) {
     return mProxyConf.get(address);
   }
 }

@@ -64,3 +64,25 @@ func (v version) hadoopProfile() string {
 		panic(fmt.Sprintf("unexpected hadoop major version %v", v.major))
 	}
 }
+
+func (v version) compare(major, minor, patch int) int {
+	if v.major < major {
+		return -1
+	}
+	if v.major > major {
+		return 1
+	}
+	if v.minor < minor {
+		return -1
+	}
+	if v.minor > minor {
+		return 1
+	}
+	if v.patch < patch {
+		return -1
+	}
+	if v.patch > patch {
+		return 1
+	}
+	return 0
+}

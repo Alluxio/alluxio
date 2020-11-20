@@ -125,6 +125,9 @@ public class PromoteTask extends AbstractBlockManagementTask {
       // Read block info and store it.
       try {
         BlockMeta blockMeta = mEvictorView.getBlockMeta(blockId);
+        if (blockMeta == null) {
+          continue;
+        }
         bytesToAllocate += blockMeta.getBlockSize();
         transferInfos.add(
             BlockTransferInfo.createMove(blockMeta.getBlockLocation(), blockId, tierUpLocation));

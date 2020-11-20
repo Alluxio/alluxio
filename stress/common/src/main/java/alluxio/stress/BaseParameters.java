@@ -30,6 +30,7 @@ public final class BaseParameters {
   public static final String START_MS_FLAG = "--start-ms";
   public static final String HELP_FLAG = "--help";
   public static final String PROFILE_AGENT = "--profile-agent";
+  public static final String BENCH_TIMEOUT = "--bench-timeout";
 
   public static final long UNDEFINED_START_MS = -1;
   public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
@@ -56,6 +57,10 @@ public final class BaseParameters {
       description = "The path to the profile agent if one is available. "
           + "Providing this will enable a more detailed output.")
   public String mProfileAgent = "";
+
+  @Parameter(names = {BENCH_TIMEOUT},
+      description = "The length of time to wait when finishing the benchmark. (10m 600s, etc.)")
+  public String mBenchTimeout = "20m";
 
   // Hidden flags
   @Parameter(names = {ID_FLAG},

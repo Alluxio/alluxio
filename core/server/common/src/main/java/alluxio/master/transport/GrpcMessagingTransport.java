@@ -15,10 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.transport.Transport;
-import io.atomix.catalyst.util.Assert;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +27,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * {@link Transport} implementation based on Alluxio gRPC messaging.
+ * Transport implementation based on Alluxio gRPC messaging.
  */
-public class GrpcMessagingTransport implements Transport {
+public class GrpcMessagingTransport {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingTransport.class);
 
   /** Alluxio configuration for clients. */
@@ -61,7 +58,7 @@ public class GrpcMessagingTransport implements Transport {
   private boolean mClosed;
 
   /**
-   * Creates {@link Transport} based on Alluxio gRPC messaging.
+   * Creates {@link GrpcMessagingTransport} based on Alluxio gRPC messaging.
    *
    * @param conf Alluxio configuration
    * @param user Alluxio user
@@ -72,7 +69,7 @@ public class GrpcMessagingTransport implements Transport {
   }
 
   /**
-   * Creates {@link Transport} based on Alluxio gRPC messaging.
+   * Creates {@link GrpcMessagingTransport} based on Alluxio gRPC messaging.
    *
    * @param clientConf Alluxio configuration for clients
    * @param serverConf Alluxio configuration for servers
@@ -101,13 +98,17 @@ public class GrpcMessagingTransport implements Transport {
    * @return the updated transport instance
    */
   public synchronized GrpcMessagingTransport withServerProxy(GrpcMessagingProxy proxy) {
-    Assert.notNull(proxy, "Server proxy reference cannot be null.");
+    Preconditions.checkNotNull(proxy, "Server proxy reference cannot be null.");
     mServerProxy = proxy;
     return this;
   }
 
-  @Override
-  public synchronized Client client() {
+  /**
+   * Creates a new Grpc messaging client.
+   *
+   * @return the created client
+   */
+  public synchronized GrpcMessagingClient client() {
     if (mClosed) {
       throw new RuntimeException("Messaging transport closed");
     }
@@ -117,8 +118,12 @@ public class GrpcMessagingTransport implements Transport {
     return client;
   }
 
-  @Override
-  public synchronized Server server() {
+  /**
+   * Creates a new Grpc messaging server.
+   *
+   * @return the created server
+   */
+  public synchronized GrpcMessagingServer server() {
     if (mClosed) {
       throw new RuntimeException("Messaging transport closed");
     }
@@ -128,7 +133,9 @@ public class GrpcMessagingTransport implements Transport {
     return server;
   }
 
-  @Override
+  /**
+   * Closes the opened clients and servers.
+   */
   public synchronized void close() {
     if (!mClosed) {
       mClosed = true;

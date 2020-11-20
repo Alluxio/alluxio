@@ -55,7 +55,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
 
   @Override
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    resource.setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
+    resource.setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0");

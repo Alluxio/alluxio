@@ -23,7 +23,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +46,7 @@ public class TaskInfo implements JobInfo {
   private long mJobId;
   private long mTaskId;
   private Status mStatus;
+  private String mErrorType;
   private String mErrorMessage;
   private Serializable mResult;
   private long mLastUpdated;
@@ -56,6 +57,7 @@ public class TaskInfo implements JobInfo {
    * Default constructor.
    */
   public TaskInfo() {
+    mErrorType = "";
     mErrorMessage = "";
     mDescription = "";
   }
@@ -73,6 +75,7 @@ public class TaskInfo implements JobInfo {
     mJobId = jobId;
     mTaskId = taskId;
     mStatus = status;
+    mErrorType = "";
     mErrorMessage = "";
     mResult = null;
     mWorkerHost = workerAddress.getHost();
@@ -101,6 +104,7 @@ public class TaskInfo implements JobInfo {
     mJobId = taskInfo.getParentId();
     mTaskId = taskInfo.getId();
     mStatus = Status.valueOf(taskInfo.getStatus().name());
+    mErrorType = taskInfo.getErrorType();
     mErrorMessage = taskInfo.getErrorMessage();
     mWorkerHost = taskInfo.getWorkerHost();
     mResult = null;
@@ -211,6 +215,23 @@ public class TaskInfo implements JobInfo {
   }
 
   /**
+   * @return the error type
+   */
+  @Override
+  public String getErrorType() {
+    return mErrorType;
+  }
+
+  /**
+   * @param errorType the error type
+   * @return the updated task info object
+   */
+  public TaskInfo setErrorType(String errorType) {
+    mErrorType = errorType;
+    return this;
+  }
+
+  /**
    * @return the error message
    */
   public String getErrorMessage() {
@@ -268,8 +289,8 @@ public class TaskInfo implements JobInfo {
     alluxio.grpc.JobInfo.Builder taskInfoBuilder =
         alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
             .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
-            .setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost).setType(JobType.TASK)
-            .setDescription(mDescription);
+            .setErrorType(mErrorType).setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost)
+            .setType(JobType.TASK).setDescription(mDescription);
     if (result != null) {
       taskInfoBuilder.setResult(ByteString.copyFrom(result));
     }
@@ -289,6 +310,7 @@ public class TaskInfo implements JobInfo {
         && Objects.equal(mStatus, that.mStatus) && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mResult, that.mResult) && Objects.equal(mLastUpdated, that.mLastUpdated)
         && Objects.equal(mWorkerHost, that.mWorkerHost)
+        && Objects.equal(mErrorType, that.mErrorType)
         && Objects.equal(mDescription, that.mDescription);
   }
 

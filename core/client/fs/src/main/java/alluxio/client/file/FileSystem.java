@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -27,6 +28,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -34,6 +36,8 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -62,6 +66,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.security.auth.Subject;
 
@@ -147,7 +152,8 @@ public interface FileSystem extends Closeable {
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
           && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
         try {
-          return new LocalCacheFileSystem(fs, conf);
+          CacheManager cacheManager = CacheManager.Factory.get(conf);
+          return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
           LOG.error("Fallback without client caching: ", e);
         }
@@ -164,6 +170,17 @@ public interface FileSystem extends Closeable {
    * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
+
+  /**
+   * Checks access to a path.
+   *
+   * @param path the path of the directory to create in Alluxio space
+   * @param options options to associate with this operation
+   * @throws InvalidPathException if the path is invalid
+   * @throws alluxio.exception.AccessControlException if the access is denied
+   */
+  void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
@@ -334,6 +351,36 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default void iterateStatus(AlluxioURI path, Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    iterateStatus(path, ListStatusPOptions.getDefaultInstance(), action);
+  }
+
+  /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
    * options.
    *
@@ -358,6 +405,32 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #loadMetadata(AlluxioURI, ListStatusPOptions)} with default
+   * options.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default void loadMetadata(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+        .setRecursive(LoadMetadataPOptions.getDefaultInstance().getRecursive())
+        .setResultsRequired(false).build();
+    loadMetadata(path, options);
+  }
+
+  /**
+   * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @param options options to associate with this operation
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  void loadMetadata(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

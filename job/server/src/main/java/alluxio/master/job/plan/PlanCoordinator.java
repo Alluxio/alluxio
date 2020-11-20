@@ -13,6 +13,7 @@ package alluxio.master.job.plan;
 
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
@@ -123,6 +124,7 @@ public final class PlanCoordinator {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
       mPlanInfo.setStatus(Status.FAILED);
+      mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
       return;
     }
@@ -186,12 +188,14 @@ public final class PlanCoordinator {
   /**
    * Sets the job as failed with given error message.
    *
+   * @param errorType Error type to set for failure
    * @param errorMessage Error message to set for failure
    */
-  public void setJobAsFailed(String errorMessage) {
+  public void setJobAsFailed(String errorType, String errorMessage) {
     synchronized (mPlanInfo) {
       if (!mPlanInfo.getStatus().isFinished()) {
         mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorType(errorType);
         mPlanInfo.setErrorMessage(errorMessage);
       }
     }
@@ -220,6 +224,7 @@ public final class PlanCoordinator {
           continue;
         }
         taskInfo.setStatus(Status.FAILED);
+        taskInfo.setErrorType("JobWorkerLost");
         taskInfo.setErrorMessage("Job worker was lost before the task could complete");
         statusChanged = true;
       }
@@ -247,11 +252,14 @@ public final class PlanCoordinator {
     for (TaskInfo info : taskInfoList) {
       switch (info.getStatus()) {
         case FAILED:
-          mPlanInfo.setStatus(Status.FAILED);
           if (mPlanInfo.getErrorMessage().isEmpty()) {
+            mPlanInfo.setErrorType(info.getErrorType());
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
             LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
           }
+          // setStatus after setting the message to propagate error message up
+          // through statusChangeCallback
+          mPlanInfo.setStatus(Status.FAILED);
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
@@ -288,6 +296,7 @@ public final class PlanCoordinator {
         mPlanInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
         mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
         mPlanInfo.setErrorMessage(e.getMessage());
       }
     }

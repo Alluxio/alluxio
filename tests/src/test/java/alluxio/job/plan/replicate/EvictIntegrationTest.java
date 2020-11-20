@@ -60,7 +60,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
   @Test
   public void evictBlock1() throws Exception {
     // run the evict job for full block mBlockId1
-    waitForJobToFinish(mJobMaster.run(new EvictConfig(mBlockId1, 1)));
+    waitForJobToFinish(mJobMaster.run(new EvictConfig("", mBlockId1, 1)));
     CommonUtils.waitFor("block 1 to be evicted", () -> {
       try {
         return !AdjustJobTestUtils.hasBlock(mBlockId1, mWorker, mFsContext);
@@ -75,7 +75,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
   @Test
   public void evictBlock2() throws Exception {
     // run the evict job for the last block mBlockId2
-    waitForJobToFinish(mJobMaster.run(new EvictConfig(mBlockId2, 1)));
+    waitForJobToFinish(mJobMaster.run(new EvictConfig("", mBlockId2, 1)));
     CommonUtils.waitFor("block 2 to be evicted", () -> {
       try {
         return !AdjustJobTestUtils.hasBlock(mBlockId2, mWorker, mFsContext);

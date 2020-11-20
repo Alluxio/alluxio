@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>2.4.0-SNAPSHOT</version>
+    <version>2.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
@@ -27,7 +27,7 @@
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.hadoop.version>2.7.3</ufs.hadoop.version>
+    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
     <!-- Composite jar name with both hadoop version and project version included -->
     <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
@@ -35,8 +35,13 @@
 
   <dependencies>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -45,15 +50,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-    <!-- using older version to match dependency version from Hadoop -->
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>14.0.1</version>
     </dependency>
   </dependencies>
 
@@ -71,13 +70,10 @@
       </dependencies>
     </profile>
 
-    <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
+    <!-- Profile to build this UFS module connecting to hdfs 2 -->
     <profile>
       <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
       <id>ufs-hadoop-2</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -89,12 +85,21 @@
           <artifactId>hadoop-hdfs</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
+        <dependency>	
+          <!-- using older version to match dependency version from Hadoop, guava introduced a breaking change between version 14 and later -->	
+          <groupId>com.google.guava</groupId>	
+          <artifactId>guava</artifactId>	
+          <version>14.0.1</version>	
+        </dependency>
       </dependencies>
     </profile>
 
-    <!-- Profile to build this UFS module connecting to hdfs 3 -->
+    <!-- Profile to build this UFS module connecting to hdfs 3, this is the default profile -->
     <profile>
       <id>ufs-hadoop-3</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -133,13 +138,11 @@
             <configuration>
               <!-- Since we don't shade all artifacts, we need to promote the transitive dependencies -->
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <createDependencyReducedPom>${create.dependency.reduced.pom}</createDependencyReducedPom>
               <relocations>
                 <relocation>
                   <pattern>com.google</pattern>
                   <shadedPattern>${shading.prefix}.com.google</shadedPattern>
-                  <excludes>
-                    <exclude>com.google.inject.**</exclude>
-                  </excludes>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>

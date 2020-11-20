@@ -303,7 +303,9 @@ public final class GrpcUtils {
         .setUfsCapacityBytes(mountPointPInfo.getUfsCapacityBytes())
         .setUfsUsedBytes(mountPointPInfo.getUfsUsedBytes())
         .setReadOnly(mountPointPInfo.getReadOnly())
-        .setProperties(mountPointPInfo.getPropertiesMap()).setShared(mountPointPInfo.getShared());
+        .setProperties(mountPointPInfo.getPropertiesMap())
+        .setMountId(mountPointPInfo.getMountId())
+        .setShared(mountPointPInfo.getShared());
   }
 
   /**
@@ -562,7 +564,10 @@ public final class GrpcUtils {
     return alluxio.grpc.MountPointInfo.newBuilder().setUfsUri(info.getUfsUri())
         .setUfsType(info.getUfsType()).setUfsCapacityBytes(info.getUfsCapacityBytes())
         .setReadOnly(info.getReadOnly()).putAllProperties(info.getProperties())
-        .setShared(info.getShared()).build();
+        .setShared(info.getShared())
+        .setMountId(info.getMountId())
+        .setUfsUsedBytes(info.getUfsUsedBytes())
+        .build();
   }
 
   /**
