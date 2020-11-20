@@ -11,7 +11,9 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**
+            alluxio.client.cli.**,!alluxio.client.cli.fs.**
+          - >-
+            alluxio.client.cli.fs.**
           - >-
             alluxio.client.fs.**
           - >-
