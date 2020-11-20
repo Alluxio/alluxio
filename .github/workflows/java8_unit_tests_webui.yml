@@ -1,4 +1,4 @@
-name: Java 8 Unit Tests
+name: Java 8 Unit Tests (w/ webui)
 
 on: [pull_request]
 
@@ -43,7 +43,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl 'webui'
         timeout-minutes: 60
 
       - name: Archive artifacts
