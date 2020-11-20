@@ -11,15 +11,50 @@
 
 package alluxio.master.file;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 
 /**
  * interface to provide permission check logic.
  */
 public interface PermissionChecker {
+
+  /**
+   * Factory for {@link PermissionChecker}.
+   */
+  class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
+    /**
+     * @param conf Alluxio configuration
+     * @param inodeTree inode tree of the file system master
+     * @return the generated {@link PermissionChecker}
+     */
+    public static PermissionChecker create(AlluxioConfiguration conf,
+        InodeTree inodeTree) {
+      String providerName =
+          conf.get(PropertyKey.SECURITY_PERMISSION_CHECKER_CUSTOM_PROVIDER_CLASS);
+      Class<?> providerClass;
+      try {
+        providerClass = Class.forName(providerName);
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(providerName + " not found");
+      }
+
+      return (PermissionChecker) CommonUtils
+          .createNewClassInstance(providerClass, new Class[] {InodeTree.class},
+              new Object[] {inodeTree});
+    }
+  }
+
   /**
    * Checks whether a user has permission to perform a specific action on the parent of the given
    * path; if parent directory does not exist, treats the closest ancestor directory of the path as

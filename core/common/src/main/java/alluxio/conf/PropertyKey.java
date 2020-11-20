@@ -4456,6 +4456,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey SECURITY_PERMISSION_CHECKER_CUSTOM_PROVIDER_CLASS =
+      new Builder(Name.SECURITY_PERMISSION_CHECKER_CUSTOM_PROVIDER_CLASS)
+          .setDescription("The class to provide customized permission checker implementation. "
+              + "It must implement the interface "
+              + "'alluxio.master.file.PermissionChecker'.")
+          .setDefaultValue("alluxio.master.file.DefaultPermissionChecker")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Yarn related properties
@@ -5637,6 +5646,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
+    public static final String SECURITY_PERMISSION_CHECKER_CUSTOM_PROVIDER_CLASS =
+        "alluxio.security.permission.checker.custom.provider.class";
 
     //
     // Job service
