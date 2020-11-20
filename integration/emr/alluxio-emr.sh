@@ -19,7 +19,7 @@ readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
 readonly AWS_SHUTDOWN_ACTIONS_DIR="/mnt/var/lib/instance-controller/public/shutdown-actions"
 readonly HADOOP_CONF="/etc/hadoop/conf"
-readonly ALLUXIO_VERSION="2.4.1"
+readonly ALLUXIO_VERSION="2.4.2-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 
 ####################
@@ -99,7 +99,7 @@ get_default_mem_size() {
 
 # Gets the region of the current EC2 instance
 get_aws_region() {
-  curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//'
+  curl -s http://169.2.4.2-SNAPSHOT69.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//'
 }
 
 # Puts a shutdown hook under the EMR defined /mnt/var/lib/instance-controller/public/shutdown-actions directory.
