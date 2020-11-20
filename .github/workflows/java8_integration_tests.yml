@@ -15,7 +15,9 @@ jobs:
           - >-
             alluxio.client.cli.fs.**
           - >-
-            alluxio.client.fs.**
+            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
+          - >-
+            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
           - >-
             alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
