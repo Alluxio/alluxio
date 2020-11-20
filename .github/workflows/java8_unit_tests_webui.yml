@@ -11,9 +11,7 @@ jobs:
       matrix:
         modules:
           - >-
-            !alluxio.client.**,!alluxio.master.**
-          - >-
-            alluxio.client.**,alluxio.master.**
+            **
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
