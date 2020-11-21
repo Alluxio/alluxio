@@ -144,7 +144,7 @@ The user can also specify the tier that the data will be written to via
 
 If the data is already in Alluxio, the client will simply read the block from where it is already stored.
 If Alluxio is configured with multiple tiers, the block may not be necessarily read from the top tier,
-since it could have been moved to a lower tier transparently. 
+since it may have been loaded into a lower tier, or moved to a lower tier transparently. 
 This logic applies to both `ReadType.CACHE` and `ReadType.CACHE_PROMOTE`.
 
 The difference is, reading data with `ReadType.CACHE_PROMOTE` will attempt to first transfer the block to the
@@ -152,6 +152,7 @@ top tier before it is read from the worker. This can also be used as a data mana
 explicitly moving hot data to higher tiers.
 
 For `ReadType.CACHE`, Alluxio will cache the block into the highest tier that has the available space.
+So you will read the cache block with disk speed if the block is currently on a disk(SSD/HDD).
 
 > Note: In 2.3, Alluxio default ReadType is changed from CACHE_PROMOTE to CACHE.
 
