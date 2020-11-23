@@ -22,64 +22,100 @@ import java.util.Arrays;
  */
 public class StressClientIOBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
-  public void readArray() throws Exception {
+  public void readIO() throws Exception {
+    // All the reads are in the same test, to re-use write results.
     // Only in-process will work for unit testing.
+
     String output1 = new StressClientIOBench().run(new String[] {
         "--in-process",
-        "--tag", "ReadArray-NOT_RANDOM",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "ReadArray",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
         "--threads", "2",
         "--file-size", "1m",
-        "--block-size", "128k",
+        "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
     });
 
     String output2 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--tag", "ReadArray-NOT_RANDOM",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "ReadArray",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output3 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
         "--tag", "ReadArray-RANDOM",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "ReadArray",
         "--threads", "2",
         "--file-size", "1m",
-        "--block-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-    });
-    generateAndVerifyReport(Arrays.asList("ReadArray-NOT_RANDOM", "ReadArray-RANDOM"), output1,
-        output2);
-  }
-
-  @Test
-  public void posRead() throws Exception {
-    // Only in-process will work for unit testing.
-    String output1 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--tag", "PosRead-NOT_RANDOM",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "PosRead",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--block-size", "128k",
+        "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
     });
 
-    String output2 = new StressClientIOBench().run(new String[] {
+    String output4 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "PosRead-RANDOM",
+        "--tag", "ReadByteBuffer",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "ReadByteBuffer",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output5 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--read-random",
+        "--tag", "ReadFully",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "ReadFully",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output6 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--read-random",
+        "--tag", "PosRead-test",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "PosRead",
         "--threads", "2",
         "--file-size", "1m",
-        "--block-size", "128k",
+        "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
     });
-    generateAndVerifyReport(Arrays.asList("PosRead-NOT_RANDOM", "PosRead-RANDOM"), output1,
-        output2);
+
+    String output7 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--read-random",
+        "--tag", "PosReadFully",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "PosReadFully",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+    });
+    generateAndVerifyReport(Arrays.asList(
+        "Write", "ReadArray-NOT_RANDOM", "ReadArray-RANDOM", "ReadByteBuffer", "ReadFully",
+        "PosRead-test", "PosReadFully"),
+        output1, output2, output3, output4, output5, output6, output7);
   }
 }
