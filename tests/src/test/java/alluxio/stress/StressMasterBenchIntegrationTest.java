@@ -23,7 +23,7 @@ import java.util.Collections;
  */
 public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
-  public void createFile() throws Exception {
+  public void createFileAndDelete() throws Exception {
     // Only in-process will work for unit testing.
     String output = new StressMasterBench().run(new String[] {
         "--in-process",
@@ -35,6 +35,51 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
     generateAndVerifyReport(Collections.singletonList("CreateFile"), output);
+
+    // run again to test the deletion of the test directory
+    output = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "2",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output2 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "GetBlockLocations",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output3 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "OpenFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output4 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "DeleteFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    generateAndVerifyReport(
+        Arrays.asList("CreateFile", "GetBlockLocations", "OpenFile", "DeleteFile"), output, output2,
+        output3, output4);
   }
 
   @Test
@@ -53,7 +98,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
   }
 
   @Test
-  public void getStatusAndListDir() throws Exception {
+  public void createFileAndListAndRename() throws Exception {
     // Only in-process will work for unit testing.
     String output1 = new StressMasterBench().run(new String[] {
         "--in-process",
@@ -65,7 +110,6 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
 
-    // Only in-process will work for unit testing.
     String output2 = new StressMasterBench().run(new String[] {
         "--in-process",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -76,7 +120,6 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
 
-    // Only in-process will work for unit testing.
     String output3 = new StressMasterBench().run(new String[] {
         "--in-process",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -87,7 +130,28 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
 
-    generateAndVerifyReport(Arrays.asList("CreateFile", "GetFileStatus", "ListDir"),
-        output1, output2, output3);
+    String output4 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "ListDirLocated",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    String output5 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "RenameFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    generateAndVerifyReport(
+        Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
+        output1, output2, output3, output4, output5);
   }
 }

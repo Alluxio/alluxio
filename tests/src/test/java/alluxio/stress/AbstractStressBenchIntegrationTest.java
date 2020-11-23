@@ -58,7 +58,8 @@ public class AbstractStressBenchIntegrationTest extends BaseIntegrationTest {
     }
 
     // generate the output
-    File generatedReport = mFolder.newFile("report.html");
+    File generatedReport =
+        mFolder.newFile(String.format("report-%d.html", System.currentTimeMillis()));
     args.add("--output");
     args.add(generatedReport.getAbsolutePath());
     new GenerateReport().run(args.toArray(new String[0]));
