@@ -253,7 +253,7 @@ public final class NetworkAddressUtils {
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
-   * <th>Enable Service Using IP</th>
+   * <th>Enable Network IP Address Used</th>
    * <th>Returned Connect Host</th>
    * </tr>
    * </thead>
@@ -309,7 +309,7 @@ public final class NetworkAddressUtils {
         return bindHost;
       }
     }
-    if (conf.getBoolean(PropertyKey.SERVICE_USE_IP)) {
+    if (conf.getBoolean(PropertyKey.NETWORK_IP_ADDRESS_USED)) {
       return getLocalIpAddress((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));

@@ -439,8 +439,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey SERVICE_USE_IP =
-      new Builder(Name.SERVICE_USE_IP)
+  public static final PropertyKey NETWORK_IP_ADDRESS_USED =
+      new Builder(Name.NETWORK_IP_ADDRESS_USED)
           .setDefaultValue("false")
           .setDescription("If true, when alluxio.<service_name>.hostname and "
               + "alluxio.<service_name>.bind.host of a service not specified, "
@@ -4778,8 +4778,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.connection.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
+    public static final String NETWORK_IP_ADDRESS_USED = "alluxio.network.ip.address.used";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
-    public static final String SERVICE_USE_IP = "alluxio.service.use.ip";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
