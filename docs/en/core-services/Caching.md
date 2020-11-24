@@ -154,7 +154,11 @@ explicitly moving hot data to higher tiers.
 For `ReadType.CACHE`, Alluxio will cache the block into the highest tier that has the available space.
 So you will read the cache block with disk speed if the block is currently on a disk(SSD/HDD).
 
-> Note: In 2.3, Alluxio default ReadType is changed from CACHE_PROMOTE to CACHE.
+> Note: In 2.3, Alluxio default ReadType was changed from `CACHE_PROMOTE` to `CACHE`.
+> This is because moving the block synchronously on reading will cause unnecessary delays.
+> In 2.3, we changed `CACHE` to utilize the [tiered storage management tasks](#tiered-storage-management)
+> to maintain block orders asynchronously. So the blocks will be promoted according to the
+> [annotator policy](#block-annotation-policies). 
 
 #### Configuring Tiered Storage
 
