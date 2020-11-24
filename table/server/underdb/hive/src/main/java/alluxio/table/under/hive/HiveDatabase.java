@@ -228,7 +228,8 @@ public class HiveDatabase implements UnderDatabase {
         for (List<String> partialPartitionNames :
             Lists.partition(partitionNames, MAX_PARTITION_COLUMN_STATISTICS)) {
           statsMap.putAll(client.get()
-              .getPartitionColumnStatistics(mHiveDbName, tableName, partialPartitionNames, dataColumns)
+              .getPartitionColumnStatistics(mHiveDbName, tableName,
+                  partialPartitionNames, dataColumns)
               .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                   e -> e.getValue().stream().map(HiveUtils::toProto).collect(Collectors.toList()),
                   (e1, e2) -> e2)));
