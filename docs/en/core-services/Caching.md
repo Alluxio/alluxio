@@ -308,7 +308,7 @@ This allows writing data bigger than Alluxio storage capacity. However, it also 
 To enforce the assumption that tiers are configured from fastest to slowest, Alluxio now moves blocks around tiers based on block annotation policies.
 
 Below configuration is honoured by each individual tier management task:
-- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default:`CPU core count`)
+- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default: `CPU core count`)
 - `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. (Default:`CPU core count`/ 2)
 
 #### Block Aligning (Dynamic Block Placement)
