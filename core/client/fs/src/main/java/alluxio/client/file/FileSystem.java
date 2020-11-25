@@ -419,7 +419,7 @@ public interface FileSystem extends Closeable {
     ListStatusPOptions options = ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.ALWAYS)
         .setRecursive(LoadMetadataPOptions.getDefaultInstance().getRecursive())
-        .setResultsRequired(false).build();
+        .setLoadMetadataOnly(true).build();
     loadMetadata(path, options);
   }
 

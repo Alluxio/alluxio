@@ -312,7 +312,7 @@ public class BaseFileSystem implements FileSystem {
     rpc(client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options)
-          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setResultsRequired(false).build();
+          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setLoadMetadataOnly(true).build();
       client.listStatus(path, mergedOptions);
       return null;
     });
