@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在集群上独立运行Alluxio
-nickname: 在集群上独立运行Alluxio
+title: 在Docker上运行Alluxio
+nickname: 在Docker上运行Alluxio
 group: Install Alluxio
 priority: 3
 ---

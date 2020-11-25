@@ -38,6 +38,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Bits;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -128,6 +129,20 @@ public class BaseFileSystem implements FileSystem {
   public boolean isClosed() {
     // Doesn't require locking because mClosed is volatile and marked first upon close
     return mClosed;
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    checkUri(path);
+    rpc(client -> {
+      CheckAccessPOptions mergedOptions = FileSystemOptions
+          .checkAccessDefaults(mFsContext.getPathConf(path))
+          .toBuilder().mergeFrom(options).build();
+      client.checkAccess(path, mergedOptions);
+      LOG.debug("Checked access {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -297,7 +312,7 @@ public class BaseFileSystem implements FileSystem {
     rpc(client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options)
-          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setResultsRequired(false).build();
+          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setLoadMetadataOnly(true).build();
       client.listStatus(path, mergedOptions);
       return null;
     });

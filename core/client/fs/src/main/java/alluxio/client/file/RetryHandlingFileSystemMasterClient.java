@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CheckAccessPOptions;
+import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CompleteFilePOptions;
@@ -118,6 +120,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException {
+    retryRPC(() -> mClient.checkAccess(
+        CheckAccessPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build()),
+        RPC_LOG, "CheckAccess", "path=%s,options=%s", path, options);
   }
 
   @Override

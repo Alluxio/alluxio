@@ -117,6 +117,17 @@
       </snapshots>
     </repository>
     <repository>
+      <id>bintray-repo</id>
+      <name>bintray</name>
+      <url>https://jcenter.bintray.com</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
@@ -768,6 +779,12 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <artifactId>xstream</artifactId>
+        <groupId>com.thoughtworks.xstream</groupId>
+        <version>1.4.14</version>
+        <scope>test</scope>
+      </dependency>
 
       <!-- Provided scope -->
       <!--
@@ -843,6 +860,12 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-classloading-xstream</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>xstream</artifactId>
+          <groupId>com.thoughtworks.xstream</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
@@ -862,6 +885,11 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-reflect</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <artifactId>xstream</artifactId>
+      <groupId>com.thoughtworks.xstream</groupId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -16,6 +16,7 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -62,6 +63,16 @@ public interface FileSystemMasterClient extends Client {
       return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
+
+  /**
+   * Check access to a path.
+   *
+   * @param path the path to check
+   * @param options method options
+   * @throws alluxio.exception.AccessControlException if the access is denied
+   */
+  void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Checks the consistency of Alluxio metadata against the under storage for all files and

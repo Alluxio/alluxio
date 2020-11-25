@@ -75,6 +75,10 @@ public final class ConfigurationTestUtils {
       conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
+
+    // Sets up the block allocation and review policy
+    conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
+
     // Sets up the journal folder
     conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
@@ -146,6 +150,8 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
+
+    conf.put(PropertyKey.TEST_MODE, "true");
 
     return conf;
   }
