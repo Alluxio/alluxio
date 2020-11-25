@@ -28,8 +28,6 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ThreadUtils;
@@ -75,9 +73,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
-  private final AtomicLong mOpenOps = new AtomicLong(0);
-  private final AtomicLong mReleaseOps = new AtomicLong(0);
-  private final AtomicLong mReadOps = new AtomicLong(0);
   private final String mFsName;
 
   private static final int LOCK_SIZE = 2048;
@@ -324,9 +319,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       FileInStream is = mFileSystem.openFile(uri);
       mOpenFileEntries.put(fd, is);
       fi.fh.set(fd);
-      if (fd % 100 == 1) {
-        LOG.info("open(fd={},entries={})", fd, mOpenFileEntries.size());
-      }
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -341,14 +333,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    if (mReadOps.incrementAndGet() % 10000 == 500) {
-      long cachedBytes =
-          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
-      long missedBytes =
-          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount();
-      LOG.info("read: cached {} bytes, missed {} bytes, ratio {}",
-          cachedBytes, missedBytes, 1.0 * cachedBytes / (cachedBytes + missedBytes + 1));
-    }
     int nread = 0;
     int rd = 0;
     final int sz = (int) size;
@@ -431,9 +415,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
-    if (mReleaseOps.incrementAndGet() % 100 == 1) {
-      LOG.info("release(fd={},entries={})", fd, mOpenFileEntries.size());
-    }
     try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
       FileInStream is = mOpenFileEntries.remove(fd);
       FileOutStream os = mCreateFileEntries.remove(fd);
