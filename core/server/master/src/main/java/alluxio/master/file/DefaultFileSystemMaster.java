@@ -1042,7 +1042,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           auditContext.setSrcInode(inodePath.getInode());
-          if (context.getOptions().getResultsRequired()) {
+          if (!context.getOptions().hasLoadMetadataOnly()
+              || !context.getOptions().getLoadMetadataOnly()) {
             DescendantType descendantTypeForListStatus =
                 (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
             listStatusInternal(context, rpcContext, inodePath, auditContext,
