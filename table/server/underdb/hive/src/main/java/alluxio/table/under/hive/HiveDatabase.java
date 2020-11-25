@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 public class HiveDatabase implements UnderDatabase {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
 
-  private static final int MAX_PARTITION_COLUMN_STATISTICS = 10000;
+  private static final int MAX_PARTITION_COLUMN_STATISTICS = 10;
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
