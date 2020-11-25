@@ -15,6 +15,8 @@ import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.resource.RWLockResource;
 import alluxio.util.interfaces.Scoped;
@@ -96,6 +98,15 @@ public class InodeLockManager implements Closeable {
               return new AtomicBoolean();
             }
           });
+
+  public InodeLockManager() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_INODE_LOCK_POOL_SIZE.getName(),
+        () -> mInodeLocks.size());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EDGE_LOCK_POOL_SIZE.getName(),
+        () -> mEdgeLocks.size());
+  }
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
