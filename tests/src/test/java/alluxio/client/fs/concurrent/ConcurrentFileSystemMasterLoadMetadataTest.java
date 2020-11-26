@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fs;
+package alluxio.client.fs.concurrent;
 
 import static org.junit.Assert.assertEquals;
 

@@ -4,28 +4,30 @@ on: [pull_request]
 
 jobs:
   build:
-    name: "Test modules: "
+    name: "modules: "
 
     strategy:
       fail-fast: false
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**
+            alluxio.client.cli.**,!alluxio.client.cli.fs.**
           - >-
-            alluxio.client.fs.**
+            alluxio.client.cli.fs.**
+          - >-
+            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
+          - >-
+            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
           - >-
             alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
-            alluxio.job.**
+            alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-
-            alluxio.master.**
+            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
           - >-
-            alluxio.server.ft.**
+            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
           - >-
             alluxio.server.**,!alluxio.server.ft.**
-          - >-
-            alluxio.stress.**,alluxio.web.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -55,6 +57,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!shaded/hadoop,!shaded/ozone,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!table/server/underdb/hive,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 
