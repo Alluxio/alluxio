@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -90,7 +91,7 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
 
-  private final List<BlockStoreEventListener> mBlockStoreEventListeners = new ArrayList<>();
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners = new CopyOnWriteArrayList<>();
 
   /** A set of pinned inodes fetched from the master. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
@@ -257,8 +258,8 @@ public class TieredBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
           listener.onCommitBlock(sessionId, blockId, loc);
         }
       }
@@ -276,8 +277,8 @@ public class TieredBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
           listener.onCommitBlock(sessionId, blockId, loc);
         }
       }
@@ -294,8 +295,8 @@ public class TieredBlockStore implements BlockStore {
       BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     LOG.debug("abortBlock: sessionId={}, blockId={}", sessionId, blockId);
     abortBlockInternal(sessionId, blockId);
-    synchronized (mBlockStoreEventListeners) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
         listener.onAbortBlock(sessionId, blockId);
       }
     }
@@ -352,8 +353,8 @@ public class TieredBlockStore implements BlockStore {
         blockId, oldLocation, moveOptions);
     MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
     if (result.getSuccess()) {
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
           listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
               result.getDstLocation());
         }
@@ -401,8 +402,8 @@ public class TieredBlockStore implements BlockStore {
       mLockManager.unlockBlock(lockId);
     }
 
-    synchronized (mBlockStoreEventListeners) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
         listener.onRemoveBlockByClient(sessionId, blockId);
         listener.onRemoveBlock(sessionId, blockId, blockMeta.getBlockLocation());
       }
@@ -415,8 +416,8 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
 
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
           listener.onAccessBlock(sessionId, blockId);
           listener.onAccessBlock(sessionId, blockId, blockMeta.getBlockLocation());
         }
@@ -505,9 +506,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
     LOG.debug("registerBlockStoreEventListener: listener={}", listener);
-    synchronized (mBlockStoreEventListeners) {
-      mBlockStoreEventListeners.add(listener);
-    }
+    mBlockStoreEventListeners.add(listener);
   }
 
   /**
@@ -791,8 +790,8 @@ public class TieredBlockStore implements BlockStore {
           BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
           removeBlockInternal(blockMeta);
           blocksRemoved++;
-          synchronized (mBlockStoreEventListeners) {
-            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            synchronized (listener) {
               listener.onRemoveBlockByClient(sessionId, blockMeta.getBlockId());
               listener.onRemoveBlock(sessionId, blockMeta.getBlockId(),
                   blockMeta.getBlockLocation());
@@ -1000,8 +999,8 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       String tierAlias = dir.getParentTier().getTierAlias();
       dir.getParentTier().removeStorageDir(dir);
-      synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
           dir.getBlockIds().forEach(listener::onBlockLost);
           listener.onStorageLost(tierAlias, dir.getDirPath());
           listener.onStorageLost(dir.toBlockStoreLocation());
