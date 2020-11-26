@@ -99,6 +99,9 @@ public class InodeLockManager implements Closeable {
             }
           });
 
+  /**
+   * Creates a new instance of {@link InodeLockManager}.
+   */
   public InodeLockManager() {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_INODE_LOCK_POOL_SIZE.getName(),
