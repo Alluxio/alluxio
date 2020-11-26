@@ -35,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
+  private static final Object LOCK = new Object();
 
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
@@ -57,7 +58,7 @@ public final class BufferUtils {
    *
    * @param buffer bytebuffer
    */
-  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
+  public static void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer is null");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     int javaVersion = CommonUtils.getJavaVersion();
@@ -78,19 +79,29 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  private static synchronized void cleanDirectBufferJava11(ByteBuffer buffer) {
-    try {
-      if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
+  private static void cleanDirectBufferJava11(ByteBuffer buffer) {
+    if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
+      synchronized (LOCK) {
         try {
-          sUnsafeClass = Class.forName("sun.misc.Unsafe");
+          if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
+            try {
+              sUnsafeClass = Class.forName("sun.misc.Unsafe");
+            } catch (Exception e) {
+              // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
+              // but that method should be added if sun.misc.Unsafe is removed.
+              sUnsafeClass = Class.forName("jdk.internal.misc.Unsafe");
+            }
+            sByteBufferCleanerMethod = sUnsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+            sByteBufferCleanerMethod.setAccessible(true);
+          }
         } catch (Exception e) {
-          // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
-          // but that method should be added if sun.misc.Unsafe is removed.
-          sUnsafeClass = Class.forName("jdk.internal.misc.Unsafe");
+          // Force to drop reference to the buffer to clean
+          buffer = null;
+          return;
         }
-        sByteBufferCleanerMethod = sUnsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
-        sByteBufferCleanerMethod.setAccessible(true);
       }
+    }
+    try {
       Field theUnsafeField = sUnsafeClass.getDeclaredField("theUnsafe");
       theUnsafeField.setAccessible(true);
       Object theUnsafe = theUnsafeField.get(null);
@@ -111,12 +122,22 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  private static synchronized void cleanDirectBufferJava8(ByteBuffer buffer) {
-    try {
-      if (sByteBufferCleanerMethod == null) {
-        sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
-        sByteBufferCleanerMethod.setAccessible(true);
+  private static void cleanDirectBufferJava8(ByteBuffer buffer) {
+    if (sByteBufferCleanerMethod == null) {
+      synchronized (LOCK) {
+        try {
+          if (sByteBufferCleanerMethod == null) {
+            sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
+            sByteBufferCleanerMethod.setAccessible(true);
+          }
+        } catch (Exception e) {
+          // Force to drop reference to the buffer to clean
+          buffer = null;
+          return;
+        }
       }
+    }
+    try {
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
         if (buffer.capacity() > 0) {
@@ -126,7 +147,11 @@ public final class BufferUtils {
         return;
       }
       if (sCleanerCleanMethod == null) {
-        sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+        synchronized (LOCK) {
+          if (sCleanerCleanMethod == null) {
+            sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+          }
+        }
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
