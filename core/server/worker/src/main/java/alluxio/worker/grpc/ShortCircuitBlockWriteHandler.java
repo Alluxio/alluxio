@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A handler that handles short circuit read requests.
+ * A handler that handles short circuit write requests.
  */
 @NotThreadSafe
 class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRequest> {
