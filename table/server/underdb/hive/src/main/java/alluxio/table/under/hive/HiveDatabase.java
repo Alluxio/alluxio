@@ -30,6 +30,7 @@ import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.HiveClientPool;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.Warehouse;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +60,8 @@ import java.util.stream.Collectors;
  */
 public class HiveDatabase implements UnderDatabase {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
+
+  private static final int MAX_PARTITION_COLUMN_STATISTICS = 10000;
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
@@ -198,7 +202,7 @@ public class HiveDatabase implements UnderDatabase {
       List<Partition> partitions;
       List<ColumnStatisticsObj> columnStats;
       List<String> partitionColumns;
-      Map<String, List<ColumnStatisticsInfo>> statsMap;
+      Map<String, List<ColumnStatisticsInfo>> statsMap = new HashMap<>();
       // perform all the hive client operations, and release the client early.
       try (CloseableResource<IMetaStoreClient> client = mClientPool.acquireClientResource()) {
         table = client.get().getTable(mHiveDbName, tableName);
@@ -220,11 +224,16 @@ public class HiveDatabase implements UnderDatabase {
         List<String> partitionNames = partitions.stream()
             .map(partition -> FileUtils.makePartName(partitionColumns, partition.getValues()))
             .collect(Collectors.toList());
-        statsMap = client.get()
-            .getPartitionColumnStatistics(mHiveDbName, tableName, partitionNames, dataColumns)
-            .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                e -> e.getValue().stream().map(HiveUtils::toProto).collect(Collectors.toList()),
-                (e1, e2) -> e2));
+
+        for (List<String> partialPartitionNames :
+            Lists.partition(partitionNames, MAX_PARTITION_COLUMN_STATISTICS)) {
+          statsMap.putAll(client.get()
+              .getPartitionColumnStatistics(mHiveDbName, tableName,
+                  partialPartitionNames, dataColumns)
+              .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                  e -> e.getValue().stream().map(HiveUtils::toProto).collect(Collectors.toList()),
+                  (e1, e2) -> e2)));
+        }
       }
 
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);

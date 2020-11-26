@@ -9,10 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fs;
+package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;

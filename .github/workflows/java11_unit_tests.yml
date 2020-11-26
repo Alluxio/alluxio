@@ -4,16 +4,16 @@ on: [pull_request]
 
 jobs:
   build:
-    name: "Test modules: "
+    name: "modules: "
 
     strategy:
       fail-fast: false
       matrix:
         modules:
           - >-
-            !alluxio.master.metastore.rocks.**
+            !alluxio.client.**,!alluxio.master.**
           - >-
-            alluxio.master.metastore.rocks.**
+            alluxio.client.**,alluxio.master.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -43,8 +43,9 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!shaded/hadoop,!shaded/ozone,!assembly/client,!assembly/server \
           ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.5-jdk11 \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
         timeout-minutes: 60
 
       - name: Archive artifacts
