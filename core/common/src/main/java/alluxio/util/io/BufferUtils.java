@@ -32,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
+  private static final Object LOCK = new Object();
 
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
@@ -60,14 +61,24 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
+  public static void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
-    try {
-      if (sByteBufferCleanerMethod == null) {
-        sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
-        sByteBufferCleanerMethod.setAccessible(true);
+    if (sByteBufferCleanerMethod == null) {
+      synchronized (LOCK) {
+        try {
+          if (sByteBufferCleanerMethod == null) {
+            sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
+            sByteBufferCleanerMethod.setAccessible(true);
+          }
+        } catch (Exception e) {
+          // Force to drop reference to the buffer to clean
+          buffer = null;
+          return;
+        }
       }
+    }
+    try {
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
         if (buffer.capacity() > 0) {
@@ -77,7 +88,11 @@ public final class BufferUtils {
         return;
       }
       if (sCleanerCleanMethod == null) {
-        sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+        synchronized (LOCK) {
+          if (sCleanerCleanMethod == null) {
+            sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+          }
+        }
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
