@@ -204,7 +204,7 @@ Since Grafana has a well support to Prometheus, following steps can help you to 
  	| alluxio_datasource | Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4) |
  	| masters            | Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*) |
  	| workers            | Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*) |
- 	| alluxio_users      | The user used to start up Alluxio (eg. *alluxio*) |
+ 	| alluxio_user       | The user used to start up Alluxio (eg. *alluxio*) |
 
 If your Grafana dashboard appears like the screenshot below, you have built your monitoring successfully. Of course you can modify the json file or just operate on the dashboard to design your own monitoring.
 
