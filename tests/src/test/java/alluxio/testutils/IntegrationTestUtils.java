@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
@@ -153,8 +154,13 @@ public final class IntegrationTestUtils {
    */
   public static void waitForUfsJournalCheckpoint(String masterName, URI journalLocation)
       throws TimeoutException, InterruptedException {
-    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(journalLocation,
-        masterName), new NoopMaster(""), 0, Collections::emptySet);
+    final UfsJournal journal;
+    try {
+      journal = new UfsJournal(URIUtils.appendPathOrDie(journalLocation,
+          masterName), new NoopMaster(""), 0, Collections::emptySet);
+    } catch (AlluxioStatusException e) {
+      throw new IllegalStateException(e);
+    }
     CommonUtils.waitFor("checkpoint to be written", () -> {
       UfsJournalSnapshot snapshot;
       try {

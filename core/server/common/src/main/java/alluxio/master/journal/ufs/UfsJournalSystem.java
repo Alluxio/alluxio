@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
@@ -69,9 +70,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   @Override
   public UfsJournal createJournal(Master master) {
     Supplier<Set<JournalSink>> supplier = () -> this.getJournalSinks(master);
-    UfsJournal journal =
-        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
-            supplier);
+    UfsJournal journal;
+    try {
+      journal = new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
+          supplier);
+    } catch (AlluxioStatusException e) {
+      throw new IllegalStateException(e);
+    }
     mJournals.put(master.getName(), journal);
     return journal;
   }

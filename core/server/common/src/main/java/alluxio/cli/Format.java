@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
@@ -21,8 +22,10 @@ import alluxio.master.NoopUfsManager;
 import alluxio.master.ServiceUtils;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 
 import org.slf4j.Logger;
@@ -112,6 +115,8 @@ public final class Format {
    */
   public static void format(Mode mode, AlluxioConfiguration alluxioConf) throws IOException {
     NoopUfsManager noopUfsManager = new NoopUfsManager();
+    noopUfsManager.addMount(IdUtils.JOURNAL_MOUNT_ID, new AlluxioURI("/JournalRoot"),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     switch (mode) {
       case MASTER:
         URI journalLocation = JournalUtils.getJournalLocation();

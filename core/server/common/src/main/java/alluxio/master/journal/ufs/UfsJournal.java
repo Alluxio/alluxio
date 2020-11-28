@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
@@ -50,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import static alluxio.util.IdUtils.JOURNAL_MOUNT_ID;
 
 /**
  * Implementation of UFS-based journal.
@@ -145,8 +148,11 @@ public class UfsJournal implements Journal {
    * @param journalSinks a supplier for journal sinks
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
-      Supplier<Set<JournalSink>> journalSinks) {
-    this(location, master, master.getMasterContext().getUfsManager().getRoot().acquireUfsResource()
+      Supplier<Set<JournalSink>> journalSinks)
+      throws AlluxioStatusException {
+    this(location, master, master.getMasterContext().getUfsManager()
+            .get(JOURNAL_MOUNT_ID)
+            .acquireUfsResource()
             .get(),
         quietPeriodMs, journalSinks);
   }
