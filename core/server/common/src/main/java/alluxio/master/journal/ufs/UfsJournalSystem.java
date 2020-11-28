@@ -72,8 +72,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     Supplier<Set<JournalSink>> supplier = () -> this.getJournalSinks(master);
     UfsJournal journal;
     try {
-      journal = new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
-          supplier);
+      journal = new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()),
+          master, mQuietTimeMs, supplier);
     } catch (AlluxioStatusException e) {
       throw new IllegalStateException(e);
     }

@@ -34,6 +34,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.IdUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -51,8 +52,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import static alluxio.util.IdUtils.JOURNAL_MOUNT_ID;
 
 /**
  * Implementation of UFS-based journal.
@@ -151,7 +150,7 @@ public class UfsJournal implements Journal {
       Supplier<Set<JournalSink>> journalSinks)
       throws AlluxioStatusException {
     this(location, master, master.getMasterContext().getUfsManager()
-            .get(JOURNAL_MOUNT_ID)
+            .get(IdUtils.JOURNAL_MOUNT_ID)
             .acquireUfsResource()
             .get(),
         quietPeriodMs, journalSinks);
