@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Ozone
-nickname: Ozone
+title: 在Ozone上配置Alluxio
+nickname: Alluxio使用Ozone
 group: Storage Integrations
 priority: 10
 ---
