@@ -4543,7 +4543,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The total possible number of available job statuses in the job master. "
               + "This value includes running and finished jobs which are have completed within "
               + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
-          .setDefaultValue(500000)
+          .setDefaultValue(100000)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
