@@ -17,7 +17,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterFactory;
 import alluxio.master.NoopMaster;
 import alluxio.master.ServiceUtils;
@@ -96,14 +95,10 @@ public final class JournalUpgrader {
       mAlluxioConf = alluxioConf;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
-      try {
-        mJournalV1 =
-            new UfsJournal(getJournalLocation(ServerConfiguration
-                .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
-                Collections::emptySet);
-      } catch (AlluxioStatusException e) {
-        throw new IllegalStateException(e);
-      }
+      mJournalV1 =
+          new UfsJournal(getJournalLocation(ServerConfiguration
+              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
+              Collections::emptySet);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0,
           UnderFileSystemConfiguration.defaults(alluxioConf));

@@ -99,6 +99,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       new ConcurrentHashMap<>();
 
   private UfsClient mRootUfsClient;
+  private UfsClient mJournalUfsClient;
   protected final Closer mCloser;
 
   protected AbstractUfsManager() {
@@ -206,6 +207,30 @@ public abstract class AbstractUfsManager implements UfsManager {
         }
       }
       return mRootUfsClient;
+    }
+  }
+
+  @Override
+  public UfsClient getJournal() {
+    synchronized (this) {
+      if (mJournalUfsClient == null) {
+        String uri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_UFS);
+        boolean readOnly =
+            ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_READONLY);
+        boolean shared = ServerConfiguration
+            .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_SHARED);
+        Map<String, String> conf =
+            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_OPTION);
+        addMount(IdUtils.JOURNAL_MOUNT_ID, new AlluxioURI(uri),
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+                .setReadOnly(readOnly).setShared(shared).createMountSpecificConf(conf));
+        try {
+          mJournalUfsClient = get(IdUtils.JOURNAL_MOUNT_ID);
+        } catch (NotFoundException | UnavailableException e) {
+          throw new RuntimeException("We should never reach here", e);
+        }
+      }
+      return mJournalUfsClient;
     }
   }
 

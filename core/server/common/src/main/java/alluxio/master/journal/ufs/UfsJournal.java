@@ -34,7 +34,6 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.IdUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -147,10 +146,8 @@ public class UfsJournal implements Journal {
    * @param journalSinks a supplier for journal sinks
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
-      Supplier<Set<JournalSink>> journalSinks)
-      throws AlluxioStatusException {
-    this(location, master, master.getMasterContext().getUfsManager()
-            .get(IdUtils.JOURNAL_MOUNT_ID)
+      Supplier<Set<JournalSink>> journalSinks) {
+    this(location, master, master.getMasterContext().getUfsManager().getJournal()
             .acquireUfsResource()
             .get(),
         quietPeriodMs, journalSinks);
