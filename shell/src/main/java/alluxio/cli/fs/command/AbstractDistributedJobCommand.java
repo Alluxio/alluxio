@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * It provides handling for submitting multiple jobs and handling retries of them.
  */
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {
-  private static final int DEFAULT_ACTIVE_JOBS = 30000;
+  private static final int DEFAULT_ACTIVE_JOBS = 3000;
 
   protected List<JobAttempt> mSubmittedJobAttempts;
   protected int mActiveJobs;
