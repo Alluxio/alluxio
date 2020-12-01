@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Ozone上配置Alluxio
-nickname: Alluxio使用Ozone
+title: Alluxio集成Ozone作为底层存储
+nickname: Alluxio集成Ozone作为底层存储
 group: Storage Integrations
 priority: 10
 ---

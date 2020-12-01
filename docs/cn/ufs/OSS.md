@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在OSS上配置Alluxio
-nickname: Alluxio使用OSS
+title: Alluxio集成OSS作为底层存储
+nickname: Alluxio集成OSS作为底层存储
 group: Storage Integrations
 priority: 5
 ---

@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio使用Minio
-nickname: Alluxio使用Minio
+title: Alluxio集成Minio作为底层存储
+nickname: Alluxio集成Minio作为底层存储
 group: Storage Integrations
 priority: 10
 ---
