@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Ceph上配置Alluxio
-nickname: Alluxio使用Ceph
+title: Alluxio集成Ceph作为底层存储
+nickname: Alluxio集成Ceph作为底层存储
 group: Storage Integrations
 priority: 5
 ---

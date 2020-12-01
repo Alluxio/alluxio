@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Swift上配置Alluxio
-nickname: Alluxio使用Swift
+title: Alluxio集成Swift作为底层存储
+nickname: Alluxio集成Swift作为底层存储
 group: Storage Integrations
 priority: 5
 ---

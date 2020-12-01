@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在WEB上配置Alluxio
-nickname: Alluxio使用WEB
+title: Alluxio集成WEB作为底层存储
+nickname: Alluxio集成WEB作为底层存储
 group: Storage Integrations
 priority: 6
 ---

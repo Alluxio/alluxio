@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在GCS上配置Alluxio
-nickname: Alluxio使用GCS
+title: Alluxio集成GCS作为底层存储
+nickname: Alluxio集成GCS作为底层存储
 group: Storage Integrations
 priority: 1
 ---

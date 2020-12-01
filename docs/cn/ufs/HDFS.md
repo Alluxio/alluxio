@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在HDFS上配置Alluxio
-nickname: Alluxio使用HDFS
+title: Alluxio集成HDFS作为底层存储
+nickname: Alluxio集成HDFS作为底层存储
 group: Storage Integrations
 priority: 3
 ---

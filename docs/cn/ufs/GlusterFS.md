@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在GlusterFS上配置Alluxio
-nickname: Alluxio使用GlusterFS
+title: Alluxio集成GlusterFS作为底层存储
+nickname: Alluxio集成GlusterFS作为底层存储
 group: Storage Integrations
 priority: 5
 ---
