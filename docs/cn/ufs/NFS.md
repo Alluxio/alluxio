@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在NFS上配置Alluxio
-nickname: Alluxio使用NFS
+title: Alluxio集成NFS作为底层存储
+nickname: Alluxio集成NFS作为底层存储
 group: Storage Integrations
 priority: 5
 ---
