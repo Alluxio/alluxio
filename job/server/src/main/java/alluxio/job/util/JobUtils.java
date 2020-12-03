@@ -11,22 +11,18 @@
 
 package alluxio.job.util;
 
-import alluxio.AlluxioURI;
-import alluxio.client.Cancelable;
+import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenFilePOptions;
@@ -38,19 +34,20 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * Utility class to make it easier to write jobs.
  */
 public final class JobUtils {
+  private static final String LOCAL_HOST_NAME =
+      NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+      ServerConfiguration.global());
+
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
         @Override
@@ -100,22 +97,18 @@ public final class JobUtils {
    * Loads a block into the local worker. If the block doesn't exist in Alluxio, it will be read
    * from the UFS.
    *
-   * @param fs the filesystem
+   * @param status the file status
    * @param context filesystem context
-   * @param path the file path of the block to load
    * @param blockId the id of the block to load
    */
-  public static void loadBlock(FileSystem fs, FileSystemContext context, String path, long blockId)
-      throws AlluxioException, IOException {
+  public static void loadBlock(URIStatus status, FileSystemContext context, long blockId)
+      throws IOException {
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
-
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-        ServerConfiguration.global());
     List<BlockWorkerInfo> workerInfoList = context.getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
+      if (workerInfo.getNetAddress().getHost().equals(LOCAL_HOST_NAME)) {
         localNetAddress = workerInfo.getNetAddress();
         break;
       }
@@ -125,46 +118,19 @@ public final class JobUtils {
           .getMessage(blockId));
     }
 
-    // TODO(jiri): Replace with internal client that uses file ID once the internal client is
-    // factored out of the core server module. The reason to prefer using file ID for this job is
-    // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
-    // renamed, the job is still working on the correct file.
-    URIStatus status = fs.getStatus(new AlluxioURI(path));
-
-    Set<String> pinnedLocation = status.getPinnedMediumTypes();
-    if (pinnedLocation.size() > 1) {
-      throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(path));
-    }
-    // since there is only one element in the set, we take the first element in the set
-    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
-
     OpenFilePOptions openOptions =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
 
     AlluxioConfiguration conf = ServerConfiguration.global();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
-    // Set read location policy always to loca first for loading blocks for job tasks
+    // Set read location policy always to local first for loading blocks for job tasks
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
-    OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
-    outOptions.setMediumType(medium);
-    // Set write location policy always to local first for loading blocks for job tasks
-    outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
-        LocalFirstPolicy.class.getCanonicalName(), conf));
-
     // use -1 to reuse the existing block size for this block
-    try (OutputStream outputStream =
-        blockStore.getOutStream(blockId, -1, localNetAddress, outOptions)) {
-      try (InputStream inputStream = blockStore.getInStream(blockId, inOptions)) {
-        ByteStreams.copy(inputStream, outputStream);
-      } catch (Throwable t) {
-        try {
-          ((Cancelable) outputStream).cancel();
-        } catch (Throwable t2) {
-          t.addSuppressed(t2);
-        }
-        throw t;
+    byte[] buf = new byte[8 * Constants.MB];
+    try (InputStream inputStream = blockStore.getInStream(blockId, inOptions)) {
+      while (inputStream.read(buf) != -1) {
       }
     }
   }

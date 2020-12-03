@@ -4591,6 +4591,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(30001)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey JOB_WORKER_TASKS_PER_WORKER =
+      new Builder(Name.JOB_WORKER_TASKS_PER_WORKER)
+          .setDescription("The max number of concurrent tasks a job worker can run.")
+          .setDefaultValue(10)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey JOB_WORKER_THREADPOOL_SIZE =
       new Builder(Name.JOB_WORKER_THREADPOOL_SIZE)
           .setDescription("Number of threads in the thread pool for job worker. "
@@ -5640,6 +5646,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
     public static final String JOB_WORKER_HOSTNAME = "alluxio.job.worker.hostname";
     public static final String JOB_WORKER_RPC_PORT = "alluxio.job.worker.rpc.port";
+    public static final String JOB_WORKER_TASKS_PER_WORKER = "alluxio.job.worker.tasks.per.worker";
     public static final String JOB_WORKER_THREADPOOL_SIZE = "alluxio.job.worker.threadpool.size";
     public static final String JOB_WORKER_THROTTLING = "alluxio.job.worker.throttling";
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
