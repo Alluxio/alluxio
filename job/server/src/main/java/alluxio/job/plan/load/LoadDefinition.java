@@ -14,14 +14,11 @@ package alluxio.job.plan.load;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
@@ -56,8 +53,7 @@ public final class LoadDefinition
     extends AbstractVoidPlanDefinition<LoadConfig, ArrayList<LoadTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadDefinition.class);
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
-  private static final int TASKS_PER_WORKER =
-      ServerConfiguration.getInt(PropertyKey.JOB_WORKER_TASKS_PER_WORKER);
+  private static final int JOBS_PER_WORKER = 10;
 
   /**
    * Constructs a new {@link LoadDefinition}.
@@ -111,7 +107,7 @@ public final class LoadDefinition
     for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
       Collection<LoadTask> loadTasks = assignment.getValue();
       List<List<LoadTask>> partitionedTasks =
-          CommonUtils.partition(Lists.newArrayList(loadTasks), TASKS_PER_WORKER);
+          CommonUtils.partition(Lists.newArrayList(loadTasks), JOBS_PER_WORKER);
 
       for (List<LoadTask> tasks : partitionedTasks) {
         if (!tasks.isEmpty()) {
@@ -142,14 +138,9 @@ public final class LoadDefinition
   @Override
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
       RunTaskContext context) throws Exception {
-    // TODO(jiri): Replace with internal client that uses file ID once the internal client is
-    // factored out of the core server module. The reason to prefer using file ID for this job is
-    // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
-    // renamed, the job is still working on the correct file.
-    String path = config.getFilePath();
-    URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(path));
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId());
+      JobUtils.loadBlock(
+          context.getFileSystem(), context.getFsContext(), config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

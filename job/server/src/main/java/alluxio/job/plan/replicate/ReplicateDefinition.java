@@ -11,9 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
@@ -97,9 +95,8 @@ public final class ReplicateDefinition
   @Override
   public SerializableVoid runTask(ReplicateConfig config, SerializableVoid arg,
       RunTaskContext context) throws Exception {
-    String path = config.getPath();
-    URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(path));
-    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId());
+    JobUtils.loadBlock(context.getFileSystem(), context.getFsContext(),
+        config.getPath(), config.getBlockId());
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
     return null;
   }
