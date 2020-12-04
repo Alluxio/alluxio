@@ -15,7 +15,7 @@ export interface IMountPointInfo {
   mountPoint: string;
   ufsUri: string;
   ufsType: string;
-  ufsCapacityBytes: number;
+  ufsCapacityBytes: string;
   ufsUsedBytes: number;
   readOnly: boolean;
   shared: boolean;

@@ -11,6 +11,7 @@
 
 package alluxio.util.webui;
 
+import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -49,8 +50,8 @@ public class UIMountPointInfo {
    *
    * @return the ufs capacity bytes
    */
-  public long getUfsCapacityBytes() {
-    return mUfsCapacityBytes;
+  public String getUfsCapacityBytes() {
+    return FormatUtils.getSizeFromBytes(mUfsCapacityBytes);
   }
 
   /**
@@ -58,8 +59,8 @@ public class UIMountPointInfo {
    *
    * @return the ufs used bytes
    */
-  public long getUfsUsedBytes() {
-    return mUfsUsedBytes;
+  public String getUfsUsedBytes() {
+    return FormatUtils.getSizeFromBytes(mUfsUsedBytes);
   }
 
   /**
