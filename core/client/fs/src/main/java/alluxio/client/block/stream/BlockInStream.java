@@ -11,9 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
@@ -21,6 +18,8 @@ import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
@@ -32,6 +31,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final long mLength;
   private final FileSystemContext mContext;
   private final byte[] mSingleByte = new byte[1];
-  private final byte[] mSeekBuffer = new byte[Constants.MB];
+  private final boolean mSharedCacheReader;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -220,13 +220,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   /**
    * Creates an instance of {@link BlockInStream}.
    *
-   * @param context
+   * @param context file system context
    * @param dataReaderFactory the data reader factory
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
+  @VisibleForTesting
   protected BlockInStream(FileSystemContext context,
       DataReader.Factory dataReaderFactory, WorkerNetAddress address,
       BlockInStreamSource blockSource, long id, long length) {
@@ -236,6 +237,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mId = id;
     mLength = length;
     mContext = context;
+    mSharedCacheReader =
+        mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED);
   }
 
   @Override
@@ -267,10 +270,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
-    return readInternal(b, off, len);
-  }
-
-  private int readInternal(byte[] b, int off, int len) throws IOException {
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -343,7 +342,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     // Protect the original seek logic under fuse flag to minimize and isolate
     // the fuse related changes
-    if (!mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)) {
+    if (!mSharedCacheReader) {
       if (pos < mPos) {
         mEOF = false;
       }

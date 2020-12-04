@@ -47,7 +47,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.math.StatsAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,9 +105,6 @@ public class FileSystemContext implements Closeable {
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
-
-  private final StatsAccumulator mSeekDistStats = new StatsAccumulator();
-  private final StatsAccumulator mCacheStats = new StatsAccumulator();
 
   //
   // Master related resources.
@@ -489,20 +485,6 @@ public class FileSystemContext implements Closeable {
       };
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Prints pool size and available clients.
-   */
-  public void printAvailableBlockWorkerClient() {
-    if (mBlockWorkerClientPoolMap == null) {
-      return;
-    }
-    for (ClientPoolKey key : mBlockWorkerClientPoolMap.keySet()) {
-      BlockWorkerClientPool pool = mBlockWorkerClientPoolMap.get(key);
-      LOG.info("client pool {}: size={}, available={}",
-          key, pool.size(), pool.getAvailableResources());
     }
   }
 

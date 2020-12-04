@@ -134,7 +134,7 @@
   </repositories>
 
   <properties>
-    <argLine />
+    <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
@@ -693,11 +693,6 @@
         <artifactId>ratis-grpc</artifactId>
         <groupId>org.apache.ratis</groupId>
         <version>${ratis.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.serceman</groupId>
-        <artifactId>jnr-fuse</artifactId>
-        <version>0.5.3</version>
       </dependency>
 
       <!-- Test scope -->

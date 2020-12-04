@@ -3257,11 +3257,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
-  public static final PropertyKey PROXY_CLI_TIMEOUT =
-      new Builder(Name.PROXY_CLI_TIMEOUT)
-          .setDescription("The timeout to run CLI using proxy.")
-          .setDefaultValue("5min")
-          .build();
 
   //
   // Locality related properties
@@ -4372,8 +4367,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("(Experimental) Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use experimental JNIFUSE library for better performance.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5434,7 +5429,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
-    public static final String PROXY_CLI_TIMEOUT = "alluxio.proxy.cli.timeout";
 
     //
     // Locality related properties

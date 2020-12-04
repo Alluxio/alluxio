@@ -34,6 +34,10 @@ RUN rm -rf /opt/alluxio/lib/*
 RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
+
+# instead of ubuntu:16.04, use cheyang/fuse2:ubuntu1604-customize for now
+# which has customized libfuse installed
+# to use standard ubuntu1604, add "fuse" to the list of "apt-get install"
 FROM cheyang/fuse2:ubuntu1604-customize
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio

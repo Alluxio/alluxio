@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * An open file can be either write-only or read-only, never both. This means that one of getIn or
  * getOut will be null, while the other will be non-null. It is up to the user of this class
- * (currently, only {@link AlluxioJniFuseFileSystem}) to check that.
+ * (currently, only {@link AlluxioFuseFileSystem}) to check that.
  *
  * This mechanism is preferred over more complex sub-classing to avoid useless casts or type checks
  * for every read/write call, which happen quite often.

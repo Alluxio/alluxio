@@ -212,7 +212,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsUserGroupTranslation) {
       LOG.info("Cannot change the owner/group of path {}. Please set {} to be true to enable "
-              + "user group translation in Alluxio-FUSE.",
+          + "user group translation in Alluxio-FUSE.",
           path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED.getName());
       return -ErrorCodes.EOPNOTSUPP();
     }
@@ -592,13 +592,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int read(String path, Pointer buf, @size_t long size, @off_t long offset,
-                  FuseFileInfo fi) {
+      FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
         "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
-  private synchronized int readInternal(
-      String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
+  private int readInternal(String path, Pointer buf, @size_t long size, @off_t long offset,
+      FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
       return -ErrorCodes.EINVAL();
@@ -652,13 +652,13 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int readdir(String path, Pointer buff, FuseFillDir filter,
-                     @off_t long offset, FuseFileInfo fi) {
+      @off_t long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "readdir", "path=%s,buf=%s", path, buff);
   }
 
   private int readdirInternal(String path, Pointer buff, FuseFillDir filter,
-                              @off_t long offset, FuseFileInfo fi) {
+      @off_t long offset, FuseFileInfo fi) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     try {
       final List<URIStatus> ls = mFileSystem.listStatus(turi);
@@ -869,7 +869,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   private int writeInternal(String path, Pointer buf, @size_t long size, @off_t long offset,
-                            FuseFileInfo fi) {
+      FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot write more than Integer.MAX_VALUE");
       return ErrorCodes.EIO();

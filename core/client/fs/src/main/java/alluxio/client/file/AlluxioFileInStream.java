@@ -41,7 +41,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -87,7 +86,7 @@ public class AlluxioFileInStream extends FileInStream {
   private BlockInStream mBlockInStream;
 
   /** Cached block stream for the positioned read API. */
-  //private BlockInStream mCachedPositionedReadStream;
+  private BlockInStream mCachedPositionedReadStream;
 
   /** The last block id for which async cache was triggered. */
   private long mLastBlockIdCached;
@@ -123,7 +122,7 @@ public class AlluxioFileInStream extends FileInStream {
       mBlockSize = mStatus.getBlockSizeBytes();
       mPosition = 0;
       mBlockInStream = null;
-      //mCachedPositionedReadStream = null;
+      mCachedPositionedReadStream = null;
       mLastBlockIdCached = 0;
     } catch (Throwable t) {
       // If there is any exception, including RuntimeException such as thrown by conf.getBoolean,
@@ -226,7 +225,7 @@ public class AlluxioFileInStream extends FileInStream {
   @Override
   public void close() throws IOException {
     closeBlockInStream(mBlockInStream);
-    //closeBlockInStream(mCachedPositionedReadStream);
+    closeBlockInStream(mCachedPositionedReadStream);
     mCloser.close();
   }
 
@@ -239,12 +238,10 @@ public class AlluxioFileInStream extends FileInStream {
   /* Positioned Readable methods */
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return positionedRead(pos, b, off, len, null);
+    return positionedReadInternal(pos, b, off, len);
   }
 
-  @Override
-  public int positionedRead(long pos, byte[] b, int off, int len,
-      @Nullable Context context) throws IOException {
+  private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
     if (pos < 0 || pos >= mLength) {
       return -1;
     }
@@ -256,11 +253,6 @@ public class AlluxioFileInStream extends FileInStream {
     int lenCopy = len;
     RetryPolicy retry = mRetryPolicySupplier.get();
     IOException lastException = null;
-    BlockInStream mCachedPositionedReadStream = null;
-    if (context != null && context.getCachedBlockInStream() != null) {
-      mCachedPositionedReadStream = context.getCachedBlockInStream();
-    }
-
     while (len > 0 && retry.attempt()) {
       if (pos >= mLength) {
         break;
@@ -296,10 +288,6 @@ public class AlluxioFileInStream extends FileInStream {
         if (mCachedPositionedReadStream != null) {
           handleRetryableException(mCachedPositionedReadStream, e);
           mCachedPositionedReadStream = null;
-        }
-      } finally {
-        if (context != null && mCachedPositionedReadStream != null) {
-          context.setCachedBlockInStream(mCachedPositionedReadStream);
         }
       }
     }
