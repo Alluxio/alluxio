@@ -61,6 +61,7 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
     System.out.println(output);
-    Assert.assertTrue(output.contains("/testFolder already exists"));
+    Assert.assertTrue(output.contains(
+        "Cannot rename because destination already exists. src: /testFolder1 dst: /testFolder"));
   }
 }

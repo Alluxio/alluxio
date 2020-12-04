@@ -17,7 +17,7 @@
 # - https://github.com/moby/moby/issues/6119
 FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.3.1-SNAPSHOT/alluxio-2.3.1-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.5.0-SNAPSHOT/alluxio-2.5.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -39,7 +39,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
-RUN apk --no-cache --update add bash libc6-compat shadow && \
+RUN apk --no-cache --update add bash libc6-compat shadow tini && \
     rm -rf /var/cache/apk/*
 
 # disable JVM DNS cache

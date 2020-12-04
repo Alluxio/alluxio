@@ -49,13 +49,13 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     }).when(mResponseObserver).onCompleted();
     doAnswer(args -> {
       mResponseCompleted = true;
-      mError = args.getArgumentAt(0, Throwable.class);
+      mError = args.getArgument(0, Throwable.class);
       return null;
     }).when(mResponseObserver).onError(any(Throwable.class));
     doAnswer((args) -> {
       // make a copy of response data before it is released
       mResponses.add(ReadResponse.parseFrom(
-          args.getArgumentAt(0, ReadResponse.class).toByteString()));
+          args.getArgument(0, ReadResponse.class).toByteString()));
       return null;
     }).when(mResponseObserver).onNext(any(ReadResponse.class));
     mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,

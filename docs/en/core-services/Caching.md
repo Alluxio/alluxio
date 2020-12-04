@@ -32,12 +32,11 @@ into two distinct categories.
     storages results in vastly improved I/O performance.
     - Alluxio storage is mainly aimed at storing hot, transient data and is not focused on long term
     persistence.
-    - The amount and type of storage for each Alluxio node to manage is determined by user
+    - The amount and type of storage for each Alluxio worker node to manage is determined by user
     configuration.
     - Even if data is not currently within Alluxio storage, files within a connected UFS are still
     visible to Alluxio clients. The data is copied into Alluxio storage when a client attempts to
     read a file that is only available from a UFS.
-
 
 ![Alluxio storage diagram]({{ '/img/stack.png' | relativize_url }})
 
@@ -74,7 +73,7 @@ A common modification to the default is to set the ramdisk size explicitly. For 
 ramdisk size to be 16GB on each worker:
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
@@ -107,13 +106,14 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 Note that the ordering of the quotas must match with the ordering of the paths.
 
-
-There is a subtle difference between `alluxio.worker.memory.size` and
-`alluxio.worker.tieredstore.level0.dirs.quota`, which defaults to the former. Alluxio will
-provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. This ramdisk
-will have its size determined by `alluxio.worker.memory.size` regardless of the value set in
-`alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
-of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
+Alluxio will provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. 
+This ramdisk will have its size determined by `alluxio.worker.ramdisk.size` 
+In the default case where tier 0 is MEM and is allocated the entire ramdisk, 
+`alluxio.worker.tieredstore.level0.dirs.quota` has the same value as 
+`alluxio.worker.ramdisk.size`. 
+However, if tier 0 is not MEM or if it is not allocated the entire space of the ramdisk,
+`alluxio.worker.tieredstore.level0.dirs.quota` should be configured explicitly to indicate
+the amount allocated for tier 0.
 
 ### Multiple-Tier Storage
 
@@ -130,7 +130,7 @@ For example, users often specify the following tiers:
 
 When a user writes a new block, it is written to the top tier by default. If the top tier does not have enough free space,
 then the next tier is tried. If no space is found on all tiers, Alluxio frees up space for new data as its storage is designed to be volatile.
-Eviction will start attempting to evict blocks from the worker, based on the block annotation policy. [block annotation policies](#block-annotation-policies).
+Eviction will start attempting to evict blocks from the worker, based on the [block annotation policies](#block-annotation-policies).
 If eviction cannot free up new space, then the write will fail.
 
 **Note:** The new eviction model is synchronous and is executed on behalf of the client that requires a free space for the block it is writing.
@@ -144,11 +144,21 @@ The user can also specify the tier that the data will be written to via
 
 If the data is already in Alluxio, the client will simply read the block from where it is already stored.
 If Alluxio is configured with multiple tiers, the block may not be necessarily read from the top tier,
-since it could have been moved to a lower tier transparently.
+since it may have been loaded into a lower tier, or moved to a lower tier transparently. 
+This logic applies to both `ReadType.CACHE` and `ReadType.CACHE_PROMOTE`.
 
-Reading data with the `ReadType.CACHE_PROMOTE` will attempt to first transfer the block to the
+The difference is, reading data with `ReadType.CACHE_PROMOTE` will attempt to first transfer the block to the
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
+
+For `ReadType.CACHE`, Alluxio will cache the block into the highest tier that has the available space.
+So you will read the cache block with disk speed if the block is currently on a disk(SSD/HDD).
+
+> Note: In 2.3, Alluxio default ReadType was changed from `CACHE_PROMOTE` to `CACHE`.
+> This is because moving the block synchronously on reading will cause unnecessary delays.
+> In 2.3, we changed `CACHE` to utilize the [tiered storage management tasks](#tiered-storage-management)
+> to maintain block orders asynchronously. So the blocks will be promoted according to the
+> [annotator policy](#block-annotation-policies). 
 
 #### Configuring Tiered Storage
 
@@ -190,9 +200,60 @@ alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 
 There are no restrictions on how many tiers can be configured
 but each tier must be identified with a unique alias.
+
+For each tier, the following parameters are available:
+  * `alluxio.worker.tieredstore.level{x}.dirs.path`:
+  comma-separated list of directories for that tier. Example: `/mnt/hdd1,/mnt/hdd2,/mnt/hdd3`
+  * `alluxio.worker.tieredstore.level{x}.dirs.quota`:
+  comma-separated list of the quotas of the corresponding directories specified in
+  `alluxio.worker.tieredstore.level{x}.dirs.path`. Example: `2TB,5TB,500GB`
+  * `alluxio.worker.tieredstore.level{x}.dirs.mediumtype`:
+  comma-separated list of the medium types of the corresponding directories specified in
+  `alluxio.worker.tieredstore.level{x}.dirs.path`. Example: `HDD,HDD,HDD`
+
 A typical configuration will have three tiers for Memory, SSD, and HDD.
 To use multiple hard drives in the HDD tier, specify multiple paths when configuring
 `alluxio.worker.tieredstore.level{x}.dirs.path`.
+
+### Block Allocation Policies
+
+Alluxio uses block allocation policies to define how to allocate new blocks across multiple storage directories (in the same tier or different tiers).
+The allocation policy defines which storage directory to allocate the new block in. 
+
+This is configured by worker property `alluxio.worker.allocator.class`. Out-of-the-box implementations include:
+
+- **MaxFreeAllocator**: Start trying from tier 0 to the lowest tier, try to allocate the block to the storage directory
+that currently has the most availability. **This is the default behavior.**
+
+- **RoundRobinAllocator**: Start trying from tier 0 to the lowest tier. On each tier, maintain a Round Robin order
+of storage directories. Try to allocate the new block into a directory following the Round Robin order, and if that 
+does not work, go to the next lower tier.
+
+- **GreedyAllocator**: This is an example implementation of the `Allocator` interface. It loops from the top tier 
+to the lowest tier, trying to put the new block into the first directory that can contain the block.
+
+### [Experimental] Block Allocation Review Policies
+
+This is an experimental feature added in Alluxio 2.4.1. The interface is subject to change in future versions.
+
+Alluxio uses block allocation review policies to complement allocation policies. In comparison to allocation policies
+which define what the allocation should be, the allocation review process validates allocation decisions and prevent 
+the ones that are not good enough. The `Reviewer` works together with the `Allocator`
+
+This is configured by worker property `alluxio.worker.reviewer.class`. Out-of-the-box implementations include:
+
+- **ProbabilisticBufferReviewer**: Based on the available space in each storage directory, rejects the attempts to put
+new blocks into this directory probabilistically. The probability is determined by `alluxio.worker.reviewer.probabilistic.hardlimit.bytes`
+and `alluxio.worker.reviewer.probabilistic.softlimit.bytes`. When the available space in the directory is under
+`alluxio.worker.reviewer.probabilistic.hardlimit.bytes`, which is `64MB` by default, new blocks will be rejected.
+When the available space in the directory is above `alluxio.worker.reviewer.probabilistic.softlimit.bytes`, which is
+`256MB` by default, new blocks will NOT be rejected. When the available space is between these two values, the probability
+of accepting a new block goes down linearly to as the availability goes down. We choose to reject new blocks early before
+a directory is filled up, because the existing blocks in the directory can expand in size as we read new data in the block.
+Leaving a buffer in each directory can reduce the chance of eviction. **This is the default behavior.**
+
+- **AcceptingReviewer**: This reviewer accepts every block allocation. So the behavior will be exactly the same
+to Alluxio before 2.4.1.
 
 ### Block Annotation Policies
 
@@ -216,7 +277,7 @@ configurable weight.
     `alluxio.worker.block.annotator.lrfu.attenuation.factor`.
 
 The annotator utilized by workers is determined by the Alluxio property
-[`alluxio.worker.block.annotator.class`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.worker.block.annotator.class).
+[`alluxio.worker.block.annotator.class`]({{ '/en/reference/Properties-List.html#alluxio.worker.block.annotator.class' | relativize_url }}).
 The property should specify the fully qualified class name within the configuration. Currently
 available options are:
 
@@ -226,14 +287,16 @@ available options are:
 #### Evictor Emulation
 The old eviction policies are now removed and Alluxio provided implementations are replaced with appropriate annotation policies.
 Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
-Also, the old watermark based configuration is invalidated. So below configuration options are ineffective:
+Also, **the old watermark based configuration is invalidated**. So the following previous configuration options are ineffective:
 - `alluxio.worker.tieredstore.levelX.watermark.low.ratio`
 - `alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 
-However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation. The emulation assumes the configured eviction policy creates
+However, Alluxio supports emulation mode which annotates blocks based on custom evictor implementation.
+The emulation assumes the configured eviction policy creates
 an eviction plan based on some kind of order and works by regularly extracting this order to be used in annotation activities.
 
-The old evictor configurations should be changes as below. (Failing to change the lef-over configuration will cause class load exceptions as old evictor implementations are deleted.)
+The old evictor configurations should be changes as below.
+(Failing to change the left-over configuration will cause class load exceptions as old evictor implementations are removed.)
 - LRUEvictor -> LRUAnnotator
 - GreedyEvictor -> LRUAnnotator
 - PartialLRUEvictor -> LRUAnnotator
@@ -245,13 +308,13 @@ This allows writing data bigger than Alluxio storage capacity. However, it also 
 To enforce the assumption that tiers are configured from fastest to slowest, Alluxio now moves blocks around tiers based on block annotation policies.
 
 Below configuration is honoured by each individual tier management task:
-- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default:`CPU core count`)
+- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default: `CPU core count`)
 - `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. (Default:`CPU core count`/ 2)
 
 #### Block Aligning (Dynamic Block Placement)
 Alluxio will dynamically move blocks across tiers in order to have block composition that is in line with the configured block annotation policy.
 
-To compensate this, Alluxio watches the I/O pattern and reorganize blocks across tiers to make sure
+To compensate this, Alluxio watches the I/O pattern and reorganizes blocks across tiers to make sure
 **the lowest block of a higher tier has higher order than the highest block of a tier below**.
 
 This is achieved by `align` management task. This task, upon detecting tiers are out of order, swaps blocks among tiers
@@ -270,7 +333,7 @@ Reserved space can get exhausted due to fact that Alluxio supports variable bloc
 When a higher tier has free space, blocks from a lower tier is moved up in order to better utilize faster disks as it's assumed the higher tiers are configured with faster disks.
 
 To control dynamic tier promotion:
-- `alluxio.worker.management.tier.promote.enabled` : Whether tier promition task is enabled. (Default:`true`)
+- `alluxio.worker.management.tier.promote.enabled` : Whether tier promotion task is enabled. (Default:`true`)
 - `alluxio.worker.management.tier.promote.range`: How many blocks to promote in a single task run. (Default:`100`)
 - `alluxio.worker.management.tier.promote.quota.percent`: The max percentage of each tier that could be used for promotions.
 Promotions will be stopped to a tier once its used space go over this value. (0 means never promote, and, 100 means always promote.)
@@ -281,11 +344,11 @@ This behaviour is to make sure internal management doesn't have negative effect 
 
 There are two back-off types available, `ANY` and `DIRECTORY`, that can be set in `alluxio.worker.management.backoff.strategy` property.
 
-- `ANY`; management tasks will backoff from worker when there is any user I/O. 
+- `ANY`; management tasks will back off from worker when there is any user I/O. 
 This mode will ensure low management task overhead in order to favor immediate user I/O performance.
-However, making progress on management tasks will require quite periods on the worker.
+However, making progress on management tasks will require quiet periods on the worker.
 
-- `DIRECTORY`; management tasks will backoff from directories with ongoing user I/O.
+- `DIRECTORY`; management tasks will back off from directories with ongoing user I/O.
 This mode will give better chance of making progress on management tasks
 However, immediate user I/O throughput might be decreased due to increased management task activity.
 
@@ -320,7 +383,7 @@ $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 
 This will remove the data at the given path from Alluxio storage. The data is still accessible if
 it is persisted to a UFS. For more information refer to the
-[command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#free)
+[command line interface documentation]({{ '/en/operation/User-CLI.html#free' | relativize_url }})
 
 Note that a user typically should not need to manually free data from Alluxio as the
 configured [annotation policy](#block-annotation-policies) will take care of removing unused or old data.
@@ -328,15 +391,15 @@ configured [annotation policy](#block-annotation-policies) will take care of rem
 ### Loading Data into Alluxio Storage
 
 If the data is already in a UFS, use
-[`alluxio fs load`]({{ '/en/operation/User-CLI.html' | relativize_url }}#load)
+[`alluxio fs load`]({{ '/en/operation/User-CLI.html#load' | relativize_url }})
 
 ```console
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
 To load data from the local file system, use the command
-[`alluxio fs copyFromLocal`]({{ '/en/operation/User-CLI.html' | relativize_url
-}}#copyfromlocal).
+[`alluxio fs copyFromLocal`]({{ '/en/operation/User-CLI.html#copyfromlocal' | relativize_url
+}}).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
 whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio
@@ -344,8 +407,8 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 ### Persisting Data in Alluxio
 
-The command [`alluxio fs persist`]({{ '/en/operation/User-CLI.html' | relativize_url
-}}#persist)
+The command [`alluxio fs persist`]({{ '/en/operation/User-CLI.html#persist' | relativize_url
+}})
 allows a user to push data from the Alluxio cache to a UFS.
 
 ```console
@@ -405,7 +468,7 @@ SetTTL(path, duration, action)
 #### Command Line Usage
 
 See the detailed
-[command line documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)
+[command line documentation]({{ '/en/operation/User-CLI.html#setttl' | relativize_url }})
 to see how to use the `setTtl` command within the Alluxio shell to modify TTL attribute.
 
 #### Passive TTL on files in Alluxio
@@ -420,7 +483,9 @@ Passive TTL works with the following configuration options:
 * `alluxio.user.file.create.ttl` - The TTL duration to set on files in Alluxio.
 By default, no TTL duration is set.
 * `alluxio.user.file.create.ttl.action` - The TTL action to set on files
-in Alluxio. By default, this action is `DELETE`.
+in Alluxio. 
+> NOTE: By default, this action is `DELETE`.
+> `DELETE` will cause the file to be permanently removed from Alluxio namespace and under store.
 
 TTL is disabled by default and should only be enabled by clients which have strict data
 access patterns.
@@ -490,7 +555,7 @@ Set the `alluxio.user.file.replication.max` to unlimited.
 $ ./bin/alluxio fs setReplication --max -1 /file
 ```
 
-Recursirvely set replication level of all files inside a directory `/dir` (including its
+Recursively set replication level of all files inside a directory `/dir` (including its
 sub-directories) using `-R`:
 
 ```console

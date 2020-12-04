@@ -38,6 +38,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Bits;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -46,7 +47,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -128,6 +129,20 @@ public class BaseFileSystem implements FileSystem {
   public boolean isClosed() {
     // Doesn't require locking because mClosed is volatile and marked first upon close
     return mClosed;
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    checkUri(path);
+    rpc(client -> {
+      CheckAccessPOptions mergedOptions = FileSystemOptions
+          .checkAccessDefaults(mFsContext.getPathConf(path))
+          .toBuilder().mergeFrom(options).build();
+      client.checkAccess(path, mergedOptions);
+      LOG.debug("Checked access {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -265,6 +280,18 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+    return rpc(client -> {
+      // TODO(calvin): Fix the exception handling in the master
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatus(path, mergedOptions);
+    });
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -279,25 +306,15 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
+  public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
-      // TODO(calvin): Fix the exception handling in the master
+    rpc(client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      return client.listStatus(path, mergedOptions);
-    });
-  }
-
-  @Override
-  public long loadMetadata(AlluxioURI path, final LoadMetadataPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(path);
-    return rpc(client -> {
-      LoadMetadataPOptions mergedOptions = FileSystemOptions.loadMetadataDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      return client.loadMetadata(path, mergedOptions);
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options)
+          .setLoadMetadataType(LoadMetadataPType.ALWAYS).setLoadMetadataOnly(true).build();
+      client.listStatus(path, mergedOptions);
+      return null;
     });
   }
 

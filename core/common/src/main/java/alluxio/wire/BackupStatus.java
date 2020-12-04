@@ -18,7 +18,7 @@ import alluxio.grpc.BackupState;
 
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.ByteString;
-import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.util.UUID;
 

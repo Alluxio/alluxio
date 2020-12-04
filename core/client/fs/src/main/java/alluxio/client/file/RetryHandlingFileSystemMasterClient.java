@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CheckAccessPOptions;
+import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CompleteFilePOptions;
@@ -26,7 +28,6 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
@@ -39,8 +40,6 @@ import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -76,7 +75,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -122,6 +120,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException {
+    retryRPC(() -> mClient.checkAccess(
+        CheckAccessPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build()),
+        RPC_LOG, "CheckAccess", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -262,32 +269,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
-  }
-
-  @Override
-  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
-      throws AlluxioStatusException {
-    return retryRPC(
-        () -> {
-          ListStatusPOptions lsOptions = ListStatusPOptions.newBuilder()
-              .setCommonOptions(
-                  FileSystemMasterCommonPOptions.newBuilder()
-                      .setSyncIntervalMs(0)
-                      .build())
-              .setLoadMetadataType(LoadMetadataPType.ALWAYS)
-              .setRecursive(options.getRecursive())
-              .build();
-          final AtomicLong num = new AtomicLong();
-          mClient.listStatus(
-              ListStatusPRequest.newBuilder()
-                  .setPath(getTransportPath(path))
-                  .setOptions(lsOptions).build())
-              .forEachRemaining((pListStatusResponse) -> {
-                num.addAndGet(pListStatusResponse.getFileInfosCount());
-              });
-          return num.get();
-        }, RPC_LOG, "loadMetadata", "path=%s,options=%s", path, options
-    );
   }
 
   @Override

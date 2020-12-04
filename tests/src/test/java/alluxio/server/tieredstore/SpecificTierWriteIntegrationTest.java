@@ -57,7 +57,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
@@ -81,6 +81,8 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
               LOW_WATERMARK)
           .setProperty(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
               LocalFirstPolicy.class.getTypeName())
+          .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
 
   @ClassRule

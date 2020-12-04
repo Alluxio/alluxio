@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -110,20 +109,14 @@ public final class ContainerAllocatorTest {
     ContainerAllocator containerAllocator = new ContainerAllocator(CONTAINER_NAME, 1,
         1, mResource, mYarnClient, mRMClient, "any");
     doAnswer(allocateFirstHostAnswer(containerAllocator))
-        .when(mRMClient).addContainerRequest(Matchers.argThat(
-          new ArgumentMatcher<ContainerRequest>() {
-            @Override
-            public boolean matches(Object o) {
-              ContainerRequest request = (ContainerRequest) o;
-              if (request.getRelaxLocality() == true
-                  && request.getNodes().size() == 1
-                  && request.getNodes().get(0).equals("any")) {
-                return true;
-              }
-              return false;
-            }
+        .when(mRMClient).addContainerRequest(Matchers.argThat(request -> {
+          if (request.getRelaxLocality() == true
+              && request.getNodes().size() == 1
+              && request.getNodes().get(0).equals("any")) {
+            return true;
           }
-        ));
+          return false;
+        }));
     containerAllocator.allocateContainers();
   }
 
@@ -178,7 +171,7 @@ public final class ContainerAllocatorTest {
     return new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        ContainerRequest containerRequest = invocation.getArgumentAt(0, ContainerRequest.class);
+        ContainerRequest containerRequest = invocation.getArgument(0, ContainerRequest.class);
         Container container = Records.newRecord(Container.class);
         container.setNodeId(NodeId.newInstance(containerRequest.getNodes().get(0), 0));
         containerAllocator.allocateContainer(container);

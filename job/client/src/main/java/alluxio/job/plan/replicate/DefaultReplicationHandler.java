@@ -41,7 +41,7 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
       throws AlluxioException, IOException {
     JobMasterClient client = mJobMasterClientPool.acquire();
     try {
-      return client.run(new EvictConfig(blockId, numReplicas));
+      return client.run(new EvictConfig(uri.getPath(), blockId, numReplicas));
     } finally {
       mJobMasterClientPool.release(client);
     }
@@ -63,7 +63,7 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
       throws AlluxioException, IOException {
     JobMasterClient client = mJobMasterClientPool.acquire();
     try {
-      return client.run(new MoveConfig(blockId, workerHost, mediumType));
+      return client.run(new MoveConfig(uri.getPath(), blockId, workerHost, mediumType));
     } finally {
       mJobMasterClientPool.release(client);
     }

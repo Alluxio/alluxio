@@ -1,0 +1,51 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Checkstyle, Findbugs, Doc Check, etc.
+
+on:
+  pull_request:
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.11.0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run a one-line script
+        run: |
+          mkdir -p ~/.m2
+          ALLUXIO_DOCKER_NO_TTY=true \
+          ALLUXIO_DOCKER_GIT_CLEAN=true \
+          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_CHECKSTYLE=true \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+        timeout-minutes: 60
+
+      - name: Archive artifacts
+        continue-on-error: true
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: artifact
+          path: |
+            **/target/artifacts/*
+            **/target/logs/*
+            log*
+          retention-days: 7

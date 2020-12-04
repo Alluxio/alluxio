@@ -14,34 +14,88 @@ package alluxio.client.file.cache;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager extends AutoCloseable  {
+public interface CacheManager extends AutoCloseable {
+
+  /**
+   * State of a cache.
+   */
+  enum State {
+    /**
+     * this cache is not in use.
+     */
+    NOT_IN_USE(0),
+    /**
+     * this cache is read only.
+     */
+    READ_ONLY(1),
+    /**
+     * this cache can both read and write.
+     */
+    READ_WRITE(2);
+
+    private final int mValue;
+
+    State(int value) {
+      mValue = value;
+    }
+
+    /**
+     * @return the value of the state
+     */
+    public int getValue() {
+      return mValue;
+    }
+  }
+
   /**
    * Factory class to get or create a CacheManager.
    */
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
-    private static CacheManager sCacheManager = null;
+    private static final Lock CACHE_INIT_LOCK = new ReentrantLock();
+    @GuardedBy("CACHE_INIT_LOCK")
+    private static final AtomicReference<CacheManager> CACHE_MANAGER = new AtomicReference<>();
 
     /**
      * @param conf the Alluxio configuration
-     * @return current CacheManager, creating a new one if it doesn't yet exist
+     * @return current CacheManager handle, creating a new one if it doesn't yet exist or null in
+     *         case creation takes a long time by other threads.
      */
-    public static synchronized CacheManager get(AlluxioConfiguration conf) throws IOException {
+    @Nullable
+    public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
-      if (sCacheManager == null) {
-        sCacheManager = create(conf);
+      if (CACHE_MANAGER.get() == null) {
+        if (CACHE_INIT_LOCK.tryLock()) {
+          try {
+            if (CACHE_MANAGER.get() == null) {
+              CACHE_MANAGER.set(create(conf));
+            }
+          } catch (IOException e) {
+            Metrics.CREATE_ERRORS.inc();
+            throw new IOException("Failed to create CacheManager", e);
+          } finally {
+            CACHE_INIT_LOCK.unlock();
+          }
+        }
       }
-      return sCacheManager;
+      return CACHE_MANAGER.get();
     }
 
     /**
@@ -55,6 +109,20 @@ public interface CacheManager extends AutoCloseable  {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
         throw e;
+      }
+    }
+
+    /**
+     * Removes the current {@link CacheManager} if it exists.
+     */
+    static void clear() {
+      try (LockResource r = new LockResource(CACHE_INIT_LOCK)) {
+        CacheManager manager = CACHE_MANAGER.getAndSet(null);
+        if (manager != null) {
+          manager.close();
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to close CacheManager: {}", e.toString());
       }
     }
 
@@ -112,4 +180,9 @@ public interface CacheManager extends AutoCloseable  {
    * @return true if the page is successfully deleted, false otherwise
    */
   boolean delete(PageId pageId);
+
+  /**
+   * @return state of this cache
+   */
+  State state();
 }

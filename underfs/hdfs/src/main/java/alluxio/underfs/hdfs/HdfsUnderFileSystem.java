@@ -221,7 +221,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
     for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
-      hdfsConf.addResource(new Path(path));
+      if (!path.isEmpty()) {
+        hdfsConf.addResource(new Path(path));
+      }
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -670,7 +672,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception : ", e);
       LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be the local file system superuser.");
+          + "Alluxio should be running as an HDFS superuser.");
       if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
         throw e;
       } else {

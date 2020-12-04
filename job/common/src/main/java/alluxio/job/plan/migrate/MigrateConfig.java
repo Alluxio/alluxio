@@ -17,8 +17,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 
 /**
  * Configuration for the migrate job. A migration can either be a copy or a move.
@@ -33,7 +35,6 @@ public class MigrateConfig implements PlanConfig {
   private final String mDestination;
   private final String mWriteType;
   private final boolean mOverwrite;
-  private final boolean mDeleteSource;
 
   /**
    * @param source the source path
@@ -43,18 +44,15 @@ public class MigrateConfig implements PlanConfig {
    * @param overwrite whether an existing file should be overwritten; if the source and destination
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
-   * @param deleteSource whether to delete the source path after migration
    */
   public MigrateConfig(@JsonProperty("source") String source,
                        @JsonProperty("destination") String dst,
                        @JsonProperty("writeType") String writeType,
-                       @JsonProperty("overwrite") boolean overwrite,
-                       @JsonProperty("deleteSource") boolean deleteSource) {
+                       @JsonProperty("overwrite") boolean overwrite) {
     mSource = Preconditions.checkNotNull(source, "source must be set");
     mDestination = Preconditions.checkNotNull(dst, "destination must be set");
     mWriteType = writeType;
     mOverwrite = overwrite;
-    mDeleteSource = deleteSource;
   }
 
   /**
@@ -85,13 +83,6 @@ public class MigrateConfig implements PlanConfig {
     return mOverwrite;
   }
 
-  /**
-   * @return whether to delete the source path after migration
-   */
-  public boolean isDeleteSource() {
-    return mDeleteSource;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -107,13 +98,12 @@ public class MigrateConfig implements PlanConfig {
     return Objects.equal(mSource, that.mSource)
         && Objects.equal(mDestination, that.mDestination)
         && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mOverwrite, that.mOverwrite)
-        && Objects.equal(mDeleteSource, that.mDeleteSource);
+        && Objects.equal(mOverwrite, that.mOverwrite);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite, mDeleteSource);
+    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite);
   }
 
   @Override
@@ -123,12 +113,16 @@ public class MigrateConfig implements PlanConfig {
         .add("destination", mDestination)
         .add("writeType", mWriteType)
         .add("overwrite", mOverwrite)
-        .add("deleteSource", mDeleteSource)
         .toString();
   }
 
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    return ImmutableList.of(mSource, mDestination);
   }
 }

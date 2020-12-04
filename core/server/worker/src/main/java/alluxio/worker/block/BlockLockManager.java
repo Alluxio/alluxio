@@ -124,7 +124,7 @@ public final class BlockLockManager {
         }
       }
       return lockId;
-    } catch (RuntimeException e) {
+    } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
       throw e;

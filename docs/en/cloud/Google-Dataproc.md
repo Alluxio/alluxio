@@ -15,11 +15,11 @@ This guide describes how to configure Alluxio to run on
 ## Overview
 
 [Google Cloud Dataproc](https://cloud.google.com/dataproc) is a managed on-demand service to run
-Presto, Spark and Hadoop compute workloads.
+Presto, Spark, and Hadoop compute workloads.
 It manages the deployment of various Hadoop Services and allows for hooks into these services for
 customizations.
-Aside from the added performance benefits of caching, Alluxio also enables users to run compute 
-workloads against on-premise storage, or even a different cloud provider's storage such as AWS S3
+Aside from the added performance benefits of caching, Alluxio enables users to run compute
+workloads against on-premise storage or a different cloud provider's storage such as AWS S3
 and Azure Blob Store.
 
 ## Prerequisites
@@ -27,11 +27,12 @@ and Azure Blob Store.
 * A project with Cloud Dataproc API and Compute Engine API enabled.
 * A GCS Bucket.
 * Make sure that the gcloud CLI is set up with necessary GCS interoperable storage access keys.
+
 > Note: GCS interoperability should be enabled in the Interoperability tab in
 > [GCS setting](https://console.cloud.google.com/storage/settings).
 
 A GCS bucket is required if mounted to the root of the Alluxio namespace.
-Alternatively, the root UFS can be reconfigured to HDFS or any other supported under store.
+Alternatively, the root UFS can be reconfigured to be HDFS or any other supported under storage.
 
 ## Basic Setup
 
@@ -40,11 +41,11 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 
 ### Create a cluster
 
-There are several properties set as metadata labels which control the Alluxio Deployment. 
-* A required argument is the root UFS address configured using **alluxio_root_ufs_uri**. 
-If value `LOCAL` is provided, hdfs launched by the current dataproc cluster will be used as Alluxio root UFS.
-* Properties must be specified using the metadata key **alluxio_site_properties** delimited using
-a semicolon (`;`).
+There are several properties set as metadata labels which control the Alluxio deployment.
+* A required argument is the root UFS address configured using `alluxio_root_ufs_uri`.
+If set to `LOCAL`, the HDFS cluster residing within the same dataproc cluster will be used as Alluxio's root UFS.
+* Specify properties using the metadata key `alluxio_site_properties`.
+Delimit multiple properties with a semicolon (`;`).
 
 Example 1: use google cloud storage bucket as Alluxio root UFS
 ```console
@@ -61,6 +62,7 @@ $ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata \
 alluxio_root_ufs_uri="LOCAL",\
+alluxio_hdfs_version="2.9",\
 alluxio_site_properties="alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml"
 ```
 
@@ -96,7 +98,7 @@ alluxio_download_files_list="gs://<my_bucket>/<my_file>;https://<server>/<file>"
 
   {% collapsible Tiered Storage %}
 The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
-If a specific value is desired, set `alluxio.worker.memory.size` in the provided
+If a specific value is desired, set `alluxio.worker.ramdisk.size` in the provided
 `alluxio-site.properties`.
 
 Alternatively, when volumes such as
@@ -163,10 +165,11 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
 $ unzip ml-100k.zip
 ```
 
-Copy the data to Alluxio
+Copy the data to Alluxio as the `alluxio` user.
+Your default user does not have write permissions to the Alluxio filesystem root by default.
 ```console
-$ alluxio fs mkdir /ml-100k
-$ alluxio fs copyFromLocal ~/ml-100k/u.user /ml-100k/
+$ sudo su alluxio -c 'alluxio fs mkdir /ml-100k'
+$ sudo su alluxio -c 'alluxio fs copyFromLocal ~/ml-100k/u.user /ml-100k/'
 ```
 
 Open the Hive CLI.

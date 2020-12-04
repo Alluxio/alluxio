@@ -27,4 +27,8 @@ export const footerNavigationData: INavigationData[] = [
     innerText: 'Workers',
     url: routePaths.workers,
   },
+  {
+    innerText: 'MountTable',
+    url: routePaths.mounttable,
+  },
 ];

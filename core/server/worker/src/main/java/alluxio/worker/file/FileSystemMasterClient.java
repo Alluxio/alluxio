@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -84,8 +86,10 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the set of pinned file ids
    */
   public Set<Long> getPinList() throws IOException {
-    return retryRPC(() -> new HashSet<>(mClient
-        .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build()).getPinnedFileIdsList()),
+    return retryRPC(() -> new HashSet<>(mClient.withDeadlineAfter(mContext.getClusterConf()
+            .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+            .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build())
+            .getPinnedFileIdsList()),
         LOG, "GetPinList", "");
   }
 

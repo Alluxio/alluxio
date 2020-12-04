@@ -25,6 +25,7 @@ import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
 import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.test.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -36,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -622,7 +622,7 @@ public class InstancedConfigurationTest {
     // site-properties file
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
-    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mConfiguration = ConfigurationTestUtils.defaults();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
@@ -906,14 +906,15 @@ public class InstancedConfigurationTest {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
       File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");
-      Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());
+      CommonUtils.classLoadURL(dir.getCanonicalPath());
       File props = new File(dir, "alluxio-site.properties");
+
       try (BufferedWriter writer = Files.newBufferedWriter(props.toPath())) {
         writer.write(String.format("%s=%s", PropertyKey.MASTER_HOSTNAME, "test_hostname"));
       }
       resetConf();
       assertEquals("test_hostname", mConfiguration.get(PropertyKey.MASTER_HOSTNAME));
-      assertEquals(Source.siteProperty(props.getPath()),
+      assertEquals(Source.siteProperty(props.getCanonicalPath()),
           mConfiguration.getSource(PropertyKey.MASTER_HOSTNAME));
       props.delete();
     }

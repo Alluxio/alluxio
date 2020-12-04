@@ -23,23 +23,23 @@ USAGE="Usage: alluxio-mount.sh [Mount|SudoMount|Umount|SudoUmount] [MACHINE]
 function init_env() {
   local libexec_dir=${ALLUXIO_LIBEXEC_DIR:-"${BIN}"/../libexec}
   . ${libexec_dir}/alluxio-config.sh
-  MEM_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.memory.size)
+  RAMDISK_SIZE=$(${BIN}/alluxio getConf --unit B alluxio.worker.ramdisk.size)
   TIER_ALIAS=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
   get_ramdisk_array
 }
 
 function check_space_linux() {
   local total_mem=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
-    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
-    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
+  if [[ ${total_mem} -lt ${RAMDISK_SIZE} ]]; then
+    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${RAMDISK_SIZE}). Please
+    reduce alluxio.worker.ramdisk.size in alluxio-site.properties" >&2
     exit 1
   fi
 }
 
 function mount_ramfs_linux() {
   TIER_PATH=${1}
-  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
+  echo "Formatting RamFS: ${TIER_PATH} (${RAMDISK_SIZE})"
   if [[ ${USE_SUDO} == true ]]; then
     sudo mkdir -p ${TIER_PATH}
   else
@@ -51,9 +51,9 @@ function mount_ramfs_linux() {
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+    sudo mount -t ramfs -o size=${RAMDISK_SIZE} ramfs ${TIER_PATH}
   else
-    mount -t ramfs -o size=${MEM_SIZE} ramfs ${TIER_PATH}
+    mount -t ramfs -o size=${RAMDISK_SIZE} ramfs ${TIER_PATH}
   fi
   if [[ $? -ne 0 ]]; then
     echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
@@ -89,16 +89,16 @@ function umount_ramfs_linux() {
 
 function check_space_freebsd() {
   local total_mem=$(sysctl -n hw.usermem)
-  if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
-    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
-    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
+  if [[ ${total_mem} -lt ${RAMDISK_SIZE} ]]; then
+    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${RAMDISK_SIZE}). Please
+    reduce alluxio.worker.ramdisk.size in alluxio-site.properties" >&2
     exit 1
   fi
 }
 
 function mount_ramfs_freebsd() {
   TIER_PATH=${1}
-  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
+  echo "Formatting RamFS: ${TIER_PATH} (${RAMDISK_SIZE})"
   if [[ ${USE_SUDO} == true ]]; then
     sudo mkdir -p ${TIER_PATH}
   else
@@ -110,9 +110,9 @@ function mount_ramfs_freebsd() {
   fi
 
   if [[ ${USE_SUDO} == true ]]; then
-    sudo mount -t tmpfs -o size=${MEM_SIZE} tmpfs ${TIER_PATH}
+    sudo mount -t tmpfs -o size=${RAMDISK_SIZE} tmpfs ${TIER_PATH}
   else
-    mount -t tmpfs -o size=${MEM_SIZE} tmpfs ${TIER_PATH}
+    mount -t tmpfs -o size=${RAMDISK_SIZE} tmpfs ${TIER_PATH}
   fi
   if [[ $? -ne 0 ]]; then
     echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
@@ -149,10 +149,10 @@ function umount_ramfs_freebsd() {
 function mount_ramfs_mac() {
   TIER_PATH=${1}
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${MEM_SIZE} 512)
+  local num_sectors=$(${BIN}/alluxio runClass alluxio.util.HFSUtils ${RAMDISK_SIZE} 512)
 
   # Format the RAM FS
-  echo "Formatting RamFS: ${TIER_PATH} ${num_sectors} sectors (${MEM_SIZE})."
+  echo "Formatting RamFS: ${TIER_PATH} ${num_sectors} sectors (${RAMDISK_SIZE})."
   # Remove the "/Volumes/" part so we can get the name of the volume.
   diskutil erasevolume HFS+ ${TIER_PATH/#\/Volumes\//} $(hdiutil attach -nomount ram://${num_sectors})
 }

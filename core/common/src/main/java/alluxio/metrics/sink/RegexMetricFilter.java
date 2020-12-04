@@ -13,7 +13,7 @@ package alluxio.metrics.sink;
 
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 

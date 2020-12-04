@@ -306,11 +306,17 @@ client.
 ### Exceptions
 
 The most common impersonation error applications may see is something like
-`User yarn is not configured for any impersonation. impersonationUser: foo`.
+```
+Failed to authenticate client user="yarn" connecting to Alluxio server and impersonating as
+impersonationUser="foo" to access Alluxio file system. User "yarn" is not configured to
+allow any impersonation.
+```
+This message means a user `yarn` is connecting to Alluxio servers trying to impersonate as user
+`foo`, but the Alluxio servers are not configured to allow impersonation for user `yarn`.
 This is most likely due to the fact that the Alluxio servers have not been configured to enable
 impersonation for that user.
 To fix this, the Alluxio servers must be configured to enable impersonation for the user
-in question (yarn in the example error message).
+in question (`yarn` in the example error message).
 
 Please read this [blog post](https://www.alluxio.io/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo/) for more tips.
 

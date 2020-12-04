@@ -2065,8 +2065,9 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.rename(NESTED_FILE_URI, NESTED_URI, RenameContext.defaults());
       fail("Should not be able to overwrite existing file.");
     } catch (FileAlreadyExistsException e) {
-      assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI.getPath()),
-          e.getMessage());
+      assertEquals(String
+          .format("Cannot rename because destination already exists. src: %s dst: %s",
+              NESTED_FILE_URI.getPath(), NESTED_URI.getPath()), e.getMessage());
     }
 
     // move a nested file to a root file
@@ -2461,7 +2462,7 @@ public final class FileSystemMasterTest {
         .defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFileSystemMaster.unmount(alluxioURI);
     // after unmount, ufs path under previous mount point should still exist
-    File file = new File(ufsURI.join("dir").toString());
+    File file = new File(ufsURI.join("dir").getPath());
     assertTrue(file.exists());
     // after unmount, alluxio path under previous mount point should not exist
     mThrown.expect(FileDoesNotExistException.class);
@@ -2510,7 +2511,7 @@ public final class FileSystemMasterTest {
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
-    return new AlluxioURI(path);
+    return new AlluxioURI("file", null, path);
   }
   /**
    * Creates a file in a temporary UFS folder.

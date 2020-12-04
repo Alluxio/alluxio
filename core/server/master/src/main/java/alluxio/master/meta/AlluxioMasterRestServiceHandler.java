@@ -11,6 +11,9 @@
 
 package alluxio.master.meta;
 
+import static alluxio.metrics.MetricInfo.UFS_OP_PREFIX;
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
@@ -41,7 +44,6 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -69,6 +71,7 @@ import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
 import alluxio.wire.MasterWebUILogs;
 import alluxio.wire.MasterWebUIMetrics;
+import alluxio.wire.MasterWebUIMountTable;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.MountPointInfo;
@@ -141,6 +144,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String WEBUI_CONFIG = "webui_config";
   public static final String WEBUI_WORKERS = "webui_workers";
   public static final String WEBUI_METRICS = "webui_metrics";
+  public static final String WEBUI_MOUNTTABLE = "webui_mounttable";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -803,6 +807,26 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
+   * Gets Web UI mount table page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_MOUNTTABLE)
+  public Response getWebUIMountTable() {
+    return RestUtils.call(() -> {
+      MasterWebUIMountTable response = new MasterWebUIMountTable();
+
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG));
+      Map<String, MountPointInfo> mountPointInfo = getMountPointsInternal();
+
+      response.setMountPointInfos(mountPointInfo);
+
+      return response;
+    }, ServerConfiguration.global());
+  }
+
+  /**
    * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
    * @return whether the ufs uri is a mount point
    */
@@ -945,6 +969,8 @@ public final class AlluxioMasterRestServiceHandler {
       Map<String, String> ufsWriteSizeMap = new TreeMap<>();
       Map<String, Counter> rpcInvocations = new TreeMap<>();
       Map<String, Metric> operations = new TreeMap<>();
+      // UFS : (OPS : Count)
+      Map<String, Map<String, Long>> ufsOpsSavedMap = new TreeMap<>();
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
         String metricName = entry.getKey();
         long value = entry.getValue().getCount();
@@ -961,6 +987,18 @@ public final class AlluxioMasterRestServiceHandler {
         } else if (metricName.endsWith("Ops")) {
           rpcInvocations
               .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
+        } else if (metricName.contains(UFS_OP_SAVED_PREFIX)) {
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          if (ufs != null && isMounted(ufs)) {
+            // Unescape the URI for display
+            String ufsUnescaped = MetricsSystem.unescape(ufs);
+            Map<String, Long> perUfsMap = ufsOpsSavedMap.getOrDefault(
+                ufsUnescaped, new TreeMap<>());
+            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
+                    .substring(UFS_OP_SAVED_PREFIX.length()),
+                entry.getValue().getCount());
+            ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);
+          }
         } else {
           operations
               .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
@@ -975,18 +1013,20 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setUfsReadSize(ufsReadSizeMap);
       response.setUfsWriteSize(ufsWriteSizeMap);
+      response.setUfsOpsSaved(ufsOpsSavedMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
         String metricName = entry.getKey();
-        if (metricName.contains(MetricInfo.UFS_OP_PREFIX)) {
+        if (metricName.contains(UFS_OP_PREFIX)) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
-            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-            perUfsMap.put(ufsUnescaped, (Long) entry.getValue().getValue());
+            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufsUnescaped, new TreeMap<>());
+            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
+                .substring(UFS_OP_PREFIX.length()), (Long) entry.getValue().getValue());
             ufsOpsMap.put(ufsUnescaped, perUfsMap);
           }
         }

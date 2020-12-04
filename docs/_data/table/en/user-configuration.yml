@@ -26,6 +26,8 @@ alluxio.user.block.worker.client.pool.max:
   'The maximum number of block worker clients cached in the block worker client pool.'
 alluxio.user.block.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks.'
+alluxio.user.client.cache.async.restore.enabled:
+  'If this is enabled, cache restore state asynchronously.'
 alluxio.user.client.cache.async.write.enabled:
   'If this is enabled, cache data asynchronously.'
 alluxio.user.client.cache.async.write.threads:
@@ -92,8 +94,6 @@ alluxio.user.file.reserved.bytes:
   'The size to reserve on workers for file system writes.Using smaller value will improve concurrency for writes smaller than block size.'
 alluxio.user.file.sequential.pread.threshold:
   'An upper bound on the client buffer size for positioned read to hint at the sequential nature of reads. For reads with a buffer size greater than this threshold, the read op is treated to be sequential and the worker may handle the read differently. For instance, cold reads from the HDFS ufs may use a different HDFS client API.'
-alluxio.user.file.short.circuit.enabled:
-  'N/A'
 alluxio.user.file.target.media:
   'Preferred media type while storing file''s blocks.'
 alluxio.user.file.ufs.tier.enabled:
@@ -114,6 +114,8 @@ alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
 alluxio.user.logs.dir:
   'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.user.master.polling.timeout:
+  'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.enabled:
   'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
 alluxio.user.metadata.cache.expiration.time:

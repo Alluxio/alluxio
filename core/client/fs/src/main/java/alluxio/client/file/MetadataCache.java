@@ -16,9 +16,12 @@ import alluxio.AlluxioURI;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,29 +31,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MetadataCache {
+  private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
+
   private class CachedItem {
-    private final URIStatus mStatus;
-    private final List<URIStatus> mDirStatuses;
-
-    /**
-     * Cache metadata for a path.
-     *
-     * @param status the metadata
-     */
-    public CachedItem(URIStatus status) {
-      mStatus = status;
-      mDirStatuses = null;
-    }
-
-    /**
-     * Cache metadata of paths directly under a directory.
-     *
-     * @param statuses the metadata list
-     */
-    public CachedItem(List<URIStatus> statuses) {
-      mStatus = null;
-      mDirStatuses = statuses;
-    }
+    private URIStatus mStatus = null;
+    private List<URIStatus> mDirStatuses = null;
 
     /**
      * @return the metadata of the path
@@ -66,6 +51,24 @@ public final class MetadataCache {
     @Nullable
     public List<URIStatus> getDirStatuses() {
       return mDirStatuses;
+    }
+
+    /**
+     *  Puts the status into cache.
+     *
+     *  @param status the metadata of the path
+     */
+    public void setStatus(URIStatus status) {
+      mStatus = status;
+    }
+
+    /**
+     *  Puts the directory status into cache.
+     *
+     *  @param statuses the metadata list
+     */
+    public void setDirStatuses(List<URIStatus> statuses) {
+      mDirStatuses = statuses;
     }
   }
 
@@ -100,7 +103,7 @@ public final class MetadataCache {
    * @param status the status to be cached
    */
   public void put(AlluxioURI path, URIStatus status) {
-    mCache.put(path.getPath(), new CachedItem(status));
+    put(path.getPath(), status);
   }
 
   /**
@@ -108,7 +111,12 @@ public final class MetadataCache {
    * @param status the status to be cached
    */
   public void put(String path, URIStatus status) {
-    mCache.put(path, new CachedItem(status));
+    try {
+      CachedItem item = mCache.get(path, () -> new CachedItem());
+      item.setStatus(status);
+    } catch (ExecutionException e) {
+      LOG.warn("Failed to cache meta data for path {}", path);
+    }
   }
 
   /**
@@ -118,9 +126,14 @@ public final class MetadataCache {
    * @param statuses the list status results
    */
   public void put(AlluxioURI dir, List<URIStatus> statuses) {
-    mCache.put(dir.getPath(), new CachedItem(statuses));
-    for (URIStatus status : statuses) {
-      mCache.put(status.getPath(), new CachedItem(status));
+    try {
+      CachedItem item = mCache.get(dir.getPath(), () -> new CachedItem());
+      item.setDirStatuses(statuses);
+      for (URIStatus status : statuses) {
+        put(status.getPath(), status);
+      }
+    } catch (ExecutionException e) {
+      LOG.warn("Failed to cache metadata for dir {}", dir.getPath());
     }
   }
 

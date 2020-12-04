@@ -23,7 +23,7 @@ with the correct Hadoop version (recommended), or
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
-work with Apache Hadoop HDFS of version `2.7.3`. To work with Hadoop distributions of other
+work with Apache Hadoop HDFS of version `3.3.0`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
@@ -31,15 +31,15 @@ directory:
 $ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
-Alluxio provides predefined build profiles for `hadoop-2` (enabled by default) and 
-`hadoop-3` for the major Hadoop versions 2.x and 3.x. If you want to build Alluxio with a specific
-Hadoop release version, you can also specify the version in the command. For example,
+Alluxio provides predefined build profiles for `hadoop-2` and `hadoop-3` (enabled by default) for the major Hadoop versions 2.x and 3.x.
+If you want to build Alluxio with a specific Hadoop release version, you can also specify the version in the command. 
+For example,
 
 ```console
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
 $ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
-# Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-$ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
+# Build Alluxio for the Apache Hadoop version Hadoop 3.1.0
+$ mvn install -Phadoop-3 -Dhadoop.version=3.1.0 -DskipTests
 ```
 
 Please visit the
@@ -211,7 +211,8 @@ There are multiple ways for a user to mount an HDFS cluster with a specified ver
 Before mounting HDFS with a specific version, make sure you have built a client with that specific version of HDFS.
 You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
 
-If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. For example, issuing the following command would build the client jar for the 2.8.0 version.
+If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. 
+For example, issuing the following command would build the client jar for the 2.8.0 version.
 
 ```console
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
@@ -247,7 +248,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 
 Alluxio supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
+- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
 To build this module yourself, build the shaded hadoop client and then the UFS model as demonstrated

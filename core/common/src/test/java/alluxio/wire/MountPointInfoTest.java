@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +32,13 @@ public class MountPointInfoTest {
     checkEquality(mountPointInfo, other);
   }
 
+  @Test
+  public void proto() {
+    MountPointInfo mountPointInfo = createRandom();
+    MountPointInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(mountPointInfo));
+    checkEquality(mountPointInfo, other);
+  }
+
   public void checkEquality(MountPointInfo a, MountPointInfo b) {
     Assert.assertEquals(a.getUfsUri(), b.getUfsUri());
     Assert.assertEquals(a.getUfsType(), b.getUfsType());
@@ -38,6 +46,7 @@ public class MountPointInfoTest {
     Assert.assertEquals(a.getUfsUsedBytes(), b.getUfsUsedBytes());
     Assert.assertEquals(a.getReadOnly(), b.getReadOnly());
     Assert.assertEquals(a.getProperties(), b.getProperties());
+    Assert.assertEquals(a.getMountId(), b.getMountId());
     Assert.assertEquals(a, b);
   }
 
@@ -47,6 +56,7 @@ public class MountPointInfoTest {
     String ufsType = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long ufsCapacityBytes = random.nextLong();
     long ufsUsedBytes = random.nextLong();
+    long mountId = random.nextLong();
     boolean readOnly = random.nextBoolean();
     Map<String, String> properties = new HashMap<>();
     for (int i = 0, n = random.nextInt(10) + 1; i < n; i++) {
@@ -61,6 +71,7 @@ public class MountPointInfoTest {
     result.setUfsUsedBytes(ufsUsedBytes);
     result.setReadOnly(readOnly);
     result.setProperties(properties);
+    result.setMountId(mountId);
 
     return result;
   }

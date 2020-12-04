@@ -183,7 +183,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     // Fail any jobs that were still running when the last job master stopped.
     for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
       if (!planCoordinator.isJobFinished()) {
-        planCoordinator.setJobAsFailed("Job failed: Job master shut down during execution");
+        planCoordinator.setJobAsFailed("JobMasterShutdown",
+            "Job failed: Job master shut down during execution");
       }
     }
     if (isLeader) {
@@ -297,6 +298,28 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
     jobInfos.sort(Comparator.comparingLong(JobInfo::getId));
 
+    return jobInfos;
+  }
+
+  /**
+   * @param limit maximum number of jobInfos to return
+   * @param before filters out on or after this timestamp (in ms) (-1 to disable)
+   * @param after filter out on or before this timestamp (in ms) (-1 to disable)
+   * @return list of all failed job infos ordered by when it failed (recently failed first)
+   */
+  public List<JobInfo> failed(int limit, long before, long after) {
+    List<JobInfo> jobInfos = new ArrayList<>();
+    mPlanTracker.failed()
+        .filter((planInfoMeta) -> {
+          final long lastStatusChangeMs = planInfoMeta.getLastStatusChangeMs();
+          if (before >= 0 && before <= lastStatusChangeMs) {
+            return false;
+          }
+          return after < lastStatusChangeMs;
+        }).filter((planInfoMeta) -> planInfoMeta.getLastStatusChangeMs() > after)
+        .limit(limit)
+        .forEachOrdered((planInfoMeta) ->
+            jobInfos.add(new alluxio.job.wire.PlanInfo(planInfoMeta, false)));
     return jobInfos;
   }
 

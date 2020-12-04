@@ -42,7 +42,7 @@ Running this command on an existing Alluxio cluster deletes everything persisted
 including cached data and any metadata information.
 Data in under storage will not be changed.
 
-Warning: `format` is required when you run Alluxio for the first time.
+> Warning: `format` is required when you run Alluxio for the first time.
 `format` should only be called while the cluster is not running.
 
 ```console
@@ -62,7 +62,7 @@ The Alluxio master stores various forms of metadata, including:
 
 All this information is deleted if `formatMaster` is run.,
 
-Warning: `formatMaster` should only be called while the cluster is not running.
+> Warning: `formatMaster` should only be called while the cluster is not running.
 
 
 ```console
@@ -78,7 +78,7 @@ An Alluxio worker caches files and objects.
 `formatWorker` deletes all the cached data stored in this worker node.
 Data in under storage will not be changed.
 
-Warning: `formatWorker` should only be called while the cluster is not running.
+> Warning: `formatWorker` should only be called while the cluster is not running.
 
 ```console
 $ ./bin/alluxio formatWorker
@@ -99,6 +99,8 @@ in accordance to the state of the machine:
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### fs
 
 See [File System Operations](#file-system-operations).
@@ -108,6 +110,8 @@ See [File System Operations](#file-system-operations).
 The `fsadmin` command is meant for administrators of the Alluxio cluster.
 It provides added tools for diagnostics and troubleshooting.
 For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
+
+> Note: This command requires the Alluxio cluster to be running.
 
 ### getConf
 
@@ -143,6 +147,8 @@ $ ./bin/alluxio getConf --source
 $ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
 $ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
+
+> Note: This command does not require the Alluxio cluster to be running.
 
 ### job
 
@@ -195,6 +201,8 @@ $ bin/alluxio job stat 1579102592778 | grep "Status"
 Status: CANCELED
 ```
 
+> Note: This command requires the Alluxio cluster to be running.
+
 ### logLevel
 
 The `logLevel` command returns the current value of or updates the log level of a particular class
@@ -224,6 +232,8 @@ $ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
   --target=workers
 ```
 
+> Note: This command requires the Alluxio cluster to be running.
+
 ### runClass
 
 The `runClass` command runs the main method of an Alluxio class.
@@ -241,10 +251,13 @@ The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a 
 $ ./bin/alluxio runTests
 ```
 
+> Note: This command requires the Alluxio cluster to be running.
+
 ### runJournalCrashTest
 
 The `runJournalCrashTest` simulates a failover to test recovery from the journal.
-Note that this command will stop any Alluxio services running on the machine.
+
+> Note: This command will stop any Alluxio services running on the machine.
 
 ### runHmsTests
 
@@ -265,6 +278,8 @@ This tool is suggested to run from compute application environments and checks
 * if the given hive metastore uris are valid
 * if the hive metastore client connection can be established with the target server
 * if hive metastore client operations can be run against the given database and tables
+
+> Note: This command does not require the Alluxio cluster to be running.
 
 ### runHdfsMountTests
 
@@ -297,7 +312,8 @@ $ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 
   hdfs://<hdfs-path>
 ```
 
-> Note: This command DOES NOT mount the HDFS path to Alluxio.
+> Note: This command DOES NOT mount the HDFS path to Alluxio. 
+> This command does not require the Alluxio cluster to be running.
 
 ### runUfsIOTest
 
@@ -337,10 +353,7 @@ $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limi
   --io-size 512m --threads 2
 ```
 
-### runMesosTest
-
-The `runMesosTest` validates the Alluxio Mesos integration.
-Note that this command will stop any Alluxio services running on the machine.
+> Note: This command requires the Alluxio cluster to be running.
 
 ### runUfsTests
 
@@ -367,10 +380,29 @@ $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### readJournal
 
 The `readJournal` command parses the current journal and outputs a human readable version to the local folder.
 Note this command may take a while depending on the size of the journal.
+Note that Alluxio master is required to stop before reading the local embedded journal.
+
+`-help` provides detailed guidance.
+`-start <arg>` the start log sequence number (exclusive). Set to `0` by default.
+`-end <arg>` the end log sequence number (exclusive). Set to `+inf` by default.
+`-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration.)
+`-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
+`-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). Set to FileSystemMaster by default.
+
+```console
+$ ./bin/alluxio readJournal
+Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
+2020-10-14 10:56:51,960 INFO  RaftStorageDirectory - Lock on /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/in_use.lock acquired by nodename 78602@alluxio-user
+2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
+```
+
+> Note: This command does not require the Alluxio cluster to be running.
 
 ### upgradeJournal
 
@@ -384,10 +416,12 @@ It is assumed to be the same as the v1 journal directory if not set.
 $ ./bin/alluxio upgradeJournal
 ```
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### killAll
 
 The `killAll` command kills all processes containing the specified word.
-Note this kills non-Alluxio processes as well.
+> Note: This kills non-Alluxio processes as well.
 
 ### copyDir
 
@@ -397,13 +431,19 @@ The `copyDir` command copies the directory at `PATH` to all worker nodes listed 
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
 ```
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### clearCache
 
 The `clearCache` command drops the OS buffer cache.
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### docGen
 
 The `docGen` command autogenerates documentation based on the current source code.
+
+> Note: This command does not require the Alluxio cluster to be running.
 
 ### table
 
@@ -417,6 +457,8 @@ The `version` command prints Alluxio version.
 $ ./bin/alluxio version
 ```
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### validateConf
 
 The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
@@ -424,6 +466,8 @@ The `validateConf` command validates the local Alluxio configuration files, chec
 ```console
 $ ./bin/alluxio validateConf
 ```
+
+> Note: This command does not require the Alluxio cluster to be running.
 
 ### validateEnv
 
@@ -466,10 +510,15 @@ $ ./bin/alluxio validateEnv local ma
 `-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
 server-side hadoop configuration directory when running validating tasks.
 
+> Note: This command does not require the Alluxio cluster to be running.
+
 ### collectInfo
 
 The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
 For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+
+> Note: This command does not require the Alluxio cluster to be running.
+> But if the cluster is not running, this command will fail to gather some information from it.
 
 ## File System Operations
 
@@ -485,6 +534,8 @@ For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), th
 be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
 or a path without its header, such as `/<path>`, to use the default hostname and port set in the
 `conf/allluxio-site.properties`.
+
+> Note: This command requires the Alluxio cluster to be running.
 
 >**Wildcard input**
 >
@@ -1070,7 +1121,7 @@ If set TTL is run on a directory, the same TTL attributes is set on all its chil
 If a directory's TTL expires, all its children will also expire.
 
 Action parameter `--action` will indicate the action to perform once the file or directory expires.
-The default action, `delete`, deletes the file or directory from both Alluxio and the under storage system,
+**The default action, delete, deletes the file or directory from both Alluxio and the under storage system**,
 whereas the action `free` frees the file from Alluxio even if pinned.
 
 For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary after a period of time,
@@ -1209,6 +1260,8 @@ Usage: alluxio table [generic options]
 
 The table subcommand manages the structured data service of Alluxio.
 
+> Note: This command requires the Alluxio cluster to be running.
+
 ### attachdb
 
 Syntax:
@@ -1270,7 +1323,14 @@ For `glue` udb type, there are some additional properties with the `-o` options:
     * `aws.catalog.id`: the aws catalog id
     * `aws.accesskey`: the aws access key id
     * `aws.secretkey`: the aws secret key
-
+    * `aws.proxy.protocol`: The protocol(HTTP/HTTPS) to use for connecting to the proxy server
+    * `aws.proxy.host`: The proxy host the client will connect through
+    * `aws.proxy.port`: The proxy port the client will connect through
+    * `aws.proxy.username`: The proxy user name
+    * `aws.proxy.password`: The proxy password
+    * `table.column.statistics`: Enable table column statistics(true/false)
+    * `partition.column.statistics`: Enable partition column statistics(true/false)
+    
 You can supply the mount options for the `glue` as follows:
 
 ```console
@@ -1350,7 +1410,7 @@ The `transform` command will transform a table for improved efficiency when read
 Here is an example usage:
 
 ```console
-$ ./bin/alluxio table transform db_name table_name
+$ ./bin/alluxio table transform db_name table_name [-d <definition>]
 ```
 
 This command will invoke a transformation on the table. The transformation is performed
@@ -1361,7 +1421,15 @@ format.
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
 > For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
-> with each file no smaller than 2GB. 
+> with each file no smaller than 2GB.
+ 
+The definition format takes a form of configuration separated by semicolon and specifies the details of the output
+format. Available configurations are:
+
+```console
+file.count.max=<num> (maximum number of files in transformed output)
+file.size.min=<num> (minimum file size in bytes of the output)
+```
 
 ### transformStatus
 

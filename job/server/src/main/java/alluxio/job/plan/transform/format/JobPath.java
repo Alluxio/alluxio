@@ -16,6 +16,7 @@ import alluxio.client.WriteType;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,9 +31,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementation of {@link Path} that has a cache for getting file system.
  */
 public class JobPath extends Path {
-
+  private static final long serialVersionUID = 1427341926575998813L;
   private static final ConcurrentHashMap<FileSystemKey, FileSystem> CACHE =
       new ConcurrentHashMap<>();
+
+  /**
+   * Calls {@link FileSystem}.get, created to make testing easier.
+   * @param uri the uri
+   * @param conf the conf
+   * @return the file system
+   * @throws IOException
+   */
+  @VisibleForTesting
+  public static FileSystem fileSystemGet(URI uri, Configuration conf) throws IOException {
+    return FileSystem.get(uri, conf);
+  }
 
   private static class FileSystemKey {
 
@@ -96,7 +109,7 @@ public class JobPath extends Path {
     try {
       return CACHE.computeIfAbsent(new FileSystemKey(this, conf), (key) -> {
         try {
-          return super.getFileSystem(conf);
+          return fileSystemGet(this.toUri(), conf);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

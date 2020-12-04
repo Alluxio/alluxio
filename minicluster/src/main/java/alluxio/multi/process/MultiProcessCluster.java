@@ -99,7 +99,7 @@ public final class MultiProcessCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
-  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 10000;
+  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 30000;
 
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
@@ -561,6 +561,14 @@ public final class MultiProcessCluster {
    */
   public synchronized String getJournalDir() {
     return mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+  }
+
+  /**
+   * @param masterId index of the master
+   * @return the journal directory for the specified master
+   */
+  public String getJournalDir(int masterId) {
+    return mMasters.get(masterId).getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 
   /**

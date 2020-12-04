@@ -14,12 +14,14 @@ package alluxio.master;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -156,7 +158,7 @@ public final class AlluxioMasterProcessTest {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.MINUTE_MS));
   }
 
   private boolean isBound(int port) {

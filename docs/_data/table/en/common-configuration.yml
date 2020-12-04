@@ -67,11 +67,11 @@ alluxio.job.worker.web.bind.host:
 alluxio.job.worker.web.port:
   'The port the Alluxio job worker web server uses.'
 alluxio.jvm.monitor.info.threshold:
-  'Extra sleep time longer than this threshold, log INFO.'
+  'When the JVM pauses for anything longer than this, log an INFO message.'
 alluxio.jvm.monitor.sleep.interval:
   'The time for the JVM monitor thread to sleep.'
 alluxio.jvm.monitor.warn.threshold:
-  'Extra sleep time longer than this threshold, log WARN.'
+  'When the JVM pauses for anything longer than this, log a WARN message.'
 alluxio.locality.compare.node.ip:
   'Whether try to resolve the node IP address for locality checking'
 alluxio.locality.node:
@@ -196,6 +196,8 @@ alluxio.underfs.oss.socket.timeout:
   'The timeout of OSS socket.'
 alluxio.underfs.s3.admin.threads.max:
   'The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.'
+alluxio.underfs.s3.connection.ttl:
+  'The expiration time of S3 connections in ms. -1 means the connection will never expire.'
 alluxio.underfs.s3.default.mode:
   'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3.directory.suffix:

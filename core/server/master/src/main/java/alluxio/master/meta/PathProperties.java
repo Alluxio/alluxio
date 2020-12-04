@@ -21,12 +21,12 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 
 import com.google.common.collect.Iterators;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -241,13 +241,14 @@ public final class PathProperties implements DelegatingJournaled {
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-      return Iterators.transform(mProperties.entrySet().iterator(), entry -> {
-        String path = entry.getKey();
-        Map<String, String> properties = entry.getValue();
-        return Journal.JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry.newBuilder()
-            .setPath(path).putAllProperties(properties).build()).build();
-      });
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      return CloseableIterator.noopCloseable(
+          Iterators.transform(mProperties.entrySet().iterator(), entry -> {
+            String path = entry.getKey();
+            Map<String, String> properties = entry.getValue();
+            return Journal.JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry
+                .newBuilder().setPath(path).putAllProperties(properties).build()).build();
+          }));
     }
   }
 }

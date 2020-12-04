@@ -202,7 +202,7 @@ In addition to altering the table location, we also need to modify the partition
 See the following for an example.
 
 ```
-hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location 'hdfs://namenode:port/table/path/partitionpath";
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
 
 ## Advanced Setup
@@ -338,22 +338,6 @@ And you can see the query results from console:
 ![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
 
 ## Troubleshooting
-
-### Check Hive is Configured Correctly
-
-Before running Hive on Alluxio, you might want to make sure that your configuration has been
-setup correctly set up with Alluxio. The Hive integration checker can help you achieve this (Hive
- 2.x required).
-
-You can run the following command in the Alluxio project directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
-```
-
-You can use `-h` to display helpful information about the command, along with this detailed page on 
-[JDBC connection URLs](https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC) to specify the Hive URL.
-This command will report potential problems that might prevent you from running Hive on Alluxio.
 
 ### Logging Configuration
 

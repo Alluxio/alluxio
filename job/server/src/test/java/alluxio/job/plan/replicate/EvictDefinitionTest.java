@@ -88,7 +88,7 @@ public final class EvictDefinitionTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
-    EvictConfig config = new EvictConfig(TEST_BLOCK_ID, replicas);
+    EvictConfig config = new EvictConfig("", TEST_BLOCK_ID, replicas);
     EvictDefinition definition = new EvictDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mJobServerContext));

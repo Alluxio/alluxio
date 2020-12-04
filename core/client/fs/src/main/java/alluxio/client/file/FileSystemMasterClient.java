@@ -16,6 +16,7 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -24,7 +25,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -63,6 +63,16 @@ public interface FileSystemMasterClient extends Client {
       return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
+
+  /**
+   * Check access to a path.
+   *
+   * @param path the path to check
+   * @param options method options
+   * @throws alluxio.exception.AccessControlException if the access is denied
+   */
+  void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Checks the consistency of Alluxio metadata against the under storage for all files and
@@ -169,16 +179,6 @@ public interface FileSystemMasterClient extends Client {
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
-
-  /**
-   * Loads the metadata of a file from the under file system.
-   *
-   * @param path the path of the file to load metadata for
-   * @param options method options
-   * @throws NotFoundException if the path does not exist
-   * @return number of paths loaded from the under file system
-   */
-  long loadMetadata(AlluxioURI path, LoadMetadataPOptions options) throws AlluxioStatusException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.

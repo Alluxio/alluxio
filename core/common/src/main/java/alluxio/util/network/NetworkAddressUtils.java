@@ -42,6 +42,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -252,6 +253,7 @@ public final class NetworkAddressUtils {
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
+   * <th>Enable Network IP Address Used</th>
    * <th>Returned Connect Host</th>
    * </tr>
    * </thead>
@@ -259,22 +261,32 @@ public final class NetworkAddressUtils {
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>hostname</td>
    * <td>0.0.0.0 or not defined</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>0.0.0.0 or not defined</td>
-   * <td>localhost</td>
+   * <td>false</td>
+   * <td>local hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>true</td>
+   * <td>local IP address</td>
    * </tr>
    * </tbody>
    * </table>
@@ -296,6 +308,9 @@ public final class NetworkAddressUtils {
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
+    }
+    if (conf.getBoolean(PropertyKey.NETWORK_IP_ADDRESS_USED)) {
+      return getLocalIpAddress((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -670,7 +685,9 @@ public final class NetworkAddressUtils {
         .build();
     try {
       ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+              .withDeadlineAfter(conf.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                  TimeUnit.MILLISECONDS);
       versionClient.getServiceVersion(
           GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
     } catch (Throwable t) {

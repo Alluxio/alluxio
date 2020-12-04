@@ -12,22 +12,41 @@
 package alluxio.client.file.cache;
 
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.Counter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.Nullable;
 
 /**
  * The default implementation of a metadata store for pages stored in cache. This implementation
  * is not thread safe and requires synchronizations on external callers.
  */
 public class DefaultMetaStore implements MetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStore.class);
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
   /** The number of pages stored. */
   private final AtomicLong mPages = new AtomicLong(0);
+  /** The evictor. */
+  private final CacheEvictor mEvictor;
+
+  /**
+   * @param evictor cache evictor
+   */
+  public DefaultMetaStore(CacheEvictor evictor) {
+    mEvictor = evictor;
+  }
 
   @Override
   public boolean hasPage(PageId pageId) {
@@ -38,7 +57,10 @@ public class DefaultMetaStore implements MetaStore {
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
+    Metrics.SPACE_USED.inc(pageInfo.getPageSize());
     mPages.incrementAndGet();
+    Metrics.PAGES.inc();
+    mEvictor.updateOnPut(pageId);
   }
 
   @Override
@@ -46,6 +68,7 @@ public class DefaultMetaStore implements MetaStore {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
+    mEvictor.updateOnGet(pageId);
     return mPageMap.get(pageId);
   }
 
@@ -56,7 +79,10 @@ public class DefaultMetaStore implements MetaStore {
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
+    Metrics.SPACE_USED.dec(pageInfo.getPageSize());
     mPages.decrementAndGet();
+    Metrics.PAGES.dec();
+    mEvictor.updateOnDelete(pageId);
   }
 
   @Override
@@ -72,7 +98,35 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void reset() {
     mPages.set(0);
+    Metrics.PAGES.dec(Metrics.PAGES.getCount());
     mBytes.set(0);
+    Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
+    mEvictor.reset();
+  }
+
+  @Override
+  @Nullable
+  public PageInfo evict() {
+    PageId victim = mEvictor.evict();
+    if (victim == null) {
+      return null;
+    }
+    PageInfo victimInfo = mPageMap.get(victim);
+    if (victimInfo == null) {
+      LOG.error("Invalid result returned by evictor: page {} not available", victim);
+      mEvictor.updateOnDelete(victim);
+      return null;
+    }
+    return victimInfo;
+  }
+
+  private static final class Metrics {
+    /** Bytes used in the cache. */
+    private static final Counter SPACE_USED =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_SPACE_USED_COUNT.getName());
+    /** Pages stored in the cache. */
+    private static final Counter PAGES =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 }

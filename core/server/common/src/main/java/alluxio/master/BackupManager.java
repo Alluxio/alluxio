@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
@@ -32,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -128,9 +128,13 @@ public class BackupManager {
     activeTasks.add(completionService.submit(() -> {
       try {
         for (Master master : mRegistry.getServers()) {
-          Iterator<JournalEntry> it = master.getJournalEntryIterator();
-          while (it.hasNext()) {
-            journalEntryQueue.put(it.next());
+          try (CloseableIterator<JournalEntry> it = master.getJournalEntryIterator()) {
+            while (it.get().hasNext()) {
+              journalEntryQueue.put(it.get().next());
+              if (Thread.interrupted()) {
+                throw new InterruptedException();
+              }
+            }
           }
         }
         // Put termination entry for signaling the writer.
@@ -138,6 +142,7 @@ public class BackupManager {
             .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup reader task interrupted");
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while reading master state.", ie);
       } finally {
@@ -156,6 +161,9 @@ public class BackupManager {
             // No elements at the moment. Fall-back to blocking mode.
             pendingEntries.add(journalEntryQueue.take());
           }
+          if (Thread.interrupted()) {
+            throw new InterruptedException();
+          }
           // Write entries to back-up stream.
           for (JournalEntry journalEntry : pendingEntries) {
             // Check for termination entry.
@@ -170,6 +178,7 @@ public class BackupManager {
         }
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup writer task interrupted");
         // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while writing to backup stream.", ie);

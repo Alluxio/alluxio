@@ -131,8 +131,8 @@ public class WorkflowTrackerTest {
     mPlanTracker.run(jobConfig, mCommandManager, mMockJobServerContext, mWorkers, 3);
 
     doAnswer(invocation -> {
-      PlanConfig config = invocation.getArgumentAt(0, PlanConfig.class);
-      long jobId = invocation.getArgumentAt(1, Long.class);
+      PlanConfig config = invocation.getArgument(0, PlanConfig.class);
+      long jobId = invocation.getArgument(1, Long.class);
 
       mPlanTracker.run(config, mCommandManager, mMockJobServerContext, mWorkers, jobId);
       return null;
@@ -157,7 +157,7 @@ public class WorkflowTrackerTest {
     }
 
     mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 100)
-        .findFirst().get().setJobAsFailed("failed");
+        .findFirst().get().setJobAsFailed("TestError", "failed");
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 4);
 
@@ -171,7 +171,7 @@ public class WorkflowTrackerTest {
     }
 
     mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 101)
-        .findFirst().get().setJobAsFailed("failed");
+        .findFirst().get().setJobAsFailed("TestError", "failed");
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
 

@@ -28,7 +28,9 @@ import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.io.PathUtils;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -39,6 +41,8 @@ import com.amazonaws.services.glue.model.AWSGlueException;
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Database;
 import com.amazonaws.services.glue.model.EntityNotFoundException;
+import com.amazonaws.services.glue.model.GetColumnStatisticsForPartitionRequest;
+import com.amazonaws.services.glue.model.GetColumnStatisticsForTableRequest;
 import com.amazonaws.services.glue.model.GetDatabaseRequest;
 import com.amazonaws.services.glue.model.GetDatabaseResult;
 import com.amazonaws.services.glue.model.GetPartitionsRequest;
@@ -60,6 +64,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Glue database implementation.
@@ -148,6 +153,15 @@ public class GlueDatabase implements UnderDatabase {
   protected static AWSGlueAsync createAsyncGlueClient(UdbConfiguration config) {
     ClientConfiguration clientConfig = new ClientConfiguration()
         .withMaxConnections(config.getInt(Property.MAX_GLUE_CONNECTION));
+
+    if (!config.get(Property.AWS_PROXY_HOST).isEmpty()) {
+      clientConfig.withProxyProtocol(getProtocol(config.get(Property.AWS_PROXY_PROTOCOL)))
+          .withProxyHost(config.get(Property.AWS_PROXY_HOST))
+          .withProxyPort(config.getInt(Property.AWS_PROXY_PORT))
+          .withProxyUsername(config.get(Property.AWS_PROXY_USER_NAME))
+          .withProxyPassword(config.get(Property.AWS_PROXY_PASSWORD));
+    }
+
     AWSGlueAsyncClientBuilder asyncClientBuilder = AWSGlueAsyncClientBuilder
         .standard()
         .withClientConfiguration(clientConfig);
@@ -157,14 +171,6 @@ public class GlueDatabase implements UnderDatabase {
       asyncClientBuilder.setRegion(config.get(Property.GLUE_REGION));
     } else {
       LOG.warn("GlueDatabase: Please setup the AWS region.");
-    }
-
-    if (config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()) {
-      LOG.warn("GlueDatabase: Please setup the AWS access key id.");
-    }
-
-    if (config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
-      LOG.warn("GlueDatabase: Please setup the AWS access secret key.");
     }
 
     asyncClientBuilder.setCredentials(getAWSCredentialsProvider(config));
@@ -182,6 +188,18 @@ public class GlueDatabase implements UnderDatabase {
           config.get(Property.AWS_GLUE_SECRET_KEY)));
     }
     return DefaultAWSCredentialsProviderChain.getInstance();
+  }
+
+  private static Protocol getProtocol(String protocol) {
+    if (protocol.equals("HTTP")) {
+      return Protocol.HTTP;
+    } else if (protocol.equals("HTTPS")) {
+      return Protocol.HTTPS;
+    } else {
+      LOG.warn("Invalid protocol type {}."
+          + "Avaiable proxy protocol type HTTP and HTTPS.", protocol);
+    }
+    return null;
   }
 
   @Override
@@ -284,9 +302,36 @@ public class GlueDatabase implements UnderDatabase {
     }
   }
 
+  private List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
+      GetColumnStatisticsForTableRequest getColumnStatisticsForTableRequest) {
+    // TODO(shouwei): Add Async support for table column statistics
+    try {
+      return getClient().getColumnStatisticsForTable(getColumnStatisticsForTableRequest)
+          .getColumnStatisticsList().stream().map(GlueUtils::toProto).collect(Collectors.toList());
+    } catch (AmazonClientException e) {
+      LOG.warn("Cannot get the table column statistics info for table {}.{} with error {}.",
+          dbName, tableName, e.getMessage());
+    }
+    return Collections.emptyList();
+  }
+
+  private List<ColumnStatisticsInfo> getPartitionColumnStatistics(String dbName, String tableName,
+      GetColumnStatisticsForPartitionRequest getColumnStatisticsForPartitionRequest) {
+    // TODO(shouwei): Add Async support for partition column statistics
+    try {
+      List<ColumnStatisticsInfo> partColumnStatistic = getClient()
+          .getColumnStatisticsForPartition(getColumnStatisticsForPartitionRequest)
+          .getColumnStatisticsList().stream().map(GlueUtils::toProto).collect(Collectors.toList());
+      return partColumnStatistic;
+    } catch (AmazonClientException e) {
+      LOG.warn("Cannot get the partition column statistics info for table {}.{} with error {}.",
+          dbName, tableName, e.getMessage());
+    }
+    return Collections.emptyList();
+  }
+
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    // TODO(shouwei): update glue client to 1.11.820 to support columnstatistics
     Table table;
     List<Partition> partitions;
     try {
@@ -299,10 +344,52 @@ public class GlueDatabase implements UnderDatabase {
       partitions = batchGetPartitions(getClient(), tableName);
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
 
-      // Glue does not provide column statistic information
-      List<ColumnStatisticsInfo> columnStatisticsData = Collections.emptyList();
+      List<Column> partitionColumns;
+      if (table.getPartitionKeys() == null) {
+        partitionColumns = Collections.emptyList();
+      } else {
+        partitionColumns = table.getPartitionKeys();
+      }
+
+      // Get table parameters
       Map<String, String> tableParameters = table.getParameters() == null
           ? Collections.emptyMap() : table.getParameters();
+
+      // Get column statistics info for table
+      List<String> columnNames = table.getStorageDescriptor()
+          .getColumns().stream().map(Column::getName).collect(Collectors.toList());
+      GetColumnStatisticsForTableRequest getColumnStatisticsForTableRequest =
+          new GetColumnStatisticsForTableRequest()
+              .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+              .withDatabaseName(mGlueDbName)
+              .withTableName(tableName)
+              .withColumnNames(columnNames);
+      List<ColumnStatisticsInfo> columnStatisticsTableData = new ArrayList<>();
+      if (mGlueConfiguration.getBoolean(Property.TABLE_COLUMN_STATISTICS_ENABLE)) {
+        columnStatisticsTableData = getTableColumnStatistics(
+            mGlueDbName, tableName, getColumnStatisticsForTableRequest);
+      }
+
+      // Get column statistics info for partitions
+      // potential expensive call
+      Map<String, List<ColumnStatisticsInfo>> statsMap = new HashMap<>();
+      if (mGlueConfiguration.getBoolean(Property.PARTITION_COLUMN_STATISTICS_ENABLE)) {
+        for (Partition partition : partitions) {
+          List<String> partitionValue = partition.getValues();
+          if (partitionValue != null) {
+            GetColumnStatisticsForPartitionRequest getColumnStatisticsForPartitionRequest =
+                new GetColumnStatisticsForPartitionRequest()
+                    .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+                    .withDatabaseName(mGlueDbName)
+                    .withTableName(tableName)
+                    .withColumnNames(columnNames)
+                    .withPartitionValues(partitionValue);
+            String partName = GlueUtils.makePartitionName(partitionColumns, partition.getValues());
+            statsMap.put(partName, getPartitionColumnStatistics(
+                mGlueDbName, tableName, getColumnStatisticsForPartitionRequest));
+          }
+        }
+      }
 
       PartitionInfo partitionInfo = PartitionInfo.newBuilder()
           // Database name is not required for glue table, use mGlueDbName
@@ -317,13 +404,6 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutType(HiveLayout.TYPE)
           .setLayoutData(partitionInfo.toByteString())
           .build();
-
-      List<Column> partitionColumns;
-      if (table.getPartitionKeys() == null) {
-        partitionColumns = Collections.emptyList();
-      } else {
-        partitionColumns = table.getPartitionKeys();
-      }
 
       List<UdbPartition> udbPartitions = new ArrayList<>();
       if (partitionColumns.isEmpty()) {
@@ -351,7 +431,7 @@ public class GlueDatabase implements UnderDatabase {
             partitionInfoBuilder.addAllValues(partition.getValues());
           }
           udbPartitions.add(new GluePartition(new HiveLayout(partitionInfoBuilder.build(),
-              Collections.emptyList())));
+              statsMap.getOrDefault(partName, Collections.emptyList()))));
         }
       }
 
@@ -359,7 +439,7 @@ public class GlueDatabase implements UnderDatabase {
           pathTranslator,
           tableName,
           GlueUtils.toProtoSchema(table.getStorageDescriptor().getColumns()),
-          columnStatisticsData,
+          columnStatisticsTableData,
           // Glue does not provide FieldSchema from API directly
           // Get FieldSchema from partition keys
           GlueUtils.toProto(table.getPartitionKeys()),

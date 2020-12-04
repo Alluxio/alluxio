@@ -48,7 +48,7 @@ their input and output files.
 ### Distributing the Alluxio Client Jar
 
 In order for the MapReduce applications to read and write files in Alluxio, the Alluxio client jar
-must be distributed on the classpath of the application across different nodes.
+must be on the JVM classpath of all nodes of the application.
 
 The Alluxio client jar should also be added to the `HADOOP_CLASSPATH` environment variable.
 This makes the Alluxio client available to JVMs which are created when running `hadoop jar` command:
@@ -71,7 +71,7 @@ Alternative configurations are described in the [Advanced Setup](#advanced-setup
 
 ## Example
 
-For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
+For this example, we will use a pseudo-distributed Hadoop cluster, started by running:
 
 ```console
 $ cd $HADOOP_HOME
@@ -87,7 +87,7 @@ Start Alluxio locally:
 $ ./bin/alluxio-start.sh local SudoMount
 ```
 
-You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
+You can add a sample file to Alluxio to run MapReduce wordcount on. From your Alluxio directory:
 
 ```console
 $ ./bin/alluxio fs mkdir /wordcount
@@ -191,23 +191,6 @@ If you simply wish to modify log levels then your can change `mapreduce.map.log.
 
 If you are using YARN then you may also wish to modify some of the `yarn.log.*` properties which
 can be found in [`yarn-site.xml`](https://hadoop.apache.org/docs/r2.7.6/hadoop-yarn/hadoop-yarn-common/yarn-default.xml)
-
-### Check MapReduce and Alluxio integration (Supports Hadoop 2.X)
-
-Before running MapReduce on Alluxio, you might want to make sure that your configuration has been
-setup correctly for integrating with Alluxio.
-The MapReduce integration checker can help you achieve this.
-
-When you have a running Hadoop cluster (or standalone), you can run the following command in the
-Alluxio installation directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh mapreduce
-```
-
-You can use `-h` to display helpful information about the command.
-This command will report potential problems that might prevent you from running MapReduce on
-Alluxio.
 
 ### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
 

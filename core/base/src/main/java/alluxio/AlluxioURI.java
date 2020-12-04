@@ -20,7 +20,7 @@ import alluxio.uri.URI;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -36,6 +36,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private int mMasterUnderfsCapacityUsedPercentage;
   private Map<String, Counter> mRpcInvocationMetrics;
   private Map<String, Map<String, Long>> mUfsOps;
+  private Map<String, Map<String, Long>> mUfsOpsSaved;
   private Map<String, Metric> mOperationMetrics;
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
@@ -280,6 +281,15 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public Map<String, Map<String, Long>> getUfsOps() {
     return mUfsOps;
+  }
+
+  /**
+   * Gets ufs ops saved.
+   *
+   * @return the ufs ops saved
+   */
+  public Map<String, Map<String, Long>> getUfsOpsSaved() {
+    return mUfsOpsSaved;
   }
 
   /**
@@ -594,6 +604,17 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public MasterWebUIMetrics setUfsOps(Map<String, Map<String, Long>> UfsOps) {
     mUfsOps = UfsOps;
+    return this;
+  }
+
+  /**
+   * Sets ufs saved ops.
+   *
+   * @param ufsOpsSavedMap the ufs ops
+   * @return the updated masterWebUIMetrics object
+   */
+  public MasterWebUIMetrics setUfsOpsSaved(Map<String, Map<String, Long>> ufsOpsSavedMap) {
+    mUfsOpsSaved = ufsOpsSavedMap;
     return this;
   }
 

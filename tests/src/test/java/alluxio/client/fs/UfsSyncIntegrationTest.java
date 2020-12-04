@@ -21,6 +21,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -44,6 +45,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -555,6 +557,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsDeleteSync() throws Exception {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
+    FileSystemUtils
+        .waitForAlluxioPercentage(mFileSystem, new AlluxioURI(alluxioPath(EXISTING_FILE)), 100);
     new File(ufsPath(EXISTING_FILE)).delete();
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
         ExistsPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
@@ -568,7 +572,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
   }
 
   @Test
@@ -744,6 +748,38 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         ListStatusPOptions.newBuilder().setCommonOptions(longinterval).setRecursive(true)
             .build());
     Assert.assertEquals(4, paths.size());
+  }
+
+  @Test
+  public void deleteUfsFileGetStatus() throws Exception {
+    new File(ufsPath("/delete")).mkdirs();
+    writeUfsFile(ufsPath("/delete/file"), 10);
+
+    List<URIStatus> paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/delete")),
+        ListStatusPOptions.newBuilder().setRecursive(false).setCommonOptions(PSYNC_ALWAYS).build());
+
+    Assert.assertEquals(1, paths.size());
+    Assert.assertEquals("file", paths.get(0).getName());
+
+    // delete the file and wait a bit
+    new File(ufsPath("/delete/file")).delete();
+    CommonUtils.sleepMs(2000);
+
+    // getStatus (not listStatus) on the root, with a shorter interval than the sleep.
+    // This will sync that directory. The sync interval has to be long enough for the internal
+    // syncing process to finish within that time.
+    mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete")), GetStatusPOptions.newBuilder()
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000).build()).build());
+
+    // verify that the file is deleted, without syncing
+    try {
+      mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete/file")),
+          GetStatusPOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build());
+      Assert.fail("the ufs deleted file is not expected to exist after sync via getStatus");
+    } catch (FileDoesNotExistException e) {
+      // expected
+    }
   }
 
   private String ufsPath(String path) {

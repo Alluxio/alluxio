@@ -41,4 +41,8 @@ export const headerNavigationData: INavigationData[] = [
     innerText: 'Metrics',
     url: routePaths.metrics,
   },
+  {
+    innerText: 'MountTable',
+    url: routePaths.mounttable,
+  },
 ];

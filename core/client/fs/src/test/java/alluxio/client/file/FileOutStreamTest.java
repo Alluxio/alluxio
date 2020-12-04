@@ -18,7 +18,6 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
@@ -105,7 +104,7 @@ public class FileOutStreamTest {
   private TestUnderFileSystemFileOutStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
 
-  private FileOutStream mTestStream;
+  private AlluxioFileOutStream mTestStream;
   private ClientContext mClientContext;
 
   /**
@@ -151,7 +150,7 @@ public class FileOutStreamTest {
         any(OutStreamOptions.class))).thenAnswer(new Answer<TestBlockOutStream>() {
           @Override
           public TestBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
-            Long blockId = invocation.getArgumentAt(0, Long.class);
+            Long blockId = invocation.getArgument(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
                   new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);
@@ -297,12 +296,13 @@ public class FileOutStreamTest {
         OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
-    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
+    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
     when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    doThrow(new IOException("test error")).when(stream).write((byte) 7);
+    doThrow(new IOException("test error")).when(stream).write(7);
+
     try {
       mTestStream.write(7);
       fail("the test should fail");
@@ -329,7 +329,7 @@ public class FileOutStreamTest {
     assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.getWrittenData());
     // The cache stream is written to only once - the FileInStream gives up on it after it throws
     // the first exception.
-    verify(stream, times(1)).write(anyByte());
+    verify(stream, times(1)).write(anyInt());
   }
 
   /**
@@ -499,7 +499,7 @@ public class FileOutStreamTest {
    * @param options the set of options specific to this operation
    * @return a {@link FileOutStream}
    */
-  private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
+  private AlluxioFileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
     return new AlluxioFileOutStream(path, options, mFileSystemContext);
   }

@@ -17,7 +17,7 @@ priority: 1
 [有关命名空间管理的页面]
 ({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
 
-Alluxio在帮助统一跨各种平台用户数据的同时还有助于为用户提升总体I / O吞吐量。
+Alluxio在帮助统一跨各种平台用户数据的同时还有助于为用户提升总体I / O吞吐量。 
 Alluxio是通过把存储分为两个不同的类别来实现这一目标的。
 
 - **UFS(底层文件存储，也称为底层存储)**
@@ -52,7 +52,7 @@ Alluxio还支持让系统存储软件可感知的分层存储，使类似L1/L2 C
 
 请注意，此部分是讲本地存储，诸如`mount`之类的术语指在本地存储文件系统上挂载，不要与Alluxio的外部底层存储的`mount`概念混淆。
 
-在启动时，Alluxio将在每个worker节点上发放一个ramdisk并占用一定比例的系统的总内存。
+在启动时，Alluxio将在每个worker节点上发放一个ramdisk并占用一定比例的系统的总内存。 
 此ramdisk将用作分配给每个Alluxio worker的唯一存储介质。
 
 通过Alluxio配置中的`alluxio-site.properties`来配置Alluxio存储。
@@ -76,14 +76,14 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 
 请注意，介质类型的顺序必须与路径的顺序相符。
 MEM和SSD是Alluxio中的两种预配置存储类型。
-`alluxio.master.tieredstore.global.mediumtype`是包含所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。
+`alluxio.master.tieredstore.global.mediumtype`是包含所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。 
 如果用户有额外存储介质类型可以通过修改这个配置来增加。
 
-提供的路径应指向挂载适当存储介质的本地文件系统中的路径。
-为了实现短路操作，对于这些路径，应允许客户端用户在这些路径上进行读取，写入和执行。
+提供的路径应指向挂载适当存储介质的本地文件系统中的路径。 
+为了实现短路操作，对于这些路径，应允许客户端用户在这些路径上进行读取，写入和执行。 
 例如，对于与启动Alluxio服务的用户组同组用户应给予`770`权限。
 
-更新存储介质后，需要指出每个存储目录分配了多少存储空间。
+更新存储介质后，需要指出每个存储目录分配了多少存储空间。 
 例如，如果要在ramdisk上使用16 GB，在每个SSD上使用100 GB：
 
 ```properties
@@ -177,7 +177,7 @@ alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
 
 ### 块注释策略
 
-Alluxio从v2.3开始使用块注释策略来维护存储中数据块的严格顺序。
+Alluxio从v2.3开始使用块注释策略来维护存储中数据块的严格顺序。 
 注释策略定义了跨层块的顺序，并在以下操作过程中进行用来参考:
 -释放空间
 -[动态块放置](#block-aligning-dynamic-block-placement)。
@@ -259,7 +259,7 @@ Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释�
 
 可以在`alluxio.worker.management.backoff.strategy`属性中设置两种可用的推后类型，分别是Any和DIRECTORY。
 
--`ANY`; 当有任何用户I/O时，worker管理任务将推后。
+-`ANY`; 当有任何用户I/O时，worker管理任务将推后。 
 此模式将确保较低管理任务开销，以便提高即时用户I/O性能。
 但是，管理任务要取得进展就需要在worker上花更长的时间。
 
@@ -348,7 +348,7 @@ Alluxio具有与每个文件或目录关联的TTL属性。这些属性将保存�
 alluxio.master.ttl.checker.interval=10m
 ```
 
-请参考[配置页]({{ '/en/operation/Configuration.html' | relativize_url }})
+请参考[配置页]({{ '/cn/operation/Configuration.html' | relativize_url }})
 CN以获取有关设置Alluxio配置的更多详细信息。
 
 #### API
@@ -374,7 +374,7 @@ SetTTL(path，duration，action)
 #### 命令行用法
 
 了解如何使用`setTtl`命令在Alluxio shell中修改TTL属性参阅详细的
-[命令行文档]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)。
+[命令行文档]({{ '/cn/operation/User-CLI.html' | relativize_url }}#setttl)。
 
 #### Alluxio中文件上的被动TTL设置
 
@@ -388,7 +388,7 @@ Alluxio客户端可以配置为只要在Alluxio命名空间添加新文件时就
 * `alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
 默认情况下，未设置TTL持续时间。
 * `alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
-在Alluxio中。默认情况下，此操作为“DELETE”。
+在Alluxio中。**注意：默认情况下，此操作为“DELETE”，它将导致文件永久被删除。**
 
 TTL默认情况下处于不使用状态，仅当客户有严格数据访问模式才启用。
 

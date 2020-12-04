@@ -23,6 +23,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -31,6 +32,7 @@ import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
@@ -98,6 +100,7 @@ public class ActiveSyncManager implements Journaled {
   private final FileSystemMaster mFileSystemMaster;
   // a local executor service used to launch polling threads
   private final ThreadPoolExecutor mExecutorService;
+  private boolean mStarted;
 
   /**
    * Constructs a Active Sync Manager.
@@ -150,7 +153,8 @@ public class ActiveSyncManager implements Journaled {
   public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
-        if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())) {
+        if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
+            && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
           return true;
         }
       } catch (InvalidPathException e) {
@@ -164,6 +168,7 @@ public class ActiveSyncManager implements Journaled {
    * Start the polling threads.
    */
   public void start() throws IOException {
+    mStarted = true;
     // Initialize UFS states
     for (AlluxioURI syncPoint : mSyncPathList) {
       MountTable.Resolution resolution;
@@ -428,8 +433,9 @@ public class ActiveSyncManager implements Journaled {
         while (mountId == -1) {
           try {
             syncPointPath = mEntry.getPath();
-            MountTable.Resolution resolution = mMountTable.resolve(mEntry);
-            mountId = resolution.getMountId();
+            String mountPoint = mMountTable.getMountPoint(mEntry);
+            MountInfo mountInfo = mMountTable.getMountTable().get(mountPoint);
+            mountId = mountInfo.getMountId();
           } catch (InvalidPathException e) {
             LOG.info("Path resolution failed for {}, exception {}", syncPointPath, e);
             mEntry = null;
@@ -650,6 +656,10 @@ public class ActiveSyncManager implements Journaled {
    * 4. Stop the thread that is polling HDFS for events
    */
   public void stop() {
+    if (!mStarted) {
+      return;
+    }
+    mStarted = false;
     for (AlluxioURI syncPoint : mSyncPathList) {
       try {
         stopSyncInternal(syncPoint);
@@ -744,7 +754,8 @@ public class ActiveSyncManager implements Journaled {
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(getSyncPathIterator(), getTxIdIterator());
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    return CloseableIterator.noopCloseable(
+        Iterators.concat(getSyncPathIterator(), getTxIdIterator()));
   }
 }

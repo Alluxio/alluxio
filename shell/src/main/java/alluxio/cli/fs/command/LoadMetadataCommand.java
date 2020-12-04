@@ -12,11 +12,12 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.ListStatusPOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -24,12 +25,21 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+ * This command is a client-side optimization without storing all returned `ls`
+ * results, preventing OOM for massive amount of small files.
+ */
+@ThreadSafe
+@PublicApi
 public class LoadMetadataCommand extends AbstractFileSystemCommand {
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
           .required(false)
           .hasArg(false)
-          .desc("loadMetadata subdirectories recursively")
+          .desc("load metadata subdirectories recursively")
           .build();
 
   /**
@@ -49,7 +59,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION);
-   }
+  }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
@@ -68,11 +78,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   private void loadMetadata(AlluxioURI path, boolean recursive) throws IOException {
     try {
-      LoadMetadataPOptions options = LoadMetadataPOptions.newBuilder()
-          .setRecursive(recursive)
-          .build();
-      long ret = mFileSystem.loadMetadata(path, options);
-      System.out.println(String.format("%d paths loaded", ret));
+      ListStatusPOptions options = ListStatusPOptions.newBuilder()
+          .setRecursive(recursive).build();
+      mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }

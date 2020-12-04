@@ -45,7 +45,7 @@ alluxio.worker.hostname:
   Alluxio worker的主机名。
 alluxio.worker.jvm.monitor.enabled:
   是否在worker上启用JVM monitor线程。
-alluxio.worker.memory.size:
+alluxio.worker.ramdisk.size:
   每个worker节点的内存容量。
 alluxio.worker.network.netty.backlog:
   netty套接字选项SO_BACKLOG：集合队列数量。

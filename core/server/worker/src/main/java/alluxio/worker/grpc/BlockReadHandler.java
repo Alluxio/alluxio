@@ -193,7 +193,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
-          } catch (Exception e) {
+          } catch (Throwable e) {
             mWorker.unlockBlock(lockId);
             throw e;
           }

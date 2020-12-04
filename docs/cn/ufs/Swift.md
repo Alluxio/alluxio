@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Swift上配置Alluxio
-nickname: Alluxio使用Swift
+title: Alluxio集成Swift作为底层存储
+nickname: Alluxio集成Swift作为底层存储
 group: Storage Integrations
 priority: 5
 ---
@@ -81,6 +81,18 @@ $ ./bin/alluxio-stop.sh local
 
 ```console
 $ mvn test -DtestSwiftContainerKey=swift://<container>
+```
+## 运行功能测试
+
+以下命令可用于测试给定的Swift凭证是否有效。 开发人员还可以使用它对Swift endpoint运行功能测试，以验证Alluxio和Swift之间的合约。
+
+```console
+$ ./bin/alluxio runUfsTests --path swift://<bucket> \
+  -Dfs.swift.user=<SWIFT_USER> \
+  -Dfs.swift.tenant=<SWIFT_TENANT> \
+  -Dfs.swift.password=<SWIFT_PASSWORD> \
+  -Dfs.swift.auth.url=<AUTH_URL> \
+  -Dfs.swift.auth.method=<AUTH_METHOD> 
 ```
 
 ## Swift访问控制

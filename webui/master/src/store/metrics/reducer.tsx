@@ -44,6 +44,7 @@ export const initialMetricsState: IMetricsState = {
     totalBytesWrittenUfs: '',
     totalBytesWrittenUfsThroughput: '',
     ufsOps: {},
+    ufsOpsSaved: {},
     ufsReadSize: {},
     ufsWriteSize: {},
   },

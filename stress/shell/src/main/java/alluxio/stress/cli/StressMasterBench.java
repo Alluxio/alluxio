@@ -232,7 +232,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (int i = 0; i < mParameters.mThreads; i++) {
       callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length]));
     }
-    service.invokeAll(callables, 10, TimeUnit.MINUTES);
+    service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
+        TimeUnit.MILLISECONDS);
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);

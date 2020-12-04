@@ -350,7 +350,6 @@ public class TransformManagerTest {
   }
 
   private void heartbeat() throws Exception {
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
   }
 }

@@ -9,13 +9,12 @@ priority: 2
 [Presto](https://prestosql.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
-This guide describes how to run Presto to query Alluxio as a distributed cache layer,
-where the data sources can be AWS S3, Azure blob store, HDFS and many others.
-With this setup, Alluxio will help Presto access data regardless of the data source and
-transparently cache the data frequently accessed (e.g., tables commonly used) into Alluxio
-distributed storage.
-Co-locating Alluxio workers with Presto workers can benefit data locality and reduce the I/O access
-latency especially when data is remote or network is slow or congested.
+This guide describes how to run queries against Presto with Alluxio as a distributed caching layer,
+for any data storage systems that Alluxio supports (AWS S3, HDFS, Azure Blob Store, NFS, and more).
+Alluxio allows Presto access data regardless of the data source and transparently cache frequently
+accessed data (e.g., tables commonly used) into Alluxio distributed storage.
+Co-locating Alluxio workers with Presto workers improves data locality and reduces the I/O access
+latency when other storage systems are remote or the network is slow or congested.
 
 * Table of Contents
 {:toc}
@@ -25,22 +24,24 @@ Currently, there are 2 ways to enable Presto to interact with Alluxio:
 * Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
 * Presto interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
 
-The primary benefits for using Presto with the Alluxio Catalog Service are simpler deployments
-of Alluxio with Presto (no modifications to the Hive Metastore), and enabling schema-aware
-optimizations (transformations like coalescing and file conversions).
-However, currently, the catalog service is limited to read-only workloads.
+The primary benefits for using Presto with the Alluxio Catalog Service are
+- Simpler deployments of Alluxio with Presto (no modifications to the Hive Metastore)
+- Enabling schema-aware optimizations (transformations like coalescing and file conversions).
+
+Currently, the catalog service is limited to read-only workloads.
 
 For more details and instructions on how to use the Alluxio Catalog Service with Presto, please
 visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
 
 The rest of this page discusses the alternative approach of Presto directly interacting with the
-Hive Metastore.
+Hive Metastore, while IO access is performed through Alluxio.
 
 ## Prerequisites
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
+* For PrestoSQL version >= 330, you will need to Setup Java 11.
 * [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
-This guide is tested with `presto-315`.
+This guide is tested with `presto-319`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
@@ -54,7 +55,7 @@ This guide is tested with `presto-315`.
 Presto gets the database and table metadata information (including file system locations) from
 the Hive Metastore, via Presto's Hive connector.
 Here is a example Presto configuration file `${PRESTO_HOME}/etc/catalog/hive.properties`,
-for a catalog using the Hive connector.
+for a catalog using the Hive connector, where the metastore is located on `localhost`.
 
 ```properties
 connector.name=hive-hadoop2
@@ -65,9 +66,10 @@ hive.metastore.uri=thrift://localhost:9083
 
 In order for Presto to be able to communicate with the Alluxio servers, the Alluxio client
 jar must be in the classpath of Presto servers.
-Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
+Put the Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
-(this directory may differ across versions) on all Presto servers. Restart Presto service:
+(this directory may differ across versions) on all Presto servers. Restart the Presto workers and
+coordinator:
 
 ```console
 $ ${PRESTO_HOME}/bin/launcher restart
@@ -85,7 +87,7 @@ follow the instructions at [Advanced Setup](#advanced-setup).
 Here is an example to create an internal table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
-Unzip this file and upload the file `u.user` into `/ml-100k/` on Alluxio:
+Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
 ```console
 $ ./bin/alluxio fs mkdir /ml-100k
@@ -107,14 +109,15 @@ STORED AS TEXTFILE
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive creates:
+View the Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and files
+that Hive creates:
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_presto_table_in_alluxio.png' | relativize_url }})
 
 ### Start Hive Metastore
 
 Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
-default. If it is not running,
+default. If it is not running, execute the following command to start the metastore:
 
 ```console
 $ ${HIVE_HOME}/bin/hive --service metastore
@@ -166,11 +169,10 @@ have all the Alluxio properties set within the same file of `alluxio-site.proper
 -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
-Alternatively, one can add them to the Hadoop conf files
-(`core-site.xml`, `hdfs-site.xml`), and use
-Presto property `hive.config.resources` in
-file `${PRESTO_HOME}/etc/catalog/hive.properties` to point to the file's location for every Presto
-worker.
+Alternatively, add Alluxio properties to the Hadoop configuration files
+(`core-site.xml`, `hdfs-site.xml`), and use the Presto property `hive.config.resources` in the
+file `${PRESTO_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
+every Presto worker. 
 
 ```
 hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
@@ -230,11 +232,10 @@ For Alluxio 1.6 or earlier, it is recommended to set this size no less than Allu
 size to avoid the read contention within the same block.
 For later Alluxio versions, this is no longer an issue because of Alluxio's async caching abilities.
 
-### Avoid Presto timeout reading large files
+### Avoid Presto timeouts when reading large files
 
 It is recommended to increase `alluxio.user.streaming.data.timeout` to a bigger value (e.g
-`10min`) to avoid a timeout
- failure when reading large files from remote workers.
+`10min`) to avoid a timeout failure when reading large files from remote workers.
 
 ## Troubleshooting
 

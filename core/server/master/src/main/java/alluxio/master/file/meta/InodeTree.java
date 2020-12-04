@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -675,16 +676,22 @@ public class InodeTree implements DelegatingJournaled {
     // helper method for the shared logic.
     AlluxioURI path = inodePath.getUri();
     if (path.isRoot()) {
-      String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
+      String errorMessage = "Not allowed to create existing root path: " + path;
       LOG.error(errorMessage);
       throw new FileAlreadyExistsException(errorMessage);
     }
     if (inodePath.fullPathExists()) {
       if (context instanceof CreateDirectoryContext
           && ((CreateDirectoryContext) context).getOptions().getAllowExists()) {
-        return new ArrayList<>();
+        return Collections.emptyList();
       } else {
-        throw new FileAlreadyExistsException(path);
+        String pathType = "file";
+        if (context instanceof CreateDirectoryContext) {
+          pathType = "directory";
+        }
+        String errorMessage = String
+            .format("Not allowed to create %s because path already exists: %s", pathType, path);
+        throw new FileAlreadyExistsException(errorMessage);
       }
     }
 

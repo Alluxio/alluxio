@@ -3,7 +3,7 @@ layout: global
 title: Frequently Asked Questions
 nickname: FAQ
 group: Overview
-priority: 4
+priority: 5
 ---
 
 * Table of Contents
@@ -17,7 +17,7 @@ at memory speed. Read more about Alluxio [here]({{ '/en/Overview.html' | relativ
 
 ## What platforms and Java versions can Alluxio run on?
 
-Alluxio requires JDK 1.8 to run on various distributions of Linux / MacOS.
+Alluxio requires JDK 1.8 or JDK 11 to run on various distributions of Linux / MacOS.
 
 ## What license is Alluxio under?
 
@@ -85,6 +85,14 @@ No, Alluxio can run on many under storage systems such as Amazon S3 or Swift in 
 
 Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
 developers.
+
+Read the Alluxio book to learn Alluxio comprehensively.
+
+<p align="center">
+<a href="https://book.douban.com/subject/34761887">
+<img style=" width: 25%;" src="{{ '/img/alluxio_book.png' | relativize_url }}" alt="Alluxio Book"/>
+</a>
+</p>
 
 Read the recent [blogs](https://www.alluxio.io/blog) and
 [presentations](https://www.alluxio.io/resources/presentations/).

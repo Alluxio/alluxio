@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在COS上配置Alluxio
-nickname: Alluxio使用COS
+title: Alluxio集成COS作为底层存储
+nickname: Alluxio集成COS作为底层存储
 group: Storage Integrations
 priority: 5
 ---

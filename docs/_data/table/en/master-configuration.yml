@@ -48,6 +48,8 @@ alluxio.master.embedded.journal.appender.batch.size:
   'Amount of data that is appended from leader to followers in a single heartbeat. Setting higher values might require increasing election timeout due to increased network delay. Setting lower values might stall knowledge propagation between the leader and followers.'
 alluxio.master.embedded.journal.bind.host:
   'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
+alluxio.master.embedded.journal.catchup.retry.wait:
+  'Time for embedded journal leader to wait before retrying a catch up.'
 alluxio.master.embedded.journal.election.timeout:
   'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.heartbeat.interval:
@@ -56,6 +58,8 @@ alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.shutdown.timeout:
   'Maximum time to wait for embedded journal to stop on shutdown.'
+alluxio.master.embedded.journal.snapshot.replication.chunk.size:
+  'The stream chunk size used by masters to replicate snapshots.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.transport.max.inbound.message.size:
@@ -64,6 +68,8 @@ alluxio.master.embedded.journal.transport.request.timeout.ms:
   'Timeout for requests between embedded journal masters.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
+alluxio.master.embedded.journal.write.local.first.enabled:
+  'Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client.'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.file.access.time.journal.flush.interval:
@@ -109,7 +115,7 @@ alluxio.master.journal.type:
 alluxio.master.journal.ufs.option:
   'The configuration to use for the journal operations.'
 alluxio.master.jvm.monitor.enabled:
-  'Whether to enable start JVM monitor thread on master.'
+  'Whether to enable start JVM monitor thread on the master. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.master.keytab.file:
   'Kerberos keytab file for Alluxio master.'
 alluxio.master.lock.pool.concurrency.level:
@@ -156,10 +162,6 @@ alluxio.master.metrics.time.series.interval:
   'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:
   'Alluxio root mount point.'
-alluxio.master.mount.table.root.aws.accessKeyId:
-  'N/A'
-alluxio.master.mount.table.root.aws.secretKeyId:
-  'N/A'
 alluxio.master.mount.table.root.option:
   'Configuration for the UFS of Alluxio root mount point.'
 alluxio.master.mount.table.root.readonly:

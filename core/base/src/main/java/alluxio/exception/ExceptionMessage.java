@@ -126,7 +126,9 @@ public enum ExceptionMessage {
   FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
 
   // file
-  CANNOT_READ_INCOMPLETE_FILE("Cannot read from {0} because it is incomplete"),
+  CANNOT_READ_INCOMPLETE_FILE(
+      "Cannot read from {0} because it is incomplete. Wait for the file to be marked as complete "
+          + "by the writing thread or application."),
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_DIR_CHILDREN(
       "Cannot delete directory {0}. Failed to delete children: {1}"),
@@ -141,7 +143,6 @@ public enum ExceptionMessage {
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
-  FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   PARENT_CREATION_FAILED("Unable to create parent directories for path {0}"),
 
@@ -284,7 +285,7 @@ public enum ExceptionMessage {
 
   // migrate job (either move or copy)
   MIGRATE_CANNOT_BE_TO_SUBDIRECTORY("Cannot migrate because {0} is a prefix of {1}"),
-  MIGRATE_DIRECTORY_TO_FILE("Cannot migrate a directory ({0}) to a file ({1})"),
+  MIGRATE_DIRECTORY("Cannot migrate directory"),
   MIGRATE_FILE_TO_DIRECTORY("Cannot migrate a file ({0}) to a directory ({1})"),
   MIGRATE_NEED_OVERWRITE("Cannot migrate to {0} because it exists and overwrite is set to false"),
   MIGRATE_OVERWRITE_DIRECTORY(

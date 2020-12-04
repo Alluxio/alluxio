@@ -63,7 +63,7 @@ priority: 9
 默认情况下Alluxio为Worker提供一个[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，但是可以对其进行修改以使用其他存储卷的。 
 通过在`alluxio.worker.tieredstore.level％d.dirs.path`中提供其他目录，用户可以指定Alluxio使用不同于默认配置的存储介质和目录。 
 对于希望一开始使用默认配值的用户，使用任何sudo权限帐户运行命令`./bin/alluxio-mount.sh SudoMount worker`。 
-注意上述命令应在完成`alluxio-site.properties`文件中设置`alluxio.worker.memory.size`并将所有workers添加到`conf/workers`文件后运行。
+注意上述命令应在完成`alluxio-site.properties`文件中设置`alluxio.worker.ramdisk.size`并将所有workers添加到`conf/workers`文件后运行。
 
 ```console
 $ ./bin/alluxio-mount.sh SudoMount workers

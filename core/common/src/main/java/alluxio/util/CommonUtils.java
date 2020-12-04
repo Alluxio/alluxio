@@ -31,14 +31,16 @@ import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -75,6 +77,9 @@ public final class CommonUtils {
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
+
+  private static final int JAVA_MAJOR_VERSION =
+      parseMajorVersion(System.getProperty("java.version"));
 
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
@@ -115,6 +120,13 @@ public final class CommonUtils {
    */
   public static long getCurrentMs() {
     return System.currentTimeMillis();
+  }
+
+  /**
+   * @return the current jvm major version, 8 for java 1.8 or 11 for java 11
+   */
+  public static int getJavaVersion() {
+    return JAVA_MAJOR_VERSION;
   }
 
   /**
@@ -818,14 +830,56 @@ public final class CommonUtils {
    *
    * @param hostname host name of the network address
    * @param port port of the network address
+   * @param timeoutMs duration to attempt connection before returning false
    * @return whether the network address is reachable
    */
-  public static boolean isAddressReachable(String hostname, int port) {
-    try (Socket socket = new Socket(hostname, port)) {
+  public static boolean isAddressReachable(String hostname, int port, int timeoutMs) {
+    try (Socket socket = new Socket()) {
+      socket.connect(new InetSocketAddress(hostname, port), timeoutMs);
       return true;
     } catch (IOException e) {
       return false;
     }
+  }
+
+  /**
+   * Recursively lists a local dir and all its subdirs and return all the files.
+   *
+   * @param dir the directory
+   * @return a list of all the files
+   * */
+  public static List<File> recursiveListLocalDir(File dir) {
+    File[] files = dir.listFiles();
+    // File#listFiles can return null when the path is invalid
+    if (files == null) {
+      return Collections.emptyList();
+    }
+    List<File> result = new ArrayList<>(files.length);
+    for (File f : files) {
+      if (f.isDirectory()) {
+        result.addAll(recursiveListLocalDir(f));
+        continue;
+      }
+      result.add(f);
+    }
+    return result;
+  }
+
+  /**
+   * @param version the version string of the JVMgi
+   * @return the major version of the current JVM, 8 for 1.8, 11 for java 11
+   * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
+   */
+  public static int parseMajorVersion(String version) {
+    if (version.startsWith("1.")) {
+      version = version.substring(2, 3);
+    } else {
+      int dot = version.indexOf(".");
+      if (dot != -1) {
+        version = version.substring(0, dot);
+      }
+    }
+    return Integer.parseInt(version);
   }
 
   private CommonUtils() {} // prevent instantiation

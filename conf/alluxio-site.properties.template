@@ -21,7 +21,7 @@
 # alluxio.security.authentication.type=SIMPLE
 
 # Worker properties
-# alluxio.worker.memory.size=1GB
+# alluxio.worker.ramdisk.size=1GB
 # alluxio.worker.tieredstore.levels=1
 # alluxio.worker.tieredstore.level0.alias=MEM
 # alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk

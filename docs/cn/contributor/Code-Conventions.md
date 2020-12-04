@@ -146,7 +146,7 @@ LOG.error("Failed to do something due to an exception", e);
 ```
 * 警告级别日志（`LOG.warn`）常用于描述用户预期行为与Alluxio实践行为之间的差异。警告级别日志伴有异常消息。相关的堆栈跟踪信息可能在调试级日志中记录。
 ```java
-LOG.warm("Failed to do something: {}", e.toString());
+LOG.warn("Failed to do something: {}", e.toString());
 ```
 * 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。当有错误消息或需要记录堆栈跟踪信息时，请不要使用信息级别日志。需要注意的是，该日志级别不应该出现在频繁使用的关键路径上的程序中以避免对性能的不利影响。
 ```java

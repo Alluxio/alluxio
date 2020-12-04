@@ -86,7 +86,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset, "page offset %s should be "
@@ -107,6 +107,7 @@ public class LocalPageStore implements PageStore {
       }
       int bytesRead = 0;
       int bytesLeft = (int) Math.min(pageLength - pageOffset, buffer.length - bufferOffset);
+      bytesLeft = Math.min(bytesLeft, bytesToRead);
       while (bytesLeft >= 0) {
         int bytes = localFile.read(buffer, bufferOffset + bytesRead, bytesLeft);
         if (bytes <= 0) {
@@ -120,7 +121,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());

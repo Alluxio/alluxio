@@ -48,7 +48,7 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public void suspend() {
+  public void suspend(Runnable interruptCallback) {
     return;
   }
 

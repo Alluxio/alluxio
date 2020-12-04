@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs.activesync;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
@@ -22,6 +23,7 @@ import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
 import alluxio.util.LogUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
@@ -58,6 +60,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private static final Logger LOG = LoggerFactory.getLogger(SupportedHdfsActiveSyncProvider.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
+
   private final HdfsAdmin mHdfsAdmin;
   // These read write locks protect the state (maps) managed by this class.
   private final Lock mReadLock;
@@ -307,15 +311,28 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         long end = System.currentTimeMillis();
         if (end > (start + mActiveUfsSyncEventRateInterval)) {
           long currentlyBehind = eventStream.getTxidsBehindEstimate();
-          long count = getCountSinceLastLog();
-          LOG.info("HDFS generated {} events in {} ms, at a rate of {} rps",
-              count + currentlyBehind - behind,
-              end - start,
-              String.format("%.2f", (count + currentlyBehind - behind) * 1000.0f / (end - start)));
-          LOG.info("processed {} events in {} ms, at a rate of {} rps", count,
-              end - start,
-              String.format("%.2f", count * 1000.0f / (end - start)));
-          LOG.info("Currently TxidsBehindEstimate by {}", currentlyBehind);
+          long processedEvents = getCountSinceLastLog();
+          long hdfsEvents = processedEvents + currentlyBehind - behind;
+          long durationMs = end - start;
+          if (LOG.isDebugEnabled()) {
+            // for debug, print every interval
+            LOG.debug(
+                "HDFS sync stats. past duration: {} ms. HDFS generated events: {} ({} events/s). "
+                    + "Processed events: {} ({} events/s). TxidsBehindEstimate: {}",
+                durationMs,
+                hdfsEvents, String.format("%.2f", hdfsEvents * 1000.0f / durationMs),
+                processedEvents, String.format("%.2f", processedEvents * 1000.0f / durationMs),
+                currentlyBehind);
+          } else {
+            // for info, print with the sampling logger
+            SAMPLING_LOG.info(
+                "HDFS sync stats. past duration: {} ms. HDFS generated events: {} ({} events/s). "
+                    + "Processed events: {} ({} events/s). TxidsBehindEstimate: {}",
+                durationMs,
+                hdfsEvents, String.format("%.2f", hdfsEvents * 1000.0f / durationMs),
+                processedEvents, String.format("%.2f", processedEvents * 1000.0f / durationMs),
+                currentlyBehind);
+          }
           behind = currentlyBehind;
           start = end;
         }

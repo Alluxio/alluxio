@@ -12,8 +12,6 @@
 package alluxio.worker.job.task;
 
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -21,6 +19,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
+import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
@@ -87,15 +86,15 @@ public final class TaskExecutorTest {
   public void runFailure() throws Exception {
     long jobId = 1;
     long taskId = 2;
-    JobConfig jobConfig = mock(JobConfig.class);
+    JobConfig jobConfig = new SleepJobConfig(10);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
     PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
         mock(PlanDefinition.class);
-    when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
-    doThrow(new UnsupportedOperationException("failure")).when(planDefinition)
-        .runTask(jobConfig, taskArgs, context);
+    when(mRegistry.getJobDefinition(eq(jobConfig))).thenReturn(planDefinition);
+    when(planDefinition.runTask(eq(jobConfig), any(Serializable.class), any(RunTaskContext.class)))
+        .thenThrow(new UnsupportedOperationException("failure"));
 
     RunTaskCommand command = RunTaskCommand.newBuilder()
         .setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)))
@@ -105,6 +104,6 @@ public final class TaskExecutorTest {
         new TaskExecutor(jobId, taskId, command, context, mTaskExecutorManager);
     executor.run();
 
-    verify(mTaskExecutorManager).notifyTaskFailure(eq(jobId), eq(taskId), anyString());
+    verify(mTaskExecutorManager).notifyTaskFailure(eq(jobId), eq(taskId), any());
   }
 }

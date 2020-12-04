@@ -39,7 +39,7 @@ alluxio.worker.free.space.timeout:
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.jvm.monitor.enabled:
-  'Whether to enable start JVM monitor thread on worker.'
+  'Whether to enable start JVM monitor thread on the worker. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.worker.keytab.file:
   'Kerberos keytab file for Alluxio worker.'
 alluxio.worker.management.backoff.strategy:
@@ -66,8 +66,8 @@ alluxio.worker.management.tier.swap.restore.enabled:
   'Whether to run management swap-restore task when tier alignment cannot make progress.'
 alluxio.worker.master.connect.retry.timeout:
   'Retry period before workers give up on connecting to master and exit.'
-alluxio.worker.memory.size:
-  'Memory capacity of each worker node.'
+alluxio.worker.master.periodical.rpc.timeout:
+  'Timeout for periodical RPC between workers and the leading master. This property is added to prevent workers from hanging in periodical RPCs with previous leading master during flaky network situations. If the timeout is too short, periodical RPCs may not have enough time to get response from the leading master during heavy cluster load and high network latency.'
 alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:
@@ -106,6 +106,8 @@ alluxio.worker.network.zerocopy.enabled:
   'Whether zero copy is enabled on worker when processing data streams.'
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
+alluxio.worker.ramdisk.size:
+  'Memory capacity of each worker node.'
 alluxio.worker.rpc.port:
   'The port for Alluxio worker''s RPC service.'
 alluxio.worker.session.timeout:

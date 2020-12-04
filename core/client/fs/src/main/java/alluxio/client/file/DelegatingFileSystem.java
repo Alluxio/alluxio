@@ -20,6 +20,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -27,7 +28,6 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -64,6 +64,12 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public boolean isClosed() {
     return mDelegatedFileSystem.isClosed();
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    mDelegatedFileSystem.checkAccess(path, options);
   }
 
   @Override
@@ -114,6 +120,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.listStatus(path, options);
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -121,21 +133,15 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+  public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return mDelegatedFileSystem.listStatus(path, options);
-  }
-
-  @Override
-  public long loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    return mDelegatedFileSystem.loadMetadata(path, options);
+    mDelegatedFileSystem.loadMetadata(path, options);
   }
 
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException {
-    mDelegatedFileSystem.mount(alluxioPath, ufsPath);
+    mDelegatedFileSystem.mount(alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -188,7 +194,7 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.setAcl(path, action, entries);
+    mDelegatedFileSystem.setAcl(path, action, entries, options);
   }
 
   @Override

@@ -66,7 +66,19 @@ priority: 2
 
 14. 如何了解Alluxio更多相关信息？
 
-    可以阅读近期的[博客](/resources/posts)和[介绍](/resources/presentations)。
+    加入[Alluxio社区Slack频道](https://www.alluxio.io/slack)和用户与开发者进行交流讨论。
+
+    阅读[Alluxio书籍](https://book.douban.com/subject/34761887/)来更加全面完整地了解Alluxio。
+
+    <p align="center">
+    <a href="https://book.douban.com/subject/34761887">
+    <img style=" width: 25%;" src="{{ '/img/alluxio_book.png' | relativize_url }}" alt="Alluxio Book"/>
+    </a>
+    </p>
+
+    可以阅读近期的[博客](https://www.alluxio.io/blog)和[报告介绍](https://www.alluxio.io/resources/presentations/)。
+
+    加入[Alluxio Meetup小组](http://www.meetup.com/Alluxio/)。其他的Alluxio活动可以在[这里](https://www.alluxio.io/events/)发现。
 
 15. Alluxio是否有meetup等活动？
 

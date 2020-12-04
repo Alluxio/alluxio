@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
@@ -26,6 +27,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -142,8 +144,15 @@ public interface JournalSystem {
   /**
    * Suspends applying for all journals.
    *
+   * When using suspend, the caller needs to provide a callback method as parameter. This callback
+   * is invoked when the journal needs to reload and thus cannot suspend the state changes any
+   * more. The callback should cancel any tasks that access the master states. After the callback
+   * returns, the journal assumes that the states is no longer being accessed and will reload
+   * immediately.
+   *
+   * @param interruptCallback the callback function to be invoked when the suspension is interrupted
    */
-  void suspend() throws IOException;
+  void suspend(Runnable interruptCallback) throws IOException;
 
   /**
    * Resumes applying for all journals.
@@ -212,6 +221,13 @@ public interface JournalSystem {
    * Creates a checkpoint in the primary master journal system.
    */
   void checkpoint() throws IOException;
+
+  /**
+   * @return RPC services for journal system
+   */
+  default Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
+    return Collections.EMPTY_MAP;
+  }
 
   /**
    * Builder for constructing a journal system.

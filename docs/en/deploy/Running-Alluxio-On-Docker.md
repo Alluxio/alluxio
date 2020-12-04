@@ -137,7 +137,7 @@ $ docker run -d --rm \
     --shm-size=1G \
     -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.worker.memory.size=1G \
+       -Dalluxio.worker.ramdisk.size=1G \
        -Dalluxio.master.hostname=localhost" \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
@@ -150,7 +150,7 @@ Notes:
      and all the host's ports are directly mapped to containers. Therefore, all the required container
      ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
      You can find more details about this setting [here](https://docs.docker.com/network/host/).
-  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=localhost"`
+  1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.ramdisk.size=1G -Dalluxio.master.hostname=localhost"`
      allocates the worker's memory capacity and binds the master address.
      When using the `host` network driver, the master can't be referenced to by the master container name `alluxio-master` or
      it will throw `"No Alluxio worker available" ` error.
@@ -204,7 +204,7 @@ $ docker run -d --rm \
     --shm-size=1G \
     -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
     -e ALLUXIO_JAVA_OPTS=" \
-       -Dalluxio.worker.memory.size=1G \
+       -Dalluxio.worker.ramdisk.size=1G \
        -Dalluxio.master.hostname=alluxio-master \
        -Dalluxio.worker.hostname=alluxio-worker" \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
@@ -485,3 +485,25 @@ Alluxio server logs can be accessed by running `docker logs $container_id`.
 Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
 your issue, you can get help on the
 [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users).
+
+## FAQ
+
+### AvailableProcessors: returns 0 in docker container
+
+When you execute `alluxio ls` in the alluxio master container and got the following error.
+
+```bash
+bash-4.4$ alluxio fs ls /
+Exception in thread "main" java.lang.ExceptionInInitializerError
+...
+Caused by: java.lang.IllegalArgumentException: availableProcessors: 0 (expected: > 0)
+        at io.netty.util.internal.ObjectUtil.checkPositive(ObjectUtil.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.setAvailableProcessors(NettyRuntime.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.availableProcessors(NettyRuntime.java:70)
+        at io.netty.util.NettyRuntime.availableProcessors(NettyRuntime.java:98)
+        at io.grpc.netty.Utils$DefaultEventLoopGroupResource.<init>(Utils.java:394)
+        at io.grpc.netty.Utils.<clinit>(Utils.java:84)
+        ... 20 more
+```
+
+This error can be fixed by adding `-XX:ActiveProcessorCount=4` as jvm parameter.

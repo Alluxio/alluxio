@@ -59,7 +59,7 @@ public class RocksPageStore implements PageStore {
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
+  public static RocksPageStore open(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
     Options rocksOptions = new Options();
@@ -111,7 +111,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
@@ -130,6 +130,7 @@ public class RocksPageStore implements PageStore {
         }
         int bytesRead = 0;
         int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
+        bytesLeft = Math.min(bytesLeft, bytesToRead);
         while (bytesLeft >= 0) {
           int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
           if (bytes <= 0) {
@@ -146,7 +147,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long pageSize) throws PageNotFoundException {
+  public void delete(PageId pageId) throws PageNotFoundException {
     try {
       byte[] key = getKeyFromPageId(pageId);
       mDb.delete(key);

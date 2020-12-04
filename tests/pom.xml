@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -61,8 +61,8 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -88,7 +88,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.12.5</version>
+      <version>1.14.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -204,6 +204,11 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-stress-shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -272,9 +277,6 @@
     <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
     <profile>
       <id>hadoop-2</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -296,6 +298,9 @@
     shaded version. -->
     <profile>
       <id>hadoop-3</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -305,7 +310,7 @@
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
+          <artifactId>hadoop-hdfs</artifactId>
           <version>${hadoop.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -413,7 +418,7 @@
                 </filter>
               </filters>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"></transformer>
               </transformers>
             </configuration>
           </execution>

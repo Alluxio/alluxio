@@ -80,6 +80,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected final Supplier<String> mRootKeySupplier =
       CommonUtils.memoize(this::getRootKey);
 
+  private final boolean mBreadcrumbsEnabled;
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -91,6 +93,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     int numThreads = mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
+    mBreadcrumbsEnabled = mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED);
   }
 
   /**
@@ -940,8 +943,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // If the breadcrumb exists, this is a no-op
-      if (!mUfsConf.isReadOnly()
-          && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)) {
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled) {
         mkdirsInternal(dir);
       }
       return objs;

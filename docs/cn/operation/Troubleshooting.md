@@ -124,7 +124,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用�
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})获取更多信息。
-- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
+- 通过改变`alluxio.worker.ramdisk.size`属性值增加worker节点可用内存的容量，查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
 
 ### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
 

@@ -388,9 +388,15 @@ public class InodeSyncStream {
           syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount, end - start,
           mRootScheme);
     }
+    boolean success = syncPathCount > 0;
+    if (success) {
+      // update the sync path cache for the root of the sync
+      // TODO(gpang): Do we need special handling for failures and thread interrupts?
+      mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath().getPath(), mDescendantType);
+    }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
-    return syncPathCount > 0;
+    return success;
   }
 
   /**
@@ -606,7 +612,6 @@ public class InodeSyncStream {
     if (loadMetadata) {
       loadMetadataForPath(inodePath);
     }
-    mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), DescendantType.ONE);
 
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.

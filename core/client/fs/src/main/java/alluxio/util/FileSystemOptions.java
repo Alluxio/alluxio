@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.client.ReadType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -66,6 +67,16 @@ public class FileSystemOptions {
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
         .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static CheckAccessPOptions checkAccessDefaults(AlluxioConfiguration conf) {
+    return CheckAccessPOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
@@ -170,6 +181,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
+        .setLoadMetadataOnly(false)
         .build();
   }
 
@@ -180,9 +192,9 @@ public class FileSystemOptions {
   public static LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
     return LoadMetadataPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setRecursive(false)
         .setCreateAncestors(false)
         .setLoadDescendantType(LoadDescendantPType.NONE)
+        .setRecursive(false)
         .build();
   }
 

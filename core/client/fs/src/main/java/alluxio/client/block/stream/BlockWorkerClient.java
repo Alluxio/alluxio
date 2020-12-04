@@ -55,7 +55,12 @@ public interface BlockWorkerClient extends Closeable {
     public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
         AlluxioConfiguration alluxioConf)
         throws IOException {
-      return new DefaultBlockWorkerClient(userState, address, alluxioConf);
+      try {
+        return new DefaultBlockWorkerClient(userState, address, alluxioConf);
+      } catch (Exception e) {
+        throw new IOException(
+            String.format("Failed to connect to remote block worker: %s", address), e);
+      }
     }
   }
 

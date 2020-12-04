@@ -84,7 +84,7 @@ val double = s.map(line => line + line)
 double.saveAsTextFile("alluxio://localhost:19998/Output")
 ```
 
-Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse).
+You may also open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse).
 There should be an output directory `/Output` which contains the doubled content
 of the input file `Input`.
 
@@ -120,9 +120,9 @@ system space.
 
 ## Advanced Setup
 
-### Configure Spark to find Alluxio cluster in HA mode
+### Configure Spark for Alluxio with HA
 
-When connecting to the Alluxio HA cluster using internal leader election,
+When connecting to the Alluxio cluster when HA is enabled using internal leader election,
 set the `alluxio.master.rpc.addresses` property via the Java options in
 `${SPARK_HOME}/conf/spark-defaults.conf` so Spark
 applications know which Alluxio masters to connect to and how to identify the
@@ -173,9 +173,9 @@ instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.d
 
 ## Advanced Usage
 
-### Access Data from Alluxio in HA Mode
+### Access Data from Alluxio with HA
 
-If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
+If Spark configured based on the instruction in [Configure Spark for Alluxio with HA](#configure-spark-for-alluxio-with-ha),
 you can write URIs using the `alluxio:///` scheme without specifying cluster
 information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served
@@ -190,7 +190,7 @@ double.saveAsTextFile("alluxio:///Output")
 Alternatively, one can use the HA authority in URI directly without any
 configuration setup.
 For example, specify the master rpc addresses in the URI to connect to Alluxio
-HA cluster using internal leader election:
+configured for HA using internal leader election:
 
 ```scala
 val s = sc.textFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Input")
@@ -255,34 +255,11 @@ The Spark documentation explains
 If you are using YARN then there is a separate section which explains
 [how to configure logging with YARN for a Spark application.](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)
 
-### Check Spark is Correctly Set Up
-
-To ensure that your Spark installation can correctly communicate with Alluxio,
-a tool comes with Alluxio to help check the configuration.
-
-With a Spark cluster (or Spark standalone) of version 2.x, you can run the
-following command in the Alluxio project directory:
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
-```
-
-For example,
-
-```console
-$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
-```
-
-This command will report potential problems that might prevent you from running
-Spark on Alluxio.
-
-You can use `-h` to display helpful information about the command.
-
 ### Incorrect Data Locality Level of Spark Tasks
 
 If Spark task locality is `ANY` while it should be `NODE_LOCAL`, it is probably
-because Alluxio and Spark use different network address representations, maybe
-one of them uses hostname while another uses IP address.
+because Alluxio and Spark use different network address representations.
+One of them them may use hostname while another uses IP address.
 Refer to JIRA ticket [SPARK-10149](https://issues.apache.org/jira/browse/SPARK-10149)
 for more details, where you can find solutions from the Spark community.
 
@@ -311,7 +288,7 @@ example:
 SPARK_LOCAL_HOSTNAME=simple30
 ```
 
-In either way, the Spark Worker addresses become hostnames and Locality Level
+Either way, the Spark Worker addresses become hostnames and Locality Level
 becomes `NODE_LOCAL` as shown in Spark WebUI below.
 
 ![hostname]({{ '/img/screenshot_datalocality_sparkwebui.png' | relativize_url }})

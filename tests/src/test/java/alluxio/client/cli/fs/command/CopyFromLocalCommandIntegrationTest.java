@@ -195,8 +195,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
-    Assert.assertThat(mOutput.toString(),
-        containsString(alluxioFilePath.getPath() + " already exists\n"));
+    Assert.assertThat(mOutput.toString(), containsString(
+        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -242,7 +242,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       mOutput.reset();
       sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
     }
-    Assert.assertThat(mOutput.toString(), containsString("already exists"));
+    Assert.assertThat(mOutput.toString(),
+        containsString("Not allowed to create file because path already exists"));
   }
 
   @Test
@@ -306,6 +307,12 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
 
   @Test
   public void copyFromLocalRelativePath() throws Exception {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("11")) {
+      // Breaks on Java 11+ because of https://bugs.openjdk.java.net/browse/JDK-8202127
+      return;
+    }
+
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {

@@ -19,7 +19,7 @@ readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
 readonly AWS_SHUTDOWN_ACTIONS_DIR="/mnt/var/lib/instance-controller/public/shutdown-actions"
 readonly HADOOP_CONF="/etc/hadoop/conf"
-readonly ALLUXIO_VERSION="2.3.1-SNAPSHOT"
+readonly ALLUXIO_VERSION="2.5.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 
 ####################
@@ -384,7 +384,7 @@ configure_alluxio_hdfs_root_mount() {
       exit 2
     fi
     hdfs_version=$2
-    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version "${hdfs_version}"
+    set_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
     # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
     core_site_location="${HADOOP_CONF}/core-site.xml"
     hdfs_site_location="${HADOOP_CONF}/hdfs-site.xml"
@@ -641,7 +641,7 @@ IN
 
   # set root ufs uri
   if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
-    root_ufs_uri="hdfs://${master}:8020"
+    root_ufs_uri="hdfs://${master}:8020/"
   fi
 
   # wait until hadoop process is running
@@ -661,6 +661,27 @@ IN
 
   # set user provided properties
   set_custom_alluxio_properties "${delimited_properties}"
+
+  # Create a symbolic link in presto plugin directory pointing to our connector if:
+  # - emr version is >= 5.28 -> prestodb >= 0.227
+  # - alluxio version is above 2.2
+  local -r emr_version=$(jq ".releaseLabel" /mnt/var/lib/info/extraInstanceData.json  | sed -e 's/^"emr-//' -e 's/"$//')
+  local -r emr_major=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\1/')
+  local -r emr_minor=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\2/')
+  if [ "${emr_major}" -gt 5 ] || [[ "${emr_major}" -eq 5 && "${emr_minor}" -ge 28 ]]; then
+    for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
+      # guard against using an older version by checking for alluxio connector's existence
+      if [ -d "$plugindir" ]; then
+        doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
+        sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
+        sudo mkdir -p /etc/presto/conf/catalog
+        echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        break
+      fi
+    done
+  fi
 
   # start Alluxio cluster
   if [[ "${client_only}" != "true" ]]; then
@@ -705,20 +726,6 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
     fi
   fi
-
-  # Create a symbolic link in presto plugin directory pointing to our connector if alluxio version is above 2.2
-  for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
-    # guard against using an older version by checking for alluxio connector's existence
-    if [ -d "$plugindir" ]; then
-      doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
-      sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
-      sudo mkdir -p /etc/presto/conf/catalog
-      echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
-      break
-    fi
-  done
 
   echo "Alluxio bootstrap complete!"
 }
