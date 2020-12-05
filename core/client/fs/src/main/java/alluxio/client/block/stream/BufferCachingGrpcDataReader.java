@@ -19,10 +19,9 @@ import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.CloseableResource;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.resource.LockResource;
+import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,63 +186,44 @@ public class BufferCachingGrpcDataReader {
   }
 
   /**
-   * Factory class to create {@link BufferCachingGrpcDataReader}s.
+   * Creates an instance of {@link BufferCachingGrpcDataReader} for block reads.
+   *
+   * @param context the file system context
+   * @param address the worker address
+   * @param readRequest the read request
+   * @return a new {@link BufferCachingGrpcDataReader}
    */
-  public static class Factory {
-    private final FileSystemContext mContext;
-    private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequest;
+  public static BufferCachingGrpcDataReader create(FileSystemContext context,
+      WorkerNetAddress address, ReadRequest readRequest) throws IOException {
+    AlluxioConfiguration alluxioConf = context.getClusterConf();
+    int readerBufferSizeMessages = alluxioConf
+        .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
+    long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
 
-    /**
-     * Creates an instance of {@link BufferCachingGrpcDataReader.Factory} for block reads.
-     *
-     * @param context the file system context
-     * @param address the worker address
-     * @param readRequest the read request
-     */
-    public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequest) {
-      mContext = context;
-      mAddress = address;
-      mReadRequest = readRequest;
+    CloseableResource<BlockWorkerClient> client = context.acquireBlockWorkerClient(address);
+
+    String desc = "BufferCachingGrpcDataReader";
+    if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+      desc = String.format("BufferCachingGrpcDataReader(request=%s,address=%s)",
+          readRequest, address);
     }
-
-    /**
-     * @return a new {@link BufferCachingGrpcDataReader}
-     */
-    public BufferCachingGrpcDataReader create() throws IOException {
-      AlluxioConfiguration alluxioConf = mContext.getClusterConf();
-      int readerBufferSizeMessages = alluxioConf
-          .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
-      long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
-
-      CloseableResource<BlockWorkerClient> client = mContext.acquireBlockWorkerClient(mAddress);
-
-      String desc = "BufferCachingGrpcDataReader";
-      if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
-        desc = MoreObjects.toStringHelper(this)
-            .add("request", mReadRequest)
-            .add("address", mAddress)
-            .toString();
+    GrpcBlockingStream<ReadRequest, ReadResponse> stream = null;
+    try {
+      // Stream here cannot be GrpcDataMessagingBlockingStream
+      // DataBuffer.getReadOnlyByteBuffer is used to clone a copy in SharedDataReader.readChunk.
+      // getReadOnlyByteBuffer is not implemented in DataBuffer
+      // returned from GrpcDataMessagingBlockingStream.
+      stream = new GrpcBlockingStream<>(client.get()::readBlock, readerBufferSizeMessages,
+          desc);
+      stream.send(readRequest, dataTimeoutMs);
+    } catch (Exception e) {
+      if (stream != null) {
+        stream.close();
       }
-      GrpcBlockingStream<ReadRequest, ReadResponse> stream = null;
-      try {
-        // Stream here cannot be GrpcDataMessagingBlockingStream
-        // DataBuffer.getReadOnlyByteBuffer is used to clone a copy in SharedDataReader.readChunk.
-        // getReadOnlyByteBuffer is not implemented in DataBuffer
-        // returned from GrpcDataMessagingBlockingStream.
-        stream = new GrpcBlockingStream<>(client.get()::readBlock, readerBufferSizeMessages,
-            desc);
-        stream.send(mReadRequest, dataTimeoutMs);
-      } catch (Exception e) {
-        if (stream != null) {
-          stream.close();
-        }
-        client.close();
-        throw e;
-      }
-      return new BufferCachingGrpcDataReader(mAddress, client, dataTimeoutMs, mReadRequest, stream);
+      client.close();
+      throw e;
     }
+    return new BufferCachingGrpcDataReader(address, client, dataTimeoutMs, readRequest, stream);
   }
 }
 

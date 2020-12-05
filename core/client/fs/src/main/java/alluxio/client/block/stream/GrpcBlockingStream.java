@@ -220,7 +220,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @return true if the current stream has responses received but hasn't processed
    */
   public boolean hasResponseInCache() {
-    return mResponses.size() > 0;
+    return !mResponses.isEmpty();
   }
 
   /**

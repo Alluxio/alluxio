@@ -115,11 +115,6 @@ public final class AlluxioFuse {
     }
     try (final FileSystem fs = FileSystem.Factory.create(fsContext)) {
       final List<String> fuseOpts = opts.getFuseOpts();
-      // Force direct_io in FUSE: writes and reads bypass the kernel page
-      // cache and go directly to alluxio. This avoids extra memory copies
-      // in the write path.
-      // TODO(binfan): support kernel_cache (issues#10840)
-      //fuseOpts.add("-odirect_io");
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
         try {
@@ -134,6 +129,11 @@ public final class AlluxioFuse {
           fuseFs.umount();
         }
       } else {
+        // Force direct_io in JNR-FUSE: writes and reads bypass the kernel page
+        // cache and go directly to alluxio. This avoids extra memory copies
+        // in the write path.
+        // TODO(binfan): support kernel_cache (issues#10840)
+        fuseOpts.add("-odirect_io");
         final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, opts, conf);
         try {
           fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),

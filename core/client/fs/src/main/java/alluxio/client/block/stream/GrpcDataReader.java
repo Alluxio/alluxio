@@ -164,16 +164,6 @@ public final class GrpcDataReader implements DataReader {
   }
 
   @Override
-  public DataBuffer readChunkIfReady() throws IOException {
-    Preconditions.checkState(!mClient.get().isShutdown(),
-        "Data reader is closed while reading data chunks.");
-    if (!mStream.hasResponseInCache()) {
-      return null;
-    }
-    return readChunk();
-  }
-
-  @Override
   public void close() throws IOException {
     try {
       if (mClient.get().isShutdown()) {

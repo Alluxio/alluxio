@@ -3494,9 +3494,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_DIRECT_MEMORY_IO_ENABLED)
           .setDefaultValue(false)
           .setIsHidden(true)
-          .setDescription("(Experimental) If this is enabled, when clients read from local "
-              + "worker, they read the block directly from the first directory of the first "
-              + "tier of that worker. Note this optimization can be unsafe.")
+          .setDescription("(Experimental) If this is enabled, clients will read from local "
+              + "worker directly without invoking extra RPCs to worker to require locations. "
+              + "Note this optimization is only safe when the workload is read only and the "
+              + "worker has only one tier and one storage directory in this tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -4379,13 +4380,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "on multi-process file reading through Alluxio JNI Fuse. "
               + "Blocks data will be cached on the client side "
               + "so more memory is required for the Fuse process.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_MAXCACHE_BYTES =
-      new Builder(Name.FUSE_MAXCACHE_BYTES)
-          .setDefaultValue("1MB")
-          .setDescription("(Experimental) Maximum cache size of AlluxioJniFuse.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5672,7 +5666,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-    public static final String FUSE_MAXCACHE_BYTES = "alluxio.fuse.maxcache.bytes";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 

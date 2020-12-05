@@ -18,16 +18,17 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,21 +42,29 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SharedGrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(SharedGrpcDataReader.class);
   private static final int BLOCK_LOCK_NUM = 32;
-  private static final ReentrantReadWriteLock[] BLOCK_LOCKS;
+  //
+  // BLOCK_LOCKS is used to ensure thread-safety when referencing or updating the shared data
+  // reader for block i in different FileInStream instances.
+  // BLOCK_READERS is a ConcurrentHashMap from block id to its shared data reader, as different
+  // DataReader may be needed to handle different blocks at the same time.
+  //
+  /** An array of locks to guard cached data readers based on block id. */
+  private static final ReentrantReadWriteLock[] BLOCK_LOCKS =
+      new ReentrantReadWriteLock[BLOCK_LOCK_NUM];
   /** A map from block id to the block's cached data reader. */
-  @GuardedBy("BLOCK_LOCKS")
-  private static final ConcurrentHashMap<Long, BufferCachingGrpcDataReader> BLOCK_READERS
-      = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<Long, BufferCachingGrpcDataReader> BLOCK_READERS =
+      new ConcurrentHashMap<>();
+  /** A hashing function to map block id to one of the locks. */
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
   static {
-    BLOCK_LOCKS = new ReentrantReadWriteLock[BLOCK_LOCK_NUM];
     for (int i = 0; i < BLOCK_LOCK_NUM; i++) {
       BLOCK_LOCKS[i] = new ReentrantReadWriteLock();
     }
   }
 
-  private static ReentrantReadWriteLock getBlockLock(long blockId) {
-    return BLOCK_LOCKS[(int) (blockId % BLOCK_LOCKS.length)];
+  private static ReentrantReadWriteLock getLock(long blockId) {
+    return BLOCK_LOCKS[HASH_FUNC.hashLong(blockId).asInt() % BLOCK_LOCKS.length];
   }
 
   private final long mBlockId;
@@ -109,19 +118,11 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   @Override
-  @Nullable
-  public DataBuffer readChunkIfReady() throws IOException {
-    // I'm naive, I'm reading chunks anyway
-    return readChunk();
-  }
-
-  @Override
   public void close() throws IOException {
     if (mCachedDataReader.deRef() > 0) {
       return;
     }
-    try (LockResource lockResource = new LockResource(
-        getBlockLock(mBlockId).writeLock())) {
+    try (LockResource lockResource = new LockResource(getLock(mBlockId).writeLock())) {
       if (mCachedDataReader.getRefCount() == 0) {
         BLOCK_READERS.remove(mBlockId);
       }
@@ -156,19 +157,20 @@ public class SharedGrpcDataReader implements DataReader {
       mBlockSize = blockSize;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION",
+        justification = "operation is still atomic guarded by block Ølock")
     @Override
     public DataReader create(long offset, long len) throws IOException {
       long blockId = mReadRequestPartial.getBlockId();
       BufferCachingGrpcDataReader reader;
-      try (LockResource lockResource = new LockResource(
-          getBlockLock(blockId).writeLock())) {
+      try (LockResource lockResource = new LockResource(getLock(blockId).writeLock())) {
         reader = BLOCK_READERS.get(blockId);
         if (reader == null) {
-          // I'm naive, I always read from 0 and read the whole block
+          // Even we may only need a portion, create a reader to read the whole block
           ReadRequest cacheRequest = mReadRequestPartial
               .toBuilder().setOffset(0).setLength(mBlockSize).build();
-          reader = new BufferCachingGrpcDataReader
-              .Factory(mContext, mAddress, cacheRequest).create();
+          reader = BufferCachingGrpcDataReader.create(mContext, mAddress, cacheRequest);
           BLOCK_READERS.put(blockId, reader);
         }
 

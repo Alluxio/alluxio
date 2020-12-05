@@ -61,9 +61,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
-  private final FileSystemContext mContext;
   private final byte[] mSingleByte = new byte[1];
-  private final boolean mSharedCacheReader;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -157,7 +155,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       throws IOException {
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
-    return new BlockInStream(context,
+    return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
   }
@@ -181,14 +179,16 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory;
     if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
-        && (blockSize > (chunkSize * 4))) {
+        && blockSize > chunkSize * 4) {
+      // Heuristic to resolve issues/12146, guarded by alluxio.fuse.shared.caching.reader.enabled
+      // GrpcDataReader instances are shared across FileInStreams to mitigate seek cost
       factory = new SharedGrpcDataReader
           .Factory(context, address, readRequestBuilder.build(), blockSize);
     } else {
       factory = new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
     }
-    return new BlockInStream(context, factory, address, blockSource,
-        readRequestPartial.getBlockId(), blockSize);
+    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
+        blockSize);
   }
 
   /**
@@ -214,13 +214,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder().buildPartial());
-    return new BlockInStream(context, factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
-   * @param context file system context
    * @param dataReaderFactory the data reader factory
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
@@ -228,17 +227,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param length the length
    */
   @VisibleForTesting
-  protected BlockInStream(FileSystemContext context,
-      DataReader.Factory dataReaderFactory, WorkerNetAddress address,
+  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
       BlockInStreamSource blockSource, long id, long length) {
     mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
-    mContext = context;
-    mSharedCacheReader =
-        mContext.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED);
   }
 
   @Override
@@ -340,28 +335,27 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos == mPos) {
       return;
     }
-    // Protect the original seek logic under fuse flag to minimize and isolate
-    // the fuse related changes
-    if (!mSharedCacheReader) {
-      if (pos < mPos) {
-        mEOF = false;
-      }
-      closeDataReader();
-      mPos = pos;
+    // When alluxio.fuse.shared.caching.reader.enabled is on (to resolve issues/12146),
+    // use the heuristic to improve seek performance with fewer data reader close.
+    if (mDataReader instanceof SharedGrpcDataReader) {
+      seekForSharedGrpcDataReader(pos);
       return;
     }
-
     if (pos < mPos) {
       mEOF = false;
-      if (mDataReader instanceof SharedGrpcDataReader) {
-        SharedGrpcDataReader reader = (SharedGrpcDataReader) mDataReader;
-        reader.seek(pos);
-        if (mCurrentChunk != null) {
-          mCurrentChunk.release();
-          mCurrentChunk = null;
-        }
-      } else {
-        closeDataReader();
+    }
+    closeDataReader();
+    mPos = pos;
+  }
+
+  private void seekForSharedGrpcDataReader(long pos) throws IOException {
+    if (pos < mPos) {
+      mEOF = false;
+      // because the reader is shared, let's not close it but simply seek
+      ((SharedGrpcDataReader) mDataReader).seek(pos);
+      if (mCurrentChunk != null) {
+        mCurrentChunk.release();
+        mCurrentChunk = null;
       }
     } else {
       // TODO(lu) combine the original seek logic and the following general improvements
@@ -373,7 +367,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         if (nextPos <= pos) {
           curPos = nextPos;
           mCurrentChunk.release();
-          mCurrentChunk = mDataReader.readChunkIfReady();
+          mCurrentChunk = mDataReader.readChunk();
         } else {
           // TODO(chaowang) introduce seek in DataBuffer
           int toRead = (int) (pos - curPos);

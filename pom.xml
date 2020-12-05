@@ -1225,7 +1225,6 @@
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/alluxio/concurrent/jsr/**</exclude>
             <exclude>**/src/main/resources/*</exclude>
-            <exclude>**/src/main/native/**</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
@@ -1268,6 +1267,8 @@
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
+            <cc>SLASHSTAR_STYLE</cc>
+            <h>SLASHSTAR_STYLE</h>
             <java>SLASHSTAR_STYLE</java>
             <tsx>SLASHSTAR_STYLE</tsx>
             <scss>SLASHSTAR_STYLE</scss>

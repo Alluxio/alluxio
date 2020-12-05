@@ -47,12 +47,6 @@ public class TestDataReader implements DataReader {
   }
 
   @Override
-  @Nullable
-  public DataBuffer readChunkIfReady() {
-    return readChunk();
-  }
-
-  @Override
   public long pos() {
     return mPos;
   }
