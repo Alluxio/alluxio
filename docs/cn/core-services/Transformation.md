@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 数据变换
-nickname: 数据变换
+title: 数据转换
+nickname: 数据转换
 group: Core Services
 priority: 4
 ---
@@ -20,7 +20,7 @@ priority: 4
 
 >在Alluxio版本2.3.0中，转换后的数据将总写为Parquet格式。
 
-在运行变换之前，首先要attach一个数据库。以下命令将Hive中的“默认”数据库attach到Alluxio。
+在运行转换之前，首先要attach一个数据库。以下命令将Hive中的“默认”数据库attach到Alluxio。
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table attachdb hive thrift://localhost:9083 default
