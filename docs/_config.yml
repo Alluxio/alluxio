@@ -73,7 +73,7 @@ categoryInfo:
     cn: 底层存储系统
   Operations:
     en: Operations
-    cn: 运行维护
+    cn: 运维指南
   Client APIs:
     en: Client APIs
     cn: APIs
