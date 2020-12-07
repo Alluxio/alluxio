@@ -9,13 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.adl;
+package alluxio.underfs.abfs;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
@@ -25,84 +24,71 @@ import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * A Microsoft Azure Data Lake Storage Gen1 Implementation.
+ * A Microsoft Azure Data Lake Storage Gen2 Implementation.
  */
 @ThreadSafe
-public class AdlUnderFileSystem extends HdfsUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(AdlUnderFileSystem.class);
+public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(AbfsUnderFileSystem.class);
 
-  /** Constant for the adl URI scheme. */
-  public static final String SCHEME_INSECURE = "adl://";
+  /** Constant for the abfs URI scheme. */
+  public static final String SCHEME_INSECURE = "abfs://";
 
-  /** Constant for the adls URI scheme. */
-  public static final String SCHEME_SECURE = "adls://";
+  /** Constant for the abfss URI scheme. */
+  public static final String SCHEME_SECURE = "abfss://";
 
-  /**
-   * Prepares the configuration for this Adl as an HDFS configuration.
-   *
-   * @param conf the configuration for this UFS
-   * @return the created configuration
-   */
-  public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
-    Configuration adlConf = HdfsUnderFileSystem.createConfiguration(conf);
+  private static Configuration createAbfsConfiguration(UnderFileSystemConfiguration conf) {
+    Configuration abfsConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
-      if (PropertyKey.Template.UNDERFS_AZURE_CLIENT_ID.matches(key)) {
-        adlConf.set(key, value);
-      }
-      if (PropertyKey.Template.UNDERFS_AZURE_CLIENT_SECRET.matches(key)) {
-        adlConf.set(key, value);
-      }
-      if (PropertyKey.Template.UNDERFS_AZURE_REFRESH_URL.matches(key)) {
-        adlConf.set(key, value);
+      if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
+        abfsConf.set(key, value);
+        final String authTypeKey = key.replace(".key", ".auth.type");
+        abfsConf.set(authTypeKey, "SharedKey");
       }
     }
-    LOG.info(adlConf.toString());
-    adlConf.set("fs.adl.oauth2.access.token.provider.type", "ClientCredential");
-    return adlConf;
+    LOG.info(abfsConf.toString());
+    return abfsConf;
   }
 
   /**
-   * Factory method to construct a new Adl {@link UnderFileSystem}.
-   *
-   * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for this UFS
-   * @return a new Adl {@link UnderFileSystem} instance
+   * Creates a new {@link AbfsUnderFileSystem} instance.
+   * @param uri the alluxio uri
+   * @param conf the ufs configuration
+   * @return A new AbfsUnderFileSystem instance
    */
-  public static AdlUnderFileSystem createInstance(AlluxioURI uri,
+  public static AbfsUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
-    Configuration adlConf = createConfiguration(conf);
-    return new AdlUnderFileSystem(uri, conf, adlConf);
+    Configuration abfsConf = createAbfsConfiguration(conf);
+    return new AbfsUnderFileSystem(uri, conf, abfsConf);
   }
 
   /**
-   * Constructs a new Adl {@link UnderFileSystem}.
+   * Constructs a new HDFS {@link alluxio.underfs.UnderFileSystem}.
    *
-   * @param ufsUri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for this UFS
-   * @param adlConf the configuration for this Adl UFS
+   * @param ufsUri   the {@link AlluxioURI} for this UFS
+   * @param conf     the configuration for this UFS
+   * @param hdfsConf the configuration for HDFS
    */
-  public AdlUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      final Configuration adlConf) {
-    super(ufsUri, conf, adlConf);
+  public AbfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+      Configuration hdfsConf) {
+    super(ufsUri, conf, hdfsConf);
   }
 
   @Override
   public String getUnderFSType() {
-    return "adl";
+    return "abfs";
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    // adl is an object store, so use the default block size, like other object stores.
+    // abfs is an object store, so use the default block size, like other object stores.
     return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
@@ -110,7 +96,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
   public UfsStatus getStatus(String path) throws IOException {
     UfsStatus status = super.getStatus(path);
     if (status instanceof UfsFileStatus) {
-      // adl is backed by an object store but always claims its block size to be 512MB.
+      // abfs is backed by an object store but always claims its block size to be 512MB.
       // reset the block size in UfsFileStatus according to getBlockSizeByte
       return new UfsFileStatus(path,
           ((UfsFileStatus) status).getContentHash(),
@@ -137,7 +123,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.debug("getFileLocations is not supported when using AdlUnderFileSystem.");
+    LOG.debug("getFileLocations is not supported when using AbfsUnderFileSystem.");
     return null;
   }
 
@@ -145,7 +131,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
-    LOG.debug("getFileLocations is not supported when using AdlUnderFileSystem.");
+    LOG.debug("getFileLocations is not supported when using AbfsUnderFileSystem.");
     return null;
   }
 }

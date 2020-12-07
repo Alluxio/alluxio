@@ -5760,6 +5760,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
+    UNDERFS_ABFS_ACCOUNT_KEY(
+        "fs.azure.account.key.%s.dfs.core.windows.net",
+        "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.window\\.net",
+        PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.dfs.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
