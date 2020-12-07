@@ -23,6 +23,7 @@
   <description>Parent POM for different implementations of Alluxio under file system</description>
 
   <modules>
+    <module>abfs</module>
     <module>adl</module>
     <module>cos</module>
     <module>gcs</module>
@@ -35,7 +36,6 @@
     <module>wasb</module>
     <module>web</module>
     <module>ozone</module>
-      <module>abfs</module>
   </modules>
 
   <properties>

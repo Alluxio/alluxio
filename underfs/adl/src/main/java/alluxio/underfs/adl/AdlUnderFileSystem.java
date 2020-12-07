@@ -32,7 +32,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A Microsoft Azure Data Lake Storage Gen1 Implementation.
+ * A Microsoft Azure Data Lake Storage Gen 1 Implementation.
  */
 @ThreadSafe
 public class AdlUnderFileSystem extends HdfsUnderFileSystem {
