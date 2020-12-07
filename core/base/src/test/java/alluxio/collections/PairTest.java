@@ -11,7 +11,8 @@
 
 package alluxio.collections;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import org.junit.Test;
 
 /**
@@ -41,10 +42,10 @@ public final class PairTest {
     for (int j = 0; j < mObjs.length - 1; j++) {
       for (int k = j + 1; k < mObjs.length; k++) {
         Pair<Object, Object> tPair = new Pair<>(mObjs[j], mObjs[k]);
-        Assert.assertEquals(mObjs[j], tPair.getFirst());
-        Assert.assertEquals(mObjs[k], tPair.getSecond());
-        Assert.assertNotSame(mObjs[k], tPair.getFirst());
-        Assert.assertNotSame(mObjs[j], tPair.getSecond());
+        assertEquals(mObjs[j], tPair.getFirst());
+        assertEquals(mObjs[k], tPair.getSecond());
+        assertNotSame(mObjs[k], tPair.getFirst());
+        assertNotSame(mObjs[j], tPair.getSecond());
       }
     }
   }
