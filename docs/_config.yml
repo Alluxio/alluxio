@@ -65,6 +65,7 @@ categoryInfo:
     cn: 部署 Alluxio
   Cloud Native:
     en: Cloud Native
+    cn: 云原生
   Compute Integrations:
     en: Compute Integrations
     cn: 计算应用
