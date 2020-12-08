@@ -260,9 +260,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_REMOTE.getName()));
       context.setMeter(MetricsSystem
-          .meter(MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
+          .meter(MetricKey.WORKER_BYTES_READ_REMOTE_THROUGHPUT.getName()));
     }
     return context;
   }

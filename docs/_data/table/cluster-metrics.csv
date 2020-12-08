@@ -1,11 +1,11 @@
 metricName,metricType
-Cluster.BytesReadAlluxio,COUNTER
-Cluster.BytesReadAlluxioThroughput,GAUGE
 Cluster.BytesReadDomain,COUNTER
 Cluster.BytesReadDomainThroughput,GAUGE
 Cluster.BytesReadLocal,COUNTER
 Cluster.BytesReadLocalThroughput,GAUGE
 Cluster.BytesReadPerUfs,COUNTER
+Cluster.BytesReadRemote,COUNTER
+Cluster.BytesReadRemoteThroughput,GAUGE
 Cluster.BytesReadUfsAll,COUNTER
 Cluster.BytesReadUfsThroughput,GAUGE
 Cluster.BytesWrittenAlluxio,COUNTER

@@ -430,18 +430,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
-  public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO =
-      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage reported "
-              + "by all workers. This does not include short-circuit local reads, "
-              + "domain socket reads, and UFS reads")
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
+      new Builder(Name.CLUSTER_BYTES_READ_REMOTE)
+          .setDescription("Total number of bytes read from Alluxio storage "
+              + "or underlying UFS if data does not exist in Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
-  public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes read throughput from Alluxio storage by all workers. "
-              + "This does not include short-circuit local reads, domain socket reads, "
-              + "and UFS reads")
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
+      new Builder(Name.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT)
+          .setDescription("Bytes read throughput from Alluxio storage "
+              + "or underlying UFS if data does not exist in Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
@@ -650,19 +652,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_ALLUXIO =
-      new Builder(Name.WORKER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker. "
-              + "This does not include short-circuit local reads, domain socket reads, "
-              + "and UFS reads.")
+  public static final MetricKey WORKER_BYTES_READ_REMOTE =
+      new Builder(Name.WORKER_BYTES_READ_REMOTE)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage. "
+              + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes read throughput from Alluxio storage by this worker. "
-              + "This does not include short-circuit local reads, domain socket reads, "
-              + "and UFS reads.")
+  public static final MetricKey WORKER_BYTES_READ_REMOTE_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_READ_REMOTE_THROUGHPUT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage. "
+              + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1147,9 +1149,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";
     public static final String CLUSTER_BYTES_READ_LOCAL_THROUGHPUT
         = "Cluster.BytesReadLocalThroughput";
-    public static final String CLUSTER_BYTES_READ_ALLUXIO = "Cluster.BytesReadAlluxio";
-    public static final String CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "Cluster.BytesReadAlluxioThroughput";
+    public static final String CLUSTER_BYTES_READ_REMOTE = "Cluster.BytesReadRemote";
+    public static final String CLUSTER_BYTES_READ_REMOTE_THROUGHPUT
+        = "Cluster.BytesReadRemoteThroughput";
     public static final String CLUSTER_BYTES_READ_DOMAIN = "Cluster.BytesReadDomain";
     public static final String CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT
         = "Cluster.BytesReadDomainThroughput";
@@ -1194,9 +1196,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BLOCKS_EVICTED = "Worker.BlocksEvicted";
     public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
     public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
-    public static final String WORKER_BYTES_READ_ALLUXIO = "Worker.BytesReadAlluxio";
-    public static final String WORKER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "Worker.BytesReadAlluxioThroughput";
+    public static final String WORKER_BYTES_READ_REMOTE = "Worker.BytesReadRemote";
+    public static final String WORKER_BYTES_READ_REMOTE_THROUGHPUT
+        = "Worker.BytesReadRemoteThroughput";
     public static final String WORKER_BYTES_WRITTEN_ALLUXIO = "Worker.BytesWrittenAlluxio";
     public static final String WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT
         = "Worker.BytesWrittenAlluxioThroughput";

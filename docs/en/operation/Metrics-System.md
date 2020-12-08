@@ -171,7 +171,7 @@ The nickname and original metric name corresponding are shown:
 | Local Alluxio (Domain Socket) Write | cluster.BytesWrittenDomain |
 | Local Alluxio (Short-circuit) Read | cluster.BytesReadLocal |
 | Local Alluxio (Short-circuit) Write | cluster.BytesWrittenLocal |
-| Remote Alluxio Read | cluster.BytesReadAlluxio |
+| Remote Alluxio Read | cluster.BytesReadRemote |
 | Remote Alluxio Write | cluster.BytesWrittenAlluxio |
 | Under Filesystem Read | cluster.BytesReadUfsAll | 
 | Under Filesystem Write | cluster.BytesWrittenUfsAll |

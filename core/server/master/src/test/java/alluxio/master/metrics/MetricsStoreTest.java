@@ -42,7 +42,7 @@ public class MetricsStoreTest {
   public void putWorkerMetrics() {
     String workerHost1 = "192_1_1_1";
     List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName() + "." + workerHost1,
+        Metric.from(MetricKey.WORKER_BYTES_READ_REMOTE.getName() + "." + workerHost1,
             10, MetricType.COUNTER),
         Metric.from(MetricKey.WORKER_BYTES_READ_DOMAIN.getName() + "." + workerHost1,
             20, MetricType.COUNTER));
@@ -50,11 +50,11 @@ public class MetricsStoreTest {
 
     String workerHost2 = "192_1_1_2";
     List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName() + "." + workerHost2,
+        Metric.from(MetricKey.WORKER_BYTES_READ_REMOTE.getName() + "." + workerHost2,
             1, MetricType.COUNTER));
     mMetricStore.putWorkerMetrics(workerHost2, metrics2);
     assertEquals(11,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount());
   }
 
   @Test

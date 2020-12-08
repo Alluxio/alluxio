@@ -70,7 +70,7 @@ public class MetricsCommandTest {
 
     map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricValue.newBuilder().setDoubleValue(12312312312L).build());
-    map.put(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
+    map.put(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
         MetricValue.newBuilder().setDoubleValue(421312312L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
         MetricValue.newBuilder().setDoubleValue(4245232L).build());
@@ -85,7 +85,7 @@ public class MetricsCommandTest {
 
     map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(123125324L).build());
-    map.put(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
+    map.put(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(543534623L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(31423412L).build());
@@ -125,12 +125,12 @@ public class MetricsCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     List<String> expectedOutput = Arrays.asList(
-        "Cluster.BytesReadAlluxio  (Type: GAUGE, Value: 401.79MB)",
-        "Cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
         "Cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
         "Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/MIN)",
         "Cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
         "Cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/MIN)",
+        "Cluster.BytesReadRemote  (Type: GAUGE, Value: 401.79MB)",
+        "Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
         "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
         "Cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/MIN)",
         "Cluster.BytesWrittenAlluxio  (Type: GAUGE, Value: 22.98KB)",
