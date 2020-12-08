@@ -121,8 +121,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       // Wait one job to complete.
       waitJob();
     }
-    mSubmittedJobAttempts.add(newJob(filePath, replication));
     System.out.println(filePath + " loading");
+    mSubmittedJobAttempts.add(newJob(filePath, replication));
   }
 
   /**
