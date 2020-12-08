@@ -11,12 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.AbstractUfsManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.network.NetworkAddressUtils;
-
-import java.io.IOException;
 
 /**
  * Implementation of UfsManager that does nothing. This is useful for testing and
@@ -25,9 +21,6 @@ import java.io.IOException;
 public class NoopUfsManager extends AbstractUfsManager {
 
   @Override
-  protected void connectUfs(UnderFileSystem fs) throws IOException {
-    fs.connectFromMaster(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
+  protected void connectUfs(UnderFileSystem fs) {
   }
 }

@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Basic implementation of {@link UfsManager}.
+ * Basic implementation of {@link UfsManager}. Store the journal UFS.
  */
 public abstract class AbstractUfsManager implements UfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsManager.class);
@@ -220,12 +220,12 @@ public abstract class AbstractUfsManager implements UfsManager {
         boolean shared = ServerConfiguration
             .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_SHARED);
         Map<String, String> conf =
-            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_JOURNAL_OPTION);
-        addMount(IdUtils.JOURNAL_MOUNT_ID, new AlluxioURI(uri),
+            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI(uri),
             UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
                 .setReadOnly(readOnly).setShared(shared).createMountSpecificConf(conf));
         try {
-          mJournalUfsClient = get(IdUtils.JOURNAL_MOUNT_ID);
+          mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException("We should never reach here", e);
         }
