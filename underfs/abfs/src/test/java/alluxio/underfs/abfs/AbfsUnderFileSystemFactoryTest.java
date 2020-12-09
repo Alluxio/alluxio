@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.adl;
+package alluxio.underfs.abfs;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
@@ -20,9 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link AdlUnderFileSystemFactory}.
+ * Unit tests for {@link AbfsUnderFileSystemFactory}.
  */
-public class AdlUnderFileSystemFactoryTest {
+public class AbfsUnderFileSystemFactoryTest {
 
   /**
    * Tests the
@@ -32,15 +32,15 @@ public class AdlUnderFileSystemFactoryTest {
   public void factory() {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     UnderFileSystemFactory factory =
-        UnderFileSystemFactoryRegistry.find("adl://localhost/test/path", conf);
+        UnderFileSystemFactoryRegistry.find("abfs://localhost/test/path", conf);
     Assert.assertNotNull(
-        "A UnderFileSystemFactory should exist for adl paths when using this module",
+        "A UnderFileSystemFactory should exist for abfs paths when using this module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("adl://localhost/test/path", conf);
+    factory = UnderFileSystemFactoryRegistry.find("abfss://localhost/test/path", conf);
     Assert.assertNotNull(
-            "A UnderFileSystemFactory should exist for adl paths when using this module",
-            factory);
+        "A UnderFileSystemFactory should exist for abfss paths when using this module",
+        factory);
 
     factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost/test/path", conf);
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
