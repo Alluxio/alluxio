@@ -66,5 +66,13 @@ Client.CacheSpaceUsedCount:
   'Amount of bytes used by the client cache as a counter.'
 Client.CacheState:
   'State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)'
+Client.CacheStoreDeleteTimeout:
+  'Number of timeouts when deleting pages from page store.'
+Client.CacheStoreGetTimeout:
+  'Number of timeouts when reading pages from page store.'
+Client.CacheStorePutTimeout:
+  'Number of timeouts when writing new pages to page store.'
+Client.CacheStoreThreadsRejected:
+  'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
 Client.CacheUnremovableFiles:
   'Amount of bytes unusable managed by the client cache.'

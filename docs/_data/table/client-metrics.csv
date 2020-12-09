@@ -33,4 +33,8 @@ Client.CacheSpaceAvailable,GAUGE
 Client.CacheSpaceUsed,GAUGE
 Client.CacheSpaceUsedCount,COUNTER
 Client.CacheState,COUNTER
+Client.CacheStoreDeleteTimeout,COUNTER
+Client.CacheStoreGetTimeout,COUNTER
+Client.CacheStorePutTimeout,COUNTER
+Client.CacheStoreThreadsRejected,COUNTER
 Client.CacheUnremovableFiles,COUNTER

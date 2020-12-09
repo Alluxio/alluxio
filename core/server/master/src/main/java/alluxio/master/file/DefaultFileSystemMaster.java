@@ -4149,14 +4149,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
           bytesReadLocalThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
           bytesReadDomainSocketThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName(),
           bytesReadRemoteThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
           bytesReadUfsThroughput);
@@ -4166,14 +4166,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
           .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
           bytesWrittenLocalThroughput);
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
+      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName(),
           bytesWrittenAlluxioThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
           bytesWrittenDomainSocketThroughput);

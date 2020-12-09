@@ -27,9 +27,9 @@ The following is a checklist to run through to address common problems when tuni
 
    If the compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
-   Monitor the metrics values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
+   Monitor the metrics values for `cluster.BytesReadRemoteThroughput` and `cluster.BytesReadLocalThroughput`
    while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
-   If the local throughput is zero or significantly lower than the total throughput,
+   If the local throughput is zero or significantly lower than the remote alluxio read throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
    check that the client and worker use the same hostname string.
