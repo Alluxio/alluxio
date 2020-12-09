@@ -92,9 +92,9 @@ public final class UfsFallbackBlockWriteHandler
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getName()));
       context.setMeter(MetricsSystem
-          .meter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()));
     }
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());

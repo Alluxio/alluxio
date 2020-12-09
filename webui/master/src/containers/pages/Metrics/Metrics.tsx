@@ -80,7 +80,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
                 <th>Remote Alluxio Read</th>
                 <td>{data.totalBytesReadRemote}</td>
                 <th>Remote Alluxio Write</th>
-                <td>{data.totalBytesWrittenAlluxio}</td>
+                <td>{data.totalBytesWrittenRemote}</td>
               </tr>
               <tr>
                 <th>Under Filesystem Read</th>
@@ -111,7 +111,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
                 <th>Remote Alluxio Read</th>
                 <td>{data.totalBytesReadRemoteThroughput}</td>
                 <th>Remote Alluxio Write</th>
-                <td>{data.totalBytesWrittenAlluxioThroughput}</td>
+                <td>{data.totalBytesWrittenRemoteThroughput}</td>
               </tr>
               <tr>
                 <th>Under Filesystem Read</th>

@@ -884,7 +884,7 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadLocal = counters.get(
           MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
       Long bytesReadRemote = counters.get(
-          MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()).getCount();
+          MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount();
       Long bytesReadDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
       Long bytesReadUfs = counters.get(
@@ -895,15 +895,14 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs + bytesReadDomainSocket;
+      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
       double cacheHitLocalPercentage =
           (bytesReadTotal > 0)
               ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheHitRemotePercentage =
-          (bytesReadTotal > 0) ? (100D * bytesReadRemote / bytesReadTotal) : 0;
+          (bytesReadTotal > 0) ? (100D * (bytesReadRemote - bytesReadUfs) / bytesReadTotal) : 0;
       double cacheMissPercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
-
       response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
           .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
@@ -912,13 +911,13 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenLocal = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();
       Long bytesWrittenAlluxio = counters
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount();
       Long bytesWrittenDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()).getCount();
       Long bytesWrittenUfs = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getCount();
       response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
-          .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenRemote(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
@@ -928,7 +927,7 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
       response
@@ -944,14 +943,14 @@ public final class AlluxioMasterRestServiceHandler {
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
           .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
       response.setTotalBytesWrittenLocalThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
-          .setTotalBytesWrittenAlluxioThroughput(
+          .setTotalBytesWrittenRemoteThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
           .setTotalBytesWrittenDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))

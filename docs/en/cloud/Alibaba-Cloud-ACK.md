@@ -302,15 +302,15 @@ Finally, we login to the Alluxio master and check the statistics on the relevant
 $ kubectl exec -ti alluxio-master-0 -n alluxio bash
 
 bash-4.4# alluxio fsadmin report metrics
-Cluster.BytesReadAlluxio  (Type: COUNTER, Value: 0B)
-Cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 0B/MIN)
+Cluster.BytesReadRemote  (Type: COUNTER, Value: 0B)
+Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 0B/MIN)
 Cluster.BytesReadDomain  (Type: COUNTER, Value: 237.66KB)
 Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 47.53KB/MIN)
 ......
 ```
 
 From the metrics above,
-**BytesReadAlluxio** and **BytesReadAlluxioThroughput** represent data transmission via the network stack; **BytesReadDomain** and **BytesReadDomainThroughput** represent data transmission via domain socket. 
+**BytesReadRemote** and **BytesReadRemoteThroughput** represent data transmission via the network stack; **BytesReadDomain** and **BytesReadDomainThroughput** represent data transmission via domain socket. 
 You can observe that all data is transferred via the domain socket.
   {% endcollapsible %}
 {% endaccordion %}
