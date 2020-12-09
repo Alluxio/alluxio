@@ -134,7 +134,7 @@ public class MetricsStoreTest {
     long clearTime = mMetricStore.getLastClearTime();
     String workerHost1 = "192_1_1_1";
     List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName() + "." + workerHost1,
+        Metric.from(MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getName() + "." + workerHost1,
             10, MetricType.COUNTER),
         Metric.from(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName() + "." + workerHost1,
             20, MetricType.COUNTER));
@@ -146,7 +146,7 @@ public class MetricsStoreTest {
     mMetricStore.putClientMetrics("192_1_1_2", metrics2);
 
     assertEquals(10,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount());
     assertEquals(1,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
     // Make sure the test does not execute too fast
@@ -154,7 +154,7 @@ public class MetricsStoreTest {
     Thread.sleep(10);
     mMetricStore.clear();
     assertEquals(0,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount());
     assertEquals(0,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
     long newClearTime = mMetricStore.getLastClearTime();

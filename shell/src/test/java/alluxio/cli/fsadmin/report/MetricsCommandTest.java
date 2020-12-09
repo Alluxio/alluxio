@@ -76,7 +76,7 @@ public class MetricsCommandTest {
         MetricValue.newBuilder().setDoubleValue(4245232L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
         MetricValue.newBuilder().setDoubleValue(534214123L).build());
-    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName(),
         MetricValue.newBuilder().setDoubleValue(23532L).build());
     map.put(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
         MetricValue.newBuilder().setDoubleValue(65463532L).build());
@@ -91,7 +91,7 @@ public class MetricsCommandTest {
         MetricValue.newBuilder().setDoubleValue(31423412L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(745632L).build());
-    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(8423432L).build());
     map.put(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(1231231L).build());
@@ -133,10 +133,10 @@ public class MetricsCommandTest {
         "Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
         "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
         "Cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/MIN)",
-        "Cluster.BytesWrittenAlluxio  (Type: GAUGE, Value: 22.98KB)",
-        "Cluster.BytesWrittenAlluxioThroughput  (Type: GAUGE, Value: 8.03MB/MIN)",
         "Cluster.BytesWrittenDomain  (Type: GAUGE, Value: 62.43MB)",
         "Cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/MIN)",
+        "Cluster.BytesWrittenRemote  (Type: GAUGE, Value: 22.98KB)",
+        "Cluster.BytesWrittenRemoteThroughput  (Type: GAUGE, Value: 8.03MB/MIN)",
         "Cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
         "Cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/MIN)",
         "Cluster.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",

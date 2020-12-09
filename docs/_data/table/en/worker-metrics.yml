@@ -44,16 +44,16 @@ Worker.BytesReadRemoteThroughput:
   'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage. This does not include short-circuit local reads and domain socket reads.'
 Worker.BytesReadUfsThroughput:
   'Bytes read throughput from all Alluxio UFSes by this worker'
-Worker.BytesWrittenAlluxio:
-  'Total number of bytes written to Alluxio storage by this worker. This does not include short-circuit local writes, domain socket writes, and UFS writes'
-Worker.BytesWrittenAlluxioThroughput:
-  'Bytes write throughput to Alluxio storage by this workerThis does not include short-circuit local writes, domain socket writes, and UFS writes'
 Worker.BytesWrittenDomain:
   'Total number of bytes written to Alluxio storage via domain socket by this worker'
 Worker.BytesWrittenDomainThroughput:
   'Throughput of bytes written to Alluxio storage via domain socket by this worker'
 Worker.BytesWrittenPerUfs:
   'Total number of bytes written to a specific Alluxio UFS by this worker'
+Worker.BytesWrittenRemote:
+  'Total number of bytes written to Alluxio storage or the underlying UFS by this worker. This does not include short-circuit local writes and domain socket writes.'
+Worker.BytesWrittenRemoteThroughput:
+  'Bytes write throughput to Alluxio storage or the underlying UFS by this workerThis does not include short-circuit local writes and domain socket writes.'
 Worker.BytesWrittenUfsThroughput:
   'Bytes write throughput to all Alluxio UFSes by this worker'
 Worker.CapacityFree:

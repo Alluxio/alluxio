@@ -8,13 +8,13 @@ Cluster.BytesReadRemote,COUNTER
 Cluster.BytesReadRemoteThroughput,GAUGE
 Cluster.BytesReadUfsAll,COUNTER
 Cluster.BytesReadUfsThroughput,GAUGE
-Cluster.BytesWrittenAlluxio,COUNTER
-Cluster.BytesWrittenAlluxioThroughput,GAUGE
 Cluster.BytesWrittenDomain,COUNTER
 Cluster.BytesWrittenDomainThroughput,GAUGE
 Cluster.BytesWrittenLocal,COUNTER
 Cluster.BytesWrittenLocalThroughput,GAUGE
 Cluster.BytesWrittenPerUfs,COUNTER
+Cluster.BytesWrittenRemote,COUNTER
+Cluster.BytesWrittenRemoteThroughput,GAUGE
 Cluster.BytesWrittenUfsAll,COUNTER
 Cluster.BytesWrittenUfsThroughput,GAUGE
 Cluster.CapacityFree,GAUGE

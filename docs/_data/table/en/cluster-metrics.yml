@@ -16,10 +16,6 @@ Cluster.BytesReadUfsAll:
   'Total number of bytes read from a all Alluxio UFSes by all workers'
 Cluster.BytesReadUfsThroughput:
   'Bytes read throughput from all Alluxio UFSes by all workers'
-Cluster.BytesWrittenAlluxio:
-  'Total number of bytes written to Alluxio storage in all workers. This does not include short-circuit local writes, domain socket writes, and UFS writes'
-Cluster.BytesWrittenAlluxioThroughput:
-  'Bytes write throughput to Alluxio storage in all workers. This does not include short-circuit local writes, domain socket writes, and UFS writes'
 Cluster.BytesWrittenDomain:
   'Total number of bytes written to Alluxio storage via domain socket by all workers'
 Cluster.BytesWrittenDomainThroughput:
@@ -30,6 +26,10 @@ Cluster.BytesWrittenLocalThroughput:
   'Bytes throughput written to local storage by all clients'
 Cluster.BytesWrittenPerUfs:
   'Total number of bytes written to a specific Alluxio UFS by all workers'
+Cluster.BytesWrittenRemote:
+  'Total number of bytes written to Alluxio storage in all workers or the underlying UFS. This does not include short-circuit local writes and domain socket writes.'
+Cluster.BytesWrittenRemoteThroughput:
+  'Bytes write throughput to Alluxio storage in all workers or the underlying UFS. This does not include short-circuit local writes and domain socket writes.'
 Cluster.BytesWrittenUfsAll:
   'Total number of bytes written to all Alluxio UFSes by all workers'
 Cluster.BytesWrittenUfsThroughput:

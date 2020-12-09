@@ -22,11 +22,11 @@ Worker.BytesReadPerUfs,COUNTER
 Worker.BytesReadRemote,COUNTER
 Worker.BytesReadRemoteThroughput,METER
 Worker.BytesReadUfsThroughput,METER
-Worker.BytesWrittenAlluxio,COUNTER
-Worker.BytesWrittenAlluxioThroughput,METER
 Worker.BytesWrittenDomain,COUNTER
 Worker.BytesWrittenDomainThroughput,METER
 Worker.BytesWrittenPerUfs,COUNTER
+Worker.BytesWrittenRemote,COUNTER
+Worker.BytesWrittenRemoteThroughput,METER
 Worker.BytesWrittenUfsThroughput,METER
 Worker.CapacityFree,GAUGE
 Worker.CapacityTotal,GAUGE

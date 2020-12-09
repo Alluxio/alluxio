@@ -172,7 +172,7 @@ The nickname and original metric name corresponding are shown:
 | Local Alluxio (Short-circuit) Read | cluster.BytesReadLocal |
 | Local Alluxio (Short-circuit) Write | cluster.BytesWrittenLocal |
 | Remote Alluxio Read | cluster.BytesReadRemote |
-| Remote Alluxio Write | cluster.BytesWrittenAlluxio |
+| Remote Alluxio Write | cluster.BytesWrittenRemote |
 | Under Filesystem Read | cluster.BytesReadUfsAll | 
 | Under Filesystem Write | cluster.BytesWrittenUfsAll |
 
