@@ -216,7 +216,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   public UfsClient getJournal() {
     synchronized (this) {
       if (mJournalUfsClient == null) {
-        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI("dummy_journal_mount_point"),
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI("/dummy_journal_mount_point"),
             UfsJournal.getJournalUfsConf());
         try {
           mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
