@@ -486,14 +486,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_REMOTE)
-          .setDescription("Total number of bytes written to Alluxio storage in all workers or the underlying UFS. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+          .setDescription("Total number of bytes written to Alluxio storage in all workers "
+              + "or the underlying UFS. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT)
-          .setDescription("Bytes write throughput to Alluxio storage in all workers or the underlying UFS. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+          .setDescription("Bytes write throughput to Alluxio storage in all workers "
+              + "or the underlying UFS. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN =
@@ -694,14 +696,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE =
       new Builder(Name.WORKER_BYTES_WRITTEN_REMOTE)
-          .setDescription("Total number of bytes written to Alluxio storage or the underlying UFS by this worker. "
+          .setDescription("Total number of bytes written to Alluxio storage "
+              + "or the underlying UFS by this worker. "
               + "This does not include short-circuit local writes and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT)
-          .setDescription("Bytes write throughput to Alluxio storage or the underlying UFS by this worker"
+          .setDescription("Bytes write throughput to Alluxio storage "
+              + "or the underlying UFS by this worker"
               + "This does not include short-circuit local writes and domain socket writes.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
