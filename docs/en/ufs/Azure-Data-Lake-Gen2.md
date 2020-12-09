@@ -40,13 +40,13 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the Shared Key by adding the following property in `conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
 ```
 
@@ -67,7 +67,7 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 
 Start up Alluxio locally to see that everything works.
 
-```
+```console
 ./bin/alluxio format
 ./bin/alluxio-start.sh local
 ```
@@ -77,7 +77,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```
+```console
 ./bin/alluxio runTests
 ```
 
@@ -89,6 +89,6 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```
+```console
 ./bin/alluxio-stop.sh local
 ```

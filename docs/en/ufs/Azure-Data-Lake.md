@@ -42,7 +42,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.master.mount.table.root.ufs=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
 ```
 
@@ -51,7 +51,7 @@ properties in `conf/alluxio-site.properties`:
 - For instructions on how to retrieve the application ID and authentication key (also called the client secret) for your application, see [Get application ID and authentication key](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 - For instructions on how to retrieve the tenant ID, see [Get tenant ID](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 
-```
+```properties
 alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
 alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
 alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
@@ -76,7 +76,7 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 
 Start up Alluxio locally to see that everything works.
 
-```
+```console
 ./bin/alluxio format
 ./bin/alluxio-start.sh local
 ```
@@ -86,7 +86,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```
+```console
 ./bin/alluxio runTests
 ```
 
@@ -98,6 +98,6 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```
+```console
 ./bin/alluxio-stop.sh local
 ```

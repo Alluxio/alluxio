@@ -47,13 +47,12 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
-      if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
+      if (PropertyKey.Template.UNDERFS_ABFS_ACCOUNT_KEY.matches(key)) {
         abfsConf.set(key, value);
         final String authTypeKey = key.replace(".key", ".auth.type");
         abfsConf.set(authTypeKey, "SharedKey");
       }
     }
-    LOG.info(abfsConf.toString());
     return abfsConf;
   }
 
