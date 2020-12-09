@@ -1175,34 +1175,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_MOUNT_TABLE_JOURNAL_OPTION =
-      new Builder(Template.MASTER_MOUNT_TABLE_OPTION, "journal")
-          .setDescription("Configuration for the UFS of Alluxio journal mount point.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_MOUNT_TABLE_JOURNAL_READONLY =
-      new Builder(Template.MASTER_MOUNT_TABLE_READONLY, "journal")
-          .setDefaultValue(false)
-          .setDescription("Whether Alluxio journal mount point is readonly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_MOUNT_TABLE_JOURNAL_SHARED =
-      new Builder(Template.MASTER_MOUNT_TABLE_SHARED, "journal")
-          .setDefaultValue(true)
-          .setDescription("Whether Alluxio journal mount point is shared.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_MOUNT_TABLE_JOURNAL_UFS =
-      new Builder(Template.MASTER_MOUNT_TABLE_UFS, "journal")
-          .setAlias("alluxio.underfs.address")
-          .setDescription("The storage address of the UFS at the Alluxio journal mount point.")
-          .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey KODO_ACCESS_KEY =
       new Builder(Name.KODO_ACCESS_KEY)
           .setDescription("The access key of Kodo bucket.")
