@@ -35,6 +35,7 @@
     <module>wasb</module>
     <module>web</module>
     <module>ozone</module>
+    <module>cosn</module>
   </modules>
 
   <properties>

@@ -165,6 +165,8 @@
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
     <ozone.version>1.0.0</ozone.version>
+    <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
+    <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -534,6 +536,16 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-ozone-filesystem</artifactId>
         <version>${ozone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud.cos</groupId>
+        <artifactId>hadoop-cos</artifactId>
+        <version>${hadoop-cos.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud</groupId>
+        <artifactId>cos_api-bundle</artifactId>
+        <version>${cos_api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>

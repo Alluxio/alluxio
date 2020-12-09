@@ -26,6 +26,7 @@
     <module>client</module>
     <module>hadoop</module>
     <module>ozone</module>
+    <module>cosn</module>
   </modules>
 
   <properties>
