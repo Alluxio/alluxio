@@ -3731,6 +3731,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_EVICTION_RETRIES =
+      new Builder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
+          .setDefaultValue(0)
+          .setDescription("Max number of eviction retries.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_DURATION =
       new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_DURATION)
           .setDefaultValue("-1")
@@ -5459,6 +5466,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_EVICTION_RETRIES =
+        "alluxio.user.client.cache.eviction.retries";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
         "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE =
