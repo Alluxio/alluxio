@@ -25,7 +25,7 @@ For the purposes of this guide, the Azure storage account name is called `<AZURE
 the directory in that storage account is called `<AZURE_DIRECTORY>`, and the name of the container is called `<AZURE_CONTAINER>`.
 
 
-## Basic Setup
+## Setup with Shared Key
 
 ### Root Mount
 
@@ -57,7 +57,50 @@ to multiple under storage systems. Alluxio's
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
+  --option fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY> \
+  /mnt/abfs abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+```
+
+After these changes, Alluxio should be configured to work with Azure Data Lake storage as its under storage system, and you can run Alluxio locally with it.
+
+## Setup with OAuth 2.0 Client Credentials
+
+### Root Mount
+
+To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
+you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
+
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
+
+```properties
+alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+```
+
+Specify the OAuth 2.0 Client Credentials by adding the following property in `conf/alluxio-site.properties`:
+(Please note that for URL Endpoint, use the V1 token endpoint)
+
+```properties
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.endpoint=<OAUTH_ENDPOINT>
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
+alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.secret=<CLIENT_SECRET>
+```
+
+### Nested Mount
+An Azure Data Lake store location can be mounted at a nested directory in the Alluxio namespace to have unified access
+to multiple under storage systems. Alluxio's
+[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
+
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.azure.account.oauth2.client.endpoint=<OAUTH_ENDPOINT> \
+  --option fs.azure.account.oauth2.client.id=<CLIENT_ID> \
+  --option fs.azure.account.oauth2.client.secret=<CLIENT_SECRET> \
   /mnt/abfs abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
 ```
 

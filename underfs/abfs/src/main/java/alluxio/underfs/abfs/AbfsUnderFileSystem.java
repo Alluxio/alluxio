@@ -44,6 +44,9 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
 
   private static Configuration createAbfsConfiguration(UnderFileSystemConfiguration conf) {
     Configuration abfsConf = HdfsUnderFileSystem.createConfiguration(conf);
+
+    boolean sharedKey = false;
+
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
@@ -51,6 +54,24 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
         abfsConf.set(key, value);
         final String authTypeKey = key.replace(".key", ".auth.type");
         abfsConf.set(authTypeKey, "SharedKey");
+        sharedKey = true;
+        break;
+      }
+    }
+
+    if (!sharedKey) {
+      if (conf.isSet(PropertyKey.ABFS_CLIENT_ENDPOINT)
+          && conf.isSet(PropertyKey.ABFS_CLIENT_ID)
+          && conf.isSet(PropertyKey.ABFS_CLIENT_SECRET)) {
+        abfsConf.set("fs.azure.account.auth.type", "OAuth");
+        abfsConf.set("fs.azure.account.oauth.provider.type",
+            "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider");
+        abfsConf.set(PropertyKey.ABFS_CLIENT_ENDPOINT.getName(),
+            conf.get(PropertyKey.ABFS_CLIENT_ENDPOINT));
+        abfsConf.set(PropertyKey.ABFS_CLIENT_ID.getName(),
+            conf.get(PropertyKey.ABFS_CLIENT_ID));
+        abfsConf.set(PropertyKey.ABFS_CLIENT_SECRET.getName(),
+            conf.get(PropertyKey.ABFS_CLIENT_SECRET));
       }
     }
     return abfsConf;
