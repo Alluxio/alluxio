@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -55,6 +56,7 @@ public class BufferCachingGrpcDataReader {
    */
   private final AtomicInteger mRefCount = new AtomicInteger(0);
   private final AtomicInteger mBufferCount = new AtomicInteger(0);
+  @GuardedBy("mBufferLocks")
   private final DataBuffer[] mDataBuffers;
   private final ReentrantReadWriteLock mBufferLocks = new ReentrantReadWriteLock();
 

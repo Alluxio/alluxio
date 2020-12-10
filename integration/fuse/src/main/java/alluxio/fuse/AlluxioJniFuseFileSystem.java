@@ -36,6 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Striped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -77,7 +77,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private static final int LOCK_SIZE = 2048;
   /** A readwrite lock pool to guard individual files based on striping. */
-  private final ReadWriteLock[] mFileLocks = new ReentrantReadWriteLock[LOCK_SIZE];
+  private final Striped<ReadWriteLock> mFileLocks = Striped.readWriteLock(LOCK_SIZE);
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final Map<Long, FileOutStream> mCreateFileEntries = new ConcurrentHashMap<>();
@@ -147,20 +147,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    for (int i = 0; i < LOCK_SIZE; i++) {
-      mFileLocks[i] = new ReentrantReadWriteLock();
-    }
-  }
-
-  /**
-   * Gets the lock for a particular page. Note that multiple path may share the same lock as lock
-   * striping is used to reduce resource overhead for locks.
-   *
-   * @param fd the file id
-   * @return the corresponding page lock
-   */
-  private ReadWriteLock getFileLock(long fd) {
-    return mFileLocks[Math.floorMod((int) fd, LOCK_SIZE)];
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
@@ -216,7 +202,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       fi.fh.set(fid);
       setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
-      LOG.error("Failed to getattr {}: ", path, e);
+      LOG.error("Failed to create {}: ", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -244,7 +230,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
-      final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1000;
+      final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
 
       stat.st_ctim.tv_sec.set(ctime_sec);
       stat.st_ctim.tv_nsec.set(ctime_nsec);
@@ -338,7 +324,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final int sz = (int) size;
     long fd = fi.fh.get();
     // FileInStream is not thread safe
-    try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
+    try (LockResource r1 = new LockResource(mFileLocks.get(fd).writeLock())) {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
@@ -359,7 +345,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         buf.put(dest, 0, nread);
       }
     } catch (Throwable e) {
-      LOG.error("Failed to read {},{},{}: ", path, size, offset, e);
+      LOG.error("Failed to read, path: {} size: {} offset: {}", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
     return nread;
@@ -415,7 +401,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
-    try (LockResource r1 = new LockResource(getFileLock(fd).writeLock())) {
+    try (LockResource r1 = new LockResource(mFileLocks.get(fd).writeLock())) {
       FileInStream is = mOpenFileEntries.remove(fd);
       FileOutStream os = mCreateFileEntries.remove(fd);
       if (is == null && os == null) {

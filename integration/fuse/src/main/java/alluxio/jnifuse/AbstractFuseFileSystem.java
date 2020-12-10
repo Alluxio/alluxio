@@ -39,8 +39,8 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
-
-  private static final int TIMEOUT = 2000; // ms
+  // timeout to mount a JNI fuse file system in ms
+  private static final int MOUNT_TIMEOUT_MS = 2000;
 
   private final LibFuse libFuse;
   private final AtomicBoolean mounted = new AtomicBoolean();
@@ -88,7 +88,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
         res = execMount(args);
       } else {
         try {
-          res = CompletableFuture.supplyAsync(() -> execMount(args)).get(TIMEOUT,
+          res = CompletableFuture.supplyAsync(() -> execMount(args)).get(MOUNT_TIMEOUT_MS,
               TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
           // ok

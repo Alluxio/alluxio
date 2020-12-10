@@ -125,10 +125,8 @@ public class SharedGrpcDataReader implements DataReader {
     try (LockResource lockResource = new LockResource(getLock(mBlockId).writeLock())) {
       if (mCachedDataReader.getRefCount() == 0) {
         BLOCK_READERS.remove(mBlockId);
+        mCachedDataReader.close();
       }
-    }
-    if (mCachedDataReader.getRefCount() == 0) {
-      mCachedDataReader.close();
     }
   }
 
