@@ -90,7 +90,6 @@ public class TieredBlockStore implements BlockStore {
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
-//  private final Allocator mAllocator;
   private final AllocationCoordinator mAllocationCoordinator;
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
@@ -130,8 +129,6 @@ public class TieredBlockStore implements BlockStore {
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
 
-
-//    mAllocator = Allocator.Factory.create(initManagerView);
     mAllocationCoordinator = AllocationCoordinator.getInstance(initManagerView);
     if (mAllocationCoordinator.getAllocator() instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocationCoordinator.getAllocator());

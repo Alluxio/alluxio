@@ -5,15 +5,12 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
 
-import java.util.Iterator;
-
 public class AllocationCoordinator {
   public Reviewer mReviewer;
   public Allocator mAllocator;
 
   private static AllocationCoordinator sInstance = null;
 
-  // TODO(jiacheng): singleton
   private AllocationCoordinator(BlockMetadataView view) {
     mAllocator = Allocator.Factory.create(view);
     mReviewer = Reviewer.Factory.create();
