@@ -120,4 +120,9 @@ public interface UfsManager extends Closeable {
    * @return the UFS client associated with root
    */
   UfsClient getRoot();
+
+  /**
+   * @return the UFS client associated with journal root
+   */
+  UfsClient getJournal();
 }
