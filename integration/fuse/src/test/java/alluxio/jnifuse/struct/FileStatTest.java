@@ -14,10 +14,12 @@ package alluxio.jnifuse.struct;
 import static org.junit.Assert.assertEquals;
 
 import jnr.ffi.Runtime;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
+@Ignore
 public class FileStatTest {
 
   @Test

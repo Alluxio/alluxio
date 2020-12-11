@@ -15,11 +15,13 @@ import static org.junit.Assert.assertEquals;
 
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
 public class StatvfsTest {
+  @Ignore
   @Test
   public void offset() {
     Statvfs jni = new Statvfs(ByteBuffer.allocate(256));

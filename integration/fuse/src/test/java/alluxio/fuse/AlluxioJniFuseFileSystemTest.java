@@ -56,6 +56,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,6 +72,7 @@ import java.util.List;
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
  */
+@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioJniFuseFileSystemTest {
