@@ -407,6 +407,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_INODE_LOCK_POOL_SIZE =
+      new Builder(Name.MASTER_INODE_LOCK_POOL_SIZE)
+          .setDescription("The size of master inode lock pool")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EDGE_LOCK_POOL_SIZE =
+      new Builder(Name.MASTER_EDGE_LOCK_POOL_SIZE)
+          .setDescription("The size of master edge lock pool")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   // Journal metrics
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
@@ -1137,6 +1147,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_SET_ACL_OPS = "Master.SetAclOps";
     public static final String MASTER_SET_ATTRIBUTE_OPS = "Master.SetAttributeOps";
     public static final String MASTER_UNMOUNT_OPS = "Master.UnmountOps";
+    public static final String MASTER_INODE_LOCK_POOL_SIZE = "Master.InodeLockPoolSize";
+    public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
