@@ -5,6 +5,9 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+@NotThreadSafe
 public class AllocationCoordinator {
   public Reviewer mReviewer;
   public Allocator mAllocator;
@@ -26,7 +29,7 @@ public class AllocationCoordinator {
   /**
    * This is currently only used by tests, where the singleton state needs to be reconfigured.
    * */
-  public static synchronized void destroyInstance() {
+  public static void destroyInstance() {
     sInstance = null;
   }
 
