@@ -30,13 +30,19 @@ public class AllocationCoordinator {
     return sInstance;
   }
 
+  /**
+   * This is currently only used by tests, where the singleton state needs to be reconfigured.
+   * */
   public static synchronized void destroyInstance() {
     sInstance = null;
   }
 
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
                                        BlockMetadataView view, boolean skipReview) {
-    return mAllocator.allocateBlockWithView(sessionId, blockSize, location, view, skipReview, mReviewer::acceptAllocation);
+    if (skipReview) {
+      return mAllocator.allocateBlockWithView(sessionId, blockSize, location, view, v -> true);
+    }
+    return mAllocator.allocateBlockWithView(sessionId, blockSize, location, view, mReviewer::acceptAllocation);
   }
 
   public Allocator getAllocator() {

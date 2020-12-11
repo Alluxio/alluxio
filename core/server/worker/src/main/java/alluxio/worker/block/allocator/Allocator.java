@@ -76,5 +76,5 @@ public interface Allocator {
    *         otherwise
    */
   StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
-                                       BlockMetadataView view, boolean skipReview, Predicate<StorageDirView> reviewFunc);
+                                       BlockMetadataView view, Predicate<StorageDirView> reviewFunc);
 }

@@ -47,9 +47,9 @@ public final class GreedyAllocator implements Allocator {
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-                                              BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
+                                              BlockStoreLocation location, BlockMetadataView metadataView, Predicate<StorageDirView> reviewFunc) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location, skipReview, reviewFunc);
+    return allocateBlock(sessionId, blockSize, location, reviewFunc);
   }
 
   /**
@@ -64,7 +64,7 @@ public final class GreedyAllocator implements Allocator {
    */
   @Nullable
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
+      BlockStoreLocation location, Predicate<StorageDirView> reviewFunc) {
     Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
@@ -72,7 +72,7 @@ public final class GreedyAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
-            if (skipReview || reviewFunc.test(dirView)) {
+            if (reviewFunc.test(dirView)) {
               return dirView;
             } else {
               // The allocation is rejected. Try the next dir.
@@ -91,7 +91,7 @@ public final class GreedyAllocator implements Allocator {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getMediumType().equals(mediumType)
               && dirView.getAvailableBytes() >= blockSize) {
-            if (skipReview || reviewFunc.test(dirView)) {
+            if (reviewFunc.test(dirView)) {
               return dirView;
             } else {
               // Try the next dir
@@ -110,7 +110,7 @@ public final class GreedyAllocator implements Allocator {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
-          if (skipReview || reviewFunc.test(dirView)) {
+          if (reviewFunc.test(dirView)) {
             return dirView;
           } else {
             // Try the next dir

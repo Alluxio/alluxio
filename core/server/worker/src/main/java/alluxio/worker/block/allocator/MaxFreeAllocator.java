@@ -44,9 +44,9 @@ public final class MaxFreeAllocator implements Allocator {
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-                                              BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
+                                              BlockStoreLocation location, BlockMetadataView metadataView, Predicate<StorageDirView> reviewFunc) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location, skipReview, reviewFunc);
+    return allocateBlock(sessionId, blockSize, location, reviewFunc);
   }
 
   /**
@@ -56,12 +56,11 @@ public final class MaxFreeAllocator implements Allocator {
    * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @param skipReview whether the review should be skipped
    * @return a {@link StorageDirView} in which to create the temp block meta if success,
    *         null otherwise
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-                                       BlockStoreLocation location, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
+                                       BlockStoreLocation location, Predicate<StorageDirView> reviewFunc) {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
@@ -70,7 +69,7 @@ public final class MaxFreeAllocator implements Allocator {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
-          if (skipReview || reviewFunc.test(candidateDirView)) {
+          if (reviewFunc.test(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.
@@ -84,7 +83,7 @@ public final class MaxFreeAllocator implements Allocator {
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (candidateDirView != null) {
         // The allocation is not good enough. Revert it.
-        if (!skipReview && !reviewFunc.test(candidateDirView)) {
+        if (!reviewFunc.test(candidateDirView)) {
           LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
@@ -95,7 +94,7 @@ public final class MaxFreeAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
-          if (skipReview || reviewFunc.test(candidateDirView)) {
+          if (reviewFunc.test(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.
