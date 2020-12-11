@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -122,6 +123,16 @@ public final class LocalFileDataReader implements DataReader {
       mLocalReaderChunkSize = localReaderChunkSize;
       mReadBufferSize = conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+      if (conf.getBoolean(PropertyKey.USER_DIRECT_MEMORY_IO_ENABLED)) {
+        mBlockWorker = null;
+        mStream = null;
+        PropertyKey tierDirPathConf =
+            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
+        String storageDir = conf.get(tierDirPathConf).split(",")[0];
+        String workerDir = conf.get(PropertyKey.WORKER_DATA_FOLDER);
+        mPath = Paths.get(storageDir, workerDir, Long.toString(blockId)).toString();
+        return;
+      }
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
@@ -168,11 +179,15 @@ public final class LocalFileDataReader implements DataReader {
         if (mReader != null) {
           mReader.close();
         }
-        mStream.close();
-        mStream.waitForComplete(mDataTimeoutMs);
+        if (mStream != null) {
+          mStream.close();
+          mStream.waitForComplete(mDataTimeoutMs);
+        }
       } finally {
         mClosed = true;
-        mBlockWorker.close();
+        if (mBlockWorker != null) {
+          mBlockWorker.close();
+        }
       }
     }
   }

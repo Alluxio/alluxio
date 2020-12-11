@@ -35,18 +35,23 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
-FROM ubuntu:16.04
+# instead of ubuntu:16.04, use alluxio/alluxio-ubuntu:ubuntu1604-customize
+# applies optimizations in libfuse on top of ubuntu:16.04
+# it is based off cheyang/fuse2:ubuntu1604-customize
+FROM alluxio/alluxio-ubuntu:1604-customize
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
+COPY libjnifuse.so /usr/lib/
+
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-	openjdk-8-jdk openjdk-8-jre-headless fuse && \
+	openjdk-8-jdk openjdk-8-jre-headless && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 

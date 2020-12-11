@@ -4327,6 +4327,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
+      new Builder(Name.USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED)
+          .setDefaultValue(false)
+          .setAlias("alluxio.user.direct.memory.io.enabled")
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, clients will read from local "
+              + "worker directly without invoking extra RPCs to worker to require locations. "
+              + "Note this optimization is only safe when the workload is read only and the "
+              + "worker has only one tier and one storage directory in this tier.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+      new Builder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
+          .setDefaultValue(false)
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, the clients doesn't update file "
+              + "access time which may cause issues for some applications.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       new Builder(Name.USER_SHORT_CIRCUIT_ENABLED)
           .setDefaultValue(true)
@@ -4366,6 +4387,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_JNIFUSE_ENABLED =
+      new Builder(Name.FUSE_JNIFUSE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
+      new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) Use share grpc data reader for better performance "
+              + "on multi-process file reading through Alluxio JNI Fuse. "
+              + "Blocks data will be cached on the client side "
+              + "so more memory is required for the Fuse process.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5636,6 +5674,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
+    public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
+        "alluxio.user.unsafe.direct.local.io.enabled";
+    public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+        "alluxio.user.update.file.accesstime.disabled";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_SHORT_CIRCUIT_PREFERRED =
         "alluxio.user.short.circuit.preferred";
@@ -5648,6 +5690,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
+    public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_SHARED_CACHING_READER_ENABLED
+        = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
