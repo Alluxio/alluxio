@@ -11,22 +11,16 @@
 
 package alluxio.master;
 
-import alluxio.Server;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UnderFileSystem;
 
 /**
- * This interface contains common operations for all masters.
+ * Implementation of UfsManager that does nothing. This is useful for testing and
+ * for situations where we don't want to start a real UfsManager,e.g. when formatting the journal.
  */
-public interface Master extends Journaled, Server<Boolean> {
-  /**
-   * @return a journal context for writing journal entries to the master
-   */
-  JournalContext createJournalContext() throws UnavailableException;
+public class NoopUfsManager extends AbstractUfsManager {
 
-  /**
-   * @return a master context
-   */
-  MasterContext getMasterContext();
+  @Override
+  protected void connectUfs(UnderFileSystem fs) {
+  }
 }
