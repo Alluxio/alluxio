@@ -18,11 +18,7 @@ public class AllocationCoordinator {
 
   public static AllocationCoordinator getInstance(BlockMetadataView view) {
     if (sInstance == null) {
-      synchronized (AllocationCoordinator.class) {
-        if (sInstance == null) {
-          sInstance = new AllocationCoordinator(view);
-        }
-      }
+      sInstance = new AllocationCoordinator(view);
     }
     return sInstance;
   }
