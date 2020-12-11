@@ -3490,17 +3490,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "format pattern.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
-      new Builder(Name.USER_DIRECT_MEMORY_IO_ENABLED)
-          .setDefaultValue(false)
-          .setIsHidden(true)
-          .setDescription("(Experimental) If this is enabled, clients will read from local "
-              + "worker directly without invoking extra RPCs to worker to require locations. "
-              + "Note this optimization is only safe when the workload is read only and the "
-              + "worker has only one tier and one storage directory in this tier.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
@@ -4313,6 +4302,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(Integer.MAX_VALUE)
           .setDescription("The maximum concurrent readers for one UFS block on one Block Worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
+      new Builder(Name.USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED)
+          .setDefaultValue(false)
+          .setAlias("alluxio.user.direct.memory.io.enabled")
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, clients will read from local "
+              + "worker directly without invoking extra RPCs to worker to require locations. "
+              + "Note this optimization is only safe when the workload is read only and the "
+              + "worker has only one tier and one storage directory in this tier.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
@@ -5499,8 +5500,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
-    public static final String USER_DIRECT_MEMORY_IO_ENABLED =
-        "alluxio.user.direct.memory.io.enabled";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
@@ -5647,6 +5646,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
+    public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
+        "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
