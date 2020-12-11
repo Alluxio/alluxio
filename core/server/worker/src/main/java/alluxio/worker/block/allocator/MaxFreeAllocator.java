@@ -15,13 +15,13 @@ import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
-import alluxio.worker.block.reviewer.Reviewer;
-
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * An allocator that allocates a block in the storage dir with most free space. It always allocates
@@ -32,7 +32,6 @@ public final class MaxFreeAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(MaxFreeAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link MaxFreeAllocator}.
@@ -41,14 +40,13 @@ public final class MaxFreeAllocator implements Allocator {
    */
   public MaxFreeAllocator(BlockMetadataView view) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
-    mReviewer = Reviewer.Factory.create();
   }
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
-      BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview) {
+                                              BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location, skipReview);
+    return allocateBlock(sessionId, blockSize, location, skipReview, reviewFunc);
   }
 
   /**
@@ -63,7 +61,7 @@ public final class MaxFreeAllocator implements Allocator {
    *         null otherwise
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
-      BlockStoreLocation location, boolean skipReview) {
+                                       BlockStoreLocation location, boolean skipReview, Predicate<StorageDirView> reviewFunc) {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
@@ -72,7 +70,7 @@ public final class MaxFreeAllocator implements Allocator {
         candidateDirView = getCandidateDirInTier(tierView, blockSize,
             BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
-          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
+          if (skipReview || reviewFunc.test(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.
@@ -86,7 +84,7 @@ public final class MaxFreeAllocator implements Allocator {
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
       if (candidateDirView != null) {
         // The allocation is not good enough. Revert it.
-        if (!skipReview && !mReviewer.acceptAllocation(candidateDirView)) {
+        if (!skipReview && !reviewFunc.test(candidateDirView)) {
           LOG.debug("Allocation rejected for anyDirInTier: {}",
                   candidateDirView.toBlockStoreLocation());
           candidateDirView = null;
@@ -97,7 +95,7 @@ public final class MaxFreeAllocator implements Allocator {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
         if (candidateDirView != null) {
-          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
+          if (skipReview || reviewFunc.test(candidateDirView)) {
             break;
           }
           // We tried the dir on this tier with max free bytes but that is not good enough.

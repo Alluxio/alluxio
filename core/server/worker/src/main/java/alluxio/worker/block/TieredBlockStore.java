@@ -36,6 +36,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.BlockOrder;
 
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -89,7 +90,8 @@ public class TieredBlockStore implements BlockStore {
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
-  private final Allocator mAllocator;
+//  private final Allocator mAllocator;
+  private final AllocationCoordinator mAllocationCoordinator;
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
@@ -127,9 +129,12 @@ public class TieredBlockStore implements BlockStore {
 
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.create(initManagerView);
-    if (mAllocator instanceof BlockStoreEventListener) {
-      registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
+
+
+//    mAllocator = Allocator.Factory.create(initManagerView);
+    mAllocationCoordinator = AllocationCoordinator.getInstance(initManagerView);
+    if (mAllocationCoordinator.getAllocator() instanceof BlockStoreEventListener) {
+      registerBlockStoreEventListener((BlockStoreEventListener) mAllocationCoordinator.getAllocator());
     }
 
     // Initialize and start coordinator.
@@ -634,7 +639,7 @@ public class TieredBlockStore implements BlockStore {
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     try {
       // Allocate from given location.
-      dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+      dirView = mAllocationCoordinator.allocateBlockWithView(sessionId, options.getSize(),
           options.getLocation(), allocatorView, false);
       if (dirView != null) {
         return dirView;
@@ -646,7 +651,7 @@ public class TieredBlockStore implements BlockStore {
                   options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocationCoordinator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
           LOG.debug("Allocation after freeing space for block expansion: {}", dirView);
           if (dirView == null) {
@@ -662,7 +667,7 @@ public class TieredBlockStore implements BlockStore {
       } else {
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
                 options.getLocation());
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocationCoordinator.allocateBlockWithView(sessionId, options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
 
         if (dirView != null) {
@@ -680,7 +685,7 @@ public class TieredBlockStore implements BlockStore {
           freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocationCoordinator.allocateBlockWithView(sessionId, options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
           LOG.debug("Allocation after freeing space for block creation: {}", dirView);
         }

@@ -32,6 +32,7 @@ import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.DefaultBlockIterator;
 import alluxio.worker.block.annotator.BlockAnnotator;
 
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public final class BlockMetadataManager {
         BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
             Collections.<Long>emptySet(), Collections.<Long>emptySet());
         mBlockIterator = new EmulatingBlockIterator(this,
-            Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
+            Evictor.Factory.create(initManagerView, AllocationCoordinator.getInstance(initManagerView)));
       } else {
         // Create default block iterator.
         mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());

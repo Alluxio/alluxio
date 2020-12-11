@@ -23,6 +23,7 @@ import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,18 +43,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 @Deprecated
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
-  protected final Allocator mAllocator;
+//  protected final Allocator mAllocator;
+  protected final AllocationCoordinator mAllocationCoordinator;
+
   protected BlockMetadataEvictorView mMetadataView;
 
   /**
    * Creates a new instance of {@link AbstractEvictor}.
    *
    * @param view a view of block metadata information
-   * @param allocator an allocation policy
+   * @param allocationCoordinator the allocation coordinator
    */
-  public AbstractEvictor(BlockMetadataEvictorView view, Allocator allocator) {
+  public AbstractEvictor(BlockMetadataEvictorView view, AllocationCoordinator allocationCoordinator) {
     mMetadataView = Preconditions.checkNotNull(view, "view");
-    mAllocator = Preconditions.checkNotNull(allocator, "allocator");
+    mAllocationCoordinator = Preconditions.checkNotNull(allocationCoordinator, "allocationCoordinator");
+
   }
 
   /**
@@ -150,7 +154,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
             continue;
           }
           StorageDirEvictorView nextDirView
-              = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
+              = (StorageDirEvictorView) mAllocationCoordinator.allocateBlockWithView(
                   Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
                   BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
                   mMetadataView, true);

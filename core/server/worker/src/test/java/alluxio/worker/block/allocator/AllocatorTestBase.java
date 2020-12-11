@@ -27,6 +27,7 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -63,7 +64,7 @@ public class AllocatorTestBase {
   public static final int DEFAULT_HDD_NUM  = TIER_PATH[2].length;
 
   protected BlockMetadataManager mManager = null;
-  protected Allocator mAllocator = null;
+  protected AllocationCoordinator mAllocationCoorinator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
   protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier("MEM");
@@ -80,6 +81,7 @@ public class AllocatorTestBase {
   @Before
   public void before() throws Exception {
     resetManagerView();
+    AllocationCoordinator.destroyInstance();
   }
 
   /**
@@ -103,12 +105,12 @@ public class AllocatorTestBase {
    * @param blockSize the size of block in bytes
    * @param avail the block should be successfully allocated or not
    */
-  protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
+  protected void assertTempBlockMeta(AllocationCoordinator allocationCoordinator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+            allocationCoordinator.allocateBlockWithView(SESSION_ID, blockSize, location,
                 getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
@@ -131,14 +133,14 @@ public class AllocatorTestBase {
    * @param tierAlias the block should be allocated at this tier
    * @param dirIndex  the block should be allocated at this dir
    */
-  protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
+  protected void assertTempBlockMeta(AllocationCoordinator allocationCoordinator, BlockStoreLocation location,
       int blockSize, boolean avail, String tierAlias, int dirIndex) throws Exception {
 
     mTestBlockId++;
 
     // We skip the review here as we do not want the Reviewer's opinion to affect the test
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+        allocationCoordinator.allocateBlockWithView(SESSION_ID, blockSize, location,
                 getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
@@ -171,7 +173,7 @@ public class AllocatorTestBase {
         mAnyDirInTierLoc2, mAnyDirInTierLoc3};
     for (int i = 0; i < locations.length; i++) {
       StorageDirView dirView =
-              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1,
+              mAllocationCoorinator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1,
                       locations[i], getMetadataEvictorView(), true);
       assertNotNull(dirView);
       assertEquals(TIER_ALIAS[i], dirView.getParentTierView().getTierViewAlias());
@@ -185,7 +187,7 @@ public class AllocatorTestBase {
     for (String medium : MEDIA_TYPES) {
       BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
       StorageDirView dirView =
-              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+              mAllocationCoorinator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
                       getMetadataEvictorView(), true);
       assertNotNull(dirView);
       assertEquals(medium, dirView.getMediumType());
@@ -198,7 +200,7 @@ public class AllocatorTestBase {
       for (int j = 0; j < TIER_PATH[i].length; j++) {
         BlockStoreLocation loc = new BlockStoreLocation(tier, j);
         StorageDirView dirView =
-                mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+                mAllocationCoorinator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
                         getMetadataEvictorView(), true);
         assertNotNull(dirView);
         assertEquals(tier, dirView.getParentTierView().getTierViewAlias());

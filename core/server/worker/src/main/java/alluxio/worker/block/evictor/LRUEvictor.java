@@ -18,6 +18,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,10 +56,10 @@ public class LRUEvictor extends AbstractEvictor {
    * Creates a new instance of {@link LRUEvictor}.
    *
    * @param view a view of block metadata information
-   * @param allocator an allocation policy
+   * @param allocationCoordinator the allocation coordinator
    */
-  public LRUEvictor(BlockMetadataEvictorView view, Allocator allocator) {
-    super(view, allocator);
+  public LRUEvictor(BlockMetadataEvictorView view, AllocationCoordinator allocationCoordinator) {
+    super(view, allocationCoordinator);
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mMetadataView.getTierViews()) {

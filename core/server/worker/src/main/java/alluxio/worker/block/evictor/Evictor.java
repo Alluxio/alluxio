@@ -18,6 +18,7 @@ import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.reviewer.AllocationCoordinator;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,14 +47,14 @@ public interface Evictor {
      * Factory for {@link Evictor}.
      *
      * @param view {@link BlockMetadataEvictorView} to pass to {@link Evictor}
-     * @param allocator an allocation policy
+     * @param allocationCoordinator the allocation coordinator
      * @return the generated {@link Evictor}
      */
-    public static Evictor create(BlockMetadataEvictorView view, Allocator allocator) {
+    public static Evictor create(BlockMetadataEvictorView view, AllocationCoordinator allocationCoordinator) {
       return CommonUtils.createNewClassInstance(
           ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
-          new Class[] {BlockMetadataEvictorView.class, Allocator.class},
-          new Object[] {view, allocator});
+          new Class[] {BlockMetadataEvictorView.class, AllocationCoordinator.class},
+          new Object[] {view, allocationCoordinator});
     }
   }
 

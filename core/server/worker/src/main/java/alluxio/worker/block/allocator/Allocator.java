@@ -22,6 +22,9 @@ import alluxio.worker.block.reviewer.Reviewer;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Iterator;
+import java.util.function.Predicate;
+
 /**
  * Interface for the allocation policy of Alluxio managed data.
  */
@@ -73,5 +76,5 @@ public interface Allocator {
    *         otherwise
    */
   StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
-      BlockMetadataView view, boolean skipReview);
+                                       BlockMetadataView view, boolean skipReview, Predicate<StorageDirView> reviewFunc);
 }
