@@ -83,11 +83,6 @@ public final class MockMaster implements Master {
   }
 
   @Override
-  public MasterContext getMasterContext() {
-    return null;
-  }
-
-  @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.NOOP;
   }
