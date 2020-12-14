@@ -43,6 +43,10 @@
 {{- if .Values.jvmOptions }}
   {{- $alluxioJavaOpts = concat $alluxioJavaOpts .Values.jvmOptions }}
 {{- end }}
+{{- if .Values.metrics.enabled }}
+  {{- $metricsConfFile := "-Dalluxio.metrics.conf.file=/config/metrics.properties" }}
+  {{- $alluxioJavaOpts = append $alluxioJavaOpts $metricsConfFile }}
+{{- end }}
 
 {{- /* ===================================== */}}
 {{- /*       ALLUXIO_MASTER_JAVA_OPTS        */}}

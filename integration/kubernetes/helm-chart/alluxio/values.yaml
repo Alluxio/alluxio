@@ -84,6 +84,7 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  podAnnotations: {}
 
 jobMaster:
   args:
@@ -177,6 +178,7 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  podAnnotations: {}
 
 jobWorker:
   args:
@@ -300,6 +302,7 @@ fuse:
     limits:
       cpu: "4"
       memory: "4G"
+  podAnnotations: {}
 
 
 ##  Secrets ##
@@ -310,3 +313,59 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
+
+##  Metrics System ##
+
+# Settings for Alluxio metrics. Disabled by default.
+metrics:
+  enabled: false
+  # Enable ConsoleSink by class name
+  ConsoleSink:
+    enabled: false
+    # Polling period for ConsoleSink
+    period: 10
+    # Unit of poll period
+    unit: seconds
+  # Enable CsvSink by class name
+  CsvSink:
+    enabled: false
+    # Polling period for CsvSink
+    period: 1
+    # Unit of poll period
+    unit: seconds
+    # Polling directory for CsvSink, ensure this directory exists!
+    directory: /tmp/alluxio-metrics
+  # Enable JmxSink by class name
+  JmxSink:
+    enabled: false
+    # Jmx domain
+    domain: org.alluxio
+  # Enable GraphiteSink by class name
+  GraphiteSink:
+    enabled: false
+    # Hostname of Graphite server
+    host: NONE
+    # Port of Graphite server
+    port: NONE
+    # Poll period
+    period: 10
+    # Unit of poll period
+    unit: seconds
+    # Prefix to prepend to metric name
+    prefix: ""
+  # Enable Slf4jSink by class name
+  Slf4jSink:
+    enabled: false
+    # Poll period
+    period: 10
+    # Units of poll period
+    unit: seconds
+    # Contains all metrics
+    filterClass: null
+    # Contains all metrics
+    filterRegex: null
+  # Enable PrometheusMetricsServlet by class name
+  PrometheusMetricsServlet:
+    enabled: false
+  # Pod annotations for Prometheus
+  podAnnotations: {}

@@ -138,3 +138,7 @@
 0.6.11
 
 - Pass alluxio.user.hostname via ALLUXIO_FUSE_JAVA_OPTS for FUSE
+
+0.6.12
+
+- Adding Metrics configuration including Prometheus support
