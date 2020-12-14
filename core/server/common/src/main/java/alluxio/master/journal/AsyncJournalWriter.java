@@ -30,6 +30,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -49,6 +51,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
 public final class AsyncJournalWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(AsyncJournalWriter.class);
+
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
@@ -308,6 +312,10 @@ public final class AsyncJournalWriter {
           }
         }
       } catch (IOException | JournalClosedException exc) {
+        // Add the error logging here since the actual flush error may be overwritten
+        // by the future meaningless ratis.protocol.AlreadyClosedException
+        // use debug level logging because the exception may be annoying in some cases
+        LOG.debug("Failed to flush journal entry", exc);
         Metrics.JOURNAL_FLUSH_FAILURE.inc();
         // Release only tickets that have been flushed. Fail the rest.
         Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
