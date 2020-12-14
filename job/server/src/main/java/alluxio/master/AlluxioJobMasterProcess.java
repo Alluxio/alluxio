@@ -89,8 +89,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     mUfsManager = new JobUfsManager();
     try {
       // Create master.
-      mJobMaster = new JobMaster(
-          new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,
+      mJobMaster = new JobMaster(new MasterContext(mJournalSystem), mFileSystem, mFsContext,
           mUfsManager);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
