@@ -80,7 +80,7 @@ public final class TieredIdentityUtils {
       return Optional.empty();
     }
     for (TieredIdentity.LocalityTier tier : tieredIdentity.getTiers()) {
-      if (tier == null){
+      if (tier == null) {
         return Optional.of(identities.get(0));
       }
       for (TieredIdentity identity : identities) {
