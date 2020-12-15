@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -101,7 +103,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       new ConcurrentHashMap<>();
 
   private UfsClient mRootUfsClient;
-  private UfsClient mJournalUfsClient;
+  private Map<String, UfsClient> mJournalUfsClientMap;
   protected final Closer mCloser;
 
   protected AbstractUfsManager() {
@@ -213,18 +215,23 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UfsClient getJournal() {
+  public UfsClient getJournal(URI location) {
     synchronized (this) {
-      if (mJournalUfsClient == null) {
-        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI("/dummy_journal_mount_point"),
+      if (mJournalUfsClientMap == null) {
+        mJournalUfsClientMap = new HashMap<>();
+      }
+      UfsClient ufsClient = mJournalUfsClientMap.get(location.getScheme());
+      if (ufsClient == null) {
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI(location.toString()),
             UfsJournal.getJournalUfsConf());
         try {
-          mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
+          ufsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
+          mJournalUfsClientMap.put(location.getScheme(), ufsClient);
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException("We should never reach here", e);
         }
       }
-      return mJournalUfsClient;
+      return ufsClient;
     }
   }
 

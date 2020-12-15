@@ -146,7 +146,7 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
       Supplier<Set<JournalSink>> journalSinks) {
-    this(location, master, master.getMasterContext().getUfsManager().getJournal()
+    this(location, master, master.getMasterContext().getUfsManager().getJournal(location)
             .acquireUfsResource()
             .get(),
         quietPeriodMs, journalSinks);
