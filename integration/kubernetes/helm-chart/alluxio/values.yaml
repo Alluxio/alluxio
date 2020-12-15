@@ -277,7 +277,7 @@ fuse:
   # Change both to true to deploy FUSE
   enabled: false
   clientEnabled: false
-  # Properties for the jobWorker component
+  # Properties for the fuse component
   properties:
   # Customize the MaxDirectMemorySize
   # These options are specific to the FUSE daemon
