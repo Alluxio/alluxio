@@ -13,13 +13,17 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -74,6 +78,35 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
         checkFileInUnderStorage(filePath, len);
       }
     }
+  }
+
+  /**
+   * Tests {@link FileOutStream#write(int)}.
+   */
+  @Test
+  public void writeInNonExistDirectory() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
+        .setRecursive(true).build();
+    AlluxioURI filePath =
+        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + MIN_LEN + "_" + mWriteType));
+    AlluxioURI parentPath = new AlluxioURI(uniqPath);
+
+    // create a directory without a backing directory in UFS
+    mFileSystem.createDirectory(parentPath, CreateDirectoryPOptions.newBuilder()
+        .setRecursive(true)
+        .setWriteType(WritePType.CACHE_THROUGH)
+        .build());
+    URIStatus status = mFileSystem.getStatus(parentPath);
+    String checkpointPath = status.getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath,
+        ServerConfiguration.global());
+    ufs.deleteDirectory(checkpointPath);
+
+    // write a file to a directory exists in Alluxio but not in UFS
+    writeIncreasingBytesToFile(filePath, MIN_LEN, op);
+    checkFileInAlluxio(filePath, MIN_LEN);
+    checkFileInUnderStorage(filePath, MIN_LEN);
   }
 
   /**
