@@ -80,8 +80,6 @@ The [Alluxio](https://hub.docker.com/r/alluxio/alluxio) image stores the Journal
 A Persistent Volume Claim is created for each master Pod defined in `volumeClaimTemplates` in `master/statefulset.yaml`.
 The PVC should be satisfied by the PersistentVolume you create.
 
----
-
 ## Helm Chart Values
 
 Full documentation can be found in the comments of the `values.yaml` file, but a high level overview is provided here.
@@ -118,7 +116,7 @@ __Master values:__
 | `resources.limits.memory` | Memory Limit | `8G` |
 | `resources.requests.cpu` | CPU Request | `1` |
 | `resources.requests.memory` | Memory Request | `1G` |
-| `ports.embedded` | EMBEDDED Port | `19200` |
+| `ports.embedded` | EMBEDDED JOURNAL Port | `19200` |
 | `ports.rpc` | RPC Port | `19998` |
 | `ports.web` | Web Port | `19999` |
 | `hostPID` | hostPID requires escalated privileges for using Java profile | `false` |
@@ -138,7 +136,7 @@ __jobMaster values:__
 | `resources.limits.memory` | Memory Limit | `8G` |
 | `resources.requests.cpu` | CPU Request | `1` |
 | `resources.requests.memory` | Memory Request | `1G` |
-| `ports.embedded` | EMBEDDED Port | `20003` |
+| `ports.embedded` | EMBEDDED JOURNAL Port | `20003` |
 | `ports.rpc` | RPC Port | `20001` |
 | `ports.web` | Web Port | `20002` |
 | `jvmOptions` | JVM options specific to the jobMaster container | `[]` |
@@ -196,7 +194,7 @@ __metastore values:__
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| `volumeType` | You can enable `metastore` to use ROCKS DB instead of Heap. `persistentVolumeClaim` or `emptyDir` | `persistentVolumeClaim` |
+| `volumeType` | When metastore is enabled, Alluxio uses RocksDB to store metadata off heap. This controls what kind of volume to use for the off heap metastore. `persistentVolumeClaim` or `emptyDir` | `persistentVolumeClaim` |
 | `size` | Volume Size | `1Gi` |
 | `mountPath` | Mount Path | `/metastore` |
 | `storageClass` | Attributes to use when the `metastore` is `persistentVolumeClaim` | `standard` |
@@ -254,7 +252,7 @@ __fuse values:__
 | `resources.limits.memory` | Memory Limit | `4G` |
 | `resources.requests.cpu` | CPU Request | `0.5` |
 | `resources.requests.memory` | Memory Request | `1G` |
-| `podAnnotations` | Pod Annotations for the masters | `{}` |
+| `podAnnotations` | Pod Annotations for the FUSE pods | `{}` |
 
 __Metrics values:__
 
