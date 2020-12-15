@@ -129,7 +129,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             mLockId, mRequest.getBlockId(), e.getMessage());
       }
       mWorker.cleanupSession(mSessionId);
-      mLockId = BlockLockManager.INVALID_LOCK_ID;
     }
     mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(t));
   }

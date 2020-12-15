@@ -50,7 +50,7 @@ public class AsyncBlockRemoverTest {
     mRemover = new AsyncBlockRemover(mMockWorker, 10, mBlocksToRemove,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
     List<Long> blocks = new ArrayList<>();
-    for (long i = 0; i < 100; i ++) {
+    for (long i = 0; i < 100; i++) {
       blocks.add(i);
     }
     mRemover.addBlocksToDelete(blocks);
@@ -71,7 +71,7 @@ public class AsyncBlockRemoverTest {
     mRemover = new AsyncBlockRemover(mMockWorker, 10, mBlocksToRemove,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
     List<Long> blocks = new ArrayList<>();
-    for (long i = 0; i < 100; i ++) {
+    for (long i = 0; i < 100; i++) {
       blocks.add(i);
     }
     mRemover.addBlocksToDelete(blocks);
