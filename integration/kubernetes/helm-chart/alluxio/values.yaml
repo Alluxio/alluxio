@@ -368,4 +368,8 @@ metrics:
   PrometheusMetricsServlet:
     enabled: false
   # Pod annotations for Prometheus
+  # podAnnotations:
+  #   prometheus.io/scrape: "true"
+  #   prometheus.io/port: "19999"
+  #   prometheus.io/path: "/metrics/prometheus/"
   podAnnotations: {}

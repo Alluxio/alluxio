@@ -26,7 +26,6 @@ metadata:
     heritage: {{ .Release.Service }}
 data:
   metrics.properties: |-
-
     {{- if .Values.metrics.ConsoleSink.enabled }}
     sink.console.class=alluxio.metrics.sink.ConsoleSink
     sink.console.period={{ .Values.metrics.ConsoleSink.period }}
