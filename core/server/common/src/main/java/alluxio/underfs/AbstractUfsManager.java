@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
@@ -31,7 +32,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Basic implementation of {@link UfsManager}.
+ * Basic implementation of {@link UfsManager}. Store the journal UFS and root
+ * mount point information.
  */
 public abstract class AbstractUfsManager implements UfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsManager.class);
@@ -99,9 +101,10 @@ public abstract class AbstractUfsManager implements UfsManager {
       new ConcurrentHashMap<>();
 
   private UfsClient mRootUfsClient;
+  private UfsClient mJournalUfsClient;
   protected final Closer mCloser;
 
-  AbstractUfsManager() {
+  protected AbstractUfsManager() {
     mCloser = Closer.create();
   }
 
@@ -206,6 +209,22 @@ public abstract class AbstractUfsManager implements UfsManager {
         }
       }
       return mRootUfsClient;
+    }
+  }
+
+  @Override
+  public UfsClient getJournal() {
+    synchronized (this) {
+      if (mJournalUfsClient == null) {
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI("/dummy_journal_mount_point"),
+            UfsJournal.getJournalUfsConf());
+        try {
+          mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
+        } catch (NotFoundException | UnavailableException e) {
+          throw new RuntimeException("We should never reach here", e);
+        }
+      }
+      return mJournalUfsClient;
     }
   }
 
