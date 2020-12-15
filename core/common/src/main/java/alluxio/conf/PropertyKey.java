@@ -1549,6 +1549,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)
+          .setDefaultValue("64MB")
+          .setDescription("The maximum size in bytes of journal entries allowed "
+              + "in concurrent journal flushing (journal IO to standby masters "
+              + "and IO to local disks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_JOURNAL_SIZE_MAX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_JOURNAL_SIZE_MAX)
+          .setDefaultValue("4MB")
+          .setDescription("The maximum single journal entry size allowed to be flushed.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port to use for embedded journal communication with other masters.")
@@ -5138,6 +5154,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
         "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
+        "alluxio.master.embedded.journal.catchup.retry.wait";
+    public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
+        "alluxio.master.embedded.journal.flush.size.max";
+    public static final String MASTER_EMBEDDED_JOURNAL_JOURNAL_SIZE_MAX =
         "alluxio.master.embedded.journal.catchup.retry.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
