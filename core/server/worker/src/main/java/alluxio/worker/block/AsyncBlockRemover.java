@@ -22,7 +22,6 @@ import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Asynchronous block removal service.
@@ -142,7 +143,7 @@ public class AsyncBlockRemover {
           LOG.warn("{}: invalid block state for block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
         } catch (Exception e) {
-          LOG.warn("Unexpected exception: {}.", e);
+          LOG.warn("Unexpected exception: {}.", e.getMessage());
         } finally {
           if (blockToBeRemoved != INVALID_BLOCK_ID) {
             mRemovingBlocks.remove(blockToBeRemoved);

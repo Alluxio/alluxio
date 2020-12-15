@@ -15,9 +15,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link BlockLockManager}.
@@ -82,6 +83,16 @@ public final class BlockLockManagerTest {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    assertNotEquals(lockId1, lockId2);
+  }
+
+  @Test
+  public void tryLockBlock() {
+    // Read-lock on can both get through
+    long lockId1 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.MINUTES);
+    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.MINUTES);
     assertNotEquals(lockId1, lockId2);
   }
 
