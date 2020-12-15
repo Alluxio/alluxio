@@ -141,4 +141,4 @@
 
 0.6.12
 
-- Adding Metrics configuration including Prometheus support
+- Add Metrics configurations including Prometheus
