@@ -281,4 +281,3 @@ __Metrics values:__
 | `Slf4jSink.filterRegex` | Contains all metrics | `null` |
 | `PrometheusMetricsServlet.enabled` | Enabling PrometheusMetricsServlet | `false` |
 | `podAnnotations` | Pod Annotations for the Prometheus | `{}` |
-
