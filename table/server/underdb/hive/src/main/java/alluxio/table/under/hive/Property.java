@@ -139,7 +139,7 @@ public final class Property extends UdbProperty {
   public static final Property ALLOW_DIFF_PART_LOC_PREFIX =
       new Builder(Name.ALLOW_DIFF_PART_LOC_PREFIX)
           .setDefaultValue("false")
-          .setDescription("Whether to mount partitions that do not share same location prefix with table location")
+          .setDescription("Whether to mount partitions diff location prefix partitions")
           .build();
 
   /**
