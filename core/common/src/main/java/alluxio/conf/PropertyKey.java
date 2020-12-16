@@ -5158,7 +5158,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
         "alluxio.master.embedded.journal.flush.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_JOURNAL_SIZE_MAX =
-        "alluxio.master.embedded.journal.catchup.retry.wait";
+        "alluxio.master.embedded.journal.journal.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
