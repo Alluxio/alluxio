@@ -133,8 +133,6 @@ public final class S3RestServiceHandler {
       public ListAllMyBucketsResult call() throws S3Exception {
         String user = getUserFromAuthorization(authorization);
 
-        LOG.info(user);
-
         List<URIStatus> objects;
         try {
           objects = mFileSystem.listStatus(new AlluxioURI("/"));
