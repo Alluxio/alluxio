@@ -131,7 +131,7 @@ spec:
           volumeMounts:
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
-              mountPath: /config/metrics.properties
+              mountPath: /config/metrics
             {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
@@ -201,7 +201,7 @@ spec:
           volumeMounts:
           {{- if .Values.metrics.enabled }}
           - name: {{ $fullName }}-metrics-volume
-            mountPath: /config/metrics.properties
+            mountPath: /config/metrics
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}

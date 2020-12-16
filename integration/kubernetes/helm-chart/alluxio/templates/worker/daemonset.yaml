@@ -103,7 +103,7 @@ spec:
           volumeMounts:
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
-              mountPath: /config/metrics.properties
+              mountPath: /config/metrics
             {{- end }}
             {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
@@ -164,7 +164,7 @@ spec:
           volumeMounts:
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
-              mountPath: /config/metrics.properties
+              mountPath: /config/metrics
             {{- end }}
             {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
