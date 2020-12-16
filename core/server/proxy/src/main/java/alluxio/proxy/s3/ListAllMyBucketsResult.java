@@ -19,30 +19,44 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of ListAllMyBucketsResult according to https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html
+ * Implementation of ListAllMyBucketsResult according to https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html.
  */
 @JacksonXmlRootElement(localName = "ListAllMyBucketsResult")
 public class ListAllMyBucketsResult {
   private List<Bucket> mBuckets;
 
-  public ListAllMyBucketsResult(List<String> mNames) {
-    mBuckets = mNames.stream().map((name) -> new Bucket(name)).collect(Collectors.toList());
+  /**
+   * Creates a {@link ListAllMyBucketsResult}.
+   *
+   * @param names names of all of the buckets
+   */
+  public ListAllMyBucketsResult(List<String> names) {
+    mBuckets = names.stream().map((name) -> new Bucket(name)).collect(Collectors.toList());
   }
 
+  /**
+   * @return the list of buckets
+   */
   @JacksonXmlProperty(localName = "Bucket")
   @JacksonXmlElementWrapper(localName = "Buckets")
   public List<Bucket> getBuckets() {
     return mBuckets;
   }
 
+  /**
+   * The Bucket object.
+   */
   @JacksonXmlRootElement(localName = "Bucket")
   public class Bucket {
     private String mName;
 
-    public Bucket(String name) {
+    private Bucket(String name) {
       mName = name;
     }
 
+    /**
+     * @return the name of the bucket
+     */
     @JacksonXmlProperty(localName = "Name")
     public String getName() {
       return mName;

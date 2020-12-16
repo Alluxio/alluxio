@@ -124,6 +124,11 @@ public final class S3RestServiceHandler {
     return stripped.substring(0, colonIndex);
   }
 
+  /**
+   * @summary lists all buckets owned by you
+   * @param authorization header parameter authorization
+   * @return the response object
+   */
   @GET
   @Path("/")
   public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
@@ -148,7 +153,6 @@ public final class S3RestServiceHandler {
       }
     });
   }
-
 
   /**
    * @summary creates a bucket
