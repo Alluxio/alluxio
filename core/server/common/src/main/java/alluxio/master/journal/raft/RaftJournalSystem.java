@@ -311,6 +311,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
         SizeInBytes.valueOf(mConf.getMaxLogSize()));
 
+    // the following configurations need to be changed when the single journal entry
+    // is unexpectedly big.
+    RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
+        SizeInBytes.valueOf(ServerConfiguration.global()
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
+    // this property defines the maximum allowed size of the concurrent journal flush requests.
+    // if the total size of the journal entries contained in the flush requests
+    // are bigger than the given threshold, Ratis may error out as
+    // `Log entry size 117146048 exceeds the max buffer limit of 104857600`
+    RaftServerConfigKeys.Write.setByteLimit(properties,
+        SizeInBytes.valueOf(ServerConfiguration.global()
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)));
+    // this property defines the maximum allowed size of the concurrent journal write IO tasks.
+    // if the total size of the journal entries contained in the write IO tasks
+    // are bigger than the given threshold, ratis may error out as
+    // `SegmentedRaftLogWorker: elementNumBytes = 78215699 > byteLimit = 67108864`
+    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) ServerConfiguration
+        .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
+
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
         mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
