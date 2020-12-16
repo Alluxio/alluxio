@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
@@ -22,6 +23,7 @@ import alluxio.master.journal.sink.JournalSink;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
@@ -51,7 +53,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
 public final class AsyncJournalWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(AsyncJournalWriter.class);
+  private static final Logger SAMPLING_LOG =
+      new SamplingLogger(LoggerFactory.getLogger(AsyncJournalWriter.class),
+          30L * Constants.SECOND_MS);
 
   /**
    * Used to manage and keep track of pending callers of ::flush.
@@ -314,8 +318,7 @@ public final class AsyncJournalWriter {
       } catch (IOException | JournalClosedException exc) {
         // Add the error logging here since the actual flush error may be overwritten
         // by the future meaningless ratis.protocol.AlreadyClosedException
-        // use debug level logging because the exception may be annoying in some cases
-        LOG.debug("Failed to flush journal entry", exc);
+        SAMPLING_LOG.warn("Failed to flush journal entry", exc);
         Metrics.JOURNAL_FLUSH_FAILURE.inc();
         // Release only tickets that have been flushed. Fail the rest.
         Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
