@@ -382,7 +382,9 @@ public class TieredBlockStore implements BlockStore {
     long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
         REMOVE_BLOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     if (lockId == BlockLockManager.INVALID_LOCK_ID) {
-      throw new IOException(String.format("Can not acquire lock for block %d", blockId));
+      throw new IOException(
+          String.format("Can not acquire lock to remove block %d for session %d after %d ms",
+              blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
     }
     BlockMeta blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
