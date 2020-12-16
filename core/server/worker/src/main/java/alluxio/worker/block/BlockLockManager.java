@@ -20,6 +20,7 @@ import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -98,22 +100,7 @@ public final class BlockLockManager {
    * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
-    ClientRWLock blockLock = getBlockLock(blockId);
-    Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
-    // Make sure the session isn't already holding the block lock.
-    if (blockLockType == BlockLockType.WRITE && sessionHoldsLock(sessionId, blockId)) {
-      throw new IllegalStateException(String
-          .format("Session %s attempted to take a write lock on block %s, but the session already"
-              + " holds a lock on the block", sessionId, blockId));
-    }
-    lock.lock();
-    try {
-      return allocateLockId(sessionId, blockId, lock);
-    } catch (Throwable e) {
-      // If an unexpected exception occurs, we should release the lock to be conservative.
-      unlock(lock, blockId);
-      throw e;
-    }
+    return lockBlockInternal(sessionId, blockId, blockLockType, true, null, null);
   }
 
   /**
@@ -133,6 +120,11 @@ public final class BlockLockManager {
    */
   public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
       long time, TimeUnit unit) {
+    return lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
+  }
+
+  private long lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
+      boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
     // Make sure the session isn't already holding the block lock.
@@ -141,18 +133,36 @@ public final class BlockLockManager {
           .format("Session %s attempted to take a write lock on block %s, but the session already"
               + " holds a lock on the block", sessionId, blockId));
     }
-    try {
-      if (!lock.tryLock(time, unit)) {
-        LOG.warn("Failed to acquire lock for block {} after {} {}.  "
-                + "session: {}, blockLockType: {}, lock reference count = {}",
-            blockId, time, unit, sessionId, blockLockType, blockLock.getReferenceCount());
+    if (blocking) {
+      lock.lock();
+    } else {
+      Preconditions.checkNotNull(time, "time");
+      Preconditions.checkNotNull(unit, "unit");
+      try {
+        if (!lock.tryLock(time, unit)) {
+          LOG.warn("Failed to acquire lock for block {} after {} {}.  "
+                  + "session: {}, blockLockType: {}, lock reference count = {}",
+              blockId, time, unit, sessionId, blockLockType,
+              blockLock.getReferenceCount());
+          return INVALID_LOCK_ID;
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         return INVALID_LOCK_ID;
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     }
     try {
-      return allocateLockId(sessionId, blockId, lock);
+      long lockId = LOCK_ID_GEN.getAndIncrement();
+      try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+        mLockIdToRecordMap.put(lockId, new LockRecord(sessionId, blockId, lock));
+        Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
+        if (sessionLockIds == null) {
+          mSessionIdToLockIdsMap.put(sessionId, Sets.newHashSet(lockId));
+        } else {
+          sessionLockIds.add(lockId);
+        }
+      }
+      return lockId;
     } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
@@ -179,26 +189,6 @@ public final class BlockLockManager {
       }
       return false;
     }
-  }
-
-  /**
-   * @param sessionId the session id to check
-   * @param blockId the block id to check
-   * @param lock block lock
-   * @return whether the specified session holds a lock on the specified block
-   */
-  private long allocateLockId(long sessionId, long blockId, Lock lock) {
-    long lockId = LOCK_ID_GEN.getAndIncrement();
-    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
-      mLockIdToRecordMap.put(lockId, new LockRecord(sessionId, blockId, lock));
-      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-      if (sessionLockIds == null) {
-        mSessionIdToLockIdsMap.put(sessionId, Sets.newHashSet(lockId));
-      } else {
-        sessionLockIds.add(lockId);
-      }
-    }
-    return lockId;
   }
 
   /**
