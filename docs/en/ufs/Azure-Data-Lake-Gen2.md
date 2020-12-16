@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Azure Data Lake Storage Gen2
+title: Azure Storage Gen2
 nickname: Azure Data Lake Storage
 group: Storage Integrations
 priority: 2

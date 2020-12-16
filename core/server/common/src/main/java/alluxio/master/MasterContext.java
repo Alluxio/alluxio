@@ -14,16 +14,13 @@ package alluxio.master;
 import alluxio.master.journal.JournalSystem;
 import alluxio.security.user.ServerUserState;
 import alluxio.security.user.UserState;
-import alluxio.underfs.UfsManager;
 
 import com.google.common.base.Preconditions;
 
 /**
  * Stores context information for Alluxio masters.
- *
- * @param <T> the type of ufsManager to be used
  */
-public class MasterContext<T extends UfsManager> {
+public class MasterContext {
   private final JournalSystem mJournalSystem;
   /**
    * The stateLockManager is used to allow us to pause master state changes so that we can
@@ -32,7 +29,6 @@ public class MasterContext<T extends UfsManager> {
    */
   private final StateLockManager mStateLockManager;
   private final UserState mUserState;
-  private final T mUfsManager;
 
   /**
    * Creates a new master context, using the global server UserState.
@@ -40,7 +36,7 @@ public class MasterContext<T extends UfsManager> {
    * @param journalSystem the journal system to use for tracking master operations
    */
   public MasterContext(JournalSystem journalSystem) {
-    this(journalSystem, null, null);
+    this(journalSystem, null);
   }
 
   /**
@@ -48,10 +44,8 @@ public class MasterContext<T extends UfsManager> {
    *
    * @param journalSystem the journal system to use for tracking master operations
    * @param userState the user state of the server. If null, will use the global server user state
-   * @param ufsManager the UFS manager
    */
-  public MasterContext(JournalSystem journalSystem,
-      UserState userState, T ufsManager) {
+  public MasterContext(JournalSystem journalSystem, UserState userState) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     if (userState == null) {
       mUserState = ServerUserState.global();
@@ -59,7 +53,6 @@ public class MasterContext<T extends UfsManager> {
       mUserState = userState;
     }
     mStateLockManager = new StateLockManager();
-    mUfsManager = ufsManager;
   }
 
   /**
@@ -81,12 +74,5 @@ public class MasterContext<T extends UfsManager> {
    */
   public StateLockManager getStateLockManager() {
     return mStateLockManager;
-  }
-
-  /**
-   * @return the ufs manager
-   */
-  public T getUfsManager() {
-    return mUfsManager;
   }
 }
