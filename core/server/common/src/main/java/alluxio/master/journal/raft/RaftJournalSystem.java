@@ -315,7 +315,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // is unexpectedly big.
     RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
         SizeInBytes.valueOf(ServerConfiguration.global()
-            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_JOURNAL_SIZE_MAX)));
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
     // this property defines the maximum allowed size of the concurrent journal flush requests.
     // if the total size of the journal entries contained in the flush requests
     // are bigger than the given threshold, Ratis may error out as
