@@ -4812,6 +4812,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
+      new Builder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
+          .setDefaultValue(500)
+          .setDescription("The maximum table partitions number in a single journal entry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
           .setDefaultValue(10 * Constants.SECOND_MS)
@@ -5782,6 +5789,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
     public static final String TABLE_CATALOG_UDB_SYNC_TIMEOUT =
         "alluxio.table.catalog.udb.sync.timeout";
+    public static final String TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
+        "alluxio.table.journal.partitions.chunk.size";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =

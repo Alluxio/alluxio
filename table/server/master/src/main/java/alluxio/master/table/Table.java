@@ -11,10 +11,13 @@
 
 package alluxio.master.table;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
 import alluxio.proto.journal.Table.AddTableEntry;
+import alluxio.proto.journal.Table.AddTablePartitionsEntry;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
@@ -22,6 +25,7 @@ import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.util.CommonUtils;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
   private static final long UNDEFINED_VERSION = -1;
+  private static final int PARTITIONS_CHUNK_SIZE = ServerConfiguration.getInt(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE);
 
   public static final long FIRST_VERSION = 1;
 
@@ -170,6 +175,17 @@ public class Table {
   }
 
   /**
+   * Add partitions to the current table
+   *
+   * @param entry the add table partitions entry
+   */
+  public void addPartitions(alluxio.proto.journal.Table.AddTablePartitionsEntry entry) {
+    mPartitionScheme.addPartitions(entry.getPartitionsList().stream()
+        .map(p -> Partition.fromProto(mDatabase.getContext().getLayoutRegistry(), p))
+        .collect(Collectors.toList()));
+  }
+
+  /**
    * @return the table name
    */
   public String getName() {
@@ -291,12 +307,10 @@ public class Table {
   /**
    * @return the journal proto representation
    */
-  public AddTableEntry toJournalProto() {
+  public AddTableEntry toTableJournalProto() {
     AddTableEntry.Builder builder = AddTableEntry.newBuilder()
         .setDbName(mDatabase.getName())
         .setTableName(mName)
-        .addAllPartitions(getPartitions().stream().map(Partition::toProto)
-            .collect(Collectors.toList()))
         .addAllTableStats(mStatistics)
         .setSchema(mSchema)
         .setOwner(mOwner)
@@ -307,6 +321,34 @@ public class Table {
         .setVersion(mVersion)
         .setVersionCreationTime(mVersionCreationTime);
 
+    List<Partition> partitions = getPartitions();
+    if (partitions.size() <= PARTITIONS_CHUNK_SIZE) {
+      builder.addAllPartitions(partitions.stream().map(Partition::toProto)
+          .collect(Collectors.toList()));
+    }
     return builder.build();
+  }
+
+  /**
+   * @return the journal proto representation
+   */
+  public List<AddTablePartitionsEntry> toTablePartitionsJournalProto() {
+    List<AddTablePartitionsEntry> partitionEntries = new ArrayList<>();
+    List<Partition> partitions = getPartitions();
+    if (partitions.size() <= PARTITIONS_CHUNK_SIZE) {
+      return partitionEntries;
+    }
+
+    for (List<Partition> partitionChunk : Lists.partition(partitions, PARTITIONS_CHUNK_SIZE)) {
+      partitionEntries.add(AddTablePartitionsEntry.newBuilder()
+          .setDbName(mDatabase.getName())
+          .setTableName(mName)
+          .setVersion(mVersion)
+          .addAllPartitions(partitionChunk.stream().map(Partition::toProto)
+              .collect(Collectors.toList()))
+          .build());
+    }
+
+    return partitionEntries;
   }
 }
