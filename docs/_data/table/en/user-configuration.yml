@@ -36,6 +36,8 @@ alluxio.user.client.cache.dir:
   'The directory where client-side cache is stored.'
 alluxio.user.client.cache.enabled:
   'If this is enabled, data will be cached on Alluxio client.'
+alluxio.user.client.cache.eviction.retries:
+  'Max number of eviction retries.'
 alluxio.user.client.cache.evictor.class:
   'The strategy that client uses to evict local cached pages when running out of space. Currently the only valid option provided is `alluxio.client.file.cache.evictor.LRUCacheEvictor`.'
 alluxio.user.client.cache.evictor.lfu.logbase:
@@ -48,6 +50,10 @@ alluxio.user.client.cache.size:
   'The maximum size of the client-side cache.'
 alluxio.user.client.cache.store.type:
   'The type of page store to use for client-side cache. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data.'
+alluxio.user.client.cache.timeout.duration:
+  'The timeout duration for local cache I/O operations (reading/writing/deleting). When this property is a positive value,local cache operations after timing out will fail and fallback to external file system but transparent to applications; when this property is a negative value, this feature is disabled.'
+alluxio.user.client.cache.timeout.threads:
+  'The number of threads to handle cache I/O operation timeout, when alluxio.user.client.cache.timeout.duration is positive.'
 alluxio.user.conf.cluster.default.enabled:
   'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
 alluxio.user.conf.sync.interval:
@@ -193,11 +199,13 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.short.circuit.preferred:
   'When short circuit and domain socket both enabled, prefer to use short circuit.'
 alluxio.user.streaming.data.timeout:
-  'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker.'
+  'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker. Keep in mind that some streaming operations may take an unexpectedly long time, such as UFS io. In order to handle occasional slow operations, it is recommended for this parameter to be set to a large value, to avoid spurious timeouts.'
 alluxio.user.streaming.reader.buffer.size.messages:
   'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.streaming.reader.chunk.size.bytes:
   'When a client reads from a remote worker, the maximum chunk size.'
+alluxio.user.streaming.reader.close.timeout:
+  'The timeout to close a grpc streaming reader client. If too long, it may add delays to closing clients. If too short, the client will complete the close() before the server confirms the close()'
 alluxio.user.streaming.writer.buffer.size.messages:
   'When a client writes to a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.streaming.writer.chunk.size.bytes:

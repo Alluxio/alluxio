@@ -108,6 +108,14 @@ alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.ramdisk.size:
   'Memory capacity of each worker node.'
+alluxio.worker.remote.io.slow.threshold:
+  'The time threshold for when a worker remote IO (read or write) of a single buffer is considered slow. When slow IO occurs, it is logged by a sampling logger.'
+alluxio.worker.reviewer.class:
+  '(Experimental) The API is subject to change in the future.The strategy that a worker uses to review space allocation in the Allocator. Each time a block allocation decision is made by the Allocator, the Reviewer will review the decision and rejects it,if the allocation does not meet certain criteria of the Reviewer.The Reviewer prevents the worker to make a bad block allocation decision.Valid options include:`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`.'
+alluxio.worker.reviewer.probabilistic.hardlimit.bytes:
+  'This is used by the `alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. When the free space in a storage dir falls below this hard limit, the ProbabilisticBufferReviewer will stop accepting new blocks into it.This is because we may load more data into existing blocks in the directory and their sizes may expand.'
+alluxio.worker.reviewer.probabilistic.softlimit.bytes:
+  'This is used by the `alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. We attempt to leave a buffer in each storage directory. When the free space in a certain storage directory on the worker falls below this soft limit, the chance that the Reviewer accepts new blocks into this directory goes down. This chance keeps falling linearly until it reaches 0, when the available space reaches the hard limit.'
 alluxio.worker.rpc.port:
   'The port for Alluxio worker''s RPC service.'
 alluxio.worker.session.timeout:
