@@ -35,6 +35,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +49,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -73,6 +76,8 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_XML)
 @Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML })
 public final class S3RestServiceHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
+
   public static final String SERVICE_PREFIX = "s3";
 
   /**
@@ -97,6 +102,56 @@ public final class S3RestServiceHandler {
   public S3RestServiceHandler(@Context ServletContext context) {
     mFileSystem =
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
+  }
+
+  private static String getUserFromAuthorization(String authorization) {
+    if (authorization == null) {
+      return "";
+    }
+
+    // The valid pattern for Authorization is "AWS <AWSAccessKeyId>:<Singature>"
+    int spaceIndex = authorization.indexOf(' ');
+    if (spaceIndex == -1) {
+      return "";
+    }
+    String stripped = authorization.substring(spaceIndex + 1);
+
+    int colonIndex = stripped.indexOf(':');
+    if (colonIndex == -1) {
+      return "";
+    }
+
+    return stripped.substring(0, colonIndex);
+  }
+
+  /**
+   * @summary lists all buckets owned by you
+   * @param authorization header parameter authorization
+   * @return the response object
+   */
+  @GET
+  @Path("/")
+  public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
+
+    return S3RestUtils.call("", new S3RestUtils.RestCallable<ListAllMyBucketsResult>() {
+      @Override
+      public ListAllMyBucketsResult call() throws S3Exception {
+        String user = getUserFromAuthorization(authorization);
+
+        List<URIStatus> objects;
+        try {
+          objects = mFileSystem.listStatus(new AlluxioURI("/"));
+        } catch (AlluxioException | IOException e) {
+          throw new RuntimeException(e);
+        }
+
+        final List<String> buckets = objects.stream()
+            .filter((uri) -> uri.getOwner().equals(user))
+            .map((uri) -> uri.getName()).collect(Collectors.toList());
+        ListAllMyBucketsResult response = new ListAllMyBucketsResult(buckets);
+        return response;
+      }
+    });
   }
 
   /**
