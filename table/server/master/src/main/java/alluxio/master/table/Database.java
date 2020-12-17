@@ -234,13 +234,15 @@ public class Database implements Journaled {
 
           if (newTable != null) {
             // table was created or was updated
-            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toTableJournalProto();
+            alluxio.proto.journal.Table.AddTableEntry addTableEntry
+                = newTable.getTableJournalProto();
             Journal.JournalEntry entry =
                 Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
             applyAndJournal(context, entry);
             // separate the possible big table entry into multiple smaller table partitions entry
-            newTable.toTablePartitionsJournalProto().forEach((partitionsEntry) -> {
-              applyAndJournal(context, Journal.JournalEntry.newBuilder().setAddTablePartitions(partitionsEntry).build());
+            newTable.getTablePartitionsJournalProto().forEach((partitionsEntry) -> {
+              applyAndJournal(context, Journal.JournalEntry
+                  .newBuilder().setAddTablePartitions(partitionsEntry).build());
             });
             synchronized (builder) {
               builder.addTablesUpdated(tableName);
@@ -417,8 +419,10 @@ public class Database implements Journaled {
     return true;
   }
 
-  private boolean applyAddTablePartitions(@Nullable JournalContext context, Journal.JournalEntry entry) {
-    alluxio.proto.journal.Table.AddTablePartitionsEntry addTablePartitions = entry.getAddTablePartitions();
+  private boolean applyAddTablePartitions(@Nullable JournalContext context,
+      Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.AddTablePartitionsEntry addTablePartitions
+        = entry.getAddTablePartitions();
     if (!addTablePartitions.getDbName().equals(mName)) {
       return false;
     }
@@ -435,7 +439,8 @@ public class Database implements Journaled {
           return existingTable;
         }
         LOG.info("Will not add partitions to table {}.{}, because of mismatched versions. "
-                + "version-to-delete: {} existing-version: {}", mName, addTablePartitions.getTableName(),
+                + "version-to-delete: {} existing-version: {}",
+            mName, addTablePartitions.getTableName(),
             addTablePartitions.getVersion(), existingTable.getVersion());
       }
       LOG.debug("Cannot add partitions to table {}.{}, because it does not exist.", mName,
@@ -503,7 +508,7 @@ public class Database implements Journaled {
         }
         Table table = mEntry;
         mEntry = null;
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toTableJournalProto();
+        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
         return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
       }
 
@@ -518,7 +523,8 @@ public class Database implements Journaled {
   private Iterator<Journal.JournalEntry> getTablePartitionsIterator() {
     final Iterator<Table> it = getTables().iterator();
     return new Iterator<Journal.JournalEntry>() {
-      private List<alluxio.proto.journal.Table.AddTablePartitionsEntry> mPartitionsEntries = new ArrayList<>();
+      private List<alluxio.proto.journal.Table.AddTablePartitionsEntry> mPartitionsEntries
+          = new ArrayList<>();
       private int mIndex = 0;
 
       @Override
@@ -528,12 +534,12 @@ public class Database implements Journaled {
         }
         if (it.hasNext()) {
           Table table = it.next();
-          mPartitionsEntries = table.toTablePartitionsJournalProto();
+          mPartitionsEntries = table.getTablePartitionsJournalProto();
           mIndex = 0;
         }
         while (it.hasNext() && mPartitionsEntries.isEmpty()) {
           Table table = it.next();
-          mPartitionsEntries = table.toTablePartitionsJournalProto();
+          mPartitionsEntries = table.getTablePartitionsJournalProto();
         }
         return !mPartitionsEntries.isEmpty();
       }
@@ -543,7 +549,8 @@ public class Database implements Journaled {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        return Journal.JournalEntry.newBuilder().setAddTablePartitions(mPartitionsEntries.get(mIndex++)).build();
+        return Journal.JournalEntry.newBuilder()
+            .setAddTablePartitions(mPartitionsEntries.get(mIndex++)).build();
       }
 
       @Override
@@ -559,7 +566,8 @@ public class Database implements Journaled {
     Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
         toJournalProto(getDatabaseInfo(), mName)).build();
     return CloseableIterator.noopCloseable(
-        Iterators.concat(Iterators.singletonIterator(entry), getTableIterator(), getTablePartitionsIterator()));
+        Iterators.concat(Iterators.singletonIterator(entry),
+            getTableIterator(), getTablePartitionsIterator()));
   }
 
   @Override

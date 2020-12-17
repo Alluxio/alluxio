@@ -48,7 +48,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
   private static final long UNDEFINED_VERSION = -1;
-  private static final int PARTITIONS_CHUNK_SIZE = ServerConfiguration.getInt(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE);
+  private static final int PARTITIONS_CHUNK_SIZE = ServerConfiguration
+      .getInt(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE);
 
   public static final long FIRST_VERSION = 1;
 
@@ -175,7 +176,7 @@ public class Table {
   }
 
   /**
-   * Add partitions to the current table
+   * Add partitions to the current table.
    *
    * @param entry the add table partitions entry
    */
@@ -307,7 +308,7 @@ public class Table {
   /**
    * @return the journal proto representation
    */
-  public AddTableEntry toTableJournalProto() {
+  public AddTableEntry getTableJournalProto() {
     AddTableEntry.Builder builder = AddTableEntry.newBuilder()
         .setDbName(mDatabase.getName())
         .setTableName(mName)
@@ -332,7 +333,7 @@ public class Table {
   /**
    * @return the journal proto representation
    */
-  public List<AddTablePartitionsEntry> toTablePartitionsJournalProto() {
+  public List<AddTablePartitionsEntry> getTablePartitionsJournalProto() {
     List<AddTablePartitionsEntry> partitionEntries = new ArrayList<>();
     List<Partition> partitions = getPartitions();
     if (partitions.size() <= PARTITIONS_CHUNK_SIZE) {
