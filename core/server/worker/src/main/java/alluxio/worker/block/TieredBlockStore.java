@@ -363,7 +363,7 @@ public class TieredBlockStore implements BlockStore {
       return;
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
-            moveOptions.getLocation(), blockId);
+        moveOptions.getLocation(), blockId);
   }
 
   @Override
