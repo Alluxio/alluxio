@@ -34,6 +34,10 @@ public final class IdUtils {
   public static final long INVALID_WORKER_ID = -1;
   public static final long INVALID_MOUNT_ID = -1;
   public static final long ROOT_MOUNT_ID = 1;
+  /**
+   * The journal ufs is stored as a special mount in the ufs manage.
+   */
+  public static final long UFS_JOURNAL_MOUNT_ID = Long.MAX_VALUE - 10000;
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation

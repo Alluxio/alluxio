@@ -16,6 +16,8 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournaled;
+import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.underfs.UfsManager;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +28,7 @@ import java.util.Set;
  */
 public class NoopMaster implements Master, NoopJournaled {
   private final String mName;
+  private final MasterContext mMasterContext;
 
   /**
    * Creates a new {@link NoopMaster}.
@@ -40,7 +43,18 @@ public class NoopMaster implements Master, NoopJournaled {
    * @param name the master name
    */
   public NoopMaster(String name) {
+    this(name, new NoopUfsManager());
+  }
+
+  /**
+   * Creates a new {@link NoopMaster} with the given name and ufsManager.
+   *
+   * @param name the master name
+   * @param ufsManager the UFS manager
+   */
+  public NoopMaster(String name, UfsManager ufsManager) {
     mName = name;
+    mMasterContext = new MasterContext(new NoopJournalSystem(), null, ufsManager);
   }
 
   @Override
@@ -73,5 +87,10 @@ public class NoopMaster implements Master, NoopJournaled {
   @Override
   public JournalContext createJournalContext() {
     throw new IllegalStateException("Cannot create journal contexts for NoopMaster");
+  }
+
+  @Override
+  public MasterContext getMasterContext() {
+    return mMasterContext;
   }
 }
