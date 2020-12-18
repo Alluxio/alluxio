@@ -517,8 +517,12 @@ public class Database implements Journaled {
           alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
           return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
         }
-        return Journal.JournalEntry.newBuilder()
+        if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
+          return Journal.JournalEntry.newBuilder()
               .setAddTablePartitions(mPartitionIterator.next()).build();
+        }
+        // should not reach here
+        throw new NoSuchElementException();
       }
 
       @Override
