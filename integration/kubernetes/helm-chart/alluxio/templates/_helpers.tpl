@@ -119,6 +119,28 @@ resources:
     {{- end }}
 {{- end -}}
 
+{{- define "alluxio.logserver.resources" -}}
+resources:
+  limits:
+    {{- if .Values.logserver.resources.limits }}
+      {{- if .Values.logserver.resources.limits.cpu  }}
+    cpu: {{ .Values.logserver.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.logserver.resources.limits.memory  }}
+    memory: {{ .Values.logserver.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.logserver.resources.requests }}
+      {{- if .Values.logserver.resources.requests.cpu  }}
+    cpu: {{ .Values.logserver.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.logserver.resources.requests.memory  }}
+    memory: {{ .Values.logserver.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
 {{- define "alluxio.journal.format.resources" -}}
 resources:
   limits:
@@ -332,4 +354,11 @@ livenessProbe:
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 2
+{{- end -}}
+
+{{- define "alluxio.logserver.env" -}}
+- name: ALLUXIO_LOGSERVER_HOSTNAME
+  value: alluxio-logging
+- name: ALLUXIO_LOGSERVER_PORT
+  value: "{{ .Values.logserver.ports.logging }}"
 {{- end -}}

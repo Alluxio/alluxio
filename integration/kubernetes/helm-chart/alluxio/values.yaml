@@ -373,3 +373,35 @@ metrics:
   #   prometheus.io/port: "19999"
   #   prometheus.io/path: "/metrics/prometheus/"
   podAnnotations: {}
+
+# Remote logging server
+logserver:
+  enabled: true
+  replicas: 1
+  env:
+  # Extra environment variables for the logserver pod
+  # Example:
+  # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - logserver
+  # Properties for the logserver component
+  properties:
+  resources:
+    # The default xmx is 8G
+    limits:
+      cpu: "4"
+      memory: "8G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    logging: 45600
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the master container
+  jvmOptions:
+  nodeSelector: {}
