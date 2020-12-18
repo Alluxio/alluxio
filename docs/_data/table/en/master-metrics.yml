@@ -10,6 +10,8 @@ Master.DirectoriesCreated:
   'Total number of the succeed CreateDirectory operations'
 Master.EdgeCacheSize:
   'Total number of edges (inode metadata) cached. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeLockPoolSize:
+  'The size of master edge lock pool'
 Master.FileBlockInfosGot:
   'Total number of succeed GetFileBlockInfo operations'
 Master.FileInfosGot:
@@ -34,6 +36,8 @@ Master.GetNewBlockOps:
   'Total number of the GetNewBlock operations'
 Master.InodeCacheSize:
   'Total number of inodes (inode metadata) cached'
+Master.InodeLockPoolSize:
+  'The size of master inode lock pool'
 Master.JournalFlushFailure:
   'Total number of failed journal flush'
 Master.JournalFlushTimer:
