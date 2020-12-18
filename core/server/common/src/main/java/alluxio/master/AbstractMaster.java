@@ -67,10 +67,10 @@ public abstract class AbstractMaster implements Master {
   protected AbstractMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     Preconditions.checkNotNull(masterContext, "masterContext");
-    mJournal = masterContext.getJournalSystem().createJournal(this);
     mMasterContext = masterContext;
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
+    mJournal = masterContext.getJournalSystem().createJournal(this);
   }
 
   @Override
@@ -150,5 +150,10 @@ public abstract class AbstractMaster implements Master {
   @Override
   public void close() throws IOException {
     stop();
+  }
+
+  @Override
+  public MasterContext getMasterContext() {
+    return mMasterContext;
   }
 }
