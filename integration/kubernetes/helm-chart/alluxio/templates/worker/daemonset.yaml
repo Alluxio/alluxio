@@ -80,18 +80,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          {{- if $logServerEnabled }}
-{{ include "alluxio.logserver.env" . | indent 10 }}
-          {{- end }}
           {{- if not .Values.worker.hostNetwork }}
           - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
           {{- end }}
-        {{- if $logServerEnabled }}
-{{ include "alluxio.logserver.env" . | indent 10 }}
-        {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
@@ -150,9 +144,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
-          {{- end }}
-          {{- if $logServerEnabled }}
-{{ include "alluxio.logserver.env" . | indent 10 }}
           {{- end }}
           {{- range $key, $value := .Values.jobWorker.env }}
           - name: "{{ $key }}"

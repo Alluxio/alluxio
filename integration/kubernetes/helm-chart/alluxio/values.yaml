@@ -402,6 +402,18 @@ logserver:
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
   # dnsPolicy: ClusterFirst
-  # JVM options specific to the master container
+  # JVM options specific to the logserver container
   jvmOptions:
   nodeSelector: {}
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  size: 4Gi
+  # Attributes to use if the log volume is PVC
+  pvcName: alluxio-logserver-logs
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  # Attributes to use if the log volume is hostPath
+  hostPath: "/tmp/alluxio-logs" # The hostPath directory to use
+

@@ -15,7 +15,6 @@
 {{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 {{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
 {{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
-{{- $logServerEnabled := .Values.logserver.enabled }}
 {{- $hostNetwork := .Values.master.hostNetwork }}
 {{- $hostPID := .Values.master.hostPID }}
 {{- $name := include "alluxio.name" . }}
@@ -110,9 +109,6 @@ spec:
               fieldRef:
                 fieldPath: status.podIP
           {{- end }}
-          {{- if $logServerEnabled }}
-{{ include "alluxio.logserver.env" . | indent 10 }}
-          {{- end }}
           {{- range $key, $value := .Values.master.env }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
@@ -182,9 +178,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
-          {{- end }}
-          {{- if $logServerEnabled }}
-{{ include "alluxio.logserver.env" . | indent 10 }}
           {{- end }}
           {{- range $key, $value := .Values.jobMaster.env }}
             - name: "{{ $key }}"

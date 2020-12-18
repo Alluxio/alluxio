@@ -356,9 +356,15 @@ livenessProbe:
   failureThreshold: 2
 {{- end -}}
 
-{{- define "alluxio.logserver.env" -}}
-- name: ALLUXIO_LOGSERVER_HOSTNAME
-  value: alluxio-logging
-- name: ALLUXIO_LOGSERVER_PORT
-  value: "{{ .Values.logserver.ports.logging }}"
+{{- define "alluxio.logserver.log.volume" -}}
+{{- if eq .Values.logserver.volumeType "hostPath" }}
+- name: alluxio-logs
+  hostPath:
+    path: {{ .Values.logserver.hostPath }}
+    type: DirectoryOrCreate
+{{- else }}
+- name: alluxio-logs
+  persistentVolumeClaim:
+    claimName: "{{ .Values.logserver.pvcName }}"
+{{- end }}
 {{- end -}}
