@@ -50,6 +50,7 @@ function printUsage {
   echo -e " job-worker                   \t Start Alluxio job worker"
   echo -e " proxy                        \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
+  echo -e " logserver                    \t Start Alluxio log server"
 }
 
 function writeConf {
@@ -219,6 +220,9 @@ function main {
       ;;
     fuse)
       mountAlluxioRootFSWithFuseOption
+      ;;
+    logserver)
+      processes+=("logserver")
       ;;
     *)
       printUsage
