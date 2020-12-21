@@ -52,10 +52,16 @@ alluxio.master.embedded.journal.catchup.retry.wait:
   'Time for embedded journal leader to wait before retrying a catch up.'
 alluxio.master.embedded.journal.election.timeout:
   'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
+alluxio.master.embedded.journal.entry.size.max:
+  'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
+alluxio.master.embedded.journal.flush.size.max:
+  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks.'
 alluxio.master.embedded.journal.heartbeat.interval:
   'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout {alluxio.master.embedded.journal.election.timeout}, because the election is driven by heart beats.'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.retry.cache.expiry.time:
+  'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
 alluxio.master.embedded.journal.shutdown.timeout:
   'Maximum time to wait for embedded journal to stop on shutdown.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:

@@ -165,6 +165,8 @@
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
     <ozone.version>1.0.0</ozone.version>
+    <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
+    <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -534,6 +536,16 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-ozone-filesystem</artifactId>
         <version>${ozone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud.cos</groupId>
+        <artifactId>hadoop-cos</artifactId>
+        <version>${hadoop-cos.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud</groupId>
+        <artifactId>cos_api-bundle</artifactId>
+        <version>${cos_api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -914,6 +926,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.3</version>
         </plugin>
@@ -1190,7 +1207,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**,**/alluxio/jnifuse/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1262,6 +1279,8 @@
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
+            <cc>SLASHSTAR_STYLE</cc>
+            <h>SLASHSTAR_STYLE</h>
             <java>SLASHSTAR_STYLE</java>
             <tsx>SLASHSTAR_STYLE</tsx>
             <scss>SLASHSTAR_STYLE</scss>

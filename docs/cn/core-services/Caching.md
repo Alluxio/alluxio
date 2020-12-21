@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Caching
-nickname: Caching
+title: 缓存
+nickname: 缓存
 group: Core Services
 priority: 1
 ---

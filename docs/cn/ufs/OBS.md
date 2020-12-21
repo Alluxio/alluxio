@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在OBS上配置Alluxio
-nickname: Alluxio使用OBS
+title: Alluxio集成OBS作为底层存储
+nickname: Alluxio集成OBS作为底层存储
 group: Storage Integrations
 priority: 5
 ---

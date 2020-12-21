@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在Kodo上配置Alluxio
-nickname: Alluxio使用Kodo
+title: Alluxio集成Kodo作为底层存储
+nickname: Alluxio集成Kodo作为底层存储
 group: Storage Integrations
 priority: 5
 ---

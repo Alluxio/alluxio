@@ -10,10 +10,14 @@ alluxio.fuse.debug.enabled:
   'Run FUSE in debug mode, and have the fuse process log every FS request.'
 alluxio.fuse.fs.name:
   'The FUSE file system name.'
+alluxio.fuse.jnifuse.enabled:
+  'Use experimental JNIFUSE library for better performance.'
 alluxio.fuse.logging.threshold:
   'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
+alluxio.fuse.shared.caching.reader.enabled:
+  '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
@@ -58,6 +62,8 @@ alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
+alluxio.job.worker.tasks.per.worker:
+  'N/A'
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
 alluxio.job.worker.throttling:
@@ -110,6 +116,8 @@ alluxio.network.connection.shutdown.timeout:
   'Maximum time to wait for connections (gRPC channels) to stop after graceful shutdown attempt.'
 alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
+alluxio.network.ip.address.used:
+  'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
 alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
@@ -284,6 +292,12 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+fs.azure.account.oauth2.client.endpoint:
+  'The oauth endpoint for ABFS.'
+fs.azure.account.oauth2.client.id:
+  'The client id for ABFS.'
+fs.azure.account.oauth2.client.secret:
+  'The client secret for ABFS.'
 fs.cos.access.key:
   'The access key of COS bucket.'
 fs.cos.app.id:

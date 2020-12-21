@@ -538,6 +538,9 @@ public class FileSystemContext implements Closeable {
   private static void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client, final ClientContext context, ConcurrentHashMap<ClientPoolKey,
       BlockWorkerClientPool> poolMap) {
+    if (client == null) {
+      return;
+    }
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
         context.getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(

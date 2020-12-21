@@ -36,8 +36,8 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
    */
   private void checkMetricsResults(String output) {
     Assert.assertThat(output, CoreMatchers
-        .containsString("Cluster.BytesReadAlluxio  (Type: COUNTER, Value: 0B)"));
+        .containsString("Cluster.BytesReadRemote  (Type: COUNTER, Value: 0B)"));
     Assert.assertThat(output, CoreMatchers
-        .containsString("Cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 0B/MIN)"));
+        .containsString("Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 0B/MIN)"));
   }
 }

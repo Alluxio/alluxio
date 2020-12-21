@@ -60,7 +60,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-  private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
+  private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
 
@@ -260,9 +260,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_REMOTE.getName()));
       context.setMeter(MetricsSystem
-          .meter(MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
+          .meter(MetricKey.WORKER_BYTES_READ_REMOTE_THROUGHPUT.getName()));
     }
     return context;
   }

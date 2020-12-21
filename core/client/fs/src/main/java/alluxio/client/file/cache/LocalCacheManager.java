@@ -78,6 +78,7 @@ public class LocalCacheManager implements CacheManager {
   private static final int LOCK_SIZE = 1024;
   private final long mPageSize;
   private final long mCacheSize;
+  private final int mMaxEvictionRetries;
   private final boolean mAsyncWrite;
   private final boolean mAsyncRestore;
   /** A readwrite lock pool to guard individual pages based on striping. */
@@ -148,6 +149,7 @@ public class LocalCacheManager implements CacheManager {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mAsyncRestore = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED);
+    mMaxEvictionRetries = conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES);
     mCacheSize = pageStore.getCacheSize();
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock(true /* fair ordering */);
@@ -202,6 +204,15 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
+  /**
+   * Results of Put.
+   */
+  enum PutResult {
+    OK,
+    INSUFFICIENT_SPACE,
+    OTHER,
+  }
+
   @Override
   public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
@@ -247,6 +258,22 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean putInternal(PageId pageId, byte[] page) {
+    for (int i = 0; i <= mMaxEvictionRetries; i++) {
+      PutResult result = putAttempt(pageId, page);
+      if (result == PutResult.OK) {
+        return true;
+      } else if (result == PutResult.OTHER) {
+        return false;
+      }
+      // failed put attempt due to insufficient space, try another time.
+      // note that, we only evict one item a time in putAttempt. So it is possible the evicted
+      // page is not large enough to cover the space needed by this page. Try again
+    }
+    Metrics.PUT_EVICTION_ERRORS.inc();
+    return false;
+  }
+
+  private PutResult putAttempt(PageId pageId, byte[] page) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageInfo victimPageInfo = null;
     boolean enoughSpace;
@@ -256,7 +283,7 @@ public class LocalCacheManager implements CacheManager {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
           // TODO(binfan): we should return more informative result in the future
-          return true;
+          return PutResult.OK;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
@@ -267,7 +294,7 @@ public class LocalCacheManager implements CacheManager {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
                 mMetaStore.bytes(), page.length, mCacheSize);
             Metrics.PUT_EVICTION_ERRORS.inc();
-            return false;
+            return PutResult.OTHER;
           }
         }
       }
@@ -275,12 +302,12 @@ public class LocalCacheManager implements CacheManager {
         try {
           mPageStore.put(pageId, page);
           Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
-          return true;
+          return PutResult.OK;
         } catch (IOException e) {
           undoAddPage(pageId);
           LOG.error("Failed to add page {}: {}", pageId, e);
           Metrics.PUT_STORE_WRITE_ERRORS.inc();
-          return false;
+          return PutResult.OTHER;
         }
       }
     }
@@ -296,7 +323,7 @@ public class LocalCacheManager implements CacheManager {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted by a racing thread", pageId);
           // TODO(binfan): we should return more informative result in the future
-          return true;
+          return PutResult.OK;
         }
         try {
           mMetaStore.removePage(victimPageInfo.getPageId());
@@ -305,7 +332,7 @@ public class LocalCacheManager implements CacheManager {
           LOG.error("Page {} is unavailable to evict, likely due to a benign race",
               victimPageInfo.getPageId());
           Metrics.PUT_BENIGN_RACING_ERRORS.inc();
-          return false;
+          return PutResult.OTHER;
         }
         enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
@@ -326,22 +353,21 @@ public class LocalCacheManager implements CacheManager {
         }
         LOG.error("Failed to delete page {}: {}", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
-        return false;
+        return PutResult.OTHER;
       }
       if (!enoughSpace) {
-        Metrics.PUT_EVICTION_ERRORS.inc();
-        return false;
+        return PutResult.INSUFFICIENT_SPACE;
       }
       try {
         mPageStore.put(pageId, page);
         Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
-        return true;
+        return PutResult.OK;
       } catch (IOException e) {
         // Failed to add page, remove new page from metastoree
         undoAddPage(pageId);
         LOG.error("Failed to add page {}: {}", pageId, e);
         Metrics.PUT_STORE_WRITE_ERRORS.inc();
-        return false;
+        return PutResult.OTHER;
       }
     }
   }

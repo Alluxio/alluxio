@@ -26,9 +26,10 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
+import ru.serce.jnrfuse.ErrorCodes;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
 
@@ -49,7 +50,7 @@ public final class AlluxioFuseUtils {
    * Retrieves the uid of the given user.
    *
    * @param userName the user name
-   * @return uid
+   * @return uid or -1 on failures
    */
   public static long getUid(String userName) {
     return getIdInfo("-u", userName);
@@ -59,7 +60,7 @@ public final class AlluxioFuseUtils {
    * Retrieves the primary gid of the given user.
    *
    * @param userName the user name
-   * @return gid
+   * @return gid or -1 on failures
    */
   public static long getGid(String userName) {
     return getIdInfo("-g", userName);
@@ -69,21 +70,21 @@ public final class AlluxioFuseUtils {
    * Retrieves the gid of the given group.
    *
    * @param groupName the group name
-   * @return gid
+   * @return gid or -1 on failures
    */
-  public static long getGidFromGroupName(String groupName) throws IOException {
+  public static long getGidFromGroupName(String groupName) {
     String result = "";
-    if (OSUtils.isLinux()) {
-      String script = "getent group " + groupName + " | cut -d: -f3";
-      result = ShellUtils.execCommand("bash", "-c", script).trim();
-    } else if (OSUtils.isMacOS()) {
-      String script = "dscl . -read /Groups/" + groupName
-          + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
-      result = ShellUtils.execCommand("bash", "-c", script).trim();
-    }
     try {
+      if (OSUtils.isLinux()) {
+        String script = "getent group " + groupName + " | cut -d: -f3";
+        result = ShellUtils.execCommand("bash", "-c", script).trim();
+      } else if (OSUtils.isMacOS()) {
+        String script = "dscl . -read /Groups/" + groupName
+            + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
+        result = ShellUtils.execCommand("bash", "-c", script).trim();
+      }
       return Long.parseLong(result);
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
       return -1;
     }
@@ -120,16 +121,15 @@ public final class AlluxioFuseUtils {
       String script = "getent group " + gid + " | cut -d: -f1";
       return ShellUtils.execCommand("bash", "-c", script).trim();
     } else if (OSUtils.isMacOS()) {
-      String script = "dscl . list /Groups PrimaryGroupID | awk '($2 == \""
-          + gid + "\") { print $1 }'";
+      String script =
+          "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
       return ShellUtils.execCommand("bash", "-c", script).trim();
     }
     return "";
   }
 
   /**
-   * Checks whether fuse is installed in local file system.
-   * Alluxio-Fuse only support mac and linux.
+   * Checks whether fuse is installed in local file system. Alluxio-Fuse only support mac and linux.
    *
    * @return true if fuse is installed, false otherwise
    */
@@ -175,7 +175,7 @@ public final class AlluxioFuseUtils {
    */
   public static int getErrorCode(Throwable t) {
     // Error codes and their explanations are described in
-    // the Errno.java in jnr-constants
+    // the Errno.java in jni-constants
     if (t instanceof AlluxioException) {
       return getAlluxioErrorCode((AlluxioException) t);
     } else if (t instanceof IOException) {
@@ -246,8 +246,8 @@ public final class AlluxioFuseUtils {
     long durationMs = System.currentTimeMillis() - startMs;
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)",
-          methodName, String.format(description, args), ret, durationMs, THRESHOLD);
+      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+          String.format(description, args), ret, durationMs, THRESHOLD);
     }
     return ret;
   }

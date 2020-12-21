@@ -362,8 +362,6 @@ public class TieredBlockStore implements BlockStore {
       }
       return;
     }
-    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-    // other types of exception to indicate this case.
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
         moveOptions.getLocation(), blockId);
   }
@@ -655,7 +653,9 @@ public class TieredBlockStore implements BlockStore {
             return null;
           }
         } else {
-          LOG.error("Target tier: {} has no available space to store {} bytes for session: {}",
+          // We are not evicting in the target tier so having no available space just
+          // means the tier is currently full.
+          LOG.warn("Target tier: {} has no available space to store {} bytes for session: {}",
               options.getLocation(), options.getSize(), sessionId);
           return null;
         }

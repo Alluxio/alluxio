@@ -171,8 +171,8 @@ The nickname and original metric name corresponding are shown:
 | Local Alluxio (Domain Socket) Write | cluster.BytesWrittenDomain |
 | Local Alluxio (Short-circuit) Read | cluster.BytesReadLocal |
 | Local Alluxio (Short-circuit) Write | cluster.BytesWrittenLocal |
-| Remote Alluxio Read | cluster.BytesReadAlluxio |
-| Remote Alluxio Write | cluster.BytesWrittenAlluxio |
+| Remote Alluxio Read | cluster.BytesReadRemote |
+| Remote Alluxio Write | cluster.BytesWrittenRemote |
 | Under Filesystem Read | cluster.BytesReadUfsAll | 
 | Under Filesystem Write | cluster.BytesWrittenUfsAll |
 
@@ -186,6 +186,29 @@ Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/referenc
 `Saved Under FileSystem Operations` shows the operations fulfilled by Alluxio's namespace directly
 without accessing UFSes. Performance improvement can be significant if the target UFS is remote or slow in response.
 Costs can be saved if the underlying storage charges based on requests.
+
+## Grafana Web UI with Prometheus
+
+Grafana is a metics analytics and visualization software used for visualizing time series data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software allows users to more easily see changes in memory, storage, and completed operations in Alluxio.
+
+Since Grafana has a well support to Prometheus, following steps can help you to build your Alluxio monitoring based on Grafana and Prometheus easily.
+
+ 1. Install Grafana using the instructions [here](https://grafana.com/docs/grafana/latest/installation/#install-grafana/).
+ 2. [Download](https://grafana.com/grafana/dashboards/13467) the Grafana template json file for Alluxio.
+ 3. Import the template json file to create a dashboard. Helps [here](https://grafana.com/docs/grafana/latest/dashboards/export-import/#importing-a-dashboard).
+ 4. Add the Prometheus datasource to Grafana with a custom name, for example *prometheus-alluxio*. Refer to the [toturial](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/#add-a-data-source) for help on importing a dashboard.
+ 5. Modify the variables in the dashboard/settings with instructions [here](https://grafana.com/docs/grafana/latest/variables/) and **save** your dashboard.
+
+	| Variable | Value |
+ 	|------------------|------------------------------------------------------------|
+ 	| alluxio_datasource | Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4) |
+ 	| masters            | Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*) |
+ 	| workers            | Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*) |
+ 	| alluxio_user       | The user used to start up Alluxio (eg. *alluxio*) |
+
+If your Grafana dashboard appears like the screenshot below, you have built your monitoring successfully. Of course you can modify the json file or just operate on the dashboard to design your own monitoring.
+
+![Grafana Web UI]({{ '/img/screenshot_grafana_webui.png' | relativize_url }})
 
 ## References
 

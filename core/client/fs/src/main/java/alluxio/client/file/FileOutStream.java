@@ -33,15 +33,9 @@ public abstract class FileOutStream extends OutputStream implements Cancelable {
 
   /**
    * @return the number of bytes written to this stream
-   * @deprecated this method will not work if more than MAX_INT bytes are written; to get a count of
-   *             bytes written, wrap this stream in a counting output stream such as
-   *             {@link org.apache.commons.io.output.CountingOutputStream}
    */
-  @Deprecated
-  public int getBytesWritten() {
-    // Cast to int to preserve backwards compatibility. In 2.0 we should change this to long so that
-    // it can be correct.
-    return (int) mBytesWritten;
+  public long getBytesWritten() {
+    return mBytesWritten;
   }
 
   /**

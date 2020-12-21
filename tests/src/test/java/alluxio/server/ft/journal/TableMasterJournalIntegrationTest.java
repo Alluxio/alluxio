@@ -109,6 +109,11 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.syncDatabase(DB_NAME);
     checkTable(tableMaster, DB_NAME, 2, 3);
 
+    // Drop a table to create a 'remove_table' entry
+    genTable(1, 3, true);
+    tableMaster.syncDatabase(DB_NAME);
+    checkTable(tableMaster, DB_NAME, 1, 3);
+
     restartMaster();
 
     TableMaster tableMasterRestart =
@@ -117,7 +122,7 @@ public class TableMasterJournalIntegrationTest {
     checkDb(tableMasterRestart, DB_NAME, oldInfo);
     tableMasterRestart.syncDatabase(DB_NAME);
     checkDb(tableMasterRestart, DB_NAME, newInfo);
-    checkTable(tableMasterRestart, DB_NAME, 2, 3);
+    checkTable(tableMasterRestart, DB_NAME, 1, 3);
   }
 
   private void checkDb(TableMaster tableMaster, String dbName, DatabaseInfo dbInfo)

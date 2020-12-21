@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
@@ -20,6 +18,8 @@ import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
@@ -31,6 +31,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
-
   private final byte[] mSingleByte = new byte[1];
 
   /** Current position of the stream, relative to the start of the block. */
@@ -177,8 +177,16 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
-    DataReader.Factory factory =
-        new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
+    DataReader.Factory factory;
+    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
+        && blockSize > chunkSize * 4) {
+      // Heuristic to resolve issues/12146, guarded by alluxio.fuse.shared.caching.reader.enabled
+      // GrpcDataReader instances are shared across FileInStreams to mitigate seek cost
+      factory = new SharedGrpcDataReader
+          .Factory(context, address, readRequestBuilder.build(), blockSize);
+    } else {
+      factory = new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
+    }
     return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
         blockSize);
   }
@@ -218,6 +226,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
+  @VisibleForTesting
   protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
       BlockInStreamSource blockSource, long id, long length) {
     mDataReaderFactory = dataReaderFactory;
@@ -256,7 +265,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
-
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -327,11 +335,53 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos == mPos) {
       return;
     }
+    // When alluxio.fuse.shared.caching.reader.enabled is on (to resolve issues/12146),
+    // use the heuristic to improve seek performance with fewer data reader close.
+    if (mDataReader instanceof SharedGrpcDataReader) {
+      seekForSharedGrpcDataReader(pos);
+      return;
+    }
     if (pos < mPos) {
       mEOF = false;
     }
-
     closeDataReader();
+    mPos = pos;
+  }
+
+  private void seekForSharedGrpcDataReader(long pos) throws IOException {
+    if (pos < mPos) {
+      mEOF = false;
+      // because the reader is shared, let's not close it but simply seek
+      ((SharedGrpcDataReader) mDataReader).seek(pos);
+      if (mCurrentChunk != null) {
+        mCurrentChunk.release();
+        mCurrentChunk = null;
+      }
+    } else {
+      // TODO(lu) combine the original seek logic and the following general improvements
+      // that are helpful in both fuse and non-fuse scenarios
+      // Try to read data already received but haven't processed
+      long curPos = mPos;
+      while (mCurrentChunk != null && curPos < pos) {
+        long nextPos = curPos + mCurrentChunk.readableBytes();
+        if (nextPos <= pos) {
+          curPos = nextPos;
+          mCurrentChunk.release();
+          mCurrentChunk = mDataReader.readChunk();
+        } else {
+          // TODO(chaowang) introduce seek in DataBuffer
+          int toRead = (int) (pos - curPos);
+          final byte[] b = new byte[toRead];
+          mCurrentChunk.readBytes(b, 0, toRead);
+          curPos = pos;
+        }
+      }
+
+      if (curPos < pos) {
+        // Not enough data in queue, close the data reader
+        closeDataReader();
+      }
+    }
     mPos = pos;
   }
 
@@ -351,6 +401,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
       closeDataReader();
     } finally {

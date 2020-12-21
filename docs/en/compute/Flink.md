@@ -58,9 +58,9 @@ the directory usually ends with `etc/hadoop`.)
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
 jar. We recommend you to download the tarball from
-Alluxio [download page](http://www.alluxio.org/download).
+Alluxio [download page](https://www.alluxio.io/download/).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-From-Source.html#compute-framework-support).
+by following the instructions [here]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
@@ -115,6 +115,3 @@ $ bin/flink run examples/batch/WordCount.jar \
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
-
-> Tips：The previous example is also applicable to Alluxio in fault tolerant mode with Zookeeper. 
-Please follow the instructions in [HDFS API to connect to Alluxio with high availability](Running-Alluxio-on-a-Cluster.html#hdfs-api).

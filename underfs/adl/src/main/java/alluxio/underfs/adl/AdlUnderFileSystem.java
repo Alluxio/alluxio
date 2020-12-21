@@ -32,7 +32,7 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * An {@link UnderFileSystem} uses the Microsoft Azure Data Lake Storage.
+ * A Microsoft Azure Data Lake Storage Gen 1 Implementation.
  */
 @ThreadSafe
 public class AdlUnderFileSystem extends HdfsUnderFileSystem {
@@ -65,6 +65,7 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
         adlConf.set(key, value);
       }
     }
+    LOG.info(adlConf.toString());
     adlConf.set("fs.adl.oauth2.access.token.provider.type", "ClientCredential");
     return adlConf;
   }

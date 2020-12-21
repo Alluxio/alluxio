@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link AdlUnderFileSystem}.
+ * Unit tests for {@link AdlUnderFileSystemFactory}.
  */
 public class AdlUnderFileSystemFactoryTest {
 
