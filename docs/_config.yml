@@ -65,6 +65,7 @@ categoryInfo:
     cn: 部署 Alluxio
   Cloud Native:
     en: Cloud Native
+    cn: 云原生
   Compute Integrations:
     en: Compute Integrations
     cn: 计算应用
@@ -73,7 +74,7 @@ categoryInfo:
     cn: 底层存储系统
   Operations:
     en: Operations
-    cn: 运行维护
+    cn: 运维指南
   Client APIs:
     en: Client APIs
     cn: APIs

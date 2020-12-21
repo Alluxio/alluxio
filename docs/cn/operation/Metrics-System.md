@@ -108,8 +108,8 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * BlocksDeleted: 被删除的数据块数目。
 * BlocksEvicted: 被替换的数据块数目。
 * BlocksPromoted: 被提升到内存的数据块数目。
-* BytesReadAlluxio: 通过该worker从Alluxio存储读取的数据量，单位为byte。其中不包括UFS读。
-* BytesWrittenAlluxio: 通过该worker写到Alluxio存储的数据量，单位为byte。其中不包括UTF写。
+* BytesReadRemote: 通过该worker从Alluxio存储读取的数据量，单位为byte。
+* BytesWrittenRemote: 通过该worker写到Alluxio存储的数据量，单位为byte。
 * BytesReadUfs-UFS:${UFS}: 通过该worker从指定UFS读取的数据量，单位为byte。
 * BytesWrittenUfs-UFS:${UFS}: 通过该worker写到指定UFS的数据量，单位为byte。
 

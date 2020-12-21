@@ -5,6 +5,7 @@ Master.CreateFileOps,COUNTER
 Master.DeletePathOps,COUNTER
 Master.DirectoriesCreated,COUNTER
 Master.EdgeCacheSize,GAUGE
+Master.EdgeLockPoolSize,GAUGE
 Master.FileBlockInfosGot,COUNTER
 Master.FileInfosGot,COUNTER
 Master.FilesCompleted,COUNTER
@@ -17,6 +18,7 @@ Master.GetFileBlockInfoOps,COUNTER
 Master.GetFileInfoOps,COUNTER
 Master.GetNewBlockOps,COUNTER
 Master.InodeCacheSize,GAUGE
+Master.InodeLockPoolSize,GAUGE
 Master.JournalFlushFailure,COUNTER
 Master.JournalFlushTimer,TIMER
 Master.JournalGainPrimacyTimer,TIMER

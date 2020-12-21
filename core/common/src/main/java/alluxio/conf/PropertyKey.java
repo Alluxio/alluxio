@@ -1051,6 +1051,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
+  public static final PropertyKey ABFS_CLIENT_ENDPOINT = new Builder(Name.ABFS_CLIENT_ENDPOINT)
+      .setDescription("The oauth endpoint for ABFS.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .build();
+  public static final PropertyKey ABFS_CLIENT_ID = new Builder(Name.ABFS_CLIENT_ID)
+      .setDescription("The client id for ABFS.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .build();
+  public static final PropertyKey ABFS_CLIENT_SECRET = new Builder(Name.ABFS_CLIENT_SECRET)
+      .setDescription("The client secret for ABFS.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
+      .build();
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
       .setDescription("The access key of GCS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1530,6 +1546,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
           .setDescription("Time for embedded journal leader to wait before retrying a catch up.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
+          .setDefaultValue("10MB")
+          .setDescription(String.format(
+              "The maximum single journal entry size allowed to be flushed. "
+              + "This value should be smaller than 30MB. "
+              + "If you update this value, please also update the value of %s ",
+              Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)
+          .setDefaultValue("160MB")
+          .setDescription("The maximum size in bytes of journal entries allowed "
+              + "in concurrent journal flushing (journal IO to standby masters "
+              + "and IO to local disks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3715,6 +3751,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_EVICTION_RETRIES =
+      new Builder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
+          .setDefaultValue(0)
+          .setDescription("Max number of eviction retries.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_DURATION =
       new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_DURATION)
           .setDefaultValue("-1")
@@ -4304,6 +4347,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
+      new Builder(Name.USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED)
+          .setDefaultValue(false)
+          .setAlias("alluxio.user.direct.memory.io.enabled")
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, clients will read from local "
+              + "worker directly without invoking extra RPCs to worker to require locations. "
+              + "Note this optimization is only safe when the workload is read only and the "
+              + "worker has only one tier and one storage directory in this tier.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+      new Builder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
+          .setDefaultValue(false)
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, the clients doesn't update file "
+              + "access time which may cause issues for some applications.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       new Builder(Name.USER_SHORT_CIRCUIT_ENABLED)
           .setDefaultValue(true)
@@ -4343,6 +4407,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_JNIFUSE_ENABLED =
+      new Builder(Name.FUSE_JNIFUSE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
+      new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) Use share grpc data reader for better performance "
+              + "on multi-process file reading through Alluxio JNI Fuse. "
+              + "Blocks data will be cached on the client side "
+              + "so more memory is required for the Fuse process.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -4944,6 +5025,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS access control related properties
     //
+    public static final String ABFS_CLIENT_ENDPOINT = "fs.azure.account.oauth2.client.endpoint";
+    public static final String ABFS_CLIENT_ID = "fs.azure.account.oauth2.client.id";
+    public static final String ABFS_CLIENT_SECRET = "fs.azure.account.oauth2.client.secret";
     public static final String COS_ACCESS_KEY = "fs.cos.access.key";
     public static final String COS_APP_ID = "fs.cos.app.id";
     public static final String COS_CONNECTION_MAX = "fs.cos.connection.max";
@@ -5075,6 +5159,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
         "alluxio.master.embedded.journal.catchup.retry.wait";
+    public static final String MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
+        "alluxio.master.embedded.journal.entry.size.max";
+    public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
+        "alluxio.master.embedded.journal.flush.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
@@ -5440,6 +5528,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_EVICTION_RETRIES =
+        "alluxio.user.client.cache.eviction.retries";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
         "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE =
@@ -5608,6 +5698,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
+    public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
+        "alluxio.user.unsafe.direct.local.io.enabled";
+    public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+        "alluxio.user.update.file.accesstime.disabled";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_SHORT_CIRCUIT_PREFERRED =
         "alluxio.user.short.circuit.preferred";
@@ -5620,6 +5714,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
+    public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_SHARED_CACHING_READER_ENABLED
+        = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
@@ -5760,6 +5857,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
+    UNDERFS_ABFS_ACCOUNT_KEY(
+        "fs.azure.account.key.%s.dfs.core.windows.net",
+        "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.window\\.net",
+        PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.dfs.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",

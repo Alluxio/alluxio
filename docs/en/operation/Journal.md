@@ -86,9 +86,14 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 ### Required configuration
 
-The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
+The following configuration must be configured to a local path on the masters. The default
+value is local directory `${alluxio.work.dir}/journal`.
+```
+alluxio.master.journal.folder=/local/path/to/store/journal/files/
+```
 
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
+This must be set on all Alluxio servers, as well as Alluxio clients.
 
 ```
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200

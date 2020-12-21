@@ -141,8 +141,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       // Wait one job to complete.
       waitJob();
     }
-    mSubmittedJobAttempts.add(newJob(srcPath, dstPath));
     System.out.println("Copying " + srcPath + " to " + dstPath);
+    mSubmittedJobAttempts.add(newJob(srcPath, dstPath));
   }
 
   @Override

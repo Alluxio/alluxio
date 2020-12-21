@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -120,4 +121,10 @@ public interface UfsManager extends Closeable {
    * @return the UFS client associated with root
    */
   UfsClient getRoot();
+
+  /**
+   * @param location the journal location
+   * @return the UFS client associated with journal location
+   */
+  UfsClient getJournal(URI location);
 }
