@@ -533,11 +533,12 @@ public class BaseFileSystem implements FileSystem {
          */
         Authority configured =
                 MasterInquireClient.Factory
-                        .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
+                        .create(mFsContext.getClusterConf(),
+                                mFsContext.getClientContext().getUserState())
                         .getConnectDetails().toAuthority();
         if (!configured.equals(uri.getAuthority())) {
           throw new IllegalArgumentException(
-                  String.format("The URI authority %s does not match the configured " + "value of %s.",
+                  String.format("The URI authority %s does not match the configured value of %s.",
                           uri.getAuthority(), configured));
         }
       }
