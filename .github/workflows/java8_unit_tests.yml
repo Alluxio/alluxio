@@ -57,3 +57,13 @@ jobs:
             **/target/logs/*
             log*
           retention-days: 7
+      - name: "Upload Code Coverage Report"
+        uses: codecov/codecov-action@v1
+          with:
+            # token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+            # files:  # optional
+            file: ./**/target/site/jacoco/jacoco.xml # optional
+            # flags: unittests # optional
+            name: codecov-umbrella # optional
+            fail_ci_if_error: true # optional (default = false)
+            verbose: true # optional (default = false)
