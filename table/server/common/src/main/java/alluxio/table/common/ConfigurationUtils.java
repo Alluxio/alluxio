@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * A set of utility methods for configuration.
  */
 public class ConfigurationUtils {
-  public static final String MOUNT_PREFIX = "mount.option.";
+  public static final String MOUNT_PREFIX = "mount-option.";
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
   private ConfigurationUtils() {} // prevent instantiation
