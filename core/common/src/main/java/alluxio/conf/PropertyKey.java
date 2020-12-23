@@ -3922,6 +3922,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
+  public static final PropertyKey USER_SKIP_AUTHORITY_CHECK =
+      new Builder(Name.USER_SKIP_AUTHORITY_CHECK)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setIsHidden(true)
+          .setDescription("By default, Alluxio will validate the AlluxioURI. If the authority part "
+              + "contradicts with the configuration (e.g. You specified master1,master2,master3 "
+              + "for high availability masters but the AlluxioURI is alluxio://master1:<port>/), "
+              + "Alluxio client will throw an exception. If this option is turned on, Alluxio "
+              + "client will ignore the wrong authority passed in by the AlluxioURI and use the "
+              + "configured value. This property is useful for the legacy client code, where the "
+              + "cluster setup has changed but the client code has hard-coded stale address. "
+              + "The admin can turn on this property and control where the clients connect in "
+              + "the configuration.")
+          .build();
   public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
@@ -5627,6 +5642,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.writer.flush.timeout";
     public static final String USER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.user.network.zerocopy.enabled";
+    public static final String USER_SKIP_AUTHORITY_CHECK =
+        "alluxio.user.skip.authority.check";
     public static final String USER_STREAMING_DATA_TIMEOUT =
         "alluxio.user.streaming.data.timeout";
     public static final String USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
