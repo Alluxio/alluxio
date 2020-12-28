@@ -1484,7 +1484,6 @@
                   in the project.
                -->
               <append>true</append>
-              <!-- test -->
               <destFile>${build.path}/../target/jacoco-combined.exec</destFile>
             </configuration>
             <executions>
