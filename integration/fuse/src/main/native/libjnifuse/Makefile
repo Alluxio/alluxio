@@ -27,16 +27,18 @@ endif
 
 CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
 LDFLAGS = -shared ${FUSE_LIBS}
-OBJS = jnifuse_helper.o jnifuse_fs.o jnifuse_impls.o operation.o
+OUTPUT_DIR ?= .
+SRC_DIR ?= ../../src/main/native/libjnifuse
+OBJ S= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
 
 ${TARGET_LIB}: ${OBJS}
-	${CXX} ${CXXFLAGS} -o ${TARGET_LIB} ${OBJS} ${LDFLAGS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT_DIR}/${TARGET_LIB} ${OBJS} ${LDFLAGS}
 
 install: ${TARGET_LIB}
 	sudo mv ${TARGET_LIB} /usr/lib/
 
 clean:
-	rm -rf ${OBJS} ${TARGET_LIB}
+	rm -rf ${OBJS} ${OUTPUT_DIR}/${TARGET_LIB}
 
-%.o: %.cc
+${OUTPUT_DIR}/%.o: ${SRC_DIR}/%.cc
 	${CXX} ${CXXFLAGS} -o $@ -c $<

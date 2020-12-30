@@ -84,7 +84,8 @@
                 <goals><goal>run</goal></goals>
                 <configuration>
                   <target>
-                    <exec executable="make" failonerror="true" dir="${basedir}/src/main/native/libjnifuse">
+                    <mkdir dir="${project.build.directory}/native"/>
+                    <exec executable="make" failonerror="true" dir="${project.build.directory}/native">
                     </exec>
                   </target>
                 </configuration>
