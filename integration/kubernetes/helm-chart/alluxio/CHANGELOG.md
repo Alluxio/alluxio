@@ -143,3 +143,6 @@
 
 - Add Metrics configurations including Prometheus
 - Add a table of keys and default values for the Helm templates in README
+
+0.6.13
+- Add remote logger for Alluxio services
