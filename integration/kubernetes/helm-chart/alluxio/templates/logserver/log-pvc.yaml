@@ -9,9 +9,9 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ $enabled = .Values.logserver.enabled -}}
-{{- $needPVC = eq .Values.logserver.volumeType "persistentVolumeClaim" }}
-{{ if and $enabled $needPVC -}}
+{{ $enabled := .Values.logserver.enabled -}}
+{{ $needPVC := eq .Values.logserver.volumeType "persistentVolumeClaim" -}}
+{{ if and .Values.logserver.enabled $needPVC -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

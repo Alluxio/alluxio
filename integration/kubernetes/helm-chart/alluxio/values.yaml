@@ -406,10 +406,9 @@ logserver:
   jvmOptions:
   nodeSelector: {}
   # volumeType controls the type of log volume.
-  # It can be "persistentVolumeClaim" or "hostPath" or "none"
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
   # If the type is "none", there will not be a volume mounted to the log path
   volumeType: persistentVolumeClaim
-  size: 4Gi
   # Attributes to use if the log volume is PVC
   pvcName: alluxio-logserver-logs
   accessModes:
@@ -417,4 +416,7 @@ logserver:
   storageClass: standard
   # Attributes to use if the log volume is hostPath
   hostPath: "/tmp/alluxio-logs" # The hostPath directory to use
+  # Attributes to use when the log volume is emptyDir
+  medium: ""
+  size: 4Gi
 

@@ -366,6 +366,11 @@ livenessProbe:
 - name: alluxio-logs
   persistentVolumeClaim:
     claimName: "{{ .Values.logserver.pvcName }}"
+{{- else if eq .Values.logserver.volumeType "emptyDir" }}
+- name: alluxio-logs
+  emptyDir:
+    medium: {{ .Values.logserver.medium }}
+    sizeLimit: {{ .Values.logserver.size | quote }}
 {{- else }}
 {{- end }}
 {{- end -}}
