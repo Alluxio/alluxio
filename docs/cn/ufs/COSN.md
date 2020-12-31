@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 在COSN上配置Alluxio
-nickname: Alluxio使用COS
+nickname: Alluxio集成COSN作为底层存储
 group: Storage Integrations
 priority: 5
 ---
