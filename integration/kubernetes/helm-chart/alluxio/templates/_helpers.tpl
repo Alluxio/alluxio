@@ -362,9 +362,10 @@ livenessProbe:
   hostPath:
     path: {{ .Values.logserver.hostPath }}
     type: DirectoryOrCreate
-{{- else }}
+{{- else if eq .Values.logserver.volumeType "persistentVolumeClaim" }}
 - name: alluxio-logs
   persistentVolumeClaim:
     claimName: "{{ .Values.logserver.pvcName }}"
+{{- else }}
 {{- end }}
 {{- end -}}

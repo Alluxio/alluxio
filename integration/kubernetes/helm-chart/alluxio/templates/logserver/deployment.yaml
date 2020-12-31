@@ -68,8 +68,10 @@ spec:
           - containerPort: {{ .Values.logserver.ports.logging }}
             name: logging
           volumeMounts:
+            {{- if not (eq .Values.logserver.volumeType "none") }}
           - name: alluxio-logs
             mountPath: /opt/alluxio/logs
+            {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.logserver }}
             {{- include "alluxio.master.secretVolumeMounts" . }}

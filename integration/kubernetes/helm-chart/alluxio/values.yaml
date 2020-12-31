@@ -406,7 +406,8 @@ logserver:
   jvmOptions:
   nodeSelector: {}
   # volumeType controls the type of log volume.
-  # It can be "persistentVolumeClaim" or "hostPath"
+  # It can be "persistentVolumeClaim" or "hostPath" or "none"
+  # If the type is "none", there will not be a volume mounted to the log path
   volumeType: persistentVolumeClaim
   size: 4Gi
   # Attributes to use if the log volume is PVC
