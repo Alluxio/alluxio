@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Running Alluxio on Tencent Cloud EMR
+title: Running Alluxio On Tencent Cloud EMR
 nickname: Tencent EMR
 group: Cloud Native
 priority: 3
