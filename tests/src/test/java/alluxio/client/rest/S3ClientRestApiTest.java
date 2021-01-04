@@ -171,25 +171,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void putBucketUnderNonMountPointDirectory() throws Exception {
-    final String dirName = "dir";
-    final String bucketName = "bucket";
-    final String s3Path = dirName + BUCKET_SEPARATOR + bucketName;
-
-    AlluxioURI dirPath = new AlluxioURI(AlluxioURI.SEPARATOR + dirName);
-    mFileSystemMaster.createDirectory(dirPath, CreateDirectoryContext.defaults());
-
-    try {
-      // Create a new bucket under a non-mount-point directory should fail.
-      createBucketRestCall(s3Path);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create bucket under non-mount-point directory should fail");
-  }
-
-  @Test
   public void deleteBucket() throws Exception {
     final String bucket = "bucket-to-delete";
     createBucketRestCall(bucket);
