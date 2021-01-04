@@ -2768,6 +2768,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_WORKQUEUE_MAX =
+      new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_WORKQUEUE_MAX)
+          .setDefaultValue(512)
+          .setDescription("The maximum number of outstanding async caching requests to cache "
+              + "blocks in each data server")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
           .setDefaultValue(8)
@@ -5401,6 +5409,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
         "alluxio.worker.master.periodical.rpc.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
+    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_WORKQUEUE_MAX =
+        "alluxio.worker.network.async.cache.manager.workqueue.max";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =

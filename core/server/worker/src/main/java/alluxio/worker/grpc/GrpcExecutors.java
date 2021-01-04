@@ -39,7 +39,9 @@ final class GrpcExecutors {
   public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(512),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS,
+          new LinkedBlockingQueue<>(ServerConfiguration.getInt(
+                  PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_WORKQUEUE_MAX)),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
