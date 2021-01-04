@@ -51,7 +51,6 @@ function printUsage {
   echo -e " proxy                        \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
   echo -e " logserver                    \t Start Alluxio log server"
-  echo -e " logserver [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
 }
 
 function writeConf {
