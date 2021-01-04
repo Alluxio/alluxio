@@ -21,7 +21,6 @@ public final class ListBucketOptions {
   private String mMarker = null;
   private String mMaxKeys = null;
   private String mPrefix = null;
-  private String mDelimiter = null;
 
   /**
    * Creates a default {@link ListBucketOptions}.
@@ -59,13 +58,6 @@ public final class ListBucketOptions {
   }
 
   /**
-   * @return the delimiter
-   */
-  public String getDelimiter() {
-    return mDelimiter;
-  }
-
-  /**
    * @param marker the marker to set
    * @return the updated object
    */
@@ -89,15 +81,6 @@ public final class ListBucketOptions {
    */
   public ListBucketOptions setPrefix(String prefix) {
     mPrefix = prefix;
-    return this;
-  }
-
-  /**
-   * @param delimiter the delimiter
-   * @return the updated object
-   */
-  public ListBucketOptions setDelimiter(String delimiter) {
-    mDelimiter = delimiter;
     return this;
   }
 

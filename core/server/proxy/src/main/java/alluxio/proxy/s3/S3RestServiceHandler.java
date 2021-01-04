@@ -196,8 +196,7 @@ public final class S3RestServiceHandler {
         List<URIStatus> children;
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(marker)
-            .setPrefix(prefix)
-            .setDelimiter(delimiter);
+            .setPrefix(prefix);
         try {
           children = mFileSystem.listStatus(new AlluxioURI(path));
         } catch (IOException | AlluxioException e) {

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html
+ * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
  * It will be encoded into an XML string to be returned as a response for the REST call.
  */
 @JacksonXmlRootElement(localName = "ListBucketResult")
@@ -38,15 +38,22 @@ public class ListBucketResult {
 
   /* Name of the bucket. */
   private String mName;
-  /**
+
+  /*
    * Returns the number of keys included in the response. The value is always less than or equal
    * to the mMaxKeys value.
    */
   private int mKeyCount;
+
+  /* The maximum number of keys returned in the response body. */
   private int mMaxKeys;
+
   private boolean mIsTruncated;
 
+  /* Marker is included in the response if it was sent with the request. */
   private String mMarker;
+
+  /* If only partial results are returned (mIsTruncated = true), this value is set as the nextMarker */
   private String mNextMarker;
 
   private String mPrefix;
@@ -91,15 +98,13 @@ public class ListBucketResult {
 
     final Map<Boolean, List<URIStatus>> typeToStatus = keys.stream()
         .collect(Collectors.groupingBy((status) -> status.isFolder()));
-    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, new ArrayList<>());
-    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, new ArrayList<>());
+    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, Collections.EMPTY_LIST);
+    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, Collections.EMPTY_LIST);
 
     mContents = new ArrayList<>();
-    for (int i = 0; i < objectsList.size(); i++) {
-      URIStatus status = objectsList.get(i);
-
+    for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(mName.length() + 2),
+          status.getPath().substring(mName.length() + 2), // remove both ends of "/" character
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
           String.valueOf(status.getLength())
       ));
@@ -110,7 +115,7 @@ public class ListBucketResult {
       URIStatus status = prefixList.get(i);
 
       final String path = status.getPath();
-      commonPrefixes.add(path.substring(mName.length() + 2));
+      commonPrefixes.add(path.substring(mName.length() + 2)); // remove both ends of "/" character
     }
 
     mCommonPrefixes = new CommonPrefixes(commonPrefixes);
