@@ -69,8 +69,10 @@ public class RaftJournalWriter implements JournalWriter {
     mClosed = false;
     mWriteTimeoutMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
+    // journal entry size max is the hard limit set by underlying ratis
+    // use a smaller value to guarantee we don't pass the hard limit
     mFlushBatchBytes =
-        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_BATCH_SIZE);
+        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) / 3;
   }
 
   @Override

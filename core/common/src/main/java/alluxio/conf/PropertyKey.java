@@ -1569,15 +1569,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_FLUSH_BATCH_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_FLUSH_BATCH_SIZE)
-          .setDefaultValue("1MB")
-          .setDescription("Embedded journal flush journal entries in batches to improve flush performance. "
-              + "When the current journal batch size in bytes is bigger than the configured batch size, "
-              + "an auto journal flush is triggered to avoid journal batch size grows unbounded")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port to use for embedded journal communication with other masters.")
@@ -5187,8 +5178,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.entry.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
         "alluxio.master.embedded.journal.flush.size.max";
-    public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_BATCH_SIZE =
-        "alluxio.master.embedded.journal.flush.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
         "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
