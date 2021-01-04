@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 在腾讯云EMR中使用 Alluxio
-nickname: 在腾讯云EMR中使用 Alluxio
+nickname: Tencent EMR
 group: Cloud Native
 priority: 3
 ---
