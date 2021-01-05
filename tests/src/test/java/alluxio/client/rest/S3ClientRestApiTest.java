@@ -15,8 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -30,6 +32,7 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.security.CurrentUser;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -51,10 +54,14 @@ import org.junit.rules.TestRule;
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
+import java.security.Principal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.security.auth.Subject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
@@ -104,9 +111,31 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listAllMyBuckets() throws Exception {
+    CurrentUser user0 = new CurrentUser("user0");
+    Set<Principal> principals = new HashSet<>();
+    principals.add(user0);
+    Subject user0Subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
+    final FileSystem user0Fs = sResource.get().getClient(
+        FileSystemContext.create(user0Subject, ServerConfiguration.global()));
+
+    user0Fs.createDirectory(new AlluxioURI("/bucket0"));
+
+    CurrentUser user1 = new CurrentUser("user1");
+    principals = new HashSet<>();
+    principals.add(user1);
+    Subject user1Subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
+    final FileSystem user1Fs = sResource.get().getClient(
+        FileSystemContext.create(user0Subject, ServerConfiguration.global()));
+
+    user1Fs.createDirectory(new AlluxioURI("/bucket1"));
+
+
+  }
+
+  @Test
   public void listBucket() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/bucket");
-    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket"));
     mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
     mFileSystem.createDirectory(new AlluxioURI("/bucket/folder1"));
 
@@ -174,21 +203,34 @@ public final class S3ClientRestApiTest extends RestApiTest {
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
-    assertEquals(0, expected.getContents().size());
-    assertEquals(Lists.newArrayList("folder0"),
-        expected.getCommonPrefixes().getCommonPrefixes());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
 
     parameters.put("marker", nextMarker);
 
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
+    nextMarker = expected.getNextMarker();
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file1", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+
+    parameters.put("marker", nextMarker);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
+    nextMarker = expected.getNextMarker();
 
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals(0, expected.getContents().size());
-    assertEquals(Lists.newArrayList("folder1"),
+    assertEquals(Lists.newArrayList("folder0"),
         expected.getCommonPrefixes().getCommonPrefixes());
   }
 
