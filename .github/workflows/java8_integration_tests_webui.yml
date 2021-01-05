@@ -1,6 +1,9 @@
 name: Java 8 Integration Tests (w/ webui)
 
-on: [pull_request]
+on:
+  pull_request:
+  schedule:
+    - cron: 0 0 * * *
 
 jobs:
   build:
