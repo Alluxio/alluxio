@@ -23,9 +23,10 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.MountContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListBucketOptions;
+import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
@@ -35,6 +36,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -55,6 +57,8 @@ import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for {@link alluxio.proxy.s3.S3RestServiceHandler}.
@@ -109,7 +113,83 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
     mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
 
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
 
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
+
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults());
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals(Lists.newArrayList("folder0", "folder1"),
+        expected.getCommonPrefixes().getCommonPrefixes());
+
+
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix("/folder0"));
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("prefix", "/folder0");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(1).getKey());
+    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+  }
+
+  @Test
+  public void listBucketPagination() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
+
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
+
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1));
+    String nextMarker = expected.getNextMarker();
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "1");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals(0, expected.getContents().size());
+    assertEquals(Lists.newArrayList("folder0"),
+        expected.getCommonPrefixes().getCommonPrefixes());
+
+    parameters.put("marker", nextMarker);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals(0, expected.getContents().size());
+    assertEquals(Lists.newArrayList("folder1"),
+        expected.getCommonPrefixes().getCommonPrefixes());
   }
 
   @Test

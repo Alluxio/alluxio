@@ -168,7 +168,8 @@ public final class S3RestServiceHandler {
   public Response getBucket(@PathParam("bucket") final String bucket,
                             @QueryParam("marker") final String markerParam,
                             @QueryParam("prefix") final String prefixParam,
-                            @QueryParam("delimiter") final String delimiterParam) {
+                            @QueryParam("delimiter") final String delimiterParam,
+                            @QueryParam("max-keys") final int maxKeysParam) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
       @Override
       public ListBucketResult call() throws S3Exception {
@@ -189,6 +190,11 @@ public final class S3RestServiceHandler {
           delimiter = AlluxioURI.SEPARATOR;
         }
 
+        int maxKeys = maxKeysParam;
+        if (maxKeys <= 0) {
+          maxKeys = ListBucketOptions.DEFAULT_MAX_KEYS;
+        }
+
         String path = parsePath(AlluxioURI.SEPARATOR + bucket, prefix, delimiter);
 
         checkPathIsAlluxioDirectory(path);
@@ -196,7 +202,8 @@ public final class S3RestServiceHandler {
         List<URIStatus> children;
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(marker)
-            .setPrefix(prefix);
+            .setPrefix(prefix)
+            .setMaxKeys(maxKeys);
         try {
           children = mFileSystem.listStatus(new AlluxioURI(path));
         } catch (IOException | AlluxioException e) {
