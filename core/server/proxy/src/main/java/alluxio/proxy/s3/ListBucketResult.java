@@ -114,9 +114,7 @@ public class ListBucketResult {
     }
 
     final ArrayList<String> commonPrefixes = new ArrayList<>();
-    for (int i = 0; i < prefixList.size(); i++) {
-      URIStatus status = prefixList.get(i);
-
+    for (URIStatus status : prefixList) {
       final String path = status.getPath();
       commonPrefixes.add(path.substring(mName.length() + 2)); // remove both ends of "/" character
     }
