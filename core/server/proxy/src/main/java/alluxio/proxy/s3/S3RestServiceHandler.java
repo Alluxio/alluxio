@@ -155,6 +155,63 @@ public final class S3RestServiceHandler {
   }
 
   /**
+   * @summary gets a bucket and lists all the objects in it
+   * @param bucket the bucket name
+   * @param markerParam the optional marker param
+   * @param prefixParam the optional prefix param
+   * @param delimiterParam the optional delimiter param
+   * @return the response object
+   */
+  @GET
+  @Path(BUCKET_PARAM)
+  //@ReturnType("alluxio.proxy.s3.ListBucketResult")
+  public Response getBucket(@PathParam("bucket") final String bucket,
+                            @QueryParam("marker") final String markerParam,
+                            @QueryParam("prefix") final String prefixParam,
+                            @QueryParam("delimiter") final String delimiterParam) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
+      @Override
+      public ListBucketResult call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+
+        String marker = markerParam;
+        if (marker == null) {
+          marker = "";
+        }
+
+        String prefix = prefixParam;
+        if (prefix == null) {
+          prefix = "";
+        }
+
+        String delimiter = delimiterParam;
+        if (delimiter == null) {
+          delimiter = AlluxioURI.SEPARATOR;
+        }
+
+        String path = parsePath(AlluxioURI.SEPARATOR + bucket, prefix, delimiter);
+
+        checkPathIsAlluxioDirectory(path);
+
+        List<URIStatus> children;
+        ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
+            .setMarker(marker)
+            .setPrefix(prefix);
+        try {
+          children = mFileSystem.listStatus(new AlluxioURI(path));
+        } catch (IOException | AlluxioException e) {
+          throw new RuntimeException(e);
+        }
+        ListBucketResult response = new ListBucketResult(
+            bucket,
+            children,
+            listBucketOptions);
+        return response;
+      }
+    });
+  }
+
+  /**
    * @summary creates a bucket
    * @param bucket the bucket name
    * @return the response object
@@ -167,7 +224,7 @@ public final class S3RestServiceHandler {
       @Override
       public Response.Status call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
         CreateDirectoryPOptions options =
@@ -195,9 +252,9 @@ public final class S3RestServiceHandler {
       @Override
       public Response.Status call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
 
-        checkBucketIsAlluxioDirectory(bucketPath);
+        checkPathIsAlluxioDirectory(bucketPath);
 
         // Delete the bucket.
         DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
@@ -209,46 +266,6 @@ public final class S3RestServiceHandler {
           throw toBucketS3Exception(e, bucketPath);
         }
         return Response.Status.NO_CONTENT;
-      }
-    });
-  }
-
-  /**
-   * @summary gets a bucket and lists all the objects in it
-   * @param bucket the bucket name
-   * @param continuationToken the optional continuation token param
-   * @param maxKeys the optional max keys param
-   * @param prefix the optional prefix param
-   * @return the response object
-   */
-  @GET
-  @Path(BUCKET_PARAM)
-  //@ReturnType("alluxio.proxy.s3.ListBucketResult")
-  // TODO(chaomin): consider supporting more request params like prefix and delimiter.
-  public Response getBucket(@PathParam("bucket") final String bucket,
-      @QueryParam("continuation-token") final String continuationToken,
-      @QueryParam("max-keys") final String maxKeys,
-      @QueryParam("prefix") final String prefix) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
-      @Override
-      public ListBucketResult call() throws S3Exception {
-        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-
-        checkBucketIsAlluxioDirectory(bucketPath);
-
-        List<URIStatus> objects;
-        ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
-            .setContinuationToken(continuationToken)
-            .setMaxKeys(maxKeys)
-            .setPrefix(prefix);
-        try {
-          objects = listObjects(new AlluxioURI(bucketPath), listBucketOptions);
-          ListBucketResult response = new ListBucketResult(bucketPath, objects, listBucketOptions);
-          return response;
-        } catch (Exception e) {
-          throw toBucketS3Exception(e, bucketPath);
-        }
       }
     });
   }
@@ -284,8 +301,8 @@ public final class S3RestServiceHandler {
             "'partNumber' and 'uploadId' parameter should appear together or be "
             + "missing together.");
 
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         if (partNumber != null) {
@@ -360,8 +377,8 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<InitiateMultipartUploadResult>() {
       @Override
       public InitiateMultipartUploadResult call() throws S3Exception {
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         AlluxioURI multipartTemporaryDir =
             new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
@@ -386,8 +403,8 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<CompleteMultipartUploadResult>() {
       @Override
       public CompleteMultipartUploadResult call() throws S3Exception {
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         AlluxioURI multipartTemporaryDir =
             new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
@@ -442,8 +459,8 @@ public final class S3RestServiceHandler {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
 
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         AlluxioURI objectURI = new AlluxioURI(objectPath);
 
@@ -489,8 +506,8 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListPartsResult>() {
       @Override
       public ListPartsResult call() throws S3Exception {
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
 
         AlluxioURI tmpDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
@@ -523,8 +540,8 @@ public final class S3RestServiceHandler {
       @Override
       public Response call() throws S3Exception {
 
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        checkBucketIsAlluxioDirectory(bucketPath);
+        String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+        checkPathIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         AlluxioURI objectURI = new AlluxioURI(objectPath);
 
@@ -577,8 +594,8 @@ public final class S3RestServiceHandler {
   // TODO(cc): Support automatic abortion after a timeout.
   private void abortMultipartUpload(String bucket, String object, long uploadId)
       throws S3Exception {
-    String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-    checkBucketIsAlluxioDirectory(bucketPath);
+    String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+    checkPathIsAlluxioDirectory(bucketPath);
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     AlluxioURI multipartTemporaryDir =
         new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
@@ -593,7 +610,7 @@ public final class S3RestServiceHandler {
   }
 
   private void deleteObject(String bucket, String object) throws S3Exception {
-    String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+    String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
@@ -637,28 +654,29 @@ public final class S3RestServiceHandler {
     }
   }
 
-  private String parseBucketPath(String bucketPath) throws S3Exception {
-    if (!bucketPath.contains(BUCKET_SEPARATOR)) {
-      return bucketPath;
-    }
-    String normalizedPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-    checkNestedBucketIsUnderMountPoint(normalizedPath);
-    return normalizedPath;
+  private String parsePath(String bucketPath) throws S3Exception {
+    return parsePath(bucketPath, null, null);
   }
 
-  private void checkNestedBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
-    // Assure that the bucket is directly under a mount point.
-    AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
-    try {
-      if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
-        throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
-      }
-    } catch (Exception e) {
-      throw toBucketS3Exception(e, bucketPath);
+  private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
+    if (prefix == null) {
+      prefix = "";
     }
+
+    if (delimiter == null) {
+      delimiter = AlluxioURI.SEPARATOR;
+    }
+
+    String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    String normalizedPrefix = prefix.replace(delimiter, AlluxioURI.SEPARATOR);
+
+    if (!normalizedPrefix.isEmpty()) {
+      normalizedPrefix = AlluxioURI.SEPARATOR + normalizedPrefix;
+    }
+    return normalizedBucket + normalizedPrefix;
   }
 
-  private void checkBucketIsAlluxioDirectory(String bucketPath) throws S3Exception {
+  private void checkPathIsAlluxioDirectory(String bucketPath) throws S3Exception {
     try {
       URIStatus status = mFileSystem.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
