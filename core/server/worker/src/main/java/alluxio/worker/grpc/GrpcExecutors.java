@@ -41,7 +41,7 @@ final class GrpcExecutors {
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS,
           new LinkedBlockingQueue<>(ServerConfiguration.getInt(
-                  PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_WORKQUEUE_MAX)),
+                  PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
