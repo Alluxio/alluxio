@@ -16,9 +16,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
-
 import alluxio.util.FormatUtils;
-import alluxio.wire.Property;
+
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
@@ -74,7 +73,8 @@ public class RaftJournalWriter implements JournalWriter {
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
     // journal entry size max is the hard limit set by underlying ratis
     // use a smaller value to guarantee we don't pass the hard limit
-    mEntrySizeMax = ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+    mEntrySizeMax = ServerConfiguration
+        .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
     mFlushBatchBytes = mEntrySizeMax / 3;
   }
 
