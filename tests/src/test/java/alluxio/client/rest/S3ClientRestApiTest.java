@@ -57,7 +57,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
 /**
- * Test cases for {@link S3RestServiceHandler}.
+ * Test cases for {@link alluxio.proxy.s3.S3RestServiceHandler}.
  */
 public final class S3ClientRestApiTest extends RestApiTest {
   private static final int DATA_SIZE = 16 * Constants.KB;
@@ -100,6 +100,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listBucket() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+
+
+  }
+
+  @Test
   public void putBucket() throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
@@ -107,67 +120,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     Assert.assertTrue(mFileSystemMaster
         .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderMountPoint() throws Exception {
-    final String mountPoint = "s3";
-    final String bucketName = "bucket";
-    final String s3Path = mountPoint + BUCKET_SEPARATOR + bucketName;
-
-    AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPoint);
-    mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        MountContext.defaults());
-
-    // Create a new bucket under an existing mount point.
-    createBucketRestCall(s3Path);
-
-    // Verify the directory is created for the new bucket, under the mount point.
-    AlluxioURI uri = new AlluxioURI(
-        AlluxioURI.SEPARATOR + mountPoint + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderNestedMountPoint() throws Exception {
-    final String mountPointParent = "mounts";
-    final String mountPointName = "s3";
-    final String bucketName = "bucket";
-    final String s3Path =
-        mountPointParent + BUCKET_SEPARATOR + mountPointName + BUCKET_SEPARATOR + bucketName;
-
-    mFileSystemMaster.createDirectory(new AlluxioURI(
-        AlluxioURI.SEPARATOR + mountPointParent), CreateDirectoryContext.defaults());
-    AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
-        + AlluxioURI.SEPARATOR + mountPointName);
-    mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        MountContext.defaults());
-
-    // Create a new bucket under an existing nested mount point.
-    createBucketRestCall(s3Path);
-
-    // Verify the directory is created for the new bucket, under the mount point.
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
-        + AlluxioURI.SEPARATOR + mountPointName + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderNonExistingMountPoint() throws Exception {
-    final String mountPoint = "s3";
-    final String bucketName = "bucket";
-    final String s3Path = mountPoint + BUCKET_SEPARATOR + bucketName;
-
-    try {
-      // Create a new bucket under a non-existing mount point should fail.
-      createBucketRestCall(s3Path);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create bucket under non-existing mount point should fail");
   }
 
   @Test
