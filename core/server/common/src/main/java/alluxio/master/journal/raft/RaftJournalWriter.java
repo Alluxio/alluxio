@@ -127,7 +127,6 @@ public class RaftJournalWriter implements JournalWriter {
             mWriteTimeoutMs), e);
       }
       mJournalEntryBuilder = null;
-      mCurrentJournalEntrySize.set(0);
     }
   }
 
