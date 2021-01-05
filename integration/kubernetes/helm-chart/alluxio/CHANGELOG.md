@@ -138,3 +138,8 @@
 0.6.11
 
 - Pass alluxio.user.hostname via ALLUXIO_FUSE_JAVA_OPTS for FUSE
+
+0.6.12
+
+- Add Metrics configurations including Prometheus
+- Add a table of keys and default values for the Helm templates in README

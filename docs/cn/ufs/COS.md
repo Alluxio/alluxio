@@ -12,7 +12,7 @@ priority: 5
 该指南介绍如何配置Alluxio以使用腾讯云[对象存储](https://cloud.tencent.com/product/cos)(Cloud Object Storage，简称：COS)作为底层文件系统。对象存储是腾讯云提供的面向非结构化数据，支持 HTTP/HTTPS协议访问的分布式存储服务，它能容纳海量数据并保证用户对带宽和容量扩充无感知，可以作为大数据计算与分析的数据池。
 
 ## 声明
-<font color=red>COS UFS存在读写性能较差以及不稳定的问题，为了解决此类问题，推出了[COSN UFS](COSN.html)底层文件系统。COS和COSN UFS都是用于访问腾讯云对象存储，COSN相对于COS做了深度优化，其读写性能较COS成倍提升，同时带来了更好的稳定性，所以强烈推荐使用COSN。COS UFS将于Alluxio2.6.0版本停止维护。</font>
+COS UFS存在读写性能较差以及不稳定的问题，为了解决此类问题，推出了[COSN UFS](COSN.html)底层文件系统。COS和COSN UFS都是用于访问腾讯云对象存储，COSN相对于COS做了深度优化，其读写性能较COS成倍提升，同时带来了更好的稳定性，所以强烈推荐使用COSN。COS UFS将于Alluxio2.6.0版本停止维护。
 
 ## 初始步骤
 

@@ -128,7 +128,7 @@ public class UfsJournal implements Journal {
   /**
    * @return the ufs configuration to use for the journal operations
    */
-  protected static UnderFileSystemConfiguration getJournalUfsConf() {
+  public static UnderFileSystemConfiguration getJournalUfsConf() {
     Map<String, String> ufsConf =
         ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
     return UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
@@ -146,7 +146,9 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
       Supplier<Set<JournalSink>> journalSinks) {
-    this(location, master, UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()),
+    this(location, master, master.getMasterContext().getUfsManager().getJournal(location)
+            .acquireUfsResource()
+            .get(),
         quietPeriodMs, journalSinks);
   }
 
