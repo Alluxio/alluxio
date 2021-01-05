@@ -17,6 +17,8 @@ import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import alluxio.util.FormatUtils;
+import alluxio.wire.Property;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
@@ -41,6 +43,7 @@ public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
   // How long to wait for a response from the cluster before giving up and trying again.
   private final long mWriteTimeoutMs;
+  private final long mEntrySizeMax;
   private final long mFlushBatchBytes;
 
   private final AtomicLong mNextSequenceNumberToWrite;
@@ -71,8 +74,8 @@ public class RaftJournalWriter implements JournalWriter {
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
     // journal entry size max is the hard limit set by underlying ratis
     // use a smaller value to guarantee we don't pass the hard limit
-    mFlushBatchBytes =
-        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) / 3;
+    mEntrySizeMax = ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+    mFlushBatchBytes = mEntrySizeMax / 3;
   }
 
   @Override
@@ -82,6 +85,9 @@ public class RaftJournalWriter implements JournalWriter {
     }
     Preconditions.checkState(entry.getAllFields().size() <= 1,
         "Raft journal entries should never set multiple fields, but found %s", entry);
+    if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
+      flush();
+    }
     if (mJournalEntryBuilder == null) {
       mJournalEntryBuilder = JournalEntry.newBuilder();
       mCurrentJournalEntrySize.set(0);
@@ -89,9 +95,13 @@ public class RaftJournalWriter implements JournalWriter {
     LOG.trace("Writing entry {}: {}", mNextSequenceNumberToWrite, entry);
     mJournalEntryBuilder.addJournalEntries(entry.toBuilder()
         .setSequenceNumber(mNextSequenceNumberToWrite.getAndIncrement()).build());
-    if (mCurrentJournalEntrySize.addAndGet(entry.getSerializedSize()) > mFlushBatchBytes) {
-      flush();
+    long size = entry.getSerializedSize();
+    if (size > mEntrySizeMax) {
+      LOG.error("Journal entry size ({}) is bigger than the max allowed size ({}) defined by {}",
+          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(mEntrySizeMax),
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.getName());
     }
+    mCurrentJournalEntrySize.addAndGet(size);
   }
 
   @Override

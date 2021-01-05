@@ -128,6 +128,7 @@ public class RaftJournalWriterTest {
               .setAlluxioPath(alluxioMountPoint)
               .setUfsPath(ufsPath).build()).build());
     }
+    mRaftJournalWriter.write(Journal.JournalEntry.getDefaultInstance());
     verify(mClient, atLeast(totalMessageBytes / flushBatchSize)).sendAsync(any(), any());
   }
 }
