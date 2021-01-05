@@ -36,7 +36,7 @@ public class ListBucketResult {
 
   private static final int DEFAULT_MAX_KEYS = 1000;
 
-  /* Name of the bucket. */
+  // Name of the bucket
   private String mName;
 
   /*
@@ -45,21 +45,24 @@ public class ListBucketResult {
    */
   private int mKeyCount;
 
-  /* The maximum number of keys returned in the response body. */
+  // The maximum number of keys returned in the response body.
   private int mMaxKeys;
 
   private boolean mIsTruncated;
 
-  /* Marker is included in the response if it was sent with the request. */
+  // Marker is included in the response if it was sent with the request.
   private String mMarker;
 
-  /* If only partial results are returned (mIsTruncated = true), this value is set as the nextMarker */
+  // If only partial results are returned, this value is set as the nextMarker.
   private String mNextMarker;
 
+  // Prefix is included in the response if it was sent with the request.
   private String mPrefix;
 
+  // List of files.
   private List<Content> mContents;
 
+  // List of common prefixes (aka. folders)
   private CommonPrefixes mCommonPrefixes;
 
   /**
