@@ -397,6 +397,9 @@ public class AlluxioCatalog implements Journaled {
     } else if (entry.hasAddTable()) {
       Database db = mDBs.get(entry.getAddTable().getDbName());
       return db.processJournalEntry(entry);
+    } else if (entry.hasAddTablePartitions()) {
+      Database db = mDBs.get(entry.getAddTablePartitions().getDbName());
+      return db.processJournalEntry(entry);
     } else if (entry.hasRemoveTable()) {
       Database db = mDBs.get(entry.getRemoveTable().getDbName());
       return db.processJournalEntry(entry);

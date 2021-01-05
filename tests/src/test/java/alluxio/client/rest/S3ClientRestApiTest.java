@@ -27,6 +27,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListAllMyBucketsResult;
 import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
@@ -55,6 +56,7 @@ import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -130,7 +132,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     user1Fs.createDirectory(new AlluxioURI("/bucket1"));
 
+    assertEquals("test", mFileSystem.listStatus(new AlluxioURI("/")).get(0).getOwner());
 
+    final ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
   }
 
   @Test

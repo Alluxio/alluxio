@@ -44,7 +44,7 @@ public final class ListBucketOptions {
   }
 
   /**
-   * @return the continuation token
+   * @return the marker
    */
   public String getMarker() {
     return mMarker;
@@ -113,7 +113,7 @@ public final class ListBucketOptions {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("continuationToken", mMarker)
+        .add("marker", mMarker)
         .add("prefix", mPrefix)
         .add("maxKeys", mMaxKeys)
         .toString();

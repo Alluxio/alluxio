@@ -2768,6 +2768,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
+      new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
+          .setDefaultValue(512)
+          .setDescription("The maximum number of outstanding async caching requests to cache "
+              + "blocks in each data server")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
           .setDefaultValue(8)
@@ -4847,6 +4855,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
+      new Builder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
+          .setDefaultValue(500)
+          .setDescription("The maximum table partitions number in a single journal entry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
           .setDefaultValue(10 * Constants.SECOND_MS)
@@ -5403,6 +5418,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.async.cache.manager.threads.max";
+    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
+        "alluxio.worker.network.async.cache.manager.queue.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
@@ -5823,6 +5840,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
     public static final String TABLE_CATALOG_UDB_SYNC_TIMEOUT =
         "alluxio.table.catalog.udb.sync.timeout";
+    public static final String TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
+        "alluxio.table.journal.partitions.chunk.size";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
