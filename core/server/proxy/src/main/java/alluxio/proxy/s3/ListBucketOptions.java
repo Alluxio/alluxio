@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
  * The options for list bucket operation.
  */
 public final class ListBucketOptions {
-  private String mContinuationToken = null;
+  private String mMarker = null;
   private String mMaxKeys = null;
   private String mPrefix = null;
 
@@ -39,8 +39,8 @@ public final class ListBucketOptions {
   /**
    * @return the continuation token
    */
-  public String getContinuationToken() {
-    return mContinuationToken;
+  public String getMarker() {
+    return mMarker;
   }
 
   /**
@@ -58,11 +58,11 @@ public final class ListBucketOptions {
   }
 
   /**
-   * @param continuationToken the continuation token to set
+   * @param marker the marker to set
    * @return the updated object
    */
-  public ListBucketOptions setContinuationToken(String continuationToken) {
-    mContinuationToken = continuationToken;
+  public ListBucketOptions setMarker(String marker) {
+    mMarker = marker;
     return this;
   }
 
@@ -93,20 +93,20 @@ public final class ListBucketOptions {
       return false;
     }
     ListBucketOptions that = (ListBucketOptions) o;
-    return Objects.equal(mContinuationToken, that.mContinuationToken)
+    return Objects.equal(mMarker, that.mMarker)
         && Objects.equal(mMaxKeys, that.mMaxKeys)
         && Objects.equal(mPrefix, that.mPrefix);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mContinuationToken, mMaxKeys, mPrefix);
+    return Objects.hashCode(mMarker, mMaxKeys, mPrefix);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("continuationToken", mContinuationToken)
+        .add("continuationToken", mMarker)
         .add("maxKeys", mMaxKeys)
         .add("prefix", mPrefix)
         .toString();
