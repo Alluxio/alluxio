@@ -109,7 +109,7 @@ public final class S3RestServiceHandler {
       return "";
     }
 
-    // The valid pattern for Authorization is "AWS <AWSAccessKeyId>:<Singature>"
+    // The valid pattern for Authorization is "AWS <AWSAccessKeyId>:<Signature>"
     int spaceIndex = authorization.indexOf(' ');
     if (spaceIndex == -1) {
       return "";

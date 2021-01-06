@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -34,7 +35,9 @@ import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.security.CurrentUser;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
@@ -114,31 +117,31 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void listAllMyBuckets() throws Exception {
-    CurrentUser user0 = new CurrentUser("user0");
-    Set<Principal> principals = new HashSet<>();
-    principals.add(user0);
-    Subject user0Subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
-    final FileSystem user0Fs = sResource.get().getClient(
-        FileSystemContext.create(user0Subject, ServerConfiguration.global()));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket0"));
+    SetAttributePOptions setAttributeOptions =
+        SetAttributePOptions.newBuilder().setOwner("user0").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
 
-    user0Fs.createDirectory(new AlluxioURI("/bucket0"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket1"));
+    setAttributeOptions =
+        SetAttributePOptions.newBuilder().setOwner("user1").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
 
-    CurrentUser user1 = new CurrentUser("user1");
-    principals = new HashSet<>();
-    principals.add(user1);
-    Subject user1Subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
-    final FileSystem user1Fs = sResource.get().getClient(
-        FileSystemContext.create(user0Subject, ServerConfiguration.global()));
-
-    user1Fs.createDirectory(new AlluxioURI("/bucket1"));
-
-    assertEquals("test", mFileSystem.listStatus(new AlluxioURI("/")).get(0).getOwner());
-
-    final ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
-
+    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
+    final TestCaseOptions requestOptions = TestCaseOptions.defaults()
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+        HttpMethod.GET, expected, requestOptions).run();
+
+    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket0"));
+    requestOptions.setAuthorization("AWS user0:");
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected, requestOptions).run();
+
+    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket1"));
+    requestOptions.setAuthorization("AWS user1:");
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected, requestOptions).run();
   }
 
   @Test
