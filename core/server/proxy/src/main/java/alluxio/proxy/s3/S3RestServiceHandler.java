@@ -160,6 +160,7 @@ public final class S3RestServiceHandler {
    * @param markerParam the optional marker param
    * @param prefixParam the optional prefix param
    * @param delimiterParam the optional delimiter param
+   * @param maxKeysParam the optional max keys param
    * @return the response object
    */
   @GET
