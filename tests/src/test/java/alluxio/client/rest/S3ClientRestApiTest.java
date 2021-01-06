@@ -11,14 +11,14 @@
 
 package alluxio.client.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -34,10 +34,7 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
-import alluxio.security.CurrentUser;
-import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
@@ -58,19 +55,13 @@ import org.junit.rules.TestRule;
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import javax.security.auth.Subject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for {@link alluxio.proxy.s3.S3RestServiceHandler}.
@@ -169,7 +160,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals("file1", expected.getContents().get(1).getKey());
     assertEquals(Lists.newArrayList("folder0", "folder1"),
         expected.getCommonPrefixes().getCommonPrefixes());
-
 
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
 
