@@ -17,9 +17,9 @@ priority: 3
 
 ## 准备
 
-腾讯云EMR的Hadoop标准版本>=2.1.0
-腾讯云EMR的Hadoop天穹版本>=1.0
-有关EMR中版本中支持具体的Alluxio的版本支持可参考[这里](https://cloud.tencent.com/document/product/589/20279)
+- 腾讯云EMR的Hadoop标准版本>=2.1.0
+- 腾讯云EMR的Hadoop天穹版本>=1.0
+- 有关EMR中版本中支持具体的Alluxio的版本支持可参考[这里](https://cloud.tencent.com/document/product/589/20279)
 
 ## 创建基于Alluxio的EMR集群
 
@@ -79,4 +79,3 @@ priority: 3
 
 
 更多在腾讯云EMR中使用Alluxio开发使用细节，可[查阅](https://cloud.tencent.com/document/product/589)
-
