@@ -16,9 +16,9 @@ The out-of-the-box Alluxio service provided on Tencent Cloud EMR can help custom
 
 
 ## Prerequisites
-Hadoop standard version of Tencent Cloud EMR >= 2.1.0
-Hadoop Skydome version of Tencent Cloud EMR >= 1.0
-For the specific Alluxio version supported in EMR, please refer to [ Component Version supported Tencent Cloud EMR](https://intl.cloud.tencent.com/document/product/1026/31095).
+- Hadoop standard version of Tencent Cloud EMR >= 2.1.0
+- Hadoop Skydome version of Tencent Cloud EMR >= 1.0
+- For the specific Alluxio version supported in EMR, please refer to [Component Version supported Tencent Cloud EMR](https://intl.cloud.tencent.com/document/product/1026/31095).
 
 ## Create EMR cluster based on Alluxio
 This part mainly explains how to create an out-of-the-box Alluxio cluster on Tencent Cloud EMR. EMR provides two ways to build a cluster using the WEB purchase page and API creation:
@@ -68,4 +68,3 @@ If the object storage is not enabled in the current cluster, you can click Autho
 {% endaccordion %}
 
 For more details on using Alluxio development in Tencent Cloud EMR, please refer to [here](https://intl.cloud.tencent.com/document/product/1026/31168).
-
