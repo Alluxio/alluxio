@@ -16,8 +16,8 @@ The out-of-the-box Alluxio service provided on Tencent Cloud EMR can help custom
 
 
 ## Prerequisites
-- Hadoop standard version of Tencent Cloud EMR >= 2.1.0
-- Hadoop Skydome version of Tencent Cloud EMR >= 1.0
+- Hadoop Standard version of Tencent Cloud EMR >= 2.1.0
+- Hadoop TianQiong version of Tencent Cloud EMR >= 1.0
 - For the specific Alluxio version supported in EMR, please refer to [Component Version supported Tencent Cloud EMR](https://intl.cloud.tencent.com/document/product/1026/31095).
 
 ## Create EMR cluster based on Alluxio
@@ -48,9 +48,9 @@ After the configuration is delivered, some configurations need to restart the Al
   
 For more details on the configuration issuance and restart strategy, please refer to related documents:
 
-[Modifying Component Parameters](https://intl.cloud.tencent.com/document/product/1026/31109)
+- [Modifying Component Parameters](https://intl.cloud.tencent.com/document/product/1026/31109)
 
-[Restart the component](https://intl.cloud.tencent.com/document/product/1026/31110)
+- [Restart the component](https://intl.cloud.tencent.com/document/product/1026/31110)
 
 ## Accelerate computing and storage separation based on Alluxio
 Tencent Cloud EMR provides computing and storage separation capabilities based on Tencent Cloud Object Storage (COS). By default, when directly accessing data in the object storage, the application does not have node-level data locality or cross-application caching. Using Alluxio to accelerate will alleviate these problems.
