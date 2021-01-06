@@ -56,9 +56,8 @@ priority: 3
 
 了解跟多配置下发和重启策略细节，可以查阅相关文档:
 
-[配置管理](https://cloud.tencent.com/document/product/589/14628)
-
-[重启服务](https://cloud.tencent.com/document/product/589/32823)
+- [配置管理](https://cloud.tencent.com/document/product/589/14628)
+- [重启服务](https://cloud.tencent.com/document/product/589/32823)
 
 ## 基于Alluxio加速计算存储分离
 腾讯云EMR基于腾讯云对象存储(COS)提供了计算存储分离能力，默认直接访问对象存储中的数据时，应用程序没有节点级数据本地性或跨应用程序缓存。使用 Alluxio 加速将缓解这些问题。
