@@ -86,6 +86,7 @@
                   <target>
                     <mkdir dir="${project.build.directory}/native"/>
                     <exec executable="make" failonerror="true" dir="${project.build.directory}/native">
+                      <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile"/>
                     </exec>
                   </target>
                 </configuration>

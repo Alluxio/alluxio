@@ -29,7 +29,7 @@ CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLA
 LDFLAGS = -shared ${FUSE_LIBS}
 OUTPUT_DIR ?= .
 SRC_DIR ?= ../../src/main/native/libjnifuse
-OBJ S= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
+OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
 
 ${TARGET_LIB}: ${OBJS}
 	${CXX} ${CXXFLAGS} -o ${OUTPUT_DIR}/${TARGET_LIB} ${OBJS} ${LDFLAGS}
