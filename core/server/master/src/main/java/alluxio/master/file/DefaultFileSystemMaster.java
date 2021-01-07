@@ -180,6 +180,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -3797,14 +3798,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
             && ufsResource.get().isObjectStorage()) {
           tempUfsPath = resolution.getUri().toString();
         } else {
-          tempUfsPath = PathUtils.temporaryFileName(
-              System.currentTimeMillis(), resolution.getUri().toString());
+          // make temp path for temp file to avoid the
+          // error reading (failure of temp file clean up)
+          tempUfsPath = PathUtils.getPersistentTmpPath(resolution.getUri().toString());
+          LOG.info("Temp file {} for File persistent.", tempUfsPath);
         }
       }
 
       PersistConfig config =
           new PersistConfig(uri.getPath(), resolution.getMountId(), false, tempUfsPath);
-
       // Schedule the persist job.
       long jobId;
       JobMasterClient client = mJobMasterClientPool.acquire();

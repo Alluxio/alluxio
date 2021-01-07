@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -169,6 +170,56 @@ public final class PathUtils {
       return AlluxioURI.SEPARATOR;
     }
     return parent;
+  }
+
+  /**
+   * Join two path elements for ufs, separated by {@link AlluxioURI#SEPARATOR}.
+   *
+   * For example,
+   *
+   * <pre>
+   * {@code
+   * concatUfsPath("s3://myroot/", "filename").equals("s3://myroot/filename");
+   * concatUfsPath("s3://", "filename").equals("s3://filename");
+   * }
+   * </pre>
+   *
+   * @param base base path
+   * @param path path element to concatenate
+   * @return joined path
+   */
+  public static String concatUfsPath(String base, String path) {
+    Pattern basePattern = Pattern.compile("(...)\\/\\/");
+    // use conCatPath to join path if base is not starting with //
+    if (!basePattern.matcher(base).matches()) {
+      return concatPath(base, path);
+    } else {
+      Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
+      Preconditions.checkArgument(path != null, "Failed to concatPath: a null set of paths");
+      String trimmedPath = SEPARATOR_MATCHER.trimFrom(path);
+      StringBuilder output = new StringBuilder(base.length() + trimmedPath.length());
+      output.append(base);
+      output.append(trimmedPath);
+      return output.toString();
+    }
+  }
+
+  /**
+   * Get temp path for async persistence job.
+   *
+   * "s3://"
+   *
+   * @param path ufs path
+   * @return ufs temp path
+   */
+  public static String getPersistentTmpPath(String path) {
+    String tempPath;
+    String fileName = FilenameUtils.getName(path);
+    String parentPath = path.substring(0, path.length() - fileName.length());
+    tempPath = concatUfsPath(parentPath, "alluxio_persistent_job");
+    tempPath = concatPath(tempPath, fileName);
+    tempPath = temporaryFileName(System.currentTimeMillis(), tempPath);
+    return tempPath;
   }
 
   /**

@@ -31,6 +31,7 @@ import org.junit.rules.ExpectedException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 /**
  * Tests for the {@link PathUtils} class.
@@ -188,6 +189,77 @@ public final class PathUtilsTest {
     assertEquals("/", PathUtils.getParent("/"));
     assertEquals("/", PathUtils.getParent("/foo/bar/../../"));
     assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
+  }
+
+  @Test
+  public void concatUfsPath() {
+    assertEquals("s3://", PathUtils.concatUfsPath("s3://", ""));
+    assertEquals("s3://bar", PathUtils.concatUfsPath("s3://", "bar"));
+
+    assertEquals("hdfs://localhost:9010",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/", ""));
+    assertEquals("hdfs://localhost:9010/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/", "bar"));
+
+    assertEquals("s3://foo", PathUtils.concatUfsPath("s3://foo", ""));
+    assertEquals("hdfs://localhost:9010/foo",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo", ""));
+
+    // Join base without trailing "/"
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo", "bar"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo", "bar/"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo", "/bar"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo", "/bar/"));
+
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo", "bar"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo", "bar/"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo", "/bar"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo", "/bar/"));
+
+    // Join base with trailing "/"
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo/", "bar"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo/", "bar/"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo/", "/bar"));
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo/", "/bar/"));
+
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo/", "bar"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo/", "bar/"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo/", "/bar"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo/", "/bar/"));
+
+    // Redundant separator must be trimmed.
+    assertEquals("s3://foo/bar", PathUtils.concatUfsPath("s3://foo/", "bar//"));
+    assertEquals("hdfs://localhost:9010/foo/bar",
+        PathUtils.concatUfsPath("hdfs://localhost:9010/foo/", "bar//"));
+  }
+
+  @Test
+  public void getPersistentTmpPath() {
+    // Get temporary path
+    Pattern pattern = Pattern.compile(
+        "s3:\\/\\/test\\/alluxio_persistent_job\\/test\\.parquet\\.alluxio\\.\\w+\\.tmp");
+    String tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test/test.parquet");
+    assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
+    pattern = Pattern.compile(
+        "hdfs:\\/\\/localhost:9010\\/test\\/alluxio_persistent_job\\/test\\.parquet\\.alluxio\\.\\w+\\.tmp");
+    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test/test.parquet");
+    assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
+
+    // Get temporary path with root path
+    pattern = Pattern.compile("s3:\\/\\/alluxio_persistent_job\\/test\\.parquet\\.alluxio\\.\\w+\\.tmp");
+    tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test.parquet");
+    assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
+    pattern = Pattern.compile("hdfs:\\/\\/localhost:9010\\/alluxio_persistent_job\\/test\\.parquet\\.alluxio\\.\\w+\\.tmp");
+    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test.parquet");
+    assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }
 
   /**
