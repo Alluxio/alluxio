@@ -29,6 +29,8 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -219,20 +221,28 @@ public final class S3RestServiceHandler {
   @PUT
   @Path(BUCKET_PARAM)
   //@ReturnType("java.lang.Void")
-  public Response createBucket(@PathParam("bucket") final String bucket) {
+  public Response createBucket(@HeaderParam("Authorization") String authorization,
+                               @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+
+        final String user = getUserFromAuthorization(authorization);
+
         String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
         CreateDirectoryPOptions options =
             CreateDirectoryPOptions.newBuilder().setWriteType(getS3WriteType()).build();
         try {
-          mFileSystem.createDirectory(new AlluxioURI(bucketPath), options);
+          AuthenticatedClientUser.set(user);
+          final FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
+          fs.createDirectory(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
+        } finally {
+          AuthenticatedClientUser.set((User) null);
         }
         return Response.Status.OK;
       }

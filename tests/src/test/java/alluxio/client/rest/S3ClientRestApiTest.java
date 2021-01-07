@@ -716,6 +716,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private void createBucketRestCall(String bucketName) throws Exception {
+    createBucketRestCall(bucketName, null);
+  }
+
+  private void createBucketRestCall(String bucketName, String user) throws Exception {
     String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null,
         TestCaseOptions.defaults()).run();
