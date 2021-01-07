@@ -663,19 +663,36 @@ IN
   set_custom_alluxio_properties "${delimited_properties}"
 
   # Create a symbolic link in presto plugin directory pointing to our connector if:
-  # - emr version is >= 5.28 -> prestodb >= 0.227
+  # - emr version is 5.28  or 5.29 -> prestodb = 0.227 - 0.231
   # - alluxio version is above 2.2
   local -r emr_version=$(jq ".releaseLabel" /mnt/var/lib/info/extraInstanceData.json  | sed -e 's/^"emr-//' -e 's/"$//')
   local -r emr_major=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\1/')
   local -r emr_minor=$(echo "${emr_version}" | sed -s 's/\([[:digit:]]\+\)\.\([[:digit:]]\+\)\.[[:digit:]]\+/\2/')
-  if [ "${emr_major}" -gt 5 ] || [[ "${emr_major}" -eq 5 && "${emr_minor}" -ge 28 ]]; then
+  if [[ "${emr_major}" -eq 5 && "${emr_minor}" -ge 28 && "${emr_minor}" -lt 30  ]]; then
     for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
       # guard against using an older version by checking for alluxio connector's existence
+      # use alluxio's bundled connector hive-alluxio
       if [ -d "$plugindir" ]; then
         doas alluxio "ln -s $plugindir ${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector"
         sudo ln -s "${ALLUXIO_HOME}/client/presto/plugins/prestodb_connector" /usr/lib/presto/plugin/hive-alluxio
         sudo mkdir -p /etc/presto/conf/catalog
         echo "connector.name=hive-alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
+        break
+      fi
+    done
+  fi
+  # Use prestodb's builtin connect with alluxio catalog service support if
+  # - emr version is >= 5.30 -> prestodb >= 0.232
+  # - alluxio version is above 2.2
+  if [ "${emr_major}" -ge 6 ] ||  [[ "${emr_major}" -eq 5 && "${emr_minor}" -ge 30 ]]; then
+    for plugindir in "${ALLUXIO_HOME}"/client/presto/plugins/prestodb*; do
+      # guard against using an older version by checking for alluxio connector's existence
+      # use prestodb's built-in connector hive-hadoop2
+      if [ -d "$plugindir" ]; then
+        sudo mkdir -p /etc/presto/conf/catalog
+        echo "connector.name=hive-hadoop2" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
         echo "hive.metastore=alluxio" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
         echo "hive.metastore.alluxio.master.address=${master}:19998" | sudo tee -a /etc/presto/conf/catalog/catalog_alluxio.properties
         break
