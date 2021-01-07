@@ -14,7 +14,7 @@
 {{- $hostNetwork := .Values.worker.hostNetwork }}
 {{- $hostPID := .Values.worker.hostPID }}
 {{- $fullName := include "alluxio.fullname" . }}
-{{- $logServerEnabled := .Values.logserver.enabled }}
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

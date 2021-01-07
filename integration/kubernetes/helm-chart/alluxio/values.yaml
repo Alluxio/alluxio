@@ -407,7 +407,6 @@ logserver:
   nodeSelector: {}
   # volumeType controls the type of log volume.
   # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
-  # If the type is "none", there will not be a volume mounted to the log path
   volumeType: persistentVolumeClaim
   # Attributes to use if the log volume is PVC
   pvcName: alluxio-logserver-logs
