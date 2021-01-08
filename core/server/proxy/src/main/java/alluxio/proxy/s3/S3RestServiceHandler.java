@@ -112,13 +112,13 @@ public final class S3RestServiceHandler {
     // The valid pattern for Authorization is "AWS <AWSAccessKeyId>:<Singature>"
     int spaceIndex = authorization.indexOf(' ');
     if (spaceIndex == -1) {
-      return "";
+      return null;
     }
     String stripped = authorization.substring(spaceIndex + 1);
 
     int colonIndex = stripped.indexOf(':');
     if (colonIndex == -1) {
-      return "";
+      return null;
     }
 
     return stripped.substring(0, colonIndex);
