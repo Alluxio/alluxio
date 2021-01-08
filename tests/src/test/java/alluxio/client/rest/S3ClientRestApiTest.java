@@ -34,7 +34,10 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.ModeParser;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
@@ -60,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.security.auth.Subject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
@@ -104,19 +108,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     mFileSystem = sResource.get().getClient();
+
   }
 
   @Test
   public void listAllMyBuckets() throws Exception {
-    mFileSystem.createDirectory(new AlluxioURI("/bucket0"));
-    SetAttributePOptions setAttributeOptions =
-        SetAttributePOptions.newBuilder().setOwner("user0").build();
-    mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
+    Mode mode = ModeParser.parse("777");
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setMode(mode.toProto()).setRecursive(true).build();
+    mFileSystem.setAttribute(new AlluxioURI("/"), options);
 
-    mFileSystem.createDirectory(new AlluxioURI("/bucket1"));
-    setAttributeOptions =
-        SetAttributePOptions.newBuilder().setOwner("user1").build();
-    mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("user0"));
+    FileSystem.Factory.get(subject).createDirectory(new AlluxioURI("/bucket0"));
+
+    subject = new Subject();
+    subject.getPrincipals().add(new User("user1"));
+    FileSystem.Factory.get(subject).createDirectory(new AlluxioURI("/bucket1"));
 
     ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
