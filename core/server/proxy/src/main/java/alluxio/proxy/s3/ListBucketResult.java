@@ -34,8 +34,6 @@ import java.util.stream.Collectors;
 public class ListBucketResult {
   private static final Logger LOG = LoggerFactory.getLogger(ListBucketResult.class);
 
-  private static final int DEFAULT_MAX_KEYS = 1000;
-
   // Name of the bucket
   private String mName;
 
@@ -80,10 +78,9 @@ public class ListBucketResult {
   public ListBucketResult(
       String bucketName, List<URIStatus> children, ListBucketOptions options) {
     mName = bucketName;
-    mMaxKeys = DEFAULT_MAX_KEYS;
-
     mPrefix = options.getPrefix();
     mMarker = options.getMarker();
+    mMaxKeys = options.getMaxKeys();
 
     Collections.sort(children, new URIStatusComparator());
 
