@@ -43,13 +43,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -170,6 +168,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary gets a bucket and lists all the objects in it
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param markerParam the optional marker param
    * @param prefixParam the optional prefix param
@@ -229,6 +228,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary creates a bucket
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @return the response object
    */
@@ -242,14 +242,14 @@ public final class S3RestServiceHandler {
       public Response.Status call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
 
-
         String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
 
+        final FileSystem fs = getFileSystem(authorization);
         // Create the bucket.
         CreateDirectoryPOptions options =
             CreateDirectoryPOptions.newBuilder().setWriteType(getS3WriteType()).build();
         try {
-          getFileSystem(authorization).createDirectory(new AlluxioURI(bucketPath), options);
+          fs.createDirectory(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
@@ -260,6 +260,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary deletes a bucket
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @return the response object
    */
@@ -293,6 +294,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary uploads an object or part of an object in multipart upload
+   * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param bucket the bucket name
    * @param object the object name
@@ -374,6 +376,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary initiates or completes a multipart upload based on query parameters
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
    * @param uploads the query parameter specifying that this request is to initiate a multipart
@@ -476,6 +479,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary retrieves an object's metadata
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
    * @return the response object
@@ -516,6 +520,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary downloads an object or list parts of the object in multipart upload
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId the ID of the multipart upload, if not null, listing parts of the object
@@ -607,6 +612,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary deletes a object
+   * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId the upload ID which identifies the incomplete multipart upload to be aborted
