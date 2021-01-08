@@ -18,9 +18,12 @@ import com.google.common.base.Objects;
  * The options for list bucket operation.
  */
 public final class ListBucketOptions {
-  private String mMarker = null;
-  private String mMaxKeys = null;
-  private String mPrefix = null;
+  // Default number of MaxKeys when it is not specified
+  public static final int DEFAULT_MAX_KEYS = 1000;
+
+  private String mMarker;
+  private String mPrefix;
+  private int mMaxKeys;
 
   /**
    * Creates a default {@link ListBucketOptions}.
@@ -34,20 +37,17 @@ public final class ListBucketOptions {
   /**
    * Constructs a new {@link ListBucketOptions}.
    */
-  private ListBucketOptions() {}
-
-  /**
-   * @return the continuation token
-   */
-  public String getMarker() {
-    return mMarker;
+  private ListBucketOptions() {
+    mMarker = "";
+    mPrefix = "";
+    mMaxKeys = DEFAULT_MAX_KEYS;
   }
 
   /**
-   * @return the max keys
+   * @return the marker
    */
-  public String getMaxKeys() {
-    return mMaxKeys;
+  public String getMarker() {
+    return mMarker;
   }
 
   /**
@@ -55,6 +55,13 @@ public final class ListBucketOptions {
    */
   public String getPrefix() {
     return mPrefix;
+  }
+
+  /**
+   * @return the max keys
+   */
+  public int getMaxKeys() {
+    return mMaxKeys;
   }
 
   /**
@@ -67,20 +74,20 @@ public final class ListBucketOptions {
   }
 
   /**
-   * @param maxKeys the max keys to set
-   * @return the updated object
-   */
-  public ListBucketOptions setMaxKeys(String maxKeys) {
-    mMaxKeys = maxKeys;
-    return this;
-  }
-
-  /**
    * @param prefix the prefix to set
    * @return the updated object
    */
   public ListBucketOptions setPrefix(String prefix) {
     mPrefix = prefix;
+    return this;
+  }
+
+  /**
+   * @param maxKeys the max keys
+   * @return the updated object
+   */
+  public ListBucketOptions setMaxKeys(int maxKeys) {
+    mMaxKeys = maxKeys;
     return this;
   }
 
@@ -94,21 +101,21 @@ public final class ListBucketOptions {
     }
     ListBucketOptions that = (ListBucketOptions) o;
     return Objects.equal(mMarker, that.mMarker)
-        && Objects.equal(mMaxKeys, that.mMaxKeys)
-        && Objects.equal(mPrefix, that.mPrefix);
+        && Objects.equal(mPrefix, that.mPrefix)
+        && Objects.equal(mMaxKeys, that.mMaxKeys);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMarker, mMaxKeys, mPrefix);
+    return Objects.hashCode(mMarker, mPrefix, mMaxKeys);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("continuationToken", mMarker)
-        .add("maxKeys", mMaxKeys)
+        .add("marker", mMarker)
         .add("prefix", mPrefix)
+        .add("maxKeys", mMaxKeys)
         .toString();
   }
 }
