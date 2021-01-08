@@ -23,9 +23,7 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
-
 import io.grpc.stub.StreamObserver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,9 +81,9 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.setMeter(MetricsSystem.meter(
           MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getName()));
       context.setMeter(MetricsSystem.meter(
-          MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+          MetricKey.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()));
     }
     return context;
   }
@@ -141,5 +139,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();
     Preconditions.checkState(context.getBlockWriter().append(buf)  == sz);
+  }
+
+  @Override
+  protected String getLocationInternal(BlockWriteRequestContext context) {
+    return String.format("temp-block-session-%d-id-%d", context.getRequest().getSessionId(),
+        context.getRequest().getId());
   }
 }

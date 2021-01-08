@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CheckAccessPOptions;
+import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CompleteFilePOptions;
@@ -59,6 +61,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
+import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
@@ -70,7 +73,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -113,6 +120,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = FileSystemMasterClientServiceGrpc.newBlockingStub(mChannel);
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException {
+    retryRPC(() -> mClient.checkAccess(
+        CheckAccessPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build()),
+        RPC_LOG, "CheckAccess", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -216,6 +232,27 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       }
       return mountTableWire;
     }, RPC_LOG, "GetMountTable", "");
+  }
+
+  @Override
+  public void iterateStatus(final AlluxioURI path, final ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws AlluxioStatusException {
+    retryRPC(
+        RetryUtils.noRetryPolicy(),
+        () ->  {
+          StreamSupport.stream(
+              Spliterators.spliteratorUnknownSize(
+                  mClient.listStatus(ListStatusPRequest.newBuilder()
+                      .setPath(getTransportPath(path)).setOptions(options).build()),
+                  Spliterator.ORDERED),
+              false)
+              .flatMap(pListStatusResponse -> pListStatusResponse.getFileInfosList().stream()
+                  .map(pFileInfo -> new URIStatus(GrpcUtils.fromProto(pFileInfo))))
+              .forEach(action);
+          return null;
+        },
+        RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
 
   @Override

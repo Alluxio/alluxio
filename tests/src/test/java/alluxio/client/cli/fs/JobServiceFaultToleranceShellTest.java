@@ -69,14 +69,14 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
   }
 
   @Test
-  public void distributedMv() throws Exception {
+  public void distributedCp() throws Exception {
     FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }
 
     try (FileSystemShell shell = new FileSystemShell(ServerConfiguration.global())) {
-      int exitCode = shell.run("distributedMv", "/test", "/test2");
+      int exitCode = shell.run("distributedCp", "/test", "/test2");
       assertEquals("Command failed, output: " + mOutput.toString(), 0, exitCode);
     }
     assertTrue(fs.exists(new AlluxioURI("/test2")));

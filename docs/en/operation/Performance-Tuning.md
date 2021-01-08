@@ -27,9 +27,9 @@ The following is a checklist to run through to address common problems when tuni
 
    If the compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
-   Monitor the metrics values for `cluster.BytesReadAlluxioThroughput` and `cluster.BytesReadLocalThroughput`
+   Monitor the metrics values for `cluster.BytesReadRemoteThroughput` and `cluster.BytesReadLocalThroughput`
    while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
-   If the local throughput is zero or significantly lower than the total throughput,
+   If the local throughput is zero or significantly lower than the remote alluxio read throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
    The Alluxio client uses hostname matching to discover a local Alluxio worker;
    check that the client and worker use the same hostname string.
@@ -57,6 +57,12 @@ The following is a checklist to run through to address common problems when tuni
    which has a default of `30m`. This is especially important when writing large files to object stores
    with a slow network connection. The entire object is uploaded at once upon closing the file.
 
+   There have also been rare cases, where on linux [NUMA-based systems](https://en.wikipedia.org/wiki/Non-uniform_memory_access)
+   that Alluxio workers might behave in a sporadic way causing pauses or periods of unavailability due
+   to the kernel's `vm.zone_reclaim_mode` behavior. For NUMA systems it is recommended to
+   **disable zone reclaim** by setting `vm.zone_reclaim_mode=0` inside of `/etc/sysctl.conf` or
+   similar configuration files on Alluxio workers.
+
 1. Are there frequent JVM GC events?
 
    Frequent and long GC operations on master or worker JVMs drastically slow down the process.
@@ -80,8 +86,10 @@ Also check out the [metrics system][2] for better insight in how the Alluxio ser
 
 To detect long GC pauses, Alluxio administrators can set `alluxio.master.jvm.monitor.enabled=true`
 for masters or `alluxio.worker.jvm.monitor.enabled=true` for workers.
+They are enabled by default in Alluxio 2.4.0 and newer.
 This will trigger a monitoring thread that periodically measures the delay between two GC pauses.
-A long delay could indicate that the process is spending significant time garbage collecting.
+A long delay could indicate that the process is spending significant time garbage collecting,
+or performing other JVM safepoint operations.
 The following parameters tune the behavior of the monitor thread:
 
 <table class="table table-striped">
@@ -105,12 +113,12 @@ The following parameters tune the behavior of the monitor thread:
 
 ### Improve Cold Read Performance
 
-When the application reads directly from the UFS, multiple clients may try to read the same portion
+When applications read directly from the UFS, multiple clients may try to read the same portion
 of the input data simultaneously.
 For example, at the start of a SparkSQL query, all Spark executors will read the same parquet
 footer metadata.
-This potentially results in Alluxio caching the same block on every node, which is potentially a
-waste of both UFS bandwidth and Alluxio storage capacity.
+This potentially results in Alluxio caching the same block on every node, which is can
+waste both UFS bandwidth and Alluxio storage capacity.
 
 One way to avoid this situation is to apply a deterministic hashing policy by specifying the
 following configuration property:
@@ -150,8 +158,8 @@ UFS block, and all clients will read that UFS block from one of those 3 workers.
 
 Increasing the batch time can improve master throughput for update/write RPCs, but may also
 increase the latency for those update/write RPCs.
-Setting a larger timeout value helps keep the master alive if the journal writing location is
-unavailable for an extended duration.
+Setting a larger timeout value for `alluxio.master.journal.flush.timeout` helps keep the master
+alive if the journal writing location is unavailable for an extended duration.
 
 ### Journal garbage collection
 
@@ -178,7 +186,8 @@ The size of this cache is determined by the value of `alluxio.master.ufs.block.l
 Caching is disabled if the value is set to `0`.
 
 Increasing the cache size will allow the Alluxio master to store more UFS block locations,
-leading to greater metadata throughput for files which are not residing in Alluxio storage.
+leading to greater metadata throughput for files which are not residing in Alluxio storage; however,
+note that increasing this value will result in higher JVM heap utilization.
 
 ### UFS Path Cache
 
@@ -186,22 +195,22 @@ When Alluxio mounts a UFS to a path in the Alluxio namespace, the Alluxio master
 on its namespace.
 The UFS metadata is only pulled when a client accesses a path.
 When a client accesses a path which does not exist in Alluxio, Alluxio may consult the UFS to load the UFS metadata.
-There are 3 options for loading a missing path: `Never`, `Once`, `Always`.
+There are 3 options for loading a missing path: `NEVER`, `ONCE`, `ALWAYS`.
 
 `ALWAYS` will always check the UFS for the latest state of the given path,
 `ONCE` will use the default behavior of only scanning each directory once ever, and `NEVER` will never consult the UFS
 and thus prevent Alluxio from scanning for new files at all.
 
 The Alluxio master maintains a cache to keep track of which UFS paths have been previously loaded,
-to approximate the `Once` behavior.
+to approximate the `ONCE` behavior.
 The parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
-A larger cache size will consume more memory, but will better approximate the `Once` behavior.
+A larger cache size will consume more memory, but will better approximate the `ONCE` behavior.
 The Alluxio master maintains the UFS path cache asynchronously.
 Alluxio uses a thread pool to process the paths asynchronously, whose size is controlled by
 `alluxio.master.ufs.path.cache.threads`.
 Increasing the number of threads can decrease the staleness of the UFS path cache,
 but may impact performance by increasing work on the Alluxio master, as well as consuming UFS bandwidth.
-If this is set to 0, the cache is disabled and the `Once` setting will behave like the `Always` setting.
+If this is set to 0, the cache is disabled and the `ONCE` setting will behave like the `ALWAYS` setting.
 
 ## Worker Tuning
 

@@ -81,13 +81,20 @@ You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive informat
 ### Collect Alluxio cluster information
 `collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio fsadmin report` etc.
 When the Alluxio cluster is not running, this command will fail to collect some information.
-> NOTE: The configuration parameters will be collected with `alluxio getConf --master`, which obfuscates the credential fields passed to
-Alluxio as properties.
+This sub-command will run both `alluxio getConf` which collects local configuration properties, 
+and `alluxio getConf --master --source` which prints configuration properties that are received from the master.
+Both of them mask credential properties. The difference is the latter command fails if the Alluxio cluster is not up. 
 
 ### Collect Alluxio configuration files
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
-> WARNING: If you put credential fields in the configuration files, DO NOT share the collected tarball with anybody unless
-you have manually obfuscated them in the tarball!
+From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
+as many users tend to put their plaintext credentials to the UFS in this file.
+Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
+which prints all the configuration properties, with the credential fields masked.
+So in order to collect Alluxio configuration in the tarball,
+please make sure `collectAlluxioInfo` sub-command is run.
+> WARNING: If you put credential fields in the configuration files except alluxio-site.properties, 
+> DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect Alluxio logs
 `collectLog` will collect all the logs under `${alluxio.work.dir}/logs`.
@@ -116,25 +123,80 @@ like -Daws.access.key=XXX, DO NOT share the collected tarball with anybody unles
 The `collectInfo` command has the below options.
 
 ```console
-$ bin/alluxio collectInfo [--local] [--max-threads threadNum]
-    [all <outputPath>]
-    [collectAlluxioInfo <outputPath>]
-    [collectConfig <outputPath>]
-    [collectEnv <outputPath>]
-    [collectJvmInfo <outputPath>]
-    [collectLog <outputPath>]
-    [collectMetrics <outputPath>]
+$ bin/alluxio collectInfo 
+    [--max-threads <threadNum>] 
+    [--local] 
+    [--help]
+    [--additional-logs <filename-prefixes>] 
+    [--exclude-logs <filename-prefixes>] 
+    [--include-logs <filename-prefixes>] 
+    [--start-time <datetime>] 
+    [--end-time <datetime>]
+    COMMAND <outputPath>
 ```
 
 `<outputPath>` is the directory you want the final tarball to be written into.
 
 Options:
-1. `--local` option specifies the `collectInfo` command to run only on `localhost`.
-That means the command will only collect information about the `localhost`.
-
 1. `--max-threads threadNum` option configures how many threads to use for concurrently collecting information and transmitting tarballs.
 When the cluster has a large number of nodes, or large log files, the network IO for transmitting tarballs can be significant.
 Use this parameter to constrain the resource usage of this command.
+
+1. `--local` option specifies the `collectInfo` command to run only on `localhost`.
+That means the command will only collect information about the `localhost`.
+
+1. `--help` option asks the command to print the help message and exit.
+
+1. `--additional-logs <filename-prefixes>` specifies extra log file name prefixes to include.
+By default, only log files recognized by Alluxio will be collected by the `collectInfo` command.
+The recognized files include below:
+```
+logs/master.log*, 
+logs/master.out*, 
+logs/job_master.log*, 
+logs/job_master.out*, 
+logs/master_audit.log*, 
+logs/worker.log*, 
+logs/worker.out*, 
+logs/job_worker.log*, 
+logs/job_worker.out*, 
+logs/proxy.log*, 
+logs/proxy.out*, 
+logs/task.log*, 
+logs/task.out*, 
+logs/user/*
+```
+Other than mentioned above, `--additional-logs <filename-prefixes>` specifies that files 
+whose names start with the prefixes in `<filename-prefixes>` should be collected.
+This will be checked after the exclusions defined in `--exclude-logs`.
+`<filename-prefixes>`  specifies the filename prefixes, separated by commas.
+
+1. `--exclude-logs <filename-prefixes>` specifies file name prefixes to ignore from the default list.
+
+1. `--include-logs <filename-prefixes>` specifies only to collect files whose names start
+with the specified prefixes, and ignore all the rest.
+You CANNOT use `--include-logs` option together with either `--additional-logs` or
+`--exclude-logs`, because it is ambiguous what you want to include.
+
+1. `--end-time <datetime>` specifies a datetime after which the log files can be ignored.
+A log file will be ignore if the file was created after this end time.
+The first couple of lines of the log file will be parsed, in order to infer when the log
+file started.
+The `<datetime>` is a datetime string like `2020-06-27T11:58:53`.
+The parsable datetime formats include below:
+```
+"2020-01-03 12:10:11,874"
+"2020-01-03 12:10:11"
+"2020-01-03 12:10"
+"20/01/03 12:10:11"
+"20/01/03 12:10"
+2020-01-03T12:10:11.874+0800
+2020-01-03T12:10:11
+2020-01-03T12:10
+```
+
+1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
+A log file will be ignored if the last modified time is before this start time.
 
 ## Setup FAQ
 

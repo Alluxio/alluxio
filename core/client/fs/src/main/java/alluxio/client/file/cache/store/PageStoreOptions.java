@@ -47,6 +47,8 @@ public abstract class PageStoreOptions {
     options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
     options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     options.setAlluxioVersion(conf.get(PropertyKey.VERSION));
+    options.setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION));
+    options.setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
     return options;
   }
 
@@ -83,6 +85,16 @@ public abstract class PageStoreOptions {
    * Alluxio client version.
    */
   protected String mAlluxioVersion;
+
+  /**
+   * Timeout duration for page store operations in ms.
+   */
+  protected long mTimeoutDuration;
+
+  /**
+   * Number of threads for page store operations.
+   */
+  protected int mTimeoutThreads;
 
   /**
    * @param rootDir the root directory where pages are stored
@@ -138,5 +150,33 @@ public abstract class PageStoreOptions {
    */
   public void setAlluxioVersion(String alluxioVersion) {
     mAlluxioVersion = alluxioVersion;
+  }
+
+  /**
+   * @return timeout duration for page store operations in ms
+   */
+  public long getTimeoutDuration() {
+    return mTimeoutDuration;
+  }
+
+  /**
+   * @param timeout timeout duration for page store operations in ms
+   */
+  public void setTimeoutDuration(long timeout) {
+    mTimeoutDuration = timeout;
+  }
+
+  /**
+   * @return number of threads for handling timeout
+   */
+  public int getTimeoutThreads() {
+    return mTimeoutThreads;
+  }
+
+  /**
+   * @param threads number of threads for handling timeout
+   */
+  public void setTimeoutThreads(int threads) {
+    mTimeoutThreads = threads;
   }
 }

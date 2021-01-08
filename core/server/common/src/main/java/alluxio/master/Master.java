@@ -24,4 +24,9 @@ public interface Master extends Journaled, Server<Boolean> {
    * @return a journal context for writing journal entries to the master
    */
   JournalContext createJournalContext() throws UnavailableException;
+
+  /**
+   * @return a master context
+   */
+  MasterContext getMasterContext();
 }

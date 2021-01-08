@@ -17,13 +17,18 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
+import alluxio.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.worker.UfsIOParameters;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -62,7 +67,7 @@ public final class StressBenchDefinition
 
   @Override
   public Set<Pair<WorkerInfo, ArrayList<String>>> selectExecutors(StressBenchConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) {
     Set<Pair<WorkerInfo, ArrayList<String>>> result = Sets.newHashSet();
 
     // sort copy of workers by hashcode
@@ -91,6 +96,20 @@ public final class StressBenchDefinition
     return result;
   }
 
+  private Map<String, String> getUfsConf(String ufsUri, RunTaskContext runTaskContext)
+      throws Exception {
+    Map<String, MountPointInfo> mountTable = runTaskContext.getFileSystem().getMountTable();
+    for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
+      if (ufsUri.startsWith(entry.getValue().getUfsUri())) {
+        try (CloseableResource<UnderFileSystem> resource = runTaskContext.getUfsManager()
+            .get(entry.getValue().getMountId()).acquireUfsResource()) {
+          return resource.get().getConfiguration().toMap();
+        }
+      }
+    }
+    return ImmutableMap.of();
+  }
+
   @Override
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
@@ -98,18 +117,52 @@ public final class StressBenchDefinition
     command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
     command.add(config.getClassName());
-    command.addAll(config.getArgs());
+
     // the cluster will run distributed tasks
     command.add(BaseParameters.DISTRIBUTED_FLAG);
     command.add(BaseParameters.IN_PROCESS_FLAG);
+
+    List<String> commandArgs = config.getArgs();
+    List<String> newArgs = new ArrayList<>();
+    if (commandArgs.stream().anyMatch(
+        (s) -> s.equals(UfsIOParameters.USE_MOUNT_CONF))) {
+      boolean nextElem = false;
+      boolean removeNext = false;
+      String ufsUri = "";
+      for (String elem : commandArgs) {
+        if (elem.equals(UfsIOParameters.CONF)) {
+          removeNext = true;
+        } else {
+          if (!removeNext) {
+            newArgs.add(elem);
+          }
+          removeNext = false;
+        }
+        if (elem.equals(UfsIOParameters.PATH)) {
+          nextElem = true;
+        } else {
+          if (nextElem) {
+            ufsUri = elem;
+            break;
+          }
+          nextElem = false;
+        }
+      }
+      commandArgs = newArgs;
+
+      List<String> properties = getUfsConf(ufsUri, runTaskContext).entrySet().stream()
+          .map(entry -> "--conf" + entry.getKey() + "=" + entry.getValue())
+          .collect(Collectors.toList());
+      commandArgs.addAll(properties);
+    }
 
     if (config.getArgs().stream().noneMatch((s) -> s.equals(BaseParameters.START_MS_FLAG))) {
       command.add(BaseParameters.START_MS_FLAG);
       command.add(Long.toString((System.currentTimeMillis() + config.getStartDelayMs())));
     }
 
+    command.addAll(commandArgs);
     command.addAll(args);
-    LOG.info("running command: " + String.join(" ", command));
     String output = ShellUtils.execCommand(command.toArray(new String[0]));
     return output;
   }

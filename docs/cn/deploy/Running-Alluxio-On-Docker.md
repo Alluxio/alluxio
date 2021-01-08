@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 在集群上独立运行Alluxio
-nickname: 在集群上独立运行Alluxio
+title: 在Docker上运行Alluxio
+nickname: 在Docker上运行Alluxio
 group: Install Alluxio
 priority: 3
 ---
@@ -316,3 +316,25 @@ $ docker run -e \
 ## 故障排除
 
 可以通过运行`docker logs $container_id`来访问Alluxio 服务器日志。通常，日志可以很好地指出什么地方出了问题。如果它们不足以诊断您的问题，则可以在[用户邮件列表](https://groups.google.com/forum/#!forum/alluxio-users).上获得帮助 。
+
+## FAQ
+
+### AvailableProcessors: returns 0 in docker container
+
+当在 alluxio master container 里执行 `alluxio fs ls /`，遇到如下报错时，
+
+```bash
+bash-4.4$ alluxio fs ls /
+Exception in thread "main" java.lang.ExceptionInInitializerError
+...
+Caused by: java.lang.IllegalArgumentException: availableProcessors: 0 (expected: > 0)
+        at io.netty.util.internal.ObjectUtil.checkPositive(ObjectUtil.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.setAvailableProcessors(NettyRuntime.java:44)
+        at io.netty.util.NettyRuntime$AvailableProcessorsHolder.availableProcessors(NettyRuntime.java:70)
+        at io.netty.util.NettyRuntime.availableProcessors(NettyRuntime.java:98)
+        at io.grpc.netty.Utils$DefaultEventLoopGroupResource.<init>(Utils.java:394)
+        at io.grpc.netty.Utils.<clinit>(Utils.java:84)
+        ... 20 more
+```
+
+可以通过增加 JVM 参数 `-XX:ActiveProcessorCount=4` 解决这个问题。

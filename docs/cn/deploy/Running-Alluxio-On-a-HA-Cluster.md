@@ -22,7 +22,7 @@ Alluxio服务的高可用性（HA）是通过在系统多个不同节点上运�
 ## 前提条件
 
 * 要部署Alluxio群集，首先 下载 预编译的Alluxio二进制文件，解压缩tarball文件并将解压的目录复制到所有节点(包括运行master和worker的所有节点)。
-* 激活不需要密码的从master节点到worker节点的SSH登录。 可以将主机的公共SSH密钥添加到`〜/.ssh/authorized_keys`中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
+* 激活不需要密码的从所有的master节点到所有的worker节点的SSH登录。 可以将主机的公共SSH密钥添加到`〜/.ssh/authorized_keys`中。 有关更多详细信息，请[参见本教程](http://www.linuxproblem.org/art_9.html)。
 * 开放所有节点之间的TCP通信。 对于基本功能，确保所有节点上RPC端口都是打开的（default:19998）。
 
 ## 基本配置
@@ -134,7 +134,7 @@ $ ./bin/alluxio runTests
 
 当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有两种方法可以在客户端上指定HA Alluxio服务地址:
 
-### 在配置参数中指定Alluxio服务
+### 在配置参数或Java Option中指定Alluxio服务
 
 用户可以在环境变量或站点属性中预先配置Alluxio HA集群的服务地址，然后使用Alluxio URI连接服务， 如`alluxio:///path`其中连接HA集群所需详细信息已使用通过这些参数配置完成。例如，如果使用Hadoop，则可以在`core-site.xml`中配置属性，然后使用Hadoop CLI和Alluxio URI。
 
@@ -144,19 +144,26 @@ $ hadoop fs -ls alluxio:///directory
 
 根据实现HA的不同方法，需要设置不同的属性:
 
-- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如，
+- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如添加如下设置到应用配置中:
+
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+```
+
+或者通过Java Option传输给应用程序。比如对于Spark应用，将如下参数传给`spark.executor.extraJavaOptions`和`spark.driver.extraJavaOptions`:
+
+```
+-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 - 使用Zookeeper连接到Alluxio HA集群时，需要以下属性设置才能连接到Zookeeper以获取leading Master信息。注意，当启用`alluxio.zookeeper.enabled`时必须指定ZooKeeper地址(`alluxio.zookeeper.address`) ，反之亦然。可以通过用逗号间隔来指定多个ZooKeeper地址
+
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
 
-### 使用URL Authority{＃ha-authority}指定Alluxio服务
+### 使用URL Authority指定Alluxio服务{#ha-authority}
 
 用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
 

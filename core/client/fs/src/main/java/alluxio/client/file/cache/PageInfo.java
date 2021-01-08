@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.quota.CacheScope;
-import alluxio.client.quota.PrestoCacheScope;
 
 import com.google.common.base.MoreObjects;
 
@@ -34,7 +33,7 @@ public class PageInfo {
    * @param pageSize page size in bytes
    */
   public PageInfo(PageId pageId, long pageSize) {
-    this(pageId, pageSize, PrestoCacheScope.GLOBAL);
+    this(pageId, pageSize, CacheScope.GLOBAL);
   }
 
   /**

@@ -13,6 +13,7 @@
 {{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
 {{- $hostNetwork := .Values.worker.hostNetwork }}
 {{- $hostPID := .Values.worker.hostPID }}
+{{- $fullName := include "alluxio.fullname" . }}
 
 apiVersion: apps/v1
 kind: DaemonSet
@@ -38,6 +39,15 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-worker
+    {{- if or .Values.worker.podAnnotations .Values.metrics.enabled }}
+      annotations:
+      {{- with .Values.worker.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     spec:
       hostNetwork: {{ $hostNetwork }}
       hostPID: {{ $hostPID }}
@@ -60,7 +70,7 @@ spec:
           {{- if .Values.worker.resources  }}
 {{ include "alluxio.worker.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.worker.args }}
           args:
 {{ toYaml .Values.worker.args | trim | indent 12 }}
@@ -91,6 +101,10 @@ spec:
           - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
+            {{- if .Values.metrics.enabled }}
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
+            {{- end }}
             {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
               mountPath: /opt/domain
@@ -115,7 +129,7 @@ spec:
           {{- if .Values.jobWorker.resources  }}
 {{ include "alluxio.jobWorker.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
           args:
 {{ toYaml .Values.jobWorker.args | trim | indent 12 }}
@@ -148,6 +162,10 @@ spec:
           - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
+            {{- if .Values.metrics.enabled }}
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
+            {{- end }}
             {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
               mountPath: /opt/domain
@@ -165,6 +183,11 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.metrics.enabled }}
+        - name: {{ $fullName }}-metrics-volume
+          configMap:
+            name: {{ $fullName }}-metrics
+        {{- end }}
         {{- if $needDomainSocketVolume }}
 {{- include "alluxio.worker.shortCircuit.volume" . }}
         {{- end }}

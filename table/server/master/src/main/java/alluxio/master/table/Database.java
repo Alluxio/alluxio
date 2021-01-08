@@ -22,6 +22,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -233,10 +234,16 @@ public class Database implements Journaled {
 
           if (newTable != null) {
             // table was created or was updated
-            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
+            alluxio.proto.journal.Table.AddTableEntry addTableEntry
+                = newTable.getTableJournalProto();
             Journal.JournalEntry entry =
                 Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
             applyAndJournal(context, entry);
+            // separate the possible big table entry into multiple smaller table partitions entry
+            newTable.getTablePartitionsJournalProto().forEach((partitionsEntry) -> {
+              applyAndJournal(context, Journal.JournalEntry
+                  .newBuilder().setAddTablePartitions(partitionsEntry).build());
+            });
             synchronized (builder) {
               builder.addTablesUpdated(tableName);
             }
@@ -348,6 +355,9 @@ public class Database implements Journaled {
     if (entry.hasAddTable()) {
       return applyAddTable(context, entry);
     }
+    if (entry.hasAddTablePartitions()) {
+      return applyAddTablePartitions(context, entry);
+    }
     if (entry.hasRemoveTable()) {
       return applyRemoveTable(context, entry);
     }
@@ -409,6 +419,38 @@ public class Database implements Journaled {
     return true;
   }
 
+  private boolean applyAddTablePartitions(@Nullable JournalContext context,
+      Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.AddTablePartitionsEntry addTablePartitions
+        = entry.getAddTablePartitions();
+    if (!addTablePartitions.getDbName().equals(mName)) {
+      return false;
+    }
+
+    mTables.compute(addTablePartitions.getTableName(), (key, existingTable) -> {
+      if (existingTable != null) {
+        if (addTablePartitions.getVersion() == existingTable.getVersion()) {
+          LOG.info("Adding {} partitions to table {}.{}", addTablePartitions.getPartitionsCount(),
+              mName, addTablePartitions.getTableName());
+          if (context != null) {
+            context.append(entry);
+          }
+          existingTable.addPartitions(addTablePartitions);
+          return existingTable;
+        }
+        LOG.info("Will not add partitions to table {}.{}, because of mismatched versions. "
+                + "version-to-add-partitions: {} existing-version: {}",
+            mName, addTablePartitions.getTableName(),
+            addTablePartitions.getVersion(), existingTable.getVersion());
+      }
+      LOG.debug("Cannot add partitions to table {}.{}, because it does not exist.", mName,
+          addTablePartitions.getTableName());
+      return existingTable;
+    });
+
+    return true;
+  }
+
   private boolean applyRemoveTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
     alluxio.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
     if (!removeTable.getDbName().equals(mName)) {
@@ -446,14 +488,19 @@ public class Database implements Journaled {
     final Iterator<Table> it = getTables().iterator();
     return new Iterator<Journal.JournalEntry>() {
       private Table mEntry = null;
+      private Iterator<alluxio.proto.journal.Table.AddTablePartitionsEntry> mPartitionIterator;
 
       @Override
       public boolean hasNext() {
         if (mEntry != null) {
           return true;
         }
+        if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
+          return true;
+        }
         if (it.hasNext()) {
           mEntry = it.next();
+          mPartitionIterator = mEntry.getTablePartitionsJournalProto().iterator();
           return true;
         }
         return false;
@@ -464,25 +511,34 @@ public class Database implements Journaled {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        Table table = mEntry;
-        mEntry = null;
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
-        return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+        if (mEntry != null) {
+          Table table = mEntry;
+          mEntry = null;
+          alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
+          return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+        }
+        if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
+          return Journal.JournalEntry.newBuilder()
+              .setAddTablePartitions(mPartitionIterator.next()).build();
+        }
+        // should not reach here
+        throw new NoSuchElementException();
       }
 
       @Override
       public void remove() {
         throw new UnsupportedOperationException(
-            "GetTableIteratorr#Iterator#remove is not supported.");
+            "GetTableIterator#Iterator#remove is not supported.");
       }
     };
   }
 
   @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
     Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
         toJournalProto(getDatabaseInfo(), mName)).build();
-    return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
+    return CloseableIterator.noopCloseable(
+        Iterators.concat(Iterators.singletonIterator(entry), getTableIterator()));
   }
 
   @Override

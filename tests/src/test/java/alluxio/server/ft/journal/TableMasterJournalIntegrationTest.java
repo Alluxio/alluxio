@@ -26,6 +26,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.util.JobTestUtils;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -41,7 +42,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -57,7 +60,11 @@ public class TableMasterJournalIntegrationTest {
   public static LocalAlluxioClusterResource sClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE, 3)
           .setNumWorkers(1).build();
+
+  @Rule
+  public TestRule mResetRule = sClusterResource.getResetResource();
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -66,8 +73,15 @@ public class TableMasterJournalIntegrationTest {
   private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
   @Before
-  public void reset() throws Exception {
-    sClusterResource.get().formatAndRestartMasters();
+  public void before() throws Exception {
+    TableMaster tableMaster = sClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(TableMaster.class);
+    try {
+      // detach any previously attached db.
+      tableMaster.detachDatabase(DB_NAME);
+    } catch (IOException e) {
+      // ignore, since the db may not have been attached previously
+    }
   }
 
   @Test
@@ -96,8 +110,12 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.syncDatabase(DB_NAME);
     checkTable(tableMaster, DB_NAME, 2, 3);
 
-    mCluster.stopMasters();
-    mCluster.startMasters();
+    // Drop a table to create a 'remove_table' entry
+    genTable(1, 10, true);
+    tableMaster.syncDatabase(DB_NAME);
+    checkTable(tableMaster, DB_NAME, 1, 10);
+
+    restartMaster();
 
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
@@ -105,7 +123,7 @@ public class TableMasterJournalIntegrationTest {
     checkDb(tableMasterRestart, DB_NAME, oldInfo);
     tableMasterRestart.syncDatabase(DB_NAME);
     checkDb(tableMasterRestart, DB_NAME, newInfo);
-    checkTable(tableMasterRestart, DB_NAME, 2, 3);
+    checkTable(tableMasterRestart, DB_NAME, 1, 10);
   }
 
   private void checkDb(TableMaster tableMaster, String dbName, DatabaseInfo dbInfo)
@@ -147,8 +165,8 @@ public class TableMasterJournalIntegrationTest {
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
-    mCluster.stopMasters();
-    mCluster.startMasters();
+    restartMaster();
+
     // Update Udb, the table should stay the same, until we detach / reattach
     genTable(2, 2, true);
     TableMaster tableMasterRestart =
@@ -171,8 +189,9 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
     genTable(2, 2, true);
-    mCluster.stopMasters();
-    mCluster.startMasters();
+
+    restartMaster();
+
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
@@ -201,13 +220,16 @@ public class TableMasterJournalIntegrationTest {
     assertNotEquals(0, jobid);
     JobTestUtils.waitForJobStatus(jobMaster, jobid, ImmutableSet.of(Status.COMPLETED,
         Status.CANCELED, Status.FAILED));
-    assertEquals(Status.COMPLETED, jobMaster.getStatus(jobid).getStatus());
+    final JobInfo status = jobMaster.getStatus(jobid);
+    assertEquals("", status.getErrorMessage());
+    assertEquals(Status.COMPLETED, status.getStatus());
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
     // all partitions are transformed, so baselayout should be different as layout
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
         partition -> partition.getBaseLayout() != partition.getLayout()));
-    mCluster.stopMasters();
-    mCluster.startMasters();
+
+    restartMaster();
+
     genTable(1, 4, true);
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
@@ -220,5 +242,15 @@ public class TableMasterJournalIntegrationTest {
     assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
         partition -> (partition.getSpec().endsWith("0") || partition.getSpec().endsWith("1"))
             == (partition.getBaseLayout() != partition.getLayout())));
+  }
+
+  /**
+   * Restarts the masters (without formatting) and waits for the workers to re-register.
+   */
+  private void restartMaster() throws Exception {
+    LocalAlluxioCluster mCluster = sClusterResource.get();
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    mCluster.waitForWorkersRegistered(10 * Constants.SECOND_MS);
   }
 }

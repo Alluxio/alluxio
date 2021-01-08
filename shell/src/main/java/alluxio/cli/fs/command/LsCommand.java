@@ -36,8 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -195,19 +193,16 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private void printLsString(URIStatus status, boolean hSize, String timestampOption)
-      throws InvalidArgumentException {
+  private void printLsString(URIStatus status, boolean hSize,
+      Function<URIStatus, Long> timestampFunction, boolean pinnedOnly, boolean pinned) {
+    if (pinnedOnly && !pinned) {
+      return;
+    }
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
 
-    Function<URIStatus, Long> timestampFuncion = TIMESTAMP_FIELDS.get(timestampOption);
-    if (timestampFuncion == null) {
-      throw new InvalidArgumentException(
-          String.format("Unrecognized timestamp option %s", timestampOption));
-    }
-
-    long timestamp = timestampFuncion.apply(status);
+    long timestamp = timestampFunction.apply(status);
     System.out.print(formatLsString(hSize,
         SecurityUtils.isSecurityEnabled(mFsContext.getClusterConf()),
         status.isFolder(),
@@ -259,12 +254,10 @@ public final class LsCommand extends AbstractFileSystemCommand {
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
       boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
       throws AlluxioException, IOException {
-    URIStatus pathStatus = mFileSystem.getStatus(path);
+    Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
     if (dirAsFile) {
-      if (pinnedOnly && !pathStatus.isPinned()) {
-        return;
-      }
-      printLsString(pathStatus, hSize, timestampOption);
+      URIStatus pathStatus = mFileSystem.getStatus(path);
+      printLsString(pathStatus, hSize, timestampFunction, pinnedOnly, pathStatus.isPinned());
       return;
     }
 
@@ -274,25 +267,16 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
     optionsBuilder.setRecursive(recursive);
 
-    // If list status takes too long, print the message
-    Timer timer = new Timer();
-    if (pathStatus.isFolder()) {
-      timer.schedule(new TimerTask() {
-        @Override
-        public void run() {
-          System.out.printf("Getting directory status of %s files or sub-directories "
-              + "may take a while.%n", pathStatus.getLength());
-        }
-      }, 10000);
+    if (sortField == null) {
+      mFileSystem.iterateStatus(path, optionsBuilder.build(),
+          status -> printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned()));
+      return;
     }
-    List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
-    timer.cancel();
 
-    List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
+    List<URIStatus> statusList = mFileSystem.listStatus(path, optionsBuilder.build());
+    List<URIStatus> sorted = sortByFieldAndOrder(statusList, sortField, reverse);
     for (URIStatus status : sorted) {
-      if (!pinnedOnly || status.isPinned()) {
-        printLsString(status, hSize, timestampOption);
-      }
+      printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned());
     }
   }
 
@@ -318,7 +302,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "path"), cl.hasOption("r"),
+        cl.hasOption("p"), cl.getOptionValue("sort", null), cl.hasOption("r"),
         cl.getOptionValue("timestamp", "lastModificationTime"));
   }
 
@@ -348,5 +332,10 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    String timestampOption = cl.getOptionValue("timestamp");
+    if (timestampOption != null && !TIMESTAMP_FIELDS.containsKey(timestampOption)) {
+      throw new InvalidArgumentException(
+          String.format("Unrecognized timestamp option %s", timestampOption));
+    }
   }
 }

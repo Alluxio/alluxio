@@ -22,18 +22,17 @@ import com.google.common.base.Preconditions;
 /**
  * This class stores fields that are specific to core masters.
  */
-public class CoreMasterContext extends MasterContext {
+public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
   private final BlockStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
   private final JournalSystem mJournalSystem;
-  private final MasterUfsManager mUfsManager;
   private final long mStartTimeMs;
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem, builder.mUserState);
+    super(builder.mJournalSystem, builder.mUserState, builder.mUfsManager);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -43,7 +42,6 @@ public class CoreMasterContext extends MasterContext {
         Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
     mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
     mStartTimeMs = builder.mStartTimeMs;
-    mUfsManager = builder.mUfsManager;
     mPort = builder.mPort;
   }
 
@@ -93,13 +91,6 @@ public class CoreMasterContext extends MasterContext {
    */
   public int getPort() {
     return mPort;
-  }
-
-  /**
-   * @return the UFS manager
-   */
-  public MasterUfsManager getUfsManager() {
-    return mUfsManager;
   }
 
   /**

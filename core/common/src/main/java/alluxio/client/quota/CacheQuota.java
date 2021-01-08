@@ -7,22 +7,50 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ *
  */
 
 package alluxio.client.quota;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 /**
- * Data structure that returns cache size in bytes associated with a cache scope.
+ * Data structure that stores and returns cache size in number of bytes associated with a
+ * cache scope.
  */
-public interface CacheQuota {
+public class CacheQuota {
   /**
    * A predefined CacheQuota instance that sets NO limit.
    */
-  CacheQuota UNLIMITED = (CacheScope cacheScope) -> Long.MAX_VALUE;
+  public static final CacheQuota UNLIMITED = new CacheQuota() {
+    public long getQuota(CacheScope cacheScope) {
+      return Long.MAX_VALUE;
+    }
+  };
+
+  private final Map<CacheScope.Level, Long> mQuota;
+
+  /**
+   * @param quota a map from scope level to size in bytes
+   */
+  public CacheQuota(Map<CacheScope.Level, Long> quota) {
+    mQuota = quota;
+  }
+
+  /**
+   * Empty cache quota.
+   */
+  public CacheQuota() {
+    this(ImmutableMap.of());
+  }
 
   /**
    * @param cacheScope the scope to query
    * @return size of quota of this scope in bytes
    */
-  long getQuota(CacheScope cacheScope);
+  public long getQuota(CacheScope cacheScope) {
+    return mQuota.getOrDefault(cacheScope.level(), Long.MAX_VALUE);
+  }
 }

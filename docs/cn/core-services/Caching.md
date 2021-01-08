@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Caching
-nickname: Caching
+title: 缓存
+nickname: 缓存
 group: Core Services
 priority: 1
 ---
@@ -348,7 +348,7 @@ Alluxio具有与每个文件或目录关联的TTL属性。这些属性将保存�
 alluxio.master.ttl.checker.interval=10m
 ```
 
-请参考[配置页]({{ '/en/operation/Configuration.html' | relativize_url }})
+请参考[配置页]({{ '/cn/operation/Configuration.html' | relativize_url }})
 CN以获取有关设置Alluxio配置的更多详细信息。
 
 #### API
@@ -374,7 +374,7 @@ SetTTL(path，duration，action)
 #### 命令行用法
 
 了解如何使用`setTtl`命令在Alluxio shell中修改TTL属性参阅详细的
-[命令行文档]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)。
+[命令行文档]({{ '/cn/operation/User-CLI.html' | relativize_url }}#setttl)。
 
 #### Alluxio中文件上的被动TTL设置
 
@@ -388,7 +388,7 @@ Alluxio客户端可以配置为只要在Alluxio命名空间添加新文件时就
 * `alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
 默认情况下，未设置TTL持续时间。
 * `alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
-在Alluxio中。默认情况下，此操作为“DELETE”。
+在Alluxio中。**注意：默认情况下，此操作为“DELETE”，它将导致文件永久被删除。**
 
 TTL默认情况下处于不使用状态，仅当客户有严格数据访问模式才启用。
 

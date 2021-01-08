@@ -59,9 +59,8 @@ public final class PathUtils {
    * @param base base path
    * @param path path element to concatenate
    * @return joined path
-   * @throws IllegalArgumentException if base or paths is null
    */
-  public static String concatPath(Object base, Object path) throws IllegalArgumentException {
+  public static String concatPath(Object base, Object path) {
     Preconditions.checkNotNull(base, "base");
     Preconditions.checkNotNull(path, "path");
     String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());

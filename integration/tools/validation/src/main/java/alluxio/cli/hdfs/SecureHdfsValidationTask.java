@@ -11,6 +11,7 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
@@ -90,20 +91,23 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
   }
 
   @Override
-  public ValidationUtils.TaskResult validate(Map<String, String> optionsMap) {
+  public ValidationTaskResult validateImpl(Map<String, String> optionsMap) {
     if (!ValidationUtils.isHdfsScheme(mPath)) {
       mMsg.append("Skip this check as the UFS is not HDFS.\n");
-      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
 
-    ValidationUtils.TaskResult loadConfig = loadHdfsConfig();
+    // superclass which uses its own msg and advice objects
+    ValidationTaskResult loadConfig = loadHdfsConfig();
     if (loadConfig.getState() != ValidationUtils.State.OK) {
-      return loadConfig;
+      String extraAdvice = "Validating a secure HDFS connection requires specifying additional "
+          + "HDFS configuration files. ";
+      return loadConfig.setAdvice(extraAdvice + loadConfig.getAdvice());
     }
 
     // The state is OK when the HDFS is secured
-    ValidationUtils.TaskResult hdfsSecured = validateSecureHdfs();
+    ValidationTaskResult hdfsSecured = validateSecureHdfs();
     if (hdfsSecured.getState() != ValidationUtils.State.OK) {
       return hdfsSecured;
     }
@@ -111,7 +115,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
     return validatePrincipalLogin();
   }
 
-  private ValidationUtils.TaskResult validateSecureHdfs() {
+  private ValidationTaskResult validateSecureHdfs() {
     // Skipped if HDFS is not Kerberized
     // Ref: https://docs.cloudera.com/documentation/enterprise/5-16-x/topics
     // /cdh_sg_hadoop_security_enable.html
@@ -120,14 +124,14 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
             hadoopAuthentication.equalsIgnoreCase(HDFS_AUTHENTICATION_VALUE);
     if (!authenticationEnabled) {
       mMsg.append("HDFS is not Kerberized. Skip this test.");
-      return new ValidationUtils.TaskResult(ValidationUtils.State.SKIPPED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
-    return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+    return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
             mMsg.toString(), mAdvice.toString());
   }
 
-  private ValidationUtils.TaskResult validatePrincipalLogin() {
+  private ValidationTaskResult validatePrincipalLogin() {
     String principal = mConf.getOrDefault(mPrincipalProperty, "");
     String keytab = mConf.getOrDefault(mKeytabProperty, "");
 
@@ -137,7 +141,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
               principal, mKeytabProperty, keytab));
       mAdvice.append(String.format("Please configure Alluxio to connect with secure HDFS "
               + "following %s%n", DOC_LINK));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
 
@@ -147,7 +151,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
       mMsg.append(String.format("Principal %s is not in the right format.%n", principal));
       mAdvice.append(String.format("Please fix principal %s=%s.%n",
               mPrincipalProperty.toString(), principal));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.FAILED, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               mMsg.toString(), mAdvice.toString());
     }
     String primary = matchPrincipal.group("primary");
@@ -160,7 +164,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
       String output = ShellUtils.execCommand(command);
       mMsg.append(String.format("Command %s finished with output: %s%n",
               Arrays.toString(command), output));
-      return new ValidationUtils.TaskResult(ValidationUtils.State.OK, getName(),
+      return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
               mMsg.toString(), mAdvice.toString());
     } catch (IOException e) {
       mMsg.append(String.format("Kerberos login failed for %s with keytab %s.%n",
@@ -168,7 +172,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mMsg.append(String.format("Primary is %s, instance is %s and realm is %s.%n",
               primary, instance, realm));
-      ValidationUtils.TaskResult result = new ValidationUtils.TaskResult(
+      ValidationTaskResult result = new ValidationTaskResult(
               ValidationUtils.State.FAILED, getName(), mMsg.toString(), mAdvice.toString());
       return result;
     }

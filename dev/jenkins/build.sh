@@ -17,7 +17,7 @@ set -ex
 
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
-  git clean -fdx
+  git clean -ffdx
 fi
 
 mvn_args=""
@@ -56,26 +56,25 @@ else
   rm prFiles.diff
 fi
 
+# Set things up so that the current user has a real name and can authenticate.
+myuid=$(id -u)
+mygid=$(id -g)
+echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
+
+export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
+
+if [ -z "${ALLUXIO_BUILD_FORKCOUNT}" ]
+then
+  ALLUXIO_BUILD_FORKCOUNT=1
+fi
 if [ "$RUN_MAVEN" == "true" ]; then
-  # Set things up so that the current user has a real name and can authenticate.
-  myuid=$(id -u)
-  mygid=$(id -g)
-  echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
-
-  export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
-
-  if [ -z "${ALLUXIO_BUILD_FORKCOUNT}" ]
-  then
-    ALLUXIO_BUILD_FORKCOUNT=4
-  fi
-  
-  # Always use jafa 8 to compile the source code
+  # Always use java 8 to compile the source code
   JAVA_HOME_BACKUP=${JAVA_HOME}
   PATH_BACKUP=${PATH}
-  JAVA_HOME=/usr/local/openjdk-8 
-  PATH=$JAVA_HOME/bin:$PATH 
+  JAVA_HOME=/usr/local/openjdk-8
+  PATH=$JAVA_HOME/bin:$PATH
   mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} ${mvn_args} $@
-  
+
   # Revert back to the image default java version to run the test
   JAVA_HOME=${JAVA_HOME_BACKUP}
   PATH=${PATH_BACKUP}
@@ -93,7 +92,8 @@ if [ "$RUN_MAVEN" == "true" ]; then
     mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
   fi
 else
-  echo "RUN_MAVEN was not set to true, skipping maven check"
+  echo "RUN_MAVEN was not set to true, skipping full maven check and only running license check"
+  mvn -Duser.home=/home/jenkins license:check
 fi
 
 if [ "${RUN_DOC_CHECK}" == "true" ]; then

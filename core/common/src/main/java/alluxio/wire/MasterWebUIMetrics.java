@@ -36,6 +36,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private int mMasterUnderfsCapacityUsedPercentage;
   private Map<String, Counter> mRpcInvocationMetrics;
   private Map<String, Map<String, Long>> mUfsOps;
+  private Map<String, Map<String, Long>> mUfsOpsSaved;
   private Map<String, Metric> mOperationMetrics;
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
@@ -53,8 +54,8 @@ public final class MasterWebUIMetrics implements Serializable {
   private String mTotalBytesReadUfsThroughput;
   private String mTotalBytesWrittenLocal;
   private String mTotalBytesWrittenLocalThroughput;
-  private String mTotalBytesWrittenAlluxio;
-  private String mTotalBytesWrittenAlluxioThroughput;
+  private String mTotalBytesWrittenRemote;
+  private String mTotalBytesWrittenRemoteThroughput;
   private String mTotalBytesWrittenDomainSocket;
   private String mTotalBytesWrittenDomainSocketThroughput;
   private String mTotalBytesWrittenUfs;
@@ -220,21 +221,21 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
-   * Gets total bytes written alluxio.
+   * Gets total bytes written remote.
    *
-   * @return the total bytes written alluxio
+   * @return the total bytes written remote
    */
-  public String getTotalBytesWrittenAlluxio() {
-    return mTotalBytesWrittenAlluxio;
+  public String getTotalBytesWrittenRemote() {
+    return mTotalBytesWrittenRemote;
   }
 
   /**
-   * Gets total bytes written alluxio throughput.
+   * Gets total bytes written remote throughput.
    *
-   * @return the total bytes written alluxio throughput
+   * @return the total bytes written remote throughput
    */
-  public String getTotalBytesWrittenAlluxioThroughput() {
-    return mTotalBytesWrittenAlluxioThroughput;
+  public String getTotalBytesWrittenRemoteThroughput() {
+    return mTotalBytesWrittenRemoteThroughput;
   }
 
   /**
@@ -280,6 +281,15 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public Map<String, Map<String, Long>> getUfsOps() {
     return mUfsOps;
+  }
+
+  /**
+   * Gets ufs ops saved.
+   *
+   * @return the ufs ops saved
+   */
+  public Map<String, Map<String, Long>> getUfsOpsSaved() {
+    return mUfsOpsSaved;
   }
 
   /**
@@ -518,25 +528,25 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
-   * Sets total bytes written alluxio.
+   * Sets total bytes written remote.
    *
-   * @param TotalBytesWrittenAlluxio the total bytes written alluxio
+   * @param TotalBytesWrittenRemote the total bytes written remote
    * @return the updated masterWebUIMetrics object
    */
-  public MasterWebUIMetrics setTotalBytesWrittenAlluxio(String TotalBytesWrittenAlluxio) {
-    mTotalBytesWrittenAlluxio = TotalBytesWrittenAlluxio;
+  public MasterWebUIMetrics setTotalBytesWrittenRemote(String TotalBytesWrittenRemote) {
+    mTotalBytesWrittenRemote = TotalBytesWrittenRemote;
     return this;
   }
 
   /**
-   * Sets total bytes written alluxio throughput.
+   * Sets total bytes written remote throughput.
    *
-   * @param TotalBytesWrittenAlluxioThroughput the total bytes written alluxio throughput
+   * @param TotalBytesWrittenRemoteThroughput the total bytes written remote throughput
    * @return the updated masterWebUIMetrics object
    */
-  public MasterWebUIMetrics setTotalBytesWrittenAlluxioThroughput(
-      String TotalBytesWrittenAlluxioThroughput) {
-    mTotalBytesWrittenAlluxioThroughput = TotalBytesWrittenAlluxioThroughput;
+  public MasterWebUIMetrics setTotalBytesWrittenRemoteThroughput(
+      String TotalBytesWrittenRemoteThroughput) {
+    mTotalBytesWrittenRemoteThroughput = TotalBytesWrittenRemoteThroughput;
     return this;
   }
 
@@ -594,6 +604,17 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public MasterWebUIMetrics setUfsOps(Map<String, Map<String, Long>> UfsOps) {
     mUfsOps = UfsOps;
+    return this;
+  }
+
+  /**
+   * Sets ufs saved ops.
+   *
+   * @param ufsOpsSavedMap the ufs ops
+   * @return the updated masterWebUIMetrics object
+   */
+  public MasterWebUIMetrics setUfsOpsSaved(Map<String, Map<String, Long>> ufsOpsSavedMap) {
+    mUfsOpsSaved = ufsOpsSavedMap;
     return this;
   }
 
@@ -668,8 +689,8 @@ public final class MasterWebUIMetrics implements Serializable {
         .add("totalBytesReadUfsThroughput", mTotalBytesReadUfsThroughput)
         .add("totalBytesWrittenLocal", mTotalBytesWrittenLocal)
         .add("totalBytesWrittenLocalThroughput", mTotalBytesWrittenLocalThroughput)
-        .add("totalBytesWrittenAlluxio", mTotalBytesWrittenAlluxio)
-        .add("totalBytesWrittenAlluxioThroughput", mTotalBytesWrittenAlluxioThroughput)
+        .add("totalBytesWrittenRemote", mTotalBytesWrittenRemote)
+        .add("totalBytesWrittenRemoteThroughput", mTotalBytesWrittenRemoteThroughput)
         .add("totalBytesWrittenUfs", mTotalBytesWrittenUfs)
         .add("totalBytesWrittenUfsThroughput", mTotalBytesWrittenUfsThroughput)
         .add("ufsOps", mUfsOps).add("ufsReadSize", mUfsReadSize).add("ufsWriteSize", mUfsWriteSize)

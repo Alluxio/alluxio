@@ -18,8 +18,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Configuration of a job evicting a block.
@@ -30,6 +34,8 @@ public final class MoveConfig implements PlanConfig {
   private static final long serialVersionUID = -5198319303173120739L;
 
   public static final String NAME = "Move";
+
+  private String mPath;
 
   /** Which block to move. */
   private long mBlockId;
@@ -43,14 +49,17 @@ public final class MoveConfig implements PlanConfig {
   /**
    * Creates a new instance of {@link MoveConfig}.
    *
+   * @param path alluxio path involved in this move
    * @param blockId id of the block to move
    * @param workerHost host name of the worker
    * @param mediumType the medium type to move to
    */
   @JsonCreator
-  public MoveConfig(@JsonProperty("blockId") long blockId,
+  public MoveConfig(@JsonProperty("path") String path,
+      @JsonProperty("blockId") long blockId,
       @JsonProperty("workerHost") String workerHost,
       @JsonProperty("mediumType") String mediumType) {
+    mPath = path;
     mBlockId = blockId;
     mMediumType = mediumType;
     mWorkerHost = workerHost;
@@ -59,6 +68,14 @@ public final class MoveConfig implements PlanConfig {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Collection<String> affectedPaths() {
+    if (StringUtils.isEmpty(mPath)) {
+      return ImmutableList.of(mPath);
+    }
+    return Collections.EMPTY_LIST;
   }
 
   /**
@@ -96,7 +113,8 @@ public final class MoveConfig implements PlanConfig {
     MoveConfig that = (MoveConfig) obj;
     return Objects.equal(mBlockId, that.mBlockId)
         && Objects.equal(mWorkerHost, that.mWorkerHost)
-        && Objects.equal(mMediumType, that.mMediumType);
+        && Objects.equal(mMediumType, that.mMediumType)
+        && Objects.equal(mPath, that.mPath);
   }
 
   @Override
@@ -110,6 +128,7 @@ public final class MoveConfig implements PlanConfig {
         .add("blockId", mBlockId)
         .add("mediumType", mMediumType)
         .add("workerHost", mWorkerHost)
+        .add("path", mPath)
         .toString();
   }
 }

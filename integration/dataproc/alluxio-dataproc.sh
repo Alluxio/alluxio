@@ -23,7 +23,7 @@ readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
 readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
-readonly ALLUXIO_VERSION="2.4.0-SNAPSHOT"
+readonly ALLUXIO_VERSION="2.5.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
@@ -208,13 +208,13 @@ EOF
 configure_alluxio_root_mount() {
   local root_ufs_uri=$(/usr/share/google/get_metadata_value attributes/alluxio_root_ufs_uri)
   if [[ "${root_ufs_uri}" == "LOCAL" ]]; then
-    root_ufs_uri="hdfs://${MASTER_FQDN}:8020"
+    root_ufs_uri="hdfs://${MASTER_FQDN}:8020/"
   fi
   append_alluxio_property alluxio.master.mount.table.root.ufs "${root_ufs_uri}"
   if [[ "${root_ufs_uri}" = hdfs://* ]]; then
     local -r hdfs_version=$(/usr/share/google/get_metadata_value attributes/alluxio_hdfs_version || true)
     if [[ "${hdfs_version}" ]]; then
-      append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version "${hdfs_version}"
+      append_alluxio_property alluxio.master.mount.table.root.option.alluxio.underfs.version "${hdfs_version}"
     fi
     # core-site.xml and hdfs-site.xml downloaded from the file list will override the default one
     core_site_location="/etc/hadoop/conf/core-site.xml"

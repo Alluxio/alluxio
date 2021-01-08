@@ -47,6 +47,13 @@ public final class RetryUtils {
   }
 
   /**
+   * @return the best effort policy with no retry
+   */
+  public static RetryPolicy noRetryPolicy() {
+    return new CountingRetry(0);
+  }
+
+  /**
    * Gives a ClientRetry based on the given parameters.
    *
    * @param maxRetryDuration the maximum total duration to retry for

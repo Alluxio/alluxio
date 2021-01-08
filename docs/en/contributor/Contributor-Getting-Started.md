@@ -332,7 +332,7 @@ There are a few things that new contributors can do to familiarize themselves wi
 1.  [Run Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) and
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
-1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
+1.  Read a [Code Example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/MultiMount.java)
 1.  [Build Alluxio From Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
 You are also welcome to address issues in our [Github Issues](https://github.com/Alluxio/alluxio/issues).

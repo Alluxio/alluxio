@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.4.0-SNAPSHOT</version>
+  <version>2.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -117,6 +117,17 @@
       </snapshots>
     </repository>
     <repository>
+      <id>bintray-repo</id>
+      <name>bintray</name>
+      <url>https://jcenter.bintray.com</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
@@ -127,7 +138,7 @@
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
-    <copycat.version>1.2.15</copycat.version>
+    <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
     <netty.version>4.1.51.Final</netty.version>
@@ -143,16 +154,19 @@
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <orc.version>1.6.3</orc.version>
-    <oshi.version>4.2.0</oshi.version>
+    <oshi.version>5.3.5</oshi.version>
     <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
     <guava.version>29.0-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.12.4</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ratis.version>1.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
-    <ozone.version>0.5.0-beta</ozone.version>
+    <ozone.version>1.0.0</ozone.version>
+    <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
+    <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -162,6 +176,7 @@
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
+    <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
   </properties>
 
   <modules>
@@ -253,6 +268,11 @@
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
         <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.salesforce.servicelibs</groupId>
+        <artifactId>proto-backwards-compatibility</artifactId>
+        <version>1.0.5</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -523,6 +543,16 @@
         <version>${ozone.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.qcloud.cos</groupId>
+        <artifactId>hadoop-cos</artifactId>
+        <version>${hadoop-cos.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud</groupId>
+        <artifactId>cos_api-bundle</artifactId>
+        <version>${cos_api.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
         <version>4.5.11</version>
@@ -548,14 +578,9 @@
         <version>${parquet.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-server</artifactId>
-        <version>${copycat.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.atomix.copycat.alluxio</groupId>
-        <artifactId>copycat-client</artifactId>
-        <version>${copycat.version}</version>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-transport</artifactId>
+        <version>${catalyst.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.sling</groupId>
@@ -676,6 +701,16 @@
         <artifactId>log4j-slf4j-impl</artifactId>
         <version>${log4j.version}</version>
       </dependency>
+      <dependency>
+        <artifactId>ratis-server</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ratis-grpc</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
 
       <!-- Test scope -->
       <dependency>
@@ -761,6 +796,12 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <artifactId>xstream</artifactId>
+        <groupId>com.thoughtworks.xstream</groupId>
+        <version>1.4.14</version>
+        <scope>test</scope>
+      </dependency>
 
       <!-- Provided scope -->
       <!--
@@ -836,6 +877,12 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-classloading-xstream</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>xstream</artifactId>
+          <groupId>com.thoughtworks.xstream</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
@@ -857,6 +904,11 @@
       <artifactId>powermock-reflect</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <artifactId>xstream</artifactId>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -876,6 +928,11 @@
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>4.0.rc1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -909,6 +966,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <version>3.0.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.0.0-M1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -954,7 +1016,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>2.22.2</version>
           <configuration>
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
@@ -968,6 +1030,7 @@
               <jacoco-agent.append>true</jacoco-agent.append>
               <jacoco-agent.destfile>${build.path}/../target/jacoco-combined.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
@@ -1149,7 +1212,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**,**/alluxio/jnifuse/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1221,6 +1284,8 @@
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
+            <cc>SLASHSTAR_STYLE</cc>
+            <h>SLASHSTAR_STYLE</h>
             <java>SLASHSTAR_STYLE</java>
             <tsx>SLASHSTAR_STYLE</tsx>
             <scss>SLASHSTAR_STYLE</scss>
@@ -1474,6 +1539,20 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <properties>
+        <!--
+            The maven shade plugin has a bug where enabling the `createDependencyReducedPom`
+            property causes maven to go into an infinite loop (MSHADE-148). This is only an
+            issue for the Alluxio build if the maven version is 3.3.x or newer.
+            However, since disabling this property has the side effect of not resolving
+            variables in the released pom files, we need to enable this during
+            releases.
+        -->
+        <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
+      </properties>
     </profile>
   </profiles>
 </project>

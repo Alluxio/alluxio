@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -21,6 +22,7 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.CloseableResource;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -48,6 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
+  private static final Logger SLOW_CLOSE_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
 
   private final int mReaderBufferSizeMessages;
   private final long mDataTimeoutMs;
@@ -58,6 +61,7 @@ public final class GrpcDataReader implements DataReader {
 
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
   private final ReadResponseMarshaller mMarshaller;
+  private final long mCloseWaitMs;
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -81,6 +85,7 @@ public final class GrpcDataReader implements DataReader {
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
+    mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
 
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
@@ -168,7 +173,24 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
+
+      // When a reader is closed, there is technically nothing the client requires from the server.
+      // However, the server does need to cleanup resources for a client close(), including closing
+      // or canceling any temp blocks. Therefore, we should wait for some amount of time for the
+      // server to finish cleanup, but it should not be very long (since the client is finished
+      // with the read). Also, if there is any error when waiting for the complete, it should be
+      // ignored since again, the client is completely finished with the read.
+      try {
+        // Wait a short time for the server to finish the close, and then let the client continue.
+        if (mCloseWaitMs > 0) {
+          mStream.waitForComplete(mCloseWaitMs);
+        }
+      } catch (Throwable e) {
+        // ignore any errors
+        SLOW_CLOSE_LOG.warn(
+            "Closing gRPC read stream took longer than {}ms, moving on. blockId: {}, address: {}",
+            mCloseWaitMs, mReadRequest.getBlockId(), mAddress);
+      }
     } finally {
       mMarshaller.close();
       mClient.close();

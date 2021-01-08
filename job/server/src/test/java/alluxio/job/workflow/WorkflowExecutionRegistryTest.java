@@ -23,6 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Collection;
+import java.util.Collections;
+
 public class WorkflowExecutionRegistryTest {
   /**
    * The exception expected to be thrown.
@@ -54,6 +57,11 @@ public class WorkflowExecutionRegistryTest {
     @Override
     public String getName() {
       return "dummy";
+    }
+
+    @Override
+    public Collection<String> affectedPaths() {
+      return Collections.EMPTY_LIST;
     }
   }
 }

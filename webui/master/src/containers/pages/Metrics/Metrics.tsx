@@ -80,7 +80,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
                 <th>Remote Alluxio Read</th>
                 <td>{data.totalBytesReadRemote}</td>
                 <th>Remote Alluxio Write</th>
-                <td>{data.totalBytesWrittenAlluxio}</td>
+                <td>{data.totalBytesWrittenRemote}</td>
               </tr>
               <tr>
                 <th>Under Filesystem Read</th>
@@ -111,7 +111,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
                 <th>Remote Alluxio Read</th>
                 <td>{data.totalBytesReadRemoteThroughput}</td>
                 <th>Remote Alluxio Write</th>
-                <td>{data.totalBytesWrittenAlluxioThroughput}</td>
+                <td>{data.totalBytesWrittenRemoteThroughput}</td>
               </tr>
               <tr>
                 <th>Under Filesystem Read</th>
@@ -265,6 +265,21 @@ export class MetricsPresenter extends React.Component<AllProps> {
                   <tr key={innerKey}>
                     <th>{innerKey}</th>
                     <td>{data.ufsOps[key][innerKey]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        ))}
+        {Object.keys(data.ufsOpsSaved).map((key: string) => (
+          <div key={key} className="col-12">
+            <h5>Saved Under FileSystem Operations of {key}</h5>
+            <Table hover={true}>
+              <tbody>
+                {Object.keys(data.ufsOpsSaved[key]).map((innerKey: string) => (
+                  <tr key={innerKey}>
+                    <th>{innerKey}</th>
+                    <td>{data.ufsOpsSaved[key][innerKey]}</td>
                   </tr>
                 ))}
               </tbody>

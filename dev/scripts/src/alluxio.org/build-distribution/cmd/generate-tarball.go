@@ -48,11 +48,32 @@ func Single(args []string) error {
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
+	if customUfsModuleFlag != "" {
+		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, "|")
+		if len(customUfsModuleFlagArray) == 2 {
+			customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
+			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+		} else {
+			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+			os.Exit(1)
+		}
+	}
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
 	if err := checkRootFlags(); err != nil {
 		return err
+	}
+	if debugFlag {
+		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
+		fmt.Fprintf(os.Stdout, "customUfsModuleFlag=: %s\n", customUfsModuleFlag)
+		fmt.Fprintf(os.Stdout, "mvnArgsFlag=: %s\n", mvnArgsFlag)
+		fmt.Fprintf(os.Stdout, "targetFlag=: %s\n", targetFlag)
+		fmt.Fprintf(os.Stdout, "ufs-modules=: %s\n", ufsModulesFlag)
+
+		for _, ufsModule := range ufsModules {
+			fmt.Fprintf(os.Stdout, "ufsModule=: %s\n", ufsModule)
+		}
 	}
 	if err := generateTarball([]string{}, skipUIFlag, skipHelmFlag); err != nil {
 		return err
@@ -96,7 +117,7 @@ func chdir(path string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter"}
+	args := []string{"-T", "1", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter", "-Prelease"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -183,12 +204,15 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
+		"integration/docker/.dockerignore",
+		"integration/docker/conf/alluxio-env.sh.template",
+		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
-		"integration/docker/conf/alluxio-site.properties.template",
-		"integration/docker/conf/alluxio-env.sh.template",
+		"integration/docker/libjnifuse.so",
 		"integration/fuse/bin/alluxio-fuse",
+		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
@@ -230,7 +254,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
+		hadoopVersion = parseVersion(hadoopDistributionFlag)
+		fmt.Printf("hadoop distribution %s not recognized, change to %s\n", hadoopDistributionFlag, hadoopVersion)
 	}
 	cwd, err := os.Getwd()
 	if err != nil {

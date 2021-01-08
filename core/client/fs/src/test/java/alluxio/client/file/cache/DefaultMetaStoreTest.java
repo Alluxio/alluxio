@@ -11,7 +11,7 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.quota.PrestoCacheScope;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
@@ -92,7 +92,7 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void evict() throws Exception {
-    Assert.assertNull(mMetaStore.evict(PrestoCacheScope.GLOBAL));
+    Assert.assertNull(mMetaStore.evict(CacheScope.GLOBAL));
   }
 
   @Test
@@ -101,12 +101,12 @@ public final class DefaultMetaStoreTest {
     mMetaStore = new DefaultMetaStore(mConf);
     long pageSize1 = 8765;
     PageId pageId = new PageId("2L", 2L);
-    PrestoCacheScope cacheScope = PrestoCacheScope.create("schema.table.partition");
+    CacheScope cacheScope = CacheScope.create("schema.table.partition");
     PageInfo pageInfo = new PageInfo(pageId, pageSize1, cacheScope);
     mMetaStore.addPage(pageId, pageInfo);
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(PrestoCacheScope.create("schema.table.partition")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(PrestoCacheScope.create("schema.table")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(PrestoCacheScope.create("schema")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(PrestoCacheScope.create(".")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema.table.partition")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema.table")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema")));
+    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create(".")));
   }
 }

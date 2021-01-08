@@ -119,7 +119,7 @@ public final class RpcUtils {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, args), e);
+              String.format(description, args), e.getMessage());
         }
       }
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();

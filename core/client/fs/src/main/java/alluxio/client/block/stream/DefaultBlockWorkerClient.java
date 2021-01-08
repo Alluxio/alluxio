@@ -11,22 +11,23 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.GrpcNetworkGroup;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
@@ -38,7 +39,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
@@ -63,7 +63,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
   private GrpcServerAddress mAddress;
-  private final long mDataTimeoutMs;
+  private final long mRpcTimeoutMs;
 
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
@@ -118,7 +118,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
   }
 
   @Override
@@ -197,27 +197,25 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public MoveBlockResponse moveBlock(MoveBlockRequest request) {
-    // Default time out is 30 secs, may need to adjust this if block move takes longer
-    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .moveBlock(request);
   }
 
   @Override
   public ClearMetricsResponse clearMetrics(ClearMetricsRequest request) {
-    // Default time out is 30 secs, may need to adjust this if metrics clear takes longer
-    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .clearMetrics(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {

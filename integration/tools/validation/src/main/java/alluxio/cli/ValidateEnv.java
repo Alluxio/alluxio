@@ -12,21 +12,11 @@
 package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.cli.ClusterConfConsistencyValidationTask;
 import alluxio.cli.hdfs.HdfsConfParityValidationTask;
 import alluxio.cli.hdfs.HdfsConfValidationTask;
 import alluxio.cli.hdfs.HdfsProxyUserValidationTask;
 import alluxio.cli.hdfs.HdfsVersionValidationTask;
-import alluxio.cli.NativeLibValidationTask;
-import alluxio.cli.PortAvailabilityValidationTask;
-import alluxio.cli.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.hdfs.SecureHdfsValidationTask;
-import alluxio.cli.SshValidationTask;
-import alluxio.cli.StorageSpaceValidationTask;
-import alluxio.cli.UfsDirectoryValidationTask;
-import alluxio.cli.UfsSuperUserValidationTask;
-import alluxio.cli.UserLimitValidationTask;
-import alluxio.cli.ValidationTask;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -157,6 +147,9 @@ public final class ValidateEnv {
             new SshValidationTask(mConf), mCommonTasks);
 
     // UFS validations
+    registerTask("ufs.version",
+        "This validates the a configured UFS library version is available on the system.",
+        new UfsVersionValidationTask(mPath, mConf), mCommonTasks);
     registerTask("ufs.path.accessible",
             "This validates the under file system location is accessible to Alluxio.",
             new UfsDirectoryValidationTask(mPath, mConf), mCommonTasks);
@@ -255,7 +248,7 @@ public final class ValidateEnv {
   private boolean validateRemote(String node, String target, String name,
                                  CommandLine cmd) throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
-    if (!CommonUtils.isAddressReachable(node, 22)) {
+    if (!CommonUtils.isAddressReachable(node, 22, 30 * Constants.SECOND_MS)) {
       System.err.format("Unable to reach ssh port 22 on node %s.%n", node);
       return false;
     }
@@ -301,7 +294,7 @@ public final class ValidateEnv {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
-      ValidationUtils.TaskResult result = task.validate(optionsMap);
+      ValidationTaskResult result = task.validate(optionsMap);
       results.put(result.mState, results.getOrDefault(result.mState, 0) + 1);
       switch (result.mState) {
         case OK:

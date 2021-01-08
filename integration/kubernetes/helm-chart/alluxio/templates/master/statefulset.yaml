@@ -49,6 +49,15 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-master
+    {{- if or .Values.master.podAnnotations .Values.metrics.enabled }}
+      annotations:
+      {{- with .Values.master.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     spec:
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
@@ -82,7 +91,7 @@ spec:
           {{- if .Values.master.resources  }}
 {{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.master.args }}
           args:
 {{ toYaml .Values.master.args | trim | indent 12 }}
@@ -120,6 +129,10 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
+            {{- if .Values.metrics.enabled }}
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
+            {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
               mountPath: /journal
@@ -148,7 +161,7 @@ spec:
           {{- if .Values.jobMaster.resources  }}
 {{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
-          command: ["/entrypoint.sh"]
+          command: ["tini", "--", "/entrypoint.sh"]
           {{- if .Values.jobMaster.args }}
           args:
 {{ toYaml .Values.jobMaster.args | trim | indent 12 }}
@@ -186,6 +199,10 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
+          {{- if .Values.metrics.enabled }}
+          - name: {{ $fullName }}-metrics-volume
+            mountPath: /config/metrics
+          {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
 {{- include "alluxio.master.secretVolumeMounts" . }}
@@ -199,6 +216,11 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.metrics.enabled }}
+        - name: {{ $fullName }}-metrics-volume
+          configMap:
+            name: {{ $fullName }}-metrics
+        {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}

@@ -12,7 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.PrestoCacheScope;
+import alluxio.client.quota.CacheScope;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -47,7 +47,7 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, PrestoCacheScope cacheScope, CacheQuota cacheQuota) {
+  public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
     try {
       return mCacheManager.put(pageId, page, cacheScope, cacheQuota);
     } catch (Exception e) {
@@ -78,6 +78,11 @@ public class NoExceptionCacheManager implements CacheManager {
       Metrics.DELETE_ERRORS.inc();
       return false;
     }
+  }
+
+  @Override
+  public State state() {
+    return mCacheManager.state();
   }
 
   @Override

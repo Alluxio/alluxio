@@ -20,6 +20,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.PropertyKey;
@@ -122,7 +123,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
+        FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
       } else {
         Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
       }
@@ -140,7 +141,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
@@ -155,7 +156,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 
@@ -176,7 +177,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+        FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
       } else {
         Assert.assertFalse(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
@@ -186,14 +187,14 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 
@@ -214,7 +215,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+        FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
       } else {
         Assert.assertFalse(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
@@ -224,14 +225,14 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(k, is.read(ret, 0, k));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 
@@ -267,7 +268,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 
@@ -296,7 +297,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert
           .assertTrue(BufferUtils.equalIncreasingByteArray(read, Arrays.copyOfRange(ret, 0, read)));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 
@@ -328,7 +329,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       }
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(read, ret));
       is.close();
-      Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
+      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
   }
 

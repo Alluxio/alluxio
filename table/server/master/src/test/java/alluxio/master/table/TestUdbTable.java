@@ -31,6 +31,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableList;
 
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,7 +95,21 @@ public class TestUdbTable implements UdbTable {
                 CreateFilePOptions.newBuilder().setRecursive(true).build())) {
               out.write("1".getBytes());
             } catch (IOException | AlluxioException e) {
-              e.printStackTrace();
+              throw new RuntimeException(e);
+            }
+
+            final AlluxioURI waitLocation = location;
+            try {
+              CommonUtils.waitFor("file to be completed", () -> {
+                try {
+                  return fs.getStatus(waitLocation).isCompleted();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                  return false;
+                }
+              }, WaitForOptions.defaults().setTimeoutMs(100));
+            } catch (InterruptedException | TimeoutException e) {
+              throw new RuntimeException(e);
             }
           }
           return new TestPartition(new HiveLayout(genPartitionInfo(

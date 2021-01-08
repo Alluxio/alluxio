@@ -142,6 +142,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     buf.readBytes(context.getOutputStream(), buf.readableBytes());
   }
 
+  @Override
+  protected String getLocationInternal(UfsFileWriteRequestContext context) {
+    return context.getRequest().getCreateUfsFileOptions().getUfsPath();
+  }
+
   private void createUfsFile(UfsFileWriteRequestContext context)
       throws IOException {
     UfsFileWriteRequest request = context.getRequest();
@@ -152,6 +157,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     context.setUfsResource(ufsResource);
     UnderFileSystem ufs = ufsResource.get();
     CreateOptions createOptions = CreateOptions.defaults(ServerConfiguration.global())
+        .setCreateParent(true)
         .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
         .setMode(new Mode((short) createUfsFileOptions.getMode()));
     if (createUfsFileOptions.hasAcl()) {

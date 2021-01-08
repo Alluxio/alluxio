@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.quota.CacheScope;
-import alluxio.client.quota.PrestoCacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
@@ -65,7 +64,7 @@ public interface MetaStore {
    * @param cacheScope scope to query
    * @return the total size of pages stored in bytes
    */
-  long bytes(PrestoCacheScope cacheScope);
+  long bytes(CacheScope cacheScope);
 
   /**
    * @return the number of pages stored

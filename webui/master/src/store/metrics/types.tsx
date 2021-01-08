@@ -36,13 +36,18 @@ export interface IMetrics {
   totalBytesReadUfsThroughput: string;
   totalBytesWrittenLocal: string;
   totalBytesWrittenLocalThroughput: string;
-  totalBytesWrittenAlluxio: string;
-  totalBytesWrittenAlluxioThroughput: string;
+  totalBytesWrittenRemote: string;
+  totalBytesWrittenRemoteThroughput: string;
   totalBytesWrittenDomainSocket: string;
   totalBytesWrittenDomainSocketThroughput: string;
   totalBytesWrittenUfs: string;
   totalBytesWrittenUfsThroughput: string;
   ufsOps: {
+    [key: string]: {
+      [key: string]: number;
+    };
+  };
+  ufsOpsSaved: {
     [key: string]: {
       [key: string]: number;
     };

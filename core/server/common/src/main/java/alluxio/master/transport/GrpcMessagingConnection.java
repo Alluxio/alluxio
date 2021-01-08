@@ -17,15 +17,11 @@ import alluxio.grpc.MessagingResponseHeader;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
-import io.atomix.catalyst.concurrent.Listener;
-import io.atomix.catalyst.concurrent.Listeners;
-import io.atomix.catalyst.concurrent.Scheduled;
-import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.SerializationException;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.util.Assert;
 import io.grpc.stub.StreamObserver;
+import org.apache.http.concurrent.Cancellable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +42,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Abstract {@link Connection} implementation based on Alluxio gRPC messaging.
+ * Abstract {@link GrpcMessagingConnection} implementation based on Alluxio gRPC messaging.
  */
 public abstract class GrpcMessagingConnection
-    implements Connection, StreamObserver<TransportMessage> {
+    implements StreamObserver<TransportMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingConnection.class);
 
   /** Used to assign a JVM bound Id to connections.  */
@@ -58,7 +54,7 @@ public abstract class GrpcMessagingConnection
   /** Exception listeners for this connection.  */
   private final Listeners<Throwable> mExceptionListeners;
   /** Close listeners for this connection.  */
-  private final Listeners<Connection> mCloseListeners;
+  private final Listeners<GrpcMessagingConnection> mCloseListeners;
 
   /** Whether this connection is closed already. */
   private boolean mClosed;
@@ -78,7 +74,7 @@ public abstract class GrpcMessagingConnection
   private final Map<Long, GrpcMessagingConnection.ContextualFuture> mResponseFutures;
 
   /** Thread context of creator of this connection. */
-  private final ThreadContext mContext;
+  private final GrpcMessagingContext mContext;
 
   /** Type of connection owner. */
   private final ConnectionOwner mConnectionOwner;
@@ -93,7 +89,7 @@ public abstract class GrpcMessagingConnection
   private final long mRequestTimeoutMs;
 
   /** Timeout scheduler. */
-  private final Scheduled mTimeoutScheduler;
+  private final Cancellable mTimeoutScheduler;
 
   /** Used to synchronize during connection shut down. */
   private final ReadWriteLock mStateLock;
@@ -113,7 +109,7 @@ public abstract class GrpcMessagingConnection
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
   public GrpcMessagingConnection(ConnectionOwner connectionOwner, String transportId,
-      ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
+      GrpcMessagingContext context, ExecutorService executor, long requestTimeoutMs) {
     mConnectionOwner = connectionOwner;
     mConnectionId = MoreObjects.toStringHelper(this)
         .add("ConnectionOwner", mConnectionOwner)
@@ -148,12 +144,24 @@ public abstract class GrpcMessagingConnection
     mTargetObserver = targetObserver;
   }
 
-  @Override
+  /**
+   * Sends a request.
+   *
+   * @param request the request to send
+   * @return the send request completable future
+   */
   public CompletableFuture<Void> send(Object request) {
     return sendAndReceiveInternal(request, true);
   }
 
-  @Override
+  /**
+   * Sends a request and receives a response.
+   *
+   * @param request the request to send
+   * @param <T> Request type
+   * @param <U> Response type
+   * @return future for results
+   */
   public <T, U> CompletableFuture<U> sendAndReceive(T request) {
     return sendAndReceiveInternal(request, false);
   }
@@ -169,16 +177,16 @@ public abstract class GrpcMessagingConnection
    */
   private <T, U> CompletableFuture<U> sendAndReceiveInternal(T request, boolean fireAndForget) {
     try (LockResource lock = new LockResource(mStateLock.readLock())) {
-      Assert.notNull(request, "request");
+      Preconditions.checkNotNull(request, "request should not be null");
 
       // Create a contextual future for the request.
       GrpcMessagingConnection.ContextualFuture<U> future =
           new GrpcMessagingConnection.ContextualFuture<>(System.currentTimeMillis(),
-              ThreadContext.currentContextOrThrow());
+              GrpcMessagingContext.currentContextOrThrow());
 
       // Don't allow request if connection is closed.
       if (mClosed) {
-        future.completeExceptionally(new IllegalStateException("Connection closed"));
+        future.completeExceptionally(new IllegalStateException("GrpcMessagingConnection closed"));
         return future;
       }
 
@@ -212,24 +220,41 @@ public abstract class GrpcMessagingConnection
     }
   }
 
-  @Override
-  public <T, U> Connection handler(Class<T> type, Consumer<T> handler) {
+  /**
+   * Registers a new message handler.
+   *
+   * @param type type of the handler
+   * @param handler the actual handler to register
+   * @param <T> the class and handler type
+   * @param <U> the result type
+   * @return connection
+   */
+  public <T, U> GrpcMessagingConnection handler(Class<T> type, Consumer<T> handler) {
     return handler(type, r -> {
       handler.accept(r);
       return null;
     });
   }
 
-  @Override
-  public <T, U> Connection handler(Class<T> type, Function<T, CompletableFuture<U>> handler) {
-    Assert.notNull(type, "type");
+  /**
+   * Registers a new message handler.
+   *
+   * @param type type of the handler
+   * @param handler the actual handler to register
+   * @param <T> the class and handler type
+   * @param <U> the result type
+   * @return connection
+   */
+  public <T, U> GrpcMessagingConnection handler(Class<T> type,
+      Function<T, CompletableFuture<U>> handler) {
+    Preconditions.checkNotNull(type, "type should not be null");
     try (LockResource lock = new LockResource(mStateLock.readLock())) {
       // Don't allow request if connection is closed.
       if (mClosed) {
         throw new IllegalStateException("Connection closed");
       }
       mHandlers.put(type, new GrpcMessagingConnection.HandlerHolder(handler,
-          ThreadContext.currentContextOrThrow()));
+          GrpcMessagingContext.currentContextOrThrow()));
       return null;
     }
   }
@@ -245,7 +270,7 @@ public abstract class GrpcMessagingConnection
     try {
       // Deserialize request object.
       Object request = mContext.serializer().readObject(requestMessage.getMessage().newInput());
-      LOG.debug("Handling request({}) of type: {}. Connection: {}", requestId,
+      LOG.debug("Handling request({}) of type: {}. GrpcMessagingConnection: {}", requestId,
           request.getClass().getName(), mConnectionId);
       // Find handler for the request.
       GrpcMessagingConnection.HandlerHolder handler = mHandlers.get(request.getClass());
@@ -286,7 +311,7 @@ public abstract class GrpcMessagingConnection
           }
         };
         // Make sure response is sent under catalyst context.
-        if (ThreadContext.currentContext() != null) {
+        if (GrpcMessagingContext.currentContext() != null) {
           // Current thread under catalyst context.
           responseAction.run();
         } else {
@@ -306,8 +331,8 @@ public abstract class GrpcMessagingConnection
    * @param context catalyst thread context
    * @param responseObject response object  to send
    */
-  private void sendResponse(long requestId, ThreadContext context, Object responseObject) {
-    LOG.debug("Sending response of type: {} for request({}). Connection: {}",
+  private void sendResponse(long requestId, GrpcMessagingContext context, Object responseObject) {
+    LOG.debug("Sending response of type: {} for request({}). GrpcMessagingConnection: {}",
         responseObjectType(responseObject), requestId, mConnectionOwner);
     // Create response message.
     TransportMessage.Builder messageBuilder =
@@ -360,25 +385,41 @@ public abstract class GrpcMessagingConnection
     return (responseObject != null) ? responseObject.getClass().getName() : "<NULL>";
   }
 
-  @Override
+  /**
+   * Adds an exception listener.
+   *
+   * @param listener the listener to add
+   * @return the listener holder
+   */
   public Listener<Throwable> onException(Consumer<Throwable> listener) {
     // Call immediately if the connection was failed.
     if (mLastFailure != null) {
       listener.accept(mLastFailure);
     }
-    return mExceptionListeners.add(Assert.notNull(listener, "listener"));
+    return mExceptionListeners.add(
+        Preconditions.checkNotNull(listener, "listener should not be null"));
   }
 
-  @Override
-  public Listener<Connection> onClose(Consumer<Connection> listener) {
+  /**
+   * Adds a close listener.
+   *
+   * @param listener the listener to add
+   * @return the listener holder
+   */
+  public Listener<GrpcMessagingConnection> onClose(
+      Consumer<GrpcMessagingConnection> listener) {
     // Call immediately if the connection was closed.
     if (mClosed) {
       listener.accept(this);
     }
-    return mCloseListeners.add(Assert.notNull(listener, "listener"));
+    return mCloseListeners.add(Preconditions.checkNotNull(listener, "listener should not be null"));
   }
 
-  @Override
+  /**
+   * Closes the connection.
+   *
+   * @return future of close results
+   */
   public CompletableFuture<Void> close() {
     if (mClosed) {
       return CompletableFuture.completedFuture(null);
@@ -409,7 +450,7 @@ public abstract class GrpcMessagingConnection
       failPendingRequests(new ConnectException("Connection closed."));
 
       // Call close listeners.
-      for (Listener<Connection> listener : mCloseListeners) {
+      for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
         listener.accept(this);
       }
     }, mExecutor);
@@ -421,7 +462,8 @@ public abstract class GrpcMessagingConnection
 
   @Override
   public void onNext(TransportMessage message) {
-    LOG.debug("Received a new message. Connection: {}, RequestHeader: {}, ResponseHeader: {}",
+    LOG.debug("Received a new message. GrpcMessagingConnection: {}, "
+        + "RequestHeader: {}, ResponseHeader: {}",
         mConnectionId, message.getRequestHeader(), message.getResponseHeader());
     // A message can be a request or a response.
     if (message.hasRequestHeader()) {
@@ -437,7 +479,7 @@ public abstract class GrpcMessagingConnection
   public void onError(Throwable t) {
     LOG.debug("Connection failed: {}", mConnectionId, t);
 
-    // Connection can't be used after this.
+    // GrpcMessagingConnection can't be used after this.
     // Lock and set the state.
     try (LockResource lock = new LockResource(mStateLock.writeLock())) {
       mClosed = true;
@@ -455,7 +497,7 @@ public abstract class GrpcMessagingConnection
     }
 
     // Call close listeners as we can't reactivate this connection.
-    for (Listener<Connection> listener : mCloseListeners) {
+    for (Listener<GrpcMessagingConnection> listener : mCloseListeners) {
       listener.accept(this);
     }
   }
@@ -491,7 +533,7 @@ public abstract class GrpcMessagingConnection
       Map.Entry<Long, ContextualFuture> requestEntry = responseIterator.next();
       GrpcMessagingConnection.ContextualFuture future = requestEntry.getValue();
       if (future.getCreationTime() + mRequestTimeoutMs < currentTimeMillis) {
-        LOG.debug("Timing out request({}). Connection: {}", requestEntry.getKey(),
+        LOG.debug("Timing out request({}). GrpcMessagingConnection: {}", requestEntry.getKey(),
             mConnectionId);
         responseIterator.remove();
         future.getContext().executor().execute(
@@ -515,8 +557,8 @@ public abstract class GrpcMessagingConnection
       Map.Entry<Long, GrpcMessagingConnection.ContextualFuture> responseEntry =
           responseFutureIter.next();
 
-      LOG.debug("Closing request({}) with error: {}. Connection: {}", responseEntry.getKey(),
-          error.getClass().getName(), mConnectionId);
+      LOG.debug("Closing request({}) with error: {}. GrpcMessagingConnection: {}",
+          responseEntry.getKey(), error.getClass().getName(), mConnectionId);
 
       GrpcMessagingConnection.ContextualFuture<?> responseFuture = responseEntry.getValue();
       responseFuture.getContext().executor()
@@ -539,14 +581,14 @@ public abstract class GrpcMessagingConnection
     /** Request handler. */
     private final Function<Object, CompletableFuture<Object>> mHandler;
     /** Catalyst thread context. */
-    private final ThreadContext mContext;
+    private final GrpcMessagingContext mContext;
 
-    private HandlerHolder(Function handler, ThreadContext context) {
+    private HandlerHolder(Function handler, GrpcMessagingContext context) {
       mHandler = handler;
       mContext = context;
     }
 
-    private ThreadContext getContext() {
+    private GrpcMessagingContext getContext() {
       return mContext;
     }
 
@@ -562,14 +604,14 @@ public abstract class GrpcMessagingConnection
     /** Creation time. */
     private final long mCreationTime;
     /** Catalyst thread context. */
-    private final ThreadContext mContext;
+    private final GrpcMessagingContext mContext;
 
-    private ContextualFuture(long creationTime, ThreadContext context) {
+    private ContextualFuture(long creationTime, GrpcMessagingContext context) {
       mCreationTime = creationTime;
       mContext = context;
     }
 
-    private ThreadContext getContext() {
+    private GrpcMessagingContext getContext() {
       return mContext;
     }
 

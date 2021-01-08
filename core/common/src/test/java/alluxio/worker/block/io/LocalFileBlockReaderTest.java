@@ -64,6 +64,11 @@ public class LocalFileBlockReaderTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
+  @Test
+  public void getLocation() {
+    Assert.assertEquals(mReader.getFilePath(), mReader.getLocation());
+  }
+
   /**
    * Test for the {@link LocalFileBlockReader#getLength()} method.
    */

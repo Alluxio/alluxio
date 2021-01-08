@@ -12,6 +12,7 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -28,12 +29,14 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.allocator.GreedyAllocator;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
@@ -52,6 +55,9 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
@@ -61,6 +67,8 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
+          .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
 
   @Before
@@ -231,6 +239,40 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     CommonUtils.waitFor("file in memory", () -> {
       try {
         return 100 == mFileSystem.getStatus(toPromote).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
+  }
+
+  /**
+   * With setting of "StorageDir1, StorageDir2", loading a block from UFS that is bigger than
+   * the available space of StorageDir1 should land in StorageDir2 using GreedyAllocator.
+   * https://github.com/Alluxio/alluxio/issues/8687
+   */
+  @Test
+  public void greedyAllocator() throws Exception {
+    mLocalAlluxioClusterResource.stop();
+    int fileLen = 8 * Constants.MB;
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
+        .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, "1MB")
+        .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",
+            mTempFolder.newFolder("dir1").getAbsolutePath(),
+            mTempFolder.newFolder("dir2").getAbsolutePath()))
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
+            String.join(",", "2MB", String.valueOf(2 * fileLen)));
+    mLocalAlluxioClusterResource.start();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    AlluxioURI uri1 = new AlluxioURI("/file1");
+    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.THROUGH, fileLen);
+    Assert.assertEquals(0, mFileSystem.getStatus(uri1).getInAlluxioPercentage());
+    FileSystemTestUtils.loadFile(mFileSystem, uri1.getPath());
+    CommonUtils.waitFor("file is in Alluxio", () -> {
+      try {
+        return 100 == mFileSystem.getStatus(uri1).getInAlluxioPercentage();
       } catch (Exception e) {
         return false;
       }

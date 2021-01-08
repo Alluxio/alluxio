@@ -10,8 +10,14 @@ alluxio.fuse.debug.enabled:
   'Run FUSE in debug mode, and have the fuse process log every FS request.'
 alluxio.fuse.fs.name:
   'The FUSE file system name.'
+alluxio.fuse.jnifuse.enabled:
+  'Use experimental JNIFUSE library for better performance.'
+alluxio.fuse.logging.threshold:
+  'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
+alluxio.fuse.shared.caching.reader.enabled:
+  '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
@@ -56,6 +62,8 @@ alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
+alluxio.job.worker.tasks.per.worker:
+  'N/A'
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
 alluxio.job.worker.throttling:
@@ -65,11 +73,11 @@ alluxio.job.worker.web.bind.host:
 alluxio.job.worker.web.port:
   'The port the Alluxio job worker web server uses.'
 alluxio.jvm.monitor.info.threshold:
-  'Extra sleep time longer than this threshold, log INFO.'
+  'When the JVM pauses for anything longer than this, log an INFO message.'
 alluxio.jvm.monitor.sleep.interval:
   'The time for the JVM monitor thread to sleep.'
 alluxio.jvm.monitor.warn.threshold:
-  'Extra sleep time longer than this threshold, log WARN.'
+  'When the JVM pauses for anything longer than this, log a WARN message.'
 alluxio.locality.compare.node.ip:
   'Whether try to resolve the node IP address for locality checking'
 alluxio.locality.node:
@@ -102,10 +110,14 @@ alluxio.network.connection.health.check.timeout:
   'Allowed duration for checking health of client connections (gRPC channels) before being assigned to a client. If a connection does not become active  within configured time, it will be shut down and a new connection will be created for the client'
 alluxio.network.connection.server.shutdown.timeout:
   'Maximum time to wait for gRPC server to stop on shutdown'
-alluxio.network.connection.shutdown.timeout:
+alluxio.network.connection.shutdown.graceful.timeout:
   'Maximum time to wait for connections (gRPC channels) to stop on shutdown'
+alluxio.network.connection.shutdown.timeout:
+  'Maximum time to wait for connections (gRPC channels) to stop after graceful shutdown attempt.'
 alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
+alluxio.network.ip.address.used:
+  'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
 alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
@@ -126,6 +138,8 @@ alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.site.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.table.catalog.path:
   'The Alluxio file path for the table catalog metadata.'
+alluxio.table.catalog.udb.sync.timeout:
+  'The timeout period for a db sync to finish in the catalog. If a synctakes longer than this timeout, the sync will be terminated.'
 alluxio.table.enabled:
   '(Experimental) Enables the table service.'
 alluxio.table.transform.manager.job.history.retention.time:
@@ -161,7 +175,7 @@ alluxio.underfs.hdfs.impl:
 alluxio.underfs.hdfs.prefixes:
   'Optionally, specify which prefixes should run through the HDFS implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
 alluxio.underfs.hdfs.remote:
-  'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is false.'
+  'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is true.'
 alluxio.underfs.kodo.connect.timeout:
   'The connect timeout of kodo.'
 alluxio.underfs.kodo.downloadhost:
@@ -190,6 +204,8 @@ alluxio.underfs.oss.socket.timeout:
   'The timeout of OSS socket.'
 alluxio.underfs.s3.admin.threads.max:
   'The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.'
+alluxio.underfs.s3.connection.ttl:
+  'The expiration time of S3 connections in ms. -1 means the connection will never expire.'
 alluxio.underfs.s3.default.mode:
   'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3.directory.suffix:
@@ -204,8 +220,10 @@ alluxio.underfs.s3.intermediate.upload.clean.age:
   'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly S3 mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
 alluxio.underfs.s3.list.objects.v1:
   'Whether to use version 1 of GET Bucket (List Objects) API.'
+alluxio.underfs.s3.max.error.retry:
+  'The maximum number of retry attempts for failed retryable requests.Setting this property will override the AWS SDK default.'
 alluxio.underfs.s3.owner.id.to.username.mapping:
-  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;.'
+  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;. Unspecified owner id will map to a default empty username'
 alluxio.underfs.s3.proxy.host:
   'Optionally, specify a proxy host for communicating with S3.'
 alluxio.underfs.s3.proxy.port:
@@ -244,6 +262,8 @@ alluxio.web.refresh.interval:
   'The amount of time to await before refreshing the Web UI if it is set to auto refresh.'
 alluxio.web.threads:
   'How many threads to serve Alluxio web UI.'
+alluxio.web.ui.enabled:
+  'Whether the master/worker will have Web UI enabled. If set to false, the master/worker will not have Web UI page, but the RESTful endpoints and metrics will still be available.'
 alluxio.work.dir:
   'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file storage data (if using local filesystem) are written here.'
 alluxio.zookeeper.address:
@@ -251,7 +271,7 @@ alluxio.zookeeper.address:
 alluxio.zookeeper.auth.enabled:
   'If true, enable client-side Zookeeper authentication.'
 alluxio.zookeeper.connection.timeout:
-  'Connection timeout to use when connecting to Zookeeper'
+  'Connection timeout for Alluxio (job) masters to select the leading (job) master when connecting to Zookeeper'
 alluxio.zookeeper.election.path:
   'Election directory in ZooKeeper.'
 alluxio.zookeeper.enabled:
@@ -272,6 +292,12 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+fs.azure.account.oauth2.client.endpoint:
+  'The oauth endpoint for ABFS.'
+fs.azure.account.oauth2.client.id:
+  'The client id for ABFS.'
+fs.azure.account.oauth2.client.secret:
+  'The client secret for ABFS.'
 fs.cos.access.key:
   'The access key of COS bucket.'
 fs.cos.app.id:

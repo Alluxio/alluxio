@@ -22,8 +22,8 @@ and [Performance Tuning]({{ '/en/operation/Performance-Tuning.html' | relativize
   * CentOS - 6.8 or 7
   * RHEL - 7.x
   * Ubuntu - 16.04
-* Alluxio requires version 8 of the JDK. Higher versions are not supported:
-  * Java JDK 8 (Oracle or OpenJDK distributions supported)
+* Alluxio requires version 8 or 11 of the JDK. Other  versions are not supported:
+  * Java JDK 8 or 11 (Oracle or OpenJDK distributions supported)
 * Alluxio works on IPv4 networks only.
 * Allow the following ports and protocols:
   * Inbound TCP 22 - ssh as a user to install Alluxio components across specified nodes.
@@ -36,7 +36,7 @@ Note that these are bare minimum requirements to run the software.
 Running Alluxio at scale and under high load will increase these requirements.
 
 * Minimum 4 GB disk space
-* Minimum 4 GB memory
+* Minimum 4 GB memory (6 GB if embedded journal is used)
 * Minimum 4 CPU cores
 * Allow the following ports and protocols:
   * Inbound TCP 19998 - The Alluxio master's default RPC port

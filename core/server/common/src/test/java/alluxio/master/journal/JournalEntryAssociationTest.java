@@ -66,6 +66,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddSyncPoint(AddSyncPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddTable(Table.AddTableEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setAddTablePartitions(Table.AddTablePartitionsEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setActiveSyncTxId(File.ActiveSyncTxIdEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAsyncPersistRequest(AsyncPersistRequestEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAttachDb(Table.AttachDbEntry.getDefaultInstance()).build(),

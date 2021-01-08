@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Ozone
-nickname: Ozone
+title: Alluxio集成Ozone作为底层存储
+nickname: Alluxio集成Ozone作为底层存储
 group: Storage Integrations
 priority: 10
 ---
@@ -17,9 +17,9 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 具有正确的Hadoop版本(推荐))，或 
 [从Alluxio源代码编译二进制文件]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})(适用于高级用户)。
 
-在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://hadoop.apache.org/ozone/docs/0.5.0-beta/start/onprem.html)
-安装Ozone集群，并遵循[卷命令](https://hadoop.apache.org/ozone/docs/0.5.0-beta/shell/volumecommands.html)和 
-[桶命令](https://hadoop.apache.org/ozone /docs/0.5.0-beta/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
+在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
+安装Ozone集群，并遵循[卷命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html)和 
+[桶命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
 
 ## 基本设置
 
@@ -101,7 +101,7 @@ $ ./bin/alluxio fs mount \
 ```xml
 <configuration>
   <property>
-    <name>ozone.scm.names</name>
+    <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
   <property>
@@ -131,4 +131,4 @@ $ ./bin/alluxio fs mount \
 
 ### 支持的Ozone版本
 
-当前，唯一经过与Alluxio测试Ozone版本是`0.5.0-beta`。
+当前，唯一经过与Alluxio测试Ozone版本是`1.0.0`。

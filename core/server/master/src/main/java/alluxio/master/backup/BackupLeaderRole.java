@@ -27,6 +27,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.StateLockManager;
 import alluxio.master.StateLockOptions;
+import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.master.transport.GrpcMessagingServiceClientHandler;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.ClientIpAddressInjector;
@@ -34,8 +35,6 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
 
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Connection;
 import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,13 +77,13 @@ public class BackupLeaderRole extends AbstractBackupRole {
   private Future<?> mLocalBackupFuture;
 
   /** Used to mark remote connection through which delegated backup is being driven. */
-  private Connection mRemoteBackupConnection;
+  private GrpcMessagingConnection mRemoteBackupConnection;
 
   /** Backup-worker connections with the leader. */
-  private Set<Connection> mBackupWorkerConnections = new ConcurrentHashSet<>();
+  private Set<GrpcMessagingConnection> mBackupWorkerConnections = new ConcurrentHashSet<>();
 
   /** Used to store host names for backup-worker connections. */
-  private Map<Connection, String> mBackupWorkerHostNames = new ConcurrentHashMap<>();
+  private Map<GrpcMessagingConnection, String> mBackupWorkerHostNames = new ConcurrentHashMap<>();
 
   /** Used to prevent concurrent scheduling of backups. */
   private Lock mBackupInitiateLock = new ReentrantLock(true);
@@ -112,7 +111,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     LOG.info("Closing backup-leader role.");
     // Close each backup-worker connection.
     List<CompletableFuture<Void>> closeFutures = new ArrayList<>(mBackupWorkerConnections.size());
-    for (Connection conn : mBackupWorkerConnections) {
+    for (GrpcMessagingConnection conn : mBackupWorkerConnections) {
       closeFutures.add(conn.close());
     }
     // Wait until all backup-worker connection is done closing.
@@ -140,10 +139,10 @@ public class BackupLeaderRole extends AbstractBackupRole {
             new GrpcService(
                 ServerInterceptors.intercept(
                     new GrpcMessagingServiceClientHandler(
-                        new Address(NetworkAddressUtils.getConnectAddress(
+                        NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
-                            ServerConfiguration.global())),
-                        (conn) -> activateWorkerConnection(conn), mCatalystContext,
+                            ServerConfiguration.global()),
+                        (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
                     new ClientIpAddressInjector())).withCloseable(this));
     return services;
@@ -216,7 +215,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
   /**
    * Prepares new follower connection.
    */
-  private void activateWorkerConnection(Connection workerConnection) {
+  private void activateWorkerConnection(GrpcMessagingConnection workerConnection) {
     LOG.info("Backup-leader connected with backup-worker: {}", workerConnection);
     // Register handshake message handler.
     workerConnection.handler(BackupHandshakeMessage.class, (message) -> {
@@ -279,7 +278,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
       StateLockOptions stateLockOptions) {
     // Try to delegate backup to a follower.
     LOG.info("Scheduling backup at remote backup-worker.");
-    for (Map.Entry<Connection, String> workerEntry : mBackupWorkerHostNames.entrySet()) {
+    for (Map.Entry<GrpcMessagingConnection, String> workerEntry
+        : mBackupWorkerHostNames.entrySet()) {
       try {
         // Suspend journals on current follower.
         LOG.info("Suspending journals at backup-worker: {}", workerEntry.getValue());

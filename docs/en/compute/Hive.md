@@ -202,7 +202,7 @@ In addition to altering the table location, we also need to modify the partition
 See the following for an example.
 
 ```
-hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location 'hdfs://namenode:port/table/path/partitionpath";
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
 
 ## Advanced Setup

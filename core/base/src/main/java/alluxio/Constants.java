@@ -47,6 +47,7 @@ public final class Constants {
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
+  public static final int MINUTE_SECONDS = 60;
 
   public static final int BYTES_IN_INTEGER = 4;
 
@@ -68,6 +69,7 @@ public final class Constants {
   public static final String HEADER_HTTP = "http://";
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
+  public static final String HEADER_COSN = "cosn://";
 
   public static final int MAX_PORT = 65535;
 
@@ -85,6 +87,7 @@ public final class Constants {
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long RAFT_JOURNAL_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
@@ -108,6 +111,7 @@ public final class Constants {
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
+  public static final String RAFT_JOURNAL_SERVICE_NAME = "RaftJournal";
 
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
 

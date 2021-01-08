@@ -53,12 +53,19 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, mCacheManager);
+    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
+      return mDelegatedFileSystem.openFile(path, options);
+    }
+    return openFile(mDelegatedFileSystem.getStatus(path), options);
   }
 
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, mCacheManager);
+    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
+      return mDelegatedFileSystem.openFile(status, options);
+    }
+    return new LocalCacheFileInStream(status,
+        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf);
   }
 }

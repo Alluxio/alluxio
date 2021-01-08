@@ -105,12 +105,12 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   private void registerAggregators() {
     // worker metrics
-    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
-        MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
+        MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
         MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName());
-    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
-        MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName(),
+        MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
         MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),

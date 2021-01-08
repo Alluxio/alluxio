@@ -25,6 +25,8 @@ import org.slf4j.impl.Log4jLoggerAdapter;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,6 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LogUtils {
+  /** The truncated length for a message line. */
+  public static final int MAX_TRUNCATED_LENGTH = 300;
 
   private LogUtils() {} // prevent instantiation
 
@@ -131,5 +135,39 @@ public final class LogUtils {
       }
       logger.warn(message + ": {}", args);
     }
+  }
+
+  /**
+   * Truncates each line of a message to a certain length.
+   *
+   * @param message the message to truncate the lines for
+   * @return the message, with lines truncated to length {@link #MAX_TRUNCATED_LENGTH}
+   */
+  public static String truncateMessageLineLength(Object message) {
+    return truncateMessageLineLength(message, MAX_TRUNCATED_LENGTH);
+  }
+
+  /**
+   * Truncates each line of a message to a certain length.
+   *
+   * @param message the message to truncate the lines for
+   * @param maxLineLength the maximum length of a message line
+   * @return the message, with lines truncated to the specified length
+   */
+  public static String truncateMessageLineLength(Object message, int maxLineLength) {
+    if (message == null) {
+      return "null";
+    }
+    String strMessage = message.toString();
+    if (strMessage.length() <= maxLineLength) {
+      return strMessage;
+    }
+    return Arrays.stream(strMessage.split("\n")).map(line -> {
+      if (line.length() > maxLineLength) {
+        return String.format("%s ... <truncated %d characters>", line.substring(0, maxLineLength),
+            line.length() - maxLineLength);
+      }
+      return line;
+    }).collect(Collectors.joining("\n"));
   }
 }

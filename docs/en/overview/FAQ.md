@@ -3,7 +3,7 @@ layout: global
 title: Frequently Asked Questions
 nickname: FAQ
 group: Overview
-priority: 4
+priority: 5
 ---
 
 * Table of Contents
@@ -17,7 +17,7 @@ at memory speed. Read more about Alluxio [here]({{ '/en/Overview.html' | relativ
 
 ## What platforms and Java versions can Alluxio run on?
 
-Alluxio requires JDK 1.8 to run on various distributions of Linux / MacOS.
+Alluxio requires JDK 1.8 or JDK 11 to run on various distributions of Linux / MacOS.
 
 ## What license is Alluxio under?
 

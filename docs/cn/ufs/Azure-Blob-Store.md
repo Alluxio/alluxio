@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configuring Alluxio with Azure Blob Store
-nickname: Alluxio使用Azure Blob Store
+title: Alluxio集成Azure Blob Store作为底层存储
+nickname: Alluxio集成Azure Blob Store作为底层存储
 group: Storage Integrations
 priority: 2
 ---

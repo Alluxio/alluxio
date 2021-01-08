@@ -81,6 +81,8 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
               LOW_WATERMARK)
           .setProperty(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
               LocalFirstPolicy.class.getTypeName())
+          .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
 
   @ClassRule

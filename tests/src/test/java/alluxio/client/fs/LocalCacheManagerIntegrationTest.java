@@ -13,8 +13,10 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
@@ -23,6 +25,8 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
@@ -35,6 +39,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Paths;
 
+// TODO(binfan): this is not a real integration test, should be consolidated with UT
 public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int PAGE_COUNT = 32;
@@ -60,6 +65,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getPath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
   }
 
   @After
@@ -182,7 +188,20 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
     mCacheManager = LocalCacheManager.create(mConf);
-    assertEquals(0, mCacheManager.get(PAGE_ID, 0, PAGE_SIZE_BYTES, mBuffer, 0));
+    CommonUtils.waitFor("async restore completed",
+        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        WaitForOptions.defaults().setTimeoutMs(10000));
+    int hits = 0;
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      if (PAGE_SIZE_BYTES
+          == mCacheManager.get(new PageId("0", i), 0, PAGE_SIZE_BYTES, mBuffer, 0)) {
+        hits++;
+      }
+    }
+    if (hits < PAGE_COUNT / 2) {
+      fail(String.format("Expected at least %s hits but actually got %s hits",
+          PAGE_COUNT / 2, hits));
+    }
   }
 
   @Test

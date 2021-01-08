@@ -16,8 +16,11 @@ import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,30 +38,40 @@ public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
-   * Creates a {@link PageStore}. When init is false, restore from previous state; clean up the
-   * cache dir otherwise.
+   * Creates a new {@link PageStore}. Previous state in the samme cache dir will be overwritten.
    *
    * @param options the options to instantiate the page store
-   * @param init whether to init the cache dir
    * @return a PageStore instance
    * @throws IOException if I/O error happens
    */
-  static PageStore create(PageStoreOptions options, boolean init) throws IOException {
-    LOG.info("Creating PageStore with option={}, init={}", options.toString(), init);
-    if (init) {
-      initialize(options);
-    }
+  static PageStore create(PageStoreOptions options) throws IOException {
+    initialize(options);
+    return open(options);
+  }
+
+  /**
+   * Opens an existing {@link PageStore}.
+   *
+   * @param options the options to instantiate the page store
+   * @return a PageStore instance
+   * @throws IOException if I/O error happens
+   */
+  static PageStore open(PageStoreOptions options) throws IOException {
+    LOG.info("Creating PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
         pageStore = new LocalPageStore(options.toOptions());
         break;
       case ROCKS:
-        pageStore = RocksPageStore.create(options.toOptions());
+        pageStore = RocksPageStore.open(options.toOptions());
         break;
       default:
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
+    }
+    if (options.getTimeoutDuration() > 0) {
+      return new TimeBoundPageStore(pageStore, options);
     }
     return pageStore;
   }
@@ -83,15 +96,14 @@ public interface PageStore extends AutoCloseable {
    */
   static void initialize(PageStoreOptions options) throws IOException {
     String rootPath = options.getRootDir();
-    PageStoreType storeType = options.getType();
-    Path storePath = getStorePath(storeType, rootPath);
-    Files.createDirectories(storePath);
+    Files.createDirectories(Paths.get(rootPath));
     LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.forEach(path -> {
         try {
           FileUtils.deletePathRecursively(path.toString());
         } catch (IOException e) {
+          Metrics.UNREMOVABLE_FILES.inc();
           LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
         }
       });
@@ -116,7 +128,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    */
   default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer, 0);
+    return get(pageId, 0, buffer.length, buffer, 0);
   }
 
   /**
@@ -124,6 +136,7 @@ public interface PageStore extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param pageOffset offset within page
+   * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
    * @param bufferOffset offset in buffer
    * @return the number of bytes read
@@ -131,8 +144,8 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, byte[] buffer, int bufferOffset) throws IOException,
-      PageNotFoundException;
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+      throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the store.
@@ -156,4 +169,13 @@ public interface PageStore extends AutoCloseable {
    * @return an estimated cache size in bytes
    */
   long getCacheSize();
+
+  /**
+   * Metrics.
+   */
+  final class Metrics {
+    /** Number of unremovable files in the cache. */
+    private static final Counter UNREMOVABLE_FILES =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_UNREMOVABLE_FILES.getName());
+  }
 }

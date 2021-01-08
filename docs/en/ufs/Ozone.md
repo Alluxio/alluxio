@@ -18,9 +18,9 @@ machines. You can either [download the precompiled binaries directly]({{ '/en/de
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 
-In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://hadoop.apache.org/ozone/docs/0.5.0-beta/start/onprem.html)
-to install a Ozone cluster, and follow the [Volume Commands](https://hadoop.apache.org/ozone/docs/0.5.0-beta/shell/volumecommands.html) and 
-[Bucket Commands](https://hadoop.apache.org/ozone/docs/0.5.0-beta/shell/bucketcommands.html) to create volume and bucket for Ozone cluster.
+In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
+to install a Ozone cluster, and follow the [Volume Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html) and 
+[Bucket Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html) to create volume and bucket for Ozone cluster.
 
 ## Basic Setup
 
@@ -105,7 +105,7 @@ Possible `core-site.xml` and `ozone-site.xml`
 ```xml
 <configuration>
   <property>
-    <name>ozone.scm.names</name>
+    <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
   <property>
@@ -135,4 +135,12 @@ Make sure the related config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
 
-Currently, the only tested Ozone version with Alluxio is `0.5.0-beta`.
+Currently, the only tested Ozone version with Alluxio is `1.0.0`.
+
+## Contributed by the Alluxio Community
+
+Ozone UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio/tree/master/underfs/ozone).
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/edit/master/docs/en/ufs/Ozone.md) 
+if any information is missing or out of date.

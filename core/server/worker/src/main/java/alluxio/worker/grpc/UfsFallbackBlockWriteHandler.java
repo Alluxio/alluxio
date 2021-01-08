@@ -19,9 +19,9 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
@@ -92,9 +92,9 @@ public final class UfsFallbackBlockWriteHandler
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getName()));
       context.setMeter(MetricsSystem
-          .meter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()));
     }
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());
@@ -205,6 +205,25 @@ public final class UfsFallbackBlockWriteHandler
       context.setPos(context.getPos() + ufsFallbackInitBytes);
       initUfsFallback(context);
     }
+  }
+
+  @Override
+  protected String getLocationInternal(BlockWriteRequestContext context) {
+    Protocol.CreateUfsBlockOptions createUfsBlockOptions =
+        context.getRequest().getCreateUfsBlockOptions();
+
+    if (createUfsBlockOptions == null) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    UfsManager.UfsClient ufsClient;
+    try {
+      ufsClient = mUfsManager.get(createUfsBlockOptions.getMountId());
+    } catch (Throwable e) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    return BlockUtils.getUfsBlockPath(ufsClient, context.getRequest().getId());
   }
 
   private void initUfsFallback(BlockWriteRequestContext context) throws Exception {

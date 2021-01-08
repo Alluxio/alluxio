@@ -48,7 +48,7 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public GetQuorumInfoPResponse getQuorumInfo() {
+  public GetQuorumInfoPResponse getQuorumInfo() throws IOException {
     checkQuorumOpSupported();
     return GetQuorumInfoPResponse.newBuilder().setDomain(mJournalDomain)
         .addAllServerInfo(((RaftJournalSystem) mJournalSystem).getQuorumServerInfoList()).build();

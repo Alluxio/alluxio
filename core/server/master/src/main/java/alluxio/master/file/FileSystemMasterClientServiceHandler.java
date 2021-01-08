@@ -16,6 +16,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CheckAccessPRequest;
+import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
@@ -42,6 +44,7 @@ import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.MountPRequest;
@@ -66,6 +69,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -81,7 +85,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
-import alluxio.grpc.GrpcUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -113,6 +116,18 @@ public final class FileSystemMasterClientServiceHandler
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
+  }
+
+  @Override
+  public void checkAccess(CheckAccessPRequest request,
+      StreamObserver<CheckAccessPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> {
+          AlluxioURI pathUri = getAlluxioURI(request.getPath());
+          mFileSystemMaster.checkAccess(pathUri,
+              CheckAccessContext.create(request.getOptions().toBuilder()));
+          return CheckAccessPResponse.getDefaultInstance();
+        }, "CheckAccess", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -407,6 +407,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_INODE_LOCK_POOL_SIZE =
+      new Builder(Name.MASTER_INODE_LOCK_POOL_SIZE)
+          .setDescription("The size of master inode lock pool")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EDGE_LOCK_POOL_SIZE =
+      new Builder(Name.MASTER_EDGE_LOCK_POOL_SIZE)
+          .setDescription("The size of master edge lock pool")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   // Journal metrics
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
@@ -430,15 +440,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
-  public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO =
-      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage reported "
-              + "by all workers. This does not include UFS reads.")
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
+      new Builder(Name.CLUSTER_BYTES_READ_REMOTE)
+          .setDescription("Total number of bytes read from Alluxio storage "
+              + "or underlying UFS if data does not exist in Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
-  public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes read throughput from Alluxio storage by all workers")
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
+      new Builder(Name.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT)
+          .setDescription("Bytes read throughput from Alluxio storage "
+              + "or underlying UFS if data does not exist in Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
@@ -479,15 +494,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes read throughput from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey CLUSTER_BYTES_WRITTEN_ALLUXIO =
-      new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO)
-          .setDescription("Total number of bytes written to Alluxio storage in all workers. "
-              + "This does not include UFS writes")
+  public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE =
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_REMOTE)
+          .setDescription("Total number of bytes written to Alluxio storage in all workers "
+              + "or the underlying UFS. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .build();
-  public static final MetricKey CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
-      new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes write throughput to Alluxio storage in all workers")
+  public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT)
+          .setDescription("Bytes write throughput to Alluxio storage in all workers "
+              + "or the underlying UFS. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN =
@@ -644,16 +662,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_ALLUXIO =
-      new Builder(Name.WORKER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker. "
-              + "This does not include UFS reads.")
+  public static final MetricKey WORKER_BYTES_READ_REMOTE =
+      new Builder(Name.WORKER_BYTES_READ_REMOTE)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage. "
+              + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes read throughput from Alluxio storage by this worker")
+  public static final MetricKey WORKER_BYTES_READ_REMOTE_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_READ_REMOTE_THROUGHPUT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage. "
+              + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -683,16 +704,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO =
-      new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO)
-          .setDescription("Total number of bytes written to Alluxio storage by this worker. "
-              + "This does not include UFS writes")
+  public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE =
+      new Builder(Name.WORKER_BYTES_WRITTEN_REMOTE)
+          .setDescription("Total number of bytes written to Alluxio storage "
+              + "or the underlying UFS by this worker. "
+              + "This does not include short-circuit local writes and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
-      new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes write throughput to Alluxio storage by this worker")
+  public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT)
+          .setDescription("Bytes write throughput to Alluxio storage "
+              + "or the underlying UFS by this worker"
+              + "This does not include short-circuit local writes and domain socket writes.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -737,6 +761,34 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_CAPACITY_FREE =
       new Builder(Name.WORKER_CAPACITY_FREE)
           .setDescription("Total free bytes on all tiers of a specific Alluxio worker")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
+      new Builder(Name.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT)
+          .setDescription("The total number of blocks tried to be removed from this worker "
+              + "by asynchronous block remover.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_REMOVED_COUNT =
+      new Builder(Name.WORKER_BLOCK_REMOVER_REMOVED_COUNT)
+          .setDescription("The total number of blocks removed from this worker "
+              + "by asynchronous block remover.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE =
+      new Builder(Name.WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE)
+          .setDescription("The size of blocks to be removed from this worker "
+              + "by asynchronous block remover.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE =
+      new Builder(Name.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE)
+          .setDescription("The size of blocks is removing from this worker "
+              + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
@@ -846,6 +898,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_UNREMOVABLE_FILES =
+      new Builder(Name.CLIENT_CACHE_UNREMOVABLE_FILES)
+          .setDescription("Amount of bytes unusable managed by the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   public static final MetricKey CLIENT_CACHE_CREATE_ERRORS =
       new Builder(Name.CLIENT_CACHE_CREATE_ERRORS)
@@ -865,6 +923,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_DELETE_NOT_READY_ERRORS)
+          .setDescription("Number of failures when  when cache is not ready to delete pages.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
       new Builder(Name.CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS)
           .setDescription("Number of failures when deleting pages due to failed delete in page "
@@ -875,6 +939,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_GET_ERRORS =
       new Builder(Name.CLIENT_CACHE_GET_ERRORS)
           .setDescription("Number of failures when getting cached data in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_GET_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_GET_NOT_READY_ERRORS)
+          .setDescription("Number of failures when cache is not ready to get pages.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -924,6 +994,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PUT_NOT_READY_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_NOT_READY_ERRORS)
+          .setDescription("Number of failures when cache is not ready to add pages.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
@@ -935,6 +1011,37 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS)
           .setDescription("Number of failures when putting cached data in the client cache due to"
               + " failed writes to page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_DELETE_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_DELETE_TIMEOUT)
+          .setDescription("Number of timeouts when deleting pages from page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_GET_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_GET_TIMEOUT)
+          .setDescription("Number of timeouts when reading pages from page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_PUT_TIMEOUT =
+      new Builder(Name.CLIENT_CACHE_STORE_PUT_TIMEOUT)
+          .setDescription("Number of timeouts when writing new pages to page store.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STORE_THREADS_REJECTED =
+      new Builder(Name.CLIENT_CACHE_STORE_THREADS_REJECTED)
+          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
+              + "likely due to unresponsive local file system.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_STATE =
+      new Builder(Name.CLIENT_CACHE_STATE)
+          .setDescription("State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1040,6 +1147,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_SET_ACL_OPS = "Master.SetAclOps";
     public static final String MASTER_SET_ATTRIBUTE_OPS = "Master.SetAttributeOps";
     public static final String MASTER_UNMOUNT_OPS = "Master.UnmountOps";
+    public static final String MASTER_INODE_LOCK_POOL_SIZE = "Master.InodeLockPoolSize";
+    public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
@@ -1052,9 +1161,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";
     public static final String CLUSTER_BYTES_READ_LOCAL_THROUGHPUT
         = "Cluster.BytesReadLocalThroughput";
-    public static final String CLUSTER_BYTES_READ_ALLUXIO = "Cluster.BytesReadAlluxio";
-    public static final String CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "Cluster.BytesReadAlluxioThroughput";
+    public static final String CLUSTER_BYTES_READ_REMOTE = "Cluster.BytesReadRemote";
+    public static final String CLUSTER_BYTES_READ_REMOTE_THROUGHPUT
+        = "Cluster.BytesReadRemoteThroughput";
     public static final String CLUSTER_BYTES_READ_DOMAIN = "Cluster.BytesReadDomain";
     public static final String CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT
         = "Cluster.BytesReadDomainThroughput";
@@ -1062,9 +1171,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_BYTES_READ_UFS_ALL = "Cluster.BytesReadUfsAll";
     public static final String CLUSTER_BYTES_READ_UFS_THROUGHPUT
         = "Cluster.BytesReadUfsThroughput";
-    public static final String CLUSTER_BYTES_WRITTEN_ALLUXIO = "Cluster.BytesWrittenAlluxio";
-    public static final String CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT
-        = "Cluster.BytesWrittenAlluxioThroughput";
+    public static final String CLUSTER_BYTES_WRITTEN_REMOTE = "Cluster.BytesWrittenRemote";
+    public static final String CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT
+        = "Cluster.BytesWrittenRemoteThroughput";
     public static final String CLUSTER_BYTES_WRITTEN_DOMAIN = "Cluster.BytesWrittenDomain";
     public static final String CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT
         = "Cluster.BytesWrittenDomainThroughput";
@@ -1099,12 +1208,12 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BLOCKS_EVICTED = "Worker.BlocksEvicted";
     public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
     public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
-    public static final String WORKER_BYTES_READ_ALLUXIO = "Worker.BytesReadAlluxio";
-    public static final String WORKER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "Worker.BytesReadAlluxioThroughput";
-    public static final String WORKER_BYTES_WRITTEN_ALLUXIO = "Worker.BytesWrittenAlluxio";
-    public static final String WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT
-        = "Worker.BytesWrittenAlluxioThroughput";
+    public static final String WORKER_BYTES_READ_REMOTE = "Worker.BytesReadRemote";
+    public static final String WORKER_BYTES_READ_REMOTE_THROUGHPUT
+        = "Worker.BytesReadRemoteThroughput";
+    public static final String WORKER_BYTES_WRITTEN_REMOTE = "Worker.BytesWrittenRemote";
+    public static final String WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT
+        = "Worker.BytesWrittenRemoteThroughput";
     public static final String WORKER_BYTES_READ_DOMAIN = "Worker.BytesReadDomain";
     public static final String WORKER_BYTES_READ_DOMAIN_THROUGHPUT
         = "Worker.BytesReadDomainThroughput";
@@ -1120,6 +1229,14 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";
     public static final String WORKER_CAPACITY_USED = "Worker.CapacityUsed";
     public static final String WORKER_CAPACITY_FREE = "Worker.CapacityFree";
+    public static final String WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT
+        = "Worker.BlockRemoverTryRemoveCount";
+    public static final String WORKER_BLOCK_REMOVER_REMOVED_COUNT
+        = "Worker.BlockRemoverBlocksToRemovedCount";
+    public static final String WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE
+        = "Worker.BlockRemoverTryRemoveBlocksSize";
+    public static final String WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE
+        = "Worker.BlockRemoverRemovingBlocksSize";
 
     // Client metrics
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
@@ -1152,9 +1269,12 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_DELETE_ERRORS = "Client.CacheDeleteErrors";
     public static final String CLIENT_CACHE_DELETE_NON_EXISTING_PAGE_ERRORS =
         "Client.CacheDeleteNonExistingPageErrors";
+    public static final String CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
+        "Client.CacheDeleteNotReadyErrors";
     public static final String CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
         "Client.CacheDeleteStoreDeleteErrors";
     public static final String CLIENT_CACHE_GET_ERRORS = "Client.CacheGetErrors";
+    public static final String CLIENT_CACHE_GET_NOT_READY_ERRORS = "Client.CacheGetNotReadyErrors";
     public static final String CLIENT_CACHE_GET_STORE_READ_ERRORS =
         "Client.CacheGetStoreReadErrors";
     public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
@@ -1164,10 +1284,22 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutEvictionErrors";
     public static final String CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS =
         "Client.CachePutBenignRacingErrors";
+    public static final String CLIENT_CACHE_PUT_NOT_READY_ERRORS =
+        "Client.CachePutNotReadyErrors";
     public static final String CLIENT_CACHE_PUT_STORE_DELETE_ERRORS =
         "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
+    public static final String CLIENT_CACHE_STORE_DELETE_TIMEOUT =
+        "Client.CacheStoreDeleteTimeout";
+    public static final String CLIENT_CACHE_STORE_GET_TIMEOUT =
+        "Client.CacheStoreGetTimeout";
+    public static final String CLIENT_CACHE_STORE_PUT_TIMEOUT =
+        "Client.CacheStorePutTimeout";
+    public static final String CLIENT_CACHE_STORE_THREADS_REJECTED =
+        "Client.CacheStoreThreadsRejected";
+    public static final String CLIENT_CACHE_STATE = "Client.CacheState";
+    public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
 
     private Name() {} // prevent instantiation
   }

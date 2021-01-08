@@ -64,6 +64,7 @@ public final class MetricInfo {
   // triggered by the leading master.
   // TODO(lu) Aggregate the per ufs per op from master + worker + client metrics
   public static final String UFS_OP_PREFIX = "Master.PerUfsOp";
+  public static final String UFS_OP_SAVED_PREFIX = "Master.PerUfsSavedOp";
 
   // Tags
   public static final String TAG_UFS = "UFS";

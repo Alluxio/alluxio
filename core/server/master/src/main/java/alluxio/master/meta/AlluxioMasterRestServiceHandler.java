@@ -11,6 +11,9 @@
 
 package alluxio.master.meta;
 
+import static alluxio.metrics.MetricInfo.UFS_OP_PREFIX;
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
@@ -41,7 +44,6 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -69,6 +71,7 @@ import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
 import alluxio.wire.MasterWebUILogs;
 import alluxio.wire.MasterWebUIMetrics;
+import alluxio.wire.MasterWebUIMountTable;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.MountPointInfo;
@@ -141,6 +144,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String WEBUI_CONFIG = "webui_config";
   public static final String WEBUI_WORKERS = "webui_workers";
   public static final String WEBUI_METRICS = "webui_metrics";
+  public static final String WEBUI_MOUNTTABLE = "webui_mounttable";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -803,6 +807,26 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
+   * Gets Web UI mount table page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_MOUNTTABLE)
+  public Response getWebUIMountTable() {
+    return RestUtils.call(() -> {
+      MasterWebUIMountTable response = new MasterWebUIMountTable();
+
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG));
+      Map<String, MountPointInfo> mountPointInfo = getMountPointsInternal();
+
+      response.setMountPointInfos(mountPointInfo);
+
+      return response;
+    }, ServerConfiguration.global());
+  }
+
+  /**
    * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
    * @return whether the ufs uri is a mount point
    */
@@ -860,7 +884,7 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadLocal = counters.get(
           MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
       Long bytesReadRemote = counters.get(
-          MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()).getCount();
+          MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount();
       Long bytesReadDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
       Long bytesReadUfs = counters.get(
@@ -871,15 +895,14 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadUfs + bytesReadDomainSocket;
+      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
       double cacheHitLocalPercentage =
           (bytesReadTotal > 0)
               ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheHitRemotePercentage =
-          (bytesReadTotal > 0) ? (100D * bytesReadRemote / bytesReadTotal) : 0;
+          (bytesReadTotal > 0) ? (100D * (bytesReadRemote - bytesReadUfs) / bytesReadTotal) : 0;
       double cacheMissPercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
-
       response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
           .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
@@ -888,13 +911,13 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenLocal = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();
       Long bytesWrittenAlluxio = counters
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount();
       Long bytesWrittenDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()).getCount();
       Long bytesWrittenUfs = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getCount();
       response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
-          .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+          .setTotalBytesWrittenRemote(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
@@ -904,7 +927,7 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
       response
@@ -920,14 +943,14 @@ public final class AlluxioMasterRestServiceHandler {
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
           .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
       response.setTotalBytesWrittenLocalThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
-          .setTotalBytesWrittenAlluxioThroughput(
+          .setTotalBytesWrittenRemoteThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
           .setTotalBytesWrittenDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
@@ -945,6 +968,8 @@ public final class AlluxioMasterRestServiceHandler {
       Map<String, String> ufsWriteSizeMap = new TreeMap<>();
       Map<String, Counter> rpcInvocations = new TreeMap<>();
       Map<String, Metric> operations = new TreeMap<>();
+      // UFS : (OPS : Count)
+      Map<String, Map<String, Long>> ufsOpsSavedMap = new TreeMap<>();
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
         String metricName = entry.getKey();
         long value = entry.getValue().getCount();
@@ -961,6 +986,18 @@ public final class AlluxioMasterRestServiceHandler {
         } else if (metricName.endsWith("Ops")) {
           rpcInvocations
               .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
+        } else if (metricName.contains(UFS_OP_SAVED_PREFIX)) {
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          if (ufs != null && isMounted(ufs)) {
+            // Unescape the URI for display
+            String ufsUnescaped = MetricsSystem.unescape(ufs);
+            Map<String, Long> perUfsMap = ufsOpsSavedMap.getOrDefault(
+                ufsUnescaped, new TreeMap<>());
+            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
+                    .substring(UFS_OP_SAVED_PREFIX.length()),
+                entry.getValue().getCount());
+            ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);
+          }
         } else {
           operations
               .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
@@ -975,18 +1012,20 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setUfsReadSize(ufsReadSizeMap);
       response.setUfsWriteSize(ufsWriteSizeMap);
+      response.setUfsOpsSaved(ufsOpsSavedMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
         String metricName = entry.getKey();
-        if (metricName.contains(MetricInfo.UFS_OP_PREFIX)) {
+        if (metricName.contains(UFS_OP_PREFIX)) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
-            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-            perUfsMap.put(ufsUnescaped, (Long) entry.getValue().getValue());
+            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufsUnescaped, new TreeMap<>());
+            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
+                .substring(UFS_OP_PREFIX.length()), (Long) entry.getValue().getValue());
             ufsOpsMap.put(ufsUnescaped, perUfsMap);
           }
         }

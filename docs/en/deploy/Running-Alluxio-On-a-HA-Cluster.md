@@ -42,7 +42,7 @@ failover. In Alluxio 2.0, there are two different ways to achieve these two goal
 * To deploy an Alluxio cluster, first [download](https://alluxio.io/download) the pre-compiled
   Alluxio binary file, extract the tarball and copy the extracted directory to all nodes (including
   nodes running masters and workers).
-* Enable SSH login without password from master node to worker nodes. You can add a public SSH key
+* Enable SSH login without password from all master nodes to all worker nodes. You can add a public SSH key
   for the host into `~/.ssh/authorized_keys`. See
   [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed. For basic functionality make sure RPC port (default :19998) is open
@@ -83,7 +83,7 @@ Explanation:
   The default embedded journal port is `19200`.
   An example: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`
 
-Note that embedded journal feature relies on [Copycat](https://github.com/atomix/copycat) which uses
+Note that embedded journal feature relies on [Ratis](https://github.com/apache/incubator-ratis) which uses
 leader election based on the Raft protocol and has its own format for storing journal entries.
 The built-in leader election cannot work with Zookeeper since the journal formats between these
 configuration may not match.
@@ -151,7 +151,7 @@ least 2 minutes on large clusters with namespace size more than several hundred 
   - The Zookeeper server's min/max session timeout values must also be configured as such to allow
     this timeout.
     The defaults requires that the timeout be a minimum of 2 times the `tickTime` (as set in the
-    server configuration) and a maximum of 20 times the tickTime.
+    server configuration) and a maximum of 20 times the `tickTime`.
     You could also manually configure `minSessionTimeout` and `maxSessionTimeout`.
 
 Alluxio supports pluggable error handling policy on Zookeeper leader election.
@@ -171,12 +171,15 @@ It can be either `SESSION` or `STANDARD`. It is set `SESSION` as default.
 
 ### Format Alluxio
 
-Before Alluxio can be started for the first time, the journal must be formatted.
+Before Alluxio can be started for the first time, the Alluxio master journal and worker storage must be formatted.
 
 > Formatting the journal will delete all metadata from Alluxio.
+> Formatting the worker storage will delete all data from the configured Alluxio storage.
 > However, the data in under storage will be untouched.
 
-On any master node, format Alluxio with the following command:
+On all the Alluxio master nodes, list all the worker hostnames in the `conf/workers` file, and list all the masters in the `conf/masters` file. 
+This will allow alluxio scripts to run operations on the cluster nodes.
+`format` Alluxio cluster with the following command in one of the master nodes:
 
 ```console
 $ ./bin/alluxio format
@@ -184,11 +187,7 @@ $ ./bin/alluxio format
 
 ### Launch Alluxio
 
-To start the Alluxio cluster with the provided scripts, on any master node, list all the
-worker hostnames in the `conf/workers` file, and list all the masters in the `conf/masters` file.
-This will allow the start scripts to start the appropriate processes on the appropriate nodes.
-
-On the master node, start the Alluxio cluster with the following command:
+In one of the master nodes, start the Alluxio cluster with the following command:
 
 ```console
 $ ./bin/alluxio-start.sh all SudoMount
@@ -220,42 +219,44 @@ $ ./bin/alluxio runTests
 ## Access an Alluxio Cluster with HA
 
 When an application interacts with Alluxio in HA mode, the client must know about
-the Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
-There are two ways to specify the HA Alluxio service address on the client side:
+the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
+The following sections list two ways to specify the HA Alluxio service address on the client side.
 
-### Specify Alluxio Service in Configuration Parameters
+### Specify Alluxio Service in Configuration Parameters or Java Options
 
-Users can also pre-configure the service address of an Alluxio HA cluster in environment variables
-or site properties, and then connect to the service using Alluxio URI like to
-`alluxio:///path` where the required connection details to the HA cluster information is already
-configured with these parameters.
-For example, if using Hadoop, you can configure the properties in `core-site.xml`, and then use the
-Hadoop CLI with an Alluxio URI.
+Users can pre-configure the service address of an Alluxio HA cluster in environment variables
+or site properties, and then connect to the service using an Alluxio URI such as `alluxio:///path`.
+For example, with Alluxio connection information in `core-site.xml` of Hadoop, Hadoop CLI can 
+connect to the Alluxio cluster.
 
 ```console
 $ hadoop fs -ls alluxio:///directory
 ```
 
-Depending on the different approach to achieve HA, different properties are required to set:
+Depending on the different approaches to achieve HA, different properties are required:
 
-- When connecting to an Alluxio HA cluster using embedded journal,
-  set property `alluxio.master.rpc.addresses` to decide the node addresses to query. For
-  examples,
+If using embedded journal, set `alluxio.master.rpc.addresses`.
+
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,
- master_hostname_3:19998`
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-- When connecting to an Alluxio HA cluster using Zookeeper, the following properties are needed to
-  connect to Zookeeper to get the leading master information.
-  - Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
-  `alluxio.zookeeper.enabled` is enabled and vise versa.
-  Multiple ZooKeeper addresses can be specified by delimiting with commas.
-  
+Or specify the properties in Java option. For example, for Spark applications, add the following to 
+`spark.executor.extraJavaOptions` and `spark.driver.extraJavaOptions`:
+
+```
+-Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+```
+
+If using Zookeeper, set the following Zookeeper related properties  
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
+
+Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
+`alluxio.zookeeper.enabled` is enabled and vise versa.
+Multiple ZooKeeper addresses can be specified by delimiting with commas.
 
 ### Specify Alluxio Service with URL Authority {#ha-authority}
 
@@ -332,30 +333,18 @@ $ ./bin/alluxio-start.sh master # starts the local master
 $ ./bin/alluxio-start.sh worker # starts the local worker
 ```
 
-### Format the Journal
-
-On any master node, format the Alluxio journal with the following command:
-
-```console
-$ ./bin/alluxio format
-```
-
-> Formatting the journal will delete all metadata from Alluxio. However, the data in under storage
-will be untouched.
-
 ### Add/Remove Workers Dynamically
 
 Adding a worker to an Alluxio cluster dynamically is as simple as starting a new Alluxio worker
 process, with the appropriate configuration.
-In most cases, the new worker's configuration should be the same as all the other workers'
-configuration.
+In most cases, the new worker's configuration should be the same as all the other workers' configuration.
 Run the following command on the new worker to add
 
 ```console
 $ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
-Once the worker is started, it will register itself with the Alluxio master, and become part of the Alluxio cluster.
+Once the worker is started, it will register itself with the Alluxio leading master and become part of the Alluxio cluster.
 
 Removing a worker is as simple as stopping the worker process.
 

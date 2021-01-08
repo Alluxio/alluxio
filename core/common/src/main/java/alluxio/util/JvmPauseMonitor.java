@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.Constants;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -88,11 +90,12 @@ public class JvmPauseMonitor {
    * Stops jvm monitor.
    */
   public void stop() {
-    Preconditions.checkState(mJvmMonitorThread != null,
-        "JVM monitor thread does not start");
+    if (mJvmMonitorThread == null) {
+      return;
+    }
     mJvmMonitorThread.interrupt();
     try {
-      mJvmMonitorThread.join();
+      mJvmMonitorThread.join(5 * Constants.SECOND_MS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
@@ -200,7 +203,7 @@ public class JvmPauseMonitor {
     public void run() {
       Stopwatch sw = Stopwatch.createUnstarted();
       Map<String, GarbageCollectorMXBean> gcBeanMapBeforeSleep = getGarbageCollectorMXBeans();
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         sw.reset().start();
         try {
           sleepMillis(mGcSleepIntervalMs);

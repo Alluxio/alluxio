@@ -1,4 +1,4 @@
-alluxio.fuse.cachedpaths.max:
+alluxio.fuse.cached.paths.max:
   Defines the size of the internal Alluxio-FUSE cache that maintains the most frequently used
   translations between local file system paths and Alluxio file URIs.
 alluxio.fuse.debug.enabled:

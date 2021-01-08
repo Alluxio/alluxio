@@ -13,19 +13,17 @@ package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.quota.CacheQuota;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Suppliers;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +47,11 @@ public class LocalCacheFileInStream extends FileInStream {
 
   /** Local store to store pages. */
   private final CacheManager mCacheManager;
-  /** External storage system. */
-  private final FileSystem mExternalFs;
   /** Path of the file. */
   private final CacheQuota mCacheQuota;
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
-  private final OpenFilePOptions mOpenOptions;
+  private final FileInStreamOpener mExternalFileInStreamOpener;
 
   /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
@@ -65,39 +61,30 @@ public class LocalCacheFileInStream extends FileInStream {
   private boolean mEOF = false;
 
   /**
-   * Constructor when only path information is available.
-   *
-   * @param path path of the file
-   * @param options read options
-   * @param externalFs the external file system if a cache miss occurs
-   * @param cacheManager local cache manager
+   * Interface to wrap open method of file system.
    */
-  public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem externalFs,
-      CacheManager cacheManager) {
-    this(
-        Suppliers.memoize(() -> {
-          try {
-            return externalFs.getStatus(path);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }).get(),
-        options, externalFs, cacheManager);
+  public interface FileInStreamOpener {
+    /**
+     * Opens an FSDataInputStream at the indicated Path.
+     *
+     * @param uriStatus the file to open
+     * @return input stream opened
+     */
+    FileInStream open(URIStatus uriStatus) throws IOException, AlluxioException;
   }
 
   /**
    * Constructor when the {@link URIStatus} is already available.
    *
    * @param status file status
-   * @param options read options
-   * @param externalFs the external file system if a cache miss occurs
+   * @param fileOpener open file in the external file system if a cache miss occurs
    * @param cacheManager local cache manager
+   * @param conf configuration
    */
-  public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem externalFs,
-      CacheManager cacheManager) {
-    mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mOpenOptions = options;
-    mExternalFs = externalFs;
+  public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
+      CacheManager cacheManager, AlluxioConfiguration conf) {
+    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
     mCacheQuota = status.getCacheQuota();
@@ -274,7 +261,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private FileInStream getExternalFileInStream(long pos) throws IOException {
     try {
       if (mExternalFileInStream == null) {
-        mExternalFileInStream = mExternalFs.openFile(mStatus, mOpenOptions);
+        mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
         mCloser.register(mExternalFileInStream);
       }
     } catch (AlluxioException e) {

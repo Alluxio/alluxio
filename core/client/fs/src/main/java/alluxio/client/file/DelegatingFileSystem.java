@@ -20,6 +20,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -43,6 +44,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A wrapper of a FileSystem instance.
@@ -62,6 +64,12 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public boolean isClosed() {
     return mDelegatedFileSystem.isClosed();
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    mDelegatedFileSystem.checkAccess(path, options);
   }
 
   @Override
@@ -118,9 +126,22 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.iterateStatus(path, options, action);
+  }
+
+  @Override
+  public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.loadMetadata(path, options);
+  }
+
+  @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException {
-    mDelegatedFileSystem.mount(alluxioPath, ufsPath);
+    mDelegatedFileSystem.mount(alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -173,7 +194,7 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.setAcl(path, action, entries);
+    mDelegatedFileSystem.setAcl(path, action, entries, options);
   }
 
   @Override

@@ -26,10 +26,10 @@ systems.
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-The directory specified by the master configuration property `alluxio.master.mount.table.root.ufs`
-is mounted to the root of the Alluxio namespace.
+The storage path specified by the URI of the master configuration property
+`alluxio.master.mount.table.root.ufs` is mounted to the root of the Alluxio namespace, `/`.
 This directory identifies the "primary storage" for Alluxio.
-In addition, users can use the mounting API to add and remove data sources:
+In addition, users can use the `mount` and `unmount` Java APIs to add and remove data sources:
 
 ```java
 void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath);
@@ -43,9 +43,15 @@ For example, mount a S3 bucket to the `Data` directory through
 mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
 ```
 
+or use the Alluxio CLI to mount additional storage systems.
+
+```console
+$ ./bin/alluxio fs mount /mnt/new_storage s3://bucket/prefix
+```
+
 ### UFS Namespace
 In addition to the unified namespace Alluxio provides, each underlying file system that is mounted
-in Alluxio namespace has its own namespace; this is referred to as the UFS namespace.
+in the Alluxio namespace has its own namespace; this is referred to as the _UFS namespace_.
 If a file in the UFS namespace is changed without going through Alluxio,
 the UFS namespace and the Alluxio namespace can potentially get out of sync.
 When this happens, a [UFS Metadata Sync](#ufs-metadata-sync) operation is required to synchronize
@@ -75,6 +81,8 @@ Alluxio the first time they are accessed, such as when a user requests to open a
 The contents of the file is not loaded to Alluxio during this process.
 To load the file contents into Alluxio, one can read the data using `FileInStream` or use
 the `load` command of the Alluxio shell.
+The frequency at which Alluxio will sync out-of-band changes from the UFS namespace is further 
+explained in [UFS Metadata Sync](#ufs-metadata-sync).
 
 ## Mounting Under Storage Systems
 Mounting an Under storage system to the Alluxio file system namespace is the mechanism for
@@ -134,7 +142,7 @@ Note that mount points can be nested as well. For example, if a UFS is mounted a
 
 Alluxio supports mounting HDFS with specified versions.
 As a result, users can mount HDFS with different versions into a single Alluxio namespace. Please
-refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html' | relativize_url }}) for more details.
+refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#mount-hdfs-with-specific-versions' | relativize_url }}) for more details.
 
 ## Relationship Between Alluxio and UFS Namespace
 Alluxio provides a unified namespace, acting as a cache for data in one or more
@@ -165,10 +173,11 @@ it creates a copy of the metadata so that future operations do not need to load 
 Alluxio keeps a fingerprint of each UFS file so that Alluxio can update the file if it changes.
 The fingerprint includes information such as file size and last modified time.
 If a file is modified in the UFS, Alluxio will detect this from the fingerprint, free the existing
-data for that file, and reload the metadata for the updated file.
-If a file is added or deleted in the UFS, Alluxio will update the metadata in its namespace as well.
+data for that file. The next time the data is read, it will pull the newer version of the file from
+the UFS. If a file is added or deleted in the UFS, Alluxio will update the metadata in its namespace
+as well.
 
-The fingerprint is verified with the UFS based on the
+The frequency at which file and directory fingerprints are verified with the UFS is based on the
 `alluxio.user.file.metadata.sync.interval` client configuration property.
 
 For example, if a client executes an operation with the interval set to one minute,
