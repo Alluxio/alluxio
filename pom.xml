@@ -1020,7 +1020,7 @@
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
-            <forkedProcessExitTimeoutInSeconds>60</forkedProcessExitTimeoutInSeconds>
+            <forkedProcessExitTimeoutInSeconds>90</forkedProcessExitTimeoutInSeconds>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
               <jacoco-agent.append>true</jacoco-agent.append>
