@@ -196,9 +196,15 @@ public final class MetricsSystem {
       default:
         break;
     }
+    String hostName;
+    try {
+      hostName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+    } catch (RuntimeException e) {
+      hostName = "unhnown";
+      LOG.error("Can't find local host name", e.getMessage());
+    }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    return sourceKey != null && conf.isSet(sourceKey)
-        ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+    return sourceKey != null && conf.isSet(sourceKey) ? conf.get(sourceKey) : hostName;
   }
 
   /**
