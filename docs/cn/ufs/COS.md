@@ -20,6 +20,8 @@ COS UFS存在读写性能较差以及不稳定的问题，为了解决此类问�
 
 为了在COS上使用Alluxio，需要创建一个bucket（或者使用一个已有的bucket）。还要注意在该bucket里使用的目录，可以在该bucket中新建一个目录，或者使用一个存在的目录。在该指南中，COS Bucket的名称为COS_ALLUXIO_BUCKET，在该bucket里的目录名称为COS_DATA。还需提供一个COS的APPID与REGION，它们指定了你的bucket在哪个范围，本向导中的APPID名为COS_APP_ID, REGION名为COS_REGION。要了解更关于COS的信息，[请参考这里](https://cloud.tencent.com/document/product/436/7751)。
 
+> 额外说明：COS_ALLUXIO_BUCKET表示COS的BUCKET_NAME,未包含appId信息，更详细使用说明可[参考](ttps://cloud.tencent.com/document/product/589/35283)。
+
 ## 安装COS
 
 Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一访问不同存储系统。 COS的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
