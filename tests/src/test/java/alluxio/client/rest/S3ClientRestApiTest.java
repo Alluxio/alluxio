@@ -124,11 +124,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
     subject.getPrincipals().add(new User("user0"));
     sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
         .createDirectory(new AlluxioURI("/bucket0"));
+    SetAttributePOptions setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user0").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
 
     subject = new Subject();
     subject.getPrincipals().add(new User("user1"));
     sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
         .createDirectory(new AlluxioURI("/bucket1"));
+    setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
 
     ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()

@@ -33,7 +33,6 @@ import alluxio.grpc.WritePType;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
@@ -109,8 +108,7 @@ public final class S3RestServiceHandler {
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
   }
 
-  @VisibleForTesting
-  public static String getUserFromAuthorization(String authorization) {
+  private static String getUserFromAuthorization(String authorization) {
     if (authorization == null) {
       return null;
     }
@@ -165,7 +163,7 @@ public final class S3RestServiceHandler {
 
         final List<String> buckets = objects.stream()
             .filter((uri) -> uri.getOwner().equals(user))
-            .map((uri) -> uri.getOwner()).collect(Collectors.toList());
+            .map((uri) -> uri.getName()).collect(Collectors.toList());
         ListAllMyBucketsResult response = new ListAllMyBucketsResult(buckets);
         return response;
       }
