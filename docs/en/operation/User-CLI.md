@@ -1287,7 +1287,7 @@ Here are the attach command options:
   * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
 
 Here are the additional properties possible for the `-o` options:
-  * `udb-<UDB_TYPE>.mount-option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
+  * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
   particular UFS path
     * `<UDB_TYPE>`: the UDB type
     * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
@@ -1302,12 +1302,12 @@ Here are the additional properties possible for the `-o` options:
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
-option `-o udb-hive.mount-option.{scheme/authority}.key=value`.
+option `-o udb-hive.mount.option.{scheme/authority}.key=value`.
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount-option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount-option.{s3a://bucket2}.aws.accessKeyId=123
+  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
+  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
 ```
 
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
