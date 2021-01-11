@@ -12,7 +12,6 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -124,7 +123,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     subject.getPrincipals().add(new User("user0"));
     sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
         .createDirectory(new AlluxioURI("/bucket0"));
-    SetAttributePOptions setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user0").build();
+    SetAttributePOptions setAttributeOptions =
+        SetAttributePOptions.newBuilder().setOwner("user0").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
 
     subject = new Subject();
