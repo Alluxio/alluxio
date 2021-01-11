@@ -29,11 +29,9 @@ spec:
       storage: {{ .Values.logserver.size }}
   storageClassName: {{ .Values.logserver.storageClass }}
   accessModes:
-  {{ toYaml .Values.logserver.accessModes | trim | indent 4 }}
-selector:
-  matchLabels:
-    app: {{ template "alluxio.name" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    role: alluxio-logserver
+{{ toYaml .Values.logserver.accessModes | trim | indent 4 }}
+  {{- with .Values.logserver.selector }}
+  selector:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
 {{- end -}}

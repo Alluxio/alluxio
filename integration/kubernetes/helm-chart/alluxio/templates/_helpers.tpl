@@ -373,3 +373,16 @@ livenessProbe:
     claimName: "{{ .Values.logserver.pvcName }}"
 {{- end }}
 {{- end -}}
+
+{{- define "alluxio.logserver.pvc.selector" -}}
+{{- if .Values.logserver.selector }}
+selector:
+  matchLabels:
+    app: {{ include "alluxio.name" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{ toYaml .Values.logserver.selector.matchLabels | nindent 4}}
+  matchExpressions:
+    {{ toYaml .Values.logserver.selector.matchExpressions | nindent 4}}
+{{- end }}
+{{- end -}}

@@ -145,4 +145,4 @@
 - Add a table of keys and default values for the Helm templates in README
 
 0.6.13
-- Add remote logger for Alluxio services
+- Add remote logger for Alluxio services, putting the centralized logs in emptyDir/hostPath/PVC
