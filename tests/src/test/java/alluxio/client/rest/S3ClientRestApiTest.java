@@ -12,13 +12,17 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -26,6 +30,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
 import alluxio.proxy.s3.ListAllMyBucketsResult;
@@ -33,6 +38,7 @@ import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
+import alluxio.proxy.s3.S3RestServiceHelper;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
@@ -54,6 +60,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
@@ -108,7 +119,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     mFileSystem = sResource.get().getClient();
-
   }
 
   @Test
@@ -120,11 +130,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("user0"));
-    FileSystem.Factory.get(subject).createDirectory(new AlluxioURI("/bucket0"));
+    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
+        .createDirectory(new AlluxioURI("/bucket0"));
 
     subject = new Subject();
     subject.getPrincipals().add(new User("user1"));
-    FileSystem.Factory.get(subject).createDirectory(new AlluxioURI("/bucket1"));
+    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
+        .createDirectory(new AlluxioURI("/bucket1"));
 
     ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
