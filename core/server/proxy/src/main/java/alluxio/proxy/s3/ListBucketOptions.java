@@ -18,9 +18,12 @@ import com.google.common.base.Objects;
  * The options for list bucket operation.
  */
 public final class ListBucketOptions {
-  private String mContinuationToken = null;
-  private String mMaxKeys = null;
-  private String mPrefix = null;
+  // Default number of MaxKeys when it is not specified
+  public static final int DEFAULT_MAX_KEYS = 1000;
+
+  private String mMarker;
+  private String mPrefix;
+  private int mMaxKeys;
 
   /**
    * Creates a default {@link ListBucketOptions}.
@@ -34,20 +37,17 @@ public final class ListBucketOptions {
   /**
    * Constructs a new {@link ListBucketOptions}.
    */
-  private ListBucketOptions() {}
-
-  /**
-   * @return the continuation token
-   */
-  public String getContinuationToken() {
-    return mContinuationToken;
+  private ListBucketOptions() {
+    mMarker = "";
+    mPrefix = "";
+    mMaxKeys = DEFAULT_MAX_KEYS;
   }
 
   /**
-   * @return the max keys
+   * @return the marker
    */
-  public String getMaxKeys() {
-    return mMaxKeys;
+  public String getMarker() {
+    return mMarker;
   }
 
   /**
@@ -58,20 +58,18 @@ public final class ListBucketOptions {
   }
 
   /**
-   * @param continuationToken the continuation token to set
-   * @return the updated object
+   * @return the max keys
    */
-  public ListBucketOptions setContinuationToken(String continuationToken) {
-    mContinuationToken = continuationToken;
-    return this;
+  public int getMaxKeys() {
+    return mMaxKeys;
   }
 
   /**
-   * @param maxKeys the max keys to set
+   * @param marker the marker to set
    * @return the updated object
    */
-  public ListBucketOptions setMaxKeys(String maxKeys) {
-    mMaxKeys = maxKeys;
+  public ListBucketOptions setMarker(String marker) {
+    mMarker = marker;
     return this;
   }
 
@@ -84,6 +82,15 @@ public final class ListBucketOptions {
     return this;
   }
 
+  /**
+   * @param maxKeys the max keys
+   * @return the updated object
+   */
+  public ListBucketOptions setMaxKeys(int maxKeys) {
+    mMaxKeys = maxKeys;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -93,22 +100,22 @@ public final class ListBucketOptions {
       return false;
     }
     ListBucketOptions that = (ListBucketOptions) o;
-    return Objects.equal(mContinuationToken, that.mContinuationToken)
-        && Objects.equal(mMaxKeys, that.mMaxKeys)
-        && Objects.equal(mPrefix, that.mPrefix);
+    return Objects.equal(mMarker, that.mMarker)
+        && Objects.equal(mPrefix, that.mPrefix)
+        && Objects.equal(mMaxKeys, that.mMaxKeys);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mContinuationToken, mMaxKeys, mPrefix);
+    return Objects.hashCode(mMarker, mPrefix, mMaxKeys);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("continuationToken", mContinuationToken)
-        .add("maxKeys", mMaxKeys)
+        .add("marker", mMarker)
         .add("prefix", mPrefix)
+        .add("maxKeys", mMaxKeys)
         .toString();
   }
 }

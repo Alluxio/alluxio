@@ -40,6 +40,14 @@ message AddTableEntry {
 }
 
 // next available id: 5
+message AddTablePartitionsEntry {
+    optional string db_name = 1;
+    optional string table_name = 2;
+    optional int64 version = 3;
+    repeated alluxio.grpc.table.Partition partitions = 4;
+}
+
+// next available id: 5
 message RemoveTableEntry {
     optional string db_name = 1;
     optional string table_name = 2;

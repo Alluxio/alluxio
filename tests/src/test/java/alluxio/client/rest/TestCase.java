@@ -159,6 +159,9 @@ public final class TestCase {
     if (mOptions.getMD5() != null) {
       connection.setRequestProperty("Content-MD5", mOptions.getMD5());
     }
+    if (mOptions.getAuthorization() != null) {
+      connection.setRequestProperty("Authorization", mOptions.getAuthorization());
+    }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/octet-stream");
