@@ -343,6 +343,20 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void putDirectoryObject() throws Exception {
+    final String bucketName = "directory-bucket";
+    createBucketRestCall(bucketName);
+
+    final String directoryName = "directory/";
+    createObject(bucketName + AlluxioURI.SEPARATOR + directoryName, new byte[]{}, null, null);
+
+    final List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR + bucketName));
+
+    assertEquals(1, statuses.size());
+    assertEquals(true, statuses.get(0).isFolder());
+  }
+
+  @Test
   public void putSmallObject() throws Exception {
     final String bucketName = "small-object-bucket";
     createBucketRestCall(bucketName);
