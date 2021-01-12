@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -207,19 +208,21 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
-   * "s3://"
-   *
    * @param path ufs path
-   * @return ufs temp path
+   * @return ufs temp path with UUID
    */
   public static String getPersistentTmpPath(String path) {
-    String tempPath;
+    StringBuilder tempFilePath = new StringBuilder();
+    StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
-    String parentPath = path.substring(0, path.length() - fileName.length());
-    tempPath = concatUfsPath(parentPath, "alluxio_persistent_job");
-    tempPath = concatPath(tempPath, fileName);
-    tempPath = temporaryFileName(System.currentTimeMillis(), tempPath);
-    return tempPath;
+    tempFilePath.append(".alluxio_ufs_persistence/");
+    String uuid = UUID.randomUUID().toString();
+    tempFileName.append(fileName);
+    tempFileName.append(".alluxio.");
+    tempFileName.append(uuid);
+    tempFileName.append(".tmp");
+    tempFilePath.append(tempFileName);
+    return tempFilePath.toString();
   }
 
   /**
