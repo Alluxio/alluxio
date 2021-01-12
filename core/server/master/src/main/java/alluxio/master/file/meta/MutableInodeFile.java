@@ -29,6 +29,7 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -138,7 +139,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
 
   @Override
   public List<Long> getBlockIds() {
-    return new ArrayList<>(mBlocks);
+    return ImmutableList.copyOf(mBlocks);
   }
 
   @Override
@@ -231,7 +232,14 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @return the updated object
    */
   public MutableInodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds, "blockIds"));
+    Preconditions.checkNotNull(blockIds, "blockIds");
+    for (Long blockId : blockIds) {
+      if (blockId == null) {
+        throw new NullPointerException("List contains null element: " + blockIds.toString());
+      }
+    }
+
+    mBlocks = new ArrayList<>(blockIds);
     return getThis();
   }
 
