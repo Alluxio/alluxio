@@ -29,7 +29,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.proxy.s3.logging.Logged;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;

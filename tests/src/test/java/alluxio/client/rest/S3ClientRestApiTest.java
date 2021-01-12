@@ -350,7 +350,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String directoryName = "directory/";
     createObject(bucketName + AlluxioURI.SEPARATOR + directoryName, new byte[]{}, null, null);
 
-    final List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR + bucketName));
+    final List<URIStatus> statuses = mFileSystem.listStatus(
+        new AlluxioURI(AlluxioURI.SEPARATOR + bucketName));
 
     assertEquals(1, statuses.size());
     assertEquals(true, statuses.get(0).isFolder());
