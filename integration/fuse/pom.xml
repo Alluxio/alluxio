@@ -65,7 +65,7 @@
   </dependencies>
   <profiles>
     <profile>
-      <id>native</id>
+      <id>fuse-native</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
