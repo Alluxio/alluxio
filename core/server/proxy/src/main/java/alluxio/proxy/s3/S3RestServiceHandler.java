@@ -29,6 +29,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.proxy.s3.logging.Logged;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -313,6 +314,17 @@ public final class S3RestServiceHandler {
         checkPathIsAlluxioDirectory(bucketPath);
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+
+        if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
+          // Need to create a folder
+          try {
+            mFileSystem.createDirectory(new AlluxioURI(objectPath));
+          } catch (IOException | AlluxioException e) {
+            throw toObjectS3Exception(e, objectPath);
+          }
+          return Response.ok().build();
+        }
+
         if (partNumber != null) {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
