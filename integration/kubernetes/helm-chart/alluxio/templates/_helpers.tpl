@@ -179,6 +179,14 @@ resources:
   {{- end -}}
 {{- end -}}
 
+{{- define "alluxio.logserver.secretVolumeMounts" -}}
+  {{- range $key, $val := .Values.secrets.logserver }}
+            - name: secret-{{ $key }}-volume
+              mountPath: /secrets/{{ $val }}
+              readOnly: true
+  {{- end -}}
+{{- end -}}
+
 {{- define "alluxio.worker.tieredstoreVolumeMounts" -}}
   {{- if .Values.tieredstore.levels }}
     {{- range .Values.tieredstore.levels }}
@@ -371,18 +379,5 @@ livenessProbe:
 - name: alluxio-logs
   persistentVolumeClaim:
     claimName: "{{ .Values.logserver.pvcName }}"
-{{- end }}
-{{- end -}}
-
-{{- define "alluxio.logserver.pvc.selector" -}}
-{{- if .Values.logserver.selector }}
-selector:
-  matchLabels:
-    app: {{ include "alluxio.name" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    {{ toYaml .Values.logserver.selector.matchLabels | nindent 4}}
-  matchExpressions:
-    {{ toYaml .Values.logserver.selector.matchExpressions | nindent 4}}
 {{- end }}
 {{- end -}}

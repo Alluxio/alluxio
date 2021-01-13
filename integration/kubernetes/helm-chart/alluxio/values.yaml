@@ -376,7 +376,7 @@ metrics:
 
 # Remote logging server
 logserver:
-  enabled: true
+  enabled: false
   replicas: 1
   env:
   # Extra environment variables for the logserver pod

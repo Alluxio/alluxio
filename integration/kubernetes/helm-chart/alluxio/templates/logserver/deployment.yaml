@@ -74,7 +74,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.logserver }}
-            {{- include "alluxio.master.secretVolumeMounts" . }}
+            {{- include "alluxio.logserver.secretVolumeMounts" . }}
               {{- end }}
             {{- end }}
             {{- if .Values.mounts }}
