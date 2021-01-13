@@ -98,7 +98,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testPageCached(PageId pageId) throws Exception {
-    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, 0, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0));
     assertArrayEquals(PAGE, mBuffer);
   }
 
@@ -127,13 +127,13 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     int evicted = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
       PageId pageId = new PageId("0", i);
-      int ret = mCacheManager.get(pageId, 0, PAGE_SIZE_BYTES, mBuffer, 0);
+      int ret = mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0);
       assertArrayEquals(PAGE, mBuffer);
       if (ret <= 0) {
         evicted++;
         continue;
       }
-      assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, 0, PAGE_SIZE_BYTES, mBuffer, 0));
+      assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0));
     }
     // verifies half of the loaded pages are evicted
     assertEquals(PAGE_COUNT / 2, evicted);
@@ -194,7 +194,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     int hits = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
       if (PAGE_SIZE_BYTES
-          == mCacheManager.get(new PageId("0", i), 0, PAGE_SIZE_BYTES, mBuffer, 0)) {
+          == mCacheManager.get(new PageId("0", i), PAGE_SIZE_BYTES, mBuffer, 0)) {
         hits++;
       }
     }
@@ -214,7 +214,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
         mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
-    assertEquals(0, mCacheManager.get(PAGE_ID, 0, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   @Test
@@ -238,7 +238,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private void testLoadCacheConfMismatch(PropertyKey prop, Object value) throws Exception {
     testLoadCacheConfChanged(prop, value);
     // verify failed to read from recovered local cache
-    assertEquals(0, mCacheManager.get(PAGE_ID, 0, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }
 
   private void loadFullCache() throws Exception {
