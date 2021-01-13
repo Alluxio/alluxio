@@ -313,6 +313,8 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
+#   logserver: # Used by the logserver container
+#     alluxio-hdfs-config: hdfsConfig
 
 ##  Metrics System ##
 
