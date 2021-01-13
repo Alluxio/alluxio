@@ -210,11 +210,13 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @return the id of a new block of the file
    */
   public long getNewBlockId() {
-    long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
-    // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
-    // TODO(gene): Check isComplete?
-    mBlocks.add(blockId);
-    return blockId;
+    synchronized (mBlocks) {
+      long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
+      // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
+      // TODO(gene): Check isComplete?
+      mBlocks.add(blockId);
+      return blockId;
+    }
   }
 
   /**
