@@ -19,20 +19,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class for tracking which blocks need to be deleted, and deleting them on close.
  */
 public final class DefaultBlockDeletionContext implements BlockDeletionContext {
   private final List<BlockDeletionListener> mListeners;
-  private final List<Long> mBlocks;
+  private final ConcurrentHashMap.KeySetView<Long, Boolean> mBlocks;
 
   /**
    * @param listeners listeners to call for each deleted block when the context is closed
    */
   public DefaultBlockDeletionContext(BlockDeletionListener... listeners) {
     mListeners = Arrays.asList(listeners);
-    mBlocks = new ArrayList<>(0);
+    mBlocks = ConcurrentHashMap.newKeySet(0);
   }
 
   @Override
