@@ -21,6 +21,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 
 import com.google.common.base.Preconditions;
+import org.apache.ratis.protocol.NotLeaderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,11 +75,11 @@ public final class MasterJournalContext implements JournalContext {
       try {
         mAsyncJournalWriter.flush(mFlushCounter);
         return;
-      } catch (IOException e) {
-        LOG.warn("Journal flush failed. retrying...", e);
-      } catch (JournalClosedException e) {
+      } catch (NotLeaderException | JournalClosedException e) {
         throw new UnavailableException(String.format("Failed to complete request: %s",
             e.getMessage()), e);
+      } catch (IOException e) {
+        LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
         ProcessUtils.fatalError(LOG, e, "Journal flush failed");
       }
