@@ -343,6 +343,17 @@ public final class S3RestServiceHandler {
         checkPathIsAlluxioDirectory(fs, bucketPath);
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+
+        if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
+          // Need to create a folder
+          try {
+            mFileSystem.createDirectory(new AlluxioURI(objectPath));
+          } catch (IOException | AlluxioException e) {
+            throw toObjectS3Exception(e, objectPath);
+          }
+          return Response.ok().build();
+        }
+
         if (partNumber != null) {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
