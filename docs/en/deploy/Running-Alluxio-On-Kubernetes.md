@@ -878,7 +878,7 @@ contains all resources for the log server, including a Deployment, a Service and
 
 First you can prepare the YAML file and configure what volume to use for the Deployment.
 ```console
-$ cp alluxio-logserver-deployment.yaml.template alluxio-logserver-deployment.yaml
+$ cp logserver/alluxio-logserver-deployment.yaml.template logserver/alluxio-logserver-deployment.yaml
 ```
 
 If you are testing and it is okay to discard logs, you can use an `emptyDir` for the volume like below:
@@ -907,7 +907,7 @@ For a production environment, you should always persist the logs with a Persiste
 
 There is also a YAML template for PVC `alluxio-logserver-logs`.
 ```console
-$ cp alluxio-logserver-pvc.yaml.template alluxio-logserver-pvc.yaml
+$ cp logserver/alluxio-logserver-pvc.yaml.template logserver/alluxio-logserver-pvc.yaml
 ```
 
 You can further configure the resource and selector for the PVC, according to your environment.
@@ -943,8 +943,8 @@ $ kubectl create -f alluxio-logserver-deployment.yaml
 
 There is also a Service associated to the Deployment.
 ```console
-$ cp alluxio-logserver-service.yaml.template alluxio-logserver-service.yaml
-$ kubectl create -f alluxio-logserver-service.yaml
+$ cp logserver/alluxio-logserver-service.yaml.template logserver/alluxio-logserver-service.yaml
+$ kubectl create -f logserver/alluxio-logserver-service.yaml
 ```
 
 **Step 3: Restart other Alluxio pods**
