@@ -102,9 +102,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           // use a smaller block size so files can have multiple blocks
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 10)
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL, 20)
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE, 20).build();
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 5)
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL, 10)
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE, 10).build();
 
   @After
   public void after() throws Exception {
@@ -589,7 +589,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     int numChildren = 20;
     new File(ufsPath(baseDir)).mkdirs();
     for (int i = 0; i < numChildren; i++) {
-      writeUfsFile(ufsPath(baseDir + "/child" + i), 20000);
+      writeUfsFile(ufsPath(baseDir + "/child" + i), 10000);
     }
 
     ListStatusPOptions lsOptions =
