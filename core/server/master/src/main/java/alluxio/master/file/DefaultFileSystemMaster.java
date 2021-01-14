@@ -3971,7 +3971,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // check if the destination direction is valid
                 String ufsParentPath = PathUtils.getUfsParent(ufsPath);
                 if (!ufs.isExistingDirectory(ufsParentPath)) {
-                  ufs.create(ufsParentPath);
+                  LOG.info("There is not parent directory for {}. Create parent path {}.",
+                      ufsPath, tempUfsPath);
+                  ufs.mkdirs(ufsParentPath);
                 }
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                   throw new IOException(
