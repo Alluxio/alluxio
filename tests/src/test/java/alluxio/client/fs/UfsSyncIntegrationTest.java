@@ -747,41 +747,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertEquals(4, paths.size());
   }
 
-<<<<<<< HEAD
-||||||| parent of 0489cc6bce... Make add operations on DefaultBlockDeletionContext thread safe
-  @Test
-  public void deleteUfsFileGetStatus() throws Exception {
-    new File(ufsPath("/delete")).mkdirs();
-    writeUfsFile(ufsPath("/delete/file"), 10);
-
-    List<URIStatus> paths = mFileSystem.listStatus(new AlluxioURI(alluxioPath("/delete")),
-        ListStatusPOptions.newBuilder().setRecursive(false).setCommonOptions(PSYNC_ALWAYS).build());
-
-    Assert.assertEquals(1, paths.size());
-    Assert.assertEquals("file", paths.get(0).getName());
-
-    // delete the file and wait a bit
-    new File(ufsPath("/delete/file")).delete();
-    CommonUtils.sleepMs(2000);
-
-    // getStatus (not listStatus) on the root, with a shorter interval than the sleep.
-    // This will sync that directory. The sync interval has to be long enough for the internal
-    // syncing process to finish within that time.
-    mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete")), GetStatusPOptions.newBuilder()
-        .setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000).build()).build());
-
-    // verify that the file is deleted, without syncing
-    try {
-      mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete/file")),
-          GetStatusPOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build());
-      Assert.fail("the ufs deleted file is not expected to exist after sync via getStatus");
-    } catch (FileDoesNotExistException e) {
-      // expected
-    }
-  }
-
-=======
   @Test
   public void deleteUfsFileGetStatus() throws Exception {
     new File(ufsPath("/delete")).mkdirs();
@@ -814,7 +779,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
   }
 
->>>>>>> 0489cc6bce... Make add operations on DefaultBlockDeletionContext thread safe
   private String ufsPath(String path) {
     return mLocalUfsPath + path;
   }

@@ -32,13 +32,7 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
    */
   public DefaultBlockDeletionContext(BlockDeletionListener... listeners) {
     mListeners = Arrays.asList(listeners);
-<<<<<<< HEAD
-    mBlocks = new ArrayList<>();
-||||||| parent of 0489cc6bce... Make add operations on DefaultBlockDeletionContext thread safe
-    mBlocks = new ArrayList<>(0);
-=======
     mBlocks = new ConcurrentLinkedQueue();
->>>>>>> 0489cc6bce... Make add operations on DefaultBlockDeletionContext thread safe
   }
 
   @Override
