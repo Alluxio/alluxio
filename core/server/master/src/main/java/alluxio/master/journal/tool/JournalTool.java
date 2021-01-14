@@ -44,19 +44,26 @@ public final class JournalTool {
   private static final Logger LOG = LoggerFactory.getLogger(JournalTool.class);
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
+  private static final String HELP_OPTION_NAME = "help";
+  private static final String MASTER_OPTION_NAME = "master";
+  private static final String START_OPTION_NAME = "start";
+  private static final String END_OPTION_NAME = "end";
+  private static final String INPUT_DIR_OPTION_NAME = "inputDir";
+  private static final String OUTPUT_DIR_OPTION_NAME = "outputDir";
+
   private static final Options OPTIONS = new Options()
-      .addOption("help", false, "Show help for this command.")
-      .addOption("master", true,
+      .addOption(HELP_OPTION_NAME, false, "Show help for this command.")
+      .addOption(MASTER_OPTION_NAME, true,
           "The name of the master (e.g. FileSystemMaster, BlockMaster). "
               + "Set to FileSystemMaster by default.")
-      .addOption("start", true,
+      .addOption(START_OPTION_NAME, true,
           "The start log sequence number (inclusive). Set to 0 by default.")
-      .addOption("end", true,
+      .addOption(END_OPTION_NAME, true,
           "The end log sequence number (exclusive). Set to +inf by default.")
-      .addOption("inputDir", true,
+      .addOption(INPUT_DIR_OPTION_NAME, true,
           "The input directory on-disk to read journal content from. "
               + "(Default: Read from system configuration.)")
-      .addOption("outputDir", true,
+      .addOption(OUTPUT_DIR_OPTION_NAME, true,
           "The output directory to write journal content to. "
           + "(Default: journal_dump-${timestamp})");
 
@@ -130,15 +137,17 @@ public final class JournalTool {
       System.out.println("Failed to parse input args: " + e);
       return false;
     }
-    sHelp = cmd.hasOption("help");
-    sMaster = cmd.getOptionValue("master", "FileSystemMaster");
-    sStart = Long.decode(cmd.getOptionValue("start", "0"));
-    sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
-    sInputDir = new File(
-        cmd.getOptionValue("inputDir", ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))
-            .getAbsolutePath();
+    sHelp = cmd.hasOption(HELP_OPTION_NAME);
+    sMaster = cmd.getOptionValue(MASTER_OPTION_NAME, "FileSystemMaster");
+    sStart = Long.decode(cmd.getOptionValue(START_OPTION_NAME, "0"));
+    sEnd = Long.decode(cmd.getOptionValue(END_OPTION_NAME, Long.valueOf(Long.MAX_VALUE).toString()));
+    if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
+      sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
+    } else {
+      sInputDir = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    }
     sOutputDir =
-        new File(cmd.getOptionValue("outputDir", "journal_dump-" + System.currentTimeMillis()))
+        new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME, "journal_dump-" + System.currentTimeMillis()))
             .getAbsolutePath();
     return true;
   }
