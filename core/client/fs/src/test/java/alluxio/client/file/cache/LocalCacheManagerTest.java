@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.file.cache.evictor.FIFOEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.quota.CacheQuota;
@@ -48,10 +47,13 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -89,7 +91,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "-1");
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOEvictor(mConf);
+    mEvictor = new FIFOEvictor();
     mMetaStore = new DefaultMetaStore(mConf, mEvictor);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
   }
@@ -147,7 +149,7 @@ public final class LocalCacheManagerTest {
       root.setWritable(false);
       mCacheManager = LocalCacheManager.create(mConf);
       CommonUtils.waitFor("async restore completed",
-          () ->  mCacheManager.state() == CacheManager.State.NOT_IN_USE,
+          () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
     } finally {
       root.setWritable(true);
@@ -273,7 +275,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putGetPartialPage() throws Exception {
     int[] sizeArray = {1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
-    for (int size: sizeArray) {
+    for (int size : sizeArray) {
       PageId pageId = new PageId("3", size);
       byte[] pageData = page(0, size);
       assertTrue(mCacheManager.put(pageId, pageData));
@@ -329,7 +331,8 @@ public final class LocalCacheManagerTest {
     CacheScope tableCacheScope = CacheScope.create("schema.table");
     CacheScope schemaCacheScope = CacheScope.create("schema");
 
-    CacheScope[] quotaCacheScopes = {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
+    CacheScope[] quotaCacheScopes =
+        {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new DefaultMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
@@ -351,7 +354,8 @@ public final class LocalCacheManagerTest {
     CacheScope tableCacheScope = CacheScope.create("schema.table");
     CacheScope schemaCacheScope = CacheScope.create("schema");
 
-    CacheScope[] quotaCacheScopes = {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
+    CacheScope[] quotaCacheScopes =
+        {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new DefaultMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
@@ -428,7 +432,7 @@ public final class LocalCacheManagerTest {
   public void getOffset() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
     int[] offsetArray = {0, 1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
-    for (int offset: offsetArray) {
+    for (int offset : offsetArray) {
       assertEquals(PAGE1.length - offset,
           mCacheManager.get(PAGE_ID1, offset, PAGE1.length - offset, mBuf, 0));
       assertEquals(ByteBuffer.wrap(PAGE1, offset, PAGE1.length - offset),
@@ -476,7 +480,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(PAGE_ID1, PAGE1);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -509,7 +513,7 @@ public final class LocalCacheManagerTest {
     // stop the "fake scan"
     slowGetPageStore.mScanComplete.set(true);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
     // Put get back to normal
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
@@ -543,7 +547,7 @@ public final class LocalCacheManagerTest {
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
@@ -625,7 +629,7 @@ public final class LocalCacheManagerTest {
     mPageStore = PageStore.open(mPageStoreOptions);
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     CommonUtils.waitFor("async restore completed",
-        () ->  mCacheManager.state() == CacheManager.State.READ_WRITE,
+        () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(1000000));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -823,6 +827,45 @@ public final class LocalCacheManagerTest {
     @Override
     public Stream<PageInfo> getPages() throws IOException {
       return Stream.concat(super.getPages(), Streams.stream(new NonStoppingSlowPageIterator()));
+    }
+  }
+
+  /**
+   * Implementation of Evictor using FIFO eviction policy for the test.
+   */
+  class FIFOEvictor implements CacheEvictor {
+    private final LinkedList<PageId> mQueue = new LinkedList<>();
+
+    public FIFOEvictor() {
+    }
+
+    @Override
+    public void updateOnGet(PageId pageId) {
+      // noop
+    }
+
+    @Override
+    public void updateOnPut(PageId pageId) {
+      mQueue.add(pageId);
+    }
+
+    @Override
+    public void updateOnDelete(PageId pageId) {
+      int idx = mQueue.indexOf(pageId);
+      if (idx >= 0) {
+        mQueue.remove(idx);
+      }
+    }
+
+    @Nullable
+    @Override
+    public PageId evict() {
+      return mQueue.peek();
+    }
+
+    @Override
+    public void reset() {
+      mQueue.clear();
     }
   }
 }
