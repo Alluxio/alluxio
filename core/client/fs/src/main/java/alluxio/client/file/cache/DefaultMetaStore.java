@@ -66,11 +66,11 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
-    mPages.incrementAndGet();
     mBytes.addAndGet(pageInfo.getPageSize());
-    mEvictor.updateOnPut(pageId);
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
+    mPages.incrementAndGet();
     Metrics.PAGES.inc();
+    mEvictor.updateOnPut(pageId);
   }
 
   @Override
@@ -88,11 +88,11 @@ public class DefaultMetaStore implements MetaStore {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
-    mPages.decrementAndGet();
     mBytes.addAndGet(-pageInfo.getPageSize());
-    mEvictor.updateOnDelete(pageId);
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
+    mPages.decrementAndGet();
     Metrics.PAGES.dec();
+    mEvictor.updateOnDelete(pageId);
     return pageInfo;
   }
 
