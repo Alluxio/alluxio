@@ -174,6 +174,22 @@ public final class PathUtils {
   }
 
   /**
+   * Gets the parent of the the file at a ufs path.
+   *
+   * @param path the ufs path
+   * @return the parent path of the file; this is "/" if the given path is the root
+   */
+  public static String getUfsParent(String path) {
+    String name = FilenameUtils.getName(path);
+    String parent = path.substring(0, path.length() - name.length() - 1);
+    if (parent.isEmpty()) {
+      // The parent is the root path without any prefix.
+      return AlluxioURI.SEPARATOR;
+    }
+    return parent;
+  }
+
+  /**
    * Join two path elements for ufs, separated by {@link AlluxioURI#SEPARATOR}.
    *
    * For example,

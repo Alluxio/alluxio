@@ -62,6 +62,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.FileInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
+import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -497,7 +498,8 @@ public final class PersistenceTest {
     PersistJob job = persistJobs.get(fileInfo.getFileId());
     Assert.assertEquals(fileInfo.getFileId(), job.getFileId());
     Assert.assertEquals(jobId, job.getId());
-    Assert.assertTrue(job.getTempUfsPath().contains(testFile.getPath()));
+    String fileName = FilenameUtils.getName(testFile.getPath());
+    Assert.assertTrue(job.getTempUfsPath().contains(fileName));
     Assert.assertEquals(
         PersistenceState.TO_BE_PERSISTED.toString(), fileInfo.getPersistenceState());
   }

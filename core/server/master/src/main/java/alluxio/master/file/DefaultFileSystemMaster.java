@@ -3802,6 +3802,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
               PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
+          LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
+              tempUfsPath, resolution.getUri().toString());
           LOG.info("Temp file {} for File persistent.", tempUfsPath);
         }
       }
@@ -3966,6 +3968,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // Make rename only when tempUfsPath is different from final ufsPath. Note that,
                 // on object store, we take the optimization to skip the rename by having
                 // tempUfsPath the same as final ufsPath.
+                // check if the destination direction is valid
+                String ufsParentPath = PathUtils.getUfsParent(ufsPath);
+                if (!ufs.isExistingDirectory(ufsParentPath)) {
+                  ufs.create(ufsParentPath);
+                }
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                   throw new IOException(
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
