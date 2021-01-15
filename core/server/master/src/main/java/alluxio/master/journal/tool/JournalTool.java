@@ -140,15 +140,15 @@ public final class JournalTool {
     sHelp = cmd.hasOption(HELP_OPTION_NAME);
     sMaster = cmd.getOptionValue(MASTER_OPTION_NAME, "FileSystemMaster");
     sStart = Long.decode(cmd.getOptionValue(START_OPTION_NAME, "0"));
-    sEnd = Long.decode(cmd.getOptionValue(END_OPTION_NAME, Long.valueOf(Long.MAX_VALUE).toString()));
+    sEnd = Long.decode(cmd.getOptionValue(END_OPTION_NAME, Long.valueOf(Long.MAX_VALUE)
+        .toString()));
     if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
       sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
       sInputDir = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
-    sOutputDir =
-        new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME, "journal_dump-" + System.currentTimeMillis()))
-            .getAbsolutePath();
+    sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
+        "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();
     return true;
   }
 
