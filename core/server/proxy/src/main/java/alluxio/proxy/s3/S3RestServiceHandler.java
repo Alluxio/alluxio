@@ -706,13 +706,13 @@ public final class S3RestServiceHandler {
     } catch (S3Exception e) {
       return e;
     } catch (DirectoryNotEmptyException e) {
-      return new S3Exception(resource, S3ErrorCode.BUCKET_NOT_EMPTY);
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_NOT_EMPTY);
     } catch (FileAlreadyExistsException e) {
-      return new S3Exception(resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
     } catch (FileDoesNotExistException e) {
-      return new S3Exception(resource, S3ErrorCode.NO_SUCH_BUCKET);
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
-      return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
+      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -724,9 +724,9 @@ public final class S3RestServiceHandler {
     } catch (S3Exception e) {
       return e;
     } catch (DirectoryNotEmptyException e) {
-      return new S3Exception(resource, S3ErrorCode.PRECONDITION_FAILED);
+      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
-      return new S3Exception(resource, S3ErrorCode.NO_SUCH_KEY);
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
