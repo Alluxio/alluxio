@@ -125,7 +125,12 @@ public final class S3RestServiceHandler {
       return null;
     }
 
-    return stripped.substring(0, colonIndex);
+    final String user = stripped.substring(0, colonIndex);
+    if (user.isEmpty()) {
+      return null;
+    }
+
+    return user;
   }
 
   private FileSystem getFileSystem(String authorization) {
