@@ -33,6 +33,7 @@ import alluxio.grpc.WritePType;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
@@ -108,7 +109,13 @@ public final class S3RestServiceHandler {
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
   }
 
-  private static String getUserFromAuthorization(String authorization) {
+  /**
+   * Gets the user from the authorization header string.
+   * @param authorization the authorization header string
+   * @return the user
+   */
+  @VisibleForTesting
+  public static String getUserFromAuthorization(String authorization) {
     if (authorization == null) {
       return null;
     }
