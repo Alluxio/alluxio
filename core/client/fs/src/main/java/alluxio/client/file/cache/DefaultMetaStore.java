@@ -17,7 +17,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,22 +39,13 @@ public class DefaultMetaStore implements MetaStore {
   /** The number of pages stored. */
   private final AtomicLong mPages = new AtomicLong(0);
   /** The evictor. */
-  protected final CacheEvictor mEvictor;
+  private final CacheEvictor mEvictor;
 
   /**
    * @param conf configuration
    */
   public DefaultMetaStore(AlluxioConfiguration conf) {
     mEvictor = CacheEvictor.create(conf);
-  }
-
-  /**
-   * @param conf configuration
-   * @param evictor cache evictor
-   */
-  @VisibleForTesting
-  public DefaultMetaStore(AlluxioConfiguration conf, CacheEvictor evictor) {
-    mEvictor = evictor;
   }
 
   @Override

@@ -11,10 +11,8 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.quota.CacheScope;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import org.junit.Assert;
@@ -26,15 +24,14 @@ import org.junit.rules.ExpectedException;
 /**
  * Tests for the {@link DefaultMetaStore} class.
  */
-public final class DefaultMetaStoreTest {
+public class DefaultMetaStoreTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  private final PageId mPage = new PageId("1L", 2L);
-  private final PageInfo mPageInfo = new PageInfo(mPage, 1024);
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-
-  private DefaultMetaStore mMetaStore;
+  protected final PageId mPage = new PageId("1L", 2L);
+  protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
+  protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  protected DefaultMetaStore mMetaStore;
 
   /**
    * Sets up the instances.
@@ -68,7 +65,7 @@ public final class DefaultMetaStoreTest {
   @Test
   public void removeNotExist() throws Exception {
     mThrown.expect(PageNotFoundException.class);
-    mMetaStore.removePage(mPage);
+    Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
   }
 
   @Test
@@ -92,21 +89,9 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void evict() throws Exception {
-    Assert.assertNull(mMetaStore.evict(CacheScope.GLOBAL));
-  }
-
-  @Test
-  public void bytesInScope() {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    mMetaStore = new DefaultMetaStore(mConf);
-    long pageSize1 = 8765;
-    PageId pageId = new PageId("2L", 2L);
-    CacheScope cacheScope = CacheScope.create("schema.table.partition");
-    PageInfo pageInfo = new PageInfo(pageId, pageSize1, cacheScope);
-    mMetaStore.addPage(pageId, pageInfo);
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema.table.partition")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema.table")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create("schema")));
-    Assert.assertEquals(pageSize1, mMetaStore.bytes(CacheScope.create(".")));
+    mMetaStore.addPage(mPage, mPageInfo);
+    Assert.assertEquals(mPageInfo, mMetaStore.evict());
+    mMetaStore.removePage(mPageInfo.getPageId());
+    Assert.assertNull(mMetaStore.evict());
   }
 }

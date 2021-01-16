@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.quota.CacheQuota;

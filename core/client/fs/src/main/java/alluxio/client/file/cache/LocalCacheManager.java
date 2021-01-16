@@ -226,8 +226,10 @@ public class LocalCacheManager implements CacheManager {
   private CacheScope checkScopeToEvict(int pageSize, CacheScope scope, CacheQuota quota) {
     if (mQuotaEnabled) {
       // Check quota usage for each scope
-      for (CacheScope currentScope = scope; currentScope != null; currentScope = currentScope.parent()) {
-        if (mMetaStore.bytes(currentScope) + pageSize > quota.getQuota(currentScope)) {
+      for (CacheScope currentScope = scope; currentScope != null;
+           currentScope = currentScope.parent()) {
+        if (((QuotaMetaStore) mMetaStore).bytes(currentScope) + pageSize
+            > quota.getQuota(currentScope)) {
           return currentScope;
         }
       }
@@ -316,7 +318,7 @@ public class LocalCacheManager implements CacheManager {
         if (scopeToEvict == null) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
-          victimPageInfo = mMetaStore.evict(scopeToEvict);
+          victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
           if (victimPageInfo == null) {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
                 mMetaStore.bytes(), page.length, mCacheSize);

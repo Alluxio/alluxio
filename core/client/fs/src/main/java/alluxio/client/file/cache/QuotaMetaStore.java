@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 /**
  * A metastore implementation that tracking usage associated with each cache scope.
  */
@@ -34,13 +36,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
   public QuotaMetaStore(AlluxioConfiguration conf) {
     super(conf);
     mCacheEvictors = new ConcurrentHashMap<>();
-    mCacheEvictors.put(CacheScope.GLOBAL, mEvictor);
     mSupplier = () -> CacheEvictor.create(conf);
-  }
-
-  @Override
-  public boolean hasPage(PageId pageId) {
-    return false;
   }
 
   @Override
@@ -78,22 +74,15 @@ public class QuotaMetaStore extends DefaultMetaStore {
     return pageInfo;
   }
 
-  @Override
-  public long bytes() {
-    return super.bytes();
-  }
-
   /**
    * @param cacheScope scope to query
    * @return the total size of pages stored in bytes of the given scope
    */
   public long bytes(CacheScope cacheScope) {
+    if (cacheScope == CacheScope.GLOBAL) {
+      return bytes();
+    }
     return mBytesInScope.computeIfAbsent(cacheScope, k -> 0L);
-  }
-
-  @Override
-  public long pages() {
-    return super.pages();
   }
 
   @Override
@@ -109,7 +98,11 @@ public class QuotaMetaStore extends DefaultMetaStore {
    * @param cacheScope scope to evict
    * @return a page to evict in this scope
    */
+  @Nullable
   public PageInfo evict(CacheScope cacheScope) {
+    if (cacheScope == CacheScope.GLOBAL) {
+      return evict();
+    }
     CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
     return evictInternal(evictor);
   }

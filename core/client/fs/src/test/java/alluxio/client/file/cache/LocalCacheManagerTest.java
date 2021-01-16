@@ -92,7 +92,7 @@ public final class LocalCacheManagerTest {
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
     mEvictor = new FIFOEvictor();
-    mMetaStore = new DefaultMetaStore(mConf, mEvictor);
+    mMetaStore = new DefaultMetaStore(mConf);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore);
   }
 
