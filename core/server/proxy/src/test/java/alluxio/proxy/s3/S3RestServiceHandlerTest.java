@@ -11,9 +11,9 @@
 
 package alluxio.proxy.s3;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class S3RestServiceHandlerTest {
 
@@ -23,5 +23,4 @@ public class S3RestServiceHandlerTest {
     assertEquals("test", S3RestServiceHandler.getUserFromAuthorization("AWS test:"));
     assertEquals(null, S3RestServiceHandler.getUserFromAuthorization(""));
   }
-
 }
