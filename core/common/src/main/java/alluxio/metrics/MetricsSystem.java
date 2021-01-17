@@ -196,15 +196,20 @@ public final class MetricsSystem {
       default:
         break;
     }
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    if (sourceKey != null && conf.isSet(sourceKey)) {
+      return conf.get(sourceKey);
+    }
     String hostName;
+    // Avoid throwing RuntimeException when hostname
+    // is not resolved on metrics reporting
     try {
       hostName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
     } catch (RuntimeException e) {
-      hostName = "unhnown";
-      LOG.error("Can't find local host name", e.getMessage());
+      hostName = "unknown";
+      LOG.error("Can't find local host name", e);
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    return sourceKey != null && conf.isSet(sourceKey) ? conf.get(sourceKey) : hostName;
+    return hostName;
   }
 
   /**
