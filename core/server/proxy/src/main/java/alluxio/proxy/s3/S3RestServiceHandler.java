@@ -359,7 +359,7 @@ public final class S3RestServiceHandler {
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
           // Need to create a folder
           try {
-            mFileSystem.createDirectory(new AlluxioURI(objectPath));
+            fs.createDirectory(new AlluxioURI(objectPath));
           } catch (IOException | AlluxioException e) {
             throw toObjectS3Exception(e, objectPath);
           }
