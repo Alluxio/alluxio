@@ -3973,8 +3973,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // create it and it's parents
                 Stack<Pair<String, Inode>> ancestors = new Stack<>();
                 List<Inode> inodes = inodePath.getInodeList();
-                int curInodeIndex = inodes.size() - 1;
+                int curInodeIndex = inodes.size() - 2;
+                // get file path
                 AlluxioURI curUfsPath = new AlluxioURI(ufsPath);
+                // get the parent path of current file
+                curUfsPath = curUfsPath.getParent();
                 // Stop when the directory already exists in UFS.
                 while (!ufs.isDirectory(curUfsPath.toString()) && curInodeIndex >= 0) {
                   Inode curInode = inodes.get(curInodeIndex);
@@ -3996,7 +3999,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   // If so, skip the mkdirs and assume the directory is already prepared,
                   // regardless of permission matching.
                   try {
-                    if (ufs.mkdirs(dir, options)) {
+                    boolean mkdirSuccess = false;
+                    try {
+                      mkdirSuccess = ufs.mkdirs(dir, options);
+                    } catch (IOException e) {
+                      LOG.debug("Exception Directory {}: ", dir, e);
+                    }
+                    if (mkdirSuccess) {
                       LOG.debug("UFS directory {} is created", dir);
                       List<AclEntry> allAcls =
                           Stream.concat(ancestorInode.getDefaultACL().getEntries().stream(),
@@ -4007,13 +4016,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
                       if (ufs.isDirectory(dir)) {
                         LOG.debug("UFS directory {} already exists", dir);
                       } else {
-                        throw new IOException(
-                            String.format("UFS path %s is an existing file", dir));
+                        LOG.info("UFS path {} is an existing file", dir);
                       }
                     }
                   } catch (IOException e) {
                     LOG.error("Failed to create UFS directory {} with correct permission", dir, e);
-                    throw e;
                   }
                 }
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
