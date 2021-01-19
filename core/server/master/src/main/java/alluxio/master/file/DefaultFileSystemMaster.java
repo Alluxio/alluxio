@@ -145,6 +145,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
@@ -3968,12 +3969,52 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // Make rename only when tempUfsPath is different from final ufsPath. Note that,
                 // on object store, we take the optimization to skip the rename by having
                 // tempUfsPath the same as final ufsPath.
-                // check if the destination direction is valid
-                String ufsParentPath = PathUtils.getUfsParent(ufsPath);
-                if (!ufs.isExistingDirectory(ufsParentPath)) {
-                  LOG.info("There is not parent directory for {}. Create parent path {}.",
-                      ufsPath, tempUfsPath);
-                  ufs.mkdirs(ufsParentPath);
+                // check if the destination direction is valid, if there isn't exist directory,
+                // create it and it's parents
+                Stack<Pair<String, Inode>> ancestors = new Stack<>();
+                List<Inode> inodes = inodePath.getInodeList();
+                int curInodeIndex = inodes.size() - 1;
+                AlluxioURI curUfsPath = new AlluxioURI(ufsPath);
+                // Stop when the directory already exists in UFS.
+                while (!ufs.isDirectory(curUfsPath.toString()) && curInodeIndex >= 0) {
+                  Inode curInode = inodes.get(curInodeIndex);
+                  ancestors.push(new Pair<>(curUfsPath.toString(), curInode));
+                  curUfsPath = curUfsPath.getParent();
+                  curInodeIndex--;
+                }
+
+                while (!ancestors.empty()) {
+                  Pair<String, Inode> ancestor = ancestors.pop();
+                  String dir = ancestor.getFirst();
+                  Inode ancestorInode = ancestor.getSecond();
+                  MkdirsOptions options = MkdirsOptions.defaults(ServerConfiguration.global())
+                      .setCreateParent(false)
+                      .setOwner(inode.getOwner())
+                      .setGroup(inode.getGroup())
+                      .setMode(new Mode(inode.getMode()));
+                  // UFS mkdirs might fail if the directory is already created.
+                  // If so, skip the mkdirs and assume the directory is already prepared,
+                  // regardless of permission matching.
+                  try {
+                    if (ufs.mkdirs(dir, options)) {
+                      LOG.debug("UFS directory {} is created", dir);
+                      List<AclEntry> allAcls =
+                          Stream.concat(ancestorInode.getDefaultACL().getEntries().stream(),
+                          ancestorInode.getACL().getEntries().stream())
+                              .collect(Collectors.toList());
+                      ufs.setAclEntries(dir, allAcls);
+                    } else {
+                      if (ufs.isDirectory(dir)) {
+                        LOG.debug("UFS directory {} already exists", dir);
+                      } else {
+                        throw new IOException(
+                            String.format("UFS path %s is an existing file", dir));
+                      }
+                    }
+                  } catch (IOException e) {
+                    LOG.error("Failed to create UFS directory {} with correct permission", dir, e);
+                    throw e;
+                  }
                 }
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                   throw new IOException(
