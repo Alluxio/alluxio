@@ -3989,9 +3989,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   Inode ancestorInode = ancestor.getSecond();
                   MkdirsOptions options = MkdirsOptions.defaults(ServerConfiguration.global())
                       .setCreateParent(false)
-                      .setOwner(inode.getOwner())
-                      .setGroup(inode.getGroup())
-                      .setMode(new Mode(inode.getMode()));
+                      .setOwner(ancestorInode.getOwner())
+                      .setGroup(ancestorInode.getGroup())
+                      .setMode(new Mode(ancestorInode.getMode()));
                   // UFS mkdirs might fail if the directory is already created.
                   // If so, skip the mkdirs and assume the directory is already prepared,
                   // regardless of permission matching.
