@@ -142,6 +142,10 @@ public class StateLockManager {
           exclusiveOnlyRemainingMs, PropertyKey.Name.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
       throw new IllegalStateException(safeModeMsg);
     }
+    // Check if the active interrupt cycle is on, we do not try to obtain the shared lock
+    if (mInterrupterFuture != null) {
+      throw new InterruptedException("Active Interrupt Cycle is on, Do not acquire shared lock");
+    }
     // Register thread for interrupt cycle.
     mSharedWaitersAndHolders.add(Thread.currentThread());
     // Grab the lock interruptibly.
@@ -207,10 +211,9 @@ public class StateLockManager {
           throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
               .getMessage(lockOptions.getGraceCycleTimeoutMs() + mForcedDurationMs));
         }
-      } catch (InterruptedException e) {
+      } finally {
         // Deactivate interrupter if active.
         deactivateInterruptCycle();
-        throw e;
       }
     }
 
