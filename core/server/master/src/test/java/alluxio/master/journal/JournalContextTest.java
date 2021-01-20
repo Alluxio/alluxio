@@ -155,6 +155,8 @@ public class JournalContextTest {
       CommonUtils.waitFor("journal context created", journalContextCreated::get,
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {
+      thread.interrupt();
+      thread.join();
       thread2.interrupt();
       thread2.join();
     }
