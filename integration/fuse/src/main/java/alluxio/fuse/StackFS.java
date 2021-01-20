@@ -27,7 +27,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Stack FS.
+ * Stack FS implements the FUSE callbacks defined by jni-fuse
+ * without interactions with Alluxio clients/servers.
+ * <p>
+ * Stack FS mounts a local filesystem path to another local filesystem path.
+ * All the operations target the Stack FS mount point will be directly
+ * trigger on the local filesystem mounted path without complex added logics.
+ * </p>
+ * <p>
+ * This class is mainly added for testing purposes to understand the
+ * performance overhead introduced by jni-fuse and provides an upper-bound
+ * performance data for Alluxio jni-fuse implementations.
+ * </p>
  */
 public class StackFS extends AbstractFuseFileSystem {
   private final Path mRoot;
