@@ -371,20 +371,15 @@ public final class PersistenceTest {
     mFileSystemMaster.delete(alluxioDirSrc,
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
 
-    // Execute the persistence checker heartbeat, checking the internal state. This should
-    // re-schedule the persist task as tempUfsPath is deleted.
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_CHECKER);
-    CommonUtils.waitFor("Checker heartbeat", (() -> getPersistRequests().size() > 0));
-    checkPersistenceRequested(alluxioFileDst);
-
-    // Mock job service interaction.
-    jobId = random.nextLong();
-    Mockito.when(mMockJobMasterClient.run(any(JobConfig.class))).thenReturn(jobId);
-
-    // Execute the persistence scheduler heartbeat, checking the internal state.
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER);
-    CommonUtils.waitFor("Scheduler heartbeat", (() -> getPersistJobs().size() > 0));
-    checkPersistenceInProgress(alluxioFileDst, jobId);
+    // Repeatedly execute the persistence checker heartbeat, checking the internal state.
+    {
+      // Execute the persistence checker heartbeat, checking the internal state. This should
+      // write the persist file to renamed destination.
+      HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_CHECKER);
+      waitUntilPersisted(alluxioFileDst);
+      HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_CHECKER);
+      waitUntilPersisted(alluxioFileDst);
+    }
   }
 
   /**
