@@ -79,7 +79,10 @@ function main {
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
-  if [ -z "${ALLUXIO_CHECKSTYLE}"]
+  if [ -z "${ALLUXIO_COVERAGE_REPORT}" ]
+  then
+    run_args+=" --entrypoint=dev/github/run_coverage.sh"
+  elif [ -z "${ALLUXIO_CHECKSTYLE}"]
   then
     run_args+=" --entrypoint=dev/github/run_tests.sh"
   else
