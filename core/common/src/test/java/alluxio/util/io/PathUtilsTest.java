@@ -245,18 +245,21 @@ public final class PathUtilsTest {
   public void getPersistentTmpPath() {
     // Get temporary path
     Pattern pattern = Pattern.compile(
-        "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\S+\\.tmp");
+        "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
     String tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
-    pattern = Pattern.compile("\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\S+\\.tmp");
+    pattern = Pattern.compile(
+        "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
     tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
-    pattern = Pattern.compile("\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\S+\\.tmp");
+    pattern = Pattern.compile(
+        "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
     tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
-    pattern = Pattern.compile("\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\S+\\.tmp");
+    pattern = Pattern.compile(
+        "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
     tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }

@@ -215,11 +215,13 @@ public final class PathUtils {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
+    String timeStamp = String.valueOf(System.currentTimeMillis());
     tempFilePath.append(".alluxio_ufs_persistence/");
     String uuid = UUID.randomUUID().toString();
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
-    tempFileName.append(uuid);
+    tempFileName.append(timeStamp);
+    tempFileName.append(String.format(".%s", uuid));
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();

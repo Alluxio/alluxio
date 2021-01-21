@@ -3803,7 +3803,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
               PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
-          LOG.info("Generate tmp ufs path {} from ufs path {} for persistence.",
+          LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
               tempUfsPath, resolution.getUri().toString());
         }
       }
@@ -3970,7 +3970,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // tempUfsPath the same as final ufsPath.
                 // check if the destination direction is valid, if there isn't exist directory,
                 // create it and it's parents
-                createParentPath(inodePath.getInodeList(), ufsPath, ufs);
+                createParentPath(inodePath.getInodeList(), ufsPath, ufs, job.getId());
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                   throw new IOException(
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
@@ -4044,7 +4044,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
      * @param ufsPath ufs path
      * @param ufs under file system
      */
-    private void createParentPath(List<Inode> inodes, String ufsPath, UnderFileSystem ufs)
+    private void createParentPath(List<Inode> inodes, String ufsPath,
+        UnderFileSystem ufs, long jobId)
         throws IOException {
       Stack<Pair<String, Inode>> ancestors = new Stack<>();
       int curInodeIndex = inodes.size() - 2;
@@ -4077,10 +4078,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
           try {
             mkdirSuccess = ufs.mkdirs(dir, options);
           } catch (IOException e) {
-            LOG.debug("Exception Directory {}: ", dir, e);
+            LOG.debug("Persistence job {}: Exception Directory {}: ", jobId, dir, e);
           }
           if (mkdirSuccess) {
-            LOG.debug("UFS directory {} is created", dir);
             List<AclEntry> allAcls =
                 Stream.concat(ancestorInode.getDefaultACL().getEntries().stream(),
                     ancestorInode.getACL().getEntries().stream())
@@ -4088,13 +4088,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
             ufs.setAclEntries(dir, allAcls);
           } else {
             if (ufs.isDirectory(dir)) {
-              LOG.debug("UFS directory {} already exists", dir);
+              LOG.debug("Persistence job {}: UFS directory {} already exists", jobId, dir);
             } else {
-              LOG.info("UFS path {} is an existing file", dir);
+              LOG.error("Persistence job {}: UFS path {} is an existing file", jobId, dir);
             }
           }
         } catch (IOException e) {
-          LOG.error("Failed to create UFS directory {} with correct permission", dir, e);
+          LOG.error("Persistence job {}: Failed to create UFS directory {} with correct permission",
+              jobId, dir, e);
         }
       }
     }
