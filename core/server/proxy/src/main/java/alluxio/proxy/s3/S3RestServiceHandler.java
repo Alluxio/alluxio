@@ -33,6 +33,7 @@ import alluxio.grpc.WritePType;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
@@ -108,7 +109,13 @@ public final class S3RestServiceHandler {
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
   }
 
-  private static String getUserFromAuthorization(String authorization) {
+  /**
+   * Gets the user from the authorization header string.
+   * @param authorization the authorization header string
+   * @return the user
+   */
+  @VisibleForTesting
+  public static String getUserFromAuthorization(String authorization) {
     if (authorization == null) {
       return null;
     }
@@ -125,7 +132,12 @@ public final class S3RestServiceHandler {
       return null;
     }
 
-    return stripped.substring(0, colonIndex);
+    final String user = stripped.substring(0, colonIndex);
+    if (user.isEmpty()) {
+      return null;
+    }
+
+    return user;
   }
 
   private FileSystem getFileSystem(String authorization) {
@@ -343,6 +355,17 @@ public final class S3RestServiceHandler {
         checkPathIsAlluxioDirectory(fs, bucketPath);
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+
+        if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
+          // Need to create a folder
+          try {
+            fs.createDirectory(new AlluxioURI(objectPath));
+          } catch (IOException | AlluxioException e) {
+            throw toObjectS3Exception(e, objectPath);
+          }
+          return Response.ok().build();
+        }
+
         if (partNumber != null) {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
@@ -695,13 +718,13 @@ public final class S3RestServiceHandler {
     } catch (S3Exception e) {
       return e;
     } catch (DirectoryNotEmptyException e) {
-      return new S3Exception(resource, S3ErrorCode.BUCKET_NOT_EMPTY);
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_NOT_EMPTY);
     } catch (FileAlreadyExistsException e) {
-      return new S3Exception(resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
     } catch (FileDoesNotExistException e) {
-      return new S3Exception(resource, S3ErrorCode.NO_SUCH_BUCKET);
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
-      return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
+      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -713,9 +736,9 @@ public final class S3RestServiceHandler {
     } catch (S3Exception e) {
       return e;
     } catch (DirectoryNotEmptyException e) {
-      return new S3Exception(resource, S3ErrorCode.PRECONDITION_FAILED);
+      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
-      return new S3Exception(resource, S3ErrorCode.NO_SUCH_KEY);
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
