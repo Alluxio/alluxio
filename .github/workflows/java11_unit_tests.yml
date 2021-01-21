@@ -61,10 +61,3 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
             log*
-      - name: "Upload Code Coverage Report"
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./**/target/site/jacoco/jacoco.xml # optional
-          name: codecov-umbrella
-          fail_ci_if_error: true
-          verbose: true
