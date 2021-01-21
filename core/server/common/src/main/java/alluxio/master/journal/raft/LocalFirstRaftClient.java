@@ -44,7 +44,7 @@ public class LocalFirstRaftClient implements Closeable {
   private final Supplier<RaftClient> mClientSupplier;
   private ClientId mLocalClientId;
   private volatile RaftClient mClient;
-  private boolean mEnableRemoteClient = false;
+  private boolean mEnableRemoteClient;
 
   /**
    * @param server the local raft server
@@ -57,6 +57,8 @@ public class LocalFirstRaftClient implements Closeable {
     mServer = server;
     mClientSupplier = clientSupplier;
     mLocalClientId = localClientId;
+    mEnableRemoteClient = configuration.getBoolean(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
     if (mEnableRemoteClient && !configuration.getBoolean(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
       ensureClient();

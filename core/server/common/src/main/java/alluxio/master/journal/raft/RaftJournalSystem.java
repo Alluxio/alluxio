@@ -855,4 +855,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mPrimarySelector.notifyStateChanged(
         isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.SECONDARY);
   }
+
+  @VisibleForTesting
+  synchronized RaftServer getRaftServer() {
+    return mServer;
+  }
 }
