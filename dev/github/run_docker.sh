@@ -82,7 +82,7 @@ function main {
   if [ -n "${ALLUXIO_COVERAGE_REPORT}" ]
   then
     run_args+=" --entrypoint=dev/github/run_coverage.sh"
-  elif [ -n "${ALLUXIO_CHECKSTYLE}" :]
+  elif [ -n "${ALLUXIO_CHECKSTYLE}" ]
   then
     run_args+=" --entrypoint=dev/github/run_checks.sh"
   else
