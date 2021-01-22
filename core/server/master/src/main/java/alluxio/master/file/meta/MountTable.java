@@ -451,6 +451,13 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     /**
+     * @return the mount uri in the ufs
+     */
+    public AlluxioURI getUfsMountPointUri() {
+      return mUfsClient.getUfsMountPointUri();
+    }
+
+    /**
      * @return the {@link UnderFileSystem} closeable resource
      */
     public CloseableResource<UnderFileSystem> acquireUfsResource() {
