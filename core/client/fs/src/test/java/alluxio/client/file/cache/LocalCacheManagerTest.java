@@ -114,7 +114,8 @@ public final class LocalCacheManagerTest {
   /**
    * Creates a manager and waits until it is ready.
    */
-  private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore, PageStore pageStore) throws Exception {
+  private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
+      PageStore pageStore) throws Exception {
     LocalCacheManager cacheManager = LocalCacheManager.create(conf, metaStore, pageStore);
     CommonUtils.waitFor("restore completed",
         () -> cacheManager.state() == CacheManager.State.READ_WRITE,
