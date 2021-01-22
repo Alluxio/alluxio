@@ -145,6 +145,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
@@ -3797,14 +3798,18 @@ public final class DefaultFileSystemMaster extends CoreMaster
             && ufsResource.get().isObjectStorage()) {
           tempUfsPath = resolution.getUri().toString();
         } else {
-          tempUfsPath = PathUtils.temporaryFileName(
-              System.currentTimeMillis(), resolution.getUri().toString());
+          // make temp path for temp file to avoid the
+          // error reading (failure of temp file clean up)
+          String mountPointUri = resolution.getUfsMountPointUri().toString();
+          tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
+              PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
+          LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
+              tempUfsPath, resolution.getUri().toString());
         }
       }
 
       PersistConfig config =
           new PersistConfig(uri.getPath(), resolution.getMountId(), false, tempUfsPath);
-
       // Schedule the persist job.
       long jobId;
       JobMasterClient client = mJobMasterClientPool.acquire();
@@ -3963,6 +3968,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // Make rename only when tempUfsPath is different from final ufsPath. Note that,
                 // on object store, we take the optimization to skip the rename by having
                 // tempUfsPath the same as final ufsPath.
+                // check if the destination direction is valid, if there isn't exist directory,
+                // create it and it's parents
+                createParentPath(inodePath.getInodeList(), ufsPath, ufs, job.getId());
                 if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                   throw new IOException(
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
@@ -4025,6 +4033,69 @@ public final class DefaultFileSystemMaster extends CoreMaster
             LOG.warn("Failed to clean up staging UFS block file {}: {}",
                 ufsBlockPath, e.toString());
           }
+        }
+      }
+    }
+
+    /**
+     * Create parent path if there isn't exiting ancestors path for final persistence file.
+     *
+     * @param inodes List of inodes
+     * @param ufsPath ufs path
+     * @param ufs under file system
+     */
+    private void createParentPath(List<Inode> inodes, String ufsPath,
+        UnderFileSystem ufs, long jobId)
+        throws IOException {
+      Stack<Pair<String, Inode>> ancestors = new Stack<>();
+      int curInodeIndex = inodes.size() - 2;
+      // get file path
+      AlluxioURI curUfsPath = new AlluxioURI(ufsPath);
+      // get the parent path of current file
+      curUfsPath = curUfsPath.getParent();
+      // Stop when the directory already exists in UFS.
+      while (!ufs.isDirectory(curUfsPath.toString()) && curInodeIndex >= 0) {
+        Inode curInode = inodes.get(curInodeIndex);
+        ancestors.push(new Pair<>(curUfsPath.toString(), curInode));
+        curUfsPath = curUfsPath.getParent();
+        curInodeIndex--;
+      }
+
+      while (!ancestors.empty()) {
+        Pair<String, Inode> ancestor = ancestors.pop();
+        String dir = ancestor.getFirst();
+        Inode ancestorInode = ancestor.getSecond();
+        MkdirsOptions options = MkdirsOptions.defaults(ServerConfiguration.global())
+            .setCreateParent(false)
+            .setOwner(ancestorInode.getOwner())
+            .setGroup(ancestorInode.getGroup())
+            .setMode(new Mode(ancestorInode.getMode()));
+        // UFS mkdirs might fail if the directory is already created.
+        // If so, skip the mkdirs and assume the directory is already prepared,
+        // regardless of permission matching.
+        try {
+          boolean mkdirSuccess = false;
+          try {
+            mkdirSuccess = ufs.mkdirs(dir, options);
+          } catch (IOException e) {
+            LOG.debug("Persistence job {}: Exception Directory {}: ", jobId, dir, e);
+          }
+          if (mkdirSuccess) {
+            List<AclEntry> allAcls =
+                Stream.concat(ancestorInode.getDefaultACL().getEntries().stream(),
+                    ancestorInode.getACL().getEntries().stream())
+                    .collect(Collectors.toList());
+            ufs.setAclEntries(dir, allAcls);
+          } else {
+            if (ufs.isDirectory(dir)) {
+              LOG.debug("Persistence job {}: UFS directory {} already exists", jobId, dir);
+            } else {
+              LOG.error("Persistence job {}: UFS path {} is an existing file", jobId, dir);
+            }
+          }
+        } catch (IOException e) {
+          LOG.error("Persistence job {}: Failed to create UFS directory {} with correct permission",
+              jobId, dir, e);
         }
       }
     }
