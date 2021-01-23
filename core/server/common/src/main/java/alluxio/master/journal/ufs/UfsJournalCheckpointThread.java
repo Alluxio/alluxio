@@ -83,6 +83,12 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
+   * Keeps track of the last timestamp that an entry was processed. -1 means processing has not
+   * started yet.
+   */
+  private volatile long mLastEntryTimeMs = -1;
+
+  /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
@@ -176,6 +182,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
+    mLastEntryTimeMs = CommonUtils.getCurrentMs();
     while (true) {
       JournalEntry entry = null;
       try {
@@ -183,6 +190,7 @@ public final class UfsJournalCheckpointThread extends Thread {
           case CHECKPOINT:
             LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            mLastEntryTimeMs = CommonUtils.getCurrentMs();
             LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
@@ -199,6 +207,7 @@ public final class UfsJournalCheckpointThread extends Thread {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                   "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
             }
+            mLastEntryTimeMs = CommonUtils.getCurrentMs();
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
@@ -251,6 +260,10 @@ public final class UfsJournalCheckpointThread extends Thread {
         return;
       }
     }
+  }
+
+  public long getLastEntryTimeMs() {
+    return mLastEntryTimeMs;
   }
 
   /**

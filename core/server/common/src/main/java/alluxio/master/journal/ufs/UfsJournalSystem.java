@@ -20,6 +20,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -135,6 +136,26 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       futures.add(journalEntry.getValue().catchup(resumeSequence));
     }
     return CatchupFuture.allOf(futures);
+  }
+
+  @Override
+  public boolean waitForCatchup() {
+    try {
+      // TODO: how do we know if we are making progress, and should there be a max wait time?
+      CommonUtils.waitFor("journal replay to finish catching up", () -> {
+        for (UfsJournal journal : mJournals.values()) {
+          UfsJournal.ReplayState replayState = journal.getReplayState();
+          if (replayState != UfsJournal.ReplayState.REPLAY_DONE) {
+            return false;
+          }
+        }
+        return true;
+      }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.MINUTE_MS)
+          .setInterval(30 * Constants.SECOND_MS));
+    } catch (InterruptedException | TimeoutException e) {
+      return false;
+    }
+    return true;
   }
 
   @Override

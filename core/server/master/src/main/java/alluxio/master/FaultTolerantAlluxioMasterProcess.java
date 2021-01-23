@@ -83,6 +83,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     startMasters(false);
     LOG.info("Secondary started");
     while (!Thread.interrupted()) {
+      // wait for the journal to be considered nearly "caught up" before trying to transition it
+      // to primary mode
+      mJournalSystem.waitForCatchup();
+
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;

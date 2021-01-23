@@ -33,6 +33,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -77,6 +78,8 @@ public class UfsJournal implements Journal {
   public static final long UNKNOWN_SEQUENCE_NUMBER = Long.MAX_VALUE;
   /** The journal version. */
   public static final String VERSION = "v1";
+  private static final Long CATCHUP_QUIET_MS =
+      ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
 
   /** Directory for journal edit logs including the incomplete log file. */
   private static final String LOG_DIRNAME = "logs";
@@ -115,6 +118,10 @@ public class UfsJournal implements Journal {
   private volatile AbstractCatchupThread mCatchupThread;
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
+
+  public enum ReplayState {
+    NOT_SECONDARY, REPLAY_NOT_STARTED, REPLAY_IN_PROGRESS, REPLAY_DONE;
+  }
 
   private enum State {
     SECONDARY, PRIMARY, CLOSED;
@@ -467,6 +474,34 @@ public class UfsJournal implements Journal {
       throw new CancelledException(mMaster.getName() + ": Checkpoint is interrupted");
     }
   }
+
+  public synchronized ReplayState getReplayState() {
+    if (mState.get() != State.SECONDARY) {
+      // not in secondary mode
+      return ReplayState.NOT_SECONDARY;
+    }
+
+    if (mTailerThread == null) {
+      // tailer thread not active yet
+      return ReplayState.REPLAY_NOT_STARTED;
+    }
+
+    long lastEntryTimeMs = mTailerThread.getLastEntryTimeMs();
+
+    if (lastEntryTimeMs <= 0) {
+      // journal replay has not started yet
+      return ReplayState.REPLAY_NOT_STARTED;
+    }
+
+    if (CommonUtils.getCurrentMs() - lastEntryTimeMs < CATCHUP_QUIET_MS) {
+      // the journal is still being replayed
+      return ReplayState.REPLAY_IN_PROGRESS;
+    }
+
+    // the journal replay is most likely caught up
+    return ReplayState.REPLAY_DONE;
+  }
+
 
   /**
    * @return the log directory location
