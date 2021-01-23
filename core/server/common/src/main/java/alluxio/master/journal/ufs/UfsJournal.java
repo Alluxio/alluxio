@@ -119,6 +119,9 @@ public class UfsJournal implements Journal {
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
 
+  /**
+   * The state of the replay.
+   */
   public enum ReplayState {
     NOT_SECONDARY, REPLAY_NOT_STARTED, REPLAY_IN_PROGRESS, REPLAY_DONE;
   }
