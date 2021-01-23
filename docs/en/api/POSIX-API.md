@@ -38,21 +38,20 @@ Please read the [section of limitations](#assumptions-and-limitations) for detai
 ## Choose Fuse Implementation
 
 The Alluxio POSIX API has two implementations for users to choose from:
-* [Alluxio JNR-Fuse](#jnr-fuse)
-Alluxio's default Fuse implementation that uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
+* Alluxio JNR-Fuse
+Alluxio's default Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 JNR-Fuse targets for low concurrency scenarios and has some known limitations.
-* [Alluxio JNI-Fuse](#jni-fuse) (Experimental)
+* Alluxio JNI-Fuse (Experimental)
 Alluxio JNI-Fuse is an in-house FUSE implementation based on JNI (Java Native Interface) which targets for challenging AI scenarios.
 JNI-Fuse is experimental but is the direction to go. Alluxio community is continuously solving the compatibility issues and improve stability and performance of JNI-Fuse.
 
 To choose between the default JNR-Fuse and JNI-Fuse, here are some aspects to consider:
 
 * Platforms: JNR-Fuse support both Linux and MacOS while JNI-Fuse can only be run in Linux environment.
-* Ease of usage: JNR-Fuse is enabled by default while JNI-Fuse has more dependencies requirements.
-* Training Jobs: JNI-Fuse introduces less overhead, has more concurrency improvements, and 
-generally provides better performance in high concurrency machine learning jobs.
-* Maintenance: JNI-Fuse is experimental but is the direction to go. Alluxio will focus more on developing JNI-Fuse.
+* Ease of usage: JNR-Fuse is enabled by default while JNI-Fuse has more dependencies.
 * Workload: JNR-Fuse supports both read and write workloads. JNI-Fuse supports read only during experimental stage.
+Alluxio JNI-Fuse generally provides better performance in high concurrency deep learning workloads.
+* Maintenance: JNI-Fuse is experimental but is the direction to go. Alluxio will focus more on developing JNI-Fuse.
 
 ## Requirements
 
@@ -177,9 +176,9 @@ specific Alluxio client options.
 Note that these changes should be done before the mounting steps.
 
 JNR-Fuse targets low concurrency workloads, so the default client configuration normally is enough. 
-JNI-Fuse requires fine-tuning when running under multi-threads concurrency deep learning workloads.
+JNI-Fuse requires fine-tuning when running under highly concurrent deep learning workloads.
 
-The following client options are useful in some machine learning workloads using JNI-Fuse shared by community users.
+The following client options are found useful when running deep learning workloads against Alluxio JNI-Fuse.
 If you find other options useful, please share with us via [Alluxio community slack channel]((https://slackin.alluxio.io/)) 
 or [pull request]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url}}).
 
@@ -192,10 +191,9 @@ for access file at desired position. With multi-threading and `kernel_cache`, Al
 issue much more `seek()` requests than expected and thus significantly decrease read performance. 
 Client side data cache mechanism is introduced to solve the excessive `seek()` issue.
 
-Suggest configuring Alluxio client side data cache when running heavy I/O scenarios cause it will introduce extra resource consumption.
+Client-side data cache will introduce extra resource consumption and is suggested to be configured under heavy I/O scenarios.
 
 The following configuration are related to client side data cache:
-
 <table class="table table-striped">
     <tr>
         <td>Configuration</td>
@@ -210,7 +208,7 @@ The following configuration are related to client side data cache:
     <tr>
         <td>alluxio.user.client.cache.store.type</td>
         <td>LOCAL</td>
-        <td>The type of page store to use for client-side cache. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data</td>
+        <td>The type of page store to use for client-side cache. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data.</td>
     </tr>
     <tr>
         <td>alluxio.user.client.cache.dir</td>
@@ -220,7 +218,7 @@ The following configuration are related to client side data cache:
     <tr>
         <td>alluxio.user.client.cache.page.size</td>
         <td>1MB</td>
-        <td>Size of each page in client-side cache. Users can try 2MB, 4MB and 8MB first in performance tunning. Note that, if using memory to cache and the page size is too big, JVM may GC frequently. If the value is too small, the cache hit ratio may be too low.</td>
+        <td>Size of each page in client-side cache. Users can try 2MB, 4MB and 8MB first in performance tunning. Note that, if using memory to cache and the page size is too big, JVM may GC frequently. If the value is too small, the cache hit ratio may be low.</td>
     </tr>
     <tr>
         <td>alluxio.user.client.cache.size</td>
@@ -257,7 +255,7 @@ Enable when the workload repeatedly getting information of numerous files.
     <tr>
         <td>alluxio.user.metadata.cache.enabled</td>
         <td>false</td>
-        <td>If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.max.size or or the cache size is over the limit of alluxio.user.metadata.cache.max.size. </td>
+        <td>If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.</td>
     </tr>
     <tr>
         <td>alluxio.user.metadata.cache.max.size</td>
@@ -271,7 +269,7 @@ Enable when the workload repeatedly getting information of numerous files.
     </tr>
 </table>
 
-For example, a workload that repeatedly gets information of 1 million files and runs for 50 minutes may set the following configuration:
+For example, a workload that repeatedly gets information of 1 million files and runs for 50 minutes can set the following configuration:
 ```
 alluxio.user.metadata.cache.enabled=true
 alluxio.user.metadata.cache.max.size=1000000
@@ -361,23 +359,19 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
         <td>direct_io</td>
         <td>set by default in JNR-Fuse</td>
         <td>don't set in JNI-Fuse</td>
-        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. 
-            `direct_io` is enabled by default in JNR-Fuse but is recommended not to be set in JNI-Fuse
-            cause it may have stability issue under high I/O load.</td>
+        <td>When `direct_io` is enabled, kernel will not cache data and read-ahead. `direct_io` is enabled by default in JNR-Fuse but is recommended not to be set in JNI-Fuse cause it may have stability issue under high I/O load.</td>
     </tr>
     <tr>
         <td>kernel_cache</td>
         <td></td>
         <td>Unable to set in JNR-Fuse, recommend to set in JNI-Fuse based on workloads</td>
-        <td>`kernel_cache` utilizes kernel system caching and improves read performance.
-            This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem).</td>
+        <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem).</td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>
         <td>1.0</td>
         <td>7200</td>
-        <td>The timeout in seconds for which file/directory attributes are cached. The default is 1 second.
-            Recommend set to a larger value to reduce the time to retrieve file metadata operations from Alluxio master and improve performance.</td>
+        <td>The timeout in seconds for which file/directory attributes are cached. The default is 1 second. Recommend set to a larger value to reduce the time to retrieve file metadata operations from Alluxio master and improve performance.</td>
     </tr>
     <tr>
         <td>big_writes</td>
@@ -400,10 +394,10 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
     </tr>
 </table>
 
-A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed under high concurrency workloads.
+A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
 If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead. 
-Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X only during experimental stage.
-The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_FUSE_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) 
+Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
+The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) 
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
@@ -413,7 +407,6 @@ $ docker run --rm \
     --env MAX_IDLE_THREADS=64 \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
-
   {% endcollapsible %}
 {% endaccordion %}  
 
