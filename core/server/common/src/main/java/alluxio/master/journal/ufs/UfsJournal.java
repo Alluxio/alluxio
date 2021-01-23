@@ -478,6 +478,9 @@ public class UfsJournal implements Journal {
     }
   }
 
+  /**
+   * @return the state of the journal replay
+   */
   public synchronized ReplayState getReplayState() {
     if (mState.get() != State.SECONDARY) {
       // not in secondary mode

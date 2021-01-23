@@ -141,7 +141,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   @Override
   public boolean waitForCatchup() {
     try {
-      // TODO: how do we know if we are making progress, and should there be a max wait time?
+      // TODO(gpang): how do we know if we are making progress?
       CommonUtils.waitFor("journal replay to finish catching up", () -> {
         for (UfsJournal journal : mJournals.values()) {
           UfsJournal.ReplayState replayState = journal.getReplayState();
@@ -150,6 +150,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           }
         }
         return true;
+        // TODO(gpang): what should be the max wait time? what should happen if it does time out?
       }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.MINUTE_MS)
           .setInterval(30 * Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
