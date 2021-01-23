@@ -262,6 +262,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     }
   }
 
+  /**
+   * @return the timestamp (in ms) of the entry last processed
+   */
   public long getLastEntryTimeMs() {
     return mLastEntryTimeMs;
   }

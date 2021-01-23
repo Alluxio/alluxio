@@ -508,7 +508,6 @@ public class UfsJournal implements Journal {
     return ReplayState.REPLAY_DONE;
   }
 
-
   /**
    * @return the log directory location
    */
