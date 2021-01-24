@@ -35,7 +35,7 @@ Please read the [section of limitations](#assumptions-and-limitations) for detai
 * Table of Contents
 {:toc}
 
-## Choose Fuse Implementation
+## Choose POSIX API Implementation
 
 The Alluxio POSIX API has two implementations for users to choose from:
 * Alluxio JNR-Fuse
@@ -55,6 +55,11 @@ Alluxio JNI-Fuse generally provides better performance in high concurrency deep 
 
 ## Requirements
 
+The followings are the basic requirements of running Alluxio POSIX API. 
+[Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
+and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
+can help solve the setup pain points.
+
 {% navtabs requirements %}
 {% navtab JNR-Fuse %}
 - JDK 1.8 or newer
@@ -63,8 +68,6 @@ reported to also work - with some warnings) for Linux
 - [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 {% endnavtab %}
 {% navtab JNI-Fuse %}
-The followings are the basic requirements of running Alluxio JNI-Fuse. [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access) 
-and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api) can help solve the setup pain points. 
 - JDK 1.8 or newer
 - [libfuse](https://github.com/libfuse/libfuse) 2.9.X.
 Libfuse 3.X and MacOS are not supported.
