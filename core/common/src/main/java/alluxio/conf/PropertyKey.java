@@ -1465,7 +1465,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
-          .setDefaultValue("2h")
+          .setDefaultValue("12h")
           .setDescription("The max duration for a grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -1823,7 +1823,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
           .setAlias("alluxio.master.worker.heartbeat.interval")
-          .setDefaultValue("10sec")
+          .setDefaultValue("5min")
           .setDescription("The interval between Alluxio master detections to find lost workers "
               + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
