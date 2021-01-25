@@ -40,7 +40,6 @@ import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
-import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerWebUIBlockInfo;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
