@@ -601,11 +601,6 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(LOG_LEVEL)
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
-      @Override
-      public LogInfo call() throws Exception {
-        return LogUtils.setLogLevel(logName, level);
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
   }
 }
