@@ -361,7 +361,7 @@ tieredstore:
     path: /alluxio/ram
 
 fuse:
-  enaabled: true
+  enabled: true
   clientEnabled: true
   mountPath: /mnt/alluxio-fuse
   image: registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio-fuse

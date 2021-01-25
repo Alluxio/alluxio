@@ -1016,6 +1016,41 @@ $ helm upgrade alluxio -f config.yaml \
   alluxio-charts/alluxio
 ```
 
+{% accordion posixHelm %}
+  {% collapsible Advanced POSIX API Configuration %}
+- Alluxio fuse/client configuration:
+```properties
+properties:
+  alluxio.fuse.jnifuse.enabled: true
+  alluxio.user.metadata.cache.enabled: true
+  alluxio.user.metadata.cache.expiration.time: 2day
+  alluxio.user.metadata.cache.max.size: "1000000"
+  alluxio.user.direct.memory.io.enabled: true
+  alluxio.fuse.logging.threshold: 1000ms
+```
+- Alluxio fuse java opts
+```properties
+fuse:
+  jvmOptions: " -Xmx16G -Xms16G -XX:MaxDirectMemorySize=32g"
+```
+- Alluxio fuse mount options
+```properties
+fuse:
+  args:
+    - fuse
+    - --fuse-opts=kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+```
+- Alluxio fuse environment variables
+```properties
+fuse:
+  env:
+    MAX_IDLE_THREADS: "64"
+```
+
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+  {% endcollapsible %}
+{% endaccordion %}
+
 {% endnavtab %}
 {% navtab kubectl %}
 
@@ -1041,6 +1076,44 @@ $ kubectl create -f alluxio-fuse-client.yaml
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
+
+{% accordion posixKubernetes %}
+  {% collapsible Advanced POSIX API Configuration %}
+- Alluxio fuse/client java opts can be set in `alluxio-configmap.yaml`:
+```yaml
+  ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
+    -Dalluxio.fuse.jnifuse.enabled=true
+    -Dalluxio.user.metadata.cache.enabled=true 
+    -Dalluxio.user.metadata.cache.expiration.time=40min 
+    -Dalluxio.user.metadata.cache.max.size=10000000 
+    -Dalluxio.user.logging.threshold=1000ms 
+    -Dalluxio.fuse.logging.threshold=1000ms 
+```
+Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, Alluxio fuse
+can read from the worker storage directly to improve read performance. 
+In this case, Alluxio Fuse need to know about the worker storage information.
+This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
+- Alluxio fuse mount options can be set in `alluxio-fuse.yaml`:
+```yaml
+containers:
+  - name: alluxio-fuse
+    args:
+      - fuse
+      - --fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200
+```
+- Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
+```yaml
+containers:
+  - name: alluxio-fuse
+    env:
+      - name: "MAX_IDLE_THREADS"
+        value: "64"
+```
+
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+  {% endcollapsible %}
+{% endaccordion %}
 
 {% endnavtab %}
 {% endnavtabs %}
