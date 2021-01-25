@@ -414,6 +414,13 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 
+Additional POSIX API configuration can also be added based on actual use cases.
+For example,
+- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.jnifuse.enbaled=true"` add alluxio client/fuse side configuration
+to Alluxio POSIX API container. The example java opts enables Alluxio JNI-Fuse POSIX implementation.
+- `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+
 ## Performance Optimiztion
 
 ### Enable short-circuit reads and writes
