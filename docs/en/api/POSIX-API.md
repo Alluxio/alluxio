@@ -6,6 +6,9 @@ group: Client APIs
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 The Alluxio POSIX API is a feature that allows mounting an Alluxio File System as a standard file system
 on most flavors of Unix.
 By using this feature, standard tools (for example, `ls`, `cat` or `mkdir`) will have basic access
@@ -32,22 +35,19 @@ data model, the mounted file system does not have full POSIX semantics and conta
 limitations.
 Please read the [section of limitations](#assumptions-and-limitations) for details.
 
-* Table of Contents
-{:toc}
-
 ## Choose POSIX API Implementation
 
 The Alluxio POSIX API has two implementations for users to choose from:
 * Alluxio JNR-Fuse
 Alluxio's default Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
-JNR-Fuse targets for low concurrency scenarios and has some known limitations.
+JNR-Fuse targets for low concurrency scenarios and has some known limitations in performance.
 * Alluxio JNI-Fuse (Experimental)
-Alluxio JNI-Fuse is an in-house FUSE implementation based on JNI (Java Native Interface) which targets for challenging AI scenarios.
-JNI-Fuse is experimental but is the direction to go. Alluxio community is continuously solving the compatibility issues and improve stability and performance of JNI-Fuse.
+Alluxio JNI-Fuse is a new in-house FUSE implementation based on JNI (Java Native Interface) which targets for challenging AI scenarios, initiated by Nanjing University and Alibaba.
+JNI-Fuse is still experimental but it is under active development by Alluxio community to solve the compatibility issues and improve stability and performance.
 
 To choose between the default JNR-Fuse and JNI-Fuse, here are some aspects to consider:
 
-* Platforms: JNR-Fuse support both Linux and MacOS while JNI-Fuse can only be run in Linux environment.
+* Platforms: JNR-Fuse support both Linux and MacOS while JNI-Fuse is only supported in Linux environment currently.
 * Ease of usage: JNR-Fuse is enabled by default while JNI-Fuse has more dependencies.
 * Workload: JNR-Fuse supports both read and write workloads. JNI-Fuse supports read only during experimental stage.
 Alluxio JNI-Fuse generally provides better performance in high concurrency deep learning workloads.
@@ -55,10 +55,10 @@ Alluxio JNI-Fuse generally provides better performance in high concurrency deep 
 
 ## Requirements
 
-The followings are the basic requirements of running Alluxio POSIX API. 
-[Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
+The followings are the basic requirements running Alluxio FUSE integration to support POSIX API in a standalone way.
+Installing Alluxio using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
 and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
-can help solve the setup pain points.
+can further simplify the setup.
 
 {% navtabs requirements %}
 {% navtab JNR-Fuse %}
@@ -71,11 +71,13 @@ reported to also work - with some warnings) for Linux
 - JDK 1.8 or newer
 - [libfuse](https://github.com/libfuse/libfuse) 2.9.X.
 Libfuse 3.X and MacOS are not supported.
-- Add pre-compiled `libjnifuse.so` to `java.library.path`
-Add the `libjnifuse.so` under `${ALLUXIO_HOME}/integration/docker` to your existing `java.library.path` (e.g. `/usr/lib`) 
-or expose it by adding `ALLUXIO_FUSE_JAVA_OPTS+=" -Djava.library.path=${ALLUXIO_HOME}/integration/docker"` 
-to `${ALLUXIO_HOME}/conf/alluxio-env.sh`. 
-- Enabled JNI-Fuse
+- Add pre-compiled `libjnifuse.so` to `java.library.path`.
+This can be achieved by (1)
+copying the [`libjnifuse.so`](https://github.com/Alluxio/alluxio/blob/master/integration/docker/libjnifuse.so) to your existing system Java class path
+or (2) adding `ALLUXIO_FUSE_JAVA_OPTS+=" -Djava.library.path=${ALLUXIO_HOME}/integration/docker"`
+to `${ALLUXIO_HOME}/conf/alluxio-env.sh`.
+Check out [this link](https://stackoverflow.com/questions/16227045/how-to-add-so-file-to-the-java-library-path-in-linux) for more details.
+- Enabled JNI-Fuse by settting `alluxio.fuse.jnifuse.enabled` to `true`.
 ```
 $ echo "alluxio.fuse.jnifuse.enabled=true" >> ${ALLUXIO_HOME}/conf/alluxio-site.properties
 ```
@@ -178,20 +180,20 @@ One possibility, for example, is to edit `${ALLUXIO_HOME}/conf/alluxio-site.prop
 specific Alluxio client options.
 Note that these changes should be done before the mounting steps.
 
-JNR-Fuse targets low concurrency workloads, so the default client configuration normally is enough. 
+JNR-Fuse targets low concurrency workloads, so the default client configuration normally is enough.
 JNI-Fuse requires fine-tuning when running under highly concurrent deep learning workloads.
 
 The following client options are found useful when running deep learning workloads against Alluxio JNI-Fuse.
-If you find other options useful, please share with us via [Alluxio community slack channel]((https://slackin.alluxio.io/)) 
+If you find other options useful, please share with us via [Alluxio community slack channel](https://alluxio.io/slack)
 or [pull request]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url}}).
 
 {% accordion clientOptions %}
-  {% collapsible Alluxio client side data cache %}  
+  {% collapsible Alluxio client side data cache %}
 With JNI-Fuse, multiple threads are allowed to visit the same Alluxio mount point concurrently.
 When `kernel_cache` option is enabled, kernel can prefetch data to fulfill future read requests.
 Alluxio has the assumption that most reads are sequential and has a relatively expensive `seek()` call
-for access file at desired position. With multi-threading and `kernel_cache`, Alluxio JNI-Fuse may 
-issue much more `seek()` requests than expected and thus significantly decrease read performance. 
+for access file at desired position. With multi-threading and `kernel_cache`, Alluxio JNI-Fuse may
+issue much more `seek()` requests than expected and thus significantly decrease read performance.
 Client side data cache mechanism is introduced to solve the excessive `seek()` issue.
 
 Client-side data cache will introduce extra resource consumption and is suggested to be configured under heavy I/O scenarios.
@@ -244,8 +246,8 @@ ALLUXIO_FUSE_JAVA_OPTS+=" -Xmx10G -Xms10G -XX:MaxDirectMemorySize=8g"
 ```
 Users are recommended to monitor the cache hit ratio (via `${ALLUXIO_HOME}/logs/fuse.log`) and JVM GC status to adjust the page size and cache size.
   {% endcollapsible %}
-  {% collapsible Alluxio client side metadata cache %}  
-Alluxio JNI-FUSE can cache file metadata locally to reduce the overhead of 
+  {% collapsible Alluxio client side metadata cache %}
+Alluxio JNI-FUSE can cache file metadata locally to reduce the overhead of
 repeatedly requesting metadata of the same file from Alluxio Master.
 Enable when the workload repeatedly getting information of numerous files.
 
@@ -282,7 +284,7 @@ The metadata size of 1 million files usually is around 25MB to 100MB.
 Enable metadata cache may also introduce some overhead, but may not be as big as client data cache.
 
   {% endcollapsible %}
-  {% collapsible Other client options %}  
+  {% collapsible Other client options %}
 The following client options may affect the training performance or provides more training information.
 
 <table class="table table-striped">
@@ -328,7 +330,7 @@ The following client options may affect the training performance or provides mor
     </tr>
 </table>
   {% endcollapsible %}
-{% endaccordion %}  
+{% endaccordion %}
 
 ### Configure mount point options
 
@@ -349,7 +351,7 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
 ```
 
 {% accordion mount %}
-  {% collapsible Tuning mount options %} 
+  {% collapsible Tuning mount options %}
 
 <table class="table table-striped">
     <tr>
@@ -386,7 +388,7 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
         <td>entry_timeout=N</td>
         <td>1.0</td>
         <td>7200</td>
-        <td>The timeout in seconds for which name lookups will be cached. The default is 1 second. 
+        <td>The timeout in seconds for which name lookups will be cached. The default is 1 second.
             Recommend set to a larger value to reduce the file metadata operations in Alluxio-Fuse and improve performance.</td>
     </tr>
     <tr>
@@ -398,9 +400,9 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
 </table>
 
 A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
-If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead. 
+If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead.
 Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
-The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) 
+The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
@@ -411,10 +413,10 @@ $ docker run --rm \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
   {% endcollapsible %}
-{% endaccordion %}  
+{% endaccordion %}
 
 {% accordion example %}
-  {% collapsible Example: `allow_other` and `allow_root` %}  
+  {% collapsible Example: `allow_other` and `allow_root` %}
 By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
 
@@ -441,7 +443,7 @@ $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_pat
 
 Note that only one of the `allow_other` or `allow_root` could be set.
   {% endcollapsible %}
-{% endaccordion %}  
+{% endaccordion %}
 
 ## Assumptions and limitations
 
