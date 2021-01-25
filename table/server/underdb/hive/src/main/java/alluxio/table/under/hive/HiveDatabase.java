@@ -162,8 +162,12 @@ public class HiveDatabase implements UnderDatabase {
 
       for (Partition part : partitions) {
         AlluxioURI partitionUri;
-        if (part.getSd() != null && part.getSd().getLocation() != null
-            && ufsUri.isAncestorOf(partitionUri = new AlluxioURI(part.getSd().getLocation()))) {
+        if (part.getSd() != null && part.getSd().getLocation() != null) {
+          partitionUri = new AlluxioURI(part.getSd().getLocation());
+          if (!mConfiguration.getBoolean(Property.ALLOW_DIFF_PART_LOC_PREFIX)
+              && !ufsUri.isAncestorOf(partitionUri)) {
+            continue;
+          }
           hiveUfsUri = part.getSd().getLocation();
           String partName = part.getValues().toString();
           try {
