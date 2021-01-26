@@ -131,15 +131,17 @@ public class JournalContextTest {
         mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
 
     AtomicBoolean journalContextCreated = new AtomicBoolean(false);
-
-    Thread thread = new Thread(() -> {
+    Runnable run = () -> {
       // new journal contexts should be blocked
       try (JournalContext journalContext = mBlockMaster.createJournalContext()) {
         journalContextCreated.set(true);
       } catch (UnavailableException e) {
         throw new RuntimeException("Failed to create journal context", e);
       }
-    });
+    };
+
+    Thread thread = new Thread(run);
+    Thread thread2 = new Thread(run);
     thread.start();
 
     try {
@@ -149,11 +151,14 @@ public class JournalContextTest {
 
       // after un-pausing, new journal contexts can be created
       lock.close();
+      thread2.run();
       CommonUtils.waitFor("journal context created", journalContextCreated::get,
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {
       thread.interrupt();
       thread.join();
+      thread2.interrupt();
+      thread2.join();
     }
   }
 
