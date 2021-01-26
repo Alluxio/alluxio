@@ -34,6 +34,9 @@ function generateTemplates {
   if [[ ! -d "${dir}/worker" ]]; then
     mkdir -p ${dir}/worker
   fi
+  if [[ ! -d "${dir}/logserver" ]]; then
+    mkdir -p ${dir}/logserver
+  fi
 
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
@@ -53,6 +56,7 @@ EOF
   generateMasterTemplates
   generateWorkerTemplates
   generateFuseTemplates
+  generateLoggingTemplates
 }
 
 function generateConfigTemplates {
@@ -76,6 +80,13 @@ function generateFuseTemplates {
   echo "Generating fuse templates"
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+}
+
+function generateLoggingTemplates {
+  echo "Generating remote logserver templates"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/deployment.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-deployment.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/service.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/log-pvc.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-pvc.yaml.template"
 }
 
 function generateMasterServiceTemplates {

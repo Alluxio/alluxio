@@ -106,8 +106,11 @@ public interface FileSystem extends Closeable {
      * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
+      return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
+    }
+
+    public static FileSystem get(Subject subject, AlluxioConfiguration conf) {
       Preconditions.checkNotNull(subject, "subject");
-      AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
       // TODO(gpang): should this key use the UserState instead of subject?
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);

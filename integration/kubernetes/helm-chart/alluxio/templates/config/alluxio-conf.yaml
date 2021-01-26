@@ -192,3 +192,9 @@ data:
     {{- /* Format ALLUXIO_FUSE_JAVA_OPTS list to one line */}}
     {{ range $key := $fuseJavaOpts }}{{ printf "%v " $key }}{{ end }}
   ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm
+  {{- if .Values.logserver.enabled }}
+  ALLUXIO_LOGSERVER_HOSTNAME: {{ $fullName }}-logserver
+  {{- /* Note: The value must be a string or kubectl will fail to read it */}}
+  ALLUXIO_LOGSERVER_PORT: {{ quote .Values.logserver.ports.logging }}
+  {{- end }}
+

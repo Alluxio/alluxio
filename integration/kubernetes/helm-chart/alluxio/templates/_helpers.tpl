@@ -119,6 +119,28 @@ resources:
     {{- end }}
 {{- end -}}
 
+{{- define "alluxio.logserver.resources" -}}
+resources:
+  limits:
+    {{- if .Values.logserver.resources.limits }}
+      {{- if .Values.logserver.resources.limits.cpu  }}
+    cpu: {{ .Values.logserver.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.logserver.resources.limits.memory  }}
+    memory: {{ .Values.logserver.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.logserver.resources.requests }}
+      {{- if .Values.logserver.resources.requests.cpu  }}
+    cpu: {{ .Values.logserver.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.logserver.resources.requests.memory  }}
+    memory: {{ .Values.logserver.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
 {{- define "alluxio.journal.format.resources" -}}
 resources:
   limits:
@@ -151,6 +173,14 @@ resources:
 
 {{- define "alluxio.worker.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.worker }}
+            - name: secret-{{ $key }}-volume
+              mountPath: /secrets/{{ $val }}
+              readOnly: true
+  {{- end -}}
+{{- end -}}
+
+{{- define "alluxio.logserver.secretVolumeMounts" -}}
+  {{- range $key, $val := .Values.secrets.logserver }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
@@ -332,4 +362,22 @@ livenessProbe:
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 2
+{{- end -}}
+
+{{- define "alluxio.logserver.log.volume" -}}
+{{- if eq .Values.logserver.volumeType "hostPath" }}
+- name: alluxio-logs
+  hostPath:
+    path: {{ .Values.logserver.hostPath }}
+    type: DirectoryOrCreate
+{{- else if eq .Values.logserver.volumeType "emptyDir" }}
+- name: alluxio-logs
+  emptyDir:
+    medium: {{ .Values.logserver.medium }}
+    sizeLimit: {{ .Values.logserver.size | quote }}
+{{- else }}
+- name: alluxio-logs
+  persistentVolumeClaim:
+    claimName: "{{ .Values.logserver.pvcName }}"
+{{- end }}
 {{- end -}}

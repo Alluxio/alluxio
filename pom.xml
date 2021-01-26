@@ -1025,6 +1025,7 @@
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
+            <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
               <jacoco-agent.append>true</jacoco-agent.append>
@@ -1471,7 +1472,7 @@
           <groupId>org.jacoco</groupId>
           <artifactId>org.jacoco.agent</artifactId>
           <classifier>runtime</classifier>
-          <version>0.8.5</version>
+          <version>${jacoco.version}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
