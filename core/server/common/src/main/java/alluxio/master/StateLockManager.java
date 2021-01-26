@@ -19,6 +19,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 
+import alluxio.util.logging.SamplingLogger;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +51,11 @@ import java.util.stream.Collectors;
  */
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
+  private static final SamplingLogger SAMPLING_LOG = new SamplingLogger(LOG, 30 * 1000);
+  private static final int READ_LOCK_COUNT_HIGH = 0;
 
   /** The state-lock. */
-  private ReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
+  private ReentrantReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
 
   /** The set of threads that are waiting for or holding the state-lock in shared mode. */
   private Set<Thread> mSharedWaitersAndHolders;
@@ -131,7 +134,13 @@ public class StateLockManager {
    */
   public LockResource lockShared() throws InterruptedException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+      SAMPLING_LOG.debug(String.format("Thread-{} entered lockShared().",
+          ThreadUtils.getCurrentThreadIdentifier()));
+      final int readLockCount = mStateLock.getReadLockCount();
+      if (readLockCount > READ_LOCK_COUNT_HIGH) {
+        SAMPLING_LOG.debug("Read Lock Count Too High: {} {}", readLockCount,
+            mSharedWaitersAndHolders);
+      }
     }
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
