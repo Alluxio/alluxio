@@ -69,3 +69,4 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
             log*
+          retention-days: 7
