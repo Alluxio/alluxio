@@ -30,6 +30,8 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.proxy.s3.tag.TagHelper;
+import alluxio.proxy.s3.tag.Tagging;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -57,6 +59,7 @@ import javax.security.auth.Subject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
@@ -200,10 +203,11 @@ public final class S3RestServiceHandler {
                             @QueryParam("marker") final String markerParam,
                             @QueryParam("prefix") final String prefixParam,
                             @QueryParam("delimiter") final String delimiterParam,
-                            @QueryParam("max-keys") final int maxKeysParam) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
+                            @QueryParam("max-keys") final int maxKeysParam,
+                            @DefaultValue("null") @QueryParam("tagging") final String tagging) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Object>() {
       @Override
-      public ListBucketResult call() throws S3Exception {
+      public Object call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
 
         String marker = markerParam;
@@ -230,6 +234,14 @@ public final class S3RestServiceHandler {
 
         final FileSystem fs = getFileSystem(authorization);
         checkPathIsAlluxioDirectory(fs, path);
+
+        if (tagging.isEmpty()) {
+          try {
+            return new Tagging(TagHelper.getTags(fs, path));
+          } catch (IOException | AlluxioException e) {
+            throw new RuntimeException(e);
+          }
+        }
 
         List<URIStatus> children;
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
@@ -260,7 +272,9 @@ public final class S3RestServiceHandler {
   @Path(BUCKET_PARAM)
   //@ReturnType("java.lang.Void")
   public Response createBucket(@HeaderParam("Authorization") String authorization,
-                               @PathParam("bucket") final String bucket) {
+                               @PathParam("bucket") final String bucket,
+                               @DefaultValue("null") @QueryParam("tagging") final String tagging,
+                               final InputStream is) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
@@ -269,6 +283,15 @@ public final class S3RestServiceHandler {
         String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
 
         final FileSystem fs = getFileSystem(authorization);
+
+        if (tagging.isEmpty()) {
+          try {
+            TagHelper.addTag(fs, bucketPath, is);
+          } catch (AlluxioException | IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+
         // Create the bucket.
         CreateDirectoryPOptions options =
             CreateDirectoryPOptions.newBuilder().setWriteType(getS3WriteType()).build();
@@ -564,14 +587,32 @@ public final class S3RestServiceHandler {
   @GET
   @Path(OBJECT_PARAM)
   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
-  public Response getObjectOrListParts(@HeaderParam("Authorization") String authorization,
-                                       @PathParam("bucket") final String bucket,
-                                       @PathParam("object") final String object,
-                                       @QueryParam("uploadId") final Long uploadId) {
+  public Response getObjectOrListParts(
+      @HeaderParam("Authorization") String authorization,
+      @PathParam("bucket") final String bucket,
+      @PathParam("object") final String object,
+      @QueryParam("uploadId") final Long uploadId,
+      @DefaultValue("empty") @QueryParam("tagging") final String tagging) {
     Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
     Preconditions.checkNotNull(object, "required 'object' parameter is missing");
 
     final FileSystem fs = getFileSystem(authorization);
+
+    if (tagging.isEmpty()) {
+      return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Tagging>() {
+        @Override
+        public Tagging call() throws S3Exception {
+          String bucketPath = parsePath(AlluxioURI.SEPARATOR + bucket);
+          checkPathIsAlluxioDirectory(fs, bucketPath);
+          String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+          try {
+            return new Tagging(TagHelper.getTags(fs, objectPath));
+          } catch (AlluxioException | IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
+    }
 
     if (uploadId != null) {
       return listParts(fs, bucket, object, uploadId);
