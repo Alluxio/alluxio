@@ -763,6 +763,192 @@ $ kubectl get pv
 $ kubectl get pvc
 ```
 
+### Enable remote logging
+
+Alluxio supports a centralized log server that collects logs for all Alluxio processes. 
+You can find the specific section at [Remote logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }}).
+This can be enabled on K8s too, so that all Alluxio pods will send logs to this log server.
+
+{% navtabs logging %}
+{% navtab helm %}
+**Step 1: Configure the log server**
+
+By default, the Alluxio remote log server is not started.
+You can enable the log server by configuring the following properties:
+```properties
+logserver:
+  enabled: true
+```
+
+If you are just testing and it is okay to discard logs, you can use an `emptyDir` to store the logs in the log server.
+```properties
+logserver:
+  enabled: true
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: emptyDir
+  # Attributes to use when the log volume is emptyDir
+  medium: ""
+  size: 4Gi
+```
+
+For a production environment, you should always persist the logs with a Persistent Volume.
+```properties
+logserver:
+  enabled: true
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the log volume is PVC
+  pvcName: alluxio-logserver-logs
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  selector:
+    matchLabels:
+      role: alluxio-logserver
+      # If you need, you can specify more selectors like below to provide better separation
+      # app: alluxio
+      # chart: alluxio-<chart version>
+      # release: alluxio
+      # heritage: Helm
+      # dc: data-center-1
+      # region: us-east
+  # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
+  # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  # Example:
+  # selector: {}
+```
+
+**Step 2: Helm install with the updated configuration**
+
+When you enable the remote log server, it will be managed by a K8s Deployment.
+If you specify the volume type to be `persistentVolumeClaim`, a PVC will be created and mounted.
+You will need to provision a PV for the PVC.
+Then there will be a Service created for the Deployment, which all other Alluxio pods send logs to.
+{% endnavtab %}
+
+{% navtab kubectl %}
+**Step 1: Configure log server location with environment variables**
+
+Add `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVER_PORT` properties to the configmap.
+```properties
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  ..omitted
+data:
+  ..omitted
+  ALLUXIO_LOGSERVER_HOSTNAME: alluxio-logserver
+  ALLUXIO_LOGSERVER_PORT: "45600"
+```
+> Note: The value for `ALLUXIO_LOGSERVER_PORT` must be a string or kubectl will fail to read it.
+
+**Step 2: Configure and start log server**
+
+In the sample YAML directory (e.g. `singleMaster-localJournal`), the `logserver/` directory
+contains all resources for the log server, including a Deployment, a Service and a PVC if needed.
+
+First you can prepare the YAML file and configure what volume to use for the Deployment.
+```console
+$ cp logserver/alluxio-logserver-deployment.yaml.template logserver/alluxio-logserver-deployment.yaml
+```
+
+If you are testing and it is okay to discard logs, you can use an `emptyDir` for the volume like below:
+```properties
+  volumes:      
+  - name: alluxio-logs
+    emptyDir:
+      medium: 
+      sizeLimit: "4Gi"
+``` 
+
+And the volume should be mounted to the log server container at `/opt/alluxio/logs`. 
+```properties
+  volumeMounts:
+  - name: alluxio-logs
+    mountPath: /opt/alluxio/logs
+```
+
+For a production environment, you should always persist the logs with a Persistent Volume.
+```properties
+  volumes:      
+  - name: alluxio-logs
+    persistentVolumeClaim:
+      claimName: "alluxio-logserver-logs"
+```
+
+There is also a YAML template for PVC `alluxio-logserver-logs`.
+```console
+$ cp logserver/alluxio-logserver-pvc.yaml.template logserver/alluxio-logserver-pvc.yaml
+```
+
+You can further configure the resource and selector for the PVC, according to your environment.
+```properties
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alluxio-logserver-logs
+  ..omitted
+spec:
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  # If you are using dynamic provisioning, leave the selector empty.
+  selector:
+    matchLabels:
+      role: alluxio-logserver
+```
+
+Create the PVC when you are ready.
+```console
+$ kubectl create -f alluxio-logserver-pvc.yaml
+```
+
+After you configure the volume in the Deployment, you can go ahead to create it.
+```console
+$ kubectl create -f alluxio-logserver-deployment.yaml
+```
+
+There is also a Service associated to the Deployment.
+```console
+$ cp logserver/alluxio-logserver-service.yaml.template logserver/alluxio-logserver-service.yaml
+$ kubectl create -f logserver/alluxio-logserver-service.yaml
+```
+
+**Step 3: Restart other Alluxio pods**
+
+You need to restart your other Alluxio pods (masters, workers, FUSE etc) so they
+capture the updated environment variables and send logs to the remote log server.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+**Verify log server**
+
+You can go into the log server pod and verify the logs exist.
+
+```console
+$ kubectl exec -it <logserver-pod-name> bash
+# In the logserver pod
+bash-4.4$ pwd
+/opt/alluxio
+# You should see logs collected from other Alluxio pods
+bash-4.4$ ls -al logs
+total 16
+drwxrwsr-x    4 1001     bin           4096 Jan 12 03:14 .
+drwxr-xr-x    1 alluxio  alluxio         18 Jan 12 02:38 ..
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_master
+-rw-r--r--    1 alluxio  bin            600 Jan 12 03:14 logserver.log
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 master
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 worker
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_worker
+```
+
 ## Advanced Setup
 
 ### POSIX API
