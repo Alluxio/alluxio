@@ -1831,6 +1831,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_LOST_WORKER_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_DETECTION_INTERVAL)
           .setDefaultValue("10sec")
+          .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDescription("The interval between Alluxio master detections to find lost workers "
               + "based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
