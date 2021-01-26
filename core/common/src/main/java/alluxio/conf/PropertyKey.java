@@ -1822,10 +1822,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
-          .setAlias("alluxio.master.worker.heartbeat.interval")
+          .setDefaultValue("5min")
+          .setDescription("The interval between Alluxio master detections to find lost "
+              + "files based on updates from Alluxio workers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_LOST_WORKER_DETECTION_INTERVAL =
+      new Builder(Name.MASTER_LOST_WORKER_DETECTION_INTERVAL)
           .setDefaultValue("10sec")
+          .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDescription("The interval between Alluxio master detections to find lost workers "
-              + "and files based on updates from Alluxio workers.")
+              + "based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -5147,6 +5155,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
+    public static final String MASTER_LOST_WORKER_DETECTION_INTERVAL =
+        "alluxio.master.lost.worker.detection.interval";
     public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
         "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =

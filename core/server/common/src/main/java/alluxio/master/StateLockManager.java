@@ -207,10 +207,10 @@ public class StateLockManager {
           throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
               .getMessage(lockOptions.getGraceCycleTimeoutMs() + mForcedDurationMs));
         }
-      } catch (InterruptedException e) {
-        // Deactivate interrupter if active.
+      } catch (Throwable throwable) {
+        // Deactivate interrupter if lock acquisition was not successful.
         deactivateInterruptCycle();
-        throw e;
+        throw throwable;
       }
     }
 

@@ -374,7 +374,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
