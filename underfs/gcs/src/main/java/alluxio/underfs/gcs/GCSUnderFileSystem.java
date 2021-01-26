@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
+ * Google Cloud Storage {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
 public class GCSUnderFileSystem extends ObjectUnderFileSystem {
