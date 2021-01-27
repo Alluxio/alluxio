@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
   private static final SamplingLogger SAMPLING_LOG = new SamplingLogger(LOG, 30 * 1000);
-  private static final int READ_LOCK_COUNT_HIGH = 0;
+  private static final int READ_LOCK_COUNT_HIGH = 20000;
 
   /** The state-lock. */
   private ReentrantReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
