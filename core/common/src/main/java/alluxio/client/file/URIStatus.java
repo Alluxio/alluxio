@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.CacheScope;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -313,6 +314,13 @@ public class URIStatus {
    */
   public CacheQuota getCacheQuota() {
     return mInfo.getCacheQuota();
+  }
+
+  /**
+   * @return the cache scope
+   */
+  public CacheScope getCacheScope() {
+    return mInfo.getCacheScope();
   }
 
   /**

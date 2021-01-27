@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -46,7 +47,10 @@ public class LocalCacheFileInStream extends FileInStream {
 
   /** Local store to store pages. */
   private final CacheManager mCacheManager;
-  /** Path of the file. */
+  private final boolean mQuotaEnabled;
+  /** Scope of the file. */
+  private final CacheScope mCacheScope;
+  /** Cache Scope. */
   private final CacheQuota mCacheQuota;
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
@@ -86,7 +90,14 @@ public class LocalCacheFileInStream extends FileInStream {
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
-    mCacheQuota = status.getCacheQuota();
+    mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
+    if (mQuotaEnabled) {
+      mCacheQuota = status.getCacheQuota();
+      mCacheScope = status.getCacheScope();
+    } else {
+      mCacheQuota = CacheQuota.UNLIMITED;
+      mCacheScope = CacheScope.GLOBAL;
+    }
     Metrics.registerGauges();
   }
 
@@ -139,7 +150,7 @@ public class LocalCacheFileInStream extends FileInStream {
           totalBytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          mCacheManager.put(pageId, page);
+          mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
     }
@@ -208,7 +219,7 @@ public class LocalCacheFileInStream extends FileInStream {
           totalBytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          mCacheManager.put(pageId, page);
+          mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
     }
