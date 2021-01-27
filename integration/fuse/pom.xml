@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>2.4.1-2-SNAPSHOT</version>
+    <version>2.4.1-2</version>
   </parent>
   <artifactId>alluxio-integration-fuse</artifactId>
   <name>Alluxio Integration - FUSE</name>
@@ -84,9 +84,9 @@
                 <goals><goal>run</goal></goals>
                 <configuration>
                   <target>
-                    <mkdir dir="${project.build.directory}/native"/>
+                    <mkdir dir="${project.build.directory}/native" />
                     <exec executable="make" failonerror="true" dir="${project.build.directory}/native">
-                      <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile"/>
+                      <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile" />
                     </exec>
                   </target>
                 </configuration>
