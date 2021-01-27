@@ -400,8 +400,7 @@ public final class LocalCacheManagerTest {
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(
-          partitionCacheScope1.level(), (long) PAGE1.length,
-          partitionCacheScope2.level(), (long) PAGE2.length,
+          partitionCacheScope1.level(), (long) PAGE1.length + PAGE2.length,
           cacheScope.level(), (long) PAGE1.length + PAGE2.length - 1
       ));
       assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionCacheScope1, quota));

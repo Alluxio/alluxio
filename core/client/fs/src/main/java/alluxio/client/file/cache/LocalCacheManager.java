@@ -305,7 +305,6 @@ public class LocalCacheManager implements CacheManager {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
-    boolean enoughSpace;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
