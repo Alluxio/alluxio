@@ -17,6 +17,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,15 @@ public class DefaultMetaStore implements MetaStore {
    * @param conf configuration
    */
   public DefaultMetaStore(AlluxioConfiguration conf) {
-    mEvictor = CacheEvictor.create(conf);
+    this(CacheEvictor.create(conf));
+  }
+
+  /**
+   * @param evictor cache evictor
+   */
+  @VisibleForTesting
+  public DefaultMetaStore(CacheEvictor evictor) {
+    mEvictor = evictor;
   }
 
   @Override

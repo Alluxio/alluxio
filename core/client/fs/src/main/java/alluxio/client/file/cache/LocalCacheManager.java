@@ -316,9 +316,13 @@ public class LocalCacheManager implements CacheManager {
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
         if (scopeToEvict == null) {
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         } else {
-          victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
+          if (mQuotaEnabled) {
+            victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
+          } else {
+            victimPageInfo = mMetaStore.evict();
+          }
           if (victimPageInfo == null) {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
                 mMetaStore.bytes(), page.length, mCacheSize);
@@ -365,7 +369,7 @@ public class LocalCacheManager implements CacheManager {
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
         if (scopeToEvict == null) {
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         }
       }
       // phase2: remove victim and add new page in pagestore
