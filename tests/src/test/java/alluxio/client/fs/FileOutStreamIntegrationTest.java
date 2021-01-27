@@ -238,7 +238,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.cancel();
     }
     long gracePeriod = ServerConfiguration
-        .getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL) * 2;
+        .getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
