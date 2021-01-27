@@ -130,6 +130,7 @@ public class StateLockManager {
    * @throws InterruptedException
    */
   public LockResource lockShared() throws InterruptedException {
+    
     if (LOG.isDebugEnabled()) {
       LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
     }
