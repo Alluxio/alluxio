@@ -20,7 +20,7 @@
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
-  <version>3.3.0</version>
+  <version>${ufs.hadoop.version}</version>
   <description>Shaded Hadoop Module</description>
 
   <properties>
@@ -85,11 +85,11 @@
           <artifactId>hadoop-hdfs</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
-        <dependency>	
-          <!-- using older version to match dependency version from Hadoop, guava introduced a breaking change between version 14 and later -->	
-          <groupId>com.google.guava</groupId>	
-          <artifactId>guava</artifactId>	
-          <version>14.0.1</version>	
+        <dependency>
+          <!-- using older version to match dependency version from Hadoop, guava introduced a breaking change between version 14 and later -->
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>14.0.1</version>
         </dependency>
       </dependencies>
     </profile>
