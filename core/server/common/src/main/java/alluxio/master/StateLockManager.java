@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
-  private static final SamplingLogger SAMPLING_LOG = new SamplingLogger(LOG, 30 * 1000);
+  private static final SamplingLogger SAMPLING_LOG = new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
   private static final int READ_LOCK_COUNT_HIGH = 20000;
 
   /** The state-lock. */
