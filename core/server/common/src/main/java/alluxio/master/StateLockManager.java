@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -220,6 +221,18 @@ public class StateLockManager {
       // Before releasing the write-lock, activate interrupter if active.
       deactivateInterruptCycle();
     });
+  }
+
+  /**
+   * @return the list of thread names that are waiting and holding on the shared lock
+   */
+  public List<String> getSharedWaitersAndHolders() {
+    List<String> result = new ArrayList<>();
+
+    for (Thread waiterOrHolder : mSharedWaitersAndHolders) {
+      result.add(waiterOrHolder.getName());
+    }
+    return result;
   }
 
   /**
