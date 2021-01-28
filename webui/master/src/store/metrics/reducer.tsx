@@ -64,7 +64,7 @@ export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsSta
           id: item.name,
           xAxisLabel: 'Time Stamp',
           yAxisLabel: 'Percent (%)',
-          data: transformToNivoFormat(item.dataPoints.splice(0, 24), 'timeStamp', 'value'),
+          data: transformToNivoFormat(item.dataPoints.slice(-20), 'timeStamp', 'value'),
         });
       });
       action.payload.data.timeSeriesMetrics = timeSeriesMetrics;
