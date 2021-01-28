@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -22,19 +22,19 @@ import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
-import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
+import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.annotator.BlockIterator;
-import alluxio.worker.block.annotator.BlockOrder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -51,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -86,7 +87,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
-
+  private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -376,8 +377,13 @@ public class TieredBlockStore implements BlockStore {
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
-
+    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
+        REMOVE_BLOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    if (lockId == BlockLockManager.INVALID_LOCK_ID) {
+      throw new IOException(
+          String.format("Can not acquire lock to remove block %d for session %d after %d ms",
+              blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
+    }
     BlockMeta blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       if (mMetaManager.hasTempBlockMeta(blockId)) {
