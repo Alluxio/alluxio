@@ -36,6 +36,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -170,6 +171,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModePOptions options)
       throws AlluxioStatusException {
+  }
+
+  @Override
+  public List<String> getStateLockHolders() throws AlluxioStatusException {
+    return Collections.EMPTY_LIST;
   }
 
   @Override
