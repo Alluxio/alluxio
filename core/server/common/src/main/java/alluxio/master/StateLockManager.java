@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -18,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -34,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -50,9 +51,12 @@ import java.util.stream.Collectors;
  */
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
+  private static final SamplingLogger SAMPLING_LOG =
+      new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
+  private static final int READ_LOCK_COUNT_HIGH = 20000;
 
   /** The state-lock. */
-  private ReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
+  private ReentrantReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
 
   /** The set of threads that are waiting for or holding the state-lock in shared mode. */
   private Set<Thread> mSharedWaitersAndHolders;
@@ -130,7 +134,22 @@ public class StateLockManager {
    * @throws InterruptedException
    */
   public LockResource lockShared() throws InterruptedException {
+<<<<<<< HEAD
     LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+||||||| parent of 302d386ebf... Add debug logging to StateLockManager
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+    }
+=======
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+      final int readLockCount = mStateLock.getReadLockCount();
+      if (readLockCount > READ_LOCK_COUNT_HIGH) {
+        SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
+            mSharedWaitersAndHolders);
+      }
+    }
+>>>>>>> 302d386ebf... Add debug logging to StateLockManager
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
     if (exclusiveOnlyRemainingMs > 0) {
