@@ -299,7 +299,7 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * @return the state lock waiters and holders thread names
+   * @return the state lock waiters and holders thread identifiers
    */
   List<String> getStateLockHolders() throws AlluxioStatusException;
 }

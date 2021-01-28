@@ -223,13 +223,13 @@ public class StateLockManager {
   }
 
   /**
-   * @return the list of thread names that are waiting and holding on the shared lock
+   * @return the list of thread identifiers that are waiting and holding on the shared lock
    */
   public List<String> getSharedWaitersAndHolders() {
     List<String> result = new ArrayList<>();
 
     for (Thread waiterOrHolder : mSharedWaitersAndHolders) {
-      result.add(waiterOrHolder.getName());
+      result.add(ThreadUtils.getThreadIdentifier(waiterOrHolder));
     }
     return result;
   }

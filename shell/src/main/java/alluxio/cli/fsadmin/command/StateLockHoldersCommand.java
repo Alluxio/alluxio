@@ -19,7 +19,7 @@ import org.apache.commons.cli.CommandLine;
 import java.io.IOException;
 
 /**
- * CI Command to get state lock holder thread names.
+ * CI Command to get state lock holder thread identifiers.
  */
 public class StateLockHoldersCommand extends AbstractFsAdminCommand {
 
