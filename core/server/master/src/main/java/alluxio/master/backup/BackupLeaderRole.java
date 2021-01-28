@@ -285,6 +285,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
         Map<String, Long> journalSequences;
         try (LockResource stateLockResource = mStateLockManager.lockExclusive(stateLockOptions,
             () -> {
+              // Suspend journals on current follower for every lock attempt.
               LOG.info("Suspending journals at backup-worker: {}", workerEntry.getValue());
               sendMessageBlocking(workerEntry.getKey(), new BackupSuspendMessage());
             })) {
