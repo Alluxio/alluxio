@@ -51,7 +51,8 @@ import java.util.stream.Collectors;
  */
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
-  private static final SamplingLogger SAMPLING_LOG = new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
+  private static final SamplingLogger SAMPLING_LOG =
+      new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
   private static final int READ_LOCK_COUNT_HIGH = 20000;
 
   /** The state-lock. */
