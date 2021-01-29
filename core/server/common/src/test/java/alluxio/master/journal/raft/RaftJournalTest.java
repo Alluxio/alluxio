@@ -454,16 +454,17 @@ public class RaftJournalTest {
       CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0,
           mWaitOptions);
 
-    // Gain primacy in follower journal and validate it catches up.
-    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
-    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
-    mFollowerJournalSystem.gainPrimacy();
-    // Can't use countingMaster because Raft stops applying entries for primary journals.
-    // Using JournalSystem#getCurrentSequences() API instead.
-    CommonUtils.waitFor(
-        "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
-            .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
-        mWaitOptions);
+      // Gain primacy in follower journal and validate it catches up.
+      mLeaderJournalSystem.notifyLeadershipStateChanged(false);
+      mFollowerJournalSystem.notifyLeadershipStateChanged(true);
+      mFollowerJournalSystem.gainPrimacy();
+      // Can't use countingMaster because Raft stops applying entries for primary journals.
+      // Using JournalSystem#getCurrentSequences() API instead.
+      CommonUtils.waitFor(
+          "full state acquired after resume",
+          () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
+              .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
+          mWaitOptions);
 
       // Follower should no longer be suspended after becoming primary.
       Assert.assertFalse(mFollowerJournalSystem.isSuspended());
@@ -528,7 +529,6 @@ public class RaftJournalTest {
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
     return journalSystems;
   }
-
 
   @VisibleForTesting
   void changeToCandidate(RaftJournalSystem journalSystem) throws Exception {
