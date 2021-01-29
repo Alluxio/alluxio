@@ -1881,8 +1881,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_INITIAL_REPLAY_ENABLED =
       new Builder(Name.MASTER_JOURNAL_INITIAL_REPLAY_ENABLED)
           .setDefaultValue(false)
-          .setDescription("(Experimental) Enable the initial journal replay before joining the quorum "
-              + "in fault tolerant mode when starting the master process. This is added to prevent "
+          .setDescription("(Experimental) Enable the initial journal replay "
+              + "before joining the quorum in fault tolerant mode "
+              + "when starting the master process. This is added to prevent "
               + "frequently leadership transition during heavy journal replay stage")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

@@ -338,9 +338,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             mMasterAddress);
       }
       // Enable worker role if backup delegation is enabled.
-      // TODO(lu) master 1 and master 2 are starting
-      // master 1 should be the backup leader
-      // howevery master 1 is catching up
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)) {
         mBackupRole = new BackupWorkerRole(mCoreMasterContext);
       }

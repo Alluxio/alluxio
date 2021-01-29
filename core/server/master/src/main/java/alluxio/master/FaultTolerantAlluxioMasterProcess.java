@@ -83,7 +83,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     try {
-      LOG.info("Start leader selector");
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -91,13 +90,11 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     while (!Thread.interrupted()) {
-      LOG.info("Start waiting for state primary");
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;
       }
       if (gainPrimacy()) {
-        LOG.info("gained primacy, start waiting for state secondary");
         mLeaderSelector.waitForState(State.SECONDARY);
         if (!mRunning) {
           break;
@@ -123,7 +120,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         unstable.set(true);
       }
       stopMasters();
-      LOG.info("Secondary stopped"); // TODO(lu) 1
+      LOG.info("Secondary stopped");
       try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
         mJournalSystem.gainPrimacy();

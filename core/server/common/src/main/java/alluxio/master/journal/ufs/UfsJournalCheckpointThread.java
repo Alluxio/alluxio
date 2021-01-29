@@ -123,8 +123,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     mJournalCheckpointSleepTimeMs =
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
     mReplayDoneSleepThreshold = mShutdownQuietWaitTimeMs > mJournalCheckpointSleepTimeMs
-        && mJournalCheckpointSleepTimeMs != 0 ?
-        (int) mShutdownQuietWaitTimeMs / mJournalCheckpointSleepTimeMs : 1;
+        && mJournalCheckpointSleepTimeMs != 0
+        ? (int) mShutdownQuietWaitTimeMs / mJournalCheckpointSleepTimeMs : 1;
     mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
     mCheckpointPeriodEntries =
         ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
