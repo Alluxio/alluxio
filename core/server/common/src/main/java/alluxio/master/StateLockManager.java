@@ -223,6 +223,18 @@ public class StateLockManager {
   }
 
   /**
+   * @return the list of thread identifiers that are waiting and holding on the shared lock
+   */
+  public List<String> getSharedWaitersAndHolders() {
+    List<String> result = new ArrayList<>();
+
+    for (Thread waiterOrHolder : mSharedWaitersAndHolders) {
+      result.add(ThreadUtils.getThreadIdentifier(waiterOrHolder));
+    }
+    return result;
+  }
+
+  /**
    * @return {@code true} if the interrupt-cycle has been ticked and ticking
    */
   public boolean interruptCycleTicking() {
