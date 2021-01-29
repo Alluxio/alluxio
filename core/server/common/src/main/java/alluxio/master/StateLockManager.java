@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
+import alluxio.retry.RetryUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -25,6 +26,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -171,7 +173,24 @@ public class StateLockManager {
    * @throws InterruptedException if interrupting during locking
    */
   public LockResource lockExclusive(StateLockOptions lockOptions)
-      throws TimeoutException, InterruptedException {
+      throws TimeoutException, InterruptedException, IOException {
+    return lockExclusive(lockOptions, null);
+  }
+
+  /**
+   * Locks the state exclusively.
+   *
+   * @param lockOptions exclusive lock options
+   * @param beforeAttempt a function which runs before each lock attempt and returns whether the
+   *                      lock should continue
+   * @return the lock resource
+   * @throws TimeoutException if locking times out
+   * @throws InterruptedException if interrupting during locking
+   * @throws IOException if the beforeAttempt functions fails
+   */
+  public LockResource lockExclusive(StateLockOptions lockOptions,
+      RetryUtils.RunnableThrowsIOException beforeAttempt)
+      throws TimeoutException, InterruptedException, IOException {
     LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
     StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
@@ -184,6 +203,9 @@ public class StateLockManager {
         LOG.info("Thread-{} entered grace-cycle of try-sleep: {}ms-{}ms for the total of {}ms",
             ThreadUtils.getCurrentThreadIdentifier(), lockOptions.getGraceCycleTryMs(),
             lockOptions.getGraceCycleSleepMs(), lockOptions.getGraceCycleTimeoutMs());
+      }
+      if (beforeAttempt != null) {
+        beforeAttempt.run();
       }
       if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(), TimeUnit.MILLISECONDS)) {
         lockAcquired = true;
@@ -212,6 +234,9 @@ public class StateLockManager {
           mSharedWaitersAndHolders.stream().map((th) -> Long.toString(th.getId()))
               .collect(Collectors.joining(",")));
       try {
+        if (beforeAttempt != null) {
+          beforeAttempt.run();
+        }
         if (!mStateLock.writeLock().tryLock(mForcedDurationMs, TimeUnit.MILLISECONDS)) {
           throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
               .getMessage(lockOptions.getGraceCycleTimeoutMs() + mForcedDurationMs));
