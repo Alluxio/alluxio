@@ -418,6 +418,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   // Journal metrics
+  public static final MetricKey MASTER_JOURNAL_INITIAL_CATCHUP_TIME_MS =
+      new Builder(Name.MASTER_JOURNAL_INITIAL_CATCHUP_TIME_MS)
+          .setDescription("The process time of the journal initial catchup (journal replay)")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
@@ -1151,6 +1156,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
+    public static final String MASTER_JOURNAL_INITIAL_CATCHUP_TIME_MS
+        = "Master.JournalInitialCatchupTimeMs";
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";

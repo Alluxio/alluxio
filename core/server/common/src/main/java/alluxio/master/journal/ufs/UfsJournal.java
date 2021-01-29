@@ -469,6 +469,17 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * @return the state of the master process startup journal replay
+   */
+  public synchronized UfsJournalCheckpointThread.ReplayState getReplayState() {
+    if (mTailerThread == null) {
+      // tailer thread not active yet
+      return UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED;
+    }
+    return mTailerThread.getReplayState();
+  }
+
+  /**
    * @return the log directory location
    */
   @VisibleForTesting

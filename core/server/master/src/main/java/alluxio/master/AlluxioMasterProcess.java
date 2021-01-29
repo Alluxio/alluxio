@@ -391,6 +391,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
+        // TODO(lu) oh shit, ZK primary selector create here, and then will new zookeeper client
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
         return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector);
       } else if (journalSystem instanceof RaftJournalSystem) {

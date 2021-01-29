@@ -83,6 +83,19 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
+   * The state of the replay.
+   */
+  public enum ReplayState {
+    REPLAY_NOT_STARTED, REPLAY_IN_PROGRESS, REPLAY_DONE;
+  }
+
+  /**
+   * The continuous sleep number required before thinking the initial journal replay as done.
+   */
+  private final int mReplayDoneSleepThreshold;
+  private volatile ReplayState mReplayState = ReplayState.REPLAY_NOT_STARTED;
+
+  /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
@@ -109,6 +122,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
+    mReplayDoneSleepThreshold = mShutdownQuietWaitTimeMs > mJournalCheckpointSleepTimeMs
+        && mJournalCheckpointSleepTimeMs != 0 ?
+        (int) mShutdownQuietWaitTimeMs / mJournalCheckpointSleepTimeMs : 1;
     mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
     mCheckpointPeriodEntries =
         ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
@@ -176,6 +192,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
+    int continuousSleepNum = 0;
+    mReplayState = ReplayState.REPLAY_IN_PROGRESS;
     while (true) {
       JournalEntry entry = null;
       try {
@@ -184,6 +202,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
             LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
+            continuousSleepNum = 0;
             break;
           case LOG:
             entry = mJournalReader.getEntry();
@@ -202,6 +221,9 @@ public final class UfsJournalCheckpointThread extends Thread {
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
+            }
+            if (continuousSleepNum != -1) {
+              continuousSleepNum = 0;
             }
             break;
           default:
@@ -224,6 +246,10 @@ public final class UfsJournalCheckpointThread extends Thread {
 
       // Sleep for a while if no entry is found.
       if (entry == null) {
+        if (continuousSleepNum >= mReplayDoneSleepThreshold) {
+          mReplayState = ReplayState.REPLAY_DONE;
+          continuousSleepNum = -1;
+        }
         // Only try to checkpoint when it can keep up.
         maybeCheckpoint();
         if (mShutdownInitiated) {
@@ -244,6 +270,9 @@ public final class UfsJournalCheckpointThread extends Thread {
           quietPeriodWaited = true;
         } else {
           CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
+          if (continuousSleepNum != -1) {
+            continuousSleepNum++;
+          }
         }
       }
       if (Thread.interrupted() && !mShutdownInitiated) {
@@ -251,6 +280,13 @@ public final class UfsJournalCheckpointThread extends Thread {
         return;
       }
     }
+  }
+
+  /**
+   * @return the state of the master process startup journal replay
+   */
+  public ReplayState getReplayState() {
+    return mReplayState;
   }
 
   /**
@@ -273,6 +309,12 @@ public final class UfsJournalCheckpointThread extends Thread {
     }
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
       return;
+    }
+
+    if (mReplayState != ReplayState.REPLAY_DONE) {
+      // TODO(lu) consider whether users want to wait for checkpoint to finish before election
+      // Checkpoint may take a long time to finish, don't block master from coming up
+      mReplayState = ReplayState.REPLAY_DONE;
     }
 
     writeCheckpoint(nextSequenceNumber);

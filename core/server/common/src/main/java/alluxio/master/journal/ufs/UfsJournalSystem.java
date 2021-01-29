@@ -12,14 +12,19 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -51,6 +56,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   private final URI mBase;
   private final long mQuietTimeMs;
   private ConcurrentHashMap<String, UfsJournal> mJournals;
+  private long mInitialCatchUpTimeMs = -1;
 
   /**
    * Creates a UFS journal system with the specified base location. When journals are created, their
@@ -64,6 +70,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     mBase = base;
     mQuietTimeMs = quietTimeMs;
     mJournals = new ConcurrentHashMap<>();
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
+        () -> mInitialCatchUpTimeMs);
   }
 
   @Override
@@ -135,6 +143,31 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       futures.add(journalEntry.getValue().catchup(resumeSequence));
     }
     return CatchupFuture.allOf(futures);
+  }
+
+  @Override
+  public boolean waitForCatchup() {
+    long start = System.currentTimeMillis();
+    try {
+      CommonUtils.waitFor("journal replay to finish catching up", () -> {
+        for (UfsJournal journal : mJournals.values()) {
+          UfsJournalCheckpointThread.ReplayState replayState = journal.getReplayState();
+          if (replayState != UfsJournalCheckpointThread.ReplayState.REPLAY_DONE) {
+            // keep flushing entries
+            return false;
+          }
+        }
+        return true;
+      }, WaitForOptions.defaults().setTimeoutMs(
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME))
+          .setInterval(30 * Constants.SECOND_MS));
+    } catch (InterruptedException | TimeoutException e) {
+      mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
+      return false;
+    }
+    mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
+    LOG.info("Finish master process ufs journal initial catchup in {} ms", mInitialCatchUpTimeMs);
+    return true;
   }
 
   @Override
