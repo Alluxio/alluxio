@@ -4584,4 +4584,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public String getRootInodeOwner() {
     return mInodeTree.getRootUserName();
   }
+
+  @Override
+  public List<String> getStateLockSharedWaitersAndHolders() {
+    return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
+  }
 }
