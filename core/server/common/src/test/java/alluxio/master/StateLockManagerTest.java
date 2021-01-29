@@ -18,8 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
-
 import alluxio.util.ThreadUtils;
+
 import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -151,7 +151,8 @@ public class StateLockManagerTest {
       sharedHolderThread.waitUntilStateLockAcquired();
       final List<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
       assertEquals(i, sharedWaitersAndHolders.size());
-      assertTrue(sharedWaitersAndHolders.contains(ThreadUtils.getThreadIdentifier(sharedHolderThread)));
+      assertTrue(sharedWaitersAndHolders.contains(
+          ThreadUtils.getThreadIdentifier(sharedHolderThread)));
     }
   }
 
