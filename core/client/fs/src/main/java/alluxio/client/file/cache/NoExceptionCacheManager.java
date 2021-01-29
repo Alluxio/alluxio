@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.CacheScope;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -45,6 +47,17 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
+    try {
+      return mCacheManager.put(pageId, page, cacheScope, cacheQuota);
+    } catch (Exception e) {
+      LOG.error("Failed to put page {}, scope {}, quota {}", pageId, cacheScope, cacheQuota, e);
+      Metrics.PUT_ERRORS.inc();
+      return false;
+    }
+  }
+
+  @Override
   public int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
     try {
       return mCacheManager.get(pageId, bytesToRead, buffer, offsetInBuffer);
@@ -59,7 +72,7 @@ public class NoExceptionCacheManager implements CacheManager {
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
       int offsetInBuffer) {
     try {
-      return mCacheManager.get(pageId, pageOffset,  bytesToRead, buffer, offsetInBuffer);
+      return mCacheManager.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {}", pageId, pageOffset, e);
       Metrics.GET_ERRORS.inc();
