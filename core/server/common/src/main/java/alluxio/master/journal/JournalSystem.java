@@ -171,18 +171,19 @@ public interface JournalSystem {
   CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException;
 
   /**
-   * Waits for the journal to be mostly caught up. This is intended to be only be called
-   * when starting the Alluxio master process in secondary mode.
-   * This is best-effort, because even if it did not finish catching up, the rest
-   * of the system will still complete the catchup in a different phase.
+   * Waits for the initial journal replay to finish when the process starts.
+   * This is intended to be only be called when starting the Alluxio master process
+   * in secondary mode. This is best-effort, because even if it did not finish
+   * replaying the journal, the rest of the system will still complete
+   * the replay (journal catch up) in a different phase.
    *
    * This can be implemented by a journal type to optimize the journal replay, and avoid getting
    * interrupted with primary state changes during journal replay.
    *
    * @return true if the journal replay is considered caught up, false otherwise
    */
-  default boolean waitForCatchup() {
-    // default implementation does not wait to catch up.
+  default boolean waitForInitialReplay() {
+    // default implementation does not wait for journal replay to finish.
     return false;
   }
 

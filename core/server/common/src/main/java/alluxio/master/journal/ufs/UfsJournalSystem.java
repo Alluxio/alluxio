@@ -70,7 +70,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     mBase = base;
     mQuietTimeMs = quietTimeMs;
     mJournals = new ConcurrentHashMap<>();
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
         () -> mInitialCatchUpTimeMs);
   }
 
@@ -146,7 +146,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public boolean waitForCatchup() {
+  public boolean waitForInitialReplay() {
     long start = System.currentTimeMillis();
     try {
       CommonUtils.waitFor("journal replay to finish catching up", () -> {
@@ -162,11 +162,12 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME))
           .setInterval(30 * Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
+      LOG.info("Journal initial replay is interrupted or timeout", e);
       mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
       return false;
     }
     mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
-    LOG.info("Finish master process ufs journal initial catchup in {} ms", mInitialCatchUpTimeMs);
+    LOG.info("Finish master process ufs journal initial replay in {} ms", mInitialCatchUpTimeMs);
     return true;
   }
 
