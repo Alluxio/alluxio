@@ -584,4 +584,9 @@ public interface FileSystemMaster extends Master {
    * @return the owner of the root inode, null if the inode tree is not initialized
    */
   String getRootInodeOwner();
+
+  /**
+   * @return the list of thread identifiers that are waiting and holding the state lock
+   */
+  List<String> getStateLockSharedWaitersAndHolders();
 }

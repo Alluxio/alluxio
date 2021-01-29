@@ -32,6 +32,8 @@ import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
+import alluxio.grpc.GetStateLockHoldersPOptions;
+import alluxio.grpc.GetStateLockHoldersPRequest;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
@@ -332,6 +334,18 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         () -> mClient.updateUfsMode(UpdateUfsModePRequest.newBuilder()
             .setUfsPath(ufsUri.getRootPath()).setOptions(options).build()),
         RPC_LOG, "UpdateUfsMode", "ufsUri=%s,options=%s", ufsUri, options);
+  }
+
+  @Override
+  public List<String> getStateLockHolders()
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      final ArrayList<String> result = new ArrayList<>();
+      mClient.getStateLockHolders(GetStateLockHoldersPRequest.newBuilder()
+          .setOptions(GetStateLockHoldersPOptions.newBuilder().build()).build()).getThreadsList()
+          .forEach((thread) -> result.add(thread));
+      return result;
+    }, RPC_LOG, "GetStateLockHolders", "");
   }
 
   /**
