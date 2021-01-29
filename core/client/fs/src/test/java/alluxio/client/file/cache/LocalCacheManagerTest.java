@@ -846,8 +846,7 @@ public final class LocalCacheManagerTest {
   class FIFOEvictor implements CacheEvictor {
     private final LinkedList<PageId> mQueue = new LinkedList<>();
 
-    public FIFOEvictor() {
-    }
+    public FIFOEvictor() {}
 
     @Override
     public void updateOnGet(PageId pageId) {

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  */
 public class QuotaMetaStore extends DefaultMetaStore {
   /** Track the number of bytes on each scope. */
-  private final Map<CacheScope, Long> mBytesInScope = new ConcurrentHashMap<>();
+  private final Map<CacheScope, Long> mBytesInScope;
   private final Map<CacheScope, CacheEvictor> mCacheEvictors;
   private final Supplier<CacheEvictor> mSupplier;
 
@@ -35,6 +35,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
    */
   public QuotaMetaStore(AlluxioConfiguration conf) {
     super(conf);
+    mBytesInScope = new ConcurrentHashMap<>();
     mCacheEvictors = new ConcurrentHashMap<>();
     mSupplier = () -> CacheEvictor.create(conf);
   }
