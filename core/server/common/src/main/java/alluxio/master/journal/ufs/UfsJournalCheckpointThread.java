@@ -311,12 +311,6 @@ public final class UfsJournalCheckpointThread extends Thread {
       return;
     }
 
-    if (mReplayState != ReplayState.REPLAY_DONE) {
-      // TODO(lu) consider whether users want to wait for checkpoint to finish before election
-      // Checkpoint may take a long time to finish, don't block master from coming up
-      mReplayState = ReplayState.REPLAY_DONE;
-    }
-
     writeCheckpoint(nextSequenceNumber);
   }
 
