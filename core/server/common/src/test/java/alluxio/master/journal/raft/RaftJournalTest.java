@@ -79,8 +79,6 @@ public class RaftJournalTest {
       mFollowerJournalSystem = journalSystems.get(0);
     }
     // Transition primary journal to primacy state.
-//    mFollowerJournalSystem.notifyLeadershipStateChanged(false);
-//    mLeaderJournalSystem.notifyLeadershipStateChanged(true);
     mLeaderJournalSystem.gainPrimacy();
   }
 
