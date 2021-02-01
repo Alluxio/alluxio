@@ -141,7 +141,7 @@ public class StateLockManager {
     }
     if (LOG.isInfoEnabled()) {
       final int readLockCount = mStateLock.getReadLockCount();
-      if (readLockCount > READ_LOCK_COUNT_HIGH && LOG.isInfoEnabled()) {
+      if (readLockCount > READ_LOCK_COUNT_HIGH) {
         SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
             mSharedWaitersAndHolders);
       }
