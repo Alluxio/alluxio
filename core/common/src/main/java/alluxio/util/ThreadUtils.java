@@ -61,6 +61,7 @@ public final class ThreadUtils {
    */
   public static void shutdownAndAwaitTermination(ExecutorService pool, long timeoutMs) {
     pool.shutdown(); // Disable new tasks from being submitted
+    
     try {
       // Wait a while for existing tasks to terminate
       if (!pool.awaitTermination(timeoutMs / 2, TimeUnit.MILLISECONDS)) {
