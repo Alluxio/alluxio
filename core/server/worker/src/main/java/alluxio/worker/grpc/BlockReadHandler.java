@@ -60,7 +60,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-  private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
+  private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
 
