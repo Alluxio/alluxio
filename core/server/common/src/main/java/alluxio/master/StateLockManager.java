@@ -11,18 +11,22 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
+import alluxio.retry.RetryUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -50,9 +53,12 @@ import java.util.stream.Collectors;
  */
 public class StateLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(StateLockManager.class);
+  private static final SamplingLogger SAMPLING_LOG =
+      new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
+  private static final int READ_LOCK_COUNT_HIGH = 20000;
 
   /** The state-lock. */
-  private ReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
+  private ReentrantReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
 
   /** The set of threads that are waiting for or holding the state-lock in shared mode. */
   private Set<Thread> mSharedWaitersAndHolders;
@@ -132,6 +138,11 @@ public class StateLockManager {
   public LockResource lockShared() throws InterruptedException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+      final int readLockCount = mStateLock.getReadLockCount();
+      if (readLockCount > READ_LOCK_COUNT_HIGH) {
+        SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
+            mSharedWaitersAndHolders);
+      }
     }
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
@@ -162,7 +173,24 @@ public class StateLockManager {
    * @throws InterruptedException if interrupting during locking
    */
   public LockResource lockExclusive(StateLockOptions lockOptions)
-      throws TimeoutException, InterruptedException {
+      throws TimeoutException, InterruptedException, IOException {
+    return lockExclusive(lockOptions, null);
+  }
+
+  /**
+   * Locks the state exclusively.
+   *
+   * @param lockOptions exclusive lock options
+   * @param beforeAttempt a function which runs before each lock attempt and returns whether the
+   *                      lock should continue
+   * @return the lock resource
+   * @throws TimeoutException if locking times out
+   * @throws InterruptedException if interrupting during locking
+   * @throws IOException if the beforeAttempt functions fails
+   */
+  public LockResource lockExclusive(StateLockOptions lockOptions,
+      RetryUtils.RunnableThrowsIOException beforeAttempt)
+      throws TimeoutException, InterruptedException, IOException {
     LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
     StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
@@ -175,6 +203,9 @@ public class StateLockManager {
         LOG.info("Thread-{} entered grace-cycle of try-sleep: {}ms-{}ms for the total of {}ms",
             ThreadUtils.getCurrentThreadIdentifier(), lockOptions.getGraceCycleTryMs(),
             lockOptions.getGraceCycleSleepMs(), lockOptions.getGraceCycleTimeoutMs());
+      }
+      if (beforeAttempt != null) {
+        beforeAttempt.run();
       }
       if (mStateLock.writeLock().tryLock(lockOptions.getGraceCycleTryMs(), TimeUnit.MILLISECONDS)) {
         lockAcquired = true;
@@ -203,14 +234,17 @@ public class StateLockManager {
           mSharedWaitersAndHolders.stream().map((th) -> Long.toString(th.getId()))
               .collect(Collectors.joining(",")));
       try {
+        if (beforeAttempt != null) {
+          beforeAttempt.run();
+        }
         if (!mStateLock.writeLock().tryLock(mForcedDurationMs, TimeUnit.MILLISECONDS)) {
           throw new TimeoutException(ExceptionMessage.STATE_LOCK_TIMED_OUT
               .getMessage(lockOptions.getGraceCycleTimeoutMs() + mForcedDurationMs));
         }
-      } catch (InterruptedException e) {
-        // Deactivate interrupter if active.
+      } catch (Throwable throwable) {
+        // Deactivate interrupter if lock acquisition was not successful.
         deactivateInterruptCycle();
-        throw e;
+        throw throwable;
       }
     }
 
@@ -220,6 +254,18 @@ public class StateLockManager {
       // Before releasing the write-lock, activate interrupter if active.
       deactivateInterruptCycle();
     });
+  }
+
+  /**
+   * @return the list of thread identifiers that are waiting and holding on the shared lock
+   */
+  public List<String> getSharedWaitersAndHolders() {
+    List<String> result = new ArrayList<>();
+
+    for (Thread waiterOrHolder : mSharedWaitersAndHolders) {
+      result.add(ThreadUtils.getThreadIdentifier(waiterOrHolder));
+    }
+    return result;
   }
 
   /**

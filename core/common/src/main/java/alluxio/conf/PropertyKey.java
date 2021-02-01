@@ -1369,6 +1369,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_SUSPEND_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_SUSPEND_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("Timeout for when suspend request is not followed by a backup request.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -1822,10 +1829,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
-          .setAlias("alluxio.master.worker.heartbeat.interval")
+          .setDefaultValue("5min")
+          .setDescription("The interval between Alluxio master detections to find lost "
+              + "files based on updates from Alluxio workers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_LOST_WORKER_DETECTION_INTERVAL =
+      new Builder(Name.MASTER_LOST_WORKER_DETECTION_INTERVAL)
           .setDefaultValue("10sec")
+          .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDescription("The interval between Alluxio master detections to find lost workers "
-              + "and files based on updates from Alluxio workers.")
+              + "based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -3740,8 +3755,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
           .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
           .setDescription("The strategy that client uses to evict local cached pages when running "
-              + "out of space. Currently the only valid option provided is "
-              + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`.")
+              + "out of space. Currently valid options include "
+              + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`,"
+              + "`alluxio.client.file.cache.evictor.LFUCacheEvictor`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3800,6 +3816,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of file buckets for the local page store of the client-side "
               + "cache. It is recommended to set this to a high value if the number of unique "
               + "files is expected to be high (# files / file buckets <= 100,000).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_QUOTA_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_QUOTA_ENABLED)
+          .setDefaultValue("false")
+          .setDescription("Whether to support cache quota.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -5113,6 +5136,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.state.lock.forced.duration";
     public static final String MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
         "alluxio.master.backup.state.lock.interrupt.cycle.interval";
+    public static final String MASTER_BACKUP_SUSPEND_TIMEOUT =
+        "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -5147,6 +5172,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
+    public static final String MASTER_LOST_WORKER_DETECTION_INTERVAL =
+        "alluxio.master.lost.worker.detection.interval";
     public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
         "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
@@ -5568,10 +5595,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.lfu.logbase";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
-    public static final String USER_CLIENT_CACHE_PAGE_SIZE =
-        "alluxio.user.client.cache.page.size";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
         "alluxio.user.client.cache.local.store.file.buckets";
+    public static final String USER_CLIENT_CACHE_PAGE_SIZE =
+        "alluxio.user.client.cache.page.size";
+    public static final String USER_CLIENT_CACHE_QUOTA_ENABLED =
+        "alluxio.user.client.cache.quota.enabled";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =

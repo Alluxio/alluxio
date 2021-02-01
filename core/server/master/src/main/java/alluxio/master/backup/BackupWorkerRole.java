@@ -56,8 +56,6 @@ import java.util.concurrent.TimeUnit;
 public class BackupWorkerRole extends AbstractBackupRole {
   private static final Logger LOG = LoggerFactory.getLogger(BackupWorkerRole.class);
 
-  // Constant timeout for when suspend request is not followed by a backup request.
-  private static final long BACKUP_ABORT_AFTER_SUSPEND_TIMEOUT_MS = 15000;
   // Constant timeout for journal transition before backup.
   private static final long BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS = 30000;
   // Minimum retry wait time between each connection attempt to leader.
@@ -66,6 +64,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
   private final long mLeaderConnectionIntervalMax;
   // Interval at which backup progress will be sent to the leader.
   private final long mBackupHeartbeatIntervalMs;
+  // Timeout for when suspend request is not followed by a backup request.
+  private final long mBackupAbortSuspendTimeoutMs;
 
   /** Connection with the leader. */
   private GrpcMessagingConnection mLeaderConnection;
@@ -95,6 +95,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
     mLeaderConnectionIntervalMax =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
+    mBackupAbortSuspendTimeoutMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_SUSPEND_TIMEOUT);
     // Submit a task to establish and maintain connection with the leader.
     mExecutorService.submit(this::establishConnectionToLeader);
   }
@@ -175,7 +177,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     mBackupTimeoutTask = mTaskScheduler.schedule(() -> {
       LOG.info("Resuming journals as backup request hasn't been received.");
       enforceResumeJournals();
-    }, BACKUP_ABORT_AFTER_SUSPEND_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    }, mBackupAbortSuspendTimeoutMs, TimeUnit.MILLISECONDS);
 
     return msgFuture;
   }

@@ -1315,6 +1315,13 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
 
+Besides mount options, there are some additional properties with the `-o` options:
+  * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options
+  are as follows
+    * `allow.diff.partition.location.prefix`: Whether to mount partitions that do not share
+  the same location prefix with table location(true/false, default false)
+
+
 ### Glue UDB
 For `glue` udb type, there are some additional properties with the `-o` options:
   * `udb-glue.<UDB_PROPERTY>`: specify the UDB options for the Glue UDB. The options

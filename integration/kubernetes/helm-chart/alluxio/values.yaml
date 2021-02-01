@@ -313,6 +313,8 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
+#   logserver: # Used by the logserver container
+#     alluxio-hdfs-config: hdfsConfig
 
 ##  Metrics System ##
 
@@ -373,3 +375,64 @@ metrics:
   #   prometheus.io/port: "19999"
   #   prometheus.io/path: "/metrics/prometheus/"
   podAnnotations: {}
+
+# Remote logging server
+logserver:
+  enabled: false
+  replicas: 1
+  env:
+  # Extra environment variables for the logserver pod
+  # Example:
+  # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - logserver
+  # Properties for the logserver component
+  properties:
+  resources:
+    # The default xmx is 8G
+    limits:
+      cpu: "4"
+      memory: "8G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    logging: 45600
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the logserver container
+  jvmOptions:
+  nodeSelector: {}
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the log volume is PVC
+  pvcName: alluxio-logserver-logs
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  selector:
+    matchLabels:
+      role: alluxio-logserver
+      # If you need, you can specify more selectors like below to provide better separation
+      # app: alluxio
+      # chart: alluxio-<chart version>
+      # release: alluxio
+      # heritage: Helm
+      # dc: data-center-1
+      # region: us-east
+  # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
+  # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  # Example:
+  # selector: {}
+
+  # Attributes to use if the log volume is hostPath
+  hostPath: "/tmp/alluxio-logs" # The hostPath directory to use
+  # Attributes to use when the log volume is emptyDir
+  medium: ""
+  size: 4Gi
+

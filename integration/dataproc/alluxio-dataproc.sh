@@ -150,7 +150,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process master -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -165,7 +165,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_master -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -182,7 +182,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process worker -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -197,7 +197,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_worker -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
