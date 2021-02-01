@@ -39,14 +39,11 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
-RUN apk --no-cache --update add bash libc6-compat shadow tini && \
-    rm -rf /var/cache/apk/*
-
-# upgrade for invunelbility reported by trivy scan
 USER root
 
-RUN apk --no-cache add libbz2=1.0.6-r7
-RUN apk --no-cache add sqlite-libs=3.28.0-r3
+# specific version for invunelbility reported by trivy scan
+RUN apk --no-cache --update add bash libc6-compat shadow tini libbz2=1.0.6-r7 sqlite-libs=3.28.0-r3 && \
+    rm -rf /var/cache/apk/*
 
 # disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
