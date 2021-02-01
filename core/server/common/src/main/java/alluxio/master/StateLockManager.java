@@ -138,8 +138,11 @@ public class StateLockManager {
   public LockResource lockShared() throws InterruptedException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+    }
+
+    if (LOG.isInfoEnabled()) {
       final int readLockCount = mStateLock.getReadLockCount();
-      if (readLockCount > READ_LOCK_COUNT_HIGH) {
+      if (readLockCount > READ_LOCK_COUNT_HIGH && LOG.isInfoEnabled()) {
         SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
             mSharedWaitersAndHolders);
       }
