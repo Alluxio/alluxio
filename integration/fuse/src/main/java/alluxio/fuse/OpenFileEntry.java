@@ -11,13 +11,12 @@
 
 package alluxio.fuse;
 
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,10 +32,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * for every read/write call, which happen quite often.
  */
 @NotThreadSafe
-final class OpenFileEntry implements Closeable {
+final class OpenFileEntry<T1 extends InputStream, T2 extends OutputStream>
+    implements Closeable {
   private final long mId;
-  private final FileInStream mIn;
-  private final FileOutStream mOut;
+  private final T1 mIn;
+  private final T2 mOut;
 
   // Path is likely to be changed when fuse rename() is called
   private String mPath;
@@ -51,7 +51,7 @@ final class OpenFileEntry implements Closeable {
    * @param in the input stream of the file
    * @param out the output stream of the file
    */
-  public OpenFileEntry(long id, String path, FileInStream in, FileOutStream out) {
+  public OpenFileEntry(long id, String path, T1 in, T2 out) {
     Preconditions.checkArgument(id != -1 && !path.isEmpty());
     Preconditions.checkArgument(in != null || out != null);
     mId = id;
@@ -82,7 +82,7 @@ final class OpenFileEntry implements Closeable {
    * @return an opened input stream for the open alluxio file, or null
    */
   @Nullable
-  public FileInStream getIn() {
+  public T1 getIn() {
     return mIn;
   }
 
@@ -93,7 +93,7 @@ final class OpenFileEntry implements Closeable {
    * @return an opened input stream for the open alluxio file, or null
    */
   @Nullable
-  public FileOutStream getOut() {
+  public T2 getOut() {
     return mOut;
   }
 
