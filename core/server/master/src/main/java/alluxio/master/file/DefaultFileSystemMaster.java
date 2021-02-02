@@ -3975,9 +3975,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 if (ufsStatus.isFile()) {
                   UfsFileStatus status = (UfsFileStatus) ufsStatus;
                   if (status.getContentLength() != inode.getLength()) {
-                    throw new IOException(String.format("%s size does not match. Alluxio expected"
-                        + "length: %d, UFS actual length: %d", tempUfsPath,
-                        inode.getLength(), status.getContentLength()));
+                    throw new IOException(String.format("%s size does not match. Alluxio expected "
+                        + "length: %d, UFS actual length: %d. This may be due to a concurrent "
+                        + "modification to the file in Alluxio space, in which case this error can "
+                        + "be safely ignored as the persist will be retried. If the UFS length is "
+                        + "expected to be different than Alluxio length, set " +
+                        PropertyKey.Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION + " to false.",
+                        tempUfsPath, inode.getLength(), status.getContentLength()));
                   }
                 }
               }
