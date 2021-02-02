@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -33,6 +34,8 @@ import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -45,6 +48,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
   private String mWriteType;
+
+  private static final Option JOB_COUNT_OPTION =
+      Option.builder()
+          .longOpt("job-count")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("job count")
+          .desc("Number of active jobs to run at the same time"
+                  + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
+          .build();
 
   /**
    * @param fsContext the filesystem context of Alluxio
@@ -59,12 +74,31 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(JOB_COUNT_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
+  public String getUsage() {
+    return "distributedCp [--job-count <num>] <src> <dst>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Copies a file or directory in parallel at file level.";
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, JOB_COUNT_OPTION,
+            AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
+    System.out.format("Allow up to %s concurrent jobs%n", mActiveJobs);
+
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
@@ -143,16 +177,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
     System.out.println("Copying " + srcPath + " to " + dstPath);
     mSubmittedJobAttempts.add(newJob(srcPath, dstPath));
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedCp <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or directory in parallel at file level.";
   }
 
   private static String computeTargetPath(String path, String source, String destination)

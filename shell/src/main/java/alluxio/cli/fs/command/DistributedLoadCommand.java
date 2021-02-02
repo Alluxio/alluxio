@@ -53,6 +53,17 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("replicas")
           .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
           .build();
+  private static final Option JOB_COUNT_OPTION =
+      Option.builder()
+          .longOpt("job-count")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("job count")
+          .desc("Number of active jobs to run at the same time"
+                  + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -70,7 +81,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION);
+    return new Options().addOption(REPLICATION_OPTION).addOption(JOB_COUNT_OPTION);
   }
 
   @Override
@@ -79,7 +90,21 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   }
 
   @Override
+  public String getUsage() {
+    return "distributedLoad [--replication <num>] [--job-count <num>] <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or all files in a directory into Alluxio space.";
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, JOB_COUNT_OPTION,
+            AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
+    System.out.format("Allow up to %s concurrent jobs%n", mActiveJobs);
+
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
@@ -153,16 +178,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         addJob(uriStatus, replication);
       }
     });
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedLoad [--replication <num>] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Loads a file or all files in a directory into Alluxio space.";
   }
 
   private class LoadJobAttempt extends JobAttempt {
