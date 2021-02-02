@@ -140,6 +140,7 @@ import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.MasterUfsManager;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
@@ -3964,6 +3965,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
               String ufsPath = resolution.getUri().toString();
               ufs.setOwner(tempUfsPath, inode.getOwner(), inode.getGroup());
               ufs.setMode(tempUfsPath, inode.getMode());
+
+              // Check if the size is the same to guard against a race condition where the Alluxio
+              // file is mutated in between the persist command and execution
+              if (ServerConfiguration.isSet(PropertyKey.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
+                  && ServerConfiguration.getBoolean(
+                      PropertyKey.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)) {
+                UfsStatus ufsStatus = ufs.getStatus(tempUfsPath);
+                if (ufsStatus.isFile()) {
+                  UfsFileStatus status = (UfsFileStatus) ufsStatus;
+                  if (status.getContentLength() != inode.getLength()) {
+                    throw new IOException(String.format("%s size does not match. Alluxio expected "
+                        + "length: %d, UFS actual length: %d. This may be due to a concurrent "
+                        + "modification to the file in Alluxio space, in which case this error can "
+                        + "be safely ignored as the persist will be retried. If the UFS length is "
+                        + "expected to be different than Alluxio length, set "
+                        + PropertyKey.Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION + " to false.",
+                        tempUfsPath, inode.getLength(), status.getContentLength()));
+                  }
+                }
+              }
+
               if (!ufsPath.equals(tempUfsPath)) {
                 // Make rename only when tempUfsPath is different from final ufsPath. Note that,
                 // on object store, we take the optimization to skip the rename by having

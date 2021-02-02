@@ -1260,6 +1260,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Master related properties.
    */
+  public static final PropertyKey MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
+      new Builder(Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
+          .setDefaultValue(true)
+          .setDescription("Checks if the size of an async persist file matches the original file "
+              + "and fails the async persist job if not.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_ENABLED =
       new Builder(Name.MASTER_AUDIT_LOGGING_ENABLED)
           .setDefaultValue(false)
@@ -5108,6 +5117,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Master related properties
     //
+    public static final String MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
+        "alluxio.master.async.persist.size.validation";
     public static final String MASTER_AUDIT_LOGGING_ENABLED =
         "alluxio.master.audit.logging.enabled";
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
