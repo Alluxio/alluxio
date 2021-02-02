@@ -297,4 +297,9 @@ public interface FileSystemMasterClient extends Client {
    */
   void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModePOptions options)
       throws AlluxioStatusException;
+
+  /**
+   * @return the state lock waiters and holders thread identifiers
+   */
+  List<String> getStateLockHolders() throws AlluxioStatusException;
 }

@@ -1,6 +1,9 @@
 name: Java 11 Unit Tests
 
-on: [pull_request]
+on:
+  pull_request:
+  schedule:
+    - cron: 0 0 * * *
 
 jobs:
   build:
@@ -58,3 +61,4 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
             log*
+          retention-days: 7
