@@ -1599,7 +1599,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether the journal writer will write to remote master.")
+          .setDescription("Whether the journal writer will write to remote master. This is "
+              + "disabled by default and should not be turned on unless Alluxio encounters issues "
+              + "with local journal write.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .setIsHidden(true)
