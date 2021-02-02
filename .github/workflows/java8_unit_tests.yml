@@ -74,6 +74,7 @@ jobs:
           retention-days: 7
       - name: "Upload Code Coverage Report"
         uses: codecov/codecov-action@v1
+        if: always()
         with:
           file: ./**/target/site/jacoco/jacoco.xml # optional
           name: codecov-umbrella
