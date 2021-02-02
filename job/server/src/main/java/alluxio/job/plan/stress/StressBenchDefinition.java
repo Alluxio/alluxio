@@ -12,6 +12,7 @@
 package alluxio.job.plan.stress;
 
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
@@ -21,6 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
@@ -103,7 +105,10 @@ public final class StressBenchDefinition
       if (ufsUri.startsWith(entry.getValue().getUfsUri())) {
         try (CloseableResource<UnderFileSystem> resource = runTaskContext.getUfsManager()
             .get(entry.getValue().getMountId()).acquireUfsResource()) {
-          return resource.get().getConfiguration().toMap();
+          AlluxioConfiguration configuration = resource.get().getConfiguration();
+          if (configuration instanceof UnderFileSystemConfiguration) {
+            return ((UnderFileSystemConfiguration) configuration).getMountSpecificConf();
+          }
         }
       }
     }
