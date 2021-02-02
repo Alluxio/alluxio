@@ -51,7 +51,7 @@ public final class UfsJournalCheckpointThreadTest {
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito
         .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
-    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 600, Collections::emptySet);
     mJournal.start();
     mJournal.gainPrimacy();
   }
@@ -60,6 +60,54 @@ public final class UfsJournalCheckpointThreadTest {
   public void after() throws Exception {
     mJournal.close();
     ServerConfiguration.reset();
+  }
+
+  /**
+   * Makes sure the replay state get updated.
+   */
+  @Test
+  public void replayState() throws Exception {
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
+    buildCompletedLog(0, 10);
+    buildIncompleteLog(10, 15);
+    MockMaster mockMaster = new MockMaster();
+    UfsJournalCheckpointThread checkpointThread =
+        new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
+    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED,
+        checkpointThread.getReplayState());
+    checkpointThread.start();
+    CommonUtils.waitFor("replay start", () -> checkpointThread.getReplayState()
+        == UfsJournalCheckpointThread.ReplayState.REPLAY_IN_PROGRESS,
+        WaitForOptions.defaults().setTimeoutMs(1000));
+    CommonUtils.waitFor("replay done", () -> checkpointThread.getReplayState()
+        == UfsJournalCheckpointThread.ReplayState.REPLAY_DONE,
+        WaitForOptions.defaults().setTimeoutMs(2000));
+    checkpointThread.awaitTermination(true);
+    Assert.assertEquals(10, checkpointThread.getNextSequenceNumber());
+  }
+
+  /**
+   * Makes sure the replay state get updated if shutdown.
+   */
+  @Test
+  public void replayStateShutdown() throws Exception {
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
+    buildCompletedLog(0, 10);
+    buildIncompleteLog(10, 15);
+    MockMaster mockMaster = new MockMaster();
+    UfsJournalCheckpointThread checkpointThread =
+        new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
+    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED,
+        checkpointThread.getReplayState());
+    checkpointThread.start();
+    CommonUtils.waitFor("replay start", () -> checkpointThread.getReplayState()
+        == UfsJournalCheckpointThread.ReplayState.REPLAY_IN_PROGRESS,
+        WaitForOptions.defaults().setTimeoutMs(1000));
+    checkpointThread.awaitTermination(true);
+    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_DONE,
+        checkpointThread.getReplayState());
   }
 
   /**

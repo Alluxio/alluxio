@@ -254,6 +254,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
+            mReplayState = ReplayState.REPLAY_DONE;
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             if (mJournalReader != null) {
