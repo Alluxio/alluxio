@@ -44,6 +44,7 @@ public class LocalFirstRaftClient implements Closeable {
   private final Supplier<RaftClient> mClientSupplier;
   private ClientId mLocalClientId;
   private volatile RaftClient mClient;
+  private boolean mEnableRemoteClient;
 
   /**
    * @param server the local raft server
@@ -56,7 +57,10 @@ public class LocalFirstRaftClient implements Closeable {
     mServer = server;
     mClientSupplier = clientSupplier;
     mLocalClientId = localClientId;
-    if (!configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
+    mEnableRemoteClient = configuration.getBoolean(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
+    if (mEnableRemoteClient && !configuration.getBoolean(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
       ensureClient();
     }
   }
@@ -70,7 +74,7 @@ public class LocalFirstRaftClient implements Closeable {
    */
   public CompletableFuture<RaftClientReply> sendAsync(Message message,
       TimeDuration timeout) throws IOException {
-    if (mClient == null) {
+    if (!mEnableRemoteClient || mClient == null) {
       return sendLocalRequest(message, timeout);
     } else {
       return sendRemoteRequest(message);
@@ -89,7 +93,7 @@ public class LocalFirstRaftClient implements Closeable {
   private RaftClientReply handleLocalException(Message message, RaftClientReply reply,
       TimeDuration timeout) {
     LOG.trace("Message {} received reply {}", message, reply);
-    if (reply.getException() != null) {
+    if (mEnableRemoteClient && reply.getException() != null) {
       if (reply.getException() instanceof NotLeaderException) {
         LOG.info("Local master is no longer a leader, falling back to remote client.");
         try {

@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.QuorumServerInfo;
@@ -23,6 +24,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.ratis.server.impl.RaftServerImpl;
+import org.apache.ratis.server.impl.RaftServerProxy;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,6 +35,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.Closeable;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -66,18 +72,18 @@ public class RaftJournalTest {
     // Assign references for leader/follower journal systems.
     mLeaderJournalSystem = journalSystems.get(0);
     mFollowerJournalSystem = journalSystems.get(1);
+    CommonUtils.waitFor("a leader is elected",
+        () -> mFollowerJournalSystem.isLeader() || mLeaderJournalSystem.isLeader(), mWaitOptions);
     if (journalSystems.get(1).isLeader()) {
       mLeaderJournalSystem = journalSystems.get(1);
       mFollowerJournalSystem = journalSystems.get(0);
     }
     // Transition primary journal to primacy state.
-    mFollowerJournalSystem.notifyLeadershipStateChanged(false);
-    mLeaderJournalSystem.notifyLeadershipStateChanged(true);
     mLeaderJournalSystem.gainPrimacy();
   }
 
   @After
-  public void After() throws Exception {
+  public void after() throws Exception {
     mLeaderJournalSystem.stop();
     mFollowerJournalSystem.stop();
   }
@@ -342,9 +348,7 @@ public class RaftJournalTest {
     // Assert that no entries applied by suspended journal system.
     Assert.assertEquals(0, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
-    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
-    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
-    mFollowerJournalSystem.gainPrimacy();
+    promoteFollower();
     CommonUtils.waitFor(
         "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
             .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
@@ -384,9 +388,7 @@ public class RaftJournalTest {
 
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
-    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
-    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
-    mFollowerJournalSystem.gainPrimacy();
+    promoteFollower();
     CommonUtils.waitFor("full state acquired after resume",
         () -> countingMaster.getApplyCount() == entryCount, mWaitOptions);
 
@@ -394,58 +396,77 @@ public class RaftJournalTest {
     Assert.assertFalse(mFollowerJournalSystem.isSuspended());
   }
 
+  private void promoteFollower() throws Exception {
+    System.out.printf("Leader is leader? %s", mLeaderJournalSystem.isLeader());
+    changeToFollower(mLeaderJournalSystem);
+    System.out.printf("Follower is leader? %s", mFollowerJournalSystem.isLeader());
+    changeToFollower(mLeaderJournalSystem);
+    changeToCandidate(mFollowerJournalSystem);
+    CommonUtils.waitFor("follower becomes leader",
+        () -> mFollowerJournalSystem.isLeader(), mWaitOptions);
+    mFollowerJournalSystem.gainPrimacy();
+  }
+
   @Test
   public void gainPrimacyDuringCatchup() throws Exception {
-    // Create a counting master implementation that counts how many journal entries it processed.
-    CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
-    mFollowerJournalSystem.createJournal(countingMaster);
+    // TODO(feng): remove this test when remote journal write is deprecated
+    after();
+    try (Closeable r = new ConfigurationRule(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED, "true",
+        ServerConfiguration.global()).toResource()) {
+      before();
+      // Create a counting master implementation that counts how many journal entries it processed.
+      CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
+      mFollowerJournalSystem.createJournal(countingMaster);
 
-    // Using a large entry count for catching transition while in-progress.
-    final int entryCount = 100000;
+      // Using a large entry count for catching transition while in-progress.
+      final int entryCount = 100000;
 
-    // Suspend follower journal system.
-    mFollowerJournalSystem.suspend(null);
-    // Catch up follower journal to a large index to be able to transition while in progress.
-    final long catchupIndex = entryCount - 5;
-    Map<String, Long> backupSequences = new HashMap<>();
-    backupSequences.put("FileSystemMaster", catchupIndex);
-    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
+      // Suspend follower journal system.
+      mFollowerJournalSystem.suspend(null);
+      // Catch up follower journal to a large index to be able to transition while in progress.
+      final long catchupIndex = entryCount - 5;
+      Map<String, Long> backupSequences = new HashMap<>();
+      backupSequences.put("FileSystemMaster", catchupIndex);
+      CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
 
-    // Create entries in parallel on the leader journal context.
-    // These will be replicated to follower journal context.
-    ForkJoinPool.commonPool().submit(() -> {
-      try (JournalContext journalContext =
-          mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
-        for (int i = 0; i < entryCount; i++) {
-          journalContext
-              .append(
-                  alluxio.proto.journal.Journal.JournalEntry.newBuilder()
-                      .setInodeLastModificationTime(
-                          File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
-                      .build());
+      // Create entries in parallel on the leader journal context.
+      // These will be replicated to follower journal context.
+      ForkJoinPool.commonPool().submit(() -> {
+        try (JournalContext journalContext =
+                 mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
+          for (int i = 0; i < entryCount; i++) {
+            journalContext
+                .append(
+                    alluxio.proto.journal.Journal.JournalEntry.newBuilder()
+                        .setInodeLastModificationTime(
+                            File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
+                        .build());
+          }
+        } catch (Exception e) {
+          Assert.fail(String.format("Failed while writing entries: %s", e.toString()));
         }
-      } catch (Exception e) {
-        Assert.fail(String.format("Failed while writing entries: %s", e.toString()));
-      }
-    });
+      });
 
-    // Wait until advancing starts.
-    CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0,
-        mWaitOptions);
+      // Wait until advancing starts.
+      CommonUtils.waitFor("Advancing to start.", () -> countingMaster.getApplyCount() > 0,
+          mWaitOptions);
 
-    // Gain primacy in follower journal and validate it catches up.
-    mLeaderJournalSystem.notifyLeadershipStateChanged(false);
-    mFollowerJournalSystem.notifyLeadershipStateChanged(true);
-    mFollowerJournalSystem.gainPrimacy();
-    // Can't use countingMaster because Raft stops applying entries for primary journals.
-    // Using JournalSystem#getCurrentSequences() API instead.
-    CommonUtils.waitFor(
-        "full state acquired after resume", () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
-            .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
-        mWaitOptions);
+      // Gain primacy in follower journal and validate it catches up.
+      mLeaderJournalSystem.notifyLeadershipStateChanged(false);
+      mFollowerJournalSystem.notifyLeadershipStateChanged(true);
+      mFollowerJournalSystem.gainPrimacy();
+      // Can't use countingMaster because Raft stops applying entries for primary journals.
+      // Using JournalSystem#getCurrentSequences() API instead.
+      CommonUtils.waitFor(
+          "full state acquired after resume",
+          () -> mFollowerJournalSystem.getCurrentSequenceNumbers()
+              .values().stream().distinct().collect(Collectors.toList()).get(0) == entryCount - 1,
+          mWaitOptions);
 
-    // Follower should no longer be suspended after becoming primary.
-    Assert.assertFalse(mFollowerJournalSystem.isSuspended());
+      // Follower should no longer be suspended after becoming primary.
+      Assert.assertFalse(mFollowerJournalSystem.isSuspended());
+    }
   }
 
   /**
@@ -505,6 +526,25 @@ public class RaftJournalTest {
     }
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
     return journalSystems;
+  }
+
+  @VisibleForTesting
+  void changeToCandidate(RaftJournalSystem journalSystem) throws Exception {
+    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
+        RaftJournalSystem.RAFT_GROUP_ID);
+    Method method = serverImpl.getClass().getDeclaredMethod("changeToCandidate");
+    method.setAccessible(true);
+    method.invoke(serverImpl);
+  }
+
+  @VisibleForTesting
+  void changeToFollower(RaftJournalSystem journalSystem) throws Exception {
+    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
+        RaftJournalSystem.RAFT_GROUP_ID);
+    Method method = serverImpl.getClass().getDeclaredMethod("changeToFollower",
+        long.class, boolean.class, Object.class);
+    method.setAccessible(true);
+    method.invoke(serverImpl, serverImpl.getState().getCurrentTerm(), true, "test");
   }
 
   /**
