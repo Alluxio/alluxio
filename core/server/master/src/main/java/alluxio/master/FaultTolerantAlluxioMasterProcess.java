@@ -79,7 +79,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_INITIAL_REPLAY_ENABLED)) {
       mJournalSystem.waitForInitialReplay();
-      LOG.info("Journal initial replay finished");
     }
 
     try {

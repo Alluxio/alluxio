@@ -146,7 +146,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public boolean waitForInitialReplay() {
+  public void waitForInitialReplay() {
     long start = System.currentTimeMillis();
     try {
       CommonUtils.waitFor("journal replay to finish catching up", () -> {
@@ -164,11 +164,10 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal initial replay is interrupted or timeout", e);
       mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
-      return false;
+      return;
     }
     mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
-    LOG.info("Finish master process ufs journal initial replay in {} ms", mInitialCatchUpTimeMs);
-    return true;
+    LOG.info("Finished master process ufs journal initial replay in {} ms", mInitialCatchUpTimeMs);
   }
 
   @Override

@@ -179,13 +179,8 @@ public interface JournalSystem {
    *
    * This can be implemented by a journal type to optimize the journal replay, and avoid getting
    * interrupted with primary state changes during journal replay.
-   *
-   * @return true if the journal replay is considered caught up, false otherwise
    */
-  default boolean waitForInitialReplay() {
-    // default implementation does not wait for journal replay to finish.
-    return false;
-  }
+  default void waitForInitialReplay() {}
 
   /**
    * Used to get the current state from a leader journal system.
