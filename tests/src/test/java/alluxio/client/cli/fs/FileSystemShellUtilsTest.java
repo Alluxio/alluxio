@@ -223,8 +223,6 @@ public final class FileSystemShellUtilsTest {
 
   @Test
   public void getPath() throws IOException, AlluxioException {
-    assertEquals(true, false);
-
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 
