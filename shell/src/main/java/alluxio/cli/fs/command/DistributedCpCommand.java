@@ -49,15 +49,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
   private String mWriteType;
 
-  private static final Option JOB_COUNT_OPTION =
+  private static final Option ACTIVE_JOB_COUNT_OPTION =
       Option.builder()
-          .longOpt("job-count")
+          .longOpt("active-jobs")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
           .type(Number.class)
-          .argName("job count")
-          .desc("Number of active jobs to run at the same time"
+          .argName("active job count")
+          .desc("Number of active jobs that can run at the same time. Later jobs must wait. "
+                  + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
 
@@ -75,7 +76,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(JOB_COUNT_OPTION);
+    return new Options().addOption(ACTIVE_JOB_COUNT_OPTION);
   }
 
   @Override
@@ -85,7 +86,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   @Override
   public String getUsage() {
-    return "distributedCp [--job-count <num>] <src> <dst>";
+    return "distributedCp [--active-jobs <num>] <src> <dst>";
   }
 
   @Override
@@ -95,9 +96,9 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mActiveJobs = FileSystemShellUtils.getIntArg(cl, JOB_COUNT_OPTION,
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
             AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
-    System.out.format("Allow up to %s concurrent jobs%n", mActiveJobs);
+    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);

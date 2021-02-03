@@ -53,15 +53,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("replicas")
           .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
           .build();
-  private static final Option JOB_COUNT_OPTION =
+  private static final Option ACTIVE_JOB_COUNT_OPTION =
       Option.builder()
-          .longOpt("job-count")
+          .longOpt("active-jobs")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
           .type(Number.class)
-          .argName("job count")
-          .desc("Number of active jobs to run at the same time"
+          .argName("active job count")
+          .desc("Number of active jobs that can run at the same time. Later jobs must wait. "
+                  + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
 
@@ -81,7 +82,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(JOB_COUNT_OPTION);
+    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION);
   }
 
   @Override
@@ -91,7 +92,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--job-count <num>] <path>";
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] <path>";
   }
 
   @Override
@@ -101,9 +102,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mActiveJobs = FileSystemShellUtils.getIntArg(cl, JOB_COUNT_OPTION,
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
             AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
-    System.out.format("Allow up to %s concurrent jobs%n", mActiveJobs);
+    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
