@@ -418,9 +418,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   // Journal metrics
-  public static final MetricKey MASTER_JOURNAL_INITIAL_REPLAY_TIME_MS =
-      new Builder(Name.MASTER_JOURNAL_INITIAL_REPLAY_TIME_MS)
-          .setDescription("The process time of the journal initial repaly")
+  public static final MetricKey MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS =
+      new Builder(Name.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS)
+          .setDescription("The process time of the ufs journal initial replay")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
@@ -1156,13 +1156,13 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
-    public static final String MASTER_JOURNAL_INITIAL_REPLAY_TIME_MS
-        = "Master.JournalInitialReplayTimeMs";
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
     public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER
         = "Master.UfsJournalFailureRecoverTime";
+    public static final String MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS
+        = "Master.UfsJournalInitialReplayTimeMs";
 
     // Cluster metrics
     public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";

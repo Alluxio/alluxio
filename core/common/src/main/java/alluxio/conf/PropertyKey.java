@@ -1884,12 +1884,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) Enable the initial journal replay "
               + "before joining the quorum in fault tolerant mode "
               + "when starting the master process. This is added to prevent "
-              + "frequently leadership transition during heavy journal replay stage")
+              + "frequently leadership transition during heavy journal replay stage. "
+              + "Initial replay is only implemented in ufs journal with Zookeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME =
-      new Builder(Name.MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME)
+  public static final PropertyKey MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME =
+      new Builder(Name.MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME)
           .setDefaultValue("10min")
           .setDescription("The maximum time to wait for ufs journal catching up "
               + "before listening to Zookeeper state change. This is added to prevent "
@@ -5190,9 +5191,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_JOURNAL_INITIAL_REPLAY_ENABLED =
-        "alluxio.master.initial.replay.enabled";
-    public static final String MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME =
-        "alluxio.master.max.initial.replay.time";
+        "alluxio.master.journal.initial.replay.enabled";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
@@ -5349,6 +5348,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
+    public static final String MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME =
+        "alluxio.master.ufs.journal.max.initial.replay.time";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =
         "alluxio.master.ufs.managed.blocking.enabled";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =

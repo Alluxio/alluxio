@@ -70,7 +70,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     mBase = base;
     mQuietTimeMs = quietTimeMs;
     mJournals = new ConcurrentHashMap<>();
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
         () -> mInitialCatchUpTimeMs);
   }
 
@@ -153,13 +154,12 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         for (UfsJournal journal : mJournals.values()) {
           UfsJournalCheckpointThread.ReplayState replayState = journal.getReplayState();
           if (replayState != UfsJournalCheckpointThread.ReplayState.REPLAY_DONE) {
-            // keep flushing entries
             return false;
           }
         }
         return true;
       }, WaitForOptions.defaults().setTimeoutMs(
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME))
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal initial replay is interrupted or timeout", e);

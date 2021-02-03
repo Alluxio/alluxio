@@ -194,7 +194,6 @@ public final class UfsJournalCheckpointThread extends Thread {
             LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
             LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
-            //continuousSleepNum = 0;
             break;
           case LOG:
             entry = mJournalReader.getEntry();
