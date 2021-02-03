@@ -66,7 +66,7 @@ jobs:
       - name: Generate coverage report
         id: cov0
         # skip generating+uploading coverage on these matrix modules because they are flaky
-        if: ${{ matrix.modules != 'alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**' && matrix.modules != 'alluxio.client.cli.**,!alluxio.client.cli.fs.**' }}
+        if: ${{ always() && matrix.modules != 'alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**' && matrix.modules != 'alluxio.client.cli.**,!alluxio.client.cli.fs.**' }}
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
@@ -90,7 +90,7 @@ jobs:
       - name: "Upload Code Coverage Report"
         uses: codecov/codecov-action@v1
         # skip generating+uploading coverage on these matrix modules because they are flaky
-        if: ${{ matrix.modules != 'alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**' && matrix.modules != 'alluxio.client.cli.**,!alluxio.client.cli.fs.**' }}
+        if: ${{ always() && matrix.modules != 'alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**' && matrix.modules != 'alluxio.client.cli.**,!alluxio.client.cli.fs.**' }}
         with:
           file: ./**/target/site/jacoco/jacoco.xml # optional
           name: codecov-umbrella
