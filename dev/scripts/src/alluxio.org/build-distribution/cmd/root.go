@@ -43,7 +43,8 @@ func checkRootFlags() error {
 // these flags provide additional settings unrelated to tarball generation
 func additionalFlags(cmd *flag.FlagSet) {
 	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-modules", "",
-		"a percent-separated list of custom under fs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments. eg. hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
+		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
+			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
