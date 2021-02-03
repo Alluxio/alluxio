@@ -652,7 +652,10 @@ public class TieredBlockStore implements BlockStore {
           // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
-          LOG.debug("Allocation after freeing space for block expansion: {}", dirView);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Allocation after freeing space for block expansion: {}",
+                dirView.getAvailableBytes());
+          }
           if (dirView == null) {
             LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
                 options.getLocation(), options.getSize(), sessionId);
