@@ -240,7 +240,7 @@ LICENSE
         <td>描述</td>
     </tr>
     <tr>
-        <td>`alluxio.fuse.jnifuse.enable`d</td>
+        <td>`alluxio.fuse.jnifuse.enabled`</td>
         <td>false</td>
         <td>true</td>
         <td>使用jnifuse(true)，否则使用jnrfuse(false)。</td>
