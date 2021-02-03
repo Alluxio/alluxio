@@ -49,7 +49,7 @@ func Single(args []string) error {
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if customUfsModuleFlag != "" {
-		customUfsModules := strings.Split(customUfsModuleFlag, "$")
+		customUfsModules := strings.Split(customUfsModuleFlag, "%")
 		for _, customUfsModule := range customUfsModules {
 			customUfsModuleFlagArray := strings.Split(customUfsModule, "|")
 			if len(customUfsModuleFlagArray) == 2 {
