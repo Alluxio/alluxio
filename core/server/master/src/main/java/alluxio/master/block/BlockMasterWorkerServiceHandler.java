@@ -143,7 +143,8 @@ public final class BlockMasterWorkerServiceHandler extends
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Register worker request is {} bytes, containing {} blocks", request.getSerializedSize(),
+      LOG.debug("Register worker request is {} bytes, containing {} blocks",
+              request.getSerializedSize(),
               request.getCurrentBlocksCount());
     }
 
