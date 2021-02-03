@@ -160,7 +160,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         return true;
       }, WaitForOptions.defaults().setTimeoutMs(
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_MAX_INITIAL_REPLAY_TIME))
-          .setInterval(5 * Constants.SECOND_MS));
+          .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal initial replay is interrupted or timeout", e);
       mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
