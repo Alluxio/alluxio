@@ -49,16 +49,13 @@ func Single(args []string) error {
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if customUfsModuleFlag != "" {
-		customUfsModules := strings.Split(customUfsModuleFlag, "%")
-		for _, customUfsModule := range customUfsModules {
-			customUfsModuleFlagArray := strings.Split(customUfsModule, "|")
-			if len(customUfsModuleFlagArray) == 2 {
-				customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
-				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
-			} else {
-				fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
-				os.Exit(1)
-			}
+		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, "|")
+		if len(customUfsModuleFlagArray) == 2 {
+			customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
+			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+		} else {
+			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+			os.Exit(1)
 		}
 	}
 	if err := updateRootFlags(); err != nil {
