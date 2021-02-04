@@ -653,7 +653,7 @@ public class TieredBlockStore implements BlockStore {
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Allocation after freeing space for block expansion: {}",
+            LOG.debug("Allocation after freeing space for block expansion. availableBytes: {}",
                 dirView.getAvailableBytes());
           }
           if (dirView == null) {
