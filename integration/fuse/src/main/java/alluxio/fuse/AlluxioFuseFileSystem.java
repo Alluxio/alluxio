@@ -110,16 +110,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
 
   // Open file managements
-  private static final IndexDefinition<OpenFileEntry, Long> ID_INDEX =
-      new IndexDefinition<OpenFileEntry, Long>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
+      ID_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>(true) {
         @Override
         public Long getFieldValue(OpenFileEntry o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
-      new IndexDefinition<OpenFileEntry, String>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>
+      PATH_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>(true) {
         @Override
         public String getFieldValue(OpenFileEntry o) {
           return o.getPath();
@@ -137,7 +139,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
-  private final IndexedSet<OpenFileEntry> mOpenFiles;
+  private final IndexedSet<OpenFileEntry<FileInStream, FileOutStream>> mOpenFiles;
 
   private AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
@@ -570,7 +572,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       return AlluxioFuseUtils.getErrorCode(t);
     }
     long fid = mNextOpenFileId.getAndIncrement();
-    mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
+    mOpenFiles.add(new OpenFileEntry<>(fid, path, is, null));
     fi.fh.set(fid);
 
     return 0;
@@ -605,7 +607,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    OpenFileEntry<FileInStream, FileOutStream> oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
