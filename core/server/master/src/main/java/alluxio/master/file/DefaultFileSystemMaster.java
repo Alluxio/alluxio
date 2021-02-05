@@ -3230,6 +3230,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     long opTimeMs = System.currentTimeMillis();
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+        LOG.debug("Set attribute for {} descendants under path {}.",
+            descendants.getInodePathList().size(), inodePath.getUri());
         for (LockedInodePath childPath : descendants) {
           rpcContext.throwIfCancelled();
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
