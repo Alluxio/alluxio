@@ -39,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility methods for Alluxio-FUSE.
  */
 @ThreadSafe
-public class AlluxioFuseUtils {
+public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
