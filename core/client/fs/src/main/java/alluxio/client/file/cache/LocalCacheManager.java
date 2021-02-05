@@ -297,7 +297,7 @@ public class LocalCacheManager implements CacheManager {
       // note that, we only evict one item a time in putAttempt. So it is possible the evicted
       // page is not large enough to cover the space needed by this page. Try again
     }
-    Metrics.PUT_EVICTION_ERRORS.inc();
+    Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
     return false;
   }
 
@@ -353,15 +353,12 @@ public class LocalCacheManager implements CacheManager {
       // metalock. Evictor will be updated inside metastore.
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
-          LOG.debug("{} is already inserted by a racing thread", pageId);
-          // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
         try {
           mMetaStore.removePage(victimPageInfo.getPageId());
-        } catch (Exception e) {
-          undoAddPage(pageId);
-          LOG.error("Page {} is unavailable to evict, likely due to a benign race",
+        } catch (PageNotFoundException e) {
+          LOG.warn("Page {} is unavailable to evict, likely due to a benign race",
               victimPageInfo.getPageId());
           Metrics.PUT_BENIGN_RACING_ERRORS.inc();
           return PutResult.OTHER;
@@ -661,6 +658,9 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when adding pages due to benign racing eviction. */
     private static final Counter PUT_BENIGN_RACING_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS.getName());
+    /** Errors when adding pages due to insufficient space made after eviction. */
+    private static final Counter PUT_INSUFFICIENT_SPACE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_INSUFFICIENT_SPACE_ERRORS.getName());
     /** Errors when cache is not ready to add pages. */
     private static final Counter PUT_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_NOT_READY_ERRORS.getName());
