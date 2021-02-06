@@ -380,7 +380,7 @@ public class LocalCacheManager implements CacheManager {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
         }
-        LOG.error("Failed to delete page {}: {}", pageId, e);
+        LOG.error("Failed to delete page {} from pageStore", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -467,7 +467,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {}: {}", pageId, e);
+          LOG.error("Failed to delete page {} from metaStore: {}", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
@@ -586,7 +586,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       mPageStore.delete(pageId);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {}: {}", pageId, e);
+      LOG.error("Failed to delete page {} from pageStore: {}", pageId, e);
       return false;
     }
     return true;
