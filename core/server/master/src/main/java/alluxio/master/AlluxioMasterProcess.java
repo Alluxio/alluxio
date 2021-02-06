@@ -305,6 +305,16 @@ public class AlluxioMasterProcess extends MasterProcess {
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           ServerConfiguration.global(), ServerUserState.global());
 
+      int parallelism = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM);
+      Preconditions.checkArgument(parallelism > 0,
+              String.format("Starting Alluxio master gRPC thread pool with %s executors! "
+                              + "Please set %s to a valid number!",
+                      parallelism, PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString()));
+      Preconditions.checkArgument(parallelism <= ServerConfiguration.getInt(
+              PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE),
+              String.format("%s cannot be greater than %s!",
+                      PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(),
+                      PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString()));
       mRPCExecutor = new ForkJoinPool(
           ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
           ThreadFactoryUtils.buildFjp("master-rpc-pool-thread-%d", true),
