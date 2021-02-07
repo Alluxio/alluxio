@@ -164,7 +164,8 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "4");
     ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, "3");
     mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("%s=%s cannot be greater than %s=%s!",
+    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
+                    + "%s=%s greater than %s=%s!",
             PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 4,
             PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), 3));
     AlluxioMasterProcess.Factory.create();
