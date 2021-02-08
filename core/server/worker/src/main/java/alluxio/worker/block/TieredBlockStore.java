@@ -631,14 +631,13 @@ public class TieredBlockStore implements BlockStore {
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     try {
-      // Allocate from given location.
-      dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-          options.getLocation(), allocatorView, false);
-      if (dirView != null) {
-        return dirView;
-      }
-
       if (options.isForceLocation()) {
+        // Try allocating from given location. Skip the review because the location is forced.
+        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+            options.getLocation(), allocatorView, true);
+        if (dirView != null) {
+          return dirView;
+        }
         if (options.isEvictionAllowed()) {
           LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
                   options.getSize(), options.getLocation());
@@ -658,6 +657,12 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
+        // Try allocating from given location. This may be rejected by the review logic.
+        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+            options.getLocation(), allocatorView, false);
+        if (dirView != null) {
+          return dirView;
+        }
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
                 options.getLocation());
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
