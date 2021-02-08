@@ -665,7 +665,7 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
-        // Try allocating from given location. This may probabilistically reject.
+        // Try allocating from given location. This may be rejected by the review logic.
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
             options.getLocation(), allocatorView, false);
         if (dirView != null) {
