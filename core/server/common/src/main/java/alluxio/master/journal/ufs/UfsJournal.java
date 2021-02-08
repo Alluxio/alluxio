@@ -469,14 +469,14 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * @return the state of the master process startup journal replay
+   * @return the state of the master process journal catchup
    */
-  public synchronized UfsJournalCheckpointThread.ReplayState getReplayState() {
+  public synchronized UfsJournalCheckpointThread.CatchupState getCatchupState() {
     if (mTailerThread == null) {
       // tailer thread not active yet
-      return UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED;
+      return UfsJournalCheckpointThread.CatchupState.CATCHUP_NOT_STARTED;
     }
-    return mTailerThread.getReplayState();
+    return mTailerThread.getCatchupState();
   }
 
   /**

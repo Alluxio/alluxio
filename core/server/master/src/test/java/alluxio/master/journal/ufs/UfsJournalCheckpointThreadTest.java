@@ -63,10 +63,10 @@ public final class UfsJournalCheckpointThreadTest {
   }
 
   /**
-   * Makes sure the replay state get updated.
+   * Makes sure the catchup state get updated.
    */
   @Test
-  public void replayState() throws Exception {
+  public void catchupState() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
@@ -74,14 +74,14 @@ public final class UfsJournalCheckpointThreadTest {
     MockMaster mockMaster = new MockMaster();
     UfsJournalCheckpointThread checkpointThread =
         new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
-    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED,
-        checkpointThread.getReplayState());
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_NOT_STARTED,
+        checkpointThread.getCatchupState());
     checkpointThread.start();
-    CommonUtils.waitFor("replay start", () -> checkpointThread.getReplayState()
-        == UfsJournalCheckpointThread.ReplayState.REPLAY_IN_PROGRESS,
+    CommonUtils.waitFor("catchup start", () -> checkpointThread.getCatchupState()
+        == UfsJournalCheckpointThread.CatchupState.CATCHUP_IN_PROGRESS,
         WaitForOptions.defaults().setTimeoutMs(1000));
-    CommonUtils.waitFor("replay done", () -> checkpointThread.getReplayState()
-        == UfsJournalCheckpointThread.ReplayState.REPLAY_DONE,
+    CommonUtils.waitFor("catchup done", () -> checkpointThread.getCatchupState()
+        == UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
         WaitForOptions.defaults().setTimeoutMs(2000));
     checkpointThread.awaitTermination(true);
     Assert.assertEquals(10, checkpointThread.getNextSequenceNumber());
@@ -91,7 +91,7 @@ public final class UfsJournalCheckpointThreadTest {
    * Makes sure the replay state get updated if shutdown.
    */
   @Test
-  public void replayStateShutdown() throws Exception {
+  public void catchStateShutdown() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
@@ -99,15 +99,15 @@ public final class UfsJournalCheckpointThreadTest {
     MockMaster mockMaster = new MockMaster();
     UfsJournalCheckpointThread checkpointThread =
         new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
-    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_NOT_STARTED,
-        checkpointThread.getReplayState());
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_NOT_STARTED,
+        checkpointThread.getCatchupState());
     checkpointThread.start();
-    CommonUtils.waitFor("replay start", () -> checkpointThread.getReplayState()
-        == UfsJournalCheckpointThread.ReplayState.REPLAY_IN_PROGRESS,
+    CommonUtils.waitFor("catchup start", () -> checkpointThread.getCatchupState()
+        == UfsJournalCheckpointThread.CatchupState.CATCHUP_IN_PROGRESS,
         WaitForOptions.defaults().setTimeoutMs(1000));
     checkpointThread.awaitTermination(true);
-    Assert.assertEquals(UfsJournalCheckpointThread.ReplayState.REPLAY_DONE,
-        checkpointThread.getReplayState());
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
+        checkpointThread.getCatchupState());
   }
 
   /**
@@ -135,6 +135,8 @@ public final class UfsJournalCheckpointThreadTest {
       }
       return false;
     }, WaitForOptions.defaults().setTimeoutMs(20000));
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
+        checkpointThread.getCatchupState());
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     Assert.assertEquals(1, snapshot.getCheckpoints().size());
     Assert.assertEquals(10, snapshot.getCheckpoints().get(0).getEnd());
@@ -154,6 +156,8 @@ public final class UfsJournalCheckpointThreadTest {
         new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
     checkpointThread.start();
     checkpointThread.awaitTermination(true);
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
+        checkpointThread.getCatchupState());
 
     // Make sure all the journal entries have been processed. Note that it is not necessary that
     // the they are checkpointed.

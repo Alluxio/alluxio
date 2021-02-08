@@ -147,13 +147,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public void waitForInitialReplay() {
+  public void waitForCatchup() {
     long start = System.currentTimeMillis();
     try {
-      CommonUtils.waitFor("journal replay to finish catching up", () -> {
+      CommonUtils.waitFor("journal catch up to finish", () -> {
         for (UfsJournal journal : mJournals.values()) {
-          UfsJournalCheckpointThread.ReplayState replayState = journal.getReplayState();
-          if (replayState != UfsJournalCheckpointThread.ReplayState.REPLAY_DONE) {
+          UfsJournalCheckpointThread.CatchupState catchupState = journal.getCatchupState();
+          if (catchupState != UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE) {
             return false;
           }
         }

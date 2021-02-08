@@ -77,8 +77,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     startMasters(false);
     LOG.info("Secondary started");
 
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_INITIAL_REPLAY_ENABLED)) {
-      mJournalSystem.waitForInitialReplay();
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      mJournalSystem.waitForCatchup();
     }
 
     try {
@@ -89,6 +89,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     while (!Thread.interrupted()) {
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        mJournalSystem.waitForCatchup();
+      }
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;

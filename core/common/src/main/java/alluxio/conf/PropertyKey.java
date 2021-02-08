@@ -1878,14 +1878,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Maximum concurrency level for the lock pool")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_INITIAL_REPLAY_ENABLED =
-      new Builder(Name.MASTER_JOURNAL_INITIAL_REPLAY_ENABLED)
+  public static final PropertyKey MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
+      new Builder(Name.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)
           .setDefaultValue(false)
-          .setDescription("(Experimental) Enable the initial journal replay "
-              + "before joining the quorum in fault tolerant mode "
-              + "when starting the master process. This is added to prevent "
-              + "frequently leadership transition during heavy journal replay stage. "
-              + "Initial replay is only implemented in ufs journal with Zookeeper.")
+          .setDescription("(Experimental) make sure the journal catchup finish "
+              + "before joining the quorum in fault tolerant mode when starting the master process "
+              + "and before the current master becoming the leader."
+              + "This is added to prevent frequently leadership transition "
+              + "during heavy journal catchup stage. "
+              + "Catchup is only implemented in ufs journal with Zookeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5190,8 +5191,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lock.pool.high.watermark";
     public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.lock.pool.concurrency.level";
-    public static final String MASTER_JOURNAL_INITIAL_REPLAY_ENABLED =
-        "alluxio.master.journal.initial.replay.enabled";
+    public static final String MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
+        "alluxio.master.journal.catchup.protect.enabled";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =

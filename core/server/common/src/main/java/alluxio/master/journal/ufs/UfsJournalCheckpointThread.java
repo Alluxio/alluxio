@@ -83,13 +83,13 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
-   * The state of the replay.
+   * The state of the journal catchup.
    */
-  public enum ReplayState {
-    REPLAY_NOT_STARTED, REPLAY_IN_PROGRESS, REPLAY_DONE;
+  public enum CatchupState {
+    CATCHUP_NOT_STARTED, CATCHUP_IN_PROGRESS, CATCHUP_DONE;
   }
 
-  private volatile ReplayState mReplayState = ReplayState.REPLAY_NOT_STARTED;
+  private volatile CatchupState mCatchupState = CatchupState.CATCHUP_NOT_STARTED;
 
   /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
@@ -185,7 +185,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
-    mReplayState = ReplayState.REPLAY_IN_PROGRESS;
+    mCatchupState = CatchupState.CATCHUP_IN_PROGRESS;
     while (true) {
       JournalEntry entry = null;
       try {
@@ -215,7 +215,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             }
             break;
           default:
-            mReplayState = ReplayState.REPLAY_DONE;
+            mCatchupState = CatchupState.CATCHUP_DONE;
             break;
         }
       } catch (IOException e) {
@@ -239,7 +239,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
-            mReplayState = ReplayState.REPLAY_DONE;
+            mCatchupState = CatchupState.CATCHUP_DONE;
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             if (mJournalReader != null) {
@@ -266,10 +266,10 @@ public final class UfsJournalCheckpointThread extends Thread {
   }
 
   /**
-   * @return the state of the master process startup journal replay
+   * @return the state of the master process journal catchup
    */
-  public ReplayState getReplayState() {
-    return mReplayState;
+  public CatchupState getCatchupState() {
+    return mCatchupState;
   }
 
   /**
