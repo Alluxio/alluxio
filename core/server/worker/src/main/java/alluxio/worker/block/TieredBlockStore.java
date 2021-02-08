@@ -638,7 +638,7 @@ public class TieredBlockStore implements BlockStore {
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     try {
       if (options.isForceLocation()) {
-        // Try allocating from given location. Do not have it reject if there is space.
+        // Try allocating from given location. Skip the review because the location is forced.
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
             options.getLocation(), allocatorView, true);
         if (dirView != null) {
