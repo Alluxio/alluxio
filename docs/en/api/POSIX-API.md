@@ -49,8 +49,6 @@ To choose between the default JNR-Fuse and JNI-Fuse, here are some aspects to co
 
 * Platforms: JNR-Fuse support both Linux and MacOS while JNI-Fuse is only supported in Linux environment currently.
 * Ease of usage: JNR-Fuse is enabled by default while JNI-Fuse has more dependencies.
-* Workload: JNR-Fuse supports both read and write workloads. JNI-Fuse supports read only during experimental stage.
-Alluxio JNI-Fuse generally provides better performance in high concurrency deep learning workloads.
 * Maintenance: JNI-Fuse is experimental but is the direction to go. Alluxio will focus more on developing JNI-Fuse.
 
 ## Requirements
