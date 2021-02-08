@@ -23,7 +23,7 @@ ALLUXIO_GID="${ALLUXIO_GID:-0}"
 
 # List of environment variables which go in alluxio-env.sh instead of
 # alluxio-site.properties
-ALLUXIO_ENV_VARS=(
+declare -a ALLUXIO_ENV_VARS=(
   ALLUXIO_CLASSPATH
   ALLUXIO_HOSTNAME
   ALLUXIO_JARS
@@ -37,6 +37,8 @@ ALLUXIO_ENV_VARS=(
   ALLUXIO_JOB_WORKER_JAVA_OPTS
   ALLUXIO_FUSE_JAVA_OPTS
 )
+declare -A ALLUXIO_ENV_MAP
+for key in "${!ALLUXIO_ENV_VARS[@]}"; do ALLUXIO_ENV_MAP[${ALLUXIO_ENV_VARS[$key]}]="$key"; done
 
 function printUsage {
   echo "Usage: COMMAND [COMMAND_OPTIONS]"
@@ -59,7 +61,7 @@ function writeConf {
     # split around the first "="
     key=$(echo ${keyvaluepair} | cut -d= -f1)
     value=$(echo ${keyvaluepair} | cut -d= -f2-)
-    if [[ "${ALLUXIO_ENV_VARS[*]}" =~ "${key}" ]]; then
+    if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
       echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
     fi
   done

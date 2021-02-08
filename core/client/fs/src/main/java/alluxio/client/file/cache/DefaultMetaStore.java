@@ -11,12 +11,13 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +43,16 @@ public class DefaultMetaStore implements MetaStore {
   private final CacheEvictor mEvictor;
 
   /**
+   * @param conf configuration
+   */
+  public DefaultMetaStore(AlluxioConfiguration conf) {
+    this(CacheEvictor.create(conf));
+  }
+
+  /**
    * @param evictor cache evictor
    */
+  @VisibleForTesting
   public DefaultMetaStore(CacheEvictor evictor) {
     mEvictor = evictor;
   }
@@ -73,7 +82,7 @@ public class DefaultMetaStore implements MetaStore {
   }
 
   @Override
-  public void removePage(PageId pageId) throws PageNotFoundException {
+  public PageInfo removePage(PageId pageId) throws PageNotFoundException {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
@@ -83,6 +92,7 @@ public class DefaultMetaStore implements MetaStore {
     mPages.decrementAndGet();
     Metrics.PAGES.dec();
     mEvictor.updateOnDelete(pageId);
+    return pageInfo;
   }
 
   @Override
@@ -108,14 +118,18 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   @Nullable
   public PageInfo evict() {
-    PageId victim = mEvictor.evict();
+    return evictInternal(mEvictor);
+  }
+
+  PageInfo evictInternal(CacheEvictor evictor) {
+    PageId victim = evictor.evict();
     if (victim == null) {
       return null;
     }
     PageInfo victimInfo = mPageMap.get(victim);
     if (victimInfo == null) {
       LOG.error("Invalid result returned by evictor: page {} not available", victim);
-      mEvictor.updateOnDelete(victim);
+      evictor.updateOnDelete(victim);
       return null;
     }
     return victimInfo;

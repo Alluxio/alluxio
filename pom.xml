@@ -142,7 +142,7 @@
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
     <netty.version>4.1.51.Final</netty.version>
-    <rocksdb.version>5.15.10</rocksdb.version>
+    <rocksdb.version>5.18.4</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
@@ -272,7 +272,7 @@
       <dependency>
         <groupId>com.salesforce.servicelibs</groupId>
         <artifactId>proto-backwards-compatibility</artifactId>
-        <version>1.0.5</version>
+        <version>1.0.6</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -1025,6 +1025,7 @@
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <runOrder>alphabetical</runOrder>
+            <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
               <jacoco-agent.append>true</jacoco-agent.append>
@@ -1471,7 +1472,7 @@
           <groupId>org.jacoco</groupId>
           <artifactId>org.jacoco.agent</artifactId>
           <classifier>runtime</classifier>
-          <version>0.8.5</version>
+          <version>${jacoco.version}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

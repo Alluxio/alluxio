@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 /**
@@ -19,11 +21,14 @@ import alluxio.exception.PageNotFoundException;
 public interface MetaStore {
 
   /**
-   * @param evictor cache evictor
+   * @param conf the alluxio configuration
    * @return an instance of MetaStore
    */
-  static MetaStore create(CacheEvictor evictor) {
-    return new DefaultMetaStore(evictor);
+  static MetaStore create(AlluxioConfiguration conf) {
+    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
+      return new QuotaMetaStore(conf);
+    }
+    return new DefaultMetaStore(conf);
   }
 
   /**
@@ -50,8 +55,9 @@ public interface MetaStore {
    * Removes a page.
    *
    * @param pageId page identifier
+   * @return page info removed
    */
-  void removePage(PageId pageId) throws PageNotFoundException;
+  PageInfo removePage(PageId pageId) throws PageNotFoundException;
 
   /**
    * @return the total size of pages stored in bytes

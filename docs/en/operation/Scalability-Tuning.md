@@ -116,9 +116,16 @@ client. This resource is less important if a majority of tasks have locality and
 ### Heap Size
 
 The Alluxio master heap size controls the total number of files that can fit into the master memory.
-If using the ROCKS off-heap metastore, the master heap size must be large enough to fit the inode
-cache.
-Provision roughly 2 KB of space for each inode.
+Each file or directory will be represented by an inode in Alluxio, containing all its metadata.
+In general you should provision roughly 2 KB of space for each inode.
+
+If using `HEAP` metastore, all the inodes will be stored in the master heap. Therefore the master heap
+size must be large enough to fit ALL inodes.
+
+If using the `ROCKS` off-heap metastore, the master heap size must be large enough to fit the inode
+cache. See the [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }})
+for more information.
+ 
 The following JVM options, set in `alluxio-env.sh`, determine the respective maximum heap sizes for
 the Alluxio master and standby master processes to `256 GB`:
 
