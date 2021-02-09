@@ -40,6 +40,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -481,6 +482,11 @@ public class InodeSyncStream {
     // we can only load metadata.
 
     if (inodePath.getLockPattern() == LockPattern.WRITE_EDGE && !mLoadOnly) {
+      if (inode instanceof InodeFile && !inode.asFile().isCompleted()) {
+        // Do not sync an incomplete file, since the UFS file is expected to not exist.
+        return;
+      }
+
       Optional<Scoped> persistingLock = mInodeLockManager.tryAcquirePersistingLock(inode.getId());
       if (!persistingLock.isPresent()) {
         // Do not sync a file in the process of being persisted, since the UFS file is being
