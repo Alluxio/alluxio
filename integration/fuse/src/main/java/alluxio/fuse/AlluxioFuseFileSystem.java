@@ -612,33 +612,38 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-
-    int rd = 0;
-    int nread = 0;
     if (oe.getIn() == null) {
       LOG.error("{} was not open for reading", path);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      oe.getIn().seek(offset);
-      final byte[] dest = new byte[sz];
-      while (rd >= 0 && nread < size) {
-        rd = oe.getIn().read(dest, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+    int rd = 0;
+    int nread = 0;
+    synchronized (oe) {
+      if (!mOpenFiles.contains(fd)) {
+        LOG.error("Cannot find fd for {} in table", path);
+        return -ErrorCodes.EBADFD();
+      }
+      try {
+        oe.getIn().seek(offset);
+        final byte[] dest = new byte[sz];
+        while (rd >= 0 && nread < size) {
+          rd = oe.getIn().read(dest, nread, sz - nread);
+          if (rd >= 0) {
+            nread += rd;
+          }
         }
-      }
 
-      if (nread == -1) { // EOF
-        nread = 0;
-      } else if (nread > 0) {
-        buf.put(0, dest, 0, nread);
+        if (nread == -1) { // EOF
+          nread = 0;
+        } else if (nread > 0) {
+          buf.put(0, dest, 0, nread);
+        }
+      } catch (Throwable t) {
+        LOG.error("Failed to read file={}, offset={}, size={}", path, offset,
+            size, t);
+        return AlluxioFuseUtils.getErrorCode(t);
       }
-    } catch (Throwable t) {
-      LOG.error("Failed to read file={}, offset={}, size={}", path, offset, size, t);
-      return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return nread;
   }
 
@@ -701,13 +706,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     OpenFileEntry oe;
     final long fd = fi.fh.get();
     oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    mOpenFiles.remove(oe);
-    if (oe == null) {
+    if (oe == null || !mOpenFiles.remove(oe)) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
     try {
-      oe.close();
+      synchronized (oe) {
+        oe.close();
+      }
     } catch (IOException e) {
       LOG.error("Failed closing {} [in]", path, e);
     }
