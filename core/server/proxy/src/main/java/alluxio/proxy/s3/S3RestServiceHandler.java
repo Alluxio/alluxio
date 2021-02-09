@@ -193,6 +193,7 @@ public final class S3RestServiceHandler {
    * @param prefixParam the optional prefix param
    * @param delimiterParam the optional delimiter param
    * @param maxKeysParam the optional max keys param
+   * @param tagging the optional tagging param to determine if this is GetBucketTagging
    * @return the response object
    */
   @GET
@@ -266,6 +267,8 @@ public final class S3RestServiceHandler {
    * @summary creates a bucket
    * @param authorization header parameter authorization
    * @param bucket the bucket name
+   * @param tagging the optional tagging param to determine if this is PutBucketTagging
+   * @param is the input stream for tagging information if applicable
    * @return the response object
    */
   @PUT
@@ -286,7 +289,8 @@ public final class S3RestServiceHandler {
 
         if (tagging.isEmpty()) {
           try {
-            TagHelper.addTag(fs, bucketPath, is);
+            TagHelper.putTags(fs, bucketPath, is);
+            return Response.Status.OK;
           } catch (AlluxioException | IOException e) {
             throw new RuntimeException(e);
           }
@@ -348,6 +352,7 @@ public final class S3RestServiceHandler {
    * @param partNumber the identification of the part of the object in multipart upload,
    *                   otherwise null
    * @param uploadId the upload ID of the multipart upload, otherwise null
+   * @param tagging the optional tagging param to determine if this is PutObjectTagging
    * @param is the request body
    * @return the response object
    */
@@ -355,13 +360,15 @@ public final class S3RestServiceHandler {
   @Path(OBJECT_PARAM)
   //@ReturnType("java.lang.Void")
   @Consumes(MediaType.WILDCARD)
-  public Response createObjectOrUploadPart(@HeaderParam("Authorization") String authorization,
-                                           @HeaderParam("Content-MD5") final String contentMD5,
-                                           @PathParam("bucket") final String bucket,
-                                           @PathParam("object") final String object,
-                                           @QueryParam("partNumber") final Integer partNumber,
-                                           @QueryParam("uploadId") final Long uploadId,
-                                           final InputStream is) {
+  public Response createObjectOrUploadPart(
+      @HeaderParam("Authorization") String authorization,
+      @HeaderParam("Content-MD5") final String contentMD5,
+      @PathParam("bucket") final String bucket,
+      @PathParam("object") final String object,
+      @QueryParam("partNumber") final Integer partNumber,
+      @QueryParam("uploadId") final Long uploadId,
+      @DefaultValue("null") @QueryParam("tagging") final String tagging,
+      final InputStream is) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
@@ -378,6 +385,15 @@ public final class S3RestServiceHandler {
         checkPathIsAlluxioDirectory(fs, bucketPath);
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+
+        if (tagging.isEmpty()) {
+          try {
+            TagHelper.putTags(fs, objectPath, is);
+            return Response.ok().build();
+          } catch (AlluxioException | IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
 
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
           // Need to create a folder
@@ -582,6 +598,7 @@ public final class S3RestServiceHandler {
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId the ID of the multipart upload, if not null, listing parts of the object
+   * @param tagging the optional tagging param to determine if this is GetObjectTagging
    * @return the response object
    */
   @GET
