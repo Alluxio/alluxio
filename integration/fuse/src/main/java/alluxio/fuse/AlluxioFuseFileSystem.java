@@ -256,7 +256,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.info("Change group of file {} to {}", path, groupName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
-        LOG.info("Change owner of file {} to {}", path, groupName);
+        LOG.info("Change owner of file {} to {}", path, userName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (Throwable t) {
