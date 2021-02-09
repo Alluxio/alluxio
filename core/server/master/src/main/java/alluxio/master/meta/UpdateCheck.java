@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
+import alluxio.util.FeatureUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -85,6 +86,18 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
+    String sysInfo = joiner.join(getUserAgentEnvironmentString(clusterID), getFeatureString());
+    return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+  }
+
+  /**
+   * @param clusterID the cluster ID
+   * @return a string representation of the user's environment in the format "key1:value1, key2:
+   *         value2".
+   */
+  @VisibleForTesting
+  public static String getUserAgentEnvironmentString(String clusterID) throws IOException {
+    Joiner joiner = Joiner.on("; ").skipNulls();
     boolean isGCE = EnvironmentUtils.isGoogleComputeEngine();
     String sysInfo = joiner.join(
         clusterID,
@@ -98,7 +111,46 @@ public final class UpdateCheck {
         sysInfo = joiner.join(sysInfo, joiner.join(ec2Info));
       }
     }
-    return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+    return sysInfo;
+  }
+
+  /**
+   * Get the features information.
+   *
+   * @return a list of string represent feature names
+   */
+  @VisibleForTesting
+  public static String getFeatureString() {
+    Joiner joiner = Joiner.on("; ").skipNulls();
+    List<String> featureInfo = new ArrayList<>();
+    if (FeatureUtils.isEmbeddedJournal()) {
+      featureInfo.add("embedded");
+    }
+    if (FeatureUtils.isRocks()) {
+      featureInfo.add("rocks");
+    }
+    if (FeatureUtils.isZookeeperEnable()) {
+      featureInfo.add("zk");
+    }
+    if (FeatureUtils.isBackupDelegationEnable()) {
+      featureInfo.add("backupDelegation");
+    }
+    if (FeatureUtils.isDailyBackupEnable()) {
+      featureInfo.add("dailyBackup");
+    }
+    if (!FeatureUtils.isPersistenceBlacklistEmpty()) {
+      featureInfo.add("persistBlackList");
+    }
+    if (FeatureUtils.isUnsafeDirectPersistEnable()) {
+      featureInfo.add("unsafePersist");
+    }
+    if (FeatureUtils.isMasterAuditLoggingEnable()) {
+      featureInfo.add("masterAuditLog");
+    }
+    if (featureInfo.size() == 0) {
+      return null;
+    }
+    return joiner.join(featureInfo);
   }
 
   /**

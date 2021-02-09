@@ -12,6 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.EnvironmentUtils;
 
 import com.amazonaws.SdkClientException;
@@ -24,6 +26,9 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for {@link UpdateCheck}.
@@ -46,86 +51,135 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void userAgentStringEmpty() throws Exception {
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+  public void userAgentEnvironmentStringEmpty() throws Exception {
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
     Mockito.when(EC2MetadataUtils.getUserData())
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
-    System.out.println(userAgentString);
-    Assert.assertTrue(
-        userAgentString.equals(String.format("Alluxio/%s (cluster1)", ProjectConstants.VERSION)));
+    Assert.assertTrue(userAgentString.equals("cluster1"));
   }
 
   @Test
-  public void userAgentStringDocker() throws Exception {
+  public void userAgentEnvironmentStringDocker() throws Exception {
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
     Mockito.when(EC2MetadataUtils.getUserData())
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString
-        .equals(String.format("Alluxio/%s (cluster1; docker)", ProjectConstants.VERSION)));
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; docker"));
   }
 
   @Test
-  public void userAgentStringK8s() throws Exception {
+  public void userAgentEnvironmentStringK8s() throws Exception {
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(true);
     Mockito.when(EC2MetadataUtils.getUserData())
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString.equals(
-        String.format("Alluxio/%s (cluster1; docker; kubernetes)", ProjectConstants.VERSION)));
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; docker; kubernetes"));
   }
 
   @Test
-  public void userAgentStringGCP() throws Exception {
+  public void userAgentEnvironmentStringGCP() throws Exception {
     Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(true);
     Mockito.when(EC2MetadataUtils.getUserData())
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString.equals(
-        String.format("Alluxio/%s (cluster1; gce)", ProjectConstants.VERSION)));
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; gce"));
   }
 
   @Test
-  public void userAgentStringEC2AMI() throws Exception {
+  public void userAgentEnvironmentStringEC2AMI() throws Exception {
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
     // When no user data in this ec2, null is returned
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn(null);
 
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString.equals(
-        String.format("Alluxio/%s (cluster1; ProductCode:random123code; ec2)",
-            ProjectConstants.VERSION)));
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; ProductCode:random123code; ec2"));
   }
 
   @Test
-  public void userAgentStringEC2CFT() throws Exception {
+  public void userAgentEnvironmentStringEC2CFT() throws Exception {
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(true);
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("{ \"cft_configure\": {}}");
 
-    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString.equals(
-        String.format("Alluxio/%s (cluster1; ProductCode:random123code; cft; ec2)",
-            ProjectConstants.VERSION)));
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; ProductCode:random123code; cft; ec2"));
   }
 
   @Test
-  public void userAgentStringEC2EMR() throws Exception {
+  public void userAgentEnvironmentStringEC2EMR() throws Exception {
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(true);
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("emr_apps");
 
+    String userAgentString = UpdateCheck.getUserAgentEnvironmentString("cluster1");
+    Assert.assertTrue(userAgentString.equals("cluster1; ProductCode:random123code; emr; ec2"));
+  }
+
+  @Test
+  public void featureString() {
+    // Embedded journal
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("embedded"));
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "EMBEDDED");
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("embedded"));
+
+    // Rocks
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, "ROCKS");
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("rocks"));
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, "HEAP");
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("rocks"));
+
+    // Zookeeper
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("zk"));
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("zk"));
+
+    // Backup delegation
+    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true);
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("backupDelegation"));
+    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("backupDelegation"));
+
+    // Daily backup
+    ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true);
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("dailyBackup"));
+    ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, false);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("dailyBackup"));
+
+    // Persistence blacklist
+    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ".tmp");
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("persistBlackList"));
+    ServerConfiguration.unset(PropertyKey.MASTER_PERSISTENCE_BLACKLIST);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("persistBlackList"));
+
+    // Unsafe direct persist
+    ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, true);
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("unsafePersist"));
+    ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, false);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("unsafePersist"));
+
+    // Master audit logging
+    ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, true);
+    Assert.assertTrue(UpdateCheck.getFeatureString().contains("masterAuditLog"));
+    ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, false);
+    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("masterAuditLog"));
+  }
+
+  @Test
+  public void userAgent() throws Exception {
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
-    Assert.assertTrue(userAgentString.equals(
-        String.format("Alluxio/%s (cluster1; ProductCode:random123code; emr; ec2)",
-            ProjectConstants.VERSION)));
+    Pattern pattern = Pattern.compile(
+        String.format("Alluxio\\/%s (?:.+)", ProjectConstants.VERSION));
+    Matcher matcher = pattern.matcher(userAgentString);
+    Assert.assertTrue(matcher.matches());
   }
 }
