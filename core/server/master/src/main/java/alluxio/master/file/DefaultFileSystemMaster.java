@@ -896,7 +896,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+  FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws FileDoesNotExistException, UnavailableException {
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();

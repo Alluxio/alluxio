@@ -62,6 +62,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LogUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -480,11 +482,6 @@ public class InodeSyncStream {
     // we can only load metadata.
 
     if (inodePath.getLockPattern() == LockPattern.WRITE_EDGE && !mLoadOnly) {
-      if (inode instanceof InodeFile && !inode.asFile().isCompleted()) {
-        // Do not sync an incomplete file, since the UFS file is expected to not exist.
-        return;
-      }
-
       Optional<Scoped> persistingLock = mInodeLockManager.tryAcquirePersistingLock(inode.getId());
       if (!persistingLock.isPresent()) {
         // Do not sync a file in the process of being persisted, since the UFS file is being
@@ -810,6 +807,20 @@ public class InodeSyncStream {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
       LOG.debug("Failed to load file metadata: {}", e.toString());
+    } catch (Throwable e) {
+      // Clean up possibly incomplete files due to any exceptions
+      try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
+        FileInfo info = fsMaster.getFileInfoInternal(writeLockedPath);
+        if (!info.isCompleted()) {
+          fsMaster.deleteInternal(rpcContext, inodePath, DeleteContext
+              .mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
+        }
+      } catch (FileDoesNotExistException ex) {
+        LOG.debug("File not created yet, do not need to clean up: {}", ex.toString());
+      } catch (DirectoryNotEmptyException ex) {
+        LOG.warn("Trying to remove a directory, expecting a file: {}", ex.toString());
+      }
+      throw e;
     }
     // Re-traverse the path to pick up any newly created inodes.
     inodePath.traverse();
