@@ -40,7 +40,6 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -74,7 +73,6 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -252,6 +250,7 @@ public class InodeSyncStream {
     this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
         isGetFileInfo, forceSync, loadOnly);
   }
+
   /**
    * Sync the metadata according the the root path the stream was created with.
    *
