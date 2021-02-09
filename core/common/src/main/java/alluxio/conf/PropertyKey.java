@@ -1890,8 +1890,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME =
-      new Builder(Name.MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME)
+  public static final PropertyKey MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME =
+      new Builder(Name.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME)
           .setDefaultValue("10min")
           .setDescription("The maximum time to wait for ufs journal catching up "
               + "before listening to Zookeeper state change. This is added to prevent "
@@ -5349,8 +5349,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.poll.batch.size";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
-    public static final String MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME =
-        "alluxio.master.ufs.journal.max.initial.replay.time";
+    public static final String MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME =
+        "alluxio.master.ufs.journal.max.catchup.time";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =
         "alluxio.master.ufs.managed.blocking.enabled";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =

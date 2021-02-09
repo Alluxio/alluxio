@@ -86,10 +86,10 @@ public final class UfsJournalCheckpointThread extends Thread {
    * The state of the journal catchup.
    */
   public enum CatchupState {
-    CATCHUP_NOT_STARTED, CATCHUP_IN_PROGRESS, CATCHUP_DONE;
+    NOT_STARTED, IN_PROGRESS, DONE;
   }
 
-  private volatile CatchupState mCatchupState = CatchupState.CATCHUP_NOT_STARTED;
+  private volatile CatchupState mCatchupState = CatchupState.NOT_STARTED;
 
   /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
@@ -185,7 +185,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
-    mCatchupState = CatchupState.CATCHUP_IN_PROGRESS;
+    mCatchupState = CatchupState.IN_PROGRESS;
     while (true) {
       JournalEntry entry = null;
       try {
@@ -215,7 +215,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             }
             break;
           default:
-            mCatchupState = CatchupState.CATCHUP_DONE;
+            mCatchupState = CatchupState.DONE;
             break;
         }
       } catch (IOException e) {
@@ -239,7 +239,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
-            mCatchupState = CatchupState.CATCHUP_DONE;
+            mCatchupState = CatchupState.DONE;
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             if (mJournalReader != null) {

@@ -155,13 +155,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       CommonUtils.waitFor("journal catch up to finish", () -> {
         for (UfsJournal journal : mJournals.values()) {
           UfsJournalCheckpointThread.CatchupState catchupState = journal.getCatchupState();
-          if (catchupState != UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE) {
+          if (catchupState != UfsJournalCheckpointThread.CatchupState.DONE) {
             return false;
           }
         }
         return true;
       }, WaitForOptions.defaults().setTimeoutMs(
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME))
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal catchup is interrupted or timeout", e);

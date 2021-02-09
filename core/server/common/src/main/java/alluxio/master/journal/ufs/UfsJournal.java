@@ -474,7 +474,7 @@ public class UfsJournal implements Journal {
   public synchronized UfsJournalCheckpointThread.CatchupState getCatchupState() {
     if (mTailerThread == null) {
       // tailer thread not active yet
-      return UfsJournalCheckpointThread.CatchupState.CATCHUP_NOT_STARTED;
+      return UfsJournalCheckpointThread.CatchupState.NOT_STARTED;
     }
     return mTailerThread.getCatchupState();
   }
