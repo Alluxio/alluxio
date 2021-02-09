@@ -43,6 +43,12 @@ ARG ENABLE_DYNAMIC_USER=false
 RUN apk --no-cache --update add bash libc6-compat shadow tini 'libbz2>=1.0.6-r7' 'sqlite-libs>=3.28.0-r3' && \
     rm -rf /var/cache/apk/*
 
+# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
+RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taobao/arthas/arthas-packaging/3.4.6/arthas-packaging-3.4.6-bin.zip" && \
+  mkdir -p /opt/arthas && \
+  unzip /tmp/arthas.zip -d /opt/arthas && \
+  rm /tmp/arthas.zip
+
 # disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
 
