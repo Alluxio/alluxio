@@ -619,7 +619,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     int rd = 0;
     int nread = 0;
     synchronized (oe) {
-      if (!mOpenFiles.contains(fd)) {
+      if (!mOpenFiles.contains(oe)) {
         LOG.error("Cannot find fd for {} in table", path);
         return -ErrorCodes.EBADFD();
       }
