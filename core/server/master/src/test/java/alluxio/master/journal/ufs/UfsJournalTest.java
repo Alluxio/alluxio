@@ -16,6 +16,7 @@ import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,12 +40,14 @@ public final class UfsJournalTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   private UfsJournal mJournal;
+  private CountingNoopMaster mCountingNoopMaster;
 
   @Before
   public void before() throws Exception {
+    mCountingNoopMaster = new CountingNoopMaster();
     mJournal =
         new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
-            "FileSystemMaster"), new NoopMaster(), 0, Collections::emptySet);
+            "FileSystemMaster"), mCountingNoopMaster, 0, Collections::emptySet);
   }
 
   /**
@@ -133,6 +136,58 @@ public final class UfsJournalTest {
     // secondary should apply new entries after resumed.
     secondaryJournal.resume();
     CommonUtils.waitFor("catching up to current state", () -> countingMaster.getApplyCount() == 5);
+  }
+
+  @Test
+  public void journalInitialReplay() throws Exception {
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.NOT_STARTED,
+        mJournal.getCatchupState());
+    mJournal.start();
+    CommonUtils.waitFor("catchup done", () -> mJournal.getCatchupState()
+            == UfsJournalCheckpointThread.CatchupState.DONE,
+        WaitForOptions.defaults().setTimeoutMs(6000));
+    mJournal.gainPrimacy();
+    Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.NOT_STARTED,
+        mJournal.getCatchupState());
+    // Write entries and close to guarantee it's a complete journal file
+    int entryCount = 10;
+    for (int i = 0; i < entryCount; i++) {
+      mJournal.write(Journal.JournalEntry.getDefaultInstance());
+    }
+    mJournal.flush();
+    mJournal.close();
+
+    // Validate the initial replay finished and applied all entries
+    // Create a new Journal with the same journal path
+    String parentPath = new File(mJournal.getLocation().getPath()).getParent();
+    mJournal =
+        new UfsJournal(new URI(parentPath), mCountingNoopMaster, 0, Collections::emptySet);
+    mJournal.start();
+    CommonUtils.waitFor("catchup done", () -> mJournal.getCatchupState()
+            == UfsJournalCheckpointThread.CatchupState.DONE,
+        WaitForOptions.defaults().setTimeoutMs(6000));
+    Assert.assertEquals(entryCount, mCountingNoopMaster.getApplyCount());
+  }
+
+  @Test
+  public void journalSecondaryCatchup() throws Exception {
+    mJournal.start();
+    mJournal.gainPrimacy();
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, 0);
+    int entryCount = 10;
+    for (long i = 0; i < 10; i++) {
+      writer.write(Journal.JournalEntry.newBuilder().setSequenceNumber(i).build());
+    }
+    writer.close();
+    mJournal.signalLosePrimacy();
+    Assert.assertEquals(0, mCountingNoopMaster.getApplyCount());
+    mJournal.awaitLosePrimacy();
+    // When master steps down, it should start catching up
+    CommonUtils.waitFor("catchup done", () -> mJournal.getCatchupState()
+            == UfsJournalCheckpointThread.CatchupState.DONE,
+        WaitForOptions.defaults().setTimeoutMs(6000));
+    // check if logs are applied
+    Assert.assertEquals(entryCount, mCountingNoopMaster.getApplyCount());
   }
 
   @Test
