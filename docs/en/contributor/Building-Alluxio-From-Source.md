@@ -69,7 +69,7 @@ Once Alluxio is built, you can validate and start it with:
 
 ```console
 $ # Alluxio uses ./underFSStorage for under file system storage by default
-$ mkdir ./underFSStorage 
+$ mkdir ./underFSStorage
 $ ./bin/alluxio validateEnv local
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
@@ -96,39 +96,53 @@ $ ./bin/alluxio-stop.sh local
 
 ### Compute Framework Support
 
-Since Alluxio 1.7, **you do not need to run Maven build with different compute profiles.**
-The Alluxio client jar built and located at
+Since Alluxio 1.7, Alluxio client jar built and located at
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
 (e.g., Spark, Flink, Presto and etc) by default.
 
-### Hadoop Distribution Support
+### Support of Different HDFS under storage
 
-To build Alluxio against one of the different distributions of hadoop, you can run the following
-command by specifying `<HADOOP_PROFILE>` and the corresponding `hadoop.version`.:
+By default, Alluxio is built with the HDFS under storage of Hadoop 3.3.
+Run the following command by specifying `<UFS_HADOOP_PROFILE>` and the corresponding `ufs.hadoop
+.version` to build ufs with different versions.
 
 ```console
-$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+$ mvn install -P<UFS_HADOOP_PROFILE> -Dufs.hadoop.version=<HADOOP_VERSION> -DskipTests
 ```
-where `<HADOOP_VERSION>` can be set for different distributions.
-Available Hadoop profiles include `hadoop-1`, `hadoop-2`, `hadoop-3` to cover the major Hadoop
-versions 1.x, 2.x and 3.x.
+
+Here `<UFS_HADOOP_VERSION>` can be set for different distributions.
+Available Hadoop profiles include `ufs-hadoop-1`, `ufs-hadoop-2`, `ufs-hadoop-3` to cover the major
+Hadoop versions 1.x, 2.x and 3.x.
+
+For example
+```
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+  -Dcheckstyle.skip=true -Dfindbugs.skip=true \
+  -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+```
+
+```
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+  -Dcheckstyle.skip=true -Dfindbugs.skip=true \
+  -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.0
+```
 
 #### Apache
 
 All main builds are from Apache so all Apache releases can be used directly
 
 ```properties
--Phadoop-1 -Dhadoop.version=1.0.4
--Phadoop-1 -Dhadoop.version=1.2.0
--Phadoop-2 -Dhadoop.version=2.2.0
--Phadoop-2 -Dhadoop.version=2.3.0
--Phadoop-2 -Dhadoop.version=2.4.1
--Phadoop-2 -Dhadoop.version=2.5.2
--Phadoop-2 -Dhadoop.version=2.6.5
--Phadoop-2 -Dhadoop.version=2.7.3
--Phadoop-2 -Dhadoop.version=2.8.0
--Phadoop-2 -Dhadoop.version=2.9.0
--Phadoop-3 -Dhadoop.version=3.0.0
+-Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4
+-Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.9.0
+-Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0
 ```
 
 #### Cloudera
@@ -136,8 +150,8 @@ All main builds are from Apache so all Apache releases can be used directly
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
 ```properties
--Phadoop-2 -Dhadoop.version=2.3.0-cdh5.1.0
--Phadoop-2 -Dhadoop.version=2.0.0-cdh4.7.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0-cdh5.1.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.0.0-cdh4.7.0
 ```
 
 #### Hortonworks
@@ -145,7 +159,7 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonworksRelease`
 
 ```properties
--Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67
--Phadoop-2 -Dhadoop.version=2.2.0.2.1.0.0-92
--Phadoop-2 -Dhadoop.version=2.4.0.2.1.3.0-563
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.1.0.2.0.5.0-67
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0.2.1.0.0-92
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.4.0.2.1.3.0-563
 ```
