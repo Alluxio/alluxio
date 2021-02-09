@@ -14,6 +14,8 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.MetastoreType;
 import alluxio.util.EnvironmentUtils;
 
 import com.amazonaws.SdkClientException;
@@ -126,15 +128,15 @@ public class UpdateCheckTest {
   @Test
   public void featureString() {
     // Embedded journal
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     Assert.assertTrue(!UpdateCheck.getFeatureString().contains("embedded"));
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "EMBEDDED");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("embedded"));
 
     // Rocks
-    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, "ROCKS");
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("rocks"));
-    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, "HEAP");
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP);
     Assert.assertTrue(!UpdateCheck.getFeatureString().contains("rocks"));
 
     // Zookeeper

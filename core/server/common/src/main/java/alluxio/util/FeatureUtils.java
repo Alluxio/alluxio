@@ -13,6 +13,7 @@ package alluxio.util;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalType;
 
 /**
  * Utilities to detect features that Alluxio is running with.
@@ -24,7 +25,8 @@ public final class FeatureUtils {
    * @return true, if running with embedded journal
    */
   public static boolean isEmbeddedJournal() {
-    return "EMBEDDED".equals(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
+    return JournalType.EMBEDDED.toString()
+        .equals(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
   }
 
   /**
