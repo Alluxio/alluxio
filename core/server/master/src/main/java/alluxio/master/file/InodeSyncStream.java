@@ -824,6 +824,8 @@ public class InodeSyncStream {
         LOG.debug("File not created yet, do not need to clean up: {}", ex.toString());
       } catch (DirectoryNotEmptyException ex) {
         LOG.warn("Trying to remove a directory, expecting a file: {}", ex.toString());
+      } catch (Throwable ex) {
+        e.addSuppressed(ex);
       }
       throw e;
     }
