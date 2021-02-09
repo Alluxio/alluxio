@@ -43,7 +43,7 @@ public final class FeatureUtils {
    *
    * @return true, if Zookeeper is enabled
    */
-  public static boolean isZookeeperEnable() {
+  public static boolean isZookeeperEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 
@@ -52,7 +52,7 @@ public final class FeatureUtils {
    *
    * @return true, if backup delegation is enabled
    */
-  public static boolean isBackupDelegationEnable() {
+  public static boolean isBackupDelegationEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED);
   }
 
@@ -61,7 +61,7 @@ public final class FeatureUtils {
    *
    * @return true, if daily backup is enabled
    */
-  public static boolean isDailyBackupEnable() {
+  public static boolean isDailyBackupEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED);
   }
 
@@ -71,12 +71,8 @@ public final class FeatureUtils {
    * @return true, if persistence black list is empty
    */
   public static boolean isPersistenceBlacklistEmpty() {
-    if (ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)) {
-      if (!ServerConfiguration.get(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+    return !ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
+        || ServerConfiguration.get(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
   }
 
   /**
@@ -84,7 +80,7 @@ public final class FeatureUtils {
    *
    * @return true, if unsafe direct persistence is enabled
    */
-  public static boolean isUnsafeDirectPersistEnable() {
+  public static boolean isUnsafeDirectPersistEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED);
   }
 
@@ -93,7 +89,7 @@ public final class FeatureUtils {
    *
    * @return true, if master audir logging is enabled
    */
-  public static boolean isMasterAuditLoggingEnable() {
+  public static boolean isMasterAuditLoggingEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED);
   }
 }

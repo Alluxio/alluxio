@@ -80,8 +80,8 @@ public final class UpdateCheck {
 
   /**
    * @param clusterID the cluster ID
-   * @return a string representation of the user's environment in the format "key1:value1, key2:
-   *         value2".
+   * @return a string representation of the user's environment in the format
+   *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
@@ -92,8 +92,7 @@ public final class UpdateCheck {
 
   /**
    * @param clusterID the cluster ID
-   * @return a string representation of the user's environment in the format "key1:value1, key2:
-   *         value2".
+   * @return a string representation of the user's environment in the format "docker; kubernetes"
    */
   @VisibleForTesting
   public static String getUserAgentEnvironmentString(String clusterID) throws IOException {
@@ -117,40 +116,22 @@ public final class UpdateCheck {
   /**
    * Get the features information.
    *
-   * @return a list of string represent feature names
+   * @return a string representing enabled features in the format - "featureA; featureB"
    */
   @VisibleForTesting
   public static String getFeatureString() {
     Joiner joiner = Joiner.on("; ").skipNulls();
-    List<String> featureInfo = new ArrayList<>();
-    if (FeatureUtils.isEmbeddedJournal()) {
-      featureInfo.add("embedded");
-    }
-    if (FeatureUtils.isRocks()) {
-      featureInfo.add("rocks");
-    }
-    if (FeatureUtils.isZookeeperEnable()) {
-      featureInfo.add("zk");
-    }
-    if (FeatureUtils.isBackupDelegationEnable()) {
-      featureInfo.add("backupDelegation");
-    }
-    if (FeatureUtils.isDailyBackupEnable()) {
-      featureInfo.add("dailyBackup");
-    }
-    if (!FeatureUtils.isPersistenceBlacklistEmpty()) {
-      featureInfo.add("persistBlackList");
-    }
-    if (FeatureUtils.isUnsafeDirectPersistEnable()) {
-      featureInfo.add("unsafePersist");
-    }
-    if (FeatureUtils.isMasterAuditLoggingEnable()) {
-      featureInfo.add("masterAuditLog");
-    }
-    if (featureInfo.size() == 0) {
-      return null;
-    }
-    return joiner.join(featureInfo);
+    String sysInfo = joiner.join(
+        FeatureUtils.isEmbeddedJournal() ? "embedded" : null,
+        FeatureUtils.isRocks() ? "rocks" : null,
+        FeatureUtils.isZookeeperEnabled() ? "zk" : null,
+        FeatureUtils.isBackupDelegationEnabled() ? "backupDelegation" : null,
+        FeatureUtils.isDailyBackupEnabled() ? "dailyBackup" : null,
+        FeatureUtils.isPersistenceBlacklistEmpty() ? null : "persistBlackList",
+        FeatureUtils.isUnsafeDirectPersistEnabled() ? "unsafePersist" : null,
+        FeatureUtils.isMasterAuditLoggingEnabled() ? "masterAuditLog" : null
+    );
+    return sysInfo;
   }
 
   /**

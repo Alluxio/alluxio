@@ -126,54 +126,67 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void featureString() {
-    // Embedded journal
+  public void featureStringEmbeddedJournal() {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("embedded"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("embedded"));
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("embedded"));
+  }
 
-    // Rocks
+  @Test
+  public void featureStringRocks() {
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("rocks"));
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("rocks"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("rocks"));
+  }
 
-    // Zookeeper
+  @Test
+  public void featureStringZookeeper() {
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("zk"));
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("zk"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("zk"));
+  }
 
-    // Backup delegation
+  @Test
+  public void featureStringBackupDelegation() {
     ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("backupDelegation"));
     ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("backupDelegation"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("backupDelegation"));
+  }
 
-    // Daily backup
+  @Test
+  public void featureStringDailyBackup() {
     ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("dailyBackup"));
     ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, false);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("dailyBackup"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("dailyBackup"));
+  }
 
-    // Persistence blacklist
+  @Test
+  public void featureStringPersistneceBlacklist() {
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ".tmp");
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("persistBlackList"));
     ServerConfiguration.unset(PropertyKey.MASTER_PERSISTENCE_BLACKLIST);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("persistBlackList"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("persistBlackList"));
+  }
 
-    // Unsafe direct persist
+  @Test
+  public void featureStringUnsafePersist() {
     ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, true);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("unsafePersist"));
     ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, false);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("unsafePersist"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("unsafePersist"));
+  }
 
-    // Master audit logging
+  @Test
+  public void featureStringMasterAuditLogging() {
     ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, true);
     Assert.assertTrue(UpdateCheck.getFeatureString().contains("masterAuditLog"));
     ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, false);
-    Assert.assertTrue(!UpdateCheck.getFeatureString().contains("masterAuditLog"));
+    Assert.assertFalse(UpdateCheck.getFeatureString().contains("masterAuditLog"));
   }
 
   @Test
