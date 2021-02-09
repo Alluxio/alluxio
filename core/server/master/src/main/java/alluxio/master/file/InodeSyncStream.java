@@ -821,7 +821,7 @@ public class InodeSyncStream {
               .mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
         }
       } catch (FileDoesNotExistException ex) {
-        LOG.debug("File not created yet, do not need to clean up: {}", ex.toString());
+        LOG.info("File not created yet, do not need to clean up: {}", ex.toString());
       } catch (DirectoryNotEmptyException ex) {
         LOG.warn("Trying to remove a directory, expecting a file: {}", ex.toString());
       } catch (Throwable ex) {
