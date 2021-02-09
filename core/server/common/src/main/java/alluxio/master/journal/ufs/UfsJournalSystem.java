@@ -26,6 +26,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 
+import com.codahale.metrics.Timer;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   private final URI mBase;
   private final long mQuietTimeMs;
   private ConcurrentHashMap<String, UfsJournal> mJournals;
-  private long mInitialCatchUpTimeMs = -1;
+  private long mInitialCatchupTimeMs = -1;
 
   /**
    * Creates a UFS journal system with the specified base location. When journals are created, their
@@ -72,7 +73,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     mJournals = new ConcurrentHashMap<>();
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
-        () -> mInitialCatchUpTimeMs);
+        () -> mInitialCatchupTimeMs);
   }
 
   @Override
@@ -149,7 +150,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   @Override
   public void waitForCatchup() {
     long start = System.currentTimeMillis();
-    try {
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_UFS_JOURNAL_CATCHUP_TIMER.getName()).time()) {
       CommonUtils.waitFor("journal catch up to finish", () -> {
         for (UfsJournal journal : mJournals.values()) {
           UfsJournalCheckpointThread.CatchupState catchupState = journal.getCatchupState();
@@ -162,12 +164,16 @@ public class UfsJournalSystem extends AbstractJournalSystem {
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_INITIAL_REPLAY_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
-      LOG.info("Journal initial replay is interrupted or timeout", e);
-      mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
+      LOG.info("Journal catchup is interrupted or timeout", e);
+      if (mInitialCatchupTimeMs == -1) {
+        mInitialCatchupTimeMs = System.currentTimeMillis() - start;
+      }
       return;
     }
-    mInitialCatchUpTimeMs = System.currentTimeMillis() - start;
-    LOG.info("Finished master process ufs journal initial replay in {} ms", mInitialCatchUpTimeMs);
+    if (mInitialCatchupTimeMs == -1) {
+      mInitialCatchupTimeMs = System.currentTimeMillis() - start;
+    }
+    LOG.info("Finished master process ufs journal catchup in {} ms", mInitialCatchupTimeMs);
   }
 
   @Override

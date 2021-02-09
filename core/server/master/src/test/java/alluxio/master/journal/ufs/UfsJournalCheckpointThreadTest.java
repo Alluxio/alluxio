@@ -79,10 +79,10 @@ public final class UfsJournalCheckpointThreadTest {
     checkpointThread.start();
     CommonUtils.waitFor("catchup start", () -> checkpointThread.getCatchupState()
         == UfsJournalCheckpointThread.CatchupState.CATCHUP_IN_PROGRESS,
-        WaitForOptions.defaults().setTimeoutMs(1000));
+        WaitForOptions.defaults().setTimeoutMs(6000));
     CommonUtils.waitFor("catchup done", () -> checkpointThread.getCatchupState()
         == UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
-        WaitForOptions.defaults().setTimeoutMs(2000));
+        WaitForOptions.defaults().setTimeoutMs(6000));
     checkpointThread.awaitTermination(true);
     Assert.assertEquals(10, checkpointThread.getNextSequenceNumber());
   }
@@ -104,7 +104,7 @@ public final class UfsJournalCheckpointThreadTest {
     checkpointThread.start();
     CommonUtils.waitFor("catchup start", () -> checkpointThread.getCatchupState()
         == UfsJournalCheckpointThread.CatchupState.CATCHUP_IN_PROGRESS,
-        WaitForOptions.defaults().setTimeoutMs(1000));
+        WaitForOptions.defaults().setTimeoutMs(6000));
     checkpointThread.awaitTermination(true);
     Assert.assertEquals(UfsJournalCheckpointThread.CatchupState.CATCHUP_DONE,
         checkpointThread.getCatchupState());

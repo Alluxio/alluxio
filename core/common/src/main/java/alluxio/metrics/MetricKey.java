@@ -418,11 +418,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   // Journal metrics
-  public static final MetricKey MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS =
-      new Builder(Name.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS)
-          .setDescription("The process time of the ufs journal initial replay")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
@@ -438,10 +433,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The timer statistics of journal gain primacy")
           .setMetricType(MetricType.TIMER)
           .build();
+  public static final MetricKey MASTER_UFS_JOURNAL_CATCHUP_TIMER =
+      new Builder(Name.MASTER_UFS_JOURNAL_CATCHUP_TIMER)
+          .setDescription("The timer statistics of journal catchup")
+          .setMetricType(MetricType.TIMER)
+          .build();
   public static final MetricKey MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER =
       new Builder(Name.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER)
           .setDescription("The timer statistics of ufs journal failure recover")
           .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS =
+      new Builder(Name.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS)
+          .setDescription("The process time of the ufs journal initial replay")
+          .setMetricType(MetricType.GAUGE)
           .build();
 
   // Cluster metrics
@@ -1159,8 +1164,10 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
+    public static final String MASTER_UFS_JOURNAL_CATCHUP_TIMER
+        = "Master.UfsJournalCatchupTimer";
     public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER
-        = "Master.UfsJournalFailureRecoverTime";
+        = "Master.UfsJournalFailureRecoverTimer";
     public static final String MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS
         = "Master.UfsJournalInitialReplayTimeMs";
 
