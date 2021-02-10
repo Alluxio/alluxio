@@ -78,7 +78,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jnr-fuse.
  */
 @ThreadSafe
-public final class AlluxioFuseFileSystem extends FuseStubFS {
+public final class AlluxioFuseFileSystem extends FuseStubFS implements FuseUnmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final int MAX_OPEN_WAITTIME_MS = 5000;
@@ -151,7 +151,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, FuseMountInfo opts, AlluxioConfiguration conf) {
     super();
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
