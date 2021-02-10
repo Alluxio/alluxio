@@ -72,13 +72,13 @@ public class FileStat extends Struct {
   public FileStat(ByteBuffer buffer) {
     super(buffer);
     if (OSUtils.isMacOS()) {
-      st_dev = new Unsigned64();
-      st_mode = new Unsigned32();
-      st_nlink = new Unsigned64();
+      st_dev = new Unsigned32();
+      st_mode = new Unsigned16();
+      st_nlink = new Unsigned16();
       st_ino = new Unsigned64();
       st_uid = new Unsigned32();
       st_gid = new Unsigned32();
-      st_rdev = new Unsigned64();
+      st_rdev = new Unsigned32();
       st_atim = new Timespec();
       st_mtim = new Timespec();
       st_ctim = new Timespec();
@@ -95,14 +95,14 @@ public class FileStat extends Struct {
       pad1 = null;
     } else {
       // Linux platform
-      st_dev = new Unsigned64();
+      st_dev = new Unsigned32();
       pad1 = null;
       st_ino = new Unsigned64();
-      st_nlink = new Unsigned64();
-      st_mode = new Unsigned32();
+      st_nlink = new Unsigned16();
+      st_mode = new Unsigned16();
       st_uid = new Unsigned32();
       st_gid = new Unsigned32();
-      st_rdev = new Unsigned64();
+      st_rdev = new Unsigned32();
       st_size = new SignedLong();
       st_blksize = new SignedLong();
       st_blocks = new SignedLong();
@@ -110,20 +110,21 @@ public class FileStat extends Struct {
       st_mtim = new Timespec();
       st_ctim = new Timespec();
 
+      //graveyard
       st_birthtime = null;
       st_flags = null;
       st_gen = null;
     }
   }
 
-  public final Unsigned64 st_dev;
+  public final Unsigned32 st_dev;
   public final Unsigned16 pad1;
   public final Unsigned64 st_ino;
-  public final Unsigned64 st_nlink;
-  public final Unsigned32 st_mode;
+  public final Unsigned16 st_nlink;
+  public final Unsigned16 st_mode;
   public final Unsigned32 st_uid;
   public final Unsigned32 st_gid;
-  public final Unsigned64 st_rdev;
+  public final Unsigned32 st_rdev;
   public final SignedLong st_size;
   public final SignedLong st_blksize;
   public final SignedLong st_blocks;

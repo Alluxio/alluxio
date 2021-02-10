@@ -239,7 +239,7 @@ public class AlluxioJniFuseFileSystemTest {
         stat.st_mtim.tv_nsec.longValue());
     assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
     assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
-    assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
+    assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.get());
   }
 
   @Test

@@ -14,12 +14,10 @@ package alluxio.jnifuse.struct;
 import static org.junit.Assert.assertEquals;
 
 import jnr.ffi.Runtime;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
-@Ignore
 public class FileStatTest {
 
   @Test
@@ -58,7 +56,7 @@ public class FileStatTest {
     assertEquals(size, stat.st_size.get());
 
     ByteBuffer buf = stat.buffer;
-    assertEquals(mode, buf.getInt(0x18));
-    assertEquals(size, buf.getLong(0x30));
+    assertEquals(mode, buf.getShort(stat.st_mode.offset()));
+    assertEquals(size, buf.getLong(stat.st_size.offset()));
   }
 }
