@@ -51,7 +51,7 @@ And then check the box next to "developer" in the window pane.
 > Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
 You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the source files.
 
-#### Run in IntelliJ IDEA
+#### Run Alluxio processes within IntelliJ IDEA
 1. Run `dev/intellij/install-runconfig.sh`
 2. Restart IntelliJ IDEA
 3. Edit conf/alluxio-site.properties
