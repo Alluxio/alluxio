@@ -128,72 +128,72 @@ public class UpdateCheckTest {
   @Test
   public void featureStringEmbeddedJournal() {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("embedded"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("embedded"));
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("embedded"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("embedded"));
   }
 
   @Test
   public void featureStringRocks() {
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("rocks"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("rocks"));
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("rocks"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("rocks"));
   }
 
   @Test
   public void featureStringZookeeper() {
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("zk"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("zk"));
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("zk"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("zk"));
   }
 
   @Test
   public void featureStringBackupDelegation() {
     ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("backupDelegation"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("backupDelegation"));
     ServerConfiguration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("backupDelegation"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("backupDelegation"));
   }
 
   @Test
   public void featureStringDailyBackup() {
     ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("dailyBackup"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("dailyBackup"));
     ServerConfiguration.set(PropertyKey.MASTER_DAILY_BACKUP_ENABLED, false);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("dailyBackup"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("dailyBackup"));
   }
 
   @Test
   public void featureStringPersistneceBlacklist() {
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ".tmp");
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("persistBlackList"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("persistBlackList"));
     ServerConfiguration.unset(PropertyKey.MASTER_PERSISTENCE_BLACKLIST);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("persistBlackList"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("persistBlackList"));
   }
 
   @Test
   public void featureStringUnsafePersist() {
     ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, true);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("unsafePersist"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("unsafePersist"));
     ServerConfiguration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, false);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("unsafePersist"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("unsafePersist"));
   }
 
   @Test
   public void featureStringMasterAuditLogging() {
     ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, true);
-    Assert.assertTrue(UpdateCheck.getFeatureString().contains("masterAuditLog"));
+    Assert.assertTrue(UpdateCheck.getUserAgentFeatureString().contains("masterAuditLog"));
     ServerConfiguration.set(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED, false);
-    Assert.assertFalse(UpdateCheck.getFeatureString().contains("masterAuditLog"));
+    Assert.assertFalse(UpdateCheck.getUserAgentFeatureString().contains("masterAuditLog"));
   }
 
   @Test
   public void userAgent() throws Exception {
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Pattern pattern = Pattern.compile(
-        String.format("Alluxio\\/%s (?:.+)", ProjectConstants.VERSION));
+        String.format("Alluxio\\/%s \\(cluster1(?:.+)[^;]\\)", ProjectConstants.VERSION));
     Matcher matcher = pattern.matcher(userAgentString);
     Assert.assertTrue(matcher.matches());
   }

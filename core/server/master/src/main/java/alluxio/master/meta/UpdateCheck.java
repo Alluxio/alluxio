@@ -86,7 +86,11 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
-    String sysInfo = joiner.join(getUserAgentEnvironmentString(clusterID), getFeatureString());
+    List<String> featureList = getUserAgentFeatureString();
+    String sysInfo = getUserAgentEnvironmentString(clusterID);
+    if (featureList.size() > 0) {
+      sysInfo = joiner.join(sysInfo, joiner.join(getUserAgentFeatureString()));
+    }
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
   }
 
@@ -116,22 +120,33 @@ public final class UpdateCheck {
   /**
    * Get the features information.
    *
-   * @return a string representing enabled features in the format - "featureA; featureB"
+   * @return a list of strings representing enabled features
    */
   @VisibleForTesting
-  public static String getFeatureString() {
-    Joiner joiner = Joiner.on("; ").skipNulls();
-    String sysInfo = joiner.join(
-        FeatureUtils.isEmbeddedJournal() ? "embedded" : null,
-        FeatureUtils.isRocks() ? "rocks" : null,
-        FeatureUtils.isZookeeperEnabled() ? "zk" : null,
-        FeatureUtils.isBackupDelegationEnabled() ? "backupDelegation" : null,
-        FeatureUtils.isDailyBackupEnabled() ? "dailyBackup" : null,
-        FeatureUtils.isPersistenceBlacklistEmpty() ? null : "persistBlackList",
-        FeatureUtils.isUnsafeDirectPersistEnabled() ? "unsafePersist" : null,
-        FeatureUtils.isMasterAuditLoggingEnabled() ? "masterAuditLog" : null
-    );
-    return sysInfo;
+  public static List<String> getUserAgentFeatureString() {
+    List<String> features = new ArrayList<>();
+    addIfTrue(FeatureUtils.isEmbeddedJournal(), features, "embedded");
+    addIfTrue(FeatureUtils.isRocks(), features, "rocks");
+    addIfTrue(FeatureUtils.isZookeeperEnabled(), features, "zk");
+    addIfTrue(FeatureUtils.isBackupDelegationEnabled(), features, "backupDelegation");
+    addIfTrue(FeatureUtils.isDailyBackupEnabled(), features, "dailyBackup");
+    addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), features, "persistBlackList");
+    addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), features, "unsafePersist");
+    addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), features, "masterAuditLog");
+    return features;
+  }
+
+  /**
+   * Add feature name if condition is true.
+   *
+   * @param valid true, if condition is valid
+   * @param features feature list
+   * @param featureName feature name
+   */
+  private static void addIfTrue(boolean valid, List<String> features, String featureName) {
+    if (valid) {
+      features.add(featureName);
+    }
   }
 
   /**
