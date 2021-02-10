@@ -83,6 +83,15 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
+   * The state of the journal catchup.
+   */
+  public enum CatchupState {
+    NOT_STARTED, IN_PROGRESS, DONE;
+  }
+
+  private volatile CatchupState mCatchupState = CatchupState.NOT_STARTED;
+
+  /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
    * @param master the master to apply the journal entries to
@@ -176,6 +185,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
+    mCatchupState = CatchupState.IN_PROGRESS;
     while (true) {
       JournalEntry entry = null;
       try {
@@ -205,6 +215,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             }
             break;
           default:
+            mCatchupState = CatchupState.DONE;
             break;
         }
       } catch (IOException e) {
@@ -228,6 +239,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
+            mCatchupState = CatchupState.DONE;
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             if (mJournalReader != null) {
@@ -251,6 +263,13 @@ public final class UfsJournalCheckpointThread extends Thread {
         return;
       }
     }
+  }
+
+  /**
+   * @return the state of the master process journal catchup
+   */
+  public CatchupState getCatchupState() {
+    return mCatchupState;
   }
 
   /**
