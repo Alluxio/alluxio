@@ -10,10 +10,12 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+#For more details on how to use this script, go
+#[to the docs](https://docs.alluxio.io/os/user/stable/en/contributor/Contributor-Tools.html).
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR="$SCRIPT_DIR/runConfigurations"
 DEST_DIR="$SCRIPT_DIR/../../.idea/runConfigurations/"
 echo `realpath $DEST_DIR`
 mkdir -p "$DEST_DIR"
-#shellcheck disable=SC2010
 ls -1 "$SRC_DIR" | xargs -n1 -I FILE cp "$SRC_DIR/FILE" "$DEST_DIR"
