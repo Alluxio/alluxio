@@ -70,7 +70,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 ```
 5. Format the Alluxio master by running `bin/alluxio formatMaster`
 6. `Run > Run > AlluxioMaster`
-7. bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker
+7. Format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 8. `Run > Run > AlluxioWoker`
 9. Execute alluxio command
 
