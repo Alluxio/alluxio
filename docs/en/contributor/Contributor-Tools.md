@@ -60,7 +60,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
   alluxio.master.hostname=localhost
   alluxio.master.journal.type=UFS
 ```
-4. Edit conf/log4j.properties to print log in console
+4. Edit `conf/log4j.properties` to print log in console
 ```console
   log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}, stdout
   log4j.threshold=ALL
