@@ -86,10 +86,10 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
-    List<String> featureList = getUserAgentFeatureString();
+    List<String> featureList = getUserAgentFeatureList();
     String sysInfo = getUserAgentEnvironmentString(clusterID);
     if (featureList.size() > 0) {
-      sysInfo = joiner.join(sysInfo, joiner.join(getUserAgentFeatureString()));
+      sysInfo = joiner.join(sysInfo, joiner.join(getUserAgentFeatureList()));
     }
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
   }
@@ -123,7 +123,7 @@ public final class UpdateCheck {
    * @return a list of strings representing enabled features
    */
   @VisibleForTesting
-  public static List<String> getUserAgentFeatureString() {
+  public static List<String> getUserAgentFeatureList() {
     List<String> features = new ArrayList<>();
     addIfTrue(FeatureUtils.isEmbeddedJournal(), features, "embedded");
     addIfTrue(FeatureUtils.isRocks(), features, "rocks");
