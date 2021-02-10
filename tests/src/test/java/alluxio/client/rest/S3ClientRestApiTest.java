@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -49,6 +50,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.core.StringContains;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -821,6 +823,43 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
   }
 
+  @Test
+  public void bucketTags() throws Exception {
+    createBucketRestCall("test0");
+    createBucketRestCall("test1");
+
+    assertThat(getObjectTagRestCall("test0"), new StringContains("<TagSet/>"));
+    assertThat(getObjectTagRestCall("test1"), new StringContains("<TagSet/>"));
+
+    final HashMap<String, String> tag0 = new HashMap<>();
+    tag0.put("abc", "def");
+    tag0.put("ghi", "jkl");
+    putObjectTagRestCall("test0", createTagXml(tag0));
+
+    final String tag0result = getObjectTagRestCall("test0");
+    assertThat(tag0result, new StringContains("<Key>abc</Key><Value>def</Value>"));
+    assertThat(tag0result, new StringContains("<Key>ghi</Key><Value>jkl</Value>"));
+    assertThat(getObjectTagRestCall("test1"), new StringContains("<TagSet/>"));
+  }
+
+  @Test
+  public void objectTags() throws Exception {
+    createBucketRestCall("test0");
+
+    createObject("test0/test0", new byte[]{}, null, null);
+    createObject("test0/test1", new byte[]{}, null, null);
+
+    final HashMap<String, String> tag0 = new HashMap<>();
+    tag0.put("abc", "def");
+    tag0.put("ghi", "jkl");
+    putObjectTagRestCall("test0/test0", createTagXml(tag0));
+
+    final String tag0result = getObjectTagRestCall("test0/test0");
+    assertThat(tag0result, new StringContains("<Key>abc</Key><Value>def</Value>"));
+    assertThat(tag0result, new StringContains("<Key>ghi</Key><Value>jkl</Value>"));
+    assertThat(getObjectTagRestCall("test0/test1"), new StringContains("<TagSet/>"));
+  }
+
   private void createBucketRestCall(String bucketName) throws Exception {
     String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null,
@@ -899,4 +938,45 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.DELETE, null,
         TestCaseOptions.defaults()).run();
   }
+
+  private String getObjectTagRestCall(String objectKey) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    final HashMap<String, String> params = new HashMap<>();
+    params.put("tagging", "");
+    return new TestCase(mHostname, mPort, uri, params, HttpMethod.GET, null,
+        TestCaseOptions.defaults()).call();
+  }
+
+  private void putObjectTagRestCall(String objectKey, String tagContent) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    TestCaseOptions options = TestCaseOptions.defaults();
+
+    options.setBody(tagContent);
+    options.setContentType("application/xml");
+
+    final HashMap<String, String> params = new HashMap<>();
+    params.put("tagging", "");
+
+    new TestCase(mHostname, mPort, uri, params, HttpMethod.PUT, null, options)
+        .run();
+  }
+
+  private static String createTagXml(Map<String, String> tags) {
+    final StringBuilder sb = new StringBuilder();
+
+    sb.append("<Tagging><TagSet>");
+    for (Map.Entry<String, String> entry : tags.entrySet()) {
+      sb.append("<Tag>");
+      sb.append("<Key>");
+      sb.append(entry.getKey());
+      sb.append("</Key>");
+      sb.append("<Value>");
+      sb.append(entry.getValue());
+      sb.append("</Value>");
+      sb.append("</Tag>");
+    }
+    sb.append("</TagSet></Tagging>");
+    return sb.toString();
+  }
+
 }

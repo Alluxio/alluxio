@@ -16,7 +16,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Tagging object according to the specs in
@@ -36,16 +38,10 @@ public class Tagging {
    * @param tagMap map of tag keys to tag values
    */
   public Tagging(Map<String, String> tagMap) {
-    final ArrayList<String> keys = new ArrayList<>(tagMap.keySet());
-    Collections.sort(keys);
-
-    final ArrayList<Tag> tags = new ArrayList<>();
-
-    for (String key : keys) {
-      tags.add(new Tag(key, tagMap.get(key)));
-    }
-
-    mTagSet = new TagSet(tags);
+    mTagSet = new TagSet(
+        tagMap.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey()))
+            .map((entry) -> new Tag(entry.getKey(), entry.getValue()))
+            .collect(Collectors.toList()));
   }
 
   /**

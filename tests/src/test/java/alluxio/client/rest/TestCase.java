@@ -174,7 +174,13 @@ public final class TestCase {
       // make sure that serialization of empty objects does not fail
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
       OutputStream os = connection.getOutputStream();
-      os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());
+      String writeValue;
+      if (mOptions.getBody() instanceof String) {
+        writeValue = (String) mOptions.getBody();
+      } else {
+        writeValue = mapper.writeValueAsString(mOptions.getBody());
+      }
+      os.write(writeValue.getBytes());
       os.close();
     }
 

@@ -23,11 +23,14 @@ import alluxio.proxy.s3.S3RestServiceHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +42,12 @@ import java.util.Map;
 public class TagHelper {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
 
+  /**
+   * all tag information will go into TAG_FOLDER (/_TAG), inside of the folder, every file in the
+   * rest of the directory structure will have a corresponding file in the location inside the
+   * TAG_FOLDER if there are tags. Folders will have a reserved file name FOLDER_OBJECT_TAG_FILE
+   * which will represent the tags for that folder object.
+   */
   private static final String TAG_FOLDER = "/_TAG";
   private static final String FOLDER_OBJECT_TAG_FILE = "_FOLDER_TAG";
 
@@ -61,7 +70,13 @@ public class TagHelper {
       // ignore
     }
 
-    final Tagging tagToUpdate = new XmlMapper().readValue(is, Tagging.class);
+    StringWriter writer = new StringWriter();
+    IOUtils.copy(is, writer, Charset.defaultCharset());
+    String theString = writer.toString();
+
+    LOG.info(theString);
+
+    final Tagging tagToUpdate = new XmlMapper().readValue(theString, Tagging.class);
 
     final TagSet tagSet = tagToUpdate.getTagSet();
     if (tagSet != null) {
