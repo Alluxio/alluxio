@@ -978,5 +978,4 @@ public final class S3ClientRestApiTest extends RestApiTest {
     sb.append("</TagSet></Tagging>");
     return sb.toString();
   }
-
 }
