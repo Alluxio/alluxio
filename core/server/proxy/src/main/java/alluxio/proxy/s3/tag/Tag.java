@@ -11,11 +11,13 @@
 
 package alluxio.proxy.s3.tag;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * The Tag object according to https://docs.aws.amazon.com/AmazonS3/latest/API/API_Tag.html.
  */
+@JsonPropertyOrder({"Key", "Value"})
 public class Tag {
   private String mKey;
   private String mValue;
