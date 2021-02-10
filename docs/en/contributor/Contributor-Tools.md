@@ -54,7 +54,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 #### Run Alluxio processes within IntelliJ IDEA
 1. Run `dev/intellij/install-runconfig.sh`
 2. Restart IntelliJ IDEA
-3. Edit conf/alluxio-site.properties
+3. Edit `conf/alluxio-site.properties`
 ```console
   alluxio.home={alluxio.home}
   alluxio.master.hostname=localhost
