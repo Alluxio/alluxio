@@ -23,8 +23,6 @@ import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
-
 /**
  * A class which should be extended when implementing commands for the
  * {@link TableShell}.
@@ -42,7 +40,7 @@ public abstract class AbstractTableCommand extends AbstractDistributedJobCommand
    * @param fsContext the filesystem of Alluxio
    */
   public AbstractTableCommand(AlluxioConfiguration conf, TableMasterClient client,
-      @Nullable FileSystemContext fsContext) {
+      FileSystemContext fsContext) {
     super(fsContext);
     mConf = conf;
     mClient = client;
