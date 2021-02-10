@@ -1880,7 +1880,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
       new Builder(Name.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("(Experimental) make sure the journal catchup finish "
               + "before joining the quorum in fault tolerant mode when starting the master process "
               + "and before the current master becoming the leader."
