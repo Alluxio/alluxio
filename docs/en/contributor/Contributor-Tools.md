@@ -69,9 +69,9 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
   log4j.appender.stdout.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
 ```
 5. Format the Alluxio master by running `bin/alluxio formatMaster`
-6. `Run > Run > AlluxioMaster`
+6. In Intellij, start Alluxio master process by selecting `Run > Run > AlluxioMaster`
 7. Format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
-8. `Run > Run > AlluxioWoker`
+8. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 9. Execute alluxio command
 
 ## Maven Targets and Plugins
