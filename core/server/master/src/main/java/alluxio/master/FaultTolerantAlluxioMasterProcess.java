@@ -77,6 +77,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     startMasters(false);
     LOG.info("Secondary started");
 
+    // Perform the initial catchup before joining leader election,
+    // to avoid potential delay if this master is selected as leader
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
       mJournalSystem.waitForCatchup();
     }
