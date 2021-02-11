@@ -17,6 +17,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
@@ -422,6 +423,28 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
       WorkerOutOfSpaceException;
+
+  /**
+   * Gets the block reader to read from Alluxio block or UFS block.
+   * This operation must be paired with {@link #cleanBlockReader(long, long, BlockReader)}.
+   *
+   * @param request the block read request
+   * @return a block reader to read data from
+   */
+  BlockReader getBlockReader(BlockReadRequest request) throws IOException,
+      BlockDoesNotExistException, InvalidWorkerStateException,
+      BlockAlreadyExistsException, WorkerOutOfSpaceException;
+
+  /**
+   * Cleans data reader and related blocks after using the block reader obtained
+   * from {@link #getBlockReader(BlockReadRequest)}.
+   *
+   * @param sessionId the session id which used for getting the block reader
+   * @param blockId the block id this block reader belongs to
+   * @param reader the to be cleaned block reader
+   */
+  void cleanBlockReader(long sessionId, long blockId, BlockReader reader)
+      throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException;
 
   /**
    * Clears the worker metrics.

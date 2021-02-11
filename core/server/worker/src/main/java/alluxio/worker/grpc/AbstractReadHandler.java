@@ -22,6 +22,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
+import alluxio.wire.ReadRequest;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
