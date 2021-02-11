@@ -738,7 +738,8 @@ using the job service.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
-The `--active-jobs` flag can limit how many jobs can be submitted to the Alluxio job service at the same time.
+Options:
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
 A lower value means slower execution but also being nicer to the other users of the job service.
 
@@ -753,8 +754,11 @@ across workers using the job service. The job is a no-op if the file is already 
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
-The `--replication` flag can be used to load the data into multiple workers. The default value is `1`.
-The `--active-jobs` flag can limit how many jobs can be submitted to the Alluxio job service at the same time.
+
+Options:
+
+* `--replication`: Specifies how many workers to load each file into. The default value is `1`.
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
 A lower value means slower execution but also being nicer to the other users of the job service.
 
