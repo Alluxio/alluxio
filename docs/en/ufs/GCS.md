@@ -26,6 +26,20 @@ the bucket, or using an existing one. For the purposes of this guide, the GCS bu
 For more information on GCS, please read its
 [documentation](https://cloud.google.com/storage/docs/overview).
 
+## Setup 
+
+Alluxio has two GCS integrations. The default GCS UFS module (GCS version 1) is implemented based on 
+[jets3t](http://www.jets3t.org/) library which is design for AWS S3. 
+Thus, it only accepts Google cloud storage interoperability access/secret keypair 
+which allows full access to all Google cloud storages inside a Google cloud project.
+No permission or access control can be placed on the interoperability keys.
+The conjuction of Google interoperability API and jets3t library also impact the performance of default GCS UFS module. 
+
+GCS with Google Cloud API (GCS version 2) on the other hand accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started). 
+Based on the application credentials, Google cloud can determine what permissions an authenticated client 
+has for its target Google cloud storage bucket. Besides, GCS with Google cloud API has much better performance
+than the default one in metadata and read/write operations. 
+
 ## Basic Setup
 
 A GCS bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
@@ -48,9 +62,11 @@ specify an **existing** GCS bucket and directory as the under storage system by 
 alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
-The google credentials must also be specified for the root mount point. In
-`conf/alluxio-site.properties`, add:
+Choose your desired GCS implementation way and provide the corresponding Google credentials.
 
+{% navtabs rootMount %}
+{% navtab GCS version 1 %}
+In`conf/alluxio-site.properties`, add:
 ```properties
 alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
 alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
@@ -62,6 +78,23 @@ or other environment variables that contain your credentials.
 Note: GCS interoperability is disabled by default. Please click on the Interoperability tab
 in [GCS setting](https://console.cloud.google.com/storage/settings) and enable this feature.
 Click on `Create a new key` to get the Access Key and Secret pair.
+
+{% endnavtab %}
+{% navtab GCS version 2 %}
+In`conf/alluxio-site.properties`, add:
+```properties
+alluxio.master.mount.table.root.option.alluxio.underfs.gcs.version=2
+alluxio.master.mount.table.root.option.fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+```
+
+- The first property key tells Alluxio to load the Version 2 GCS UFS module which uses the Google cloud API.
+- The second property key provides the path to the Google application credentials json file. Note that the 
+Google application credentials json file should be placed in all the Alluxio nodes in the same path.
+If the nodes running the Alluxio processes already contain the GCS credentials, this property may not be needed
+but it is always recommended to set this property explicitly.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 After these changes, Alluxio should be configured to work with GCS as its under storage system, and
 you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
@@ -77,12 +110,24 @@ alluxio.master.hostname=localhost
 ```
 
 Then, mount GCS:
+{% navtabs rootMount %}
+{% navtab GCS version 1 %}
 ```console
 $ ./bin/alluxio fs mount \
   --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
   --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
   /gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
+{% endnavtab %}
+{% navtab GCS version 2 %}
+```console
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.gcs.version=2 \
+  --option fs.gcs.credential.path=/path/to/<google_application_credentials>.json \
+  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Running Alluxio Locally with GCS
 
@@ -134,14 +179,6 @@ have the right access permission to the specified bucket, a permission denied er
 When Alluxio security is enabled, Alluxio loads the bucket ACL to Alluxio permission on the first
 time when the metadata is loaded to Alluxio namespace.
 
-### Mapping from GCS user to Alluxio file owner
-
-By default, Alluxio tries to extract the GCS user id from the credentials. Optionally,
-`alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to specify a preset gcs owner id to
-Alluxio username static mapping in the format `id1=user1;id2=user2`. The Google Cloud Storage IDs
-can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use
-the "Owners" one.
-
 ### Mapping from GCS ACL to Alluxio permission
 
 Alluxio checks the GCS bucket READ/WRITE ACL to determine the owner's permission mode to a Alluxio
@@ -158,3 +195,27 @@ If you want to share the GCS mount point with other users in Alluxio namespace, 
 
 Command such as `chown`, `chgrp`, and `chmod` to Alluxio directories and files do **NOT** propagate to the underlying
 GCS buckets nor objects.
+
+### Mapping from GCS user to Alluxio file owner (GCS Version 1 only)
+
+By default, Alluxio tries to extract the GCS user id from the credentials. Optionally,
+`alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to specify a preset gcs owner id to
+Alluxio username static mapping in the format `id1=user1;id2=user2`. The Google Cloud Storage IDs
+can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use
+the "Owners" one.
+
+### Accessing GCS through Proxy (GCS Version 2 only)
+
+If the Alluxio cluster is behind a corporate proxy or a firewall, the Alluxio GCS integration may not be able to access
+the internet with the default settings.
+
+Add the following java options to `conf/alluxio-env.sh` before starting the Alluxio Masters and Workers.
+
+```bash
+ALLUXIO_MASTER_JAVA_OPTS+=" -Dhttps.proxyHost=<proxy_host> -Dhttps.proxyPort=<proxy_port> -Dhttp.proxyHost=<proxy_host> -Dhttp.proxyPort=<proxy_port> -Dhttp.nonProxyHosts=<non_proxy_host>"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Dhttps.proxyHost=<proxy_host> -Dhttps.proxyPort=<proxy_port> -Dhttp.proxyHost=<proxy_host> -Dhttp.proxyPort=<proxy_port> -Dhttp.nonProxyHosts=<non_proxy_host>"
+```
+
+An example value for `http.nonProxyHosts` is `localhost|127.*|[::1]|192.168.0.0/16`.
+
+If username and password are required for the proxy, add the `http.proxyUser`, `https.proxyUser`, `http.proxyPassword`, and `https.proxyPassword` java options.
