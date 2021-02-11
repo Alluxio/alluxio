@@ -63,7 +63,6 @@ public class TagHelper {
     Map<String, String> tagMap = new HashMap<>();
 
     final AlluxioURI tagPathURI = new AlluxioURI(tagPath);
-    LOG.info(tagPathURI.getPath());
     try {
       fs.delete(tagPathURI);
     } catch (FileDoesNotExistException e) {
@@ -73,8 +72,6 @@ public class TagHelper {
     StringWriter writer = new StringWriter();
     IOUtils.copy(is, writer, Charset.defaultCharset());
     String theString = writer.toString();
-
-    LOG.info(theString);
 
     final Tagging tagToUpdate = new XmlMapper().readValue(theString, Tagging.class);
 

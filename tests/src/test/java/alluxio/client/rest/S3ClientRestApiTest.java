@@ -834,12 +834,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final HashMap<String, String> tag0 = new HashMap<>();
     tag0.put("abc", "def");
     tag0.put("ghi", "jkl");
+    tag0.put("", "mno");
     putObjectTagRestCall("test0", createTagXml(tag0));
 
     final String tag0result = getObjectTagRestCall("test0");
     assertThat(tag0result, new StringContains("<Key>abc</Key><Value>def</Value>"));
     assertThat(tag0result, new StringContains("<Key>ghi</Key><Value>jkl</Value>"));
+    assertThat(tag0result, new StringContains("<Key></Key><Value>mno</Value>"));
     assertThat(getObjectTagRestCall("test1"), new StringContains("<TagSet/>"));
+
+    final HashMap<String, String> tag1 = new HashMap<>();
+    putObjectTagRestCall("test0", createTagXml(tag1));
+    assertThat(getObjectTagRestCall("test0"), new StringContains("<TagSet/>"));
+
   }
 
   @Test

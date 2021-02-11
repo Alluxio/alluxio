@@ -186,7 +186,8 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary gets a bucket and lists all the objects in it
+   * @summary gets a bucket and lists all the objects in it if tagging is not present,
+   *          instead returns all tags associated with the bucket if tagging is present
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param markerParam the optional marker param
@@ -264,7 +265,8 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary creates a bucket
+   * @summary creates a bucket if tagging is not present
+   *          sets tags for an existing bucket if tagging is present
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param tagging the optional tagging param to determine if this is PutBucketTagging
@@ -344,7 +346,8 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary uploads an object or part of an object in multipart upload
+   * @summary uploads an object or part of an object in multipart upload if tagging is not present
+   *          sets tags for an existing object if tagging is present
    * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param bucket the bucket name
@@ -593,7 +596,8 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary downloads an object or list parts of the object in multipart upload
+   * @summary downloads or list parts of the object in multipart upload if tagging is not present
+   *          gets all tags for an object if tagging is present
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
