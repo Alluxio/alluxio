@@ -147,7 +147,8 @@ public final class AlluxioFuse {
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
           fuseFs.umount();
-          throw new IOException(String.format("Failed to mount %s", opts.getMountPoint()), e);
+          throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
+              opts.getAlluxioRoot(), opts.getMountPoint()), e);
         }
         return fuseFs;
       } else {
@@ -165,7 +166,8 @@ public final class AlluxioFuse {
           // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
           fuseFs.umount();
-          throw new IOException(String.format("Failed to mount %s", opts.getMountPoint()), e);
+          throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
+              opts.getAlluxioRoot(), opts.getMountPoint()), e);
         }
         return fuseFs;
       }
