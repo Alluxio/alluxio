@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.util.io.BufferUtils;
 
@@ -18,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -35,10 +36,6 @@ public class LocalFileBlockReaderTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
-
-  /** The exception expected to be thrown. */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets up the file path and file block reader before a test runs.
@@ -82,9 +79,9 @@ public class LocalFileBlockReaderTest {
    */
   @Test
   public void readWithInvalidArgument() throws Exception {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("exceeding fileSize");
-    mReader.read(TEST_BLOCK_SIZE - 1, 2);
+    assertThrows("exceeding fileSize", IllegalArgumentException.class, () -> {
+      mReader.read(TEST_BLOCK_SIZE - 1, 2);
+    });
   }
 
   /**
@@ -110,7 +107,8 @@ public class LocalFileBlockReaderTest {
   @Test
   public void close() throws Exception {
     mReader.close();
-    mThrown.expect(IOException.class);
-    mReader.read(0, TEST_BLOCK_SIZE);
+    assertThrows(IOException.class, () -> {
+      mReader.read(0, TEST_BLOCK_SIZE);
+    });
   }
 }
