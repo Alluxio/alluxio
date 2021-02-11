@@ -454,9 +454,8 @@ public class FileOutStreamTest {
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
         .setLocationPolicy((getWorkerOptions) -> null)
         .setWriteType(WriteType.CACHE_THROUGH);
-    assertThrows(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(), UnavailableException.class, () -> {
-      mTestStream = createTestStream(FILE_NAME, options);
-    });
+    assertThrows(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(), UnavailableException.class,
+        () -> mTestStream = createTestStream(FILE_NAME, options));
   }
 
   private void verifyIncreasingBytesWritten(int len) {
