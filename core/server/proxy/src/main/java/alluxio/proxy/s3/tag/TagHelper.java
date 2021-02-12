@@ -43,13 +43,13 @@ public class TagHelper {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
 
   /**
-   * all tag information will go into TAG_FOLDER (/_TAG), inside of the folder, every file in the
+   * all tag information will go into TAG_FOLDER (/.tag), inside of the folder, every file in the
    * rest of the directory structure will have a corresponding file in the location inside the
    * TAG_FOLDER if there are tags. Folders will have a reserved file name FOLDER_OBJECT_TAG_FILE
    * which will represent the tags for that folder object.
    */
-  private static final String TAG_FOLDER = "/_TAG";
-  private static final String FOLDER_OBJECT_TAG_FILE = "_FOLDER_TAG";
+  private static final String TAG_FOLDER = "/.tag";
+  private static final String FOLDER_OBJECT_TAG_FILE = ".folder_tag";
 
   /**
    * @param fs the filesystem
