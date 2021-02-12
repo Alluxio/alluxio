@@ -379,8 +379,8 @@ public final class MasterWorkerInfo {
   @Override
   public String toString() {
     Collection<Long> blocks = mBlocks;
+    String blockFieldName = "blocks";
     // We truncate the list of block IDs to print, unless it is for DEBUG logs
-    String blockFieldName = "all-blocks";
     if (!LOG.isDebugEnabled() && mBlocks.size() > BLOCK_SIZE_LIMIT) {
       blockFieldName = "blocks-truncated";
       blocks = mBlocks.stream().limit(BLOCK_SIZE_LIMIT).collect(Collectors.toList());
