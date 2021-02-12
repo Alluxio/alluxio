@@ -69,6 +69,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -266,10 +268,7 @@ public class InodeSyncStream {
     int syncPathCount = 0;
     int failedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    long start = Long.MAX_VALUE;
-    if (LOG.isDebugEnabled()) {
-      start = System.currentTimeMillis();
-    }
+    Instant start = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
@@ -383,10 +382,11 @@ public class InodeSyncStream {
       }
     }
     if (LOG.isDebugEnabled()) {
-      long end = System.currentTimeMillis();
+      Instant end = Instant.now();
+      Duration elapsedTime = Duration.between(start, end);
       LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
-          syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount, end - start,
-          mRootScheme);
+          syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
+              elapsedTime.toMillis(), mRootScheme);
     }
     boolean success = syncPathCount > 0;
     if (success) {
