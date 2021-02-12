@@ -380,17 +380,21 @@ public final class MasterWorkerInfo {
   public String toString() {
     Collection<Long> blocks = mBlocks;
     // We truncate the list of block IDs to print, unless it is for DEBUG logs
+    String blockFieldName = "blocks-truncated";
     if (!LOG.isDebugEnabled()) {
+      blockFieldName = "all-blocks";
       blocks = (mBlocks.size() < BLOCK_SIZE_LIMIT) ? mBlocks :
               mBlocks.stream().limit(BLOCK_SIZE_LIMIT).collect(Collectors.toList());
     }
-    return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
-            .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
-            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
-            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
-            .add("blockCount", mBlocks.size())
-            .add("blocks", blocks)
-            .add("lostStorage", mLostStorage).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("id", mId)
+        .add("workerAddress", mWorkerAddress)
+        .add("capacityBytes", mCapacityBytes)
+        .add("usedBytes", mUsedBytes)
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
+        .add("blockCount", mBlocks.size())
+        .add(blockFieldName, blocks)
+        .add("lostStorage", mLostStorage).toString();
   }
 
   /**
