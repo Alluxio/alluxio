@@ -30,7 +30,6 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.Mode;
-import alluxio.util.ThreadUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -45,7 +44,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -594,22 +592,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public String getFileSystemName() {
     return mFsName;
-  }
-
-  @Override
-  public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
-    LOG.info("Mounting AlluxioJniFuseFileSystem: blocking={}, debug={}, fuseOpts=\"{}\"",
-        blocking, debug, Arrays.toString(fuseOpts));
-    super.mount(blocking, debug, fuseOpts);
-    LOG.info("AlluxioJniFuseFileSystem mounted: blocking={}, debug={}, fuseOpts=\"{}\"",
-        blocking, debug, Arrays.toString(fuseOpts));
-  }
-
-  @Override
-  public void umount() {
-    LOG.info("Umount AlluxioJniFuseFileSystem, {}",
-        ThreadUtils.formatStackTrace(Thread.currentThread()));
-    super.umount();
   }
 
   @VisibleForTesting
