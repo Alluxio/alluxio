@@ -23,7 +23,7 @@ public class FileStatTest {
   @Test
   public void offset() {
     // allocate an enough large memory for jnistat
-    FileStat jnistat = new FileStat(ByteBuffer.allocate(256));
+    FileStat jnistat = FileStat.of(ByteBuffer.allocate(256));
     ru.serce.jnrfuse.struct.FileStat jnrstat =
         new ru.serce.jnrfuse.struct.FileStat(Runtime.getSystemRuntime());
 
@@ -47,16 +47,16 @@ public class FileStatTest {
 
   @Test
   public void dataConsistency() {
-    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
+    FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
     int mode = FileStat.ALL_READ | FileStat.ALL_WRITE | FileStat.S_IFDIR;
     long size = 0x123456789888721L;
     stat.st_mode.set(mode);
     stat.st_size.set(size);
-    assertEquals(mode, stat.st_mode.get());
-    assertEquals(size, stat.st_size.get());
+    assertEquals(mode, stat.st_mode.intValue());
+    assertEquals(size, stat.st_size.longValue());
 
-    ByteBuffer buf = stat.buffer;
-    assertEquals(mode, buf.getShort(stat.st_mode.offset()));
-    assertEquals(size, buf.getLong(stat.st_size.offset()));
+    ByteBuffer buf = stat.getBuffer();
+    assertEquals(mode, buf.getShort((int) stat.st_mode.offset()));
+    assertEquals(size, buf.getLong((int) stat.st_size.offset()));
   }
 }

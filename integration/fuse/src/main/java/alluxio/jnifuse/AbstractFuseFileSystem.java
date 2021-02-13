@@ -184,7 +184,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int getattrCallback(String path, ByteBuffer buf) {
     try {
-      return getattr(path, FileStat.wrap(buf));
+      return getattr(path, FileStat.of(buf));
     } catch (Exception e) {
       LOG.error("Failed to getattr {}: ", path, e);
       return -ErrorCodes.EIO();
