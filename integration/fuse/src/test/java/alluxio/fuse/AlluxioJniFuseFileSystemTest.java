@@ -512,7 +512,7 @@ public class AlluxioJniFuseFileSystemTest {
   private FuseFileInfo allocateNativeFileInfo() {
     ByteBuffer buffer = ByteBuffer.allocateDirect(36);
     buffer.clear();
-    return FuseFileInfo.wrap(buffer);
+    return FuseFileInfo.of(buffer);
   }
 
   /**
@@ -535,7 +535,7 @@ public class AlluxioJniFuseFileSystemTest {
   public void statfs() throws Exception {
     ByteBuffer buffer = ByteBuffer.allocateDirect(4 * Constants.KB);
     buffer.clear();
-    Statvfs stbuf = Statvfs.wrap(buffer);
+    Statvfs stbuf = Statvfs.of(buffer);
 
     int blockSize = 4 * Constants.KB;
     int totalBlocks = 4;

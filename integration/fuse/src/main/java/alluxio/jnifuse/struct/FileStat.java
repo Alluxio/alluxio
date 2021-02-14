@@ -18,17 +18,17 @@ import java.nio.ByteOrder;
 
 public class FileStat extends ru.serce.jnrfuse.struct.FileStat {
 
-  private final ByteBuffer mBuffer;
+  private final ByteBuffer buffer;
 
   protected FileStat(Runtime runtime, ByteBuffer buffer) {
     super(runtime);
-    mBuffer = buffer;
+    this.buffer = buffer;
     // depends on the arch
-    mBuffer.order(ByteOrder.LITTLE_ENDIAN);
+    this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
 
   public ByteBuffer getBuffer() {
-    return mBuffer;
+    return buffer;
   }
 
   public static FileStat of(ByteBuffer buffer) {
