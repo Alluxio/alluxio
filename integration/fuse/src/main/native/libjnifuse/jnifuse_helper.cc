@@ -80,6 +80,14 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jobject obj,
   return ret;
 }
 
+jobject JNICALL Java_alluxio_jnifuse_LibFuse_get_1fuse_1context(JNIEnv *env, jobject obj) {
+  LOGD("enter get_fuse_context");
+  struct fuse_context *cxt = fuse_get_context();
+  jobject fibuf =
+    env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
+  return fibuf;
+}
+
 #ifdef __cplusplus
 }
 #endif
