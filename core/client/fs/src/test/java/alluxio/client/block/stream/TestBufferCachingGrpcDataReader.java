@@ -31,6 +31,7 @@ public class TestBufferCachingGrpcDataReader extends BufferCachingGrpcDataReader
   private int mReadChunkNum = 0;
   private int mChunkSize;
   private int mBlockSize;
+  private int mTotalChunkNum = -1;
 
   TestBufferCachingGrpcDataReader(WorkerNetAddress address,
       CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
@@ -42,15 +43,24 @@ public class TestBufferCachingGrpcDataReader extends BufferCachingGrpcDataReader
   }
 
   @Override
-  DataBuffer readChunk() {
-    if (mReadChunkNum > mBlockSize / mChunkSize) {
+  protected DataBuffer readChunk() {
+    if (mTotalChunkNum == -1) {
+      mTotalChunkNum = getTotalChunkNum();
+    }
+    if (mReadChunkNum >= mTotalChunkNum) { // finished reading
       return null;
     }
-    mReadChunkNum++;
-    ByteBuffer byteBuffer = BufferUtils
-        .getIncreasingByteBuffer(mReadChunkNum * mChunkSize, mChunkSize);
+    ByteBuffer byteBuffer = null;
+    if ((mReadChunkNum + 1) * mChunkSize <= mBlockSize) { // full block read
+      byteBuffer = BufferUtils
+          .getIncreasingByteBuffer(mReadChunkNum * mChunkSize, mChunkSize);
+    } else { // partial block read for the last chunk
+      byteBuffer = BufferUtils.getIncreasingByteBuffer(
+          mReadChunkNum * mChunkSize, mBlockSize - mReadChunkNum * mChunkSize);
+    }
     DataBuffer buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
     mPosToRead += buffer.readableBytes();
+    mReadChunkNum++;
     return buffer;
   }
 
@@ -63,18 +73,45 @@ public class TestBufferCachingGrpcDataReader extends BufferCachingGrpcDataReader
     return mReadChunkNum;
   }
 
-  public boolean validateBufferResult(int index, DataBuffer buffer) {
-    byte[] byteArray = new byte[mChunkSize];
-    buffer.readBytes(byteArray, 0, mChunkSize);
-    return BufferUtils.equalIncreasingByteArray(index * mChunkSize, mChunkSize, byteArray);
+  public boolean validateBuffer(int index, DataBuffer buffer) {
+    if (mTotalChunkNum == -1) {
+      mTotalChunkNum = getTotalChunkNum();
+    }
+    if (buffer == null) {
+      return index >= mTotalChunkNum;
+    }
+    int bufferSize = buffer.readableBytes();
+    if (index < mTotalChunkNum - 1 && bufferSize != mChunkSize) {
+      return false;
+    }
+    if (index == mTotalChunkNum - 1
+        && bufferSize != mBlockSize - (mTotalChunkNum - 1) * mChunkSize) {
+      return false;
+    }
+    byte[] byteArray = new byte[bufferSize];
+    buffer.readBytes(byteArray, 0, bufferSize);
+    return BufferUtils.equalIncreasingByteArray(index * mChunkSize, bufferSize, byteArray);
   }
 
-  public boolean validateBufferResult(int start, int length, DataBuffer buffer) {
+  public boolean validateBuffer(int start, int length, DataBuffer buffer) {
     if (buffer == null) {
+      return start >= mBlockSize;
+    }
+    if (start + length >= mBlockSize) {
+      return false;
+    }
+    if (buffer.readableBytes() != length) {
       return false;
     }
     byte[] byteArray = new byte[length];
     buffer.readBytes(byteArray, 0, length);
     return BufferUtils.equalIncreasingByteArray(start, length, byteArray);
+  }
+
+  public int getTotalChunkNum() {
+    if (mBlockSize % mChunkSize == 0) {
+      return mBlockSize / mChunkSize;
+    }
+    return mBlockSize / mChunkSize + 1;
   }
 }

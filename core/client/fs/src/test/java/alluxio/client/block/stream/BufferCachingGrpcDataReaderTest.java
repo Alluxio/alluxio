@@ -26,12 +26,9 @@ import org.mockito.Mockito;
  * Tests a {@link BufferCachingGrpcDataReader}.
  */
 public class BufferCachingGrpcDataReaderTest {
-  private static final long BLOCK_ID = 1L;
   private static final int BLOCK_SIZE = 1024 * 3 + 1024 / 3;
-  private static final int BUFFER_SIZE = 5;
   private static final int CHUNK_SIZE = 1024;
   private static final long TIMEOUT = 10 * Constants.SECOND_MS;
-  private static final String TEST_MESSAGE = "test message";
 
   private TestBufferCachingGrpcDataReader mDataReader;
 
@@ -39,12 +36,13 @@ public class BufferCachingGrpcDataReaderTest {
   public void before() throws Exception {
     WorkerNetAddress address = new WorkerNetAddress();
     BlockWorkerClient client = Mockito.mock(BlockWorkerClient.class);
-    GrpcBlockingStream<ReadRequest, ReadResponse> stream
-        = new GrpcBlockingStream<>(client::readBlock, BUFFER_SIZE, TEST_MESSAGE);
+    GrpcBlockingStream<ReadRequest, ReadResponse> unusedStream
+        = new GrpcBlockingStream<>(client::readBlock, 5, "test message");
     ReadRequest readRequest = ReadRequest.newBuilder().setOffset(0).setLength(BLOCK_SIZE)
-        .setChunkSize(CHUNK_SIZE).setBlockId(BLOCK_ID).build();
+        .setChunkSize(CHUNK_SIZE).setBlockId(1L).build();
     mDataReader = new TestBufferCachingGrpcDataReader(address,
-        new NoopClosableResource<>(client), TIMEOUT, readRequest, stream, CHUNK_SIZE, BLOCK_SIZE);
+        new NoopClosableResource<>(client), TIMEOUT,
+        readRequest, unusedStream, CHUNK_SIZE, BLOCK_SIZE);
   }
 
   @Test
@@ -53,7 +51,7 @@ public class BufferCachingGrpcDataReaderTest {
     for (int i = 0; i < chunkNum; i++) {
       DataBuffer buffer = mDataReader.readChunk(i);
       Assert.assertEquals(i + 1, mDataReader.getReadChunkNum());
-      Assert.assertTrue(mDataReader.validateBufferResult(i, buffer));
+      Assert.assertTrue(mDataReader.validateBuffer(i, buffer));
     }
   }
 
@@ -62,22 +60,22 @@ public class BufferCachingGrpcDataReaderTest {
     int index = 2;
     DataBuffer buffer = mDataReader.readChunk(index);
     Assert.assertEquals(index + 1, mDataReader.getReadChunkNum());
-    Assert.assertTrue(mDataReader.validateBufferResult(index, buffer));
+    Assert.assertTrue(mDataReader.validateBuffer(index, buffer));
 
     index = 1;
     buffer = mDataReader.readChunk(index);
     Assert.assertEquals(3, mDataReader.getReadChunkNum());
-    Assert.assertTrue(mDataReader.validateBufferResult(index, buffer));
+    Assert.assertTrue(mDataReader.validateBuffer(index, buffer));
 
     index = 0;
     buffer = mDataReader.readChunk(index);
     Assert.assertEquals(3, mDataReader.getReadChunkNum());
-    Assert.assertTrue(mDataReader.validateBufferResult(index, buffer));
+    Assert.assertTrue(mDataReader.validateBuffer(index, buffer));
 
     index = 3;
     buffer = mDataReader.readChunk(index);
     Assert.assertEquals(index + 1, mDataReader.getReadChunkNum());
-    Assert.assertTrue(mDataReader.validateBufferResult(index, buffer));
+    Assert.assertTrue(mDataReader.validateBuffer(index, buffer));
   }
 
   @Test

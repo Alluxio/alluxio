@@ -125,7 +125,7 @@ public class BufferCachingGrpcDataReader {
    */
   @Nullable
   @VisibleForTesting
-  DataBuffer readChunk() throws IOException {
+  protected DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;

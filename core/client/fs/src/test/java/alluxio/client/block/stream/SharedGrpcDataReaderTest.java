@@ -17,7 +17,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,11 +32,9 @@ import java.util.Random;
  * Tests {@link SharedGrpcDataReaderTest}.
  */
 public final class SharedGrpcDataReaderTest {
-  private static final int CHUNK_SIZE = 1024;
   private static final long BLOCK_ID = 1L;
-  private static final int BUFFER_SIZE = 5;
+  private static final int CHUNK_SIZE = 1024;
   private static final long TIMEOUT = 10 * Constants.SECOND_MS;
-  private static final String TEST_MESSAGE = "test message";
 
   private int mBlockSize = CHUNK_SIZE * 7 + CHUNK_SIZE / 3;
   private TestBufferCachingGrpcDataReader mBufferCachingDataReader;
@@ -47,12 +44,13 @@ public final class SharedGrpcDataReaderTest {
   public void before() {
     WorkerNetAddress address = new WorkerNetAddress();
     BlockWorkerClient client = Mockito.mock(BlockWorkerClient.class);
-    GrpcBlockingStream<ReadRequest, ReadResponse> stream
-        = new GrpcBlockingStream<>(client::readBlock, BUFFER_SIZE, TEST_MESSAGE);
+    GrpcBlockingStream<ReadRequest, ReadResponse> unusedStream
+        = new GrpcBlockingStream<>(client::readBlock, 5, "test message");
     mReadRequest = ReadRequest.newBuilder().setOffset(0).setLength(mBlockSize)
         .setChunkSize(CHUNK_SIZE).setBlockId(BLOCK_ID).build();
     mBufferCachingDataReader = new TestBufferCachingGrpcDataReader(address,
-        new NoopClosableResource<>(client), TIMEOUT,  mReadRequest, stream, CHUNK_SIZE, mBlockSize);
+        new NoopClosableResource<>(client), TIMEOUT,
+        mReadRequest, unusedStream, CHUNK_SIZE, mBlockSize);
   }
 
   @Test
@@ -60,7 +58,7 @@ public final class SharedGrpcDataReaderTest {
     SharedGrpcDataReader sharedReader
         = new SharedGrpcDataReader(mReadRequest, mBufferCachingDataReader);
     for (int i = 0; i < getChunkNum(mBlockSize); i++) {
-      Assert.assertTrue(mBufferCachingDataReader.validateBufferResult(i, sharedReader.readChunk()));
+      Assert.assertTrue(mBufferCachingDataReader.validateBuffer(i, sharedReader.readChunk()));
     }
     Assert.assertNull(sharedReader.readChunk());
   }
@@ -114,15 +112,7 @@ public final class SharedGrpcDataReaderTest {
    */
   @Test(timeout = 1000 * 60)
   public void MultiThreadConcurrentRead() throws Exception {
-    ConcurrentHashSet<Throwable> errors = concurrentRead(10, mBlockSize);
-    if (errors.size() != 0) {
-      Assert.fail(String.format("Expected %d errors, but got %d, errors:\n",
-          0, errors.size()) + Joiner.on("\n").join(errors));
-    }
-  }
-
-  private ConcurrentHashSet<Throwable> concurrentRead(int concurrency, int totalSize)
-      throws Exception {
+    int concurrency = 10;
     List<Thread> threads = new ArrayList<>(concurrency);
     // If there are exceptions, we will store them here
     final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
@@ -130,8 +120,8 @@ public final class SharedGrpcDataReaderTest {
     for (int i = 0; i < concurrency; i++) {
       Thread t = new Thread(() -> {
         Random random = new Random();
-        int offset = random.nextInt(totalSize);
-        int len = random.nextInt(totalSize - offset);
+        int offset = random.nextInt(mBlockSize);
+        int len = random.nextInt(mBlockSize - offset);
         ReadRequest partialReadRequest = ReadRequest.newBuilder()
             .setOffset(offset).setLength(len).setBlockId(mReadRequest.getBlockId())
             .setChunkSize(mReadRequest.getChunkSize()).build();
@@ -154,19 +144,14 @@ public final class SharedGrpcDataReaderTest {
     for (Thread t : threads) {
       t.join();
     }
-
-    return errors;
   }
 
   private int validateRead(SharedGrpcDataReader reader, int offset, int chunkNum)
       throws Exception {
     int index = offset / CHUNK_SIZE;
-    if (index >= chunkNum) {
-      return -1;
-    }
-    Assert.assertTrue(mBufferCachingDataReader.validateBufferResult(offset,
+    Assert.assertTrue(mBufferCachingDataReader.validateBuffer(offset,
         (index + 1) * CHUNK_SIZE - offset, reader.readChunk()));
-    return (index + 1) * CHUNK_SIZE;
+    return index >= chunkNum ? -1 : (index + 1) * CHUNK_SIZE;
   }
 
   private int getChunkNum(int len) {
