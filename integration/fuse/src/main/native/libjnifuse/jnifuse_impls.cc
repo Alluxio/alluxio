@@ -14,6 +14,19 @@
 #include "debug.h"
 #include "jnifuse_fs.h"
 
+int chmod_wrapper(const char *path, mode_t mode) {
+  return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
+}
+
+int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->createOper->call(path, mode,
+                                                                     fi);
+}
+
+int flush_wrapper(const char *path, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
+}
+
 int getattr_wrapper(const char *path, struct stat *stbuf) {
   LOGD("getattr %s", path);
 
@@ -23,6 +36,10 @@ int getattr_wrapper(const char *path, struct stat *stbuf) {
   LOGD("file %s: size=%ld, mod=%d", path, stbuf->st_size, stbuf->st_mode);
 
   return ret;
+}
+
+int mkdir_wrapper(const char *path, mode_t mode) {
+  return jnifuse::JniFuseFileSystem::getInstance()->mkdirOper->call(path, mode);
 }
 
 int open_wrapper(const char *path, struct fuse_file_info *fi) {
@@ -55,41 +72,24 @@ int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
   return ret;
 }
 
-int unlink_wrapper(const char *path) {
-  return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
-}
-
-int flush_wrapper(const char *path, struct fuse_file_info *fi) {
-  return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
-}
-
 int release_wrapper(const char *path, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
-}
-
-int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
-  return jnifuse::JniFuseFileSystem::getInstance()->createOper->call(path, mode,
-                                                                     fi);
-}
-
-int mkdir_wrapper(const char *path, mode_t mode) {
-  return jnifuse::JniFuseFileSystem::getInstance()->mkdirOper->call(path, mode);
-}
-
-int rmdir_wrapper(const char *path) {
-  return jnifuse::JniFuseFileSystem::getInstance()->rmdirOper->call(path);
-}
-
-int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
-                  struct fuse_file_info *fi) {
-  return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
-      path, buf, size, off, fi);
 }
 
 int rename_wrapper(const char *oldPath, const char *newPath) {
   return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
 }
 
-int chmod_wrapper(const char *path, mode_t mode) {
-  return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
+int rmdir_wrapper(const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->rmdirOper->call(path);
+}
+
+int unlink_wrapper(const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
+}
+
+int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
+                  struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
+      path, buf, size, off, fi);
 }
