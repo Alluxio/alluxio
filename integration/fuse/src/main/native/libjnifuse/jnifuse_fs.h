@@ -31,6 +31,7 @@ class RmdirOperation;
 class UnlinkOperation;
 class WriteOperation;
 class RenameOperation;
+class ChmodOperation;
 
 class JniFuseFileSystem {
  private:
@@ -62,6 +63,7 @@ class JniFuseFileSystem {
   RmdirOperation *rmdirOper;
   WriteOperation *writeOper;
   RenameOperation *renameOper;
+  ChmodOperation *chmodOper;
 };
 
 }  // namespace jnifuse

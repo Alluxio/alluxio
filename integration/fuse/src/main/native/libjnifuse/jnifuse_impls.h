@@ -32,5 +32,6 @@ int rmdir_wrapper(const char *path);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
 int rename_wrapper(const char *oldPath, const char *newPath);
+int chmod_wrapper(const char *path, mode_t mode);
 
 #endif  // FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_

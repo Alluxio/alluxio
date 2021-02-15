@@ -89,3 +89,7 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
 int rename_wrapper(const char *oldPath, const char *newPath) {
   return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
 }
+
+int chmod_wrapper(const char *path, mode_t mode) {
+  return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
+}

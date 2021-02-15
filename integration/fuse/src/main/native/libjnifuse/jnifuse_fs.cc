@@ -58,6 +58,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->rmdirOper = new RmdirOperation(this);
   this->writeOper = new WriteOperation(this);
   this->renameOper = new RenameOperation(this);
+  this->chmodOper = new ChmodOperation(this);
 }
 
 JniFuseFileSystem::~JniFuseFileSystem() {
