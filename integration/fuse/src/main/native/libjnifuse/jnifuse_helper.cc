@@ -46,18 +46,19 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     LOGD("argv[%d]=%s", i, argv[i]);
   }
 
+  jnifuse_oper.chmod = chmod_wrapper;
+  jnifuse_oper.create = create_wrapper;
+  jnifuse_oper.flush = flush_wrapper;
   jnifuse_oper.getattr = getattr_wrapper;
+  jnifuse_oper.mkdir = mkdir_wrapper;
   jnifuse_oper.open = open_wrapper;
   jnifuse_oper.read = read_wrapper;
   jnifuse_oper.readdir = readdir_wrapper;
-  jnifuse_oper.unlink = unlink_wrapper;
-  jnifuse_oper.flush = flush_wrapper;
   jnifuse_oper.release = release_wrapper;
-  jnifuse_oper.create = create_wrapper;
-  jnifuse_oper.mkdir = mkdir_wrapper;
-  jnifuse_oper.rmdir = rmdir_wrapper;
-  jnifuse_oper.write = write_wrapper;
   jnifuse_oper.rename = rename_wrapper;
+  jnifuse_oper.rmdir = rmdir_wrapper;
+  jnifuse_oper.unlink = unlink_wrapper;
+  jnifuse_oper.write = write_wrapper;
 
   int ret = fuse_main_real(argc, argv, &jnifuse_oper,
                            sizeof(struct fuse_operations), NULL);
