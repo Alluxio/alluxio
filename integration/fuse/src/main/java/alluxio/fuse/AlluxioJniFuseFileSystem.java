@@ -149,7 +149,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
     SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-    ByteBuffer buffer = this.getLibFuse().get_fuse_context();
+    ByteBuffer buffer = this.getLibFuse().fuse_get_context();
     FuseContext fc = getContext();
     // TODO(maobaolong): open it after PR12836 merged.
 //    FuseContext fc = FuseContext.of(buffer);
