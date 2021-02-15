@@ -34,6 +34,10 @@ The majority of the pre-requisites can be found by going through the
 An S3 bucket is needed as Alluxio's root Under File System and to serve as the location for the
 bootstrap script.
 If desired, the root UFS can be configured to be HDFS or any other supported under storage.
+Type of EC2 instance to be used for Alluxio Master and Worker depends on the
+workload characteristics. General recommended types of EC2 instances for Alluxio
+Master are r5.4xlarge or r5.8xlarge. EC2 instance types of r5d.4xlarge or
+r5d.8xlarge enable use of SSD as Alluxio worker storage tier.
 
 ## Basic Setup
 

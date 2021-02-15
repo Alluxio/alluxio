@@ -33,6 +33,10 @@ and Azure Blob Store.
 
 A GCS bucket is required if mounted to the root of the Alluxio namespace.
 Alternatively, the root UFS can be reconfigured to be HDFS or any other supported under storage.
+Type of VM instance to be used for Alluxio Master and Worker depends on the workload
+characteristics. General recommended types of VM instances for Alluxio Master are
+n2-highmem-16 or n2-highmem-32. VM instance types of n2-standard-16 or n2-standard-32
+enable use of SSD as Alluxio worker storage tier.
 
 ## Basic Setup
 
