@@ -48,7 +48,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public AbstractFuseFileSystem(Path mountPoint) {
     this.libFuse = new LibFuse();
-    this.mountPoint = mountPoint;
+    this.mountPoint = mountPoint.toAbsolutePath();
   }
 
   /**
@@ -62,8 +62,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (!mounted.compareAndSet(false, true)) {
       throw new FuseException("Fuse File System already mounted!");
     }
+    LOG.info("Mounting {}: blocking={}, debug={}, fuseOpts=\"{}\"",
+        mountPoint, blocking, debug, Arrays.toString(fuseOpts));
     String[] arg;
-    String mountPointStr = mountPoint.toAbsolutePath().toString();
+    String mountPointStr = mountPoint.toString();
     if (mountPointStr.endsWith("\\")) {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
@@ -112,18 +114,42 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (!mounted.get()) {
       return;
     }
+    LOG.info("Umounting {}", mountPoint);
+    try {
+      umountInternal();
+    } catch (FuseException e) {
+      LOG.error("Failed to umount {}", mountPoint, e);
+      throw e;
+    }
+    mounted.set(false);
+  }
+
+  private void umountInternal() {
+    int exitCode = 1;
+    String mountPath = mountPoint.toString();
     if (OSUtils.isWindows()) {
       // Pointer fusePointer = this.fusePointer;
       // if (fusePointer != null) {
       // libFuse.fuse_exit(fusePointer);
       // }
-    } else {
-      String mountPath = mountPoint.toAbsolutePath().toString();
+    } else if (OSUtils.isMacOS()) {
       try {
-        new ProcessBuilder("fusermount", "-u", "-z", mountPath).start();
-      } catch (IOException e) {
+        exitCode = new ProcessBuilder("umount", "-f", mountPath).start().waitFor();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new FuseException("Unable to umount FS", ie);
+      } catch (IOException ioe) {
+        throw new FuseException("Unable to umount FS", ioe);
+      }
+    } else {
+      try {
+        exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
+      } catch (Exception e) {
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
         try {
-          new ProcessBuilder("umount", mountPath).start().waitFor();
+          exitCode = new ProcessBuilder("umount", mountPath).start().waitFor();
         } catch (InterruptedException ie) {
           Thread.currentThread().interrupt();
           throw new FuseException("Unable to umount FS", e);
@@ -133,12 +159,14 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
         }
       }
     }
-    mounted.set(false);
+    if (exitCode != 0) {
+      throw new FuseException("Unable to umount FS with exit code " + exitCode);
+    }
   }
 
   public int openCallback(String path, ByteBuffer buf) {
     try {
-      return open(path, FuseFileInfo.wrap(buf));
+      return open(path, FuseFileInfo.of(buf));
     } catch (Exception e) {
       LOG.error("Failed to open {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -147,7 +175,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int readCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fibuf) {
     try {
-      return read(path, buf, size, offset, FuseFileInfo.wrap(fibuf));
+      return read(path, buf, size, offset, FuseFileInfo.of(fibuf));
     } catch (Exception e) {
       LOG.error("Failed to read {}, size {}, offset {}: ", path, size, offset, e);
      return -ErrorCodes.EIO();
@@ -156,7 +184,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int getattrCallback(String path, ByteBuffer buf) {
     try {
-      return getattr(path, FileStat.wrap(buf));
+      return getattr(path, FileStat.of(buf));
     } catch (Exception e) {
       LOG.error("Failed to getattr {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -166,7 +194,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
       ByteBuffer fi) {
     try {
-      return readdir(path, bufaddr, filter, offset, new FuseFileInfo(fi));
+      return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
     } catch (Exception e) {
       LOG.error("Failed to readdir {}, offset {}: ", path, offset, e);
       return -ErrorCodes.EIO();
@@ -184,7 +212,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int flushCallback(String path, ByteBuffer fi) {
     try {
-      return flush(path, FuseFileInfo.wrap(fi));
+      return flush(path, FuseFileInfo.of(fi));
     } catch (Exception e) {
       LOG.error("Failed to flush {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -193,7 +221,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int releaseCallback(String path, ByteBuffer fi) {
     try {
-      return release(path, FuseFileInfo.wrap(fi));
+      return release(path, FuseFileInfo.of(fi));
     } catch (Exception e) {
       LOG.error("Failed to release {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -220,7 +248,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int createCallback(String path, long mode, ByteBuffer fi) {
     try {
-      return create(path, mode, FuseFileInfo.wrap(fi));
+      return create(path, mode, FuseFileInfo.of(fi));
     } catch (Exception e) {
       LOG.error("Failed to create {}, mode {}: ", path, mode, e);
       return -ErrorCodes.EIO();
@@ -256,7 +284,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int statfsCallback(String path, ByteBuffer stbuf) {
     try {
-      return statfs(path, Statvfs.wrap(stbuf));
+      return statfs(path, Statvfs.of(stbuf));
     } catch (Exception e) {
       LOG.error("Failed to statfs {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -274,7 +302,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
     try {
-      return write(path, buf, size, offset, FuseFileInfo.wrap(fi));
+      return write(path, buf, size, offset, FuseFileInfo.of(fi));
     } catch (Exception e) {
       LOG.error("Failed to write {}, size {}, offset {}: ", path, size, offset, e);
       return -ErrorCodes.EIO();

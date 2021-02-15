@@ -103,7 +103,7 @@ public interface FuseFileSystem {
 
   default FuseContext getContext() {
     // TODO: get real context
-    return new FuseContext(ByteBuffer.allocate(32));
+    return FuseContext.of(ByteBuffer.allocate(32));
   }
 
   default String getFileSystemName() {

@@ -11,28 +11,25 @@
 
 package alluxio.jnifuse.struct;
 
+import jnr.ffi.Runtime;
+
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-public class FuseFileInfo extends Struct {
+public class FuseFileInfo extends ru.serce.jnrfuse.struct.FuseFileInfo {
+  private final ByteBuffer buffer;
 
-  public FuseFileInfo(ByteBuffer buffer) {
-    super(buffer);
-    flags = new Signed32();
-    fh_old = new UnsignedLong();
-    writepage = new Signed32();
-    pad1 = new Padding(2);
-    fh = new u_int64_t();
-    lock_owner = new u_int64_t();
+  public FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
+    super(runtime);
+    this.buffer = buffer;
+    // depends on the arch
+    this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
 
-  public final Signed32 flags;
-  public final UnsignedLong fh_old;
-  public final Signed32 writepage;
-  public final Padding pad1;
-  public final u_int64_t fh;
-  public final u_int64_t lock_owner;
-
-  public static FuseFileInfo wrap(ByteBuffer buffer) {
-    return new FuseFileInfo(buffer);
+  public static FuseFileInfo of(ByteBuffer buffer) {
+    Runtime runtime = Runtime.getSystemRuntime();
+    FuseFileInfo fi = new FuseFileInfo(runtime, buffer);
+    fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
+    return fi;
   }
 }

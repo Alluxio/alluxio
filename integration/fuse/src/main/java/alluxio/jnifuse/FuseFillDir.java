@@ -26,7 +26,7 @@ public class FuseFillDir {
 
   public int apply(long bufaddr, String name, FileStat stbuf, long off) {
     if (stbuf != null) {
-      return fill(address, bufaddr, name, stbuf.buffer, off);
+      return fill(address, bufaddr, name, stbuf.getBuffer(), off);
     } else {
       return fill(address, bufaddr, name, null, off);
     }
