@@ -11,7 +11,11 @@
 
 package alluxio.jnifuse;
 
+import java.nio.ByteBuffer;
+
 public class LibFuse {
 
   public native int fuse_main_real(AbstractFuseFileSystem fs, int argc, String[] argv);
+
+  public native ByteBuffer fuse_get_context();
 }
