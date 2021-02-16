@@ -228,7 +228,8 @@ public interface FileSystemMaster extends Master {
    */
   FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException;
+      BlockInfoException, IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException;
 
   /**
    * Gets a new block id for the next block of a given file to write to.

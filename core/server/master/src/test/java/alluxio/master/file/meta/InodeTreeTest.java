@@ -25,8 +25,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -719,7 +721,7 @@ public final class InodeTreeTest {
   // Helper to create a path.
   private List<Inode> createPath(InodeTree root, AlluxioURI path, CreatePathContext<?, ?> context)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
     try (LockedInodePath inodePath = root.lockInodePath(path, LockPattern.WRITE_EDGE)) {
       return root.createPath(RpcContext.NOOP, inodePath, context);
     }

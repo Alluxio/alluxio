@@ -30,7 +30,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -39,7 +38,6 @@ import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
-import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -648,6 +646,31 @@ public class InodeTree implements DelegatingJournaled {
     return mState.getRoot();
   }
 
+  /**
+   * Creates a file or directory at path.
+   *
+   * This method expects that the last edge leading to the target inode to be write-locked. If the
+   * last existing inode in the path is /a/b/c and we want to create /a/b/c/d/e, the c->d edge must
+   * be write locked.
+   *
+   * On success, createPath attempts to push the write lock forward as far as possible. For the
+   * above example, createPath would take a write lock on d->e, and downgrade the c->d lock from a
+   * write lock to a read lock. This may not be possible if inodePath is a composite path which
+   * doesn't own the write lock. In that case no downgrade will occur.
+   *
+   * @param rpcContext the rpc context
+   * @param inodePath the path
+   * @param context method context
+   * @return a list of created inodes
+   * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
+   *         directory there
+   * @throws BlockInfoException when blockSizeBytes is invalid
+   * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
+   *         necessary parent directories and recursive is false, (2) when one of the necessary
+   *         parent directories is actually a file
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
+   */
   public List<Inode> createPath(RpcContext rpcContext, LockedInodePath inodePath,
       CreatePathContext<?, ?> context) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException,
@@ -684,7 +707,8 @@ public class InodeTree implements DelegatingJournaled {
   public List<Inode> createPath(RpcContext rpcContext, LockedInodePath inodePath,
       CreatePathContext<?, ?> context, DefaultFileSystemMaster fileSystemMaster)
       throws FileAlreadyExistsException, BlockInfoException,
-      InvalidPathException, IOException, FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
+      InvalidPathException, IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
@@ -911,15 +935,14 @@ public class InodeTree implements DelegatingJournaled {
       LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
       return createdInodes;
     }
-    // if post creation processing is required, must be a create file and contain completeFileContext
+    // if processing is required, must be a create file and contain completeFileContext
     Preconditions.checkState(context instanceof CreateFileContext);
     CompleteFileContext completeFileContext
         = ((CreateFileContext) context).getCompletionContext();
     Preconditions.checkNotNull(completeFileContext);
-    RpcContext nojournalContext = new RpcContext(rpcContext.getBlockDeletionContext(),
-        NoopJournalContext.INSTANCE, rpcContext.getOperationContext());
+    Inode inode = Inode.wrap(newInode);
     DefaultFileSystemMaster.CompleteFileResult completeFileResult =
-        fileSystemMaster.completeFileInternal(nojournalContext, inodePath, completeFileContext);
+        fileSystemMaster.completeFileInternal(inodePath, inode, completeFileContext);
     UpdateInodeEntry inodeEntry = completeFileResult.getUpdateInodeEntry();
     UpdateInodeFileEntry fileEntry = completeFileResult.getUpdateInodeFileEntry();
     newInode.asFile().setCompleted(true).setLength(fileEntry.getLength())
@@ -928,10 +951,10 @@ public class InodeTree implements DelegatingJournaled {
 
     mState.applyAndJournal(rpcContext, newInode,
         inodePath.getUri().getPath());
-    Inode inode = Inode.wrap(newInode);
+
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
-    LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
+    LOG.debug("Create complete file: File Created: {} parent: {}", newInode, currentInodeDirectory);
     return createdInodes;
   }
 

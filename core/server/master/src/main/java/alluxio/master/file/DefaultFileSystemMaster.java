@@ -1342,7 +1342,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      CompleteFileResult completeFileResult = completeFileInternal(rpcContext, inodePath, context);
+      CompleteFileResult completeFileResult = completeFileInternal(inodePath,
+          inodePath.getInode(), context);
 
       // We could introduce a concept of composite entries, so that these two entries could
       // be applied in a single call to applyAndJournal.
@@ -1361,35 +1362,59 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  /**
+   * Complete File Result containing two update entries to the journal.
+   */
   public class CompleteFileResult {
     private UpdateInodeEntry mUpdateInodeEntry;
     private UpdateInodeFileEntry mUpdateInodeFileEntry;
 
-    public CompleteFileResult(UpdateInodeEntry updateInodeEntry, UpdateInodeFileEntry updateInodeFileEntry) {
+    /**
+     * Construct a complete file result object.
+     */
+    CompleteFileResult(UpdateInodeEntry updateInodeEntry,
+        UpdateInodeFileEntry updateInodeFileEntry) {
       mUpdateInodeEntry = updateInodeEntry;
       mUpdateInodeFileEntry = updateInodeFileEntry;
     }
 
+    /**
+     * Get the updateInodeEntry object.
+     *
+     * @return the inode update object
+     */
     public UpdateInodeEntry getUpdateInodeEntry() {
       return mUpdateInodeEntry;
     }
 
+    /**
+     * Get the update inode file object.
+     *
+     * @return the inode file update object
+     */
     public UpdateInodeFileEntry getUpdateInodeFileEntry() {
       return mUpdateInodeFileEntry;
     }
   }
+
   /**
    * Completes a file. After a file is completed, it cannot be written to.
    *
-   * @param rpcContext the rpc context
+   * There are two cases here.
+   * If the file is still being created, we pass inode in addition to inodePath.
+   * If the file is already created, inodePath should be complete and
+   * we should be able to get its inode from it.
+   *
    * @param inodePath the {@link LockedInodePath} to complete
+   * @param inode the inode to complete
    * @param context the method context
+   *
+   * @return completeFileResult
    */
-  public CompleteFileResult completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CompleteFileContext context)
+  public CompleteFileResult completeFileInternal(LockedInodePath inodePath,
+      Inode inode, CompleteFileContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
-    Inode inode = inodePath.getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_MUST_BE_FILE.getMessage(inodePath.getUri()));
@@ -1436,24 +1461,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
 
-    return completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
+    return completeFileInternal(inodePath, inode.asFile(), length, context.getOperationTimeMs(),
         ufsFingerprint);
   }
 
   /**
-   * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to complete
+   * @param inode the inode to operate on
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param ufsFingerprint the ufs fingerprint
    */
-  private CompleteFileResult completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
-      long opTimeMs, String ufsFingerprint)
-      throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+  private CompleteFileResult completeFileInternal(LockedInodePath inodePath, InodeFile inode,
+      long length, long opTimeMs, String ufsFingerprint)
+      throws InvalidFileSizeException,
       FileAlreadyCompletedException, UnavailableException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
-    InodeFile inode = inodePath.getInodeFile();
     if (inode.isCompleted() && inode.getLength() != Constants.UNKNOWN_SIZE) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
@@ -1515,7 +1539,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
+      BlockInfoException, IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException {
     Metrics.CREATE_FILES_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
