@@ -47,7 +47,6 @@ JNI-Fuse is still experimental but it is under active development by Alluxio com
 
 To choose between the default JNR-Fuse and JNI-Fuse, here are some aspects to consider:
 
-* Platforms: JNR-Fuse support both Linux and MacOS while JNI-Fuse is only supported in Linux environment currently.
 * Ease of usage: JNR-Fuse is enabled by default while JNI-Fuse has more dependencies.
 * Maintenance: JNI-Fuse is experimental but is the direction to go. Alluxio will focus more on developing JNI-Fuse.
 
@@ -67,8 +66,8 @@ reported to also work - with some warnings) for Linux
 {% endnavtab %}
 {% navtab JNI-Fuse %}
 - JDK 1.8 or newer
-- [libfuse](https://github.com/libfuse/libfuse) 2.9.X.
-Libfuse 3.X and MacOS are not supported.
+- [libfuse](https://github.com/libfuse/libfuse) 2.9.X. Libfuse 3.X is not supported
+- [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 - Add pre-compiled `libjnifuse.so` to `java.library.path`.
 This can be achieved by (1)
 copying the [`libjnifuse.so`](https://github.com/Alluxio/alluxio/blob/master/integration/docker/libjnifuse.so) to your existing system Java class path
