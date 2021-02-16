@@ -181,7 +181,7 @@ Note that these changes should be done before the mounting steps.
 JNR-Fuse targets low concurrency workloads, so the default client configuration normally is enough.
 JNI-Fuse requires fine-tuning when running under highly concurrent deep learning workloads.
 
-The following client options are found useful when running deep learning workloads against Alluxio JNI-Fuse.
+The following client options are useful when running deep learning workloads against Alluxio JNI-Fuse.
 If you find other options useful, please share with us via [Alluxio community slack channel](https://alluxio.io/slack)
 or [pull request]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url}}).
 
@@ -240,7 +240,7 @@ alluxio.user.client.cache.size=2000MB
 ```
 If the cache size is big, users may need to tune the JVM as well by adding the following java opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh`:
 ```
-ALLUXIO_FUSE_JAVA_OPTS+=" -Xmx10G -Xms10G -XX:MaxDirectMemorySize=8g"
+ALLUXIO_FUSE_JAVA_OPTS+=" -Xmx10G -Xms10G -XX:MaxDirectMemorySize=4G"
 ```
 Users are recommended to monitor the cache hit ratio (via `${ALLUXIO_HOME}/logs/fuse.log`) and JVM GC status to adjust the page size and cache size.
   {% endcollapsible %}
@@ -309,24 +309,30 @@ The following client options may affect the training performance or provides mor
     <tr>
         <td>alluxio.user.update.file.accesstime.disabled</td>
         <td>false</td>
-        <td>(Experimental) If this is enabled, the clients doesn't update file access time which may cause issues for some applications.</td>
+        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the clients doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
     </tr>
     <tr>
         <td>alluxio.user.block.worker.client.pool.max</td>
-        <td>false</td>
+        <td>1024</td>
         <td>Limits the number of block worker clients for Alluxio JNI-Fuse to read data from remote worker or validate block locations. Some deep training jobs don't release the block worker clients immediately and may stuck in waiting for any available.</td>
     </tr>
     <tr>
         <td>alluxio.user.block.master.client.pool.size.max</td>
-        <td>false</td>
+        <td>1024</td>
         <td>Limits the number of block master client for Alluxio JNI-Fuse to get block information.</td>
     </tr>
     <tr>
         <td>alluxio.user.file.master.client.pool.size.max</td>
-        <td>false</td>
+        <td>1024</td>
         <td>Limits the number of file master client or Alluxio JNI-Fuse to get or update file metadata. </td>
     </tr>
 </table>
+
+When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
+```
+ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4G"
+```
+
   {% endcollapsible %}
 {% endaccordion %}
 
