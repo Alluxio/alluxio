@@ -1597,7 +1597,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
       context.setCacheable(true);
     }
     // If the create succeeded, the list of created inodes will not be empty.
-    List<Inode> created = mInodeTree.createPath(rpcContext, inodePath, context);
+    List<Inode> created;
+    if (context.getCompletionContext() == null) {
+      created = mInodeTree.createPath(rpcContext, inodePath, context);
+    } else {
+      created = mInodeTree.createPath(rpcContext, inodePath, context, this);
+    }
 
     if (context.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
