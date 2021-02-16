@@ -308,4 +308,8 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       return -ErrorCodes.EIO();
     }
   }
+
+  protected LibFuse getLibFuse() {
+    return libFuse;
+  }
 }
