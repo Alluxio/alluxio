@@ -49,6 +49,12 @@ RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taob
   unzip /tmp/arthas.zip -d /opt/arthas && \
   rm /tmp/arthas.zip
 
+# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
+RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
+  tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
+  mv /opt/async-profiler-* /opt/async-profiler && \
+  rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
+
 # disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security
 
