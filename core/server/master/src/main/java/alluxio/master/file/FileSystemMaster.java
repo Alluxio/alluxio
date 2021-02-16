@@ -228,7 +228,7 @@ public interface FileSystemMaster extends Master {
    */
   FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException;
+      BlockInfoException, IOException, FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException;
 
   /**
    * Gets a new block id for the next block of a given file to write to.
@@ -326,7 +326,7 @@ public interface FileSystemMaster extends Master {
    */
   long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
-      FileDoesNotExistException;
+      FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException;
 
   /**
    * Renames a file to a destination.
@@ -419,7 +419,7 @@ public interface FileSystemMaster extends Master {
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      IOException, AccessControlException;
+      IOException, AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException;
 
   /**
    * Unmounts a UFS path previously mounted onto an Alluxio path.

@@ -1342,16 +1342,42 @@ public final class DefaultFileSystemMaster extends CoreMaster
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      completeFileInternal(rpcContext, inodePath, context);
+      CompleteFileResult completeFileResult = completeFileInternal(rpcContext, inodePath, context);
+
+      // We could introduce a concept of composite entries, so that these two entries could
+      // be applied in a single call to applyAndJournal.
+      mInodeTree.updateInode(rpcContext, completeFileResult.getUpdateInodeEntry());
+      mInodeTree.updateInodeFile(rpcContext, completeFileResult.getUpdateInodeFileEntry());
+
+      Metrics.FILES_COMPLETED.inc();
+
       // Schedule async persistence if requested.
       if (context.getOptions().hasAsyncPersistOptions()) {
         scheduleAsyncPersistenceInternal(inodePath, ScheduleAsyncPersistenceContext
             .create(context.getOptions().getAsyncPersistOptionsBuilder()), rpcContext);
       }
+
       auditContext.setSucceeded(true);
     }
   }
 
+  public class CompleteFileResult {
+    private UpdateInodeEntry mUpdateInodeEntry;
+    private UpdateInodeFileEntry mUpdateInodeFileEntry;
+
+    public CompleteFileResult(UpdateInodeEntry updateInodeEntry, UpdateInodeFileEntry updateInodeFileEntry) {
+      mUpdateInodeEntry = updateInodeEntry;
+      mUpdateInodeFileEntry = updateInodeFileEntry;
+    }
+
+    public UpdateInodeEntry getUpdateInodeEntry() {
+      return mUpdateInodeEntry;
+    }
+
+    public UpdateInodeFileEntry getUpdateInodeFileEntry() {
+      return mUpdateInodeFileEntry;
+    }
+  }
   /**
    * Completes a file. After a file is completed, it cannot be written to.
    *
@@ -1359,7 +1385,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the {@link LockedInodePath} to complete
    * @param context the method context
    */
-  void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  public CompleteFileResult completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CompleteFileContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
@@ -1410,7 +1436,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
 
-    completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
+    return completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
         ufsFingerprint);
   }
 
@@ -1421,7 +1447,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param opTimeMs the operation time (in milliseconds)
    * @param ufsFingerprint the ufs fingerprint
    */
-  private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
+  private CompleteFileResult completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
       long opTimeMs, String ufsFingerprint)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException, UnavailableException {
@@ -1460,19 +1486,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // The path exists in UFS, so it is no longer absent
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
-
-    // We could introduce a concept of composite entries, so that these two entries could
-    // be applied in a single call to applyAndJournal.
-    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+    return new CompleteFileResult(UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
         .setUfsFingerprint(ufsFingerprint)
         .setLastModificationTimeMs(opTimeMs)
         .setLastAccessTimeMs(opTimeMs)
         .setOverwriteModificationTime(true)
-        .build());
-    mInodeTree.updateInodeFile(rpcContext, entry.build());
-
-    Metrics.FILES_COMPLETED.inc();
+        .build(), entry.build());
   }
 
   /**
@@ -1495,7 +1515,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException {
+      BlockInfoException, IOException, FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
     Metrics.CREATE_FILES_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -1547,7 +1567,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   List<Inode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CreateFileContext context)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
       context.setCacheable(true);
     }
@@ -2109,7 +2129,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, FileAlreadyCompletedException, InvalidFileSizeException {
     Metrics.CREATE_DIRECTORIES_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2161,7 +2181,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
-      IOException, FileDoesNotExistException {
+      IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     try {
@@ -2768,7 +2789,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      IOException, AccessControlException {
+      IOException, AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException {
     Metrics.MOUNT_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2814,7 +2835,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private void mountInternal(RpcContext rpcContext, LockedInodePath inodePath, AlluxioURI ufsPath,
       MountContext context) throws InvalidPathException, FileAlreadyExistsException,
-      FileDoesNotExistException, IOException, AccessControlException {
+      FileDoesNotExistException, IOException, AccessControlException,
+      FileAlreadyCompletedException, InvalidFileSizeException {
     // Check that the Alluxio Path does not exist
     if (inodePath.fullPathExists()) {
       // TODO(calvin): Add a test to validate this (ALLUXIO-1831)

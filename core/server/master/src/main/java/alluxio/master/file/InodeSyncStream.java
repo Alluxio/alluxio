@@ -829,7 +829,7 @@ public class InodeSyncStream {
    */
   static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException, FileAlreadyCompletedException, InvalidFileSizeException {
     if (inodePath.fullPathExists()) {
       return;
     }
