@@ -936,25 +936,26 @@ public class InodeTree implements DelegatingJournaled {
       return createdInodes;
     }
     // if processing is required, must be a create file and contain completeFileContext
-    Preconditions.checkState(context instanceof CreateFileContext);
-    CompleteFileContext completeFileContext
-        = ((CreateFileContext) context).getCompletionContext();
-    Preconditions.checkNotNull(completeFileContext);
-    Inode inode = Inode.wrap(newInode);
-    DefaultFileSystemMaster.CompleteFileResult completeFileResult =
-        fileSystemMaster.completeFileInternal(inodePath, inode, completeFileContext);
-    UpdateInodeEntry inodeEntry = completeFileResult.getUpdateInodeEntry();
-    UpdateInodeFileEntry fileEntry = completeFileResult.getUpdateInodeFileEntry();
-    newInode.asFile().setCompleted(true).setLength(fileEntry.getLength())
-        .setUfsFingerprint(inodeEntry.getUfsFingerprint())
-        .setBlockIds(fileEntry.getSetBlocksList());
+    if (context instanceof CreateFileContext) {
+      CompleteFileContext completeFileContext
+          = ((CreateFileContext) context).getCompletionContext();
+      Preconditions.checkNotNull(completeFileContext);
+      Inode inode = Inode.wrap(newInode);
+      DefaultFileSystemMaster.CompleteFileResult completeFileResult =
+          fileSystemMaster.completeFileInternal(inodePath, inode, completeFileContext);
+      UpdateInodeEntry inodeEntry = completeFileResult.getUpdateInodeEntry();
+      UpdateInodeFileEntry fileEntry = completeFileResult.getUpdateInodeFileEntry();
+      newInode.asFile().setCompleted(true).setLength(fileEntry.getLength())
+          .setUfsFingerprint(inodeEntry.getUfsFingerprint())
+          .setBlockIds(fileEntry.getSetBlocksList());
 
-    mState.applyAndJournal(rpcContext, newInode,
-        inodePath.getUri().getPath());
+      mState.applyAndJournal(rpcContext, newInode,
+          inodePath.getUri().getPath());
 
-    inodePath.addNextInode(inode);
-    createdInodes.add(inode);
-    LOG.debug("Create complete file: File Created: {} parent: {}", newInode, currentInodeDirectory);
+      inodePath.addNextInode(inode);
+      createdInodes.add(inode);
+      LOG.debug("Create complete file: File Created: {} parent: {}", newInode, currentInodeDirectory);
+    }
     return createdInodes;
   }
 
