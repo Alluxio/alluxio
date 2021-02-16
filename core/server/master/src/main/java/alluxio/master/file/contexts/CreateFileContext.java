@@ -17,12 +17,14 @@ import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
+
 /**
  * Implementation of {@link OperationContext} used to merge and wrap {@link CreateFilePOptions}.
  */
 public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
-
+  private CompleteFileContext mCompletionContext;
   private boolean mCacheable;
 
   /**
@@ -33,6 +35,7 @@ public class CreateFileContext
   private CreateFileContext(CreateFilePOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mCacheable = false;
+    mCompletionContext = null;
   }
 
   /**
@@ -80,11 +83,29 @@ public class CreateFileContext
     return this;
   }
 
+  /**
+   * @return completion context if the file is created and completed at the same time
+   */
+  @Nullable
+  public CompleteFileContext getCompletionContext() {
+    return mCompletionContext;
+  }
+
+  /**
+   * @param completionContext completion context to set when creating
+   * @return the updated context
+   */
+  public CreateFileContext setCompletionContext(@Nullable CompleteFileContext completionContext) {
+    mCompletionContext = completionContext;
+    return getThis();
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
         .add("Cacheable", mCacheable)
+        .add("CompleteFileContext", mCompletionContext)
         .toString();
   }
 }

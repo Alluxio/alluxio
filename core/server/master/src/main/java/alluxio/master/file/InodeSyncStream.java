@@ -772,6 +772,7 @@ public class InodeSyncStream {
 
     // Metadata loaded from UFS has no TTL set.
     CreateFileContext createFileContext = CreateFileContext.defaults();
+
     createFileContext.getOptions().setBlockSizeBytes(ufsBlockSizeByte);
     createFileContext.getOptions().setRecursive(context.getOptions().getCreateAncestors());
     createFileContext.getOptions()
@@ -796,16 +797,15 @@ public class InodeSyncStream {
     if (ufsLastModified != null) {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
-
+    CompleteFileContext completeContext =
+        CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
+            .setUfsStatus(context.getUfsStatus());
+    if (ufsLastModified != null) {
+      completeContext.setOperationTimeMs(ufsLastModified);
+    }
+    createFileContext.setCompletionContext(completeContext);
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       fsMaster.createFileInternal(rpcContext, writeLockedPath, createFileContext);
-      CompleteFileContext completeContext =
-          CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
-              .setUfsStatus(context.getUfsStatus());
-      if (ufsLastModified != null) {
-        completeContext.setOperationTimeMs(ufsLastModified);
-      }
-      fsMaster.completeFileInternal(rpcContext, writeLockedPath, completeContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
