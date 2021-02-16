@@ -66,8 +66,6 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 <p align="center">
 <a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-aws/">
- <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
 ## 下载和有用资源
