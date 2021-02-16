@@ -954,7 +954,8 @@ public class InodeTree implements DelegatingJournaled {
 
       inodePath.addNextInode(inode);
       createdInodes.add(inode);
-      LOG.debug("Create complete file: File Created: {} parent: {}", newInode, currentInodeDirectory);
+      LOG.debug("Create complete file: File Created: {} parent: {}", newInode,
+          currentInodeDirectory);
     }
     return createdInodes;
   }
