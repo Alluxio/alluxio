@@ -231,10 +231,38 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   // Master metrics
   // Master status
+  public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
+      new Builder(Name.MASTER_EDGE_CACHE_EVICTIONS)
+          .setDescription("Total number of edges (inode metadata) that was evicted from cache. "
+              + "The edge cache is responsible for managing the mapping "
+              + "from (parentId, childName) to childId.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EDGE_CACHE_HITS =
+      new Builder(Name.MASTER_EDGE_CACHE_HITS)
+          .setDescription("Total number of hits in the edge (inode metadata) cache. "
+              + "The edge cache is responsible for managing the mapping "
+              + "from (parentId, childName) to childId.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EDGE_CACHE_LOADTIMES =
+      new Builder(Name.MASTER_EDGE_CACHE_LOADTIMES)
+          .setDescription("Total load times in the edge (inode metadata) cache. "
+              + "The edge cache is responsible for managing the mapping "
+              + "from (parentId, childName) to childId.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EDGE_CACHE_MISSES =
+      new Builder(Name.MASTER_EDGE_CACHE_MISSES)
+          .setDescription("Total number of misses in the edge (inode metadata) cache. "
+              + "The edge cache is responsible for managing the mapping "
+              + "from (parentId, childName) to childId.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EDGE_CACHE_SIZE =
       new Builder(Name.MASTER_EDGE_CACHE_SIZE)
           .setDescription("Total number of edges (inode metadata) cached. "
-              + "The edge cache is responsible for managing the mapping "
+              + "The edge cache is responsible fosr managing the mapping "
               + "from (parentId, childName) to childId.")
           .setMetricType(MetricType.GAUGE)
           .build();
@@ -243,9 +271,29 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of currently pinned files")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_INODE_CACHE_EVICTIONS =
+      new Builder(Name.MASTER_INODE_CACHE_EVICTIONS)
+          .setDescription("Total number of inodes that was evicted from the cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_HITS =
+      new Builder(Name.MASTER_INODE_CACHE_HITS)
+          .setDescription("Total number of hits in the inodes (inode metadata) cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_LOADTIMES =
+      new Builder(Name.MASTER_INODE_CACHE_LOADTIMES)
+          .setDescription("Total load times in the inodes (inode metadata) cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_MISSES =
+      new Builder(Name.MASTER_INODE_CACHE_MISSES)
+          .setDescription("Total number of misses in the inodes (inode metadata) cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_SIZE =
       new Builder(Name.MASTER_INODE_CACHE_SIZE)
-          .setDescription("Total number of inodes (inode metadata) cached")
+          .setDescription("Total number of inodes (inode metadata) cached.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
@@ -1124,9 +1172,20 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final class Name {
     // Master metrics
     // metrics names for master status
+    public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
+    public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
+    public static final String MASTER_EDGE_CACHE_LOADTIMES = "Master.EdgeCacheLoadTimes";
+    public static final String MASTER_EDGE_CACHE_MISSES = "Master.EdgeCacheMisses";
     public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
+
     public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
+
+    public static final String MASTER_INODE_CACHE_EVICTIONS = "Master.InodeCacheEvictions";
+    public static final String MASTER_INODE_CACHE_HITS = "Master.InodeCacheHits";
+    public static final String MASTER_INODE_CACHE_LOADTIMES = "Master.InodeCacheLoadTimes";
+    public static final String MASTER_INODE_CACHE_MISSES = "Master.InodeCacheMisses";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
+
     public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
 
     // metrics names for BackupManager

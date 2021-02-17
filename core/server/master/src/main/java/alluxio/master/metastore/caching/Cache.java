@@ -78,9 +78,14 @@ public abstract class Cache<K, V> implements Closeable {
   /**
    * @param conf cache configuration
    * @param name a name for the cache
-   * @param metricKey the metric key of the cache
+   * @param evictionsKey the cache evictions metric key
+   * @param hitsKey the cache hits metrics key
+   * @param loadTimesKey the load times metrics key
+   * @param missesKey the misses metrics key
+   * @param sizeKey the size metrics key
    */
-  public Cache(CacheConfiguration conf, String name, MetricKey metricKey) {
+  public Cache(CacheConfiguration conf, String name, MetricKey evictionsKey, MetricKey hitsKey,
+               MetricKey loadTimesKey, MetricKey missesKey, MetricKey sizeKey) {
     mMaxSize = conf.getMaxSize();
     mHighWaterMark = conf.getHighWaterMark();
     mLowWaterMark = conf.getLowWaterMark();
@@ -92,15 +97,11 @@ public abstract class Cache<K, V> implements Closeable {
     // The eviction thread is started lazily when we first reach the high water mark.
     mStatsCounter = new StatsCounter();
 
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName(), mMap::size);
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-hits",
-        mStatsCounter.mHitCount::get);
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-misses",
-        mStatsCounter.mEvictionCount::get);
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-loadtimes",
-        mStatsCounter.mTotalLoadTime::get);
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-evictions",
-        mStatsCounter.mEvictionCount::get);
+    MetricsSystem.registerGaugeIfAbsent(evictionsKey.getName(), mStatsCounter.mEvictionCount::get);
+    MetricsSystem.registerGaugeIfAbsent(hitsKey.getName(), mStatsCounter.mHitCount::get);
+    MetricsSystem.registerGaugeIfAbsent(loadTimesKey.getName(), mStatsCounter.mTotalLoadTime::get);
+    MetricsSystem.registerGaugeIfAbsent(missesKey.getName(), mStatsCounter.mMissCount::get);
+    MetricsSystem.registerGaugeIfAbsent(sizeKey.getName(), mMap::size);
   }
 
   /**
