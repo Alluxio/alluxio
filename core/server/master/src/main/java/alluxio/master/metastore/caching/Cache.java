@@ -18,6 +18,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,6 +73,8 @@ public abstract class Cache<K, V> implements Closeable {
   @VisibleForTesting
   final EvictionThread mEvictionThread;
 
+  private final StatsCounter mStatsCounter;
+
   /**
    * @param conf cache configuration
    * @param name a name for the cache
@@ -85,8 +90,17 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
+    mStatsCounter = new StatsCounter();
 
     MetricsSystem.registerGaugeIfAbsent(metricKey.getName(), mMap::size);
+    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-hits",
+        mStatsCounter.mHitCount::get);
+    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-misses",
+        mStatsCounter.mEvictionCount::get);
+    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-loadtimes",
+        mStatsCounter.mTotalLoadTime::get);
+    MetricsSystem.registerGaugeIfAbsent(metricKey.getName() + "-evictions",
+        mStatsCounter.mEvictionCount::get);
   }
 
   /**
@@ -108,10 +122,14 @@ public abstract class Cache<K, V> implements Closeable {
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
+        mStatsCounter.recordHit();
         entry.mReferenced = true;
         return entry;
       }
+      mStatsCounter.recordMiss();
+      final Stopwatch stopwatch = Stopwatch.createStarted();
       Optional<V> value = load(key);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
       if (value.isPresent()) {
         onCacheUpdate(key, value.get());
         Entry newEntry = new Entry(key, value.get());
@@ -333,6 +351,7 @@ public abstract class Cache<K, V> implements Closeable {
         evictionCount += evictBatch();
       }
       if (evictionCount > 0) {
+        mStatsCounter.recordEvictions(evictionCount);
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
             (System.nanoTime() - evictionStart) / Constants.MS_NANO);
       }
@@ -489,6 +508,39 @@ public abstract class Cache<K, V> implements Closeable {
     private Entry(K key, V value) {
       mKey = key;
       mValue = value;
+    }
+  }
+
+  /**
+   * Implementation of StatsCounter similar to the one in {@link com.google.common.cache.AbstractCache}
+   */
+  protected static final class StatsCounter {
+    private final AtomicLong mHitCount;
+    private final AtomicLong mMissCount;
+    private final AtomicLong mTotalLoadTime;
+    private final AtomicLong mEvictionCount;
+
+    public StatsCounter() {
+      mHitCount = new AtomicLong();
+      mMissCount = new AtomicLong();
+      mTotalLoadTime = new AtomicLong();
+      mEvictionCount = new AtomicLong();
+    }
+
+    public void recordHit() {
+      mHitCount.getAndIncrement();
+    }
+
+    public void recordMiss() {
+      mMissCount.getAndIncrement();
+    }
+
+    public void recordLoad(long loadTime) {
+      mTotalLoadTime.getAndAdd(loadTime);
+    }
+
+    public void recordEvictions(long evictionCount) {
+      mEvictionCount.getAndAdd(evictionCount);
     }
   }
 }
