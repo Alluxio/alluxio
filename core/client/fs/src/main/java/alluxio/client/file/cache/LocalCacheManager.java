@@ -216,6 +216,7 @@ public class LocalCacheManager implements CacheManager {
   enum PutResult {
     OK,
     INSUFFICIENT_SPACE,
+    BENIGN_RACING,
     OTHER,
   }
 
@@ -288,14 +289,20 @@ public class LocalCacheManager implements CacheManager {
   private boolean putInternal(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
       PutResult result = putAttempt(pageId, page, scope, quota);
-      if (result == PutResult.OK) {
-        return true;
-      } else if (result == PutResult.OTHER) {
-        return false;
+      switch (result) {
+        case OK:
+          return true;
+        case BENIGN_RACING:
+          // failed put attempt due to a benign race, try again.
+        case INSUFFICIENT_SPACE:
+          // failed put attempt due to insufficient space, try another time.
+          // note that, we only evict one item a time in putAttempt. So it is possible the evicted
+          // page is not large enough to cover the space needed by this page. Try again
+          continue;
+        case OTHER:
+        default:
+          return false;
       }
-      // failed put attempt due to insufficient space, try another time.
-      // note that, we only evict one item a time in putAttempt. So it is possible the evicted
-      // page is not large enough to cover the space needed by this page. Try again
     }
     Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
     return false;
@@ -358,10 +365,10 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(victimPageInfo.getPageId());
         } catch (PageNotFoundException e) {
-          LOG.warn("Page {} is unavailable to evict, likely due to a benign race",
+          LOG.debug("Page {} is unavailable to evict, likely due to a benign race",
               victimPageInfo.getPageId());
           Metrics.PUT_BENIGN_RACING_ERRORS.inc();
-          return PutResult.OTHER;
+          return PutResult.BENIGN_RACING;
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
         if (scopeToEvict == null) {
