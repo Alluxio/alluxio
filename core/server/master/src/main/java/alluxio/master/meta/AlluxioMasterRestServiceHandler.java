@@ -42,6 +42,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.metrics.CloudCostUtils;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -970,6 +971,8 @@ public final class AlluxioMasterRestServiceHandler {
       Map<String, Metric> operations = new TreeMap<>();
       // UFS : (OPS : Count)
       Map<String, Map<String, Long>> ufsOpsSavedMap = new TreeMap<>();
+      // UFS : Costsaved
+      Map<String, Double> ufsOpsCostSavedMap = new TreeMap<>();
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
         String metricName = entry.getKey();
         long value = entry.getValue().getCount();
@@ -1013,6 +1016,18 @@ public final class AlluxioMasterRestServiceHandler {
       response.setUfsReadSize(ufsReadSizeMap);
       response.setUfsWriteSize(ufsWriteSizeMap);
       response.setUfsOpsSaved(ufsOpsSavedMap);
+
+      // UFS cost saving
+      Map<String, MountPointInfo> mountInfoMap = mFileSystemMaster.getMountPointInfoSummary();
+      for (Map.Entry<String, Map<String, Long>> entry : ufsOpsSavedMap.entrySet()) {
+        Double saving = 0.0;
+        String ufsType = mountInfoMap.values().stream()
+            .filter(x -> x.getUfsUri().equals(entry.getKey())).findAny()
+            .map(MountPointInfo::getUfsType).orElse("");
+        saving = CloudCostUtils.calculateCost(ufsType, entry.getValue());
+        ufsOpsCostSavedMap.put(entry.getKey(), saving);
+      }
+      response.setUfsOpsCostSaved(ufsOpsCostSavedMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();

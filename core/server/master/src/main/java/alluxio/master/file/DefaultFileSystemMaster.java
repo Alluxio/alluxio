@@ -945,7 +945,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
-    Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId()).getUfsUri().toString(),
+    Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
+            .getUfsUri().toString(),
         Metrics.UFSOps.GET_FILE_INFO).inc();
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;

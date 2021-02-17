@@ -11,16 +11,15 @@
 
 package alluxio.master.metrics;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics.UFSOps;
-import alluxio.master.file.meta.options.MountInfo;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
+/**
+ * This class contains utilities to compute cloud cost savings.
+ */
 public final class CloudCostUtils {
   private CloudCostUtils() {}  // prevent instantiation
 
@@ -55,6 +54,13 @@ public final class CloudCostUtils {
        "s3", S3COSTMAP
       );
 
+  /**
+   * Calculate the saved cost from the perUfs Operations saved map.
+   *
+   * @param ufsType ufs type could be s3, gcs, abfs etc.
+   * @param perUfsMap a map mapping operations to the number of ops saved
+   * @return total cost saved from the saved metadata operations
+   */
   public static double calculateCost(String ufsType, Map<String, Long> perUfsMap) {
     double sum = 0;
     if (!COSTMAP.containsKey(ufsType)) {
@@ -64,12 +70,10 @@ public final class CloudCostUtils {
     for (Map.Entry<String, Long> entry : perUfsMap.entrySet()) {
       try {
         sum += costMap.getOrDefault(UFSOps.valueOf(entry.getKey()), 0.0) * entry.getValue();
-      } catch (IllegalArgumentException e) {
-
+      } catch (IllegalArgumentException ignored) {
+        // intentionally left blank
       }
     }
     return sum;
   }
-
-
 }
