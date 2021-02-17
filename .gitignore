@@ -2,10 +2,8 @@
 **/alluxio-site.properties
 **/nb-configuration*.xml
 **/nbproject/
-*.dylib
 *.iml
 *.pyc
-*.so
 *.swo
 *.swp
 *~
@@ -44,7 +42,7 @@
 /integration/vagrant/vbox/.vagrant/
 /integration/vagrant/vbox/alluxio-dev.box
 /journal/
-/lib/
+/lib/*.jar
 /logs/*.log*
 /logs/*.out*
 /logs/user/*

@@ -18,19 +18,7 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
-  FUSE_MAX_WRITE=131072
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
-}
-
-check_java_version() {
-  local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
-  if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "You are running a version of Java which is older than Java 8.
-     Please use Java 8 to use alluxio-fuse" >&2
-    return 1
-  else
-    return 0
-  fi
 }
 
 check_fuse_jar() {
@@ -40,13 +28,6 @@ check_fuse_jar() {
   else
     return 0
   fi
-}
-
-set_java_opt() {
-  JAVA_OPTS+=" -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
-
-  ALLUXIO_FUSE_JAVA_OPTS+=" ${ALLUXIO_JAVA_OPTS}"
-  ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
 mount_fuse() {
@@ -60,9 +41,9 @@ mount_fuse() {
   fi
 
   if [[ ${NO_DAEMON} -eq "1" ]]; then
-    # Assumes that the end of ALLUXIO_FUSE_JAVA_OPTS is -Dalluxio.logger.type=FUSE_LOGGER
-    ALLUXIO_FUSE_JAVA_OPTS+=",Console"
+    ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
   fi
+
   local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o ${full_mount_option} \
@@ -139,8 +120,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 get_env
-check_java_version && check_fuse_jar
-set_java_opt
+check_fuse_jar
 if [[ $? -ne 0 ]]; then
   exit 1
 fi

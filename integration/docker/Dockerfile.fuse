@@ -45,8 +45,6 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
-COPY libjnifuse.so /usr/lib/
-
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
 	apt-get update && \
