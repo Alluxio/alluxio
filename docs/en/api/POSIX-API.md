@@ -42,12 +42,12 @@ The Alluxio POSIX API has two implementations for users to choose from:
 Alluxio's default Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 JNR-Fuse targets for low concurrency scenarios and has some known limitations in performance.
 * Alluxio JNI-Fuse (Experimental)
-This is a new in-house implementation based on JNI (Java Native Interface) which targets for more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
+This is a new in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
 
 Here is a guideline To choose between the default JNR-Fuse and experimental JNI-Fuse:
 
-* Workloads: If your data access pattern is highly concurrent (e.g., deep learning training), JNI-Fuse is better and more stable for this workloads.
-* Maintenance: JNI-Fuse is experimental but is under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
+* Workloads: If your data access pattern is highly concurrent (e.g., deep learning training), JNI-Fuse is better and more stable.
+* Maintenance: JNI-Fuse is experimental but under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
 
 ## Requirements
 
