@@ -275,8 +275,9 @@ public abstract class AbstractClient implements Client {
           new ServiceNotFoundException(lastConnectFailure.getMessage(), lastConnectFailure));
     }
 
-    throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getAttemptCount()), lastConnectFailure);
+    throw new UnavailableException(String.format("Failed to connect to master (%s) after %s "
+            + "attempts of %s",
+        mAddress, retryPolicy.getAttemptCount(), getServiceName()), lastConnectFailure);
   }
 
   /**
