@@ -147,8 +147,8 @@ $ ./bin/alluxio fs ls /
 -rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 100% /LICENSE
 ```
 
-The output shows the file that exists in Alluxio, as well the size of the file, whether it has
-been persisted to its under file storage (UFS), the date it was created, the owner and group of the file,
+The output shows the file that exists in Alluxio. Each line contains the owner and group of the file,
+the size of the file, whether it has been persisted to its under file storage (UFS), the date it was created,
 and the percentage of the file that is cached in Alluxio.
 
 The `cat` command prints the contents of the file.
