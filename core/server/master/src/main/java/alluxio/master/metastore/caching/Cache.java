@@ -517,7 +517,8 @@ public abstract class Cache<K, V> implements Closeable {
   }
 
   /**
-   * Implementation of StatsCounter similar to the one in {@link com.google.common.cache.AbstractCache}
+   * Implementation of StatsCounter similar to the one in
+   * {@link com.google.common.cache.AbstractCache}.
    */
   protected static final class StatsCounter {
     private final AtomicLong mHitCount;
