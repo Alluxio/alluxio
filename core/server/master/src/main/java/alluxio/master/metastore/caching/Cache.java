@@ -163,8 +163,13 @@ public abstract class Cache<K, V> implements Closeable {
   private Optional<V> getSkipCache(K key) {
     Entry entry = mMap.get(key);
     if (entry == null) {
-      return load(key);
+      mStatsCounter.recordMiss();
+      final Stopwatch stopwatch = Stopwatch.createStarted();
+      final Optional<V> result = load(key);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      return result;
     }
+    mStatsCounter.recordHit();
     return Optional.ofNullable(entry.mValue);
   }
 
