@@ -210,7 +210,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
-		"integration/docker/libjnifuse.so",
 		"integration/fuse/bin/alluxio-fuse",
 		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
@@ -226,6 +225,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		fmt.Sprintf("lib/alluxio-integration-tools-hms-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-integration-tools-validation-%v.jar", version),
 		"libexec/alluxio-config.sh",
+		"lib/libjnifuse.dylib",
+		"lib/libjnifuse.so",
 		"LICENSE",
 	}
 	if includeYarnIntegration(hadoopVersion) {
