@@ -57,7 +57,7 @@ public final class CloudCostUtils {
   /**
    * Calculate the saved cost from the perUfs Operations saved map.
    *
-   * @param ufsType ufs type could be s3, gcs, abfs etc.
+   * @param ufsType ufs type could be s3, gcs, abfs etc
    * @param perUfsMap a map mapping operations to the number of ops saved
    * @return total cost saved from the saved metadata operations
    */
