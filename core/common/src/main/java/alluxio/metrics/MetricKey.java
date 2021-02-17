@@ -262,7 +262,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_EDGE_CACHE_SIZE =
       new Builder(Name.MASTER_EDGE_CACHE_SIZE)
           .setDescription("Total number of edges (inode metadata) cached. "
-              + "The edge cache is responsible fosr managing the mapping "
+              + "The edge cache is responsible for managing the mapping "
               + "from (parentId, childName) to childId.")
           .setMetricType(MetricType.GAUGE)
           .build();
