@@ -43,6 +43,8 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
@@ -210,6 +212,25 @@ public interface FileSystemMaster extends Master {
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
       UnavailableException;
+
+  /**
+   * Completes a file. After a file is completed, it cannot be written to.
+   *
+   * There are two cases here.
+   * If the file is still being created, we pass inode in addition to inodePath.
+   * If the file is already created, inodePath should be complete and
+   * we should be able to get its inode from it.
+   *
+   * @param inodePath the {@link LockedInodePath} to complete
+   * @param inode the inode to complete
+   * @param context the method context
+   *
+   * @return completeFileResult
+   */
+  CompleteFileResult completeFileWithResults(LockedInodePath inodePath,
+      Inode inode, CompleteFileContext context) throws InvalidPathException,
+      FileDoesNotExistException, BlockInfoException,
+      FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException;
 
   /**
    * Creates a file (not a directory) for a given path.

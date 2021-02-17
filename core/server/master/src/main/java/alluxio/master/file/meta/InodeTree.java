@@ -29,7 +29,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.block.ContainerIdGenerable;
-import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.CompleteFileResult;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -705,7 +706,7 @@ public class InodeTree implements DelegatingJournaled {
    *         option is false
    */
   public List<Inode> createPath(RpcContext rpcContext, LockedInodePath inodePath,
-      CreatePathContext<?, ?> context, DefaultFileSystemMaster fileSystemMaster)
+      CreatePathContext<?, ?> context, FileSystemMaster fileSystemMaster)
       throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException {
@@ -941,8 +942,8 @@ public class InodeTree implements DelegatingJournaled {
           = ((CreateFileContext) context).getCompletionContext();
       Preconditions.checkNotNull(completeFileContext);
       Inode inode = Inode.wrap(newInode);
-      DefaultFileSystemMaster.CompleteFileResult completeFileResult =
-          fileSystemMaster.completeFileInternal(inodePath, inode, completeFileContext);
+      CompleteFileResult completeFileResult =
+          fileSystemMaster.completeFileWithResults(inodePath, inode, completeFileContext);
       UpdateInodeEntry inodeEntry = completeFileResult.getUpdateInodeEntry();
       UpdateInodeFileEntry fileEntry = completeFileResult.getUpdateInodeFileEntry();
       newInode.asFile().setCompleted(true).setLength(fileEntry.getLength())

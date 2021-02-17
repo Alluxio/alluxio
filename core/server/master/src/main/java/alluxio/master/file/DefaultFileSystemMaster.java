@@ -1342,7 +1342,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         throw e;
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      CompleteFileResult completeFileResult = completeFileInternal(inodePath,
+      CompleteFileResult completeFileResult = completeFileWithResults(inodePath,
           inodePath.getInode(), context);
 
       // We could introduce a concept of composite entries, so that these two entries could
@@ -1362,56 +1362,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  /**
-   * Complete File Result containing two update entries to the journal.
-   */
-  public class CompleteFileResult {
-    private UpdateInodeEntry mUpdateInodeEntry;
-    private UpdateInodeFileEntry mUpdateInodeFileEntry;
-
-    /**
-     * Construct a complete file result object.
-     */
-    CompleteFileResult(UpdateInodeEntry updateInodeEntry,
-        UpdateInodeFileEntry updateInodeFileEntry) {
-      mUpdateInodeEntry = updateInodeEntry;
-      mUpdateInodeFileEntry = updateInodeFileEntry;
-    }
-
-    /**
-     * Get the updateInodeEntry object.
-     *
-     * @return the inode update object
-     */
-    public UpdateInodeEntry getUpdateInodeEntry() {
-      return mUpdateInodeEntry;
-    }
-
-    /**
-     * Get the update inode file object.
-     *
-     * @return the inode file update object
-     */
-    public UpdateInodeFileEntry getUpdateInodeFileEntry() {
-      return mUpdateInodeFileEntry;
-    }
-  }
-
-  /**
-   * Completes a file. After a file is completed, it cannot be written to.
-   *
-   * There are two cases here.
-   * If the file is still being created, we pass inode in addition to inodePath.
-   * If the file is already created, inodePath should be complete and
-   * we should be able to get its inode from it.
-   *
-   * @param inodePath the {@link LockedInodePath} to complete
-   * @param inode the inode to complete
-   * @param context the method context
-   *
-   * @return completeFileResult
-   */
-  public CompleteFileResult completeFileInternal(LockedInodePath inodePath,
+  @Override
+  public CompleteFileResult completeFileWithResults(LockedInodePath inodePath,
       Inode inode, CompleteFileContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
