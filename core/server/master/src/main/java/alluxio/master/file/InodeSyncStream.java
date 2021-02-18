@@ -802,17 +802,18 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
          MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
-             JournalUtils::mergeCreateComplete);
-         RpcContext rpcContext1 = new RpcContext(
-             rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext())) {
-      fsMaster.createFileInternal(rpcContext1, writeLockedPath, createFileContext);
+             JournalUtils::mergeCreateComplete)) {
+      // We do not want to close this wrapRpcContext because it uses elements from another context
+      RpcContext wrapRpcContext = new RpcContext(
+          rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
+      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus());
       if (ufsLastModified != null) {
         completeContext.setOperationTimeMs(ufsLastModified);
       }
-      fsMaster.completeFileInternal(rpcContext1, writeLockedPath, completeContext);
+      fsMaster.completeFileInternal(wrapRpcContext, writeLockedPath, completeContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
