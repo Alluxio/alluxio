@@ -197,7 +197,7 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 
 ## TroubleShooting
 
-## The exception of java.lang.OutOfMemoryError: Java heap space
+### The exception of java.lang.OutOfMemoryError: Java heap space
 
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:
@@ -209,4 +209,4 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ### An error occurred while running protolock
 
 If you see following error meesage by maven:
-` An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory -> [Help 1]`, please make sure the maven flag `-Dskip.protoc` is NOT included.
+` An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory -> [Help 1]`, please make sure the maven flag `-Dskip.protoc` is NOT included when building the source code.
