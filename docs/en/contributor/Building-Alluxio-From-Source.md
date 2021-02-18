@@ -17,23 +17,7 @@ This guide describes how to clone the Alluxio repository, compile the source cod
 - [Maven 3.3.9 or later](http://maven.apache.org/download.cgi)
 - [Git](https://git-scm.org/downloads)
 
-Alternatively, we have publishhed a docker image [alluxio/alluxio-maven](https://hub.docker.com/r/alluxio/alluxio-maven) with Java, Maven and Git installed to build Alluxio source code.
-For example, to build Alluxio with JDK8, checkout this image at tag `0.0.5-jdk8`:
-
-```console
-$ docker pull alluxio/alluxio-maven:0.0.5-jdk8
-```
-
-Create a container `alluxio-build` based on this image and get into this container to proceed:
-
-```console
-$ docker run -itd \
-  --network=host \
-  -v ${HOME}/.m2:/root/.m2 \
-  --name alluxio-build \
-  alluxio/alluxio-maven:0.0.5-jdk8 bash
-$ docker exec -it alluxio-build bash
-```
+Alternatively, we have published a docker image [alluxio/alluxio-maven](https://hub.docker.com/r/alluxio/alluxio-maven) with Java, Maven, and Git pre-installed to help build Alluxio source code.
 
 ## Checkout Source Code
 
@@ -42,6 +26,7 @@ Checkout the Alluxio master branch from Github:
 ```console
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
+$ export ALLUXIO_HOME=$(pwd)
 ```
 
 By default, cloning the repository will check out the master branch. If you are looking to build a
@@ -50,6 +35,34 @@ particular version of the code you may check out the version using a git tag.
 ```console
 $ git tag
 $ git checkout <TAG_NAME>
+```
+
+## (Optional) Checkout Building Environment Using Docker
+
+This section guides you to setup pre-configured compilation environment based on our published docker image.
+You can skip this section and build Alluxio source code if JDK and Maven are already installed locally.
+
+Start a container named `alluxio-build` based on this image and get into this container to proceed:
+
+```console
+$ docker run -itd \
+  --network=host \
+  -v ${ALLUXIO_HOME}:/alluxio  \
+  -v ${HOME}/.m2:/root/.m2 \
+  --name alluxio-build \
+  alluxio/alluxio-maven bash
+
+$ docker exec -it -w /alluxio alluxio-build bash
+```
+
+Note that,
+- Container path `/alluxio` is mapped to host path `${ALLUXIO_HOME}`, so the binary built will still be accessible outside the container afterwards.
+- Container path `/root/.m2` is mapped to host path `${HOME}/.m2` to leverage your local copy of the maven cache. This is optional.
+
+When done using the container, destroy it by running
+
+```console
+$ docker rm -f alluxio-build
 ```
 
 ## Build
@@ -69,13 +82,6 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 
 > Note: The flag `-Dskip.protoc` skips generating source files related to gRPC proto.
 You can skip this step if you have already built them.
-
-If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
-variable to increase the memory heap size for maven:
-
-```console
-$ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
-```
 
 The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
 the system. If this is the first time you are building the project, it can take a while to download
@@ -118,35 +124,40 @@ Since Alluxio 1.7, Alluxio client jar built and located at
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
 (e.g., Spark, Flink, Presto and etc) by default.
 
-### Support of Different HDFS under storage
+### Build different HDFS under storage
 
 By default, Alluxio is built with the HDFS under storage of Hadoop 3.3.
 Run the following command by specifying `<UFS_HADOOP_PROFILE>` and the corresponding `ufs.hadoop
 .version` to build ufs with different versions.
 
 ```console
-$ mvn install -P<UFS_HADOOP_PROFILE> -Dufs.hadoop.version=<HADOOP_VERSION> -DskipTests
+$ mvn install -pl underfs/hdfs/ \
+   -P<UFS_HADOOP_PROFILE> -Dufs.hadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 
 Here `<UFS_HADOOP_VERSION>` can be set for different distributions.
 Available Hadoop profiles include `ufs-hadoop-1`, `ufs-hadoop-2`, `ufs-hadoop-3` to cover the major
 Hadoop versions 1.x, 2.x and 3.x.
 
-For example
+For example,
 ```
-$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+$ mvn clean install -pl underfs/hdfs/ -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
   -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
 ```
 
 ```
-$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+$ mvn clean install -pl underfs/hdfs/ -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
   -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.0
 ```
 
-#### Apache
+If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-<ALLUXIO_VERSION>.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
 
+Checkout the flags for differnt HDFS distributions.
+
+{% accordion HDFS Distributions %}
+  {% collapsible Apache %}
 All main builds are from Apache so all Apache releases can be used directly
 
 ```properties
@@ -163,17 +174,16 @@ All main builds are from Apache so all Apache releases can be used directly
 -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0
 ```
 
-#### Cloudera
-
+  {% endcollapsible %}
+  {% collapsible Cloudera %}
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
 ```properties
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0-cdh5.1.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.0.0-cdh4.7.0
 ```
-
-#### Hortonworks
-
+  {% endcollapsible %}
+  {% collapsible Hortonworks %}
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonworksRelease`
 
 ```properties
@@ -181,3 +191,22 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0.2.1.0.0-92
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.0.2.1.3.0-563
 ```
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+## TroubleShooting
+
+## The exception of java.lang.OutOfMemoryError: Java heap space
+
+If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
+variable to increase the memory heap size for maven:
+
+```console
+$ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
+```
+
+### An error occurred while running protolock
+
+If you see following error meesage by maven:
+` An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory -> [Help 1]`, please make sure the maven flag `-Dskip.protoc` is NOT included.
