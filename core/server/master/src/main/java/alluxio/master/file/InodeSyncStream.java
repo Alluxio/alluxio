@@ -49,6 +49,8 @@ import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.MergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AccessControlList;
@@ -69,6 +71,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -797,15 +800,19 @@ public class InodeSyncStream {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
 
-    try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
-      fsMaster.createFileInternal(rpcContext, writeLockedPath, createFileContext);
+    try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
+         MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+             JournalUtils::mergeCreateComplete);
+         RpcContext rpcContext1 = new RpcContext(
+             rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext())) {
+      fsMaster.createFileInternal(rpcContext1, writeLockedPath, createFileContext);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus());
       if (ufsLastModified != null) {
         completeContext.setOperationTimeMs(ufsLastModified);
       }
-      fsMaster.completeFileInternal(rpcContext, writeLockedPath, completeContext);
+      fsMaster.completeFileInternal(rpcContext1, writeLockedPath, completeContext);
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.

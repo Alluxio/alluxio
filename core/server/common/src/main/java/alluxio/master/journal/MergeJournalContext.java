@@ -39,7 +39,8 @@ public final class MergeJournalContext implements JournalContext {
    *
    * @param journalContext the journal context to wrap
    */
-  public MergeJournalContext(JournalContext journalContext, UnaryOperator<List<JournalEntry>> merger) {
+  public MergeJournalContext(JournalContext journalContext,
+      UnaryOperator<List<JournalEntry>> merger) {
     Preconditions.checkNotNull(journalContext, "journalContext");
     mJournalContext = journalContext;
     mMergeOperator = merger;

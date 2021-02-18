@@ -22,6 +22,8 @@ import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.StreamUtils;
@@ -36,8 +38,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -212,6 +218,125 @@ public final class JournalUtils {
     for (JournalSink sink : journalSinks.get()) {
       sink.flush();
     }
+  }
+
+  /**
+   * merge inodesentry with subsequent update inode and update inode file entries
+   * @param entries list of journal entries
+   * @return a list of compacted journal entries
+   */
+  public static List<alluxio.proto.journal.Journal.JournalEntry> mergeCreateComplete(
+      List<alluxio.proto.journal.Journal.JournalEntry> entries) {
+    List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>();
+    Map<Long, File.InodeFileEntry.Builder> fileEntryMap = new HashMap<>();
+    for (alluxio.proto.journal.Journal.JournalEntry oldEntry : entries) {
+      if (oldEntry.hasInodeFile()) {
+        fileEntryMap.put(oldEntry.getInodeFile().getId(),
+            File.InodeFileEntry.newBuilder(oldEntry.getInodeFile()));
+      } else if (oldEntry.hasUpdateInode()){
+        File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId());
+        if (builder == null) {
+          newEntries.add(oldEntry);
+          continue;
+        }
+        if (entry.hasAcl()) {
+          builder.setAcl(entry.getAcl());
+        }
+        if (entry.hasCreationTimeMs()) {
+          builder.setCreationTimeMs(entry.getCreationTimeMs());
+        }
+        if (entry.hasGroup() && !entry.getGroup().isEmpty()) {
+          builder.setGroup(entry.getGroup());
+        }
+        if (entry.hasLastModificationTimeMs()) {
+          if (entry.getOverwriteModificationTime()
+              || entry.getLastModificationTimeMs() > builder.getLastModificationTimeMs())
+            builder.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+        }
+        if (entry.hasLastAccessTimeMs()) {
+          if (entry.getOverwriteAccessTime()
+              || entry.getLastAccessTimeMs() > builder.getLastAccessTimeMs())
+            builder.setLastAccessTimeMs(entry.getLastAccessTimeMs());
+        }
+        if (entry.hasMode()) {
+          builder.setMode((short) entry.getMode());
+        }
+        if (entry.getMediumTypeCount() != 0) {
+          builder.clearMediumType();
+          builder.addAllMediumType(new HashSet<>(entry.getMediumTypeList()));
+        }
+        if (entry.hasName()) {
+          builder.setName(entry.getName());
+        }
+        if (entry.hasOwner() && !entry.getOwner().isEmpty()) {
+          builder.setOwner(entry.getOwner());
+        }
+        if (entry.hasParentId()) {
+          builder.setParentId(entry.getParentId());
+        }
+        if (entry.hasPersistenceState()) {
+          builder.setPersistenceState(entry.getPersistenceState());
+        }
+        if (entry.hasPinned()) {
+          builder.setPinned(entry.getPinned());
+        }
+        if (entry.hasTtl()) {
+          builder.setTtl(entry.getTtl());
+        }
+        if (entry.hasTtlAction()) {
+          builder.setTtlAction(entry.getTtlAction());
+        }
+        if (entry.hasUfsFingerprint()) {
+          builder.setUfsFingerprint(entry.getUfsFingerprint());
+        }
+        if (entry.getXAttrCount() > 0) {
+          builder.clearXAttr();
+          builder.putAllXAttr(new HashMap<>(entry.getXAttrMap()));
+        }
+      } else if (oldEntry.hasUpdateInodeFile()) {
+        File.UpdateInodeFileEntry entry = oldEntry.getUpdateInodeFile();
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId());
+        if (builder == null) {
+          newEntries.add(oldEntry);
+          continue;
+        }
+        if (entry.hasPersistJobId()) {
+          builder.setPersistJobId(entry.getPersistJobId());
+        }
+        if (entry.hasReplicationMax()) {
+          builder.setReplicationMax(entry.getReplicationMax());
+        }
+        if (entry.hasReplicationMin()) {
+          builder.setReplicationMin(entry.getReplicationMin());
+        }
+        if (entry.hasTempUfsPath()) {
+          builder.setTempUfsPath(entry.getTempUfsPath());
+        }
+        if (entry.hasBlockSizeBytes()) {
+          builder.setBlockSizeBytes(entry.getBlockSizeBytes());
+        }
+        if (entry.hasCacheable()) {
+          builder.setCacheable(entry.getCacheable());
+        }
+        if (entry.hasCompleted()) {
+          builder.setCompleted(entry.getCompleted());
+        }
+        if (entry.hasLength()) {
+          builder.setLength(entry.getLength());
+        }
+        if (entry.getSetBlocksCount() > 0) {
+          builder.clearBlocks();
+          builder.addAllBlocks(entry.getSetBlocksList());
+        }
+      } else {
+        newEntries.add(oldEntry);
+      }
+    }
+    for (File.InodeFileEntry.Builder builder : fileEntryMap.values()) {
+      newEntries.add(Journal.JournalEntry.newBuilder().setInodeFile(builder).build());
+    }
+    return newEntries;
   }
 
   private JournalUtils() {} // prevent instantiation
