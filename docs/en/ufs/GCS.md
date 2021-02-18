@@ -28,12 +28,12 @@ For more information on GCS, please read its
 
 ## Setup 
 
-Alluxio has two GCS integrations. The default GCS UFS module (GCS version 1) is implemented based on 
+Alluxio provides two ways to access GCS. The default GCS UFS module (GCS version 1) is implemented based on 
 [jets3t](http://www.jets3t.org/) library which is design for AWS S3. 
 Thus, it only accepts Google cloud storage interoperability access/secret keypair 
 which allows full access to all Google cloud storages inside a Google cloud project.
 No permission or access control can be placed on the interoperability keys.
-The conjuction of Google interoperability API and jets3t library also impact the performance of default GCS UFS module. 
+The conjunction of Google interoperability API and jets3t library also impact the performance of the default GCS UFS module. 
 
 GCS with Google Cloud API (GCS version 2) on the other hand accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started). 
 Based on the application credentials, Google cloud can determine what permissions an authenticated client 
@@ -62,7 +62,7 @@ specify an **existing** GCS bucket and directory as the under storage system by 
 alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
-Choose your desired GCS implementation way and provide the corresponding Google credentials.
+Choose your preferred GCS UFS version and provide the corresponding Google credentials.
 
 {% navtabs rootMount %}
 {% navtab GCS version 1 %}

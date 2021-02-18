@@ -1080,14 +1080,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
-      .setDescription(String.format("The access key of GCS bucket.This property key"
+      .setDescription(String.format("The access key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
-      .setDescription(String.format("The secret key of GCS bucket.This property key"
+      .setDescription(String.format("The secret key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
