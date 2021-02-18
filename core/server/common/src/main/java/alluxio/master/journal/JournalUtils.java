@@ -251,12 +251,12 @@ public final class JournalUtils {
           builder.setGroup(entry.getGroup());
         }
         if (entry.hasLastModificationTimeMs() && (entry.getOverwriteModificationTime()
-              || entry.getLastModificationTimeMs() > builder.getLastModificationTimeMs())) {
-            builder.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+            || entry.getLastModificationTimeMs() > builder.getLastModificationTimeMs())) {
+          builder.setLastModificationTimeMs(entry.getLastModificationTimeMs());
         }
         if (entry.hasLastAccessTimeMs() && (entry.getOverwriteAccessTime()
-              || entry.getLastAccessTimeMs() > builder.getLastAccessTimeMs())) {
-            builder.setLastAccessTimeMs(entry.getLastAccessTimeMs());
+            || entry.getLastAccessTimeMs() > builder.getLastAccessTimeMs())) {
+          builder.setLastAccessTimeMs(entry.getLastAccessTimeMs());
         }
         if (entry.hasMode()) {
           builder.setMode((short) entry.getMode());
