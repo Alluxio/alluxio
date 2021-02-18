@@ -87,7 +87,7 @@ Before Alluxio can be started for the first time, the journal must be formatted.
 On the master node, format Alluxio with the following command:
 
 ```console
-$ ./bin/alluxio formatMaster
+$ ./bin/alluxio formatMasters
 ```
 
 ### Launch Alluxio
