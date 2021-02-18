@@ -62,8 +62,6 @@ alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
-alluxio.job.worker.tasks.per.worker:
-  'N/A'
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
 alluxio.job.worker.throttling:
@@ -142,6 +140,8 @@ alluxio.table.catalog.udb.sync.timeout:
   'The timeout period for a db sync to finish in the catalog. If a synctakes longer than this timeout, the sync will be terminated.'
 alluxio.table.enabled:
   '(Experimental) Enables the table service.'
+alluxio.table.journal.partitions.chunk.size:
+  'The maximum table partitions number in a single journal entry.'
 alluxio.table.transform.manager.job.history.retention.time:
   'The length of time the Alluxio Table Master should keep information about finished transformation jobs before they are discarded.'
 alluxio.table.transform.manager.job.monitor.interval:
@@ -167,7 +167,9 @@ alluxio.underfs.gcs.default.mode:
 alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
-  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one.'
+  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one. This property key is only valid when alluxio.underfs.gcs.version=1'
+alluxio.underfs.gcs.version:
+  'Specify the version of GCS module to use. GCS version &quot;1&quot; builds on top of jets3t package which requires fs.gcs.accessKeyId and fs.gcs.secretAccessKey. GCS version &quot;2&quot; build on top of Google cloud API which requires fs.gcs.credential.path'
 alluxio.underfs.hdfs.configuration:
   'Location of the HDFS configuration file to overwrite the default HDFS client configuration. Note that, these files must be availableon every node.'
 alluxio.underfs.hdfs.impl:
@@ -292,6 +294,12 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+awt.toolkit:
+  'N/A'
+file.encoding:
+  'N/A'
+file.separator:
+  'N/A'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'
 fs.azure.account.oauth2.client.id:
@@ -313,9 +321,11 @@ fs.cos.secret.key:
 fs.cos.socket.timeout:
   'The timeout of COS socket.'
 fs.gcs.accessKeyId:
-  'The access key of GCS bucket.'
+  'The access key of GCS bucket.This property keyis only valid when alluxio.underfs.gcs.version=1'
+fs.gcs.credential.path:
+  'The json file path of Google application credentials. This property key is only valid when alluxio.underfs.gcs.version=2'
 fs.gcs.secretAccessKey:
-  'The secret key of GCS bucket.'
+  'The secret key of GCS bucket.This property keyis only valid when alluxio.underfs.gcs.version=1'
 fs.kodo.accesskey:
   'The access key of Kodo bucket.'
 fs.kodo.secretkey:
@@ -340,3 +350,109 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
+gopherProxySet:
+  'N/A'
+java.awt.graphicsenv:
+  'N/A'
+java.awt.printerjob:
+  'N/A'
+java.class.path:
+  'N/A'
+java.class.version:
+  'N/A'
+java.home:
+  'N/A'
+java.io.tmpdir:
+  'N/A'
+java.library.path:
+  'N/A'
+java.net.preferIPv4Stack:
+  'N/A'
+java.runtime.name:
+  'N/A'
+java.runtime.version:
+  'N/A'
+java.specification.name:
+  'N/A'
+java.specification.vendor:
+  'N/A'
+java.specification.version:
+  'N/A'
+java.vendor:
+  'N/A'
+java.vendor.url:
+  'N/A'
+java.vendor.url.bug:
+  'N/A'
+java.vendor.version:
+  'N/A'
+java.version:
+  'N/A'
+java.version.date:
+  'N/A'
+java.vm.compressedOopsMode:
+  'N/A'
+java.vm.info:
+  'N/A'
+java.vm.name:
+  'N/A'
+java.vm.specification.name:
+  'N/A'
+java.vm.specification.vendor:
+  'N/A'
+java.vm.specification.version:
+  'N/A'
+java.vm.vendor:
+  'N/A'
+java.vm.version:
+  'N/A'
+jdk.debug:
+  'N/A'
+line.separator:
+  'N/A'
+log4j.configuration:
+  'N/A'
+org.apache.jasper.compiler.disablejsr199:
+  'N/A'
+org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads:
+  'N/A'
+os.arch:
+  'N/A'
+os.name:
+  'N/A'
+os.version:
+  'N/A'
+path.separator:
+  'N/A'
+sun.arch.data.model:
+  'N/A'
+sun.boot.library.path:
+  'N/A'
+sun.cpu.endian:
+  'N/A'
+sun.cpu.isalist:
+  'N/A'
+sun.io.unicode.encoding:
+  'N/A'
+sun.java.command:
+  'N/A'
+sun.java.launcher:
+  'N/A'
+sun.jnu.encoding:
+  'N/A'
+sun.management.compiler:
+  'N/A'
+sun.os.patch.level:
+  'N/A'
+user.country:
+  'N/A'
+user.dir:
+  'N/A'
+user.home:
+  'N/A'
+user.language:
+  'N/A'
+user.name:
+  'N/A'
+user.timezone:
+  'N/A'

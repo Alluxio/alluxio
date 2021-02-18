@@ -24,6 +24,8 @@ alluxio.master.backup.state.lock.interrupt.cycle.enabled:
   'This controls whether RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
 alluxio.master.backup.state.lock.interrupt.cycle.interval:
   'The interval at which the RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.suspend.timeout:
+  'Timeout for when suspend request is not followed by a backup request.'
 alluxio.master.backup.transport.timeout:
   'Request timeout for backup messaging.'
 alluxio.master.bind.host:
@@ -134,8 +136,10 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.detection.interval:
+  'The interval between Alluxio master detections to find lost workers based on updates from Alluxio workers.'
 alluxio.master.lost.worker.file.detection.interval:
-  'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
+  'The interval between Alluxio master detections to find lost files based on updates from Alluxio workers.'
 alluxio.master.metadata.sync.concurrency.level:
   'The maximum number of concurrent sync tasks running for a given sync operation'
 alluxio.master.metadata.sync.executor.pool.size:
