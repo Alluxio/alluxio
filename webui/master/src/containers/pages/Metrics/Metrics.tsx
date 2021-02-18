@@ -282,6 +282,12 @@ export class MetricsPresenter extends React.Component<AllProps> {
                     <td>{data.ufsOpsSaved[key][innerKey]}</td>
                   </tr>
                 ))}
+                {data.ufsOpsCostSaved[key] && (
+                  <tr key={key + 'costSaved'}>
+                    <td>Cost Saved</td>
+                    <td style={{ color: 'green' }}>${data.ufsOpsCostSaved[key]}</td>
+                  </tr>
+                )}
               </tbody>
             </Table>
           </div>

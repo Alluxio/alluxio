@@ -47,6 +47,9 @@ export interface IMetrics {
       [key: string]: number;
     };
   };
+  ufsOpsCostSaved: {
+    [key: string]: number;
+  };
   ufsOpsSaved: {
     [key: string]: {
       [key: string]: number;
