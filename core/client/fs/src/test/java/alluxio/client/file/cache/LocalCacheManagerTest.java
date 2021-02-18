@@ -246,8 +246,9 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void evictSmallPagesByPutPigPage() throws Exception {
+  public void evictSmallPagesByPutPigPageWithoutRetry() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES, 0);
     mCacheManager = createLocalCacheManager();
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
@@ -260,6 +261,25 @@ public final class LocalCacheManagerTest {
     for (int i = 0; i < numPages - 1; i++) {
       assertFalse(mCacheManager.put(bigPageId, bigPage));
     }
+    assertTrue(mCacheManager.put(bigPageId, bigPage));
+    byte[] buf = new byte[PAGE_SIZE_BYTES];
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(bigPageId, PAGE_SIZE_BYTES, buf, 0));
+    assertArrayEquals(bigPage, buf);
+  }
+
+  @Test
+  public void evictSmallPagesByPutPigPageWithRetry() throws Exception {
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES, numPages);
+    mCacheManager = createLocalCacheManager();
+    for (int i = 0; i < numPages; i++) {
+      PageId id = pageId(i, 0);
+      assertTrue(mCacheManager.put(id, page(i, smallPageLen)));
+    }
+    byte[] bigPage = page(0, PAGE_SIZE_BYTES);
+    PageId bigPageId = pageId(-1, 0);
     assertTrue(mCacheManager.put(bigPageId, bigPage));
     byte[] buf = new byte[PAGE_SIZE_BYTES];
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(bigPageId, PAGE_SIZE_BYTES, buf, 0));

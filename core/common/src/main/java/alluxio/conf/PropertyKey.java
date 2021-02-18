@@ -3817,7 +3817,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTION_RETRIES =
       new Builder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
-          .setDefaultValue(0)
+          .setDefaultValue(10)
           .setDescription("Max number of eviction retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
