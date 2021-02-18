@@ -124,7 +124,7 @@ public final class LogLevel {
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level, alluxioConf);
+      setLogLevel(targetInfo, logName, level);
     }
   }
 
@@ -226,8 +226,7 @@ public final class LogLevel {
     return null;
   }
 
-  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
-                                  AlluxioConfiguration alluxioConf)
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
