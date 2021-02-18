@@ -287,8 +287,9 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean putInternal(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
+    PutResult result = PutResult.OK;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
-      PutResult result = putAttempt(pageId, page, scope, quota);
+      result = putAttempt(pageId, page, scope, quota);
       switch (result) {
         case OK:
           return true;
@@ -300,11 +301,16 @@ public class LocalCacheManager implements CacheManager {
           // page is not large enough to cover the space needed by this page. Try again
           continue;
         case OTHER:
+          // fall through intentionally
         default:
           return false;
       }
     }
-    Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
+    if (result == PutResult.BENIGN_RACING) {
+      Metrics.PUT_BENIGN_RACING_ERRORS.inc();
+    } else if (result == PutResult.INSUFFICIENT_SPACE) {
+      Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
+    }
     return false;
   }
 
@@ -367,7 +373,6 @@ public class LocalCacheManager implements CacheManager {
         } catch (PageNotFoundException e) {
           LOG.debug("Page {} is unavailable to evict, likely due to a benign race",
               victimPageInfo.getPageId());
-          Metrics.PUT_BENIGN_RACING_ERRORS.inc();
           return PutResult.BENIGN_RACING;
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
