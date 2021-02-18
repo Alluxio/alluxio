@@ -17,6 +17,24 @@ This guide describes how to clone the Alluxio repository, compile the source cod
 - [Maven 3.3.9 or later](http://maven.apache.org/download.cgi)
 - [Git](https://git-scm.org/downloads)
 
+Alternatively, we have publishhed a docker image [alluxio/alluxio-maven](https://hub.docker.com/r/alluxio/alluxio-maven) with Java, Maven and Git installed to build Alluxio source code.
+For example, to build Alluxio with JDK8, checkout this image at tag `0.0.5-jdk8`:
+
+```console
+$ docker pull alluxio/alluxio-maven:0.0.5-jdk8
+```
+
+Create a container `alluxio-build` based on this image and get into this container to proceed:
+
+```console
+$ docker run -itd \
+  --network=host \
+  -v ${HOME}/.m2:/root/.m2 \
+  --name alluxio-build \
+  alluxio/alluxio-maven:0.0.5-jdk8 bash
+$ docker exec -it alluxio-build bash
+```
+
 ## Checkout Source Code
 
 Checkout the Alluxio master branch from Github:
