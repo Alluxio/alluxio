@@ -221,7 +221,8 @@ public final class JournalUtils {
   }
 
   /**
-   * merge inodesentry with subsequent update inode and update inode file entries
+   * Merge inode entry with subsequent update inode and update inode file entries.
+   *
    * @param entries list of journal entries
    * @return a list of compacted journal entries
    */
@@ -233,7 +234,7 @@ public final class JournalUtils {
       if (oldEntry.hasInodeFile()) {
         fileEntryMap.put(oldEntry.getInodeFile().getId(),
             File.InodeFileEntry.newBuilder(oldEntry.getInodeFile()));
-      } else if (oldEntry.hasUpdateInode()){
+      } else if (oldEntry.hasUpdateInode()) {
         File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
         File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId());
         if (builder == null) {
@@ -249,14 +250,12 @@ public final class JournalUtils {
         if (entry.hasGroup() && !entry.getGroup().isEmpty()) {
           builder.setGroup(entry.getGroup());
         }
-        if (entry.hasLastModificationTimeMs()) {
-          if (entry.getOverwriteModificationTime()
-              || entry.getLastModificationTimeMs() > builder.getLastModificationTimeMs())
+        if (entry.hasLastModificationTimeMs() && (entry.getOverwriteModificationTime()
+              || entry.getLastModificationTimeMs() > builder.getLastModificationTimeMs())) {
             builder.setLastModificationTimeMs(entry.getLastModificationTimeMs());
         }
-        if (entry.hasLastAccessTimeMs()) {
-          if (entry.getOverwriteAccessTime()
-              || entry.getLastAccessTimeMs() > builder.getLastAccessTimeMs())
+        if (entry.hasLastAccessTimeMs() && (entry.getOverwriteAccessTime()
+              || entry.getLastAccessTimeMs() > builder.getLastAccessTimeMs())) {
             builder.setLastAccessTimeMs(entry.getLastAccessTimeMs());
         }
         if (entry.hasMode()) {

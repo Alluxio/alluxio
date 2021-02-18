@@ -38,6 +38,7 @@ public final class MergeJournalContext implements JournalContext {
    * Constructs a {@link MergeJournalContext}.
    *
    * @param journalContext the journal context to wrap
+   * @param merger merging function which will merge multiple journal entries into one
    */
   public MergeJournalContext(JournalContext journalContext,
       UnaryOperator<List<JournalEntry>> merger) {
