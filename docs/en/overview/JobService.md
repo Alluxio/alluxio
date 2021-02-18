@@ -89,3 +89,31 @@ Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist  
 
 10 Longest Running Jobs:
 ```
+
+### job ls
+
+`job ls` will list jobs that are running or have run on the job service.
+
+```console
+$ ./bin/alluxio job ls
+1613673433925   Persist    COMPLETED
+1613673433926   Persist    COMPLETED
+1613673433927   Persist    COMPLETED
+1613673433928   Persist    COMPLETED
+1613673433929   Persist    COMPLETED
+```
+
+### job stat -v <job_id> 
+
+`job stat -v <job_id>` will list detailed information about a job.
+
+```console
+bin/alluxio job stat -v 1613673433929
+ID: 1613673433929
+Name: Persist
+Description: PersistConfig{filePath=/test5/lib/alluxio-underfs-cosn-2.5.0-SNAPSHOT.jar, mountId=1, overwrite=false, ufsPath=/Users/bradleyyoo/git/alluxio/underFSStorage/.alluxio_ufs_persistence/alluxio-underfs-...
+Status: COMPLETED
+Task 0
+	Worker: 192.168.42.71
+	Status: COMPLETED
+```
