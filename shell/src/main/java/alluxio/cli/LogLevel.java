@@ -141,7 +141,7 @@ public final class LogLevel {
         targets = new String[]{argTarget};
       }
     } else {
-      targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
+      targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS, ROLE_JOB_WORKERS};
     }
     return getTargetInfos(targets, conf);
   }

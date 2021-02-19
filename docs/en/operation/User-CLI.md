@@ -214,23 +214,12 @@ where:
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
 The `host:webPort` format can only be used when referencing a worker.
-The default target value is all masters and workers.
+The default target value is the master, job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
-`DEBUG` on master as well as a worker at `192.168.100.100:30000`:
-
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=master,192.168.100.100:30000 --level=DEBUG
-```
-
-And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=workers
-```
+See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
 

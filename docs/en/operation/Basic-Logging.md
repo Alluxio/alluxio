@@ -86,7 +86,8 @@ runtime.
 The Alluxio shell comes with a `logLevel` command that returns the current value of
 or updates the log level of a particular class on specific instances.
 Users are able to change Alluxio server-side log levels at runtime.
-See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }}) for more details.
+See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }})
+for the command options.
 
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
@@ -119,8 +120,6 @@ $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 # Turn off Alluxio debug logging when you are done
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
-
-For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
 
 ## Enabling Advanced Logging
 
