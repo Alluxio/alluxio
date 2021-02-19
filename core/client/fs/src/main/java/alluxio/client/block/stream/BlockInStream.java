@@ -116,6 +116,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
+    if (sourceIsLocal && context.acquireLocalBlockWorkerClient() != null) {
+      // Interaction between the current client and the worker it embedded to should
+      // go through worker internal communication directly without RPC involves
+      return createWorkerInternalBlockInStream(context, dataSource, blockId, blockSize, options);
+    }
+
     // Short circuit is enabled when
     // 1. data source is local node
     // 2. alluxio.user.short.circuit.enabled is true
@@ -138,6 +144,26 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
+  }
+
+  /**
+   * Creates a {@link BlockInStream} to read from the the local worker storage
+   * directly without RPC involves.
+   *
+   * @param context the file system context
+   * @param address the network address of the gRPC data server to read from
+   * @param blockId the block ID
+   * @param length the block length
+   * @param options the in stream options
+   * @return the {@link BlockInStream} created
+   */
+  private static BlockInStream createWorkerInternalBlockInStream(FileSystemContext context,
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
+    long chunkSize = context.getClusterConf().getBytes(
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    return new BlockInStream(
+        new WorkerInternalClientDataReader.Factory(context, blockId, chunkSize, options),
+        address, BlockInStreamSource.LOCAL, blockId, length);
   }
 
   /**

@@ -119,6 +119,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private AtomicReference<Long> mWorkerId;
 
+  private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
 
   /**
@@ -157,6 +158,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
+    mFuseManager = mResourceCloser.register(new FuseManager(this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -242,6 +244,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   ServerConfiguration.global(), ServerUserState.global()));
     }
+
+    // Start embedded fuse
+    mFuseManager.start();
   }
 
   /**

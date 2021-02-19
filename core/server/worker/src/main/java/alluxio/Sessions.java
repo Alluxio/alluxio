@@ -37,6 +37,7 @@ public final class Sessions {
   public static final int MASTER_COMMAND_SESSION_ID = -4;
   public static final int ASYNC_CACHE_WORKER_SESSION_ID = -7;
   public static final int ASYNC_CACHE_UFS_SESSION_ID = -8;
+  public static final int FUSE_SESSION_ID = -6;
 
   // internal session id base should be smaller than all predefined session ids
   public static final long INTERNAL_SESSION_ID_BASE = -8;
