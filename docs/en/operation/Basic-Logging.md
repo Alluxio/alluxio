@@ -270,7 +270,7 @@ capacityBytesOnTiers={}, freeBytes=11453237930, liveWorkerNum=0, lostWorkerNum=0
 2020-03-08 23:40:44,374 WARN  AlluxioFuseFileSystem - statfs(path=/) returned 0 in 1200 ms
 ```
 
-### Redirect debug log for certain classes
+### Redirecting debug log for certain classes
 
 Sometimes it is useful to separate the log for certain classes to a separate log.
 This can be useful for reasons including but not limited to:
