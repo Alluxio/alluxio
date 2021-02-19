@@ -30,31 +30,31 @@ public final class CloudCostUtils {
   // Aws pricing https://aws.amazon.com/s3/pricing/ last updated 02/19/2021
   public static final Map<UFSOps, Double> S3_COSTMAP =
       ImmutableMap.of(
-          UFSOps.CREATE_FILE, 0.005/1000,
-          UFSOps.GET_FILE_INFO, 0.0004/1000,
+          UFSOps.CREATE_FILE, 0.005 / 1000,
+          UFSOps.GET_FILE_INFO, 0.0004 / 1000,
           UFSOps.DELETE_FILE, 0.0,
-          UFSOps.LIST_STATUS, 0.005/1000);
+          UFSOps.LIST_STATUS, 0.005 / 1000);
   // Azure data lake pricing https://azure.microsoft.com/en-us/pricing/details/storage/data-lake/ updated 02/19/2021
   public static final Map<UFSOps, Double> ABFS_COSTMAP =
       ImmutableMap.of(
-          UFSOps.CREATE_FILE, 0.0228/10000,
-          UFSOps.GET_FILE_INFO, 0.00182/10000,
+          UFSOps.CREATE_FILE, 0.0228 / 10000,
+          UFSOps.GET_FILE_INFO, 0.00182 / 10000,
           UFSOps.DELETE_FILE, 0.0,
-          UFSOps.LIST_STATUS, 0.0228/10000);
+          UFSOps.LIST_STATUS, 0.0228 / 10000);
   // GCS pricing https://cloud.google.com/storage/pricing updated 02/19/2021
   public static final Map<UFSOps, Double> GCS_COSTMAP =
       ImmutableMap.of(
-          UFSOps.CREATE_FILE, 0.05/10000,
-          UFSOps.GET_FILE_INFO, 0.004/10000,
+          UFSOps.CREATE_FILE, 0.05 / 10000,
+          UFSOps.GET_FILE_INFO, 0.004 / 10000,
           UFSOps.DELETE_FILE, 0.0,
-          UFSOps.LIST_STATUS, 0.05/10000);
+          UFSOps.LIST_STATUS, 0.05 / 10000);
   // OSS pricing https://www.alibabacloud.com/product/oss/pricing updated 02/19/2021
   public static final Map<UFSOps, Double> OSS_COSTMAP =
       ImmutableMap.of(
-          UFSOps.CREATE_FILE, 0.015629/10000,
-          UFSOps.GET_FILE_INFO, 0.00100/10000,
-          UFSOps.DELETE_FILE, 0.015629/10000,
-          UFSOps.LIST_STATUS, 0.00100/1000);
+          UFSOps.CREATE_FILE, 0.015629 / 10000,
+          UFSOps.GET_FILE_INFO, 0.00100 / 10000,
+          UFSOps.DELETE_FILE, 0.015629 / 10000,
+          UFSOps.LIST_STATUS, 0.00100 / 1000);
   // A map mapping getUnderFSType to the cost map
   public static final Map<String, Map<UFSOps, Double>> COSTMAP =
       ImmutableMap.of(
