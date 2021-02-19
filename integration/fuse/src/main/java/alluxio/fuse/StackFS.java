@@ -105,15 +105,15 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int readdir(String path, long bufaddr, FuseFillDir filter, long offset, FuseFileInfo fi) {
+  public int readdir(String path, long bufaddr, long filter, long offset, FuseFileInfo fi) {
     path = transformPath(path);
     File dir = new File(path);
-    filter.apply(bufaddr, ".", null, 0);
-    filter.apply(bufaddr, "..", null, 0);
+    FuseFillDir.apply(filter, bufaddr, ".", null, 0);
+    FuseFillDir.apply(filter, bufaddr, "..", null, 0);
     File[] subfiles = dir.listFiles();
     if (subfiles != null) {
       for (File subfile : subfiles) {
-        filter.apply(bufaddr, subfile.getName(), null, 0);
+        FuseFillDir.apply(filter, bufaddr, subfile.getName(), null, 0);
       }
     }
     return 0;

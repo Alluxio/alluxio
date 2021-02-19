@@ -12,11 +12,11 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
-import alluxio.util.OSUtils;
-
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
+  private static final Logger LOG = LoggerFactory.getLogger(
+      AbstractFuseFileSystem.class);
+
   static {
-    System.loadLibrary("jnifuse");
+    LibFuse.loadLibrary();
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
   // timeout to mount a JNI fuse file system in ms
   private static final int MOUNT_TIMEOUT_MS = 2000;
 
@@ -127,12 +129,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   private void umountInternal() {
     int exitCode = 1;
     String mountPath = mountPoint.toString();
-    if (OSUtils.isWindows()) {
+    if (SystemUtils.IS_OS_WINDOWS) {
       // Pointer fusePointer = this.fusePointer;
       // if (fusePointer != null) {
       // libFuse.fuse_exit(fusePointer);
       // }
-    } else if (OSUtils.isMacOS()) {
+    } else if (SystemUtils.IS_OS_MAC_OSX) {
       try {
         exitCode = new ProcessBuilder("umount", "-f", mountPath).start().waitFor();
       } catch (InterruptedException ie) {
@@ -191,7 +193,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int readdirCallback(String path, long bufaddr, FuseFillDir filter, long offset,
+  public int readdirCallback(String path, long bufaddr, long filter, long offset,
       ByteBuffer fi) {
     try {
       return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
@@ -309,7 +311,9 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  protected LibFuse getLibFuse() {
-    return libFuse;
+  @Override
+  public FuseContext getContext() {
+    ByteBuffer buffer = libFuse.fuse_get_context();
+    return FuseContext.of(buffer);
   }
 }

@@ -16,24 +16,17 @@ import alluxio.jnifuse.struct.FileStat;
 import java.nio.ByteBuffer;
 
 public class FuseFillDir {
-  long address;
+  public static native int fill(long address, long bufaddr, String name, ByteBuffer stbuf, long off);
 
-  FuseFillDir(long address) {
-    this.address = address;
-  }
-
-  public native int fill(long address, long bufaddr, String name, ByteBuffer stbuf, long off);
-
-  public int apply(long bufaddr, String name, FileStat stbuf, long off) {
+  public static int apply(long fillerAddr, long bufaddr, String name, FileStat stbuf, long off) {
     if (stbuf != null) {
-      return fill(address, bufaddr, name, stbuf.getBuffer(), off);
+      return fill(fillerAddr, bufaddr, name, stbuf.getBuffer(), off);
     } else {
-      return fill(address, bufaddr, name, null, off);
+      return fill(fillerAddr, bufaddr, name, null, off);
     }
   }
 
   static {
-    System.loadLibrary("jnifuse");
+    LibFuse.loadLibrary();
   }
-
 }

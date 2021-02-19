@@ -89,7 +89,7 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("opendir");
   }
 
-  default int readdir(String path, long bufaddr, FuseFillDir filter, long offset, FuseFileInfo fi) {
+  default int readdir(String path, long bufaddr, long filter, long offset, FuseFileInfo fi) {
     throw new UnsupportedOperationException("readdir");
   }
 
