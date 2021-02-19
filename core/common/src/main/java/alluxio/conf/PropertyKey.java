@@ -2819,7 +2819,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               return "1GB";
             }
           }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
-          .setDescription("Memory capacity of each worker node.")
+          .setDescription("Memory capacity of each worker node. "
+                  + "It is recommended to set this value explicitly. "
+                  + "If you are running Alluxio workers in a containerized environment, "
+                  + "your Java runtime may return incorrect system memory "
+                  + "(i.e. the host memory instead of the container memory). "
+                  + "You should upgrade your JDK version according to "
+                  + "https://bugs.openjdk.java.net/browse/JDK-8226575.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
