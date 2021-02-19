@@ -21,12 +21,13 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for writing a file into GCS using Google cloud API (GCS output stream version 2).
