@@ -241,11 +241,11 @@ public final class JournalUtils {
                 File.InodeFileEntry.newBuilder(oldEntry.getInodeFile())));
       } else if (oldEntry.hasUpdateInode()) {
         File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
-        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
-        if (builder == null) {
+        if (fileEntryMap.get(entry.getId()) == null) {
           newEntries.add(oldEntry);
           continue;
         }
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
         if (entry.hasAcl()) {
           builder.setAcl(entry.getAcl());
         }
@@ -300,11 +300,11 @@ public final class JournalUtils {
         }
       } else if (oldEntry.hasUpdateInodeFile()) {
         File.UpdateInodeFileEntry entry = oldEntry.getUpdateInodeFile();
-        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
-        if (builder == null) {
+        if (fileEntryMap.get(entry.getId()) == null) {
           newEntries.add(oldEntry);
           continue;
         }
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
         if (entry.hasPersistJobId()) {
           builder.setPersistJobId(entry.getPersistJobId());
         }
