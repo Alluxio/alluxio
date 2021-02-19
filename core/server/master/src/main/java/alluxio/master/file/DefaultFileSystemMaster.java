@@ -178,6 +178,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -4410,6 +4411,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
     public enum UFSOps {
       CREATE_FILE, GET_FILE_INFO, DELETE_FILE, LIST_STATUS
     }
+
+    public static final Map<UFSOps, String> UFS_OPS_DESC = ImmutableMap.of(
+        UFSOps.CREATE_FILE, "POST",
+        UFSOps.GET_FILE_INFO, "HEAD",
+        UFSOps.DELETE_FILE, "DELETE",
+        UFSOps.LIST_STATUS, "LIST"
+    );
 
     /**
      * Get operations saved per ufs counter.

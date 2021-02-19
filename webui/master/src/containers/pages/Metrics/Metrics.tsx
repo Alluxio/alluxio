@@ -275,7 +275,9 @@ export class MetricsPresenter extends React.Component<AllProps> {
         ))}
         {Object.keys(data.ufsOpsSaved).map((key: string) => (
           <div key={key} className="col-12">
-            <h5>Saved Under FileSystem Operations of {key}</h5>
+            <h5>
+              Saved Under FileSystem Operations of {key} since {this.props.alluxioStartTime}
+            </h5>
             <Table hover={true}>
               <tbody>
                 {Object.keys(data.ufsOpsSaved[key]).map((innerKey: string) => (
@@ -284,12 +286,6 @@ export class MetricsPresenter extends React.Component<AllProps> {
                     <td>{data.ufsOpsSaved[key][innerKey]}</td>
                   </tr>
                 ))}
-                {data.ufsOpsCostSaved[key] && (
-                  <tr key={key + 'costSaved'}>
-                    <td>Cost savings since {this.props.alluxioStartTime}</td>
-                    <td style={{ color: 'green' }}>${data.ufsOpsCostSaved[key]}</td>
-                  </tr>
-                )}
               </tbody>
             </Table>
           </div>
