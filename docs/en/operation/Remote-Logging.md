@@ -25,7 +25,7 @@ functions provided by Alluxio rather than using remote logging.
 
 You need to specify the directory that the log server will write logs to by setting the
 `ALLUXIO_LOGSERVER_LOGS_DIR` environment variable or adding it to
-`${ALLUXIO_HOME}/conf/alluxio-env.sh`.
+`${ALLUXIO_HOME}/conf/alluxio-env.sh`. By default the log server will write the logs to `${ALLUXIO_HOME}/logs`.
 
 You can specify `ALLUXIO_LOGSERVER_PORT` to change the port the log server will be listening to.
 You can find the default port in [table of configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.logserver.port)
@@ -69,11 +69,12 @@ The following lines would need to be added to `conf/alluxio-env.sh` to enable re
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
 ALLUXIO_LOGSERVER_PORT=45600
 ```
+> Note: You MUST set BOTH variables.
 
 These variables propagate their values to the `alluxio.logserver.hostname` and
 `alluxio.logserver.port` [system properties] when set via `alluxio-env.sh` which are then referenced within `log4j.properties`
 
-## Restart Alluxio and the Log Server
+## Start the Log Server and Alluxio
 
 After making the modification to configuration, you need to restart the log server first. Then you
 can start Alluxio. This ensures that the logs that Alluxio generates during start-up phase will
@@ -84,12 +85,13 @@ also go to the log server.
 SSH to the machine on which log server is running.
 
 Go to the directory where the log server has been configured to store logs received from
-other Alluxio servers. The default logs directory is `${ALLUXIO_HOME}/logs`.
+other Alluxio servers. The default logs directory is `${ALLUXIO_HOME}/logs`. 
+This is configured by the environment variable `ALLUXIO_LOGSERVER_LOGS_DIR`.
 
 ```console
 $ cd ${ALLUXIO_HOME}/logs
 $ ls
-master          proxy           secondary_master    worker
+master    job_master    worker    job_worker  
 $ ls -l master/
 ...
 -rw-r--r--  1 alluxio  alluxio  26109 Sep 13 08:49 34.204.198.64.log
@@ -139,6 +141,8 @@ log4j.appender.CLIENT_REMOTE_LOGGER=org.apache.log4j.net.SocketAppender
 log4j.appender.CLIENT_REMOTE_LOGGER.Port=<PORT_OF_LOG_SERVER>
 log4j.appender.CLIENT_REMOTE_LOGGER.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
 log4j.appender.CLIENT_REMOTE_LOGGER.ReconnectionDelay=10000
+log4j.appender.CLIENT_REMOTE_LOGGER.filter.ID=alluxio.AlluxioRemoteLogFilter
+log4j.appender.CLIENT_REMOTE_LOGGER.filter.ID.ProcessType=CLIENT
 log4j.appender.CLIENT_REMOTE_LOGGER.layout=org.apache.log4j.PatternLayout
 log4j.appender.CLIENT_REMOTE_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
