@@ -653,11 +653,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
-          .setDescription("Optionally, specify a preset gcs owner id to Alluxio username "
-              + "static mapping in the format \"id1=user1;id2=user2\". The Google Cloud "
-              + "Storage IDs can be found at the console address "
+          .setDescription(String.format("Optionally, specify a preset gcs owner id "
+              + "to Alluxio username static mapping in the format \"id1=user1;id2=user2\". "
+              + "The Google Cloud Storage IDs can be found at the console address "
               + "https://console.cloud.google.com/storage/settings . Please use the "
-              + "\"Owners\" one.")
+              + "\"Owners\" one. This property key is only valid when %s=1",
+              Name.UNDERFS_GCS_VERSION))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_VERSION =
+      new Builder(Name.UNDERFS_GCS_VERSION)
+          .setDefaultValue(1)
+          .setDescription(String.format("Specify the version of GCS module to use. "
+              + "GCS version \"1\" builds on top of jets3t package "
+              + "which requires %s and %s. GCS version \"2\" build on top "
+              + "of Google cloud API which requires %s", Name.GCS_ACCESS_KEY, Name.GCS_SECRET_KEY,
+              Name.GCS_CREDENTIAL_PATH))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -1068,16 +1080,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
-      .setDescription("The access key of GCS bucket.")
+      .setDescription(String.format("The access key of GCS bucket. This property key "
+          + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
-      .setDescription("The secret key of GCS bucket.")
+      .setDescription(String.format("The secret key of GCS bucket. This property key "
+          + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
+      .build();
+  public static final PropertyKey GCS_CREDENTIAL_PATH = new Builder(Name.GCS_CREDENTIAL_PATH)
+      .setDescription(String.format("The json file path of Google application credentials. "
+          + "This property key is only valid when %s=2", Name.UNDERFS_GCS_VERSION))
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
       .build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
@@ -5045,6 +5065,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
+    public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
@@ -5130,6 +5151,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String COS_SOCKET_TIMEOUT = "fs.cos.socket.timeout";
     public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
     public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
+    public static final String GCS_CREDENTIAL_PATH = "fs.gcs.credential.path";
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
