@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This is used so that we can combine several journal entries into one using a merge
  * function. This prevents partial writes of these journal entries causing system to
  * be left in an inconsistent state. For example, createFile without completing the file.
- * 
+ *
  * Note that these journal entries are not persisted and they will only be persisted
  * when close is called on them. Closing the MergeJournalContext will also not close
  * the enclosed journal context.
@@ -38,9 +38,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MergeJournalContext implements JournalContext {
   // It will log a warning if the number of buffered journal entries exceed 100
-  public static final int MAX_COUNT = 100;
-  private static final Logger LOG = LoggerFactory.getLogger(MergeJournalContext.class);
+  public static final int MAX_ENTRIES = 100;
 
+  private static final Logger LOG = LoggerFactory.getLogger(MergeJournalContext.class);
 
   private final JournalContext mJournalContext;
   private final UnaryOperator<List<JournalEntry>> mMergeOperator;
@@ -63,6 +63,10 @@ public final class MergeJournalContext implements JournalContext {
   @Override
   public void append(JournalEntry entry) {
     mJournalEntries.add(entry);
+    if (mJournalEntries.size() > MAX_ENTRIES) {
+      LOG.debug("MergeJournalContext has " + mJournalEntries.size()
+          + " entries, over the limit of " + MAX_ENTRIES);
+    }
   }
 
   @Override
