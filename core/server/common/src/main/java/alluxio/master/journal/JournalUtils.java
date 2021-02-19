@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
@@ -229,14 +230,18 @@ public final class JournalUtils {
   public static List<alluxio.proto.journal.Journal.JournalEntry> mergeCreateComplete(
       List<alluxio.proto.journal.Journal.JournalEntry> entries) {
     List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>();
-    Map<Long, File.InodeFileEntry.Builder> fileEntryMap = new HashMap<>();
+    // file id : index in the newEntries, InodeFileEntry
+    Map<Long, Pair<Integer, File.InodeFileEntry.Builder>> fileEntryMap = new HashMap<>();
     for (alluxio.proto.journal.Journal.JournalEntry oldEntry : entries) {
       if (oldEntry.hasInodeFile()) {
+        // Use the old entry as a placeholder, to be replaced later
+        newEntries.add(oldEntry);
         fileEntryMap.put(oldEntry.getInodeFile().getId(),
-            File.InodeFileEntry.newBuilder(oldEntry.getInodeFile()));
+            new Pair<>(newEntries.size() - 1,
+                File.InodeFileEntry.newBuilder(oldEntry.getInodeFile())));
       } else if (oldEntry.hasUpdateInode()) {
         File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
-        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId());
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
         if (builder == null) {
           newEntries.add(oldEntry);
           continue;
@@ -295,7 +300,7 @@ public final class JournalUtils {
         }
       } else if (oldEntry.hasUpdateInodeFile()) {
         File.UpdateInodeFileEntry entry = oldEntry.getUpdateInodeFile();
-        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId());
+        File.InodeFileEntry.Builder builder = fileEntryMap.get(entry.getId()).getSecond();
         if (builder == null) {
           newEntries.add(oldEntry);
           continue;
@@ -332,8 +337,11 @@ public final class JournalUtils {
         newEntries.add(oldEntry);
       }
     }
-    for (File.InodeFileEntry.Builder builder : fileEntryMap.values()) {
-      newEntries.add(Journal.JournalEntry.newBuilder().setInodeFile(builder).build());
+    for (Pair<Integer, File.InodeFileEntry.Builder> pair : fileEntryMap.values()) {
+      // Replace the old entry place holder with the new entry,
+      // to create the file in the same place in the journal
+      newEntries.set(pair.getFirst(),
+          Journal.JournalEntry.newBuilder().setInodeFile(pair.getSecond()).build());
     }
     return newEntries;
   }
