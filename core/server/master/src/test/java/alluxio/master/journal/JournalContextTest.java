@@ -28,7 +28,6 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
