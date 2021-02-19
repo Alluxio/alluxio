@@ -16,10 +16,11 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for reading a file from GCS using Google cloud API (GCS input stream version 2).
