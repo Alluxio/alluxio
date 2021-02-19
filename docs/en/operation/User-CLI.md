@@ -208,11 +208,11 @@ Status: CANCELED
 The `logLevel` command returns the current value of or updates the log level of a particular class
 on specific instances. Users are able to change Alluxio server-side log levels at runtime.
 
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:port>] [--level=LEVEL]`,
 where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
+The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
 The `host:webPort` format can only be used when referencing a worker.
 The default target value is all masters and workers.
 * `--level <arg>` If provided, the command changes to the given logger level,

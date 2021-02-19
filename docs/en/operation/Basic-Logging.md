@@ -86,16 +86,7 @@ runtime.
 The Alluxio shell comes with a `logLevel` command that returns the current value of
 or updates the log level of a particular class on specific instances.
 Users are able to change Alluxio server-side log levels at runtime.
-
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
-where:
-* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
-* `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
-The `host:webPort` format can only be used when referencing a worker.
-The default target value is all masters and workers.
-* `--level <arg>` If provided, the command changes to the given logger level,
-otherwise it returns the current logger level.
+See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }}) for more details.
 
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
@@ -123,10 +114,10 @@ Furthermore, you can turn on Alluxio debug logging when you are troubleshooting 
 in a running cluster, and turn it off when you are done.
 ```console
 # Turn on Alluxio debug logging and start debugging
-$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=DEBUG
+$ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 
 # Turn off Alluxio debug logging when you are done
-$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=INFO
+$ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
 
 For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
