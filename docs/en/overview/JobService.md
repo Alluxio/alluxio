@@ -111,7 +111,7 @@ $ ./bin/alluxio job ls
 bin/alluxio job stat -v 1613673433929
 ID: 1613673433929
 Name: Persist
-Description: PersistConfig{filePath=/test5/lib/alluxio-underfs-cosn-2.5.0-SNAPSHOT.jar, mountId=1, overwrite=false, ufsPath=/Users/bradleyyoo/git/alluxio/underFSStorage/.alluxio_ufs_persistence/alluxio-underfs-...
+Description: PersistConfig{filePath=/test5/lib/alluxio-underfs-cosn-2.5.0-SNAPSHOT.jar, mountId=1, overwrite=false, ufsPath=...
 Status: COMPLETED
 Task 0
 	Worker: 192.168.42.71
