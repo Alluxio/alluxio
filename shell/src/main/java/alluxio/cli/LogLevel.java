@@ -151,6 +151,7 @@ public final class LogLevel {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
       if (target.equals(ROLE_MASTER)) {
+        // TODO(jiacheng): make this support HA master
         String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB, conf);
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
