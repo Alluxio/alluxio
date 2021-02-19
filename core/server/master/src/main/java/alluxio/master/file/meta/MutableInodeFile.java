@@ -323,6 +323,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeFileEntry entry) {
+    // remember to update mergeCreateComplete in JournalUtils if
+    // this function is updated to include more entries
     if (entry.hasPersistJobId()) {
       setPersistJobId(entry.getPersistJobId());
     }

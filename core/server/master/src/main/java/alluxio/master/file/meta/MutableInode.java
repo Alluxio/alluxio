@@ -554,6 +554,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeEntry entry) {
+    // remember to update mergeCreateComplete in JournalUtils if
+    // this function is updated to include more entries
     if (entry.hasAcl()) {
       setInternalAcl(ProtoUtils.fromProto(entry.getAcl()));
     }

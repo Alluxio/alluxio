@@ -26,10 +26,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Context for merging journal entries together for a wrapped journal context.
+ *
+ * This is used so that we can combine several journal entries into one using a merge
+ * function. This prevents partial writes of these journal entries causing system to
+ * be left in an inconsistent state. For example, createFile without completing the file.
+ * 
+ * Note that these journal entries are not persisted and they will only be persisted
+ * when close is called on them. Closing the MergeJournalContext will also not close
+ * the enclosed journal context.
  */
 @NotThreadSafe
 public final class MergeJournalContext implements JournalContext {
+  // It will log a warning if the number of buffered journal entries exceed 100
+  public static final int MAX_COUNT = 100;
   private static final Logger LOG = LoggerFactory.getLogger(MergeJournalContext.class);
+
+
   private final JournalContext mJournalContext;
   private final UnaryOperator<List<JournalEntry>> mMergeOperator;
   private final List<JournalEntry> mJournalEntries;
