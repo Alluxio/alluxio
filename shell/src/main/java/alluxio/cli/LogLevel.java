@@ -30,6 +30,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,15 +58,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LogLevel {
   private static final Logger LOG = LoggerFactory.getLogger(LogLevel.class);
 
-  private static final String LOG_LEVEL = "logLevel";
-  private static final String ROLE_WORKERS = "workers";
-  private static final String ROLE_MASTER = "master";
-  private static final String ROLE_WORKER = "worker";
-  private static final String ROLE_JOB_MASTER = "job_master";
-  private static final String ROLE_JOB_WORKER = "job_worker";
-  private static final String ROLE_JOB_WORKERS = "job_workers";
-  private static final String TARGET_SEPARATOR = ",";
-  private static final String TARGET_OPTION_NAME = "target";
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String ROLE_WORKERS = "workers";
+  public static final String ROLE_MASTER = "master";
+  public static final String ROLE_WORKER = "worker";
+  public static final String ROLE_JOB_MASTER = "job_master";
+  public static final String ROLE_JOB_WORKER = "job_worker";
+  public static final String ROLE_JOB_WORKERS = "job_workers";
+  public static final String TARGET_SEPARATOR = ",";
+  public static final String TARGET_OPTION_NAME = "target";
   private static final Option TARGET_OPTION =
       Option.builder()
           .required(false)
@@ -96,6 +98,10 @@ public final class LogLevel {
       .addOption(LOG_NAME_OPTION)
       .addOption(LEVEL_OPTION);
 
+  private static AlluxioConfiguration sConf =
+          new InstancedConfiguration(ConfigurationUtils.defaults());
+  private static Map<Integer, String> sPortToRole = mapPortToRole();
+
   /**
    * Prints the help message.
    *
@@ -111,20 +117,19 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
-   * @param alluxioConf Alluxio configuration
    * @exception ParseException if there is an error in parsing
    */
-  public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)
+  public static void logLevel(String[] args)
       throws ParseException, IOException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    List<TargetInfo> targets = parseOptTarget(cmd, alluxioConf);
+    List<TargetInfo> targets = parseOptTarget(cmd, sConf);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level);
+      setLogLevel(targetInfo, logName, level, sConf);
     }
   }
 
@@ -141,12 +146,13 @@ public final class LogLevel {
         targets = new String[]{argTarget};
       }
     } else {
+      // By default we set on all targets (master/workers/job_master/job_workers)
       targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS, ROLE_JOB_WORKERS};
     }
     return getTargetInfos(targets, conf);
   }
 
-  private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
+  public static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
@@ -200,7 +206,11 @@ public final class LogLevel {
         // TODO(jiacheng): Support all other roles, not just worker
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
-        targetInfoList.add(new TargetInfo(hostPortPair[0], port, ROLE_WORKER));
+        if (!sPortToRole.containsKey(port)) {
+          throw new IllegalArgumentException(String.format("Unrecognized port in %s. "
+                          + "Please make sure the port is in %s", target, sPortToRole));
+        }
+        targetInfoList.add(new TargetInfo(hostPortPair[0], port, sPortToRole.get(port)));
       } else {
         throw new IOException("Unrecognized target argument: " + target);
       }
@@ -226,7 +236,8 @@ public final class LogLevel {
     return null;
   }
 
-  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
+                                  AlluxioConfiguration conf)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -245,6 +256,13 @@ public final class LogLevel {
     });
   }
 
+  private static Map<Integer, String> mapPortToRole() {
+    return ImmutableMap.of(NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, sConf), ROLE_MASTER,
+            NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, sConf), ROLE_WORKER,
+            NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, sConf), ROLE_JOB_MASTER,
+            NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, sConf), ROLE_JOB_WORKER);
+  }
+
   /**
    * Sets or gets log level of master and worker through their REST API.
    *
@@ -253,7 +271,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      logLevel(args);
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
@@ -266,7 +284,7 @@ public final class LogLevel {
 
   private LogLevel() {} // this class is not intended for instantiation
 
-  private static final class TargetInfo {
+  public static final class TargetInfo {
     private String mRole;
     private String mHost;
     private int mPort;
