@@ -283,12 +283,12 @@ For example, the below example redirects debug logs of `alluxio.master.StateLock
 so the `master.log` will not be full of the DEBUG logs created by `alluxio.master.StateLockManager`.
 
 ```properties
-log4j.category.alluxio.master.StateLockManager=DEBUG, slm
+log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
 log4j.additivity.alluxio.master.StateLockManager=false
-log4j.appender.slm=org.apache.log4j.RollingFileAppender
-log4j.appender.slm.File=<ALLUXIO_HOME>/logs/statelock.log
-log4j.appender.slm.MaxFileSize=10MB
-log4j.appender.slm.MaxBackupIndex=100
-log4j.appender.slm.layout=org.apache.log4j.PatternLayout
-log4j.appender.slm.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
+log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB
+log4j.appender.State_LOCK_LOGGER.MaxBackupIndex=100
+log4j.appender.State_LOCK_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
