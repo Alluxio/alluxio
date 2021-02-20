@@ -997,10 +997,13 @@ public final class AlluxioMasterRestServiceHandler {
                 ufsUnescaped, new TreeMap<>());
             String alluxioOperation = alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_SAVED_PREFIX.length());
-            perUfsMap.put(String.format("%s (Roughly equivalent to %s operation)", alluxioOperation,
-                DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.getOrDefault(
-                    DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation), "no")),
-                entry.getValue().getCount());
+            String equavalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
+                DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation));
+            if (equavalentOp != null) {
+              alluxioOperation = String.format("%s (Roughly equivalent to %s operation)",
+                  alluxioOperation, equavalentOp);
+            }
+            perUfsMap.put(alluxioOperation, entry.getValue().getCount());
             ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);
           }
         } else {
