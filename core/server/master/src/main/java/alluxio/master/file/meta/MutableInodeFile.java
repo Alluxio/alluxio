@@ -400,6 +400,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * Converts the entry to an {@link MutableInodeFile}.
    *
    * @param entry the entry to convert
+   * @param useSameId use the same id from the journal entry to construct the inode
    * @return the {@link MutableInodeFile} representation
    */
   public static MutableInodeFile fromJournalEntry(InodeFileEntry entry, boolean useSameId) {

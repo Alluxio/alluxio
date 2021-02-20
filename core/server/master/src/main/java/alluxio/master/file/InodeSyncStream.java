@@ -258,6 +258,7 @@ public class InodeSyncStream {
     this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
         isGetFileInfo, forceSync, loadOnly);
   }
+
   /**
    * Sync the metadata according the the root path the stream was created with.
    *
@@ -763,7 +764,6 @@ public class InodeSyncStream {
         }
         MutableInodeFile inode = fileEntryMap.get(entry.getId()).getSecond();
         inode.updateFromEntry(entry);
-
       } else {
         newEntries.add(oldEntry);
       }
