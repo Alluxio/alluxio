@@ -105,8 +105,7 @@ public enum Errno {
   static final class StringTable {
     public static final java.util.Map<Errno, String> descriptions = generateTable();
     public static java.util.Map<Errno, String> generateTable() {
-      java.util.Map<Errno, String> map = new java.util.EnumMap<Errno, String>(
-          Errno.class);
+      java.util.Map<Errno, String> map = new java.util.EnumMap<Errno, String>(Errno.class);
       map.put(EPERM, "Operation not permitted");
       map.put(ENOENT, "No such file or directory");
       map.put(ESRCH, "No such process");
@@ -195,7 +194,7 @@ public enum Errno {
       return map;
     }
   }
-  public final String toString() { return StringTable.descriptions.get(this); }
+  public final String toString() { return Errno.StringTable.descriptions.get(this); }
   public final int value() { return value; }
   public final int intValue() { return value; }
   public final long longValue() { return value; }

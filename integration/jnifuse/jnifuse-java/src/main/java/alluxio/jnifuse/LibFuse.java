@@ -44,12 +44,6 @@ public class LibFuse {
     if (libraryLoaded.compareAndSet(LibraryState.NOT_LOADED,
         LibraryState.LOADING)) {
       String tmpDir = System.getenv("JNIFUSE_SHAREDLIB_DIR");
-      // loading possibly necessary libraries.
-      try {
-        System.loadLibrary("jnifuse");
-      } catch (UnsatisfiedLinkError e) {
-        // since it may be optional, we ignore its loading failure here.
-      }
       try {
         NativeLibraryLoader.getInstance().loadLibrary(tmpDir);
       } catch (IOException e) {
