@@ -73,15 +73,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-<<<<<<< HEAD
-||||||| parent of 65019eb3e0 (Combine createFile and completeFile when sync metadata)
-import java.time.Duration;
-import java.time.Instant;
-=======
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
->>>>>>> 65019eb3e0 (Combine createFile and completeFile when sync metadata)
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
