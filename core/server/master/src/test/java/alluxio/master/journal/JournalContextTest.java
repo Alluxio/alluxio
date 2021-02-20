@@ -263,19 +263,21 @@ public class JournalContextTest {
     assertEquals(3, entries.size());
     Journal.JournalEntry entry = entries.get(0);
     assertNotNull(entry.getInodeFile());
-    assertEquals(BlockId.createBlockId(1, BlockId.getMaxSequenceNumber())
-        , entry.getInodeFile().getId());
+    assertEquals(BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()),
+        entry.getInodeFile().getId());
     assertEquals(200, entry.getInodeFile().getLength());
     assertEquals("test1", entry.getInodeFile().getName());
     Journal.JournalEntry entry2 = entries.get(1);
     assertNotNull(entry2.getInodeFile());
-    assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()), entry2.getInodeFile().getId());
+    assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()),
+        entry2.getInodeFile().getId());
     assertEquals(3, entry2.getInodeFile().getLength());
     assertEquals("test2_updated", entry2.getInodeFile().getName());
 
     Journal.JournalEntry entry3 = entries.get(2);
     assertNotNull(entry3.getUpdateInode());
-    assertEquals(BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()), entry3.getUpdateInode().getId());
+    assertEquals(BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()),
+        entry3.getUpdateInode().getId());
     assertEquals("test3_unchanged", entry3.getUpdateInode().getName());
   }
 }
