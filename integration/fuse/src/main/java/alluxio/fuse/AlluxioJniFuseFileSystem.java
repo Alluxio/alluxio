@@ -142,7 +142,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
     SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-    FuseContext fc = this.getContext();
+    FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     if (gid != DEFAULT_GID) {
