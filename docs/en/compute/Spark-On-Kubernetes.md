@@ -66,8 +66,8 @@ Build the Spark Docker image
 ```console
 $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
-> Note: Make sure all your nodes (where the spark-driver and spark-executor pods will run) 
-have this image.
+> Note: **Make sure all your nodes (where the spark-driver and spark-executor pods will run)
+have this image.**
 
 ## Example(s)
 
@@ -127,11 +127,6 @@ Note:
 
 ### Run a Spark job
 
-The following command runs an example word count job in the Alluxio location
-`/LICENSE`.
-The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
-[documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
-
 #### Create the service account (optional)
 
 You can create one service account for running the spark job with the required access as below  
@@ -145,9 +140,19 @@ $ kubectl create clusterrolebinding spark-role --clusterrole=edit \
 
 #### Submit a Spark job
 
+The following command runs an example word count job in the Alluxio location
+`/LICENSE`. Please ensure this file exists in your Alluxio cluster, or otherwise
+change the path to a file which does exist.
+
+The output and time taken can be seen in the logs for Spark driver pod. Refer to
+the Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
+for further details about running Spark on Kubernetes. For example, you may find
+additional details on some of the flags used in this command
+[here](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
+
 Run the job from the Spark distribution directory
 ```console
-$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
+$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:6443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class org.apache.spark.examples.JavaWordCount \
 --driver-memory 500m --executor-memory 1g \
@@ -160,10 +165,15 @@ $ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
 local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://<alluxio-master>:19998/LICENSE
 ```
-> Note: You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
-You can find more details in Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
-You should also using the properties corresponding to your 
-[domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
+
+Note:
+- You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
+- It is recommended to set the `<alluxio-master>` hostname in this command to the Kubernetes Service
+  name for your Alluxio master (eg., `alluxio-master-0`).
+- If you are using a different version of Spark, please ensure the path to the
+  `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark
+- You should also take care to ensure the volume properties align with your
+  [domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
 ## Troubleshooting
 
