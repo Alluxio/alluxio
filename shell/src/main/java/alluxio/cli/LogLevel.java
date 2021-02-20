@@ -70,10 +70,10 @@ public final class LogLevel {
           .required(false)
           .longOpt(TARGET_OPTION_NAME)
           .hasArg(true)
-          .desc("<master|workers|host:webPort>."
+          .desc("<master|workers|job_master|job_workers|host:webPort>."
               + " A list of targets separated by " + TARGET_SEPARATOR + " can be specified."
               + " host:webPort pair must be one of workers."
-              + " Default target is master and all workers")
+              + " Default target is master, job master, all workers and all job workers.")
           .build();
   private static final String LOG_NAME_OPTION_NAME = "logName";
   private static final Option LOG_NAME_OPTION =
@@ -141,7 +141,7 @@ public final class LogLevel {
         targets = new String[]{argTarget};
       }
     } else {
-      targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
+      targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS, ROLE_JOB_WORKERS};
     }
     return getTargetInfos(targets, conf);
   }
@@ -151,6 +151,7 @@ public final class LogLevel {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
       if (target.equals(ROLE_MASTER)) {
+        // TODO(jiacheng): make this support HA master
         String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB, conf);
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
@@ -196,6 +197,7 @@ public final class LogLevel {
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
+        // TODO(jiacheng): Support all other roles, not just worker
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
         targetInfoList.add(new TargetInfo(hostPortPair[0], port, ROLE_WORKER));
@@ -236,7 +238,7 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    LOG.info("Setting log level on %s%n", uriBuilder.toString());
+    LOG.info("Setting log level on {}", uriBuilder.toString());
     HttpUtils.post(uriBuilder.toString(), "", 5000, inputStream -> {
       ObjectMapper mapper = new ObjectMapper();
       LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
