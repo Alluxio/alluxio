@@ -178,6 +178,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -875,7 +876,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           FileInfo fileInfo = getFileInfoInternal(inodePath);
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsCounter(mMountTable.getMountInfo(
+            Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(
                 resolution.getMountId()).getUfsUri().toString(),
                 Metrics.UFSOps.GET_FILE_INFO).dec();
           }
@@ -945,7 +946,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
-    Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId()).getUfsUri().toString(),
+    Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
+            .getUfsUri().toString(),
         Metrics.UFSOps.GET_FILE_INFO).inc();
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
@@ -1055,7 +1057,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           Metrics.FILE_INFOS_GOT.inc();
           if (!ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+            Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
                     .getUfsUri().toString(),
                 Metrics.UFSOps.LIST_STATUS).inc();
           }
@@ -1561,7 +1563,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     } else {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+      Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
           .getUfsUri().toString(), Metrics.UFSOps.CREATE_FILE).inc();
     }
     Metrics.FILES_CREATED.inc();
@@ -1838,7 +1840,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
         if (deleteContext.getOptions().getAlluxioOnly()) {
-          Metrics.getUfsCounter(mMountTable.getMountInfo(resolution.getMountId())
+          Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
                   .getUfsUri().toString(), Metrics.UFSOps.DELETE_FILE).inc();
         }
       }
@@ -4410,6 +4412,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
       CREATE_FILE, GET_FILE_INFO, DELETE_FILE, LIST_STATUS
     }
 
+    public static final Map<UFSOps, String> UFS_OPS_DESC = ImmutableMap.of(
+        UFSOps.CREATE_FILE, "POST",
+        UFSOps.GET_FILE_INFO, "HEAD",
+        UFSOps.DELETE_FILE, "DELETE",
+        UFSOps.LIST_STATUS, "LIST"
+    );
+
     /**
      * Get operations saved per ufs counter.
      *
@@ -4418,7 +4427,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
      * @return the counter object
      */
     @VisibleForTesting
-    public static Counter getUfsCounter(String ufsPath, UFSOps ufsOp) {
+    public static Counter getUfsOpsSavedCounter(String ufsPath, UFSOps ufsOp) {
       return SAVED_UFS_OPS.compute(ufsPath, (k, v) -> {
         if (v != null) {
           return v;
