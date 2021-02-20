@@ -2833,13 +2833,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               OperatingSystemMXBean operatingSystemMXBean =
                   (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
               return operatingSystemMXBean.getTotalPhysicalMemorySize() * 2 / 3;
-            } catch (Exception e) {
+            } catch (Throwable e) {
               // The package com.sun.management may not be available on every platform.
               // fallback to a reasonable size.
               return "1GB";
             }
           }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
-          .setDescription("Memory capacity of each worker node.")
+          .setDescription("Memory capacity of each worker node. "
+                  + "It is recommended to set this value explicitly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
