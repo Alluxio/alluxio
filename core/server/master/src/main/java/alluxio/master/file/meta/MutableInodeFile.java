@@ -323,8 +323,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeFileEntry entry) {
-    // remember to update mergeCreateComplete in JournalUtils if
-    // this function is updated to include more entries
     if (entry.hasPersistJobId()) {
       setPersistJobId(entry.getPersistJobId());
     }
@@ -439,7 +437,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     CreateFilePOptionsOrBuilder options = context.getOptions();
     Preconditions.checkArgument(
         options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
-            || options.getReplicationMax() >= options.getReplicationMin());
+        || options.getReplicationMax() >= options.getReplicationMin());
     return new MutableInodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
