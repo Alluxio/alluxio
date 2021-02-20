@@ -82,13 +82,13 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   /**
    * Creates a new instance of {@link MutableInodeFile}.
    *
-   * @param blockContainerId the block container id to use
-   * @param forceReuseId reuse an existing id, should only be used in converting from journal entry
+   * @param id the block container id or the file id
+   * @param isFileId true if the id is a file id otherwise it is a container id
    */
-  private MutableInodeFile(long blockContainerId, boolean forceReuseId) {
-    super(forceReuseId ? blockContainerId
-        : BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()) , false);
-    init(blockContainerId);
+  private MutableInodeFile(long id, boolean isFileId) {
+    super(isFileId ? id
+        : BlockId.createBlockId(id, BlockId.getMaxSequenceNumber()) , false);
+    init(isFileId ? BlockId.getContainerId(id) : id);
   }
 
   @Override
