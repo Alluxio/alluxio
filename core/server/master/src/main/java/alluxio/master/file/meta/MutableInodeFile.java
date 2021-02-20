@@ -55,7 +55,13 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   private int mReplicationMin;
   private String mTempUfsPath;
 
-  private void init(long blockContainerId) {
+  /**
+   * Creates a new instance of {@link MutableInodeFile}.
+   *
+   * @param blockContainerId the block container id to use
+   */
+  private MutableInodeFile(long blockContainerId) {
+    super(BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), false);
     mBlocks = new ArrayList<>(1);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = 0;
@@ -68,27 +74,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     mReplicationMax = Constants.REPLICATION_MAX_INFINITY;
     mReplicationMin = 0;
     mTempUfsPath = Constants.PERSISTENCE_INVALID_UFS_PATH;
-  }
-
-  /**
-   * Creates a new instance of {@link MutableInodeFile} with a unique new id.
-   *
-   * @param blockContainerId the block container id to use
-   */
-  private MutableInodeFile(long blockContainerId) {
-    this(blockContainerId, false);
-  }
-
-  /**
-   * Creates a new instance of {@link MutableInodeFile}.
-   *
-   * @param id the block container id or the file id
-   * @param isFileId true if the id is a file id otherwise it is a container id
-   */
-  private MutableInodeFile(long id, boolean isFileId) {
-    super(isFileId ? id
-        : BlockId.createBlockId(id, BlockId.getMaxSequenceNumber()) , false);
-    init(isFileId ? BlockId.getContainerId(id) : id);
   }
 
   @Override
@@ -393,20 +378,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    * @return the {@link MutableInodeFile} representation
    */
   public static MutableInodeFile fromJournalEntry(InodeFileEntry entry) {
-    return fromJournalEntry(entry, false);
-  }
-
-  /**
-   * Converts the entry to an {@link MutableInodeFile}.
-   *
-   * @param entry the entry to convert
-   * @param useSameId use the same id from the journal entry to construct the inode
-   * @return the {@link MutableInodeFile} representation
-   */
-  public static MutableInodeFile fromJournalEntry(InodeFileEntry entry, boolean useSameId) {
     // If journal entry has no mode set, set default mode for backwards-compatibility.
-    MutableInodeFile ret = new MutableInodeFile(
-        useSameId ? entry.getId() : BlockId.getContainerId(entry.getId()), useSameId)
+    MutableInodeFile ret = new MutableInodeFile(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
         .setBlockSizeBytes(entry.getBlockSizeBytes())
@@ -446,6 +419,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
+
     ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     return ret;
   }
@@ -465,7 +439,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     CreateFilePOptionsOrBuilder options = context.getOptions();
     Preconditions.checkArgument(
         options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
-        || options.getReplicationMax() >= options.getReplicationMin());
+            || options.getReplicationMax() >= options.getReplicationMin());
     return new MutableInodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)

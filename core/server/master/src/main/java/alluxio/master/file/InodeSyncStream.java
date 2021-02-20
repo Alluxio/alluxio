@@ -747,7 +747,7 @@ public class InodeSyncStream {
         newEntries.add(oldEntry);
         fileEntryMap.put(oldEntry.getInodeFile().getId(),
             new Pair<>(newEntries.size() - 1,
-                MutableInodeFile.fromJournalEntry(oldEntry.getInodeFile(), true)));
+                MutableInodeFile.fromJournalEntry(oldEntry.getInodeFile())));
       } else if (oldEntry.hasUpdateInode()) {
         File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
         if (fileEntryMap.get(entry.getId()) == null) {
