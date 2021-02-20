@@ -28,6 +28,8 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.InodeSyncStream;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
@@ -232,11 +234,15 @@ public class JournalContextTest {
     }).when(journalContext).append(any(Journal.JournalEntry.class));
 
     JournalContext mergeContext = new MergeJournalContext(journalContext,
-        JournalUtils::mergeCreateComplete);
+        InodeSyncStream::mergeCreateComplete);
     mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
-        File.InodeFileEntry.newBuilder().setId(1).setLength(2).setName("test1").build()).build());
+        File.InodeFileEntry.newBuilder().setId(1).setLength(2)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test1").build()).build());
     mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
-        File.InodeFileEntry.newBuilder().setId(2).setLength(3).setName("test2").build()).build());
+        File.InodeFileEntry.newBuilder().setId(2).setLength(3)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test2").build()).build());
     mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(
         File.UpdateInodeEntry.newBuilder().setId(3).setName("test3_unchanged").build()).build());
     mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(

@@ -47,11 +47,13 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
-import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.MergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -73,10 +75,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -726,6 +730,54 @@ public class InodeSyncStream {
   }
 
   /**
+   * Merge inode entry with subsequent update inode and update inode file entries.
+   *
+   * @param entries list of journal entries
+   * @return a list of compacted journal entries
+   */
+  public static List<Journal.JournalEntry> mergeCreateComplete(
+      List<alluxio.proto.journal.Journal.JournalEntry> entries) {
+    List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>();
+    // file id : index in the newEntries, InodeFileEntry
+    Map<Long, Pair<Integer, MutableInodeFile>> fileEntryMap = new HashMap<>();
+    for (alluxio.proto.journal.Journal.JournalEntry oldEntry : entries) {
+      if (oldEntry.hasInodeFile()) {
+        // Use the old entry as a placeholder, to be replaced later
+        newEntries.add(oldEntry);
+        fileEntryMap.put(oldEntry.getInodeFile().getId(),
+            new Pair<>(newEntries.size() - 1,
+                MutableInodeFile.fromJournalEntry(oldEntry.getInodeFile(), true)));
+      } else if (oldEntry.hasUpdateInode()) {
+        File.UpdateInodeEntry entry = oldEntry.getUpdateInode();
+        if (fileEntryMap.get(entry.getId()) == null) {
+          newEntries.add(oldEntry);
+          continue;
+        }
+        MutableInodeFile inode = fileEntryMap.get(entry.getId()).getSecond();
+        inode.updateFromEntry(entry);
+      } else if (oldEntry.hasUpdateInodeFile()) {
+        File.UpdateInodeFileEntry entry = oldEntry.getUpdateInodeFile();
+        if (fileEntryMap.get(entry.getId()) == null) {
+          newEntries.add(oldEntry);
+          continue;
+        }
+        MutableInodeFile inode = fileEntryMap.get(entry.getId()).getSecond();
+        inode.updateFromEntry(entry);
+
+      } else {
+        newEntries.add(oldEntry);
+      }
+    }
+    for (Pair<Integer, MutableInodeFile> pair : fileEntryMap.values()) {
+      // Replace the old entry place holder with the new entry,
+      // to create the file in the same place in the journal
+      newEntries.set(pair.getFirst(),
+          pair.getSecond().toJournalEntry());
+    }
+    return newEntries;
+  }
+
+  /**
    * Loads metadata for the file identified by the given path from UFS into Alluxio.
    *
    * This method doesn't require any specific type of locking on inodePath. If the path needs to be
@@ -801,7 +853,7 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
          MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
-             JournalUtils::mergeCreateComplete)) {
+             InodeSyncStream::mergeCreateComplete)) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
       RpcContext wrapRpcContext = new RpcContext(
           rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
