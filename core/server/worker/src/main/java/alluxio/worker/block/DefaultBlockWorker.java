@@ -25,12 +25,8 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-<<<<<<< HEAD
 import alluxio.exception.status.UnavailableException;
-||||||| merged common ancestors
-=======
 import alluxio.grpc.AsyncCacheRequest;
->>>>>>> 58930b42a09286bf57c3511b78a5aecd7ae2e1f0
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
