@@ -16,6 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
@@ -376,6 +377,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    */
   void sessionHeartbeat(long sessionId);
+
+  /**
+   * Submits the async cache request to async cache manager to execute.
+   *
+   * @param request the async cache request
+   */
+  void submitAsyncCacheRequest(AsyncCacheRequest request);
 
   /**
    * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
