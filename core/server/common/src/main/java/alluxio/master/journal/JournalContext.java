@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
@@ -32,5 +32,5 @@ public interface JournalContext extends Closeable, Supplier<JournalContext> {
   }
 
   @Override
-  void close() throws UnavailableException;
+  void close() throws AlluxioStatusException;
 }
