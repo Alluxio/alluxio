@@ -77,8 +77,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected void completeRequest(BlockReadRequestContext context) throws Exception {
       try {
-        mWorker.cleanBlockReader(context.getRequest().getSessionId(),
-            context.getRequest().getId(), context.getBlockReader());
+        mWorker.cleanBlockReader(context.getBlockReader(), context.getRequest());
       } finally {
         context.setBlockReader(null);
       }

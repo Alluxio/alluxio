@@ -426,7 +426,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Gets the block reader to read from Alluxio block or UFS block.
-   * This operation must be paired with {@link #cleanBlockReader(long, long, BlockReader)}.
+   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
    *
    * @param request the block read request
    * @return a block reader to read data from
@@ -439,11 +439,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Cleans data reader and related blocks after using the block reader obtained
    * from {@link #getBlockReader(BlockReadRequest)}.
    *
-   * @param sessionId the session id which used for getting the block reader
-   * @param blockId the block id this block reader belongs to
    * @param reader the to be cleaned block reader
+   * @param request the block read request which used to get block reader
    */
-  void cleanBlockReader(long sessionId, long blockId, BlockReader reader)
+  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
       throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException;
 
   /**

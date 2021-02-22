@@ -628,7 +628,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void cleanBlockReader(long sessionId, long blockId, BlockReader reader)
+  public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {
       if (reader != null) {
@@ -636,11 +636,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     } catch (Exception e) {
       LOG.warn("Failed to close block reader for block {} with error {}.",
-          blockId, e.getMessage());
+          request.getId(), e.getMessage());
     } finally {
-      if (!unlockBlock(sessionId, blockId)) {
+      if (!unlockBlock(request.getSessionId(), request.getId())) {
         if (reader != null) {
-          closeUfsBlock(sessionId, blockId);
+          closeUfsBlock(request.getSessionId(), request.getId());
         }
       }
     }

@@ -51,7 +51,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     mBlockWorker = PowerMockito.mock(DefaultBlockWorker.class);
     doCallRealMethod().when(mBlockWorker).getBlockReader(any(BlockReadRequest.class));
     doCallRealMethod().when(mBlockWorker)
-        .cleanBlockReader(anyLong(), anyLong(), any(BlockReader.class));
+        .cleanBlockReader(any(BlockReader.class), any(BlockReadRequest.class));
 
     doNothing().when(mBlockWorker).accessBlock(anyLong(), anyLong());
     mResponseObserver = Mockito.mock(ServerCallStreamObserver.class);

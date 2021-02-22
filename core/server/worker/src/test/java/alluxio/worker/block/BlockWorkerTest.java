@@ -556,7 +556,7 @@ public class BlockWorkerTest {
     verify(mBlockStore).lockBlock(sessionId, blockId);
     verify(mBlockStore).accessBlock(sessionId, blockId);
 
-    mBlockWorker.cleanBlockReader(sessionId, blockId, blockReader);
+    mBlockWorker.cleanBlockReader(blockReader, request);
     verify(mBlockStore).unlockBlock(sessionId, blockId);
   }
 
