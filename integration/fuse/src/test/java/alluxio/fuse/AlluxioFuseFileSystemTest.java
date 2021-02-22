@@ -92,8 +92,8 @@ public class AlluxioFuseFileSystemTest {
   @Before
   public void before() throws Exception {
     final List<String> empty = Collections.emptyList();
-    FuseMountInfo opts =
-        new FuseMountInfo("/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    FuseMountOptions opts =
+        new FuseMountOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
     try {
