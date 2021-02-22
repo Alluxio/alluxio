@@ -25,7 +25,12 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+<<<<<<< HEAD
 import alluxio.exception.status.UnavailableException;
+||||||| merged common ancestors
+=======
+import alluxio.grpc.AsyncCacheRequest;
+>>>>>>> 58930b42a09286bf57c3511b78a5aecd7ae2e1f0
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -52,6 +57,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.grpc.GrpcExecutors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -127,6 +133,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private AtomicReference<Long> mWorkerId;
 
+  private final AsyncCacheRequestManager mAsyncCacheManager;
   private final UfsManager mUfsManager;
 
   /**
@@ -165,6 +172,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
+    mAsyncCacheManager = new AsyncCacheRequestManager(
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -505,6 +514,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void sessionHeartbeat(long sessionId) {
     mSessions.sessionHeartbeat(sessionId);
+  }
+
+  @Override
+  public void submitAsyncCacheRequest(AsyncCacheRequest request) {
+    mAsyncCacheManager.submitRequest(request);
   }
 
   @Override

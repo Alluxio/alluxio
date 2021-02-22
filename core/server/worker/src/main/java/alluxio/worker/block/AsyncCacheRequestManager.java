@@ -60,24 +60,22 @@ public class AsyncCacheRequestManager {
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
-  private final FileSystemContext mFsContext;
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
   /** Keeps track of the number of rejected cache requests. */
   private final AtomicLong mNumRejected = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
    * @param blockWorker handler to the block worker
-   * @param fsContext context used to instantiate {@link RemoteBlockReader}
    */
-  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker,
-      FileSystemContext fsContext) {
+  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker) {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    mFsContext = fsContext;
   }
 
   /**
