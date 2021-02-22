@@ -30,6 +30,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This mechanism is preferred over more complex sub-classing to avoid useless casts or type checks
  * for every read/write call, which happen quite often.
+ *
+ * @param <T1> the concrete input stream subclass
+ * @param <T2> the concrete output stream subclass
  */
 @NotThreadSafe
 public final class OpenFileEntry<T1 extends InputStream, T2 extends OutputStream>
@@ -116,6 +119,8 @@ public final class OpenFileEntry<T1 extends InputStream, T2 extends OutputStream
 
   /**
    * Sets the offset of the next write.
+   *
+   * @param offset the new offset of the next write
    */
   public void setWriteOffset(long offset) {
     mOffset = offset;
