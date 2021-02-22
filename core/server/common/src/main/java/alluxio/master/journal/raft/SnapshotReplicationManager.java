@@ -193,7 +193,6 @@ public class SnapshotReplicationManager {
         }
         return termIndex;
       }).whenComplete((termIndex, throwable) -> {
-        ctx.close();
         if (throwable != null) {
           LOG.error("Unexpected exception downloading snapshot from leader {}.", address,
               throwable);
