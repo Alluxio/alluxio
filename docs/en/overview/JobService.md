@@ -105,7 +105,8 @@ $ ./bin/alluxio job ls
 
 ### job stat -v <job_id> 
 
-`job stat -v <job_id>` will list detailed information about a job.
+`job stat -v <job_id>` will list detailed information about a job. 
+(Adding -v includes information about the individual tasks on the workers)
 
 ```console
 bin/alluxio job stat -v 1613673433929
