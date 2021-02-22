@@ -47,6 +47,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
   public void before() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
 
+    // TODO(lu) Change DefaultBlockWorker to not final and not use PowerMockRunner
     // Use PowerMockito to mock final class and able to test the method contents
     mBlockWorker = PowerMockito.mock(DefaultBlockWorker.class);
     doCallRealMethod().when(mBlockWorker).getBlockReader(any(BlockReadRequest.class));
