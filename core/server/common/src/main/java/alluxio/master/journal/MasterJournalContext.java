@@ -66,7 +66,7 @@ public final class MasterJournalContext implements JournalContext {
    * Waits for the flush counter to be flushed to the journal. If the counter is
    * {@link #INVALID_FLUSH_COUNTER}, this is a noop.
    */
-  private void waitForJournalFlush() throws AlluxioStatusException {
+  private void waitForJournalFlush() throws UnavailableException {
     if (mFlushCounter == INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
@@ -98,7 +98,7 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws AlluxioStatusException {
+  public void close() throws UnavailableException {
     waitForJournalFlush();
   }
 }

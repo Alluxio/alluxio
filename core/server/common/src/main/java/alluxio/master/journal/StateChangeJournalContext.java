@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
@@ -49,7 +48,7 @@ public final class StateChangeJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws AlluxioStatusException {
+  public void close() throws UnavailableException {
     try {
       mJournalContext.close();
     } finally {
