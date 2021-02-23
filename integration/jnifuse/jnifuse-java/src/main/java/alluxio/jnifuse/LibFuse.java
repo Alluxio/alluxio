@@ -25,8 +25,8 @@ public class LibFuse {
     LOADED
   }
 
-  private static AtomicReference<LibraryState> libraryLoaded
-      = new AtomicReference<>(LibraryState.NOT_LOADED);
+  private static AtomicReference<LibraryState> libraryLoaded =
+      new AtomicReference<>(LibraryState.NOT_LOADED);
 
   static {
     LibFuse.loadLibrary();
