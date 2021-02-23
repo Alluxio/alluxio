@@ -20,8 +20,8 @@
   <packaging>pom</packaging>
   <artifactId>alluxio-integration-jnifuse</artifactId>
   <modules>
-    <module>jnifuse-java</module>
-    <module>jnifuse-native</module>
+    <module>fs</module>
+    <module>native</module>
   </modules>
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->

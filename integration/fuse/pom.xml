@@ -55,7 +55,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-integration-jnifuse-java</artifactId>
+      <artifactId>alluxio-integration-jnifuse-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
 

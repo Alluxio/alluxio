@@ -11,9 +11,12 @@
 
 package alluxio.jnifuse.utils;
 
+/**
+ * This file mostly derived from rocksdb lib.
+ */
 public class Environment {
-  private static String OS = System.getProperty("os.name").toLowerCase();
-  private static String ARCH = System.getProperty("os.arch").toLowerCase();
+  private static final String OS = System.getProperty("os.name").toLowerCase();
+  private static final String ARCH = System.getProperty("os.arch").toLowerCase();
 
   public static boolean isAarch64() {
     return ARCH.contains("aarch64");

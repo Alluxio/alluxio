@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is used to load the shared library from within the jar.
@@ -23,23 +24,23 @@ import java.nio.file.StandardCopyOption;
  */
 public class NativeLibraryLoader {
   //singleton
-  private static final NativeLibraryLoader instance = new NativeLibraryLoader();
-  private static boolean initialized = false;
+  private static final NativeLibraryLoader INSTANCE = new NativeLibraryLoader();
+  private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
-  private static final String sharedLibraryName =
+  private static final String SHARED_LIBRARY_NAME =
       Environment.getSharedLibraryName("jnifuse");
-  private static final String sharedLibraryFileName =
+  private static final String SHARED_LIBRARY_FILE_NAME =
       Environment.getSharedLibraryFileName("jnifuse");
-  private static final String jniLibraryName =
+  private static final String JNI_LIBRARY_NAME =
       Environment.getJniLibraryName("jnifuse");
-  private static final String jniLibraryFileName =
+  private static final String JNI_LIBRARY_FILE_NAME =
       Environment.getJniLibraryFileName("jnifuse");
-  private static final String tempFilePrefix = "libjnifuse";
-  private static final String tempFileSuffix =
+  private static final String TEMP_FILE_PREFIX = "libjnifuse";
+  private static final String TEMP_FILE_SUFFIX =
       Environment.getJniLibraryExtension();
 
   private static void setInitialized(boolean initialized) {
-    NativeLibraryLoader.initialized = initialized;
+    INITIALIZED.set(initialized);
   }
 
   /**
@@ -48,7 +49,7 @@ public class NativeLibraryLoader {
    * @return The NativeLibraryLoader
    */
   public static NativeLibraryLoader getInstance() {
-    return instance;
+    return INSTANCE;
   }
 
   /**
@@ -68,10 +69,10 @@ public class NativeLibraryLoader {
    */
   public synchronized void loadLibrary(final String tmpDir) throws IOException {
     try {
-      System.loadLibrary(sharedLibraryName);
+      System.loadLibrary(SHARED_LIBRARY_NAME);
     } catch (final UnsatisfiedLinkError ule1) {
       try {
-        System.loadLibrary(jniLibraryName);
+        System.loadLibrary(JNI_LIBRARY_NAME);
       } catch (final UnsatisfiedLinkError ule2) {
         loadLibraryFromJar(tmpDir);
       }
@@ -93,7 +94,7 @@ public class NativeLibraryLoader {
    */
   void loadLibraryFromJar(final String tmpDir)
       throws IOException {
-    if (!initialized) {
+    if (!INITIALIZED.get()) {
       System.load(loadLibraryFromJarToTemp(tmpDir).getAbsolutePath());
       setInitialized(true);
     }
@@ -103,9 +104,9 @@ public class NativeLibraryLoader {
       throws IOException {
     final File temp;
     if (tmpDir == null || tmpDir.isEmpty()) {
-      temp = File.createTempFile(tempFilePrefix, tempFileSuffix);
+      temp = File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);
     } else {
-      temp = new File(tmpDir, jniLibraryFileName);
+      temp = new File(tmpDir, JNI_LIBRARY_FILE_NAME);
       if (temp.exists() && !temp.delete()) {
         throw new RuntimeException("File: " + temp.getAbsolutePath()
             + " already exists and cannot be removed.");
@@ -125,10 +126,10 @@ public class NativeLibraryLoader {
 
     // attempt to copy the library from the Jar file to the temp destination
     try (final InputStream is = getClass().getClassLoader()
-        .getResourceAsStream(sharedLibraryFileName)) {
+        .getResourceAsStream(SHARED_LIBRARY_FILE_NAME)) {
       if (is == null) {
         throw new RuntimeException(
-            sharedLibraryFileName + " was not found inside JAR.");
+            SHARED_LIBRARY_FILE_NAME + " was not found inside JAR.");
       } else {
         Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
       }
