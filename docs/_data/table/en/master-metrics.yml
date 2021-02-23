@@ -8,6 +8,14 @@ Master.DeletePathOps:
   'Total number of the Delete operations'
 Master.DirectoriesCreated:
   'Total number of the succeed CreateDirectory operations'
+Master.EdgeCacheEvictions:
+  'Total number of edges (inode metadata) that was evicted from cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheHits:
+  'Total number of hits in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheLoadTimes:
+  'Total load times in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheMisses:
+  'Total number of misses in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
 Master.EdgeCacheSize:
   'Total number of edges (inode metadata) cached. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
 Master.EdgeLockPoolSize:
@@ -34,8 +42,16 @@ Master.GetFileInfoOps:
   'Total number of the GetFileInfo operations'
 Master.GetNewBlockOps:
   'Total number of the GetNewBlock operations'
+Master.InodeCacheEvictions:
+  'Total number of inodes that was evicted from the cache.'
+Master.InodeCacheHits:
+  'Total number of hits in the inodes (inode metadata) cache.'
+Master.InodeCacheLoadTimes:
+  'Total load times in the inodes (inode metadata) cache.'
+Master.InodeCacheMisses:
+  'Total number of misses in the inodes (inode metadata) cache.'
 Master.InodeCacheSize:
-  'Total number of inodes (inode metadata) cached'
+  'Total number of inodes (inode metadata) cached.'
 Master.InodeLockPoolSize:
   'The size of master inode lock pool'
 Master.JournalFlushFailure:
@@ -74,7 +90,11 @@ Master.SetAttributeOps:
   'Total number of SetAttribute operations'
 Master.TotalPaths:
   'Total number of files and directory in Alluxio namespace'
-Master.UfsJournalFailureRecoverTime:
+Master.UfsJournalCatchupTimer:
+  'The timer statistics of journal catchup'
+Master.UfsJournalFailureRecoverTimer:
   'The timer statistics of ufs journal failure recover'
+Master.UfsJournalInitialReplayTimeMs:
+  'The process time of the ufs journal initial replay'
 Master.UnmountOps:
   'Total number of Unmount operations'
