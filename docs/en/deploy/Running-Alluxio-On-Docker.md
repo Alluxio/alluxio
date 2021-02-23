@@ -60,12 +60,12 @@ containers data. To create a host volume, run:
   ```
   The file or directory is referenced by its full path on the Docker host. It can exist on the Docker host already, or it will be created automatically if it does not yet exist.
 
-+ **Named Volume**: Docker manage where they are located.  It should be be referred to by specific names.
++ **Named Volume**: Docker manage where they are located. It should be be referred to by specific names.
 To create a named volume, run:
 
   ```console
   $ docker volume create volumeName
-  $ docker run -v  volumeName:/path/in/container ...
+  $ docker run -v volumeName:/path/in/container ...
   ```
 
 Either host volume or named volume can be used for Alluxio containers. For purpose of test,
@@ -85,7 +85,7 @@ $ docker run -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage   ...
 Of course, you can choose to mount a different path instead of `/tmp/alluxio_ufs`.
 From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
-Please make sure it is writable by the user the Docker image is run as.
+Please make sure the host volume is writable by the user the Docker image is run as.
 
 ## Launch Alluxio Containers for Master and Worker
 
@@ -344,7 +344,7 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
+You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#raft-based-embedded-journal' | relativize_url }}).
 
 {% endnavtab %}
 {% navtab Zookeeper and Shared Journal Storage %}
@@ -377,17 +377,22 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
+You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#zookeeper-and-shared-journal-storage' | relativize_url }}).
 
 {% endnavtab %}
 {% endnavtabs %}
 
 ### Relaunch Alluxio Servers
 
-When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatting
+When relaunching Alluxio master docker containers, use the `--no-format` flag to avoid re-formatting
 the journal. The journal should only be formatted the first time the image is run.
 Formatting the journal deletes all Alluxio metadata, and starts the cluster in
 a fresh state.
+You can find more details about the Alluxio journal [here]({{ '/en/operation/Journal.html' | relativize_url }}).
+
+The same applies to Alluxio worker docker containers, use the `--no-format` flag to avoid re-formatting
+the worker storage. Formatting the worker storage deletes all the cached blocks.
+You can find more details about the worker storage [here]({{ '/en/core-services/Caching.html#configuring-alluxio-storage' | relativize_url }}).
 
 ### Enable POSIX API access
 
