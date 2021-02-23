@@ -40,7 +40,7 @@
             <executions>
               <execution>
                 <id>native_fuse_compile</id>
-                <phase>compile</phase>
+                <phase>process-resources</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
