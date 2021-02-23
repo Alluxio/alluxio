@@ -26,6 +26,7 @@ Client.CachePutAsyncRejectionErrors,COUNTER
 Client.CachePutBenignRacingErrors,COUNTER
 Client.CachePutErrors,COUNTER
 Client.CachePutEvictionErrors,COUNTER
+Client.CachePutInsufficientSpaceErrors,COUNTER
 Client.CachePutNotReadyErrors,COUNTER
 Client.CachePutStoreDeleteErrors,COUNTER
 Client.CachePutStoreWriteErrors,COUNTER

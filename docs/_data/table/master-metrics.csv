@@ -4,6 +4,10 @@ Master.CreateDirectoryOps,COUNTER
 Master.CreateFileOps,COUNTER
 Master.DeletePathOps,COUNTER
 Master.DirectoriesCreated,COUNTER
+Master.EdgeCacheEvictions,GAUGE
+Master.EdgeCacheHits,GAUGE
+Master.EdgeCacheLoadTimes,GAUGE
+Master.EdgeCacheMisses,GAUGE
 Master.EdgeCacheSize,GAUGE
 Master.EdgeLockPoolSize,GAUGE
 Master.FileBlockInfosGot,COUNTER
@@ -17,6 +21,10 @@ Master.FreeFileOps,COUNTER
 Master.GetFileBlockInfoOps,COUNTER
 Master.GetFileInfoOps,COUNTER
 Master.GetNewBlockOps,COUNTER
+Master.InodeCacheEvictions,GAUGE
+Master.InodeCacheHits,GAUGE
+Master.InodeCacheLoadTimes,GAUGE
+Master.InodeCacheMisses,GAUGE
 Master.InodeCacheSize,GAUGE
 Master.InodeLockPoolSize,GAUGE
 Master.JournalFlushFailure,COUNTER
@@ -37,5 +45,7 @@ Master.RenamePathOps,COUNTER
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER
 Master.TotalPaths,GAUGE
-Master.UfsJournalFailureRecoverTime,TIMER
+Master.UfsJournalCatchupTimer,TIMER
+Master.UfsJournalFailureRecoverTimer,TIMER
+Master.UfsJournalInitialReplayTimeMs,GAUGE
 Master.UnmountOps,COUNTER
