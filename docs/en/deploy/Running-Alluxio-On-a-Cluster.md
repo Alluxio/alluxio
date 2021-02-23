@@ -53,6 +53,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 ```
 
 - The first property `alluxio.master.hostname` sets the hostname of the single master node.
+  Please ensure this address is reachable by your worker nodes.
   Examples include
   `alluxio.master.hostname=1.2.3.4` or `alluxio.master.hostname=node1.a.com`.
 - The second property `alluxio.master.mount.table.root.ufs` sets to the URI of the under store to
@@ -61,19 +62,22 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
   Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, or 
   `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
 
-Next, copy configuration files to all the other Alluxio nodes.
-By adding the IP addresses or hostnames of all the worker nodes to the `conf/workers` file, an 
-operator can make use of built-in utilities to copy configurations to remote nodes such as below.
+Next, copy the configuration file to all the Alluxio worker nodes.
+The following built-in utility will copy the configuration files to all master and worker
+nodes specified in the `conf/masters` and `conf/workers` files respectively.
 
 ```console
 $ ./bin/alluxio copyDir conf/
 ```
 
-This command will copy the `conf/` directory to all the workers specified in the `conf/workers`
-file.
 Once this command succeeds, all the Alluxio nodes will be correctly configured.
 
-It is the minimal configuration to start Alluxio, and the additional configurations may be added.
+This is the minimal configuration to start Alluxio. Additional configuration properties
+may be set as needed. See the [configuration properties reference](https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html)
+for more details.
+
+- You may need to set additional properties to enable Alluxio to access
+  the configured under storage (eg., [AWS S3 configuration](https://docs.alluxio.io/os/user/stable/en/overview/Getting-Started.html#bonus-configuration-for-aws))
 
 ## Start an Alluxio Cluster
 
@@ -84,16 +88,16 @@ Before Alluxio can be started for the first time, the journal must be formatted.
 > Formatting the journal will delete all metadata from Alluxio.
   However, the data in under storage will be untouched.
 
-On the master node, format Alluxio with the following command:
+Format the journal for the Alluxio master node with the following command:
 
 ```console
-$ ./bin/alluxio formatMaster
+$ ./bin/alluxio formatMasters
 ```
 
 ### Launch Alluxio
 
-To start the Alluxio cluster, on the master node, make sure the `conf/workers` file is correct
-with all the hostnames of the workers.
+To start the Alluxio cluster, on the master node make sure the `conf/masters` and
+`conf/workers` files have the correct hostnames set.
 
 On the master node, start the Alluxio cluster with the following command:
 
@@ -101,8 +105,8 @@ On the master node, start the Alluxio cluster with the following command:
 $ ./bin/alluxio-start.sh all SudoMount
 ```
 
-This will start the master on the node you are running it on, and start all the workers on all the
-nodes specified in the `conf/workers` file.
+This will start the master on the master node, and start all the workers on all the
+worker nodes specified in the `conf/workers` file.
 The `SudoMount` argument enables the workers to attempt to mount the RamFS using `sudo` 
 privilege, if not already mounted.
 
