@@ -37,6 +37,20 @@ See the
 [configuration settings page]({{ '/en/operation/Configuration.html' | relativize_url }}#environment-variables)
 for more information.
 
+By default, the `*.log` files rotate. For example this is the default log4j configuration for master.log:
+```properties
+# Appender for Master
+log4j.appender.MASTER_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.MASTER_LOGGER.File=${alluxio.logs.dir}/master.log
+log4j.appender.MASTER_LOGGER.MaxFileSize=10MB
+log4j.appender.MASTER_LOGGER.MaxBackupIndex=100
+log4j.appender.MASTER_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.MASTER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+```
+
+However, the `*.out` files do not rotate. So it makes sense to regularly check the size of these files,
+and clean them up if necessary.
+
 ### Application Logs
 
 Log files for the Alluxio client utilized by different applications are located with their respective application logs.
