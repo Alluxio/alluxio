@@ -117,7 +117,7 @@ This will be done multiple times to see if the JVMs are making progress.
 ### Collect system information
 `collectEnv` will run a set of bash commands to collect information about the running node.
 This runs system troubleshooting commands like `env`, `hostname`, `top`, `ps` etc.
-> **WARNING**: If you stored credential fields in environment variables like AWS_ACCESS_KEY or in process start parameters
+> WARNING: If you stored credential fields in environment variables like AWS_ACCESS_KEY or in process start parameters
 like -Daws.access.key=XXX, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect all information mentioned above
