@@ -21,21 +21,8 @@
   <artifactId>alluxio-integration-jnifuse</artifactId>
   <modules>
     <module>jnifuse-java</module>
+    <module>jnifuse-native</module>
   </modules>
-  <profiles>
-    <profile>
-      <id>fuseNative</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <runningWithNative>true</runningWithNative>
-      </properties>
-      <modules>
-        <module>jnifuse-native</module>
-      </modules>
-    </profile>
-  </profiles>
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->

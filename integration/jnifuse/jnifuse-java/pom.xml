@@ -26,22 +26,14 @@
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <jnifuse-native.version>${project.version}</jnifuse-native.version>
   </properties>
-  <profiles>
-    <profile>
-      <id>depFuseNative</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-integration-jnifuse-native</artifactId>
-          <version>${jnifuse-native.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+
   <dependencies>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-integration-jnifuse-native</artifactId>
+      <version>${jnifuse-native.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>com.github.serceman</groupId>
       <artifactId>jnr-fuse</artifactId>
