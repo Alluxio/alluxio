@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -53,9 +54,10 @@ public class TableShell extends AbstractShell {
   @Override
   public Map<String, Command> loadCommands() {
     return CommandUtils.loadCommands(TableShell.class.getPackage().getName(),
-        new Class[] {AlluxioConfiguration.class, TableMasterClient.class},
+        new Class[] {AlluxioConfiguration.class, TableMasterClient.class, FileSystemContext.class},
         new Object[] {mConfiguration, mCloser.register(TableMasterClient.Factory.create(
-            MasterClientContext.newBuilder(ClientContext.create(mConfiguration)).build()))}
+            MasterClientContext.newBuilder(ClientContext.create(mConfiguration)).build())),
+            FileSystemContext.create(mConfiguration)}
         );
   }
 
