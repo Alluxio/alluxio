@@ -60,12 +60,12 @@ containers data. To create a host volume, run:
   ```
   The file or directory is referenced by its full path on the Docker host. It can exist on the Docker host already, or it will be created automatically if it does not yet exist.
 
-+ **Named Volume**: Docker manage where they are located.  It should be be referred to by specific names.
++ **Named Volume**: Docker manage where they are located. It should be be referred to by specific names.
 To create a named volume, run:
 
   ```console
   $ docker volume create volumeName
-  $ docker run -v  volumeName:/path/in/container ...
+  $ docker run -v volumeName:/path/in/container ...
   ```
 
 Either host volume or named volume can be used for Alluxio containers. For purpose of test,
@@ -85,7 +85,7 @@ $ docker run -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage   ...
 Of course, you can choose to mount a different path instead of `/tmp/alluxio_ufs`.
 From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
-Please make sure it is writable by the user the Docker image is run as.
+Please make sure the host volume is writable by the user the Docker image is run as.
 
 ## Launch Alluxio Containers for Master and Worker
 
