@@ -678,8 +678,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     for (int i = 0; i < 100; i++) {
       new File(ufsPath("/dir" + i)).mkdirs();
       for (int j = 0; j < 100; j++) {
-        new File(ufsPath("/dir" + i + "/dir" +j)).mkdirs();
-        writeUfsFile(ufsPath("/dir" + i + "/dir" +j + "/file"), 1);
+        new File(ufsPath("/dir" + i + "/dir" + j)).mkdirs();
+        writeUfsFile(ufsPath("/dir" + i + "/dir" + j + "/file"), 1);
       }
     }
     List<URIStatus> status;
