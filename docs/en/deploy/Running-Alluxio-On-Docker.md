@@ -344,7 +344,7 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
+You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#raft-based-embedded-journal' | relativize_url }}).
 
 {% endnavtab %}
 {% navtab Zookeeper and Shared Journal Storage %}
@@ -377,17 +377,22 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
+You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#zookeeper-and-shared-journal-storage' | relativize_url }}).
 
 {% endnavtab %}
 {% endnavtabs %}
 
 ### Relaunch Alluxio Servers
 
-When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatting
+When relaunching Alluxio master docker containers, use the `--no-format` flag to avoid re-formatting
 the journal. The journal should only be formatted the first time the image is run.
 Formatting the journal deletes all Alluxio metadata, and starts the cluster in
 a fresh state.
+You can find more details about the Alluxio journal [here]({{ '/en/operation/Journal.html' | relativize_url }}).
+
+The same applies to Alluxio worker docker containers, use the `--no-format` flag to avoid re-formatting
+the worker storage. Formatting the worker storage deletes all the cached blocks.
+You can find more details about the worker storage [here]({{ '/en/core-services/Caching.html#configuring-alluxio-storage' | relativize_url }}).
 
 ### Enable POSIX API access
 
