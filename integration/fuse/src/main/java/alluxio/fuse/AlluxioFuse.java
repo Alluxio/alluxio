@@ -175,10 +175,10 @@ public final class AlluxioFuse {
   }
 
   /**
-   * Parses CLI options and gets fuse mount information.
+   * Parses CLI options.
    *
    * @param args CLI args
-   * @return Alluxio-FUSE mount configuration information
+   * @return Alluxio-FUSE configuration options
    */
   @Nullable
   private static FuseMountOptions parseOptions(String[] args, AlluxioConfiguration alluxioConf) {
