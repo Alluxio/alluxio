@@ -42,7 +42,7 @@ func checkRootFlags() error {
 // common flags that are used regardless of subcommand type
 // these flags provide additional settings unrelated to tarball generation
 func additionalFlags(cmd *flag.FlagSet) {
-	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-modules", "",
+	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
 		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
 			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
