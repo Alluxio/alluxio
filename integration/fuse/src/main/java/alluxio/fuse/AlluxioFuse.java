@@ -134,7 +134,8 @@ public final class AlluxioFuse {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
     AlluxioConfiguration conf = fsContext.getClusterConf();
-    try (final FileSystem fs = FileSystem.Factory.create(fsContext)) {
+    final FileSystem fs = FileSystem.Factory.create(fsContext);
+    try {
       final List<String> fuseOpts = opts.getFuseOpts();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
@@ -146,6 +147,9 @@ public final class AlluxioFuse {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
+          // TODO(lu) add umount check and force umount
+          // the mount may be failed but leave the fuse mounts running
+          // which will block the whole worker operations and even system operations
           fuseFs.umount();
           throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
               opts.getAlluxioRoot(), opts.getMountPoint()), e);
@@ -171,6 +175,10 @@ public final class AlluxioFuse {
       }
     } catch (Throwable e) {
       throw new IOException("Failed to mount Alluxio file system", e);
+    } finally {
+      if (blocking) {
+        fs.close();
+      }
     }
   }
 
@@ -221,6 +229,9 @@ public final class AlluxioFuse {
     List<String> res = new ArrayList<>();
     boolean noUserMaxWrite = true;
     for (final String opt : fuseOptions) {
+      if (opt.isEmpty()) {
+        continue;
+      }
       res.add("-o" + opt);
       if (noUserMaxWrite && opt.startsWith("max_write")) {
         noUserMaxWrite = false;

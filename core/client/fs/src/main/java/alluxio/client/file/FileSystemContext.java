@@ -176,18 +176,13 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * Creates a {@link FileSystemContext} with a null subject
-   * and a local block worker.
-   *
+   * @param subject the parent subject, set to null if not present
    * @param conf Alluxio configuration
-   * @param localBlockWorker the gateway for worker internal clients
-   *        to communicate with the local worker directly
-   * @return an instance of file system context with no subject associated
+   * @return a context
    */
-  public static FileSystemContext create(AlluxioConfiguration conf,
-      LocalBlockWorker localBlockWorker) {
-    Preconditions.checkNotNull(conf);
-    return create(null, conf, localBlockWorker);
+  public static FileSystemContext create(@Nullable Subject subject,
+      @Nullable AlluxioConfiguration conf) {
+    return create(subject, conf, null);
   }
 
   /**

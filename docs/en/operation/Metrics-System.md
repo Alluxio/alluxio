@@ -33,19 +33,19 @@ Each instance can report to zero or more sinks.
 * `JmxSink`: Registers metrics for viewing in a JMX console.
 * `GraphiteSink`: Sends metrics to a Graphite server.
 * `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
-* `PrometheusMetricsServlet`: Adds a servlet in Web UI to serve metrics data in prometheus format
+* `PrometheusMetricsServlet`: Adds a servlet in Web UI to serve metrics data in Prometheus format
 
 The metrics system is configured via a configuration file that Alluxio expects to be present at `$ALLUXIO_HOME/conf/metrics.properties`. 
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property. 
 Alluxio provides a `metrics.properties.template` under the `conf` directory which includes all configurable properties 
-and guidance of how to specify each property. 
+and guidance on how to specify each property. 
 
 ### Default HTTP JSON Sink
 
 By default, `MetricsServlet` is enabled in Alluxio leading master and workers. 
 
 You can send an HTTP request to `/metrics/json/` of the Alluxio leading master to get a snapshot of all metrics in JSON format. 
-Metrics on the Alluxio leading master contains its own instance metrics and a summary of the cluster-wide aggregated metrics.
+Metrics on the Alluxio leading master contains its instance metrics, and a summary of the cluster-wide aggregated metrics.
 
 ```console
 # Get the metrics in JSON format from Alluxio leading master

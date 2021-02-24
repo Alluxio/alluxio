@@ -19,8 +19,6 @@ import alluxio.fuse.FuseMountOptions;
 import alluxio.worker.block.io.LocalBlockWorkerImpl;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +31,7 @@ import java.util.List;
 public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private final LocalBlockWorkerImpl mLocalBlockWorker;
-  private final Supplier<FileSystemContext> mFsContextSupplier;
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link FuseManager}.
@@ -42,8 +40,7 @@ public class FuseManager implements Closeable {
    */
   public FuseManager(BlockWorker blockWorker) {
     mLocalBlockWorker = new LocalBlockWorkerImpl(blockWorker);
-    mFsContextSupplier = Suppliers.memoize(()
-        -> FileSystemContext.create(ServerConfiguration.global(), mLocalBlockWorker));
+    mFsContext = FileSystemContext.create(null, ServerConfiguration.global(), mLocalBlockWorker);
   }
 
   /**
@@ -59,13 +56,15 @@ public class FuseManager implements Closeable {
         String.format("%s should not be an empty string",
             PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH));
     LOG.info("Start mounting Fuse application.");
+    String fuseOptsString = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
     List<String> fuseOptions = AlluxioFuse.parseFuseOptions(
-        ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).split(","),
+        fuseOptsString.isEmpty() ? new String[0] : fuseOptsString.split(","),
         ServerConfiguration.global());
     FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
         ServerConfiguration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
     try {
-      AlluxioFuse.launchFuse(mFsContextSupplier.get(), options, false);
+      // TODO(lu) consider launching fuse blocking in a separate thread! so that we can also knows when it dies
+      AlluxioFuse.launchFuse(mFsContext, options, false);
     } catch (Throwable throwable) {
       // TODO(lu) test what if fuse application error out in the middle, will it affect worker
       // TODO(lu) what if the fuse is already mounted and didn't be closed properly in the previous worker shutdown
