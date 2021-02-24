@@ -6031,7 +6031,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
     USER_NETWORK_KEEPALIVE_TIME_MS("alluxio.user.network.%s.keepalive.time",
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.time"),
-    USER_NETWORK_KEEPALIVE_TIMEOUT_MS ("alluxio.user.network.%s.keepalive.timeout",
+    USER_NETWORK_KEEPALIVE_TIMEOUT_MS("alluxio.user.network.%s.keepalive.timeout",
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.timeout"),
     USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE("alluxio.user.network.%s.max.inbound.message.size",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.inbound\\.message\\.size"),
