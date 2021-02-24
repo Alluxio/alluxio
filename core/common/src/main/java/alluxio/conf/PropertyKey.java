@@ -751,6 +751,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+      new Builder(Name.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+          .setDefaultValue(true)
+          .setDescription("Do not create parent directory for new files. Object stores generally "
+              + "uses prefix which is not required for creating new files. Skipping parent "
+              + "directory is recommended for better performance. Set this to false if the "
+              + "object store requires prefix creation for new files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
       new Builder(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)
           .setDefaultValue(false)
@@ -4997,6 +5007,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
+    public static final String UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+        "alluxio.underfs.object.store.skip.parent.directory.creation";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
