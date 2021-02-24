@@ -38,7 +38,8 @@ void unmount(AlluxioURI path);
 void unmount(AlluxioURI path, UnmountOptions options);
 ```
 
-For example, mount a S3 bucket to the `Data` directory through
+For example, mount a S3 bucket to the `Data` directory through the Java API
+
 ```java
 mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
 ```
@@ -231,7 +232,7 @@ In `alluxio-site.properties` on master nodes:
 
 `alluxio.user.file.metadata.sync.interval=1m`
 
-Note master nodes need to be restarted to pick up configuration changes.
+Note: master nodes need to be restarted to pick up configuration changes.
 
 #### Utilizing Path Configuration
 
@@ -296,12 +297,12 @@ If the metadata sync interval is configured the metadata load type is ignored.
 
 ### Active Sync for HDFS
 
-In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space
+In version 2.0, Alluxio introduced a new feature for maintaining synchronization between Alluxio space
 and the UFS when the UFS is HDFS. The feature, called active sync, listens for HDFS events and
 periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on
 the master.
-Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS
-versions is later than 2.6.1.
+Because active sync feature depends on HDFS events being pushed to the Alluxio master, this feature
+is only available when the UFS HDFS versions is later than 2.6.1.
 You may need to change the value for `alluxio.underfs.version` in your configuration file.
 Please refer to
 [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of
@@ -341,7 +342,8 @@ There are two configuration options that control this behavior.
 Activity is a heuristic based on the exponential moving average of number of events in a directory.
 For example, if a directory had 100, 10, and 1 events in the past three intervals.
 Its activity would be `100/10*10 + 10/10 + 1 = 3`
-`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals Alluxio will wait before
+synchronizing the UFS and the Alluxio space.
 
 The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
 
