@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.grpc;
+package alluxio.wire;
 
-import alluxio.util.IdUtils;
+import alluxio.util.SessionIdUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -19,19 +19,27 @@ import javax.annotation.concurrent.ThreadSafe;
  * Represents a read request received from gRPC stream.
  */
 @ThreadSafe
-class ReadRequest {
+public class ReadRequest {
   private final long mId;
   private final long mStart;
   private final long mEnd;
   private final long mChunkSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end, long chunkSize) {
+  /**
+   * Creates an instance of {@link ReadRequest}.
+   *
+   * @param id the block id to read from
+   * @param start the read starts point
+   * @param end the read ends point
+   * @param chunkSize the chunk size to read
+   */
+  public ReadRequest(long id, long start, long end, long chunkSize) {
     mId = id;
     mStart = start;
     mEnd = end;
     mChunkSize = chunkSize;
-    mSessionId = IdUtils.createSessionId();
+    mSessionId = SessionIdUtils.createSessionId();
   }
 
   /**

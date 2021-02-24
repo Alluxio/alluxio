@@ -13,7 +13,7 @@ package alluxio.worker.grpc;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,8 @@ import static org.mockito.Mockito.when;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.security.authentication.AuthenticatedUserInfo;
-import alluxio.worker.block.BlockWorker;
+import alluxio.wire.BlockReadRequest;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -30,16 +31,29 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({DefaultBlockWorker.class})
 public final class BlockReadHandlerTest extends ReadHandlerTest {
-  private BlockWorker mBlockWorker;
+  private DefaultBlockWorker mBlockWorker;
   private BlockReader mBlockReader;
 
   @Before
   public void before() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
-    mBlockWorker = mock(BlockWorker.class);
+
+    // TODO(lu) Change DefaultBlockWorker to not final and not use PowerMockRunner
+    // Use PowerMockito to mock final class and able to test the method contents
+    mBlockWorker = PowerMockito.mock(DefaultBlockWorker.class);
+    doCallRealMethod().when(mBlockWorker).getBlockReader(any(BlockReadRequest.class));
+    doCallRealMethod().when(mBlockWorker)
+        .cleanBlockReader(any(BlockReader.class), any(BlockReadRequest.class));
+
     doNothing().when(mBlockWorker).accessBlock(anyLong(), anyLong());
     mResponseObserver = Mockito.mock(ServerCallStreamObserver.class);
     Mockito.when(mResponseObserver.isReady()).thenReturn(true);
