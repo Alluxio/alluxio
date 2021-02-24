@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -31,24 +32,32 @@ import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockReadRequest;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +98,9 @@ public class BlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("WORKER_TIERED_STORE_LEVEL1_DIRS_PATH").getAbsolutePath())
           .build(), ServerConfiguration.global());
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   /**
    * Sets up all dependencies before a test runs.
@@ -527,5 +539,47 @@ public class BlockWorkerTest {
 
     mBlockWorker.getFileInfo(fileId);
     verify(mFileSystemMasterClient).getFileInfo(fileId);
+  }
+
+  @Test
+  public void getAndCleanBlockReader() throws Exception {
+    long blockId = mRandom.nextLong();
+    BlockReadRequest request = new BlockReadRequest(
+        ReadRequest.newBuilder().setBlockId(blockId).setOffset(0).setLength(10).build());
+    long sessionId = request.getSessionId();
+
+    // Create a real file and block reader to avoid NPE
+    BlockReader blockReader = prepareBlockReader();
+    doReturn(blockReader).when(mBlockStore).getBlockReader(anyLong(), anyLong(), anyLong());
+
+    Assert.assertEquals(blockReader, mBlockWorker.getBlockReader(request));
+    verify(mBlockStore).lockBlock(sessionId, blockId);
+    verify(mBlockStore).accessBlock(sessionId, blockId);
+
+    mBlockWorker.cleanBlockReader(blockReader, request);
+    verify(mBlockStore).unlockBlock(sessionId, blockId);
+  }
+
+  /**
+   * Creates a real file and a block reader.
+   *
+   * @return the block reader
+   */
+  protected BlockReader prepareBlockReader() throws Exception {
+    File file = mTestFolder.newFile();
+    int chunkSize = 10;
+    int length = chunkSize * 10;
+    if (length > 0) {
+      FileOutputStream fileOutputStream = new FileOutputStream(file);
+      while (length > 0) {
+        byte[] buffer = new byte[(int) Math.min(length, Constants.MB)];
+        mRandom.nextBytes(buffer);
+        fileOutputStream.write(buffer);
+        length -= buffer.length;
+      }
+      fileOutputStream.close();
+    }
+    BlockReader blockReader = new LocalFileBlockReader(file.getPath());
+    return blockReader;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.ClientContext;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -24,6 +25,8 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -34,10 +37,13 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.retry.TimeoutRetry;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -47,6 +53,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.grpc.GrpcExecutors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -55,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -76,6 +84,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
+  private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
@@ -119,7 +129,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private AtomicReference<Long> mWorkerId;
 
+<<<<<<< HEAD
   private final FuseManager mFuseManager;
+||||||| merged common ancestors
+=======
+  private final AsyncCacheRequestManager mAsyncCacheManager;
+>>>>>>> 5fdfc4a3c4d4411137e57feb4e35c725e45eff35
   private final UfsManager mUfsManager;
 
   /**
@@ -158,7 +173,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
+<<<<<<< HEAD
     mFuseManager = mResourceCloser.register(new FuseManager(this));
+||||||| merged common ancestors
+=======
+    mAsyncCacheManager = new AsyncCacheRequestManager(
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
+>>>>>>> 5fdfc4a3c4d4411137e57feb4e35c725e45eff35
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -505,6 +526,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void submitAsyncCacheRequest(AsyncCacheRequest request) {
+    mAsyncCacheManager.submitRequest(request);
+  }
+
+  @Override
   public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }
@@ -554,6 +580,92 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     } finally {
       mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+    }
+  }
+
+  @Override
+  public BlockReader getBlockReader(BlockReadRequest request)
+      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException,
+      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+    // TODO(calvin): Update the locking logic so this can be done better
+    if (request.isPromote()) {
+      try {
+        moveBlock(request.getSessionId(), request.getId(),
+            new WorkerStorageTierAssoc().getAlias(0));
+      } catch (BlockDoesNotExistException e) {
+        LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
+            e.getMessage());
+      } catch (Exception e) {
+        LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
+      }
+    }
+
+    int retryInterval = Constants.SECOND_MS;
+    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+    while (retryPolicy.attempt()) {
+      long lockId;
+      if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
+          .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
+          .getBlockInUfsTier())) {
+        lockId = lockBlockNoException(request.getSessionId(), request.getId());
+      } else {
+        lockId = lockBlock(request.getSessionId(), request.getId());
+      }
+      if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+        try {
+          BlockReader reader =
+              readBlockRemote(request.getSessionId(), request.getId(), lockId);
+          accessBlock(request.getSessionId(), request.getId());
+          ((FileChannel) reader.getChannel()).position(request.getStart());
+          return reader;
+        } catch (BlockDoesNotExistException | InvalidWorkerStateException | IOException e) {
+          unlockBlock(lockId);
+          throw e;
+        } catch (Throwable e) {
+          unlockBlock(lockId);
+          throw new IOException(e);
+        }
+      }
+
+      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
+      try {
+        if (openUfsBlock(request.getSessionId(), request.getId(),
+            Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
+          BlockReader reader =
+              readUfsBlock(request.getSessionId(), request.getId(), request.getStart(),
+                  request.isPositionShort());
+          return reader;
+        }
+      } catch (Exception e) {
+        // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
+        // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
+        // workaround.
+        closeUfsBlock(request.getSessionId(), request.getId());
+        throw new UnavailableException(String.format("Failed to read block ID=%s from tiered "
+            + "storage and UFS tier: %s", request.getId(), e.getMessage()));
+      }
+    }
+    throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
+        .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
+  }
+
+  @Override
+  public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+    try {
+      if (reader != null) {
+        reader.close();
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to close block reader for block {} with error {}.",
+          request.getId(), e.getMessage());
+    } finally {
+      if (!unlockBlock(request.getSessionId(), request.getId())) {
+        if (reader != null) {
+          closeUfsBlock(request.getSessionId(), request.getId());
+        }
+      }
     }
   }
 

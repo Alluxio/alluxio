@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.grpc;
+package alluxio.wire;
 
 import alluxio.proto.dataserver.Protocol;
 
@@ -31,7 +31,7 @@ public final class BlockReadRequest extends ReadRequest {
    *
    * @param request the block read request
    */
-  BlockReadRequest(alluxio.grpc.ReadRequest request) {
+  public BlockReadRequest(alluxio.grpc.ReadRequest request) {
     super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
         request.getChunkSize());
 

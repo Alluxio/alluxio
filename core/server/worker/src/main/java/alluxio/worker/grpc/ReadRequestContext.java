@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.wire.ReadRequest;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 

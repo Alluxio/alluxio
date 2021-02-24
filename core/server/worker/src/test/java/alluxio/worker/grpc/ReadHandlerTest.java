@@ -224,7 +224,7 @@ public abstract class ReadHandlerTest {
    * @param code the expected error code
    */
   protected void checkErrorCode(final StreamObserver<ReadResponse> responseObserver,
-                                Status.Code code) throws TimeoutException, InterruptedException {
+      Status.Code code) throws TimeoutException, InterruptedException {
     Throwable t = waitForError(responseObserver);
     assertTrue(t instanceof StatusException);
     assertEquals(code, ((StatusException) t).getStatus().getCode());
@@ -236,9 +236,9 @@ public abstract class ReadHandlerTest {
    * @param responseObserver the response stream observer
    */
   protected void waitForComplete(final StreamObserver<ReadResponse> responseObserver)
-          throws TimeoutException, InterruptedException {
+      throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("response", () -> mResponseCompleted || mError != null,
-            WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
     verify(responseObserver).onCompleted();
   }
 
