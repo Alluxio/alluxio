@@ -711,6 +711,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
     final int TOTAL_FILE_COUNT = 20103;
     assertTrue(status.size() < TOTAL_FILE_COUNT);
+    for (URIStatus stat : status) {
+      assertTrue(stat.isCompleted());
+    }
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
         .setRecursive(true)
         .setCommonOptions(FileSystemOptions.commonDefaults(
