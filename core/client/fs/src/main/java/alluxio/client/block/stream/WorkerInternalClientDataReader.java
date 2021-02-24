@@ -19,6 +19,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalBlockWorker;
 
@@ -30,16 +31,16 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A data reader that issued from a client embedded in a worker
+ * A data reader that issues from a client embedded in a worker
  * to read data from the worker directly via internal communication channel.
  *
- * This data reader is similar to {@link GrpcDataReader} except that
- * all communication with the local worker is via internal method call
+ * This data reader is similar to read from local worker via {@link GrpcDataReader}
+ * except that all communication with the local worker is via internal method call
  * instead of external RPC frameworks.
  */
 @NotThreadSafe
 public final class WorkerInternalClientDataReader implements DataReader {
-  /** The file reader to read from the local worker block or UFS block. */
+  /** The block reader to read from the local worker block or UFS block. */
   private final BlockReader mReader;
   private final long mEnd;
   private final long mChunkSize;
@@ -71,9 +72,8 @@ public final class WorkerInternalClientDataReader implements DataReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-    // TODO(lu) use separate metrics for worker internal client read
-    MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()).inc(dataBuffer.getLength());
-    MetricsSystem.meter(MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName())
+    MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DIRECT.getName()).inc(dataBuffer.getLength());
+    MetricsSystem.meter(MetricKey.WORKER_BYTES_READ_DIRECT_THROUGHPUT.getName())
         .mark(dataBuffer.getLength());
     return dataBuffer;
   }
@@ -148,7 +148,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
       }
       try {
         mLocalBlockWorker.cleanBlockReader(mReader,
-            mBlockReadRequest.getSessionId(), mBlockReadRequest.getId());
+            mBlockReadRequest);
       } catch (Exception e) {
         throw new IOException(e);
       }

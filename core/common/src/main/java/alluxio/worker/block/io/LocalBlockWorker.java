@@ -16,11 +16,12 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.wire.BlockReadRequest;
 
 import java.io.IOException;
 
 /**
- * An interface for worker internal client to interact with worker operations directly
+ * An interface for worker internal clients to interact with worker operations directly
  * without going through external RPC frameworks.
  */
 public interface LocalBlockWorker {
@@ -34,10 +35,16 @@ public interface LocalBlockWorker {
 
   /**
    * Gets the block reader to read from Alluxio block or UFS block.
-   * This operation must be paired with {@link #cleanBlockReader(long, long, BlockReader)}.
+   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
    *
    * @param request the block read request
    * @return a block reader to read data from
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store after opening the ufs block reader
+   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws WorkerOutOfSpaceException if there is no enough space
+   * @throws IOException if it fails to get block reader
    */
   BlockReader getBlockReader(BlockReadRequest request) throws IOException,
       BlockDoesNotExistException, InvalidWorkerStateException,
@@ -47,38 +54,13 @@ public interface LocalBlockWorker {
    * Cleans data reader and related blocks after using the block reader obtained
    * from {@link #getBlockReader(BlockReadRequest)}.
    *
-   * @param sessionId the session id which used for getting the block reader
-   * @param blockId the block id this block reader belongs to
-   * @param reader the to be cleaned block reader
+   * @param reader to be cleaned block reader
+   * @param request the block read request
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store when closing the ufs block
+   * @throws WorkerOutOfSpaceException if there is not enough space
+   * @throws IOException if it fails to get block reader
    */
-  void cleanBlockReader(long sessionId, long blockId, BlockReader reader)
+  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
       throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException;
-
-  /**
-   * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
-   * tiered storage.
-   *
-   * @param blockId the id of the block to move
-   * @param tierAlias the alias of the tier to move the block to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
-   *         newLocation
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlock(long blockId, String tierAlias)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Frees a block from Alluxio managed space.
-   *
-   * @param blockId the id of the block to be freed
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws BlockDoesNotExistException if block cannot be found
-   */
-  void removeBlock(long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
 }

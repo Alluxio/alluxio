@@ -258,7 +258,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
                   ServerConfiguration.global(), ServerUserState.global()));
     }
 
-    // Start embedded fuse
+    // Mounts embedded Fuse applications
     mFuseManager.start();
   }
 
@@ -576,9 +576,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader getBlockReader(BlockReadRequest request)
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException,
-      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+  public BlockReader getBlockReader(BlockReadRequest request) throws
+      BlockAlreadyExistsException, BlockDoesNotExistException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Update the locking logic so this can be done better
     if (request.isPromote()) {
       try {
@@ -644,7 +644,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     try {
       if (reader != null) {
         reader.close();

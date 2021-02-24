@@ -195,24 +195,8 @@ public final class AlluxioFuse {
       String mntPointValue = cli.getOptionValue("m");
       String alluxioRootValue = cli.getOptionValue("r");
 
-      List<String> fuseOpts = new ArrayList<>();
-      boolean noUserMaxWrite = true;
-      if (cli.hasOption("o")) {
-        String[] fopts = cli.getOptionValues("o");
-        // keep the -o
-        for (final String fopt : fopts) {
-          fuseOpts.add("-o" + fopt);
-          if (noUserMaxWrite && fopt.startsWith("max_write")) {
-            noUserMaxWrite = false;
-          }
-        }
-      }
-      // check if the user has specified his own max_write, otherwise get it
-      // from conf
-      if (noUserMaxWrite) {
-        final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
-        fuseOpts.add(String.format("-omax_write=%d", maxWrite));
-      }
+      List<String> fuseOpts = parseFuseOptions(
+          cli.hasOption("o") ? cli.getOptionValues("o") : new String[0], alluxioConf);
 
       final boolean fuseDebug = alluxioConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
@@ -223,5 +207,31 @@ public final class AlluxioFuse {
       fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
       return null;
     }
+  }
+
+  /**
+   * Parses user given fuse options to the format that Fuse application needs.
+   *
+   * @param fuseOptions the fuse options to parse from
+   * @param alluxioConf alluxio configuration
+   * @return the parsed fuse options
+   */
+  public static List<String> parseFuseOptions(String[] fuseOptions,
+      AlluxioConfiguration alluxioConf) {
+    List<String> res = new ArrayList<>();
+    boolean noUserMaxWrite = true;
+    for (final String opt : fuseOptions) {
+      res.add("-o" + opt);
+      if (noUserMaxWrite && opt.startsWith("max_write")) {
+        noUserMaxWrite = false;
+      }
+    }
+    // check if the user has specified his own max_write, otherwise get it
+    // from conf
+    if (noUserMaxWrite) {
+      final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
+      res.add(String.format("-omax_write=%d", maxWrite));
+    }
+    return res;
   }
 }

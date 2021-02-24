@@ -11,14 +11,13 @@
 
 package alluxio.worker.block.io;
 
-import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.grpc.BlockReadRequest;
 
 import java.io.IOException;
 
@@ -32,7 +31,7 @@ public class LocalBlockWorkerImpl implements LocalBlockWorker {
   /**
    * Constructs a {@link LocalBlockWorkerImpl}.
    *
-   * @param blockWorker the block worker
+   * @param blockWorker the block worker to trigger worker operations from
    */
   public LocalBlockWorkerImpl(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
@@ -40,33 +39,19 @@ public class LocalBlockWorkerImpl implements LocalBlockWorker {
 
   @Override
   public void asyncCache(AsyncCacheRequest request) {
-    // TODO(lu) trigger asyncCache after https://github.com/Alluxio/alluxio/pull/12864 merged
-  }
-
-  @Override
-  public void moveBlock(long blockId, String mediumType) throws BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    mBlockWorker.moveBlock(Sessions.FUSE_SESSION_ID, blockId, mediumType);
-  }
-
-  @Override
-  public void removeBlock(long blockId) throws alluxio.exception.InvalidWorkerStateException,
-      alluxio.exception.BlockDoesNotExistException, java.io.IOException {
-    // TODO(lu) exception handling
-    mBlockWorker.removeBlock(Sessions.FUSE_SESSION_ID, blockId);
+    mBlockWorker.submitAsyncCacheRequest(request);
   }
 
   @Override
   public BlockReader getBlockReader(BlockReadRequest request) throws IOException,
       BlockDoesNotExistException, InvalidWorkerStateException,
       BlockAlreadyExistsException, WorkerOutOfSpaceException {
-    // TODO(lu) modify after https://github.com/Alluxio/alluxio/pull/12838
+    return mBlockWorker.getBlockReader(request);
   }
 
   @Override
-  public void cleanBlockReader(long sessionId, long blockId, BlockReader reader)
+  public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
       throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
-    // TODO(lu) modify after https://github.com/Alluxio/alluxio/pull/12838
+    mBlockWorker.cleanBlockReader(reader, request);
   }
 }

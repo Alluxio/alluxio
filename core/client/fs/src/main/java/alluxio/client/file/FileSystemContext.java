@@ -99,6 +99,12 @@ public class FileSystemContext implements Closeable {
   private final String mId;
 
   /**
+   * The gateway for worker internal clients to call worker operation directly
+   * without going through the external RPC frameworks.
+   */
+  private final LocalBlockWorker mLocalBlockWorker;
+
+  /**
    * Marks whether the context has been closed, closing the context means releasing all resources
    * in the context like clients and thread pools.
    */
@@ -139,12 +145,6 @@ public class FileSystemContext implements Closeable {
    */
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
-
-  /**
-   * The gateway for worker internal clients to call worker operation directly
-   * without going through the RPC framework.
-   */
-  private final LocalBlockWorker mLocalBlockWorker;
 
   /**
    * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
@@ -248,10 +248,11 @@ public class FileSystemContext implements Closeable {
   private FileSystemContext(AlluxioConfiguration conf,
       @Nullable LocalBlockWorker localBlockWorker) {
     mId = IdUtils.createFileSystemContextId();
+    mLocalBlockWorker = localBlockWorker;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
-    mLocalBlockWorker = localBlockWorker;
-    LOG.debug("Created context with id: {}", mId);
+    LOG.debug("Created context with id: {}, with local block worker: {}",
+        mId, mLocalBlockWorker == null);
   }
 
   /**
