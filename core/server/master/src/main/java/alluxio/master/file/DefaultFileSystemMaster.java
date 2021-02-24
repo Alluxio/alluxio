@@ -1104,8 +1104,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
       LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
-      ResultStream<FileInfo> resultStream, int depth, Counter counter) throws FileDoesNotExistException,
-      UnavailableException, AccessControlException, InvalidPathException {
+      ResultStream<FileInfo> resultStream, int depth, Counter counter)
+      throws FileDoesNotExistException, UnavailableException,
+      AccessControlException, InvalidPathException {
     rpcContext.throwIfCancelled();
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
