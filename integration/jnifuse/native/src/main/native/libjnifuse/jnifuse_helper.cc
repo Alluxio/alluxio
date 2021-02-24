@@ -66,7 +66,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   return ret;
 }
 
-jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jobject obj,
+jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
                                                    jlong address, jlong bufaddr,
                                                    jstring name, jobject stbuf,
                                                    jlong off) {

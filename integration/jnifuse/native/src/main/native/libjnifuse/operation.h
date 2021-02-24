@@ -61,10 +61,6 @@ class ReaddirOperation : public Operation {
   ReaddirOperation(JniFuseFileSystem *fs);
   int call(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,
            struct fuse_file_info *fi);
-
- private:
-  jclass fillerclazz;
-  jmethodID fillerconstructor;
 };
 
 class UnlinkOperation : public Operation {
