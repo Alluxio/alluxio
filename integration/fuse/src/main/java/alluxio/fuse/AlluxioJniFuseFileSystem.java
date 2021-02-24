@@ -142,8 +142,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
     SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-    ByteBuffer buffer = this.getLibFuse().fuse_get_context();
-    FuseContext fc = FuseContext.of(buffer);
+    FuseContext fc = getContext();
     long uid = fc.uid.get();
     long gid = fc.gid.get();
     if (gid != DEFAULT_GID) {
@@ -260,22 +259,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int readdir(String path, long buff, FuseFillDir filter, long offset,
+  public int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "readdir", "path=%s,buf=%s", path, buff);
   }
 
-  private int readdirInternal(String path, long buff, FuseFillDir filter, long offset,
+  private int readdirInternal(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       // standard . and .. entries
-      filter.apply(buff, ".", null, 0);
-      filter.apply(buff, "..", null, 0);
+      FuseFillDir.apply(filter, buff, ".", null, 0);
+      FuseFillDir.apply(filter, buff, "..", null, 0);
 
       mFileSystem.iterateStatus(uri, file -> {
-        filter.apply(buff, file.getName(), null, 0);
+        FuseFillDir.apply(filter, buff, file.getName(), null, 0);
       });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);
