@@ -3886,6 +3886,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           try (LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.READ)) {
             uri = inodePath.getUri();
+          } catch (FileDoesNotExistException e) {
+            LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
+                + "removed by users : {}", fileId, e.getMessage());
+            continue;
           }
           try {
             checkUfsMode(uri, OperationType.WRITE);
