@@ -129,12 +129,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private AtomicReference<Long> mWorkerId;
 
-<<<<<<< HEAD
-  private final FuseManager mFuseManager;
-||||||| merged common ancestors
-=======
   private final AsyncCacheRequestManager mAsyncCacheManager;
->>>>>>> 5fdfc4a3c4d4411137e57feb4e35c725e45eff35
+  private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
 
   /**
@@ -173,13 +169,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
-<<<<<<< HEAD
-    mFuseManager = mResourceCloser.register(new FuseManager(this));
-||||||| merged common ancestors
-=======
     mAsyncCacheManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
->>>>>>> 5fdfc4a3c4d4411137e57feb4e35c725e45eff35
+    mFuseManager = mResourceCloser.register(new FuseManager(this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
