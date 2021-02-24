@@ -709,13 +709,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         .setRecursive(true)
         .setCommonOptions(FileSystemOptions.commonDefaults(
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
-    // All first level directories are synced.
-    assertEquals(103, status.size());
+    final int TOTAL_FILE_COUNT = 20103;
+    assertTrue(status.size() < TOTAL_FILE_COUNT);
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
         .setRecursive(true)
         .setCommonOptions(FileSystemOptions.commonDefaults(
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
-    assertEquals(20103, status.size());
+    assertEquals(TOTAL_FILE_COUNT, status.size());
   }
 
   @LocalAlluxioClusterResource.Config(
