@@ -876,8 +876,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           FileInfo fileInfo = getFileInfoInternal(inodePath);
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(
-                resolution.getMountId()).getUfsUri().toString(),
+            Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                 Metrics.UFSOps.GET_FILE_INFO).dec();
           }
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
@@ -894,11 +893,16 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+      throws UnavailableException, FileDoesNotExistException {
+    return getFileInfoInternal(inodePath, null);
+  }
+
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter)
       throws FileDoesNotExistException, UnavailableException {
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
@@ -946,9 +950,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
     fileInfo.setMountId(resolution.getMountId());
-    Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
-            .getUfsUri().toString(),
-        Metrics.UFSOps.GET_FILE_INFO).inc();
+    if (counter == null) {
+      Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+          Metrics.UFSOps.GET_FILE_INFO).inc();
+    } else {
+      counter.inc();
+    }
+
     Metrics.FILE_INFOS_GOT.inc();
     return fileInfo;
   }
@@ -1046,21 +1054,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           auditContext.setSrcInode(inodePath.getInode());
+          MountTable.Resolution resolution;
           if (!context.getOptions().hasLoadMetadataOnly()
               || !context.getOptions().getLoadMetadataOnly()) {
             DescendantType descendantTypeForListStatus =
                 (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
+            try {
+              resolution = mMountTable.resolve(path);
+            } catch (InvalidPathException e) {
+              throw new FileDoesNotExistException(e.getMessage(), e);
+            }
             listStatusInternal(context, rpcContext, inodePath, auditContext,
-                descendantTypeForListStatus, resultStream, 0);
+                descendantTypeForListStatus, resultStream, 0,
+                Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+                    Metrics.UFSOps.GET_FILE_INFO));
+            if (!ufsAccessed) {
+              Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+                  Metrics.UFSOps.LIST_STATUS).inc();
+            }
           }
           auditContext.setSucceeded(true);
           Metrics.FILE_INFOS_GOT.inc();
-          if (!ufsAccessed) {
-            MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-            Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
-                    .getUfsUri().toString(),
-                Metrics.UFSOps.LIST_STATUS).inc();
-          }
         }
       }
     }
@@ -1090,8 +1104,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
       LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
-      ResultStream<FileInfo> resultStream, int depth) throws FileDoesNotExistException,
-      UnavailableException, AccessControlException, InvalidPathException {
+      ResultStream<FileInfo> resultStream, int depth, Counter counter)
+      throws FileDoesNotExistException, UnavailableException,
+      AccessControlException, InvalidPathException {
     rpcContext.throwIfCancelled();
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
@@ -1124,7 +1139,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
           listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
-              resultStream, depth + 1);
+              resultStream, depth + 1, counter);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
@@ -1133,7 +1148,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
     // Listing a directory should not emit item for the directory itself.
     if (depth != 0 || inode.isFile()) {
-      resultStream.submit(getFileInfoInternal(currInodePath));
+      resultStream.submit(getFileInfoInternal(currInodePath, counter));
     }
   }
 
@@ -1563,8 +1578,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     } else {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
-          .getUfsUri().toString(), Metrics.UFSOps.CREATE_FILE).inc();
+      Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+          Metrics.UFSOps.CREATE_FILE).inc();
     }
     Metrics.FILES_CREATED.inc();
     return created;
@@ -1840,8 +1855,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
         if (deleteContext.getOptions().getAlluxioOnly()) {
-          Metrics.getUfsOpsSavedCounter(mMountTable.getMountInfo(resolution.getMountId())
-                  .getUfsUri().toString(), Metrics.UFSOps.DELETE_FILE).inc();
+          Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+              Metrics.UFSOps.DELETE_FILE).inc();
         }
       }
 
@@ -4402,7 +4417,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
-    private static final Map<String, Map<UFSOps, Counter>> SAVED_UFS_OPS
+    private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
 
     /**
@@ -4422,13 +4437,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
     /**
      * Get operations saved per ufs counter.
      *
-     * @param ufsPath ufsPath
+     * @param ufsUri ufsUri
      * @param ufsOp ufs operation
      * @return the counter object
      */
     @VisibleForTesting
-    public static Counter getUfsOpsSavedCounter(String ufsPath, UFSOps ufsOp) {
-      return SAVED_UFS_OPS.compute(ufsPath, (k, v) -> {
+    public static Counter getUfsOpsSavedCounter(AlluxioURI ufsUri, UFSOps ufsOp) {
+      return SAVED_UFS_OPS.compute(ufsUri, (k, v) -> {
         if (v != null) {
           return v;
         } else {
@@ -4440,7 +4455,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } else {
           return MetricsSystem.counter(
               Metric.getMetricNameWithTags(UFS_OP_SAVED_PREFIX + ufsOp.name(),
-              MetricInfo.TAG_UFS, MetricsSystem.escape(new AlluxioURI(ufsPath))));
+              MetricInfo.TAG_UFS, MetricsSystem.escape(ufsUri)));
         }
       });
     }
