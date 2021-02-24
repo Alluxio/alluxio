@@ -24,7 +24,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.AlluxioFuseOptions;
+import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -87,7 +87,7 @@ public class FuseFileSystemIntegrationTest {
         .createTemporaryDirectory("FuseMountPoint").getAbsolutePath();
     sAlluxioRoot = "/";
 
-    AlluxioFuseOptions options = new AlluxioFuseOptions(sMountPoint,
+    FuseMountOptions options = new FuseMountOptions(sMountPoint,
         sAlluxioRoot, false, new ArrayList<>());
     sFuseFileSystem = new AlluxioFuseFileSystem(sFileSystem, options,
         ServerConfiguration.global());

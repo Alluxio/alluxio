@@ -151,7 +151,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
     super();
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
