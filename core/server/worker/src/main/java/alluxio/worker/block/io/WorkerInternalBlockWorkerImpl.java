@@ -31,7 +31,7 @@ public class WorkerInternalBlockWorkerImpl implements WorkerInternalBlockWorker 
   /**
    * Constructs a {@link WorkerInternalBlockWorkerImpl}.
    *
-   * @param blockWorker the block worker to trigger worker operations from
+   * @param blockWorker the block worker to trigger worker operations
    */
   public WorkerInternalBlockWorkerImpl(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;

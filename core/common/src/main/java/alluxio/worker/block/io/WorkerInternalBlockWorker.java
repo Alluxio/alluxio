@@ -39,12 +39,6 @@ public interface WorkerInternalBlockWorker {
    *
    * @param request the block read request
    * @return a block reader to read data from
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store after opening the ufs block reader
-   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
-   * @throws WorkerOutOfSpaceException if there is no enough space
-   * @throws IOException if it fails to get block reader
    */
   BlockReader getBlockReader(BlockReadRequest request) throws IOException,
       BlockDoesNotExistException, InvalidWorkerStateException,
@@ -56,10 +50,6 @@ public interface WorkerInternalBlockWorker {
    *
    * @param reader to be cleaned block reader
    * @param request the block read request
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store when closing the ufs block
-   * @throws WorkerOutOfSpaceException if there is not enough space
-   * @throws IOException if it fails to get block reader
    */
   void cleanBlockReader(BlockReader reader, BlockReadRequest request)
       throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException;

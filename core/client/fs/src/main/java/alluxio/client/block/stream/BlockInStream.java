@@ -119,7 +119,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
-    if (sourceIsLocal && context.acquireLocalBlockWorkerClient() != null) {
+    if (sourceIsLocal && context.acquireWorkerInternalBlockWorkerClient() != null) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
       return createWorkerInternalBlockInStream(context, dataSource, blockId, blockSize, options);

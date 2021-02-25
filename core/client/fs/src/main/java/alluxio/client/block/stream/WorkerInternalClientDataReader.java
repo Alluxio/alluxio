@@ -120,7 +120,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .fromProto(options.getOptions().getReadType()).isPromote();
       mReadRequestPartial = ReadRequest.newBuilder()
           .setBlockId(blockId).setPromote(isPromote).build();
-      mWorkerInternalBlockWorker = context.acquireLocalBlockWorkerClient();
+      mWorkerInternalBlockWorker = context.acquireWorkerInternalBlockWorkerClient();
     }
 
     @Override

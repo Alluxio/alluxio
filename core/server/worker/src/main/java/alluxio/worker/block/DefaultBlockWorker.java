@@ -258,7 +258,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
                   ServerConfiguration.global(), ServerUserState.global()));
     }
 
-    // Mounts embedded Fuse applications
+    // Mounts the embedded Fuse application if configured
     mFuseManager.start();
   }
 
