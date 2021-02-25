@@ -68,6 +68,8 @@ alluxio.worker.master.connect.retry.timeout:
   'Retry period before workers give up on connecting to master and exit.'
 alluxio.worker.master.periodical.rpc.timeout:
   'Timeout for periodical RPC between workers and the leading master. This property is added to prevent workers from hanging in periodical RPCs with previous leading master during flaky network situations. If the timeout is too short, periodical RPCs may not have enough time to get response from the leading master during heavy cluster load and high network latency.'
+alluxio.worker.network.async.cache.manager.queue.max:
+  'The maximum number of outstanding async caching requests to cache blocks in each data server'
 alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:
@@ -107,7 +109,7 @@ alluxio.worker.network.zerocopy.enabled:
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.ramdisk.size:
-  'Memory capacity of each worker node.'
+  'Memory capacity of each worker node. It is recommended to set this value explicitly.'
 alluxio.worker.remote.io.slow.threshold:
   'The time threshold for when a worker remote IO (read or write) of a single buffer is considered slow. When slow IO occurs, it is logged by a sampling logger.'
 alluxio.worker.reviewer.class:
