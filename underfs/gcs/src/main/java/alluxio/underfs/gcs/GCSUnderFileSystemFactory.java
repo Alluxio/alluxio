@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -29,12 +30,13 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link GCSUnderFileSystem}. It will ensure Google credentials are present
- * before returning a client. The validity of the credentials is checked by the client.
+ * Factory for creating {@link GCSUnderFileSystem} or {@link GCSV2UnderFileSystem}
+ * based on the {@link PropertyKey#UNDERFS_GCS_VERSION}.
  */
 @ThreadSafe
 public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(GCSUnderFileSystemFactory.class);
+  private static final String GCS_VERSION_TWO = "2";
 
   /**
    * Constructs a new {@link GCSUnderFileSystemFactory}.
@@ -45,7 +47,14 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
-    if (checkGoogleCredentials(conf)) {
+    if (conf.get(PropertyKey.UNDERFS_GCS_VERSION).equals(GCS_VERSION_TWO)) {
+      try {
+        return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
+      } catch (IOException e) {
+        LOG.error("Failed to create GCSV2UnderFileSystem.", e);
+        throw Throwables.propagate(e);
+      }
+    } else {
       try {
         return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (ServiceException e) {
@@ -53,23 +62,10 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
         throw Throwables.propagate(e);
       }
     }
-
-    String err = "Google Credentials not available, cannot create GCS Under File System.";
-    throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_GCS);
-  }
-
-  /**
-   * @param conf optional configuration object for the UFS
-   *
-   * @return true if both access and secret key are present, false otherwise
-   */
-  private boolean checkGoogleCredentials(UnderFileSystemConfiguration conf) {
-    return conf.isSet(PropertyKey.GCS_ACCESS_KEY)
-        && conf.isSet(PropertyKey.GCS_SECRET_KEY);
   }
 }

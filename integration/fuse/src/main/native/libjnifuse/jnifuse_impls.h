@@ -17,20 +17,21 @@
 #endif
 #include <fuse.h>
 
+int chmod_wrapper(const char *path, mode_t mode);
+int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
+int flush_wrapper(const char *path, struct fuse_file_info *fi);
 int getattr_wrapper(const char *path, struct stat *stbuf);
+int mkdir_wrapper(const char *path, mode_t mode);
 int open_wrapper(const char *path, struct fuse_file_info *fi);
 int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
                  struct fuse_file_info *fi);
 int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
                     off_t offset, struct fuse_file_info *fi);
-int unlink_wrapper(const char *path);
-int flush_wrapper(const char *path, struct fuse_file_info *fi);
 int release_wrapper(const char *path, struct fuse_file_info *fi);
-int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
-int mkdir_wrapper(const char *path, mode_t mode);
+int rename_wrapper(const char *oldPath, const char *newPath);
 int rmdir_wrapper(const char *path);
+int unlink_wrapper(const char *path);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
-int rename_wrapper(const char *oldPath, const char *newPath);
 
 #endif  // FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_

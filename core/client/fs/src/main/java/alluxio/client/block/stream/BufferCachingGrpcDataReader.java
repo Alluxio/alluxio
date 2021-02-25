@@ -22,6 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,8 @@ public class BufferCachingGrpcDataReader {
   private final ReentrantReadWriteLock mBufferLocks = new ReentrantReadWriteLock();
 
   /** The next pos to read. */
-  private long mPosToRead;
+  @VisibleForTesting
+  protected long mPosToRead;
 
   /**
    * Creates an instance of {@link BufferCachingGrpcDataReader}.
@@ -72,7 +74,8 @@ public class BufferCachingGrpcDataReader {
    * @param readRequest the read request
    * @param stream the underlying gRPC stream to read data
    */
-  private BufferCachingGrpcDataReader(WorkerNetAddress address,
+  @VisibleForTesting
+  protected BufferCachingGrpcDataReader(WorkerNetAddress address,
       CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
       ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
@@ -121,7 +124,8 @@ public class BufferCachingGrpcDataReader {
    * @return a chunk of data
    */
   @Nullable
-  private DataBuffer readChunk() throws IOException {
+  @VisibleForTesting
+  protected DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;

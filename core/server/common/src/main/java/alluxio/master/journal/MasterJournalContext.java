@@ -15,12 +15,14 @@ import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import org.apache.ratis.protocol.NotLeaderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +80,14 @@ public final class MasterJournalContext implements JournalContext {
       } catch (NotLeaderException | JournalClosedException e) {
         throw new UnavailableException(String.format("Failed to complete request: %s",
             e.getMessage()), e);
+      } catch (AlluxioStatusException e) {
+        // Note that we cannot actually cancel the journal flush because it could be partially
+        // written already
+        if (e.getStatus().equals(Status.CANCELLED)) {
+          LOG.warn("Journal flush interrupted because the RPC was cancelled. ", e);
+        } else {
+          LOG.warn("Journal flush failed. retrying...", e);
+        }
       } catch (IOException e) {
         LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
