@@ -171,7 +171,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mUfsManager = ufsManager;
     mAsyncCacheManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
-    mFuseManager = mResourceCloser.register(new FuseManager(this));
+    mFuseManager = new FuseManager(this);
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);

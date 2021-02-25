@@ -22,13 +22,12 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.util.List;
 
 /**
  * The Fuse manager that is responsible for managing the Fuse application lifecycle.
  */
-public class FuseManager implements Closeable {
+public class FuseManager {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private final LocalBlockWorkerImpl mLocalBlockWorker;
   private final FileSystemContext mFsContext;
@@ -63,17 +62,12 @@ public class FuseManager implements Closeable {
     FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
         ServerConfiguration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
     try {
-      // TODO(lu) consider launching fuse blocking in a separate thread! so that we can also knows when it dies
+      // TODO(lu) consider launching fuse in a separate thread as blocking operation
+      // so that we can know about the fuse application status
       AlluxioFuse.launchFuse(mFsContext, options, false);
     } catch (Throwable throwable) {
-      // TODO(lu) test what if fuse application error out in the middle, will it affect worker
-      // TODO(lu) what if the fuse is already mounted and didn't be closed properly in the previous worker shutdown
+      // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);
     }
-  }
-
-  @Override
-  public void close() {
-    // TODO(lu) we rely on JVM shutdown hook to close the fuse application
   }
 }
