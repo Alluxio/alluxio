@@ -40,17 +40,17 @@ with the largest deployment exceeding 1,500 nodes.
 Alluxio helps overcome the obstacles in extracting insight from data by simplifying how applications
 access their data, regardless of format or location. The benefits of Alluxio include:
 
-* **Memory-Speed I/O**: Alluxio can be used as a distributed shared caching service so that compute
+* **Memory-Speed I/O**: Alluxio can be used as a distributed shared caching service so compute
 applications talking to Alluxio can transparently cache frequently accessed data, especially from
-remote locations, to provide in-memory I/O throughput. In addition, Alluxio's tiered storage that
-can utilize memory, SSD or disk makes elastically scale data-driven applications cost effective.
+remote locations, to provide in-memory I/O throughput. In addition, Alluxio's tiered storage which
+can leverage both memory and disk (SSD/HDD) makes elastically scaling data-driven applications cost effective.
 
 * **Simplified Cloud and Object Storage Adoption**: Cloud and object storage systems use different
 semantics that have performance implications compared to traditional file systems. Common file
 system operations such as directory listing and renaming often incur significant performance
 overhead. When accessing data in cloud storage, applications have no node-level locality or
-cross-application caching. Deploying Alluxio with cloud or object storage mitigates these problems
-because data will be retrieved from Alluxio instead of the underlying cloud or object storage.
+cross-application caching. Deploying Alluxio with cloud or object storage mitigates these
+problems by serving data from Alluxio instead of the underlying cloud or object storage.
 
 * **Simplified Data Management**: Alluxio provides a single point of access to multiple data
 sources. In addition to connecting data sources of different types, Alluxio also enables users to
@@ -60,7 +60,7 @@ of HDFS, without complex system configuration and management.
 * **Easy Application Deployment**: Alluxio manages communication between applications and file or
 object storages, translating data access requests from applications into underlying
 storage interfaces. Alluxio is Hadoop compatible. Existing data analytics applications, such as
-Spark and MapReduce programs, can run on top of Alluxio without any code change.
+Spark and MapReduce programs, can run on top of Alluxio without any code changes.
 
 ## Technical Innovations
 
@@ -92,13 +92,11 @@ To quickly get Alluxio up and running, take a look at our
 [Getting Started]({{ '/en/overview/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
-Also try our getting started tutorials for Presto & Alluxio via:
+Also try our getting started tutorial for Presto & Alluxio via:
 
 <p align="center">
 <a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-<a href="https://www.alluxio.io/products/aws/alluxio-presto-sandbox-aws/">
- <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
 ## Downloads and Useful Resources

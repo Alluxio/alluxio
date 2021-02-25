@@ -11,17 +11,26 @@
 
 package alluxio.jnifuse.struct;
 
+import jnr.ffi.Runtime;
+
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 // TODO(iluoeli): Add more fields
-public class FuseContext extends Struct {
+public class FuseContext extends ru.serce.jnrfuse.struct.FuseContext {
+  private final ByteBuffer buffer;
 
-  public final Unsigned32 uid = new Unsigned32();
-  public final Unsigned32 gid = new Unsigned32();
-
-  public FuseContext(ByteBuffer buffer) {
-    super(buffer);
+  public FuseContext(Runtime runtime, ByteBuffer buffer) {
+    super(runtime);
+    this.buffer = buffer;
+    // depends on the arch
+    this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
 
-
+  public static FuseContext of(ByteBuffer buffer) {
+    Runtime runtime = Runtime.getSystemRuntime();
+    FuseContext context = new FuseContext(runtime, buffer);
+    context.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
+    return context;
+  }
 }

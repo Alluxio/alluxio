@@ -50,7 +50,8 @@ Here are the documentation to configure individual application logs including
 
 ## Configuring Log Levels
 
-Alluxio uses the following four logging levels:
+Alluxio uses the following five logging levels:
+- `TRACE`: verbose information, only useful for debugging a certain method or class
 - `DEBUG`: fine-grained information, most useful for debugging purpose.
 - `INFO`: messages that highlight the status of progress.
 - `WARN`: potentially harmful events that users may need to know but the process will still continue running.
@@ -86,16 +87,8 @@ runtime.
 The Alluxio shell comes with a `logLevel` command that returns the current value of
 or updates the log level of a particular class on specific instances.
 Users are able to change Alluxio server-side log levels at runtime.
-
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
-where:
-* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
-* `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
-The `host:webPort` format can only be used when referencing a worker.
-The default target value is all masters and workers.
-* `--level <arg>` If provided, the command changes to the given logger level,
-otherwise it returns the current logger level.
+See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }})
+for the command options.
 
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
@@ -123,13 +116,11 @@ Furthermore, you can turn on Alluxio debug logging when you are troubleshooting 
 in a running cluster, and turn it off when you are done.
 ```console
 # Turn on Alluxio debug logging and start debugging
-$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=DEBUG
+$ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 
 # Turn off Alluxio debug logging when you are done
-$ ./bin/alluxio logLevel --logName=alluxio --target=master,workers --level=INFO
+$ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
-
-For more information, refer to the help text of the `logLevel` command by running `./bin/alluxio logLevel`
 
 ## Enabling Advanced Logging
 
@@ -222,6 +213,9 @@ $ ./bin/alluxio logLevel \
 --target master --level=DEBUG
 ```
 
+Similarly, you can update the log level for these classes in the `conf/log4j.properties` file.
+You need to restart the relevant processes for the log4j properties to take effect.
+
 ### Logging UnderFileSystem Operations
 
 Sometimes it can be useful to log all operations on under storage. 
@@ -242,6 +236,9 @@ You can see operations in corresponding master or worker logs like below:
 2020-06-02 11:28:21,824 DEBUG UnderFileSystemWithLogging - Exit (OK): GetSpace: path=/opt/alluxio/underFSStorage, type=SPACE_USED
 ```
 
+Similarly, you can update the log level for these classes in the `conf/log4j.properties` file.
+You need to restart the relevant processes for the log4j properties to take effect.
+
 ### Identifying Expensive Client RPCs / FUSE calls
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
@@ -261,4 +258,27 @@ Example results are:
 FREE_BYTES, CAPACITY_BYTES]) returned BlockMasterInfo{capacityBytes=11453246122,
 capacityBytesOnTiers={}, freeBytes=11453237930, liveWorkerNum=0, lostWorkerNum=0, usedBytes=8192, usedBytesOnTiers={}} in 600 ms
 2020-03-08 23:40:44,374 WARN  AlluxioFuseFileSystem - statfs(path=/) returned 0 in 1200 ms
+```
+
+### Redirecting debug log for certain classes
+
+Sometimes it is useful to separate the log for certain classes to a separate log.
+This can be useful for reasons including but not limited to:
+1. Clearly separate the wanted logs for further analysis.
+1. Avoid `master.log` or `worker.log` being too big or have too many files created by log rotation.
+1. Use a separate logger to send logs to a remote endpoint like a socket.
+
+This can be achieved by adding a separate logger in the `conf/log4j.properties`.
+For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
+so the `master.log` will not be full of the DEBUG logs created by `alluxio.master.StateLockManager`.
+
+```properties
+log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
+log4j.additivity.alluxio.master.StateLockManager=false
+log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
+log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB
+log4j.appender.State_LOCK_LOGGER.MaxBackupIndex=100
+log4j.appender.State_LOCK_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```

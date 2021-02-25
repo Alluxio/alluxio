@@ -56,8 +56,8 @@ public class StackFS extends AbstractFuseFileSystem {
     return mRoot + path;
   }
 
-  private long getMode(Path path) {
-    long mode = 0;
+  private int getMode(Path path) {
+    int mode = 0;
     if (Files.isDirectory(path)) {
       mode |= FileStat.S_IFDIR;
     } else {
@@ -95,7 +95,7 @@ public class StackFS extends AbstractFuseFileSystem {
       stat.st_uid.set(uid);
       stat.st_gid.set(gid);
 
-      long mode = getMode(filePath);
+      int mode = getMode(filePath);
       stat.st_mode.set(mode);
     } catch (Exception e) {
       e.printStackTrace();

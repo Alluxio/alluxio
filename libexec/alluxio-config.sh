@@ -151,6 +151,12 @@ if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; t
     ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_WORKER_LOGGER"
 fi
 
+# FUSE specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT+=" -Djava.library.path=${ALLUXIO_HOME}/lib"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT+=" -Dalluxio.logger.type=FUSE_LOGGER"
+ALLUXIO_FUSE_JAVA_OPTS="${ALLUXIO_FUSE_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS}"
+
 # Log server specific parameters that will be passed to alluxio log server
 ALLUXIO_LOGSERVER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.logserver.logger.type=LOGSERVER_LOGGER"

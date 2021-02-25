@@ -175,6 +175,8 @@ var (
 	relativeLinkRe = regexp.MustCompile(`\[.+\]\({{.*}}(#.+)?\)`)
 	// path encapsulated in ' ' could have an optional search query "?q=queryStr" and/or an optional anchor reference "#anchor"
 	relativeLinkPagePathRe = regexp.MustCompile(`\[.+\]\({{ '(?P<path>[\w-./]+)(\?q=\w+)?(#.+)?' | relativize_url }}\)`)
+	// accordion header must not contain a space in the header name
+	accordionHeaderRe = regexp.MustCompile(`{% accordion (?P<name>.*) %}`)
 )
 
 // checkFile parses the given markdown file and appends errors found in its contents
@@ -199,6 +201,7 @@ func checkFile(mdFile string, ctx *checkContext) error {
 				headers.Write([]byte(l + "\n"))
 			}
 		}
+
 		if relativeLinkRe.MatchString(l) {
 			for _, lineMatches := range relativeLinkRe.FindAllStringSubmatch(l, -1) {
 				if len(lineMatches) < 1 {
@@ -222,6 +225,19 @@ func checkFile(mdFile string, ctx *checkContext) error {
 					line: i,
 					path: namedMatch,
 				})
+			}
+		} else if accordionHeaderRe.MatchString(l) {
+			accordionHeaderMatches := accordionHeaderRe.FindStringSubmatch(l)
+			if len(accordionHeaderMatches) < 2 {
+				return fmt.Errorf("expected to find at least two string submatches but found %d = %v in link %v", len(accordionHeaderMatches), accordionHeaderMatches, l)
+			}
+			// note that first is the full match, second is the named match
+			namedMatch := accordionHeaderMatches[1]
+			if namedMatch == "" {
+				return fmt.Errorf("encountered empty named match when parsing accordion header from %v", l)
+			}
+			if strings.Contains(namedMatch, " ") {
+				return fmt.Errorf("accordion header %v on line %v in file %v must not contain a space", l, i, mdFile	)
 			}
 		}
 	}
