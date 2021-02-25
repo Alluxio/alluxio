@@ -49,7 +49,7 @@ The number of data replicas within Alluxio storage is determined dynamically by 
 Due to the fact that Alluxio relies on the under file storage for a majority of data storage,
 Alluxio does not need to keep copies of data that are not being used.
 
-Alluxio also supports tiered storage configurations such as  memory, SSD, and HDD tiers which can
+Alluxio also supports tiered storage configurations such as memory, SSD, and HDD tiers which can
 make the storage system media aware.
 This enables decreased fetching latencies similar to how L1/L2 CPU caches operate.
 
