@@ -2693,6 +2693,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_ENABLED =
+      new Builder(Name.WORKER_FUSE_MOUNT_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, mount the worker internal FUSE application.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
       new Builder(Name.WORKER_FUSE_MOUNT_OPTIONS)
           .setDefaultValue("")
@@ -2704,10 +2711,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
       new Builder(Name.WORKER_FUSE_MOUNT_POINT)
-          .setDefaultValue("")
+          .setDefaultValue(String.format("${%s}/fuseMount", Name.WORK_DIR))
           .setDescription("The absolute local filesystem path that this worker will "
-              + "mount Alluxio path to. If am empty string is provided, "
-              + "no Fuse application will be mounted by this worker.")
+              + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5520,6 +5526,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.step.factor";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.worker.fuse.mount.alluxio.path";
+    public static final String WORKER_FUSE_MOUNT_ENABLED =
+        "alluxio.worker.fuse.mount.enabled";
     public static final String WORKER_FUSE_MOUNT_OPTIONS =
         "alluxio.worker.fuse.mount.options";
     public static final String WORKER_FUSE_MOUNT_POINT =

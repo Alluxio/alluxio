@@ -46,8 +46,13 @@ public class FuseManager {
    * Starts mounting the internal Fuse applications.
    */
   public void start() {
+    if (!ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_MOUNT_ENABLED)) {
+      return;
+    }
     String fuseMount = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_POINT);
     if (fuseMount.isEmpty()) {
+      LOG.error("Failed to launch worker internal Fuse application. {} should not be empty.",
+          PropertyKey.WORKER_FUSE_MOUNT_POINT.getName());
       return;
     }
     String alluxioPath = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
@@ -56,6 +61,8 @@ public class FuseManager {
           PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH.getName());
       return;
     }
+    // TODO(lu) check if the given fuse mount point exists
+    // create the folder is does not exist
     try {
       String fuseOptsString = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
       List<String> fuseOptions = AlluxioFuse.parseFuseOptions(
