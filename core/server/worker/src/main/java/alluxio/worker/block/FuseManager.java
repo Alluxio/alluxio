@@ -54,7 +54,6 @@ public class FuseManager {
     Preconditions.checkArgument(!alluxioPath.isEmpty(),
         String.format("%s should not be an empty string",
             PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH));
-    LOG.info("Start mounting Fuse application.");
     String fuseOptsString = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
     List<String> fuseOptions = AlluxioFuse.parseFuseOptions(
         fuseOptsString.isEmpty() ? new String[0] : fuseOptsString.split(","),
