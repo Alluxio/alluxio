@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.Metric;
@@ -30,6 +32,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -52,7 +55,8 @@ import javax.annotation.Nullable;
  */
 public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
-
+  private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
+      .getMs(PropertyKey.UNDERFS_LOGGING_THRESHOLD);
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
@@ -1203,14 +1207,27 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     String methodName = callable.methodName();
+    long startMs = System.currentTimeMillis();
+    long durationMs;
     LOG.debug("Enter: {}: {}", methodName, callable);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
-      LOG.debug("Exit (OK): {}: {}", methodName, callable);
+      durationMs = System.currentTimeMillis() - startMs;
+      LOG.debug("Exit (OK): {}({}) in {} ms", methodName, callable, durationMs);
+      if (durationMs >= THRESHOLD) {
+        LOG.warn("{}({}) returned OK in {} ms (>={} ms)", methodName,
+            callable, durationMs, THRESHOLD);
+      }
       return ret;
     } catch (IOException e) {
+      durationMs = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      LOG.debug("Exit (Error): {}: {}, Error={}", methodName, callable, e.getMessage());
+      LOG.debug("Exit (Error): {}({}) in {} ms, Error={}",
+          methodName, callable, e.getMessage(), durationMs);
+      if (durationMs >= THRESHOLD) {
+        LOG.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+            callable, e.getMessage(), durationMs, THRESHOLD);
+      }
       throw e;
     }
   }
