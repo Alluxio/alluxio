@@ -16,7 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
-import alluxio.worker.block.io.LocalBlockWorkerImpl;
+import alluxio.worker.block.io.WorkerInternalBlockWorkerImpl;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class FuseManager {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
-  private final LocalBlockWorkerImpl mLocalBlockWorker;
+  private final WorkerInternalBlockWorkerImpl mLocalBlockWorker;
   private final FileSystemContext mFsContext;
 
   /**
@@ -38,7 +38,7 @@ public class FuseManager {
    * @param blockWorker the block worekr
    */
   public FuseManager(BlockWorker blockWorker) {
-    mLocalBlockWorker = new LocalBlockWorkerImpl(blockWorker);
+    mLocalBlockWorker = new WorkerInternalBlockWorkerImpl(blockWorker);
     mFsContext = FileSystemContext.create(null, ServerConfiguration.global(), mLocalBlockWorker);
   }
 

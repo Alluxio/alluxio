@@ -24,7 +24,7 @@ import java.io.IOException;
  * An interface for worker internal clients to interact with worker operations directly
  * without going through external RPC frameworks.
  */
-public interface LocalBlockWorker {
+public interface WorkerInternalBlockWorker {
 
   /**
    * Submits the async cache request to the worker to execute.

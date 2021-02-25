@@ -393,25 +393,35 @@ public class AlluxioFileInStream extends FileInStream {
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();
     if (cache && (mLastBlockIdCached != blockId)) {
+      // Construct the async cache request
+      long blockLength = mOptions.getBlockInfo(blockId).getLength();
+      AsyncCacheRequest request =
+          AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+              .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+              .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
+              .build();
+
+      if (mPassiveCachingEnabled && mContext.acquireWorkerInternalBlockWorkerClient() != null) {
+        try {
+          mContext.acquireWorkerInternalBlockWorkerClient().asyncCache(request);
+          mLastBlockIdCached = blockId;
+        } catch (Exception e) {
+          LOG.warn("Failed to complete async cache request for block {} of file {} "
+              + "at local worker: {}", blockId, mStatus.getPath(), e.getMessage());
+        }
+        return;
+      }
+
       WorkerNetAddress worker;
       if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
         worker = mContext.getLocalWorker();
       } else { // send request to data source
         worker = dataSource;
       }
-      try {
-        // Construct the async cache request
-        long blockLength = mOptions.getBlockInfo(blockId).getLength();
-        AsyncCacheRequest request =
-            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
-                .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
-                .build();
-        try (CloseableResource<BlockWorkerClient> blockWorker =
-                 mContext.acquireBlockWorkerClient(worker)) {
-          blockWorker.get().asyncCache(request);
-          mLastBlockIdCached = blockId;
-        }
+      try (CloseableResource<BlockWorkerClient> blockWorker =
+        mContext.acquireBlockWorkerClient(worker)) {
+        blockWorker.get().asyncCache(request);
+        mLastBlockIdCached = blockId;
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} of file {} at worker {}: {}",
             blockId, mStatus.getPath(), worker, e.getMessage());

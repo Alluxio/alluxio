@@ -25,15 +25,15 @@ import java.io.IOException;
  * This class enables worker internal applications to call the worker operations directly
  * without going through the external RPC frameworks.
  */
-public class LocalBlockWorkerImpl implements LocalBlockWorker {
+public class WorkerInternalBlockWorkerImpl implements WorkerInternalBlockWorker {
   private final BlockWorker mBlockWorker;
 
   /**
-   * Constructs a {@link LocalBlockWorkerImpl}.
+   * Constructs a {@link WorkerInternalBlockWorkerImpl}.
    *
    * @param blockWorker the block worker to trigger worker operations from
    */
-  public LocalBlockWorkerImpl(BlockWorker blockWorker) {
+  public WorkerInternalBlockWorkerImpl(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
   }
 

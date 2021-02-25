@@ -52,7 +52,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    LOCAL, REMOTE, UFS
+    // Reads from local worker or reads from local worker storage directly
+    LOCAL,
+    REMOTE,
+    UFS
   }
 
   private final WorkerNetAddress mAddress;
@@ -147,8 +150,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
-   * Creates a {@link BlockInStream} to read from the the local worker storage
-   * directly without RPC involves.
+   * Creates a {@link BlockInStream} to read from the worker this client embedded into
+   * directly without RPC involves, if the block does not exist in this worker, will read from
+   * the UFS storage via this worker.
    *
    * @param context the file system context
    * @param address the network address of the gRPC data server to read from
@@ -160,7 +164,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createWorkerInternalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
     long chunkSize = context.getClusterConf().getBytes(
-        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+        PropertyKey.USER_WORKER_INTERNAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new WorkerInternalClientDataReader.Factory(context, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
@@ -179,6 +183,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
+    // TODO(lu) should i change this property key?
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(

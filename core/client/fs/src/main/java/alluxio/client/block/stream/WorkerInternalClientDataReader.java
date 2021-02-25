@@ -21,7 +21,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalBlockWorker;
+import alluxio.worker.block.io.WorkerInternalBlockWorker;
 
 import com.google.common.base.Preconditions;
 
@@ -96,7 +96,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
    */
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
-    private final LocalBlockWorker mLocalBlockWorker;
+    private final WorkerInternalBlockWorker mWorkerInternalBlockWorker;
     private final long mChunkSize;
 
     private BlockReader mReader;
@@ -120,7 +120,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .fromProto(options.getOptions().getReadType()).isPromote();
       mReadRequestPartial = ReadRequest.newBuilder()
           .setBlockId(blockId).setPromote(isPromote).build();
-      mLocalBlockWorker = context.acquireLocalBlockWorkerClient();
+      mWorkerInternalBlockWorker = context.acquireLocalBlockWorkerClient();
     }
 
     @Override
@@ -129,7 +129,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .setOffset(offset).setLength(len).build();
       mBlockReadRequest = new BlockReadRequest(mReadRequestPartial);
       try {
-        mReader = mLocalBlockWorker.getBlockReader(mBlockReadRequest);
+        mReader = mWorkerInternalBlockWorker.getBlockReader(mBlockReadRequest);
         return new WorkerInternalClientDataReader(mReader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
@@ -147,7 +147,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
         return;
       }
       try {
-        mLocalBlockWorker.cleanBlockReader(mReader,
+        mWorkerInternalBlockWorker.cleanBlockReader(mReader,
             mBlockReadRequest);
       } catch (Exception e) {
         throw new IOException(e);
