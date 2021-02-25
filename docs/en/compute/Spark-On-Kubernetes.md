@@ -121,9 +121,9 @@ You can find more about how to mount volumes to Spark executors in Spark
   {% endnavtab %}
 {% endnavtabs %}
 
-Note: 
-- Volume support in Spark was added in version 2.4.0.
-- You may observe a performance hit when not using short-circuit access via a domain socket.
+> Note: 
+> - Volume support in Spark was added in version 2.4.0.
+> - You may observe a performance hit when not using short-circuit access via a domain socket.
 
 ### Run a Spark job
 
@@ -166,13 +166,14 @@ local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://<alluxio-master>:19998/LICENSE
 ```
 
-Note:
-- You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
-- It is recommended to set the `<alluxio-master>` hostname in this command to the Kubernetes Service
+> Note:
+> - You can find the address and port of the Kubernetes API server by running `kubectl cluster-info`.
+>   - The default Kubernetes API server port is 6443 but may differ based on your cluster's configuration
+> - It is recommended to set the `<alluxio-master>` hostname in this command to the Kubernetes Service
   name for your Alluxio master (eg., `alluxio-master-0`).
-- If you are using a different version of Spark, please ensure the path to the
+> - If you are using a different version of Spark, please ensure the path to the
   `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark
-- You should also take care to ensure the volume properties align with your
+> - You should also take care to ensure the volume properties align with your
   [domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
 ## Troubleshooting
