@@ -396,6 +396,10 @@ public class InodeSyncStream {
               elapsedTime.toMillis(), mRootScheme);
     }
     boolean success = syncPathCount > 0;
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
+      // There should not be any failed or outstanding jobs
+      success = (failedSyncPathCount == 0) && mSyncPathJobs.isEmpty() && mPendingPaths.isEmpty();
+    }
     if (success) {
       // update the sync path cache for the root of the sync
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
