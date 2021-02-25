@@ -49,7 +49,8 @@ The number of data replicas within Alluxio storage is determined dynamically by 
 Due to the fact that Alluxio relies on the under file storage for a majority of data storage,
 Alluxio does not need to keep copies of data that are not being used.
 
-Alluxio also supports tiered storage configurations making the storage system media aware.
+Alluxio also supports tiered storage configurations such as  memory, SSD, and HDD tiers which can
+make the storage system media aware.
 This enables decreased fetching latencies similar to how L1/L2 CPU caches operate.
 
 ## Configuring Alluxio Storage
@@ -73,7 +74,7 @@ A common modification to the default is to set the ramdisk size explicitly.
 For example, to set the ramdisk size to be 16GB on each worker:
 
 ```properties
-alluxio.worker.memory.size=16GB
+alluxio.worker.ramdisk.size=16GB
 ```
 
 Another common change is to specify multiple forms of storage media, such as ramdisk and SSDs within
@@ -138,7 +139,7 @@ If eviction cannot free up new space, then the write will fail.
 
 **Note:** Alluxio's eviction model is synchronous and is executed when a client requires free space when writing a block.
 `alluxio.worker.tieredstore.free.ahead.bytes`(Default: 0) can be configured to free up more bytes than necessary per eviction attempt
-to avoid triggering the eviction process multiple times.
+to reduce the numbers of evictions triggered. This changed starting in Alluxio 2.3.0 which deprecated [the old watermark-based eviction process](#evictor-emulation).
 
 The user can also specify the tier that the data will be written to via
 [configuration settings](#configuring-tiered-storage).
