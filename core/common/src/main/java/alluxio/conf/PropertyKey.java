@@ -2453,6 +2453,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
+      new Builder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
+          .setDescription("Report failure if any metadata sync fails")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(true)
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
           .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
@@ -5316,6 +5324,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
+        "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
