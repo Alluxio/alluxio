@@ -373,7 +373,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (options.getCreateParent() && !mkdirs(getParentPath(path))) {
+    if (options.getCreateParent()
+        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+        && !mkdirs(getParentPath(path))) {
       throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
     }
     return createObject(stripPrefixIfPresent(path));
