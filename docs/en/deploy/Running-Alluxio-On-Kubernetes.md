@@ -81,9 +81,16 @@ spec:
   hostPath:
     path: /tmp/alluxio-journal-0
 ```
->Note: By default each journal volume should be at least 1Gi, because each Alluxio master Pod
+Note:
+- By default each journal volume should be at least 1Gi, because each Alluxio master Pod
 will have one PersistentVolumeClaim that requests for 1Gi storage. You will see how to configure
 the journal size in later sections.
+- If this `hostPath` is not already present on the host, Kubernetes can be configured to create it. However
+the assigned user:group permissions may prevent the Alluxio masters & workers from accessing it.
+Please ensure the permissions are set to allow the pods to access the directory.
+  - See the [Kubernetes volume docs](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) for more details
+  - From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
+with UID 1000 and GID 1000 by default.
 
 Then create the persistent volume with `kubectl`:
 ```console
@@ -448,16 +455,11 @@ Once the configuration is finalized in a file named `config.yaml`, install as fo
 $ helm install alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
-#### Uninstall
-
-Uninstall Alluxio as follows:
-```console
-$ helm delete alluxio
-```
+In order to configure the Alluxio Master pod for use, you will need to format the Alluxio journal.
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup..
+The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -473,6 +475,22 @@ $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 Or you can trigger the journal formatting at deployment.
 ```console
 $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
+```
+
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
+with UID 1000 and GID 1000 by default.
+You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
+
+#### Configure Worker Volumes
+
+Additional configuration is required for the Alluxio Worker pod to be ready for use.
+See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
+
+#### Uninstall
+
+Uninstall Alluxio as follows:
+```console
+$ helm delete alluxio
 ```
 
 {% endnavtab %}
@@ -611,16 +629,7 @@ $ kubectl create -f ./master/
 $ kubectl create -f ./worker/
 ```
 
-#### Uninstall
-
-Uninstall Alluxio as follows:
-```console
-$ kubectl delete -f ./worker/
-$ kubectl delete -f ./master/
-$ kubectl delete configmap alluxio-config
-```
-> Note: This will delete all resources under `./master/` and `./worker/`.
-Be careful if you have persistent volumes or other important resources you want to keep under those directories.
+In order to configure the Alluxio Master pod for use, you will need to format the Alluxio journal.
 
 #### Format Journal
 
@@ -642,6 +651,11 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
 > Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
+
+#### Configure Worker Volumes
+
+Additional configuration is required for the Alluxio Worker pod to be ready for use.
+See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
 
 #### Upgrade
 
@@ -730,6 +744,17 @@ $ kubectl get pods
 You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }}).
   {% endcollapsible %}
 {% endaccordion %}
+
+#### Uninstall
+
+Uninstall Alluxio as follows:
+```console
+$ kubectl delete -f ./worker/
+$ kubectl delete -f ./master/
+$ kubectl delete configmap alluxio-config
+```
+> Note: This will delete all resources under `./master/` and `./worker/`.
+Be careful if you have persistent volumes or other important resources you want to keep under those directories.
 
 {% endnavtab %}
 {% endnavtabs %}
