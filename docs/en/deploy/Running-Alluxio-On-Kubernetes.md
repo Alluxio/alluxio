@@ -85,9 +85,10 @@ Note:
 - By default each journal volume should be at least 1Gi, because each Alluxio master Pod
 will have one PersistentVolumeClaim that requests for 1Gi storage. You will see how to configure
 the journal size in later sections.
-- If this `hostPath` is not already present on the host, Kubernetes will create it. However
+- If this `hostPath` is not already present on the host, Kubernetes can be configured to create it. However
 the assigned user:group permissions may prevent the Alluxio masters & workers from accessing it.
 Please ensure the permissions are set to allow the pods to access the directory.
+  - See the [Kubernetes volume docs](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) for more details
   - From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 
