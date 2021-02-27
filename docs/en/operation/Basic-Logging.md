@@ -232,7 +232,7 @@ You need to restart the relevant processes for the log4j properties to take effe
 
 ### Logging UnderFileSystem Operations
 
-Sometimes it can be useful to log all operations on under storage. 
+Sometimes it can be useful to log all operations on under storage.
 On the master, debug-level logging for UnderFileSystem operations can be turned on (e.g.,
 creating/reading/writing/removing files on UFS) using the `logLevel` command:
 
@@ -253,16 +253,24 @@ You can see operations in corresponding master or worker logs like below:
 Similarly, you can update the log level for these classes in the `conf/log4j.properties` file.
 You need to restart the relevant processes for the log4j properties to take effect.
 
-### Identifying Expensive Client RPCs / FUSE calls
+### Identifying Expensive Calls
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
 but without recording all the communication (e.g., enabling all debug logging).
-There are two properties introduced in v2.3.0 in Alluxio to record expensive calls or RPCs in logs with WARN level.
-Setting in `conf/alluxio-site.properties` records client-side RPCs taking more than 200ms and FUSE APIs taking more than 1s:
+Alluxio can record slow calls or RPCs in logs with WARN level by setting following properties:
+
+1. Set `alluxio.user.logging.threshold` to record slow client-side RPCs in application logs.
+1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse
+.log`).
+1. Set `alluxio.underfs.logging.threshold` to record slow under storage RPCs (`logs/master.log` or `logs/worker.log`).
+
+For example, the following setting in `conf/alluxio-site.properties` will log each client-side RPC
+slower than 200ms, each FUSE API call slower than 1s and each UFS call slower than 10s:
 
 ```properties
-alluxio.user.logging.threshold=200ms
 alluxio.fuse.logging.threshold=1s
+alluxio.underfs.logging.threshold=10s
+alluxio.user.logging.threshold=200ms
 ```
 
 Example results are:
