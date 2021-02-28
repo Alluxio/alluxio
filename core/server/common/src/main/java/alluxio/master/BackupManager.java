@@ -11,11 +11,13 @@
 
 package alluxio.master;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -291,9 +293,21 @@ public class BackupManager {
                   // Reading finished.
                   return true;
                 }
-                Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
-                master.applyAndJournal(masterJCMap.get(master), entry);
-                appliedEntryCount.incrementAndGet();
+                String masterName;
+                try {
+                  masterName = JournalEntryAssociation.getMasterForEntry(entry);
+                } catch (IllegalStateException ise) {
+                  ProcessUtils.fatalError(LOG, ise, "Unrecognized journal entry: %s", entry);
+                  throw ise;
+                }
+                try {
+                  Master master = mastersByName.get(masterName);
+                  master.applyAndJournal(masterJCMap.get(master), entry);
+                  appliedEntryCount.incrementAndGet();
+                } catch (Exception e) {
+                  JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to apply " +
+                          "journal entry to master %s. Entry: %s", masterName, entry);
+                }
               }
             } finally {
               // Close journal contexts to ensure applied entries are flushed,
