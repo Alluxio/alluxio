@@ -2,7 +2,7 @@ parameter,defaultValue
 alluxio.fuse.cached.paths.max,500
 alluxio.fuse.debug.enabled,false
 alluxio.fuse.fs.name,alluxio-fuse
-alluxio.fuse.jnifuse.enabled,false
+alluxio.fuse.jnifuse.enabled,true
 alluxio.fuse.shared.caching.reader.enabled,false
 alluxio.fuse.logging.threshold,10s
 alluxio.fuse.maxwrite.bytes,131072

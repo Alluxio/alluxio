@@ -11,7 +11,7 @@ alluxio.fuse.debug.enabled:
 alluxio.fuse.fs.name:
   'The FUSE file system name.'
 alluxio.fuse.jnifuse.enabled:
-  'Use experimental JNIFUSE library for better performance.'
+  'Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.'
 alluxio.fuse.logging.threshold:
   'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.maxwrite.bytes:

@@ -4537,8 +4537,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use JNI-Fuse library for better performance. "
+              + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();

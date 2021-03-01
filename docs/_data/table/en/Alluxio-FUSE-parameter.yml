@@ -7,7 +7,7 @@ alluxio.fuse.debug.enabled:
 alluxio.fuse.fs.name:
   Descriptive name used by FUSE to mount the file system.
 alluxio.fuse.jnifuse.enabled:
-  Use experimental JNIFUSE library for better performance.
+  Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.
 alluxio.fuse.shared.caching.reader.enabled:
   (Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse.
   Blocks data will be cached on the client side so more memory is required for the Fuse process.
