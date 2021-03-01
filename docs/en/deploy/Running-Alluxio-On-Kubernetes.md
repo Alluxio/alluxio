@@ -1046,7 +1046,6 @@ $ helm upgrade alluxio -f config.yaml \
 - Alluxio fuse/client configuration:
 ```properties
 properties:
-  alluxio.fuse.jnifuse.enabled: true
   alluxio.user.metadata.cache.enabled: true
   alluxio.user.metadata.cache.expiration.time: 2day
   alluxio.user.metadata.cache.max.size: "1000000"
@@ -1108,7 +1107,6 @@ across multiple containers.
 ```yaml
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
-    -Dalluxio.fuse.jnifuse.enabled=true
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 
     -Dalluxio.user.metadata.cache.max.size=10000000 
