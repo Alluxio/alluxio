@@ -24,6 +24,8 @@ alluxio.master.backup.state.lock.interrupt.cycle.enabled:
   'This controls whether RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
 alluxio.master.backup.state.lock.interrupt.cycle.interval:
   'The interval at which the RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.suspend.timeout:
+  'Timeout for when suspend request is not followed by a backup request.'
 alluxio.master.backup.transport.timeout:
   'Request timeout for backup messaging.'
 alluxio.master.bind.host:
@@ -92,6 +94,8 @@ alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:
   'The hostname of Alluxio master.'
+alluxio.master.journal.catchup.protect.enabled:
+  '(Experimental) make sure the journal catchup finish before joining the quorum in fault tolerant mode when starting the master process and before the current master becoming the leader.This is added to prevent frequently leadership transition during heavy journal catchup stage. Catchup is only implemented in ufs journal with Zookeeper.'
 alluxio.master.journal.checkpoint.period.entries:
   'The number of journal entries to write before creating a new journal checkpoint.'
 alluxio.master.journal.flush.batch.time:
@@ -134,8 +138,10 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.detection.interval:
+  'The interval between Alluxio master detections to find lost workers based on updates from Alluxio workers.'
 alluxio.master.lost.worker.file.detection.interval:
-  'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
+  'The interval between Alluxio master detections to find lost files based on updates from Alluxio workers.'
 alluxio.master.metadata.sync.concurrency.level:
   'The maximum number of concurrent sync tasks running for a given sync operation'
 alluxio.master.metadata.sync.executor.pool.size:
@@ -254,6 +260,8 @@ alluxio.master.ufs.active.sync.thread.pool.size:
   'Max number of threads used to perform active sync'
 alluxio.master.ufs.block.location.cache.capacity:
   'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
+alluxio.master.ufs.journal.max.catchup.time:
+  'The maximum time to wait for ufs journal catching up before listening to Zookeeper state change. This is added to prevent frequently leadership transition during heavy journal replay stage.'
 alluxio.master.ufs.path.cache.capacity:
   'The capacity of the UFS path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
 alluxio.master.ufs.path.cache.threads:

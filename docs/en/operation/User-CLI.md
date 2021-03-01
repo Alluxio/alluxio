@@ -208,29 +208,20 @@ Status: CANCELED
 The `logLevel` command returns the current value of or updates the log level of a particular class
 on specific instances. Users are able to change Alluxio server-side log levels at runtime.
 
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:port>] [--level=LEVEL]`,
 where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
+The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
 The `host:webPort` format can only be used when referencing a worker.
-The default target value is all masters and workers.
+The default target value is the local master, local job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
+> Note: To set the log level on a master/job_master, run the command on the current leading master.
+> You can find which is the leader by running `alluxio fs leader`.
 
-For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
-`DEBUG` on master as well as a worker at `192.168.100.100:30000`:
-
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=master,192.168.100.100:30000 --level=DEBUG
-```
-
-And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=workers
-```
+See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -738,8 +729,13 @@ using the job service.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
+Options:
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
+A lower value means slower execution but also being nicer to the other users of the job service.
+
 ```console
-$ ./bin/alluxio fs distributedCp /data/1023 /data/1024
+$ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ```
 
 ### distributedLoad
@@ -749,10 +745,16 @@ across workers using the job service. The job is a no-op if the file is already 
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
-The `--replication` flag can be used to load the data into multiple workers.
+
+Options:
+
+* `--replication`: Specifies how many workers to load each file into. The default value is `1`.
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
+A lower value means slower execution but also being nicer to the other users of the job service.
 
 ```console
-$ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+$ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
 ```
 
 ### distributedMv

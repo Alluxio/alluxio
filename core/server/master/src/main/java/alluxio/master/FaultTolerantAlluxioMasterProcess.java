@@ -73,6 +73,16 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   public void start() throws Exception {
     mRunning = true;
     mJournalSystem.start();
+
+    startMasters(false);
+    LOG.info("Secondary started");
+
+    // Perform the initial catchup before joining leader election,
+    // to avoid potential delay if this master is selected as leader
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      mJournalSystem.waitForCatchup();
+    }
+
     try {
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
@@ -80,9 +90,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
 
-    startMasters(false);
-    LOG.info("Secondary started");
     while (!Thread.interrupted()) {
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        mJournalSystem.waitForCatchup();
+      }
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;

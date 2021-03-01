@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -55,6 +56,9 @@ public final class AlluxioMasterProcessTest {
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   private int mRpcPort;
   private int mWebPort;
@@ -133,6 +137,62 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     startStopTest(master);
+  }
+
+  @Test
+  public void startZeroParallelism() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "0");
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
+                    + "%s=%s! The parallelism must be greater than 0!",
+            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 0));
+    AlluxioMasterProcess.Factory.create();
+  }
+
+  @Test
+  public void startNegativeParallelism() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "-1");
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with"
+                    + " %s=%s! The parallelism must be greater than 0!",
+            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), -1));
+    AlluxioMasterProcess.Factory.create();
+  }
+
+  @Test
+  public void startInvalidMaxPoolSize() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "4");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, "3");
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
+                    + "%s=%s greater than %s=%s!",
+            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 4,
+            PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), 3));
+    AlluxioMasterProcess.Factory.create();
+  }
+
+  @Test
+  public void startZeroKeepAliveTime() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "0");
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(
+            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
+                    + "The keepalive time must be greater than 0!",
+            PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
+            0));
+    AlluxioMasterProcess.Factory.create();
+  }
+
+  @Test
+  public void startNegativeKeepAliveTime() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "-1");
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(
+            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
+                            + "The keepalive time must be greater than 0!",
+                    PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
+                    -1));
+    AlluxioMasterProcess.Factory.create();
   }
 
   private void startStopTest(AlluxioMasterProcess master) throws Exception {

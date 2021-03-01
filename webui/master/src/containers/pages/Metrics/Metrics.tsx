@@ -13,7 +13,7 @@ import { LineSerieData } from '@nivo/line';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Table } from 'reactstrap';
-import { AnyAction, compose, Dispatch } from 'redux';
+import { compose, Dispatch } from 'redux';
 import {
   withErrors,
   withFluidContainer,
@@ -22,17 +22,19 @@ import {
   withFetchData,
 } from '@alluxio/common-ui/src/components';
 import { IApplicationState } from '../../../store';
-import { fetchRequest } from '../../../store/metrics/actions';
+import { fetchRequest as metricsFetchRequest } from '../../../store/metrics/actions';
+import { fetchRequest as overviewFetchRequest } from '../../../store/overview/actions';
 import { IMetrics } from '../../../store/metrics/types';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 import { ICommonState } from '@alluxio/common-ui/src/constants';
 
 interface IPropsFromState extends ICommonState {
+  alluxioStartTime: string;
   data: IMetrics;
 }
 
 interface IPropsFromDispatch {
-  fetchRequest: typeof fetchRequest;
+  fetchRequest: () => void;
 }
 
 export type AllProps = IPropsFromState & IPropsFromDispatch;
@@ -273,7 +275,9 @@ export class MetricsPresenter extends React.Component<AllProps> {
         ))}
         {Object.keys(data.ufsOpsSaved).map((key: string) => (
           <div key={key} className="col-12">
-            <h5>Saved Under FileSystem Operations of {key}</h5>
+            <h5>
+              Saved Under FileSystem Operations of {key} since {this.props.alluxioStartTime}
+            </h5>
             <Table hover={true}>
               <tbody>
                 {Object.keys(data.ufsOpsSaved[key]).map((innerKey: string) => (
@@ -291,8 +295,9 @@ export class MetricsPresenter extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({ metrics, refresh }: IApplicationState): IPropsFromState => {
+const mapStateToProps = ({ metrics, overview, refresh }: IApplicationState): IPropsFromState => {
   return {
+    alluxioStartTime: overview.data.startTime,
     data: metrics.data,
     errors: createAlertErrors(metrics.errors !== undefined),
     loading: metrics.loading,
@@ -301,8 +306,11 @@ const mapStateToProps = ({ metrics, refresh }: IApplicationState): IPropsFromSta
   };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch): { fetchRequest: () => AnyAction } => ({
-  fetchRequest: (): AnyAction => dispatch(fetchRequest()),
+const mapDispatchToProps = (dispatch: Dispatch): IPropsFromDispatch => ({
+  fetchRequest: (): void => {
+    dispatch(metricsFetchRequest());
+    dispatch(overviewFetchRequest());
+  },
 });
 
 export default compose(

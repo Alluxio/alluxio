@@ -138,12 +138,15 @@ public class StateLockManager {
   public LockResource lockShared() throws InterruptedException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Thread-{} entered lockShared().", ThreadUtils.getCurrentThreadIdentifier());
+    }
+    if (LOG.isInfoEnabled()) {
       final int readLockCount = mStateLock.getReadLockCount();
       if (readLockCount > READ_LOCK_COUNT_HIGH) {
         SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
             mSharedWaitersAndHolders);
       }
     }
+
     // Do not allow taking shared lock during safe-mode.
     long exclusiveOnlyRemainingMs = mExclusiveOnlyDeadlineMs - System.currentTimeMillis();
     if (exclusiveOnlyRemainingMs > 0) {

@@ -39,6 +39,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
@@ -970,6 +971,7 @@ public final class AlluxioMasterRestServiceHandler {
       Map<String, Metric> operations = new TreeMap<>();
       // UFS : (OPS : Count)
       Map<String, Map<String, Long>> ufsOpsSavedMap = new TreeMap<>();
+
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
         String metricName = entry.getKey();
         long value = entry.getValue().getCount();
@@ -993,9 +995,15 @@ public final class AlluxioMasterRestServiceHandler {
             String ufsUnescaped = MetricsSystem.unescape(ufs);
             Map<String, Long> perUfsMap = ufsOpsSavedMap.getOrDefault(
                 ufsUnescaped, new TreeMap<>());
-            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
-                    .substring(UFS_OP_SAVED_PREFIX.length()),
-                entry.getValue().getCount());
+            String alluxioOperation = alluxio.metrics.Metric.getBaseName(metricName)
+                .substring(UFS_OP_SAVED_PREFIX.length());
+            String equavalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
+                DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation));
+            if (equavalentOp != null) {
+              alluxioOperation = String.format("%s (Roughly equivalent to %s operation)",
+                  alluxioOperation, equavalentOp);
+            }
+            perUfsMap.put(alluxioOperation, entry.getValue().getCount());
             ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);
           }
         } else {

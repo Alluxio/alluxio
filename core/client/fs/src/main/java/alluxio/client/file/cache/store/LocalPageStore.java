@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -127,13 +126,6 @@ public class LocalPageStore implements PageStore {
       throw new PageNotFoundException(p.toString());
     }
     Files.delete(p);
-    Path parent = Preconditions.checkNotNull(p.getParent(),
-        "parent of cache file should not be null");
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent)) {
-      if (!stream.iterator().hasNext()) {
-        Files.delete(parent);
-      }
-    }
   }
 
   private Path getFilePath(PageId pageId) {

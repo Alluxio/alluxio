@@ -29,8 +29,6 @@ If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getti
 <p align="center">
 <a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
  <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-aws/">
- <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
 ## Prerequisites
@@ -138,19 +136,20 @@ At this moment, there are no files in Alluxio. Copy a file into Alluxio by using
 `copyFromLocal` shell command.
 
 ```console
-$ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
-Copied LICENSE to /LICENSE
+$ ./bin/alluxio fs copyFromLocal ${ALLUXIO_HOME}/LICENSE /LICENSE
+Copied file://${ALLUXIO_HOME}/LICENSE to /LICENSE
 ```
 
 List the files in Alluxio again to see the `LICENSE` file.
 
 ```console
 $ ./bin/alluxio fs ls /
--rw-r--r-- staff  staff     26847 NOT_PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
+-rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 100% /LICENSE
 ```
 
-The output shows the file that exists in Alluxio, as well the size of the file, the date it was
-created, the owner and group of the file, and the percentage of the file that is cached in Alluxio.
+The output shows the file that exists in Alluxio. Each line contains the owner and group of the file,
+the size of the file, whether it has been persisted to its under file storage (UFS), the date it was created,
+and the percentage of the file that is cached in Alluxio.
 
 The `cat` command prints the contents of the file.
 
@@ -164,33 +163,59 @@ $ ./bin/alluxio fs cat /LICENSE
 ...
 ```
 
-With the default configuration, Alluxio uses the local file system as its under file storage (UFS). The
-default path for the UFS is `./underFSStorage`. Examine the contents of the UFS with:
+With the default configuration, Alluxio uses the local file system as its UFS and automatically
+persists data to it. The default path for the UFS is `${ALLUXIO_HOME}/underFSStorage`. Examine the contents of the UFS with:
 
 ```console
-$ ls ./underFSStorage/
-```
-
-Note that the directory does not exist. This is because Alluxio is currently writing data only into
-Alluxio space, not to the UFS.
-
-Configure Alluxio to persist the file from Alluxio space to the UFS by using the `persist` command.
-
-```console
-$ ./bin/alluxio fs persist /LICENSE
-persisted file /LICENSE with size 26847
-```
-
-The file should appear when examining the UFS path again.
-
-```console
-$ ls ./underFSStorage
+$ ls ${ALLUXIO_HOME}/underFSStorage
 LICENSE
 ```
 
 The LICENSE file also appears in the Alluxio file system through the
 [master's web UI](http://localhost:19999/browse). Here, the **Persistence State** column
 shows the file as **PERSISTED**.
+
+View the amount of memory currently consumed by data in Alluxio under the **Storage Usage Summary**
+on the main page of the [master's web UI](http://localhost:19999), or through the following command.
+
+
+```console
+$ ./bin/alluxio fs getUsedBytes
+Used Bytes: 27040
+```
+
+This memory can be reclaimed by freeing it from Alluxio. Notice this does not remove
+it from the Alluxio filesystem nor the UFS. Rather it is just removed from the cache in Alluxio.
+
+```console
+$ ./bin/alluxio fs free /LICENSE
+/LICENSE was successfully freed from Alluxio space.
+
+$ ./bin/alluxio fs getUsedBytes
+Used Bytes: 0
+
+$ ./bin/alluxio fs ls /
+-rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 0% /LICENSE
+
+$ ls ${ALLUXIO_HOME}/underFSStorage/
+LICENSE
+```
+
+Accessing the data will fetch the file from the UFS and bring it back into
+the cache in Alluxio.
+
+```console
+$ ./bin/alluxio fs copyToLocal /LICENSE ~/LICENSE.bak
+Copied /LICENSE to file:///home/staff/LICENSE.bak
+
+$ ./bin/alluxio fs getUsedBytes
+Used Bytes: 27040
+
+$ ./bin/alluxio fs ls /
+-rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 100% /LICENSE
+
+$ rm ~/LICENSE.bak
+```
 
 ## [Bonus] Mounting in Alluxio
 

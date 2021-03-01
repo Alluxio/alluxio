@@ -52,6 +52,8 @@ Client.CachePutErrors:
   'Number of failures when putting cached data in the client cache.'
 Client.CachePutEvictionErrors:
   'Number of failures when putting cached data in the client cache due to failed eviction.'
+Client.CachePutInsufficientSpaceErrors:
+  'Number of failures when putting cached data in the client cache due to insufficient space made after eviction.'
 Client.CachePutNotReadyErrors:
   'Number of failures when cache is not ready to add pages.'
 Client.CachePutStoreDeleteErrors:

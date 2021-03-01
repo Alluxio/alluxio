@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
+import alluxio.util.FeatureUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -79,11 +80,26 @@ public final class UpdateCheck {
 
   /**
    * @param clusterID the cluster ID
-   * @return a string representation of the user's environment in the format "key1:value1, key2:
-   *         value2".
+   * @return a string representation of the user's environment in the format
+   *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
+    Joiner joiner = Joiner.on("; ").skipNulls();
+    List<String> featureList = getUserAgentFeatureList();
+    String sysInfo = getUserAgentEnvironmentString(clusterID);
+    if (featureList.size() > 0) {
+      sysInfo = joiner.join(sysInfo, joiner.join(getUserAgentFeatureList()));
+    }
+    return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+  }
+
+  /**
+   * @param clusterID the cluster ID
+   * @return a string representation of the user's environment in the format "docker; kubernetes"
+   */
+  @VisibleForTesting
+  public static String getUserAgentEnvironmentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
     boolean isGCE = EnvironmentUtils.isGoogleComputeEngine();
     String sysInfo = joiner.join(
@@ -98,7 +114,39 @@ public final class UpdateCheck {
         sysInfo = joiner.join(sysInfo, joiner.join(ec2Info));
       }
     }
-    return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+    return sysInfo;
+  }
+
+  /**
+   * Get the features information.
+   *
+   * @return a list of strings representing enabled features
+   */
+  @VisibleForTesting
+  public static List<String> getUserAgentFeatureList() {
+    List<String> features = new ArrayList<>();
+    addIfTrue(FeatureUtils.isEmbeddedJournal(), features, "embedded");
+    addIfTrue(FeatureUtils.isRocks(), features, "rocks");
+    addIfTrue(FeatureUtils.isZookeeperEnabled(), features, "zk");
+    addIfTrue(FeatureUtils.isBackupDelegationEnabled(), features, "backupDelegation");
+    addIfTrue(FeatureUtils.isDailyBackupEnabled(), features, "dailyBackup");
+    addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), features, "persistBlackList");
+    addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), features, "unsafePersist");
+    addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), features, "masterAuditLog");
+    return features;
+  }
+
+  /**
+   * Add feature name if condition is true.
+   *
+   * @param valid true, if condition is valid
+   * @param features feature list
+   * @param featureName feature name
+   */
+  private static void addIfTrue(boolean valid, List<String> features, String featureName) {
+    if (valid) {
+      features.add(featureName);
+    }
   }
 
   /**
