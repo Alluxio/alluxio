@@ -118,8 +118,9 @@ You can send an HTTP request to `/metrics/prometheus/` of the Alluxio leading ma
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
 
-# For example, get the metrics from alluxio processes running locally with default the web port
+# For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/prometheus/
+# Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/prometheus/
 ```
 
@@ -191,11 +192,11 @@ Costs can be saved if the underlying storage charges are based on requests.
 
 Grafana is a metrics analytics and visualization software used for visualizing time series data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software allows users to more easily see changes in memory, storage, and completed operations in Alluxio.
 
-Since Grafana has well support to Prometheus, the following steps can help you to build your Alluxio monitoring based on Grafana and Prometheus easily.
+Grafana supports visualizing data from Prometheus. The following steps can help you to build your Alluxio monitoring based on Grafana and Prometheus easily.
 
  1. Install Grafana using the instructions [here](https://grafana.com/docs/grafana/latest/installation/#install-grafana/).
  2. [Download](https://grafana.com/grafana/dashboards/13467) the Grafana template JSON file for Alluxio.
- 3. Import the template JSON file to create a dashboard. Helps [here](https://grafana.com/docs/grafana/latest/dashboards/export-import/#importing-a-dashboard).
+ 3. Import the template JSON file to create a dashboard. See this [example](https://grafana.com/docs/grafana/latest/dashboards/export-import/#importing-a-dashboard) for importing a dashboard.
  4. Add the Prometheus data source to Grafana with a custom name, for example, *prometheus-alluxio*. Refer to the [toturial](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/#add-a-data-source) for help on importing a dashboard.
  5. Modify the variables in the dashboard/settings with instructions [here](https://grafana.com/docs/grafana/latest/variables/) and **save** your dashboard.
 
