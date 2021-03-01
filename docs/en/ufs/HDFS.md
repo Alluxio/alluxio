@@ -223,7 +223,7 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 #### Using Mount Command-line
 When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.7.
 
-For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
+For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs22` and `/mnt/hdfs27`.
 
 ```console
 $ ./bin/alluxio fs mount \
@@ -257,9 +257,9 @@ This will provide a jar that should be moved to the `lib/` directory in the Allu
 
 ```console
 cd shaded/hadoop/
-mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
 cd ../../underfs/hdfs/
-mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
+mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
 
 ```
 
