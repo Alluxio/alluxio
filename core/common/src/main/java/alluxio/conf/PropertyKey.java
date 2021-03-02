@@ -1618,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
-              + "and IO to local disks.")
+              + "and IO to local disks).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
