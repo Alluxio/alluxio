@@ -50,9 +50,9 @@ $ ./bin/alluxio format
 $ ./bin/alluxio format -s
 ```
 
-### formatMaster
+### formatJournal
 
-The `formatMaster` command formats the Alluxio master.
+The `formatJournal` command formats the Alluxio master journal on this host.
 
 The Alluxio master stores various forms of metadata, including:
 - file system operations
@@ -60,18 +60,41 @@ The Alluxio master stores various forms of metadata, including:
 - journal transactions
 - under storage file metadata
 
-All this information is deleted if `formatMaster` is run.,
+All this information is deleted if `formatJournal` is run.,
 
-> Warning: `formatMaster` should only be called while the cluster is not running.
+> Warning: `formatJournal` should only be called while the cluster is not running.
 
 
 ```console
-$ ./bin/alluxio formatMaster
+$ ./bin/alluxio formatJournal
+```
+
+### formatMasters
+
+The `formatMasters` command formats the Alluxio masters.
+
+This command defers to [formatJournal](#formatjournal),
+but if the UFS is an embedded journal it will format all master nodes listed in the 'conf/masters' file
+instead of just this host.
+
+The Alluxio master stores various forms of metadata, including:
+- file system operations
+- where files are located on workers
+- journal transactions
+- under storage file metadata
+
+All this information is deleted if `formatMasters` is run.,
+
+> Warning: `formatMasters` should only be called while the cluster is not running.
+
+
+```console
+$ ./bin/alluxio formatMasters
 ```
 
 ### formatWorker
 
-The `formatWorker` command formats the Alluxio worker.
+The `formatWorker` command formats the Alluxio worker on this host.
 
 An Alluxio worker caches files and objects.
 
@@ -87,13 +110,15 @@ $ ./bin/alluxio formatWorker
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`,
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` with the specified `ALLUXIO_MASTER_HOSTNAME`,
 if the configuration file does not exist.
 
+<!-- Configuration file is empty except for "alluxio.master.hostname"; Alluxio will use default settings
 In addition, worker memory size and the ramdisk folder will be set in the configuration file
 in accordance to the state of the machine:
 * type: Mac or Linux
 * total memory size
+-->
 
 ```console
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
@@ -109,7 +134,7 @@ See [File System Operations](#file-system-operations).
 
 The `fsadmin` command is meant for administrators of the Alluxio cluster.
 It provides added tools for diagnostics and troubleshooting.
-For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
+For more information see the [Admin CLI main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -159,6 +184,7 @@ where `[generic options]` can be one of the following values:
 * `leader`: Prints the hostname of the job master service leader.
 * `ls`: Prints the IDs of the most recent jobs, running and finished, in the history up to the capacity set in `alluxio.job.master.job.capacity`.
 * `stat [-v] <id>`:Displays the status info for the specific job. Use -v flag to display the status of every task.
+* `cancel <id>`: Cancels the job with the corresponding id asynchronously.
 
 ```console
 # Prints the hostname of the job master service leader.
@@ -243,9 +269,35 @@ For example, to run the multi-mount demo:
 $ ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
 ```
 
+### runTest
+
+The `runTest` command runs end-to-end tests on an Alluxio cluster.
+
+The usage is `runTest [--directory <path>] [--operation <operation type>] [--readType <read type>] [--writeType <write type>]`.
+  * `--directory`
+    Alluxio path for the tests working directory.
+    Default: `${ALLUXIO_HOME}`
+  * `--operation`
+    The operation to test, one of BASIC or BASIC_NON_BYTE_BUFFER. By default
+    both operations are tested.
+  * `--readType`
+    The read type to use, one of NO_CACHE, CACHE, CACHE_PROMOTE. By default all readTypes are tested.
+  * `--writeType`
+    The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH. By default all writeTypes are tested.
+
+```console
+$ ./bin/alluxio runTest
+
+$ ./bin/alluxio runTest --operation BASIC --readType CACHE --writeType MUST_CACHE
+```
+
+> Note: This command requires the Alluxio cluster to be running.
+
 ### runTests
 
-The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
+The `runTests` command runs all the end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
+
+This command is equivalent to running [runTest](#runtest) with all the default flag values.
 
 ```console
 $ ./bin/alluxio runTests
@@ -266,11 +318,11 @@ which is an important component in compute workflows with Alluxio.
 
 * `-h` provides detailed guidance.
 * `-m <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
-* `-d <databse_name>` the database to run tests against. Use `default` database if not provided.
-* `-t` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
-* `-st` socket timeout of hive metastore client in minutes.
+* `-d <database_name>` the database to run tests against. Use `default` database if not provided.
+* `-t [table_name_1,table_name_2,...]` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
+* `-st <timeout>` socket timeout of hive metastore client in minutes.
 
-```
+```console
 $ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales 
 ```
 
@@ -289,13 +341,12 @@ before the path is mounted to Alluxio.
 This tool will validate a few criteria and return the feedback.
 If a test failed, advice will be given correspondingly on how the user can rectify the setup.
 
-Options:
-
+Usage: `runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>`
 * `--help` provides detailed guidance.
 * `--readonly` specifies the mount point should be readonly in Alluxio.
 * `--shared` specifies the mount point should be accessible for all Alluxio users.
 * `--option <key>=<val>` passes an property to this mount point.
-* `<hdfs-path>` specifies the HDFS path you want to validate (then mount to Alluxio)
+* `<hdfs-path>` (required) specifies the HDFS path you want to validate (then mount to Alluxio)
 
 The arguments to this command should be consistent to what you give to the 
 [Mount command](#mount), in order to validate the setup for the mount.
@@ -319,10 +370,9 @@ $ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 
 
 The `runUfsIOTest` command measures the read/write IO throughput from Alluxio cluster to the target HDFS.
 
-Options:
-
+Usage: `runUfsIOTest --path <hdfs-path> [--io-size <io-size>] [--threads <thread-num>] [--cluster] [--cluster-limit <worker-num>] --java-opt <java-opt>`
 * `-h, --help` provides detailed guidance.
-* `--path <hdfs-path>` specifies the path to write/read temporary data in. This is a compulsory field.
+* `--path <hdfs-path>` (required) specifies the path to write/read temporary data in.
 * `--io-size <io-size>` specifies the amount of data each thread writes/reads. It defaults to "4G".
 * `--threads <thread-num>` specifies the number of threads to concurrently use on each worker. It defaults to 4.
 * `--cluster` specifies the benchmark is run in the Alluxio cluster. If not specified, this benchmark will run locally.
@@ -360,8 +410,9 @@ $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limi
 The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
 validate the semantics Alluxio expects of the UFS.
 
-`--help` provides detailed guidance.
-`--path <ufs_path>` (required) the full UFS path to run tests against.
+Usage: `runUfsTests --path <ufs_path>`
+* `--help` provides detailed guidance.
+* `--path <ufs_path>` (required) the full UFS path to run tests against.
 
 The usage of this command includes:
 * Test if the given UFS credentials are valid before mounting the UFS to an Alluxio cluster.
@@ -388,12 +439,12 @@ The `readJournal` command parses the current journal and outputs a human readabl
 Note this command may take a while depending on the size of the journal.
 Note that Alluxio master is required to stop before reading the local embedded journal.
 
-`-help` provides detailed guidance.
-`-start <arg>` the start log sequence number (exclusive). Set to `0` by default.
-`-end <arg>` the end log sequence number (exclusive). Set to `+inf` by default.
-`-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration.)
-`-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
-`-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). Set to FileSystemMaster by default.
+* `-help` provides detailed guidance.
+* `-start <arg>` the start log sequence number (exclusive). (Default: `0`)
+* `-end <arg>` the end log sequence number (exclusive). (Default: `+inf`)
+* `-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration)
+* `-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
+* `-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). (Default: "FileSystemMaster")
 
 ```console
 $ ./bin/alluxio readJournal
@@ -402,7 +453,7 @@ Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
 2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
 ```
 
-> Note: This command does not require the Alluxio cluster to be running.
+> Note: This command may fail for certain UFS types if the Alluxio cluster is running due to file locking.
 
 ### upgradeJournal
 
@@ -425,7 +476,8 @@ The `killAll` command kills all processes containing the specified word.
 
 ### copyDir
 
-The `copyDir` command copies the directory at `PATH` to all worker nodes listed in `conf/workers`.
+The `copyDir` command copies the directory at `PATH` to all master nodes listed in `conf/masters`
+and all worker nodes listed in `conf/workers`.
 
 ```console
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
@@ -443,6 +495,12 @@ The `clearCache` command drops the OS buffer cache.
 
 The `docGen` command autogenerates documentation based on the current source code.
 
+Usage: `docGen [--metric] [--conf]`
+* `--metric` flag indicates to generate Metric docs
+* `--conf` flag indicates to generate Configuration docs
+
+Supplying neither flag will default to generating both docs.
+
 > Note: This command does not require the Alluxio cluster to be running.
 
 ### table
@@ -452,6 +510,9 @@ See [Table Operations](#table-operations).
 ### version
 
 The `version` command prints Alluxio version.
+
+Usage: `version --revision [revision_length]`
+* `-r,--revision [revision_length]` Prints the git revision along with the Alluxio version. Optionally specify the revision length.
 
 ```console
 $ ./bin/alluxio version
