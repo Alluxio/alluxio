@@ -654,6 +654,10 @@ If an inconsistent file or directory exists only in under storage, its metadata 
 If an inconsistent file exists in Alluxio and its data is fully present in Alluxio,
 its metadata will be loaded to Alluxio again.
 
+If the `-t <thread count>` option is specified, the provided number of threads will be used when
+repairing consistency. Defaults to the number of CPU cores available,
+* This option has no effect if `-r` is not specified
+
 NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
 to files or directories in the subtree cannot be completed until this command completes.
 
@@ -740,7 +744,14 @@ Adding `-R` option also changes the owner of child file and child directory recu
 The `copyFromLocal` command copies the contents of a file in the local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that worker.
 Otherwise, the data will be copied to a random remote node running an Alluxio worker.
-If a directory is specified, the directory and all its contents will be copied recursively.
+If a directory is specified, the directory and all its contents will be copied recursively
+(parallel at file level up to the number of available threads).
+
+Usage: `copyFromLocal [--thread <num>] [--buffersize <bytes>] <src> <remoteDst>`
+* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
+* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
+* `<src>` file or directory path on the local filesystem
+* `<remoteDst>` file or directory path on the Alluxio filesystem
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
 
@@ -752,6 +763,11 @@ $ ./bin/alluxio fs copyFromLocal /local/data /input
 
 The `copyToLocal` command copies a file in Alluxio to the local file system.
 If a directory is specified, the directory and all its contents will be copied recursively.
+
+Usage: `copyToLocal [--buffersize <bytes>] <src> <localDst>`
+* `--buffersize <bytes>` (optional) file transfer buffer size in bytes
+* `<src>` file or directory path on the Alluxio filesystem
+* `<localDst>` file or directory path on the local filesystem
 
 For example, `copyToLocal` can be used as a quick way to download output data
 for additional investigation or debugging.
@@ -766,25 +782,38 @@ $ wc -l part-00000
 The `count` command outputs the number of files and folders matching a prefix as well as the total
 size of the files.
 `count` works recursively and accounts for any nested directories and files.
-`count` is best utilized when the user has some predefined naming conventions for their files.
 
-For example, if data files are stored by their date, `count` can be used to determine the number of
-data files and their total size for any date, month, or year.
+Usage: `count [-h] <dir>`
+* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
+* `<dir>` file or directory path in the Alluxio filesystem
 
 ```console
-$ ./bin/alluxio fs count /data/2014
+$ ./bin/alluxio fs count -h /LICENSE
+File Count               Folder Count             Folder Size
+1                        0                        26.41KB
 ```
+
+`count` is best utilized when the user has some predefined naming conventions for their files.
+For example, if data files are stored by their date, `count` can be used to determine the number of
+data files and their total size for any date, month, or year.
 
 ### cp
 
 The `cp` command copies a file or directory in the Alluxio file system
 or between the local file system and Alluxio file system.
 
-Scheme `file` indicates the local file system
-whereas scheme `alluxio` or no scheme indicates the Alluxio file system.
+Scheme `file://` indicates the local file system
+whereas scheme `alluxio://` or no scheme indicates the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory,
 `cp` copies the entire subtree at source to the destination.
+
+Usage: `cp [--thread <num>] [--buffersize <bytes>] [--preserve] <src> <dst>`
+* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
+* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
+* `--preserve` (optional) Preserve file permission attributes when copying files. All ownership, permissions and ACLs will be preserved.
+* `<src>` source file or directory path
+* `<dst>` destination file or directory path
 
 For example, `cp` can be used to copy files between under storage systems.
 
@@ -840,14 +869,15 @@ $ ./bin/alluxio fs distributedMv /data/1023 /data/1024
 
 ### du
 
-The `du` command outputs the total size and in Alluxio size of files and folders.
+The `du` command outputs the total size and amount stored in Alluxio of files and folders.
+If a directory is specified, it will display the sizes of all files in this directory.
 
-If a directory is specified, it will display the total size and in Alluxio size of all files in this directory.
-If the `-s` option is used, it will display the aggregate summary of file lengths being displayed.
-
-By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1KB 234MB 2GB).
-
-The `--memory` option will print the in memory size as well.
+Usage: `du [-s] [-h] [--memory] [-g] <dir>`
+* `-s` (optional) display the aggregate summary of file lengths being displayed
+* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
+* `-m,--memory` (optional) display the in memory size and in memory percentage
+* `-g` (optional) display information for In-Alluxio data size under the path, grouped by worker
+* `<dir>` file or directory path in the Alluxio filesystem
 
 ```console
 # Shows the size information of all the files in root directory
@@ -892,6 +922,9 @@ The `free` command does not delete any data from the under storage system,
 only removing the blocks of those files in Alluxio space to reclaim space.
 Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
 
+Usage: `free [-f]`
+* `-f` force to free files even pinned
+
 For example, `free` can be used to manually manage Alluxio's data caching.
 
 ```console
@@ -916,6 +949,14 @@ For example, `getfacl` can be used to verify that an ACL is changed successfully
 
 ```console
 $ ./bin/alluxio fs getfacl /testdir/testfile
+```
+
+### getSyncPathList
+
+The `getSyncPathList` command gets all the paths that are under active syncing right now.
+
+```console
+$ ./bin/alluxio fs getSyncPathList
 ```
 
 ### getUsedBytes
@@ -1010,9 +1051,9 @@ By default, it loads metadata only at the first time at which a directory is lis
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
 * `--sort` sorts the result by the given option. Possible values are size, creationTime, inMemoryPercentage, lastModificationTime, lastAccessTime and path.
+* `-r` reverses the sorting order.
 * `--timestamp` display the timestamp of the given option. Possible values are creationTime, lastModificationTime, and lastAccessTime.
 The default option is lastModificationTime.
-* `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
 
@@ -1109,6 +1150,12 @@ This is a server side data operation and will take time depending on how large t
 After persist is complete, the file in Alluxio will be backed by the file in the under storage,
 and will still be available if the Alluxio blocks are evicted or otherwise lost.
 
+Usage: `persist [-p <parallelism>] [-t <timeout>] [-w <wait time>] <dir>`
+* `-p,--parallelism <parallelism>]` (optional) Number of concurrent persist operations. (Default: 4)
+* `-t,--timeout <timeout>` (optional) Time in milliseconds for a single file persist to time out. (Default: 20 minutes)
+* `-w,--wait <wait time>` (optional) The time to wait in milliseconds before persisting. (Default: 0)
+* `<dir>` file or directory path in the Alluxio filesystem
+
 If you are persisting multiple files, you can use the `--parallelism <#>` option to submit `#` of
 persist commands in parallel. For example, if your folder has 10,000 files, persisting with a
 parallelism factor of 10 will persist 10 files at a time until all 10,000 files are persisted.
@@ -1157,11 +1204,15 @@ $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 
 The `setfacl` command modifies the access control list associated with a specified file or directory.
 
-The`-R` option applies operations to all files and directories recursively.
-The `-m` option modifies the ACL by adding/overwriting new entries.
-The `-x` option removes specific ACL entries.
-The `-b` option removes all ACL entries, except for the base entries.
-The `-k` option removes all the default ACL entries.
+* The`-R` option applies operations to all files and directories recursively.
+* The `set` option fully replaces the ACL while discarding existing entries.
+New ACL must be a comma separated list of entries, and must include user, group,
+and other for compatibility with permission bits.
+* The `-m` option modifies the ACL by adding/overwriting new entries.
+* The `-x` option removes specific ACL entries.
+* The `-b` option removes all ACL entries, except for the base entries.
+* The `-d` option indicates that operations apply to the default ACL
+* The `-k` option removes all the default ACL entries.
 
 For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
 
@@ -1174,10 +1225,12 @@ $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
 The `setReplication` command sets the max and/or min replication level of a file or all files under
 a directory recursively. This is a metadata operation and will not cause any replication to be
 created or removed immediately. The replication level of the target file or directory will be
-changed automatically in background. This command takes an argument of `--min` to specify the
-minimal replication level and `--max` for the maximal replication. Specify -1 as the argument of
-`--max` option to indicate no limit of the maximum number of replicas. If the specified path is a
-directory and `-R` is specified, it will recursively set all files in this directory.
+changed automatically in background.
+
+* The `--min` option specifies the minimal replication level
+* The `--max` optional specifies the maximal replication level. Specify -1 as the argument of
+`--max` option to indicate no limit of the maximum number of replicas.
+* If the specified path is a directory and `-R` is specified, it will recursively set all files in this directory.
 
 For example, `setReplication` can be used to ensure the replication level of a file has at least
 one copy and at most three copies in Alluxio:
@@ -1204,6 +1257,14 @@ or with action `free` just remove the contents from Alluxio to make room for mor
 $ ./bin/alluxio fs setTtl /data/good-for-one-day 86400000
 # After 1 day, free the file from Alluxio
 $ ./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+```
+
+### startSync
+
+The `startSync` command starts the automatic syncing process of the specified path.
+
+```console
+$ ./bin/alluxio fs startSync /data/2014
 ```
 
 ### stat
@@ -1233,6 +1294,14 @@ $ ./bin/alluxio fs stat /data/2015
 
 # Displays the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+```
+
+### stopSync
+
+The `stopSync` command stops the automatic syncing process of the specified path.
+
+```console
+$ ./bin/alluxio fs stopSync /data/2014
 ```
 
 ### tail
@@ -1316,6 +1385,17 @@ For example, `unsetTtl` can be used if a regularly managed file requires manual 
 ```console
 $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```
+
+### updateMount
+
+The `updateMount` command updates options for a mount point while keeping the Alluxio metadata under the path.
+
+Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
+* `--readonly` (optional) mount point is readonly in Alluxio
+* `--shared` (optional) mount point is shared
+* `--option <key>=<val>` (optional) options for this mount point.
+For security reasons, no options from existing mount point will be inherited.
+* `<alluxioPath>` Directory path in the Alluxio filesystem
 
 ## Table Operations
 
