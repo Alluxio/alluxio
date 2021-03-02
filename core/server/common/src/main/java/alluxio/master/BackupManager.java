@@ -305,8 +305,8 @@ public class BackupManager {
                   master.applyAndJournal(masterJCMap.get(master), entry);
                   appliedEntryCount.incrementAndGet();
                 } catch (Exception e) {
-                  JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to apply " +
-                          "journal entry to master %s. Entry: %s", masterName, entry);
+                  JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to apply "
+                          + "journal entry to master %s. Entry: %s", masterName, entry);
                 }
               }
             } finally {
