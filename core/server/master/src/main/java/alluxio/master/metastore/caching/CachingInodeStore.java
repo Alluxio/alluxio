@@ -269,7 +269,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @VisibleForTesting
   class InodeCache extends Cache<Long, MutableInode<?>> {
     public InodeCache(CacheConfiguration conf) {
-      super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_SIZE);
+      super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_EVICTIONS,
+          MetricKey.MASTER_INODE_CACHE_HITS, MetricKey.MASTER_INODE_CACHE_LOADTIMES,
+          MetricKey.MASTER_INODE_CACHE_MISSES, MetricKey.MASTER_INODE_CACHE_SIZE);
     }
 
     @Override
@@ -361,7 +363,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
 
     public EdgeCache(CacheConfiguration conf) {
-      super(conf, "edge-cache", MetricKey.MASTER_EDGE_CACHE_SIZE);
+      super(conf, "edge-cache", MetricKey.MASTER_EDGE_CACHE_EVICTIONS,
+          MetricKey.MASTER_EDGE_CACHE_HITS, MetricKey.MASTER_EDGE_CACHE_LOADTIMES,
+          MetricKey.MASTER_EDGE_CACHE_MISSES, MetricKey.MASTER_EDGE_CACHE_SIZE);
     }
 
     /**

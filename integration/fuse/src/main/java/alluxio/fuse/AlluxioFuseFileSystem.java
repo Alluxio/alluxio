@@ -110,16 +110,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
 
   // Open file managements
-  private static final IndexDefinition<OpenFileEntry, Long> ID_INDEX =
-      new IndexDefinition<OpenFileEntry, Long>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
+      ID_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>(true) {
         @Override
         public Long getFieldValue(OpenFileEntry o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
-      new IndexDefinition<OpenFileEntry, String>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>
+      PATH_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>(true) {
         @Override
         public String getFieldValue(OpenFileEntry o) {
           return o.getPath();
@@ -137,7 +139,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
-  private final IndexedSet<OpenFileEntry> mOpenFiles;
+  private final IndexedSet<OpenFileEntry<FileInStream, FileOutStream>> mOpenFiles;
 
   private AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
@@ -254,7 +256,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.info("Change group of file {} to {}", path, groupName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
-        LOG.info("Change owner of file {} to {}", path, groupName);
+        LOG.info("Change owner of file {} to {}", path, userName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (Throwable t) {
@@ -570,7 +572,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       return AlluxioFuseUtils.getErrorCode(t);
     }
     long fid = mNextOpenFileId.getAndIncrement();
-    mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
+    mOpenFiles.add(new OpenFileEntry<>(fid, path, is, null));
     fi.fh.set(fid);
 
     return 0;
@@ -605,38 +607,43 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    OpenFileEntry<FileInStream, FileOutStream> oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-
-    int rd = 0;
-    int nread = 0;
     if (oe.getIn() == null) {
       LOG.error("{} was not open for reading", path);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      oe.getIn().seek(offset);
-      final byte[] dest = new byte[sz];
-      while (rd >= 0 && nread < size) {
-        rd = oe.getIn().read(dest, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+    int rd = 0;
+    int nread = 0;
+    synchronized (oe) {
+      if (!mOpenFiles.contains(oe)) {
+        LOG.error("Cannot find fd for {} in table", path);
+        return -ErrorCodes.EBADFD();
+      }
+      try {
+        oe.getIn().seek(offset);
+        final byte[] dest = new byte[sz];
+        while (rd >= 0 && nread < size) {
+          rd = oe.getIn().read(dest, nread, sz - nread);
+          if (rd >= 0) {
+            nread += rd;
+          }
         }
-      }
 
-      if (nread == -1) { // EOF
-        nread = 0;
-      } else if (nread > 0) {
-        buf.put(0, dest, 0, nread);
+        if (nread == -1) { // EOF
+          nread = 0;
+        } else if (nread > 0) {
+          buf.put(0, dest, 0, nread);
+        }
+      } catch (Throwable t) {
+        LOG.error("Failed to read file={}, offset={}, size={}", path, offset,
+            size, t);
+        return AlluxioFuseUtils.getErrorCode(t);
       }
-    } catch (Throwable t) {
-      LOG.error("Failed to read file={}, offset={}, size={}", path, offset, size, t);
-      return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return nread;
   }
 
@@ -699,13 +706,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     OpenFileEntry oe;
     final long fd = fi.fh.get();
     oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    mOpenFiles.remove(oe);
-    if (oe == null) {
+    if (oe == null || !mOpenFiles.remove(oe)) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
     try {
-      oe.close();
+      synchronized (oe) {
+        oe.close();
+      }
     } catch (IOException e) {
       LOG.error("Failed closing {} [in]", path, e);
     }

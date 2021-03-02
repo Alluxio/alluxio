@@ -469,6 +469,17 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * @return the state of the master process journal catchup
+   */
+  public synchronized UfsJournalCheckpointThread.CatchupState getCatchupState() {
+    if (mTailerThread == null) {
+      // tailer thread not active yet
+      return UfsJournalCheckpointThread.CatchupState.NOT_STARTED;
+    }
+    return mTailerThread.getCatchupState();
+  }
+
+  /**
    * @return the log directory location
    */
   @VisibleForTesting

@@ -216,6 +216,7 @@ public class LocalCacheManager implements CacheManager {
   enum PutResult {
     OK,
     INSUFFICIENT_SPACE,
+    BENIGN_RACING,
     OTHER,
   }
 
@@ -286,18 +287,30 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean putInternal(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
+    PutResult result = PutResult.OK;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
-      PutResult result = putAttempt(pageId, page, scope, quota);
-      if (result == PutResult.OK) {
-        return true;
-      } else if (result == PutResult.OTHER) {
-        return false;
+      result = putAttempt(pageId, page, scope, quota);
+      switch (result) {
+        case OK:
+          return true;
+        case BENIGN_RACING:
+          // failed put attempt due to a benign race, try again.
+        case INSUFFICIENT_SPACE:
+          // failed put attempt due to insufficient space, try another time.
+          // note that, we only evict one item a time in putAttempt. So it is possible the evicted
+          // page is not large enough to cover the space needed by this page. Try again
+          continue;
+        case OTHER:
+          // fall through intentionally
+        default:
+          return false;
       }
-      // failed put attempt due to insufficient space, try another time.
-      // note that, we only evict one item a time in putAttempt. So it is possible the evicted
-      // page is not large enough to cover the space needed by this page. Try again
     }
-    Metrics.PUT_EVICTION_ERRORS.inc();
+    if (result == PutResult.BENIGN_RACING) {
+      Metrics.PUT_BENIGN_RACING_ERRORS.inc();
+    } else if (result == PutResult.INSUFFICIENT_SPACE) {
+      Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
+    }
     return false;
   }
 
@@ -353,18 +366,14 @@ public class LocalCacheManager implements CacheManager {
       // metalock. Evictor will be updated inside metastore.
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
-          LOG.debug("{} is already inserted by a racing thread", pageId);
-          // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
         try {
           mMetaStore.removePage(victimPageInfo.getPageId());
-        } catch (Exception e) {
-          undoAddPage(pageId);
-          LOG.error("Page {} is unavailable to evict, likely due to a benign race",
+        } catch (PageNotFoundException e) {
+          LOG.debug("Page {} is unavailable to evict, likely due to a benign race",
               victimPageInfo.getPageId());
-          Metrics.PUT_BENIGN_RACING_ERRORS.inc();
-          return PutResult.OTHER;
+          return PutResult.BENIGN_RACING;
         }
         scopeToEvict = checkScopeToEvict(page.length, scope, quota);
         if (scopeToEvict == null) {
@@ -383,7 +392,7 @@ public class LocalCacheManager implements CacheManager {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
         }
-        LOG.error("Failed to delete page {}: {}", pageId, e);
+        LOG.error("Failed to delete page {} from pageStore", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -470,7 +479,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {}: {}", pageId, e);
+          LOG.error("Failed to delete page {} from metaStore: {}", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
@@ -589,7 +598,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       mPageStore.delete(pageId);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {}: {}", pageId, e);
+      LOG.error("Failed to delete page {} from pageStore: {}", pageId, e);
       return false;
     }
     return true;
@@ -661,6 +670,9 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when adding pages due to benign racing eviction. */
     private static final Counter PUT_BENIGN_RACING_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS.getName());
+    /** Errors when adding pages due to insufficient space made after eviction. */
+    private static final Counter PUT_INSUFFICIENT_SPACE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_INSUFFICIENT_SPACE_ERRORS.getName());
     /** Errors when cache is not ready to add pages. */
     private static final Counter PUT_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_NOT_READY_ERRORS.getName());

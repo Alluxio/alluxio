@@ -28,15 +28,12 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.resource.LockResource;
 import alluxio.security.authorization.Mode;
-import alluxio.util.ThreadUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.Striped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +42,9 @@ import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -74,10 +69,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final LoadingCache<String, Long> mGidCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
-
-  private static final int LOCK_SIZE = 2048;
-  /** A readwrite lock pool to guard individual files based on striping. */
-  private final Striped<ReadWriteLock> mFileLocks = Striped.readWriteLock(LOCK_SIZE);
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final Map<Long, FileOutStream> mCreateFileEntries = new ConcurrentHashMap<>();
@@ -268,22 +259,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int readdir(String path, long buff, FuseFillDir filter, long offset,
+  public int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "readdir", "path=%s,buf=%s", path, buff);
   }
 
-  private int readdirInternal(String path, long buff, FuseFillDir filter, long offset,
+  private int readdirInternal(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       // standard . and .. entries
-      filter.apply(buff, ".", null, 0);
-      filter.apply(buff, "..", null, 0);
+      FuseFillDir.apply(filter, buff, ".", null, 0);
+      FuseFillDir.apply(filter, buff, "..", null, 0);
 
       mFileSystem.iterateStatus(uri, file -> {
-        filter.apply(buff, file.getName(), null, 0);
+        FuseFillDir.apply(filter, buff, file.getName(), null, 0);
       });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);
@@ -323,19 +314,25 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     int rd = 0;
     final int sz = (int) size;
     long fd = fi.fh.get();
-    // FileInStream is not thread safe
-    try (LockResource r1 = new LockResource(mFileLocks.get(fd).writeLock())) {
+    try {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
-      is.seek(offset);
       final byte[] dest = new byte[sz];
-      while (rd >= 0 && nread < size) {
-        rd = is.read(dest, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+      // FileInStream is not thread safe
+      synchronized (is) {
+        if (!mOpenFileEntries.containsKey(fd)) {
+          LOG.error("Cannot find fd {} for {}", fd, path);
+          return -ErrorCodes.EBADFD();
+        }
+        is.seek(offset);
+        while (rd >= 0 && nread < size) {
+          rd = is.read(dest, nread, sz - nread);
+          if (rd >= 0) {
+            nread += rd;
+          }
         }
       }
 
@@ -401,7 +398,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
-    try (LockResource r1 = new LockResource(mFileLocks.get(fd).writeLock())) {
+    try {
       FileInStream is = mOpenFileEntries.remove(fd);
       FileOutStream os = mCreateFileEntries.remove(fd);
       if (is == null && os == null) {
@@ -409,10 +406,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         return -ErrorCodes.EBADFD();
       }
       if (is != null) {
-        is.close();
+        synchronized (is) {
+          is.close();
+        }
       }
       if (os != null) {
-        os.close();
+        synchronized (os) {
+          os.close();
+        }
       }
     } catch (Throwable e) {
       LOG.error("Failed closing {}", path, e);
@@ -572,7 +573,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         LOG.info("Change group of file {} to {}", path, groupName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
-        LOG.info("Change owner of file {} to {}", path, groupName);
+        LOG.info("Change owner of file {} to {}", path, userName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (Throwable t) {
@@ -594,22 +595,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public String getFileSystemName() {
     return mFsName;
-  }
-
-  @Override
-  public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
-    LOG.info("Mounting AlluxioJniFuseFileSystem: blocking={}, debug={}, fuseOpts=\"{}\"",
-        blocking, debug, Arrays.toString(fuseOpts));
-    super.mount(blocking, debug, fuseOpts);
-    LOG.info("AlluxioJniFuseFileSystem mounted: blocking={}, debug={}, fuseOpts=\"{}\"",
-        blocking, debug, Arrays.toString(fuseOpts));
-  }
-
-  @Override
-  public void umount() {
-    LOG.info("Umount AlluxioJniFuseFileSystem, {}",
-        ThreadUtils.formatStackTrace(Thread.currentThread()));
-    super.umount();
   }
 
   @VisibleForTesting

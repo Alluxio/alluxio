@@ -61,6 +61,12 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Block heartbeat request is {} bytes, {} added blocks and {} removed blocks",
+              request.getSerializedSize(),
+              request.getAddedBlocksCount(),
+              request.getRemovedBlockIdsCount());
+    }
 
     final long workerId = request.getWorkerId();
     final Map<String, Long> capacityBytesOnTiers =
@@ -136,6 +142,12 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Register worker request is {} bytes, containing {} blocks",
+              request.getSerializedSize(),
+              request.getCurrentBlocksCount());
+    }
+
     final long workerId = request.getWorkerId();
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();

@@ -171,6 +171,19 @@ public interface JournalSystem {
   CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException;
 
   /**
+   * Waits for the journal catchup to finish when the process starts.
+   * This is intended to be only be called when starting the Alluxio master process
+   * in secondary mode and before the secondary master becoming the primary master.
+   * This is best-effort, because even if it did not finish
+   * replaying the journal, the rest of the system will still complete
+   * the journal catchup in a different phase.
+   *
+   * This can be implemented by a journal type to optimize the journal replay, and avoid getting
+   * interrupted with primary state changes during journal replay.
+   */
+  default void waitForCatchup() {}
+
+  /**
    * Used to get the current state from a leader journal system.
    *
    * Note: State changes to journals must have been effectively blocked by a state-lock

@@ -227,7 +227,7 @@ public class AlluxioJniFuseFileSystemTest {
     // mock fs
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
+    FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
     assertEquals(0, mFuseFs.getattr("/foo", stat));
     assertEquals(status.getLength(), stat.st_size.longValue());
     assertEquals(9, stat.st_blocks.intValue());
@@ -256,7 +256,7 @@ public class AlluxioJniFuseFileSystemTest {
     // mock fs
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
+    FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
 
     // Use another thread to open file so that
     // we could change the file status when opening it
@@ -296,7 +296,7 @@ public class AlluxioJniFuseFileSystemTest {
     when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
     when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
+    FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
 
     // getattr() will not be blocked when writing
     mFuseFs.getattr(path, stat);
@@ -512,7 +512,7 @@ public class AlluxioJniFuseFileSystemTest {
   private FuseFileInfo allocateNativeFileInfo() {
     ByteBuffer buffer = ByteBuffer.allocateDirect(36);
     buffer.clear();
-    return FuseFileInfo.wrap(buffer);
+    return FuseFileInfo.of(buffer);
   }
 
   /**
@@ -535,7 +535,7 @@ public class AlluxioJniFuseFileSystemTest {
   public void statfs() throws Exception {
     ByteBuffer buffer = ByteBuffer.allocateDirect(4 * Constants.KB);
     buffer.clear();
-    Statvfs stbuf = Statvfs.wrap(buffer);
+    Statvfs stbuf = Statvfs.of(buffer);
 
     int blockSize = 4 * Constants.KB;
     int totalBlocks = 4;

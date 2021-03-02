@@ -637,14 +637,13 @@ public class TieredBlockStore implements BlockStore {
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     try {
-      // Allocate from given location.
-      dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
-          options.getLocation(), allocatorView, false);
-      if (dirView != null) {
-        return dirView;
-      }
-
       if (options.isForceLocation()) {
+        // Try allocating from given location. Skip the review because the location is forced.
+        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+            options.getLocation(), allocatorView, true);
+        if (dirView != null) {
+          return dirView;
+        }
         if (options.isEvictionAllowed()) {
           LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
                   options.getSize(), options.getLocation());
@@ -652,7 +651,10 @@ public class TieredBlockStore implements BlockStore {
           // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
-          LOG.debug("Allocation after freeing space for block expansion: {}", dirView);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Allocation after freeing space for block expansion. availableBytes: {}",
+                dirView.getAvailableBytes());
+          }
           if (dirView == null) {
             LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
                 options.getLocation(), options.getSize(), sessionId);
@@ -666,6 +668,12 @@ public class TieredBlockStore implements BlockStore {
           return null;
         }
       } else {
+        // Try allocating from given location. This may be rejected by the review logic.
+        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+            options.getLocation(), allocatorView, false);
+        if (dirView != null) {
+          return dirView;
+        }
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
                 options.getLocation());
         dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),

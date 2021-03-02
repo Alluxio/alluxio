@@ -24,6 +24,7 @@
   <modules>
     <!-- exclude checker from hadoop-1 profile as yarn is not available in Hadoop 1.x -->
     <module>fuse</module>
+    <module>jnifuse</module>
     <module>tools</module>
   </modules>
 
