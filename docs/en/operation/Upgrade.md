@@ -7,17 +7,17 @@ priority: 15
 ---
 
 In normal cases, users can directly shutdown the current Alluxio processes, change
-the Alluxio binaries to newer version, configure Alluxio clusters similar to before, 
+the Alluxio binaries to a newer version, configure Alluxio clusters similar to before,
 and start Alluxio processes with the existing journal folder/address for upgrading.
-Alluxio is able to read the previous journal files and recover the Alluxio metadata.
+Alluxio can read the previous journal files and recover the Alluxio metadata automatically.
 
-There are two cases where master journals are not backward compatible and additional steps are required to upgrade Alluxio cluster:
+There are two cases where master journals are not backward compatible and additional steps are required to upgrade the Alluxio cluster:
 
 - Upgrading from Alluxio 1.x to Alluxio 2.x
-- Upgrading from Alluxio 2.3.x and below to Alluxio 2.4.0 and above, and the embedded journal is used.
+- Upgrading from Alluxio 2.3.x and below to Alluxio 2.4.0 and above when using [embedded journal]({{ '/en/operation/Journal.html' | relativize_url}}).
 
 This document goes over how to upgrade Alluxio to a non-backward compatible version.
-Even when upgrading to a backward compatible version, it is still recommended to follow the steps below to create a backup before upgrading.
+Even when upgrading to a backward-compatible version, it is still recommended to follow the steps below to create a backup before upgrading.
 
 ## Create a backup on the current version
 
@@ -28,11 +28,6 @@ create a journal backup by running
 
 ```console
 $ ./bin/alluxio fsadmin backup
-```
-
-This will print something like
-
-```
 Successfully backed up journal to ${BACKUP_PATH}
 ```
 
@@ -42,7 +37,7 @@ One can also backup to the local filesystem of the current leading master node w
 
 ## Upgrade and start from backup
 
-Next, download and untar newer version Alluxio. First format the cluster with
+Next, download and untar the newer version Alluxio. First format the cluster with
 
 ```console
 $ ./bin/alluxio format
