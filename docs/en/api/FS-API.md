@@ -37,7 +37,7 @@ Alluxio provides users two different Filesystem APIs to access the same file sys
 
 The Alluxio file system API provides full functionality, while the Hadoop compatible API
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
-using Hadoop's API with limitaitons.
+using Hadoop's API with limitations.
 
 ### Configuring Dependency
 
@@ -147,7 +147,7 @@ storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under stora
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
 interaction with Alluxio managed storage and under storage through `ReadType` and `WriteType`.
 `ReadType` specifies the data read behavior when reading a file. `WriteType` specifies the data
-write behavior when writing a new file, ie. whether the data should be written in Alluxio Storage.
+write behavior when writing a new file, i.e. whether the data should be written in Alluxio Storage.
 
 Below is a table of the expected behaviors of `ReadType`. Reads will always prefer Alluxio storage
 over the under storage.
@@ -228,7 +228,7 @@ With the AlluxioURI, the user may use any of the methods of `FileSystem` to acce
 #### Reading Data
 
 A `AlluxioURI` can be used to perform Alluxio FileSystem operations, such as modifying the file
-metadata, ie. TTL or pin state, or getting an input stream to read the file.
+metadata, i.e. TTL or pin state, or getting an input stream to read the file.
 
 For example, to read a file:
 
