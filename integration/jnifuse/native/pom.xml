@@ -58,6 +58,11 @@
                         <include name="libjnifuse.*"/>
                       </fileset>
                     </copy>
+                    <copy todir="${project.basedir}/src/main/resources">
+                      <fileset dir="${project.build.directory}/native/">
+                        <include name="libjnifuse.*"/>
+                      </fileset>
+                    </copy>
                   </target>
                 </configuration>
               </execution>
