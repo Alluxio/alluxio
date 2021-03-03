@@ -18,9 +18,9 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
+ * Factory for creating {@link CosNUnderFileSystemFactory}.
  *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * It caches created {@link CosNUnderFileSystemFactory}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {

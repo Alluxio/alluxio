@@ -12,16 +12,15 @@
 package alluxio.underfs.ozone;
 
 import alluxio.Constants;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
+ * Factory for creating {@link OzoneUnderFileSystemFactory}.
  *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * It caches created {@link OzoneUnderFileSystemFactory}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
