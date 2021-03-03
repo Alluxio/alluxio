@@ -55,13 +55,21 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
 
     return (
       <div className="lineGraph col-12 col-md-6 col-xl-4">
-        <h5>{data[0].id}</h5>
+        <h5>
+          {data[0].id}
+          {!yAxisLabel.includes('%') && ' (Bytes/Minute)'}
+        </h5>
         <ResponsiveLine
           theme={nivoTheme}
           data={data}
           margin={{ top: 25, right: 50, bottom: 200, left: 75 }}
           xScale={{ type: 'time', format: '%Q', precision: 'minute' }}
-          yScale={{ type: 'linear', stacked: false, min: 0, max: yAxisLabel.includes('%') ? 100 : undefined }}
+          yScale={{
+            type: 'linear',
+            stacked: false,
+            min: yAxisLabel.includes('%') ? 0 : 'auto',
+            max: yAxisLabel.includes('%') ? 100 : 'auto',
+          }}
           axisTop={null}
           axisRight={null}
           axisBottom={{
@@ -77,7 +85,7 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: yAxisLabel,
+            legend: yAxisLabel.includes('%') ? yAxisLabel : undefined,
             legendOffset: -40,
             legendPosition: 'middle',
           }}

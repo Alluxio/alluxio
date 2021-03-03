@@ -170,6 +170,7 @@ exports[`Paginator Shallow component Matches throughput y-axis snapshot 1`] = `
 >
   <h5>
     Test
+     (Bytes/Minute)
   </h5>
   <ResponsiveLine
     animate={true}
@@ -188,7 +189,7 @@ exports[`Paginator Shallow component Matches throughput y-axis snapshot 1`] = `
     }
     axisLeft={
       Object {
-        "legend": "Raw Throughput (Bytes/Minute)",
+        "legend": undefined,
         "legendOffset": -40,
         "legendPosition": "middle",
         "tickPadding": 5,
@@ -318,8 +319,8 @@ exports[`Paginator Shallow component Matches throughput y-axis snapshot 1`] = `
     }
     yScale={
       Object {
-        "max": undefined,
-        "min": 0,
+        "max": "auto",
+        "min": "auto",
         "stacked": false,
         "type": "linear",
       }
