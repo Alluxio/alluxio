@@ -19,6 +19,8 @@
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-native</artifactId>
+  <name>Alluxio Integration - JNIFUSE - Native</name>
+  <description>JNI-based FUSE Integration - Native code</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
