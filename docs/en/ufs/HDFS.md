@@ -82,7 +82,9 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
-If your ramdisk is not mounted, the format command can fail. This is likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
+If your ramdisk is not mounted, the format command can fail. 
+This is likely because this is the first time you are running Alluxio, 
+you may need to start Alluxio with the `SudoMount` option.
 
 ```console
 $ ./bin/alluxio-start.sh local SudoMount
@@ -223,7 +225,7 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 #### Using Mount Command-line
 When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.7.
 
-For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
+For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs22` and `/mnt/hdfs27`.
 
 ```console
 $ ./bin/alluxio fs mount \
@@ -251,17 +253,9 @@ Alluxio supports the following versions of HDFS as a valid argument of mount opt
 - Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
-To build this module yourself, build the shaded hadoop client and then the UFS model as demonstrated
-in the example below for hadoop-1.2.0.
-This will provide a jar that should be moved to the `lib/` directory in the Alluxio install directory.
-
-```console
-cd shaded/hadoop/
-mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
-cd ../../underfs/hdfs/
-mvn -T 4C -am clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true -Pmesos -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
-
-```
+To build this module yourself, build the shaded hadoop client and then the UFS module. 
+Please refer to Building from Source ({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) instructions 
+to see how to build additional UFS libraries. 
 
 ### Use Hadoop Native Library
 
