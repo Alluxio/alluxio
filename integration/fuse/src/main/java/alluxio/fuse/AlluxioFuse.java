@@ -114,8 +114,8 @@ public final class AlluxioFuse {
     if (opts == null) {
       System.exit(1);
     }
-    try {
-      launchFuse(fsContext, opts, true);
+    try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
+      launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       System.exit(-1);
@@ -125,16 +125,15 @@ public final class AlluxioFuse {
   /**
    * Launches Fuse application.
    *
-   * @param fsContext file system context for Fuse client to communicate to servers
+   * @param fs file system for Fuse client to communicate to servers
+   * @param conf the alluxio configuration to create Fuse file system
    * @param opts the fuse mount options
    * @param blocking whether the Fuse application is blocking or not
    */
-  public static void launchFuse(FileSystemContext fsContext,
+  public static void launchFuse(FileSystem fs, AlluxioConfiguration conf,
       FuseMountOptions opts, boolean blocking) throws IOException {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
-    AlluxioConfiguration conf = fsContext.getClusterConf();
-    final FileSystem fs = FileSystem.Factory.create(fsContext);
     try {
       final List<String> fuseOpts = opts.getFuseOpts();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
@@ -175,10 +174,6 @@ public final class AlluxioFuse {
       }
     } catch (Throwable e) {
       throw new IOException("Failed to mount Alluxio file system", e);
-    } finally {
-      if (blocking) {
-        fs.close();
-      }
     }
   }
 

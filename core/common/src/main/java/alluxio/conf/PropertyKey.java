@@ -2709,6 +2709,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FUSE_ENABLED =
+      new Builder(Name.WORKER_FUSE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, launch worker embedded Fuse application.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
       new Builder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
@@ -4542,14 +4549,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_WORKER_INTERNAL_READER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_WORKER_INTERNAL_READER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("8MB")
-          .setDescription("When a worker internal client reads from "
-              + "the worker directly, the maximum data chunk size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
 
   //
   // FUSE integration related properties
@@ -5547,6 +5546,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_FUSE_ENABLED =
+        "alluxio.worker.fuse.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.worker.fuse.mount.alluxio.path";
     public static final String WORKER_FUSE_MOUNT_OPTIONS =
@@ -5909,8 +5910,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_SHORT_CIRCUIT_PREFERRED =
         "alluxio.user.short.circuit.preferred";
-    public static final String USER_WORKER_INTERNAL_READER_CHUNK_SIZE_BYTES =
-        "alluxio.user.worker.internal.reader.chunk.size.bytes";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 

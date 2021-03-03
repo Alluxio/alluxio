@@ -171,7 +171,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mUfsManager = ufsManager;
     mAsyncCacheManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
-    mFuseManager = new FuseManager(this);
+    mFuseManager = mResourceCloser.register(new FuseManager(this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -258,8 +258,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
                   ServerConfiguration.global(), ServerUserState.global()));
     }
 
-    // Mounts the embedded Fuse application if configured
-    mFuseManager.start();
+    // Mounts the embedded Fuse application
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
+      mFuseManager.start();
+    }
   }
 
   /**
