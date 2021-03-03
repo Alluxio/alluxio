@@ -327,7 +327,6 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     return 0;
   }
 
-
   @Override
   public FuseContext getContext() {
     ByteBuffer buffer = libFuse.fuse_get_context();
