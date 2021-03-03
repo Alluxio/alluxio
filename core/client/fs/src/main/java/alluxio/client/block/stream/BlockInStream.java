@@ -52,8 +52,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    // Reads from local worker or reads from local worker storage directly
-    LOCAL,
+    EMBEDDED, // The client is embedded in the worker process
+    LOCAL, // The client is outside the worker process but in the same node
     REMOTE,
     UFS
   }
@@ -117,13 +117,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean shortCircuitPreferred =
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
-    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
-    if (sourceIsLocal && context.acquireWorkerInternalBlockWorkerClient() != null) {
+    if (dataSourceType == BlockInStreamSource.EMBEDDED) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
       return createWorkerInternalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
+
+    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -164,10 +165,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createWorkerInternalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
     long chunkSize = context.getClusterConf().getBytes(
-        PropertyKey.USER_WORKER_INTERNAL_READER_CHUNK_SIZE_BYTES);
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new WorkerInternalClientDataReader.Factory(context, blockId, chunkSize, options),
-        address, BlockInStreamSource.LOCAL, blockId, length);
+        address, BlockInStreamSource.EMBEDDED, blockId, length);
   }
 
   /**
@@ -183,7 +184,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    // TODO(lu) should i change this property key?
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(

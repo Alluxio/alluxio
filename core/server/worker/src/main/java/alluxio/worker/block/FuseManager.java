@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
-import alluxio.worker.block.io.WorkerInternalBlockWorkerImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import java.util.List;
 public class FuseManager {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private static final String FUSE_OPTION_SEPARATOR = ",";
-  private final WorkerInternalBlockWorkerImpl mLocalBlockWorker;
   private final FileSystemContext mFsContext;
 
   /**
@@ -38,8 +36,7 @@ public class FuseManager {
    * @param blockWorker the block worekr
    */
   public FuseManager(BlockWorker blockWorker) {
-    mLocalBlockWorker = new WorkerInternalBlockWorkerImpl(blockWorker);
-    mFsContext = FileSystemContext.create(null, ServerConfiguration.global(), mLocalBlockWorker);
+    mFsContext = FileSystemContext.create(null, ServerConfiguration.global(), blockWorker);
   }
 
   /**
@@ -53,19 +50,24 @@ public class FuseManager {
     if (fuseMount.isEmpty()) {
       return;
     }
-    String alluxioPath = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
-    if (alluxioPath.isEmpty()) {
+    if (!ServerConfiguration.isSet(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
+        || ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       LOG.error("Failed to launch worker internal Fuse application. {} should not be empty.",
           PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH.getName());
       return;
     }
+    String alluxioPath = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
     // TODO(lu) check if the given fuse mount point exists
     // create the folder if it does not exist
     try {
-      String fuseOptsString = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
-      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(
-          fuseOptsString.isEmpty() ? new String[0] : fuseOptsString.split(FUSE_OPTION_SEPARATOR),
-          ServerConfiguration.global());
+      String[] fuseOptsSeparated = new String[0];
+      if (ServerConfiguration.isSet(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS)) {
+        String fuseOptsString = ServerConfiguration.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
+        if (!fuseOptsString.isEmpty()) {
+          fuseOptsSeparated = fuseOptsString.split(FUSE_OPTION_SEPARATOR);
+        }
+      }
+      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptsSeparated, ServerConfiguration.global());
       FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
           ServerConfiguration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation

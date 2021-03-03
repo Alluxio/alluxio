@@ -276,7 +276,9 @@ public class AlluxioFileInStream extends FileInStream {
         len -= bytesRead;
         retry = mRetryPolicySupplier.get();
         lastException = null;
-        if (mCachedPositionedReadStream.getSource() != BlockInStream.BlockInStreamSource.LOCAL) {
+        BlockInStream.BlockInStreamSource source = mCachedPositionedReadStream.getSource();
+        if (source != BlockInStream.BlockInStreamSource.LOCAL
+            && source != BlockInStream.BlockInStreamSource.EMBEDDED) {
           triggerAsyncCaching(mCachedPositionedReadStream);
         }
         if (bytesRead == mBlockSize - offset) {
@@ -375,7 +377,8 @@ public class AlluxioFileInStream extends FileInStream {
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
       }
-      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
+      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL
+          || blockSource == BlockInStream.BlockInStreamSource.EMBEDDED) {
         return;
       }
       triggerAsyncCaching(stream);
@@ -401,9 +404,9 @@ public class AlluxioFileInStream extends FileInStream {
               .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
               .build();
 
-      if (mPassiveCachingEnabled && mContext.acquireWorkerInternalBlockWorkerClient() != null) {
+      if (mPassiveCachingEnabled && mContext.isWorkerInternalClient()) {
         try {
-          mContext.acquireWorkerInternalBlockWorkerClient().asyncCache(request);
+          mContext.getInternalBlockWorker().submitAsyncCacheRequest(request);
           mLastBlockIdCached = blockId;
         } catch (Exception e) {
           LOG.warn("Failed to complete async cache request for block {} of file {} "

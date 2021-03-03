@@ -96,13 +96,13 @@ public final class WorkerInternalClientDataReader implements DataReader {
    */
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
-    private final WorkerInternalBlockWorker mWorkerInternalBlockWorker;
     private final long mChunkSize;
+    private final WorkerInternalBlockWorker mWorkerInternalBlockWorker;
 
-    private BlockReader mReader;
-    private boolean mClosed;
-    private ReadRequest mReadRequestPartial;
     private BlockReadRequest mBlockReadRequest;
+    private boolean mClosed;
+    private BlockReader mReader;
+    private ReadRequest mReadRequestPartial;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -120,7 +120,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .fromProto(options.getOptions().getReadType()).isPromote();
       mReadRequestPartial = ReadRequest.newBuilder()
           .setBlockId(blockId).setPromote(isPromote).build();
-      mWorkerInternalBlockWorker = context.acquireWorkerInternalBlockWorkerClient();
+      mWorkerInternalBlockWorker = context.getInternalBlockWorker();
     }
 
     @Override
