@@ -17,6 +17,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
+import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
@@ -95,12 +96,8 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
-    mStatsCounter = new StatsCounter();
+    mStatsCounter = new StatsCounter(evictionsKey, hitsKey, loadTimesKey, missesKey);
 
-    MetricsSystem.registerGaugeIfAbsent(evictionsKey.getName(), mStatsCounter.mEvictionCount::get);
-    MetricsSystem.registerGaugeIfAbsent(hitsKey.getName(), mStatsCounter.mHitCount::get);
-    MetricsSystem.registerGaugeIfAbsent(loadTimesKey.getName(), mStatsCounter.mTotalLoadTime::get);
-    MetricsSystem.registerGaugeIfAbsent(missesKey.getName(), mStatsCounter.mMissCount::get);
     MetricsSystem.registerGaugeIfAbsent(sizeKey.getName(), mMap::size);
   }
 
@@ -522,32 +519,32 @@ public abstract class Cache<K, V> implements Closeable {
    * {@link com.google.common.cache.AbstractCache}.
    */
   protected static final class StatsCounter {
-    private final AtomicLong mHitCount;
-    private final AtomicLong mMissCount;
-    private final AtomicLong mTotalLoadTime;
-    private final AtomicLong mEvictionCount;
+    private final Counter mHitCount;
+    private final Counter mMissCount;
+    private final Counter mTotalLoadTime;
+    private final Counter mEvictionCount;
 
-    public StatsCounter() {
-      mHitCount = new AtomicLong();
-      mMissCount = new AtomicLong();
-      mTotalLoadTime = new AtomicLong();
-      mEvictionCount = new AtomicLong();
+    public StatsCounter(MetricKey evictionsKey, MetricKey hitsKey, MetricKey loadTimesKey, MetricKey missesKey) {
+      mHitCount = MetricsSystem.counter(hitsKey.getName());
+      mMissCount = MetricsSystem.counter(missesKey.getName());
+      mTotalLoadTime = MetricsSystem.counter(loadTimesKey.getName());
+      mEvictionCount = MetricsSystem.counter(evictionsKey.getName());
     }
 
     public void recordHit() {
-      mHitCount.getAndIncrement();
+      mHitCount.inc();
     }
 
     public void recordMiss() {
-      mMissCount.getAndIncrement();
+      mMissCount.inc();
     }
 
     public void recordLoad(long loadTime) {
-      mTotalLoadTime.getAndAdd(loadTime);
+      mTotalLoadTime.inc(loadTime);
     }
 
     public void recordEvictions(long evictionCount) {
-      mEvictionCount.getAndAdd(evictionCount);
+      mEvictionCount.inc(evictionCount);
     }
   }
 }
