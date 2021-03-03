@@ -404,7 +404,7 @@ int RemovexattrOperation::call(const char *path, const char *list) {
   jstring jspath = env->NewStringUTF(path);
   jstring jslist = env->NewStringUTF(list);
 
-   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jslist);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jslist);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jslist);
