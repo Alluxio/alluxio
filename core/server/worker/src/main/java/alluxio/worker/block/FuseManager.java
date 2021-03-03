@@ -44,6 +44,7 @@ public class FuseManager implements Closeable {
    */
   public FuseManager(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
+    mResourceCloser = Closer.create();
   }
 
   /**
@@ -80,7 +81,8 @@ public class FuseManager implements Closeable {
           conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
-      FileSystemContext fsContext = mResourceCloser.register(FileSystemContext.create(null, conf, mBlockWorker));
+      FileSystemContext fsContext = mResourceCloser
+          .register(FileSystemContext.create(null, conf, mBlockWorker));
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(fsContext));
       AlluxioFuse.launchFuse(fileSystem, conf, options, false);
     } catch (Throwable throwable) {

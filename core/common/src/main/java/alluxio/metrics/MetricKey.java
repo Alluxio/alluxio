@@ -498,6 +498,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
+  public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
+      new Builder(Name.CLUSTER_BYTES_READ_DIRECT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. clients embedded in workers).")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_DIRECT_THROUGHPUT =
+      new Builder(Name.CLUSTER_BYTES_READ_DIRECT_THROUGHPUT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. clients embedded in workers).")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
       new Builder(Name.CLUSTER_BYTES_READ_REMOTE)
           .setDescription("Total number of bytes read from Alluxio storage "
@@ -1258,6 +1274,9 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Master.UfsJournalInitialReplayTimeMs";
 
     // Cluster metrics
+    public static final String CLUSTER_BYTES_READ_DIRECT = "Cluster.BytesReadDirect";
+    public static final String CLUSTER_BYTES_READ_DIRECT_THROUGHPUT
+        = "Cluster.BytesReadDirectThroughput";
     public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";
     public static final String CLUSTER_BYTES_READ_LOCAL_THROUGHPUT
         = "Cluster.BytesReadLocalThroughput";

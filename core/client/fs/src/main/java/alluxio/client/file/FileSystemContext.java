@@ -517,18 +517,6 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * Acquires the internal block worker
-   * as a gateway for worker internal clients to communicate with
-   * the local worker directly without going through external RPC frameworks.
-   *
-   * @return the acquired worker internal block worker
-   */
-  @Nullable
-  public WorkerInternalBlockWorker getInternalBlockWorker() {
-    return mWorkerInternalBlockWorker;
-  }
-
-  /**
    * Acquires a block worker client from the client pools. If there is no available client instance
    * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
    * create a new one.
@@ -603,6 +591,18 @@ public class FileSystemContext implements Closeable {
    */
   public synchronized boolean isWorkerInternalClient() {
     return mWorkerInternalBlockWorker != null;
+  }
+
+  /**
+   * Acquires the internal block worker
+   * as a gateway for worker internal clients to communicate with
+   * the local worker directly without going through external RPC frameworks.
+   *
+   * @return the acquired worker internal block worker
+   */
+  @Nullable
+  public WorkerInternalBlockWorker getInternalBlockWorker() {
+    return mWorkerInternalBlockWorker;
   }
 
   /**
