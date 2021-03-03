@@ -18,9 +18,12 @@
 #include <fuse.h>
 
 int chmod_wrapper(const char *path, mode_t mode);
+int chown_wrapper(const char *path, uid_t uid, gid_t gid);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
 int flush_wrapper(const char *path, struct fuse_file_info *fi);
 int getattr_wrapper(const char *path, struct stat *stbuf);
+int getxattr_wrapper(const char *path, const char *name, char *value, size_t size);
+int listxattr_wrapper(const char *path, char *list, size_t size);
 int mkdir_wrapper(const char *path, mode_t mode);
 int open_wrapper(const char *path, struct fuse_file_info *fi);
 int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
@@ -28,8 +31,11 @@ int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
 int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
                     off_t offset, struct fuse_file_info *fi);
 int release_wrapper(const char *path, struct fuse_file_info *fi);
+int removexattr_wrapper(const char *path, const char *list);
 int rename_wrapper(const char *oldPath, const char *newPath);
 int rmdir_wrapper(const char *path);
+int setxattr_wrapper(const char *path, const char *name,
+                     const char *value, size_t size, int flags);
 int unlink_wrapper(const char *path);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);

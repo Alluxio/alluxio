@@ -15,6 +15,9 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import jnr.ffi.Pointer;
+import jnr.ffi.types.size_t;
+import ru.serce.jnrfuse.NotImplemented;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ThreadLocalRandom;
