@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -524,7 +523,8 @@ public abstract class Cache<K, V> implements Closeable {
     private final Counter mTotalLoadTime;
     private final Counter mEvictionCount;
 
-    public StatsCounter(MetricKey evictionsKey, MetricKey hitsKey, MetricKey loadTimesKey, MetricKey missesKey) {
+    public StatsCounter(MetricKey evictionsKey, MetricKey hitsKey, MetricKey loadTimesKey,
+                        MetricKey missesKey) {
       mHitCount = MetricsSystem.counter(hitsKey.getName());
       mMissCount = MetricsSystem.counter(missesKey.getName());
       mTotalLoadTime = MetricsSystem.counter(loadTimesKey.getName());
