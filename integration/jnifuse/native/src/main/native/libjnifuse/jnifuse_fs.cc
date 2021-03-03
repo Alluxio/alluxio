@@ -62,6 +62,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->renameOper = new RenameOperation(this);
   this->rmdirOper = new RmdirOperation(this);
   this->setxattrOper = new SetxattrOperation(this);
+  this->truncateOper = new TruncateOperation(this);
   this->unlinkOper = new UnlinkOperation(this);
   this->writeOper = new WriteOperation(this);
 }
@@ -83,6 +84,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->renameOper;
   delete this->rmdirOper;
   delete this->setxattrOper;
+  delete this->truncateOper;
   delete this->unlinkOper;
   delete this->writeOper;
 }

@@ -437,4 +437,24 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   return ret;
 }
 
+TruncateOperation::TruncateOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;J)I";
+  this->methodID = env->GetMethodID(this->clazz, "truncateCallback", signature);
+}
+
+int TruncateOperation::call(const char *path, off_t size) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, size);
+
+  env->DeleteLocalRef(jspath);
+
+  return ret;
+}
+
 }  // namespace jnifuse

@@ -35,6 +35,7 @@ class RemovexattrOperation;
 class RenameOperation;
 class RmdirOperation;
 class SetxattrOperation;
+class TruncateOperation;
 class UnlinkOperation;
 class WriteOperation;
 
@@ -72,6 +73,7 @@ class JniFuseFileSystem {
   RenameOperation *renameOper;
   RmdirOperation *rmdirOper;
   SetxattrOperation *setxattrOper;
+  TruncateOperation *truncateOper;
   UnlinkOperation *unlinkOper;
   WriteOperation *writeOper;
 };
