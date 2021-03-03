@@ -225,7 +225,9 @@ ListxattrOperation::ListxattrOperation(JniFuseFileSystem *fs) {
 int ListxattrOperation::call(const char *path, char *list, size_t size) {
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
-  jobject buffer = env->NewDirectByteBuffer(list, size * sizeof(char));
+  int a = 2;
+  a++;
+  jobject buffer = env->NewDirectByteBuffer((void *)list, size * sizeof(char));
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer);
 
   env->DeleteLocalRef(jspath);
@@ -424,7 +426,7 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jstring jsname = env->NewStringUTF(name);
-  jobject buffer = env->NewDirectByteBuffer(buf, size);
+  jobject buffer = env->NewDirectByteBuffer((void *)value, size);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size, flags);
 

@@ -315,11 +315,11 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     return 0;
   }
 
-  public int getxattrCallback(String path, String name, ByteBuffer value, long size) {
+  public int getxattrCallback(String path, String name, ByteBuffer value) {
     return 0;
   }
 
-  public int listxattrCallback(String path, ByteBuffer list, long size) {
+  public int listxattrCallback(String path, ByteBuffer list) {
     return 0;
   }
 
