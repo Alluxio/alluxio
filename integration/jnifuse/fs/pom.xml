@@ -19,6 +19,8 @@
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-fs</artifactId>
+  <name>Alluxio Integration - JNIFUSE - Filesystem</name>
+  <description>JNI-based FUSE Integration - Java filesystem stub</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
