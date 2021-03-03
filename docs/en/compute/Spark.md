@@ -69,7 +69,7 @@ applications.
 ### Access Data Only in Alluxio
 
 Copy local data to the Alluxio file system. Put the `LICENSE` file into Alluxio,
-assuming you are in the Alluxio project directory:
+assuming you are in the Alluxio installation directory:
 
 ```console
 $ ./bin/alluxio fs copyFromLocal LICENSE /Input
@@ -90,7 +90,7 @@ of the input file `Input`.
 
 ### Access Data in Under Storage
 
-Alluxio supports transparently fetching the data from the under storage system,
+Alluxio transparently fetches data from the under storage system,
 given the exact path.
 For this section, HDFS is used as an example of a distributed under storage
 system.
@@ -98,11 +98,11 @@ system.
 Put a file `Input_HDFS` into HDFS:
 
 ```console
-$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
+$ hdfs dfs -copyFromLocal -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 At this point, Alluxio does not know about this file since it was added to HDFS directly.
-You can verify this by going to the web UI.
+Verify this by going to the web UI.
 Run the following commands from `spark-shell` assuming Alluxio Master is running
 on `localhost`:
 
@@ -122,7 +122,7 @@ system space.
 
 ### Configure Spark for Alluxio with HA
 
-When connecting to the Alluxio cluster when HA is enabled using internal leader election,
+When connecting to an HA-enabled Alluxio cluster using internal leader election,
 set the `alluxio.master.rpc.addresses` property via the Java options in
 `${SPARK_HOME}/conf/spark-defaults.conf` so Spark
 applications know which Alluxio masters to connect to and how to identify the
@@ -133,7 +133,7 @@ spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:1
 spark.executor.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Alternatively you can add the property to the Hadoop configuration file
+Alternatively, add the property to the Hadoop configuration file
 `${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
@@ -175,7 +175,7 @@ instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.d
 
 ### Access Data from Alluxio with HA
 
-If Spark configured based on the instruction in [Configure Spark for Alluxio with HA](#configure-spark-for-alluxio-with-ha),
+If Spark configured using the instructions in [Configure Spark for Alluxio with HA](#configure-spark-for-alluxio-with-ha),
 you can write URIs using the `alluxio:///` scheme without specifying cluster
 information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served
@@ -187,8 +187,7 @@ val double = s.map(line => line + line)
 double.saveAsTextFile("alluxio:///Output")
 ```
 
-Alternatively, one can use the HA authority in URI directly without any
-configuration setup.
+Alternatively, users may specify the HA authority directly in the URI without any configuration setup.
 For example, specify the master rpc addresses in the URI to connect to Alluxio
 configured for HA using internal leader election:
 
@@ -204,7 +203,7 @@ Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in
 [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
 
-### Cache RDD into Alluxio
+### Cache RDDs into Alluxio
 
 Storing RDDs in Alluxio memory is as simple as saving the RDD file to Alluxio.
 Two common ways to save RDDs as files in Alluxio are
@@ -230,7 +229,7 @@ See the blog article
 
 ### Cache Dataframes in Alluxio
 
-Storing Spark DataFrames in Alluxio memory is simply saving the DataFrame as a
+Storing Spark DataFrames in Alluxio memory is as simple as saving the DataFrame as a
 file to Alluxio.
 DataFrames are commonly written as parquet files, with `df.write.parquet()`.
 After the parquet is written to Alluxio, it can be read from memory by using
@@ -244,7 +243,7 @@ df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
 See the blog article
 "[Effective Spark DataFrames with Alluxio](https://www.alluxio.io/resources/whitepapers/effective-spark-dataframes-with-alluxio/)".
 
-## TroubleShooting
+## Troubleshooting
 
 ### Logging Configuration
 

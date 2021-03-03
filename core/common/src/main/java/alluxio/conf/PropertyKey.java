@@ -636,6 +636,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_LOGGING_THRESHOLD =
+      new Builder(Name.UNDERFS_LOGGING_THRESHOLD)
+          .setDefaultValue("10s")
+          .setDescription("Logging a UFS API call when it takes more time than the threshold.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_DEFAULT_MODE =
       new Builder(Name.UNDERFS_GCS_DEFAULT_MODE)
           .setDefaultValue("0700")
@@ -760,6 +767,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
               + "UFS operations, such as directory renames and deletes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+      new Builder(Name.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+          .setDefaultValue(true)
+          .setDescription("Do not create parent directory for new files. Object stores generally "
+              + "uses prefix which is not required for creating new files. Skipping parent "
+              + "directory is recommended for better performance. Set this to false if the "
+              + "object store requires prefix creation for new files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1601,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
-              + "and IO to local disks.")
+              + "and IO to local disks).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2451,6 +2468,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of threads used to execute all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
+      new Builder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
+          .setDescription("Report failure if any metadata sync fails")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -4552,8 +4577,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use JNI-Fuse library for better performance. "
+              + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5094,6 +5120,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
         "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_LOGGING_THRESHOLD = "alluxio.underfs.logging.threshold";
     public static final String UNDERFS_GCS_DEFAULT_MODE = "alluxio.underfs.gcs.default.mode";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
@@ -5115,6 +5142,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
+    public static final String UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+        "alluxio.underfs.object.store.skip.parent.directory.creation";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
@@ -5349,6 +5378,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
+        "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";

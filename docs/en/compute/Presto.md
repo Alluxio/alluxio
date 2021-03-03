@@ -6,7 +6,7 @@ group: Compute Integrations
 priority: 2
 ---
 
-[Presto](https://prestosql.io/)
+[Presto](https://prestodb.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
 This guide describes how to run queries against Presto with Alluxio as a distributed caching layer,
@@ -20,6 +20,7 @@ latency when other storage systems are remote or the network is slow or congeste
 {:toc}
 
 ## Using Presto with the Alluxio Catalog Service
+
 Currently, there are 2 ways to enable Presto to interact with Alluxio:
 * Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
 * Presto interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
@@ -39,9 +40,8 @@ Hive Metastore, while IO access is performed through Alluxio.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
-* For PrestoSQL version >= 330, you will need to Setup Java 11.
-* [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
-This guide is tested with `presto-319`.
+* [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
+This guide is tested with PrestoDB 0.247.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
@@ -82,6 +82,15 @@ follow the instructions at [Advanced Setup](#advanced-setup).
 
 ## Examples: Use Presto to Query Tables on Alluxio
 
+### Start Hive Metastore
+
+Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
+default. If it is not running, execute the following command to start the metastore:
+
+```console
+$ ${HIVE_HOME}/bin/hive --service metastore
+```
+
 ### Create a Hive table on Alluxio
 
 Here is an example to create an internal table in Hive backed by files in Alluxio.
@@ -114,15 +123,6 @@ that Hive creates:
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_presto_table_in_alluxio.png' | relativize_url }})
 
-### Start Hive Metastore
-
-Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
-default. If it is not running, execute the following command to start the metastore:
-
-```console
-$ ${HIVE_HOME}/bin/hive --service metastore
-```
-
 ### Start Presto server
 
 Start your Presto server. Presto server runs on port `8080` by default (configurable with
@@ -134,7 +134,7 @@ $ ${PRESTO_HOME}/bin/launcher run
 
 ### Query tables using Presto
 
-Follow [Presto CLI instructions](https://prestosql.io/docs/current/installation/cli.html)
+Follow [Presto CLI instructions](https://prestodb.io/docs/current/installation/cli.html)
 to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
 rename it to `presto`, and make it executable with `chmod +x`
 (sometimes the executable `presto` exists in `${PRESTO_HOME}/bin/presto` and you can use it
@@ -208,7 +208,7 @@ please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running
 For example, change
 `alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
-One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
+Specify the property in `alluxio-site.properties` and distribute this file to the classpath
 of each Presto node:
 
 ```properties
