@@ -23,8 +23,9 @@ configuration tuning for large scale deployments.
 
 ### Number of Files in Alluxio
 
-Files refers to files and directories. The number of files in Alluxio can be monitored through the
-metric `Master.TotalPaths`. A third party metrics collector can be used to monitor the rate of
+In this section "files" refers to regular files and directories.
+The number of files in Alluxio can be monitored through the metric `Master.TotalPaths`.
+A third party metrics collector can be used to monitor the rate of
 change of this metric to determine how the number of files are growing over time.
 
 The number of files in Alluxio impacts the following:
@@ -255,7 +256,7 @@ The Alluxio worker’s network bandwidth to UFS determines the rate at which it 
 or populate the cache from the underlying storage. If the network link is shared with the compute
 nodes, the async caching options will need to be managed in order to ensure the appropriate ratio
 between serving client requests and populating the cache is respected.
-We recommend having a separate link for bandwidth the UFS. For every 10 Gbit/s bandwidth to compute
+We recommend having a separate link for bandwidth to the UFS. For every 10 Gbit/s bandwidth to compute
 nodes (across workers), we recommend having 1 Gbit/s bandwidth (across workers) to the UFS. This
 gives a ratio of at least 10:1. The UFS link throughput can be greatly decreased based on the
 expected cache hit ratio.
