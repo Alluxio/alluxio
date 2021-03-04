@@ -109,10 +109,7 @@ STORED AS TEXTFILE
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-View the Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and files
-that Hive creates:
-
-![HiveTableInAlluxio]({{ '/img/screenshot_Trino_table_in_alluxio.png' | relativize_url }})
+You can see the directory and files that Hive creates by viewing the Alluxio WebUI at `http://master_hostname:19999` 
 
 ### Start Hive Metastore
 
