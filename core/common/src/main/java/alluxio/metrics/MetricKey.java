@@ -439,8 +439,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_LISTING_CACHE_LOAD_TIMES =
       new Builder(Name.MASTER_LISTING_CACHE_LOAD_TIMES)
-          .setDescription("The total load time (in nanoseconds) in master listing cache " +
-              "that resulted from a cache miss.")
+          .setDescription("The total load time (in nanoseconds) in master listing cache "
+              + "that resulted from a cache miss.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_LISTING_CACHE_MISSES =
