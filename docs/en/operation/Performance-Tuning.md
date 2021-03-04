@@ -18,7 +18,7 @@ The following is a checklist to run through to address common problems when tuni
 1. Are all nodes working?
 
    Check that the Alluxio cluster is healthy. You can check the web user interface at
-   `http://<master hostname>:19999` to see if the masters is reachable from a browser.
+   `http://<master hostname>:19999` to see if the master is reachable from a browser.
    Similarly, workers can be reached by clicking on the "workers" tab of the Alluxio master UI
    or by navigating to `http://<worker hostname>:30000/`
    Alternatively, run `bin/alluxio fsadmin report` to collect similar information from the console.
