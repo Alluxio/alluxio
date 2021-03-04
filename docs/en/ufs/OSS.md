@@ -14,8 +14,9 @@ Object Storage Service (OSS) is a massive, secure and highly reliable cloud stor
 
 ## Prerequisites
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. [Download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can either
+[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
 to sign up for OSS and create an OSS bucket.
