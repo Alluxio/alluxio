@@ -110,15 +110,10 @@ $ ./bin/alluxio formatWorker
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-site.properties` with the specified `ALLUXIO_MASTER_HOSTNAME`,
-if the configuration file does not exist.
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` with `alluxio.master.hostname`
+set to the passed in value if the configuration file does not exist.
 
-<!-- Configuration file is empty except for "alluxio.master.hostname"; Alluxio will use default settings
-In addition, worker memory size and the ramdisk folder will be set in the configuration file
-in accordance to the state of the machine:
-* type: Mac or Linux
-* total memory size
--->
+<!-- Generated configuration file is empty except for "alluxio.master.hostname" -->
 
 ```console
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
@@ -453,7 +448,7 @@ Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
 2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
 ```
 
-> Note: This command may fail for certain UFS types if the Alluxio cluster is running due to file locking.
+> Note: This command requires that the Alluxio cluster is **NOT** running.
 
 ### upgradeJournal
 
