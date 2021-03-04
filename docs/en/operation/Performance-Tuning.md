@@ -18,21 +18,23 @@ The following is a checklist to run through to address common problems when tuni
 1. Are all nodes working?
 
    Check that the Alluxio cluster is healthy. You can check the web user interface at
-   `http://MasterHost:19999` to see if the masters and workers are working correctly from a browser.
-   Alternatively, you can run `bin/alluxio fsadmin report` to collect similar information from the console.
-   Important metrics to verify if any nodes are out of service are the number of lost workers and
-   the last heartbeat time.
+   `http://<master hostname>:19999` to see if the masters is reachable from a browser.
+   Similarly, workers can be reached by clicking on the "workers" tab of the Alluxio master UI
+   or by navigating to `http://<worker hostname>:30000/`
+   Alternatively, run `bin/alluxio fsadmin report` to collect similar information from the console.
+   Both the web interfaces and command-line output contain metrics to verify if any nodes are out of
+   service and the last known heartbeat times.
 
 1. Are short-circuit operations working?
 
-   If the compute application is running co-located with Alluxio workers, check that the
+   If a compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
    Monitor the metrics values for `cluster.BytesReadRemoteThroughput` and `cluster.BytesReadLocalThroughput`
-   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
+   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`).
    If the local throughput is zero or significantly lower than the remote alluxio read throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
-   The Alluxio client uses hostname matching to discover a local Alluxio worker;
-   check that the client and worker use the same hostname string.
+   The Alluxio client uses hostname matching to determine the existence of a local Alluxio worker.
+   Check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
 
@@ -50,7 +52,7 @@ The following is a checklist to run through to address common problems when tuni
 
 1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
-   This could indicate that the client is timing out when communicating with the Alluxio worker.
+   This could indicate that the client is timing out when communicating with an Alluxio worker.
    To increase the timeout, configure `alluxio.user.streaming.data.timeout`, which has a default of `30s`.
 
    If write operations are timing out, configure `alluxio.user.streaming.writer.close.timeout`,
@@ -72,8 +74,8 @@ The following is a checklist to run through to address common problems when tuni
 ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
-   Restart the Alluxio servers and check the output in `logs/master.out` or `logs/worker.out`
-   for masters and workers respectively.
+   Restart the Alluxio servers and check the output in `${ALLUXIO_HOME}/logs/master.out` or
+   `${ALLUXIO_HOME}/logs/worker.out` for masters and workers respectively.
 
 Also check out the [metrics system][2] for better insight in how the Alluxio service is performing.
 
@@ -284,7 +286,7 @@ store dominates the run time of the workload.
 Alluxio provides a way to only incur the cost of writing the data to Alluxio (fast) on the critical
 path. Users should configure the following Alluxio properties in the compute framework:
 
-```
+```properties
 # Writes data only to Alluxio before returning a successful write
 alluxio.user.file.writetype.default=ASYNC_THROUGH
 # Does not persist the data automatically to the underlying storage, this is important because
