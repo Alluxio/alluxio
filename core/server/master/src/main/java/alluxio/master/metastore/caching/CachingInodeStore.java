@@ -605,10 +605,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mLowWaterMark = conf.getLowWaterMark();
 
       mStatsCounter = new StatsCounter(
-          MetricKey.MASTER_EDGE_CACHE_EVICTIONS,
-          MetricKey.MASTER_EDGE_CACHE_HITS,
-          MetricKey.MASTER_EDGE_CACHE_LOAD_TIMES,
-          MetricKey.MASTER_EDGE_CACHE_MISSES);
+          MetricKey.MASTER_LISTING_CACHE_EVICTIONS,
+          MetricKey.MASTER_LISTING_CACHE_HITS,
+          MetricKey.MASTER_LISTING_CACHE_LOAD_TIMES,
+          MetricKey.MASTER_LISTING_CACHE_MISSES);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
           () -> mWeight.get());
     }
