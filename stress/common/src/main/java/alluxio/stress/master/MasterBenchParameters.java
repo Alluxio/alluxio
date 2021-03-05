@@ -28,8 +28,8 @@ public final class MasterBenchParameters extends Parameters {
   public static final int STOP_COUNT_INVALID = -1;
 
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "the operation to perform. Options are [CREATE_FILE, GET_BLOCK_LOCATIONS, "
+          + "GET_FILE_STATUS, LIST_DIR, CREATE_DIR, LIST_DIR, LIST_DIR_LOCATED, RENAME_FILE, DELETE_FILE]",
       required = true)
   public Operation mOperation;
 

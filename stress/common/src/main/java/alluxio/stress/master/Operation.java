@@ -16,18 +16,18 @@ package alluxio.stress.master;
  */
 public enum Operation {
   // Create files
-  CreateFile, // create fixed-N, create more in extra
-  GetBlockLocations, // call for fixed-N
-  GetFileStatus, // call for fixed-N
-  ListDir, // call for fixed-N
-  ListDirLocated, // call for fixed-N
-  OpenFile, // open for fixed-N
+  CREATE_FILE, // create fixed-N, create more in extra
+  GET_BLOCK_LOCATIONS, // call for fixed-N
+  GET_FILE_STATUS, // call for fixed-N
+  LIST_DIR, // call for fixed-N
+  LIST_DIR_LOCATED, // call for fixed-N
+  OPEN_FILE, // open for fixed-N
 
   // Dependent on CreateFile
-  RenameFile, // rename fixed-N, then rename in extra, need plenty of extra
-  DeleteFile, // delete fixed-N, then delete from extra, need plenty of extra
+  RENAME_FILE, // rename fixed-N, then rename in extra, need plenty of extra
+  DELETE_FILE, // delete fixed-N, then delete from extra, need plenty of extra
 
   // Create dirs
-  CreateDir, // create fixed-N, create more in extra
+  CREATE_DIR, // create fixed-N, create more in extra
   ;
 }
