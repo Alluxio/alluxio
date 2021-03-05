@@ -176,13 +176,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
       while (retryPolicy.attempt()) {
-        long lockId;
-        if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
+        long lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+        boolean checkUfs =
+            (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
             .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
-            .getBlockInUfsTier())) {
-          lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
-        } else {
-          lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
+            .getBlockInUfsTier()));
+        if (lockId == BlockWorker.INVALID_LOCK_ID && !checkUfs) {
+          throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, request.getId());
         }
         if (lockId != BlockWorker.INVALID_LOCK_ID) {
           try {

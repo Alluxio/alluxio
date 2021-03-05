@@ -295,19 +295,6 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#freeSpace(long, long, String)} method.
-   */
-  @Test
-  public void freeSpace() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long availableBytes = mRandom.nextLong();
-    String tierAlias = "MEM";
-    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockWorker.freeSpace(sessionId, availableBytes, tierAlias);
-    verify(mBlockStore).freeSpace(sessionId, availableBytes, availableBytes, location);
-  }
-
-  /**
    * Tests the {@link BlockWorker#getTempBlockWriterRemote(long, long)} method.
    */
   @Test
@@ -495,17 +482,6 @@ public class BlockWorkerTest {
 
     mBlockWorker.unlockBlock(sessionId, blockId);
     verify(mBlockStore).unlockBlock(sessionId, blockId);
-  }
-
-  /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long)} method.
-   */
-  @Test
-  public void sessionHeartbeat() {
-    long sessionId = mRandom.nextLong();
-
-    mBlockWorker.sessionHeartbeat(sessionId);
-    verify(mSessions).sessionHeartbeat(sessionId);
   }
 
   /**
