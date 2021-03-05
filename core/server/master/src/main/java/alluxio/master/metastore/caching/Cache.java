@@ -17,7 +17,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
-import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
@@ -510,41 +509,6 @@ public abstract class Cache<K, V> implements Closeable {
     private Entry(K key, V value) {
       mKey = key;
       mValue = value;
-    }
-  }
-
-  /**
-   * Implementation of StatsCounter similar to the one in
-   * {@link com.google.common.cache.AbstractCache}.
-   */
-  protected static final class StatsCounter {
-    private final Counter mHitCount;
-    private final Counter mMissCount;
-    private final Counter mTotalLoadTime;
-    private final Counter mEvictionCount;
-
-    public StatsCounter(MetricKey evictionsKey, MetricKey hitsKey, MetricKey loadTimesKey,
-                        MetricKey missesKey) {
-      mHitCount = MetricsSystem.counter(hitsKey.getName());
-      mMissCount = MetricsSystem.counter(missesKey.getName());
-      mTotalLoadTime = MetricsSystem.counter(loadTimesKey.getName());
-      mEvictionCount = MetricsSystem.counter(evictionsKey.getName());
-    }
-
-    public void recordHit() {
-      mHitCount.inc();
-    }
-
-    public void recordMiss() {
-      mMissCount.inc();
-    }
-
-    public void recordLoad(long loadTime) {
-      mTotalLoadTime.inc(loadTime);
-    }
-
-    public void recordEvictions(long evictionCount) {
-      mEvictionCount.inc(evictionCount);
     }
   }
 }
