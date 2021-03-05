@@ -29,7 +29,7 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.DefaultStorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.io.Files;
@@ -54,7 +54,7 @@ import java.util.Map;
  * Tests for getting worker lost storage information.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({StorageDir.class})
+@PrepareForTest({DefaultStorageDir.class})
 @PowerMockIgnore({"javax.*.*", "com.sun.*", "org.xml.*"})
 public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
@@ -79,14 +79,14 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     String hddPath = hddDir.getAbsolutePath();
 
     // Mock no write permission so worker storage paths cannot be initialize
-    PowerMockito.mockStatic(StorageDir.class);
-    Mockito.when(StorageDir.newStorageDir(any(StorageTier.class),
+    PowerMockito.mockStatic(DefaultStorageDir.class);
+    Mockito.when(DefaultStorageDir.newStorageDir(any(StorageTier.class),
         anyInt(),
         anyLong(),
         anyLong(),
         anyString(),
         anyString())).thenCallRealMethod();
-    Mockito.when(StorageDir.newStorageDir(any(StorageTier.class),
+    Mockito.when(DefaultStorageDir.newStorageDir(any(StorageTier.class),
         anyInt(),
         anyLong(),
         anyLong(),
@@ -123,14 +123,14 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     String hddPath = hddDir.getAbsolutePath();
 
     // Mock no write permission so worker storage paths cannot be initialize
-    PowerMockito.mockStatic(StorageDir.class);
-    Mockito.when(StorageDir.newStorageDir(Matchers.any(StorageTier.class),
+    PowerMockito.mockStatic(DefaultStorageDir.class);
+    Mockito.when(DefaultStorageDir.newStorageDir(Matchers.any(StorageTier.class),
         Matchers.anyInt(),
         Matchers.anyLong(),
         Matchers.anyLong(),
         Matchers.anyString(),
         Matchers.anyString())).thenCallRealMethod();
-    Mockito.when(StorageDir.newStorageDir(Matchers.any(StorageTier.class),
+    Mockito.when(DefaultStorageDir.newStorageDir(Matchers.any(StorageTier.class),
         Matchers.anyInt(),
         Matchers.anyLong(),
         Matchers.anyLong(),

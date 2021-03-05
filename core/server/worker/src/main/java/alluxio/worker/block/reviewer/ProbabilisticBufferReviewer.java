@@ -14,7 +14,7 @@ package alluxio.worker.block.reviewer;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.DefaultStorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 
 import org.slf4j.Logger;

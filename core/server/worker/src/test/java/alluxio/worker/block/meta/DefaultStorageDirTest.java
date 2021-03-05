@@ -41,9 +41,9 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Unit tests for {@link StorageDir}.
+ * Unit tests for {@link DefaultStorageDir}.
  */
-public final class StorageDirTest {
+public final class DefaultStorageDirTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 20;
@@ -81,7 +81,7 @@ public final class StorageDirTest {
         testDirPaths, testDirCapacity, testDirMediumType, null);
 
     mTier = StorageTier.newStorageTier("MEM", false);
-    mDir = StorageDir.newStorageDir(
+    mDir = DefaultStorageDir.newStorageDir(
         mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0, mTestDirPath, "MEM");
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
@@ -96,7 +96,7 @@ public final class StorageDirTest {
    * @throws Exception
    */
   private StorageDir newStorageDir(File testDir) throws Exception {
-    return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
+    return DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
         testDir.getAbsolutePath(), "MEM");
   }
 
@@ -216,8 +216,8 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getCapacityBytes()}, the {@link StorageDir#getAvailableBytes()} and
-   * the {@link StorageDir#getCommittedBytes()} methods.
+   * Tests the {@link DefaultStorageDir#getCapacityBytes()}, the {@link DefaultStorageDir#getAvailableBytes()} and
+   * the {@link DefaultStorageDir#getCommittedBytes()} methods.
    */
   @Test
   public void getBytes() throws Exception {
@@ -253,7 +253,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getDirPath()} method.
+   * Tests the {@link DefaultStorageDir#getDirPath()} method.
    */
   @Test
   public void getDirPath() {
@@ -261,7 +261,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getParentTier()} method.
+   * Tests the {@link DefaultStorageDir#getParentTier()} method.
    */
   @Test
   public void getParentTier() {
@@ -269,7 +269,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getDirIndex()} method.
+   * Tests the {@link DefaultStorageDir#getDirIndex()} method.
    */
   @Test
   public void getDirIndex() {
@@ -277,7 +277,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getBlockIds()} method.
+   * Tests the {@link DefaultStorageDir#getBlockIds()} method.
    */
   @Test
   public void getBlockIds() throws Exception {
@@ -294,7 +294,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#getBlocks()} method.
+   * Tests the {@link DefaultStorageDir#getBlocks()} method.
    */
   @Test
   public void getBlocks() throws Exception {
@@ -429,8 +429,8 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#addBlockMeta(BlockMeta)} and the
-   * {@link StorageDir#removeBlockMeta(BlockMeta)} methods.
+   * Tests the {@link DefaultStorageDir#addBlockMeta(BlockMeta)} and the
+   * {@link DefaultStorageDir#removeBlockMeta(BlockMeta)} methods.
    */
   @Test
   public void blockMeta() throws Exception {
@@ -448,8 +448,8 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#addTempBlockMeta(TempBlockMeta)} and the
-   * {@link StorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
+   * Tests the {@link DefaultStorageDir#addTempBlockMeta(TempBlockMeta)} and the
+   * {@link DefaultStorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
    */
   @Test
   public void tempBlockMeta() throws Exception {
@@ -467,7 +467,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
+   * Tests the {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
   public void resizeTempBlockMeta() throws Exception {
@@ -480,7 +480,7 @@ public final class StorageDirTest {
 
   /**
    * Tests that an {@link InvalidWorkerStateException} is thrown when trying to shrink a block via
-   * the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
+   * the {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
   public void resizeTempBlockMetaInvalidStateException() throws Exception {
@@ -499,7 +499,7 @@ public final class StorageDirTest {
 
   /**
    * Tests that an exception is thrown when trying to resize a temporary block via the
-   * {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
+   * {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
    */
   @Test
   public void resizeTempBlockMetaNoAvailableBytes() throws Exception {
@@ -514,7 +514,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#cleanupSessionTempBlocks(long, List)} method.
+   * Tests the {@link DefaultStorageDir#cleanupSessionTempBlocks(long, List)} method.
    */
   @Test
   public void cleanupSession() throws Exception {
@@ -560,7 +560,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests the {@link StorageDir#toBlockStoreLocation()} method.
+   * Tests the {@link DefaultStorageDir#toBlockStoreLocation()} method.
    */
   @Test
   public void toBlockStoreLocation() {

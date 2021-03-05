@@ -104,7 +104,7 @@ public final class StorageTier {
       int mediumTypeindex = i >= dirMedium.length ? dirMedium.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, reservedBytes,
+        StorageDir dir = DefaultStorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths[i], dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.put(i, dir);
