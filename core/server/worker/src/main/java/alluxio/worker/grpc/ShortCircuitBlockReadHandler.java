@@ -23,7 +23,6 @@ import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
-import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -60,7 +59,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   ShortCircuitBlockReadHandler(BlockWorker blockWorker,
       StreamObserver<OpenLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mWorker = blockWorker;
-    mLockId = BlockLockManager.INVALID_LOCK_ID;
+    mLockId = BlockWorker.INVALID_LOCK_ID;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
   }
@@ -75,7 +74,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public OpenLocalBlockResponse call() throws Exception {
         Preconditions.checkState(mRequest == null);
         mRequest = request;
-        if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
+        if (mLockId == BlockWorker.INVALID_LOCK_ID) {
           mSessionId = IdUtils.createSessionId();
           // TODO(calvin): Update the locking logic so this can be done better
           if (mRequest.getPromote()) {
@@ -103,14 +102,14 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
 
       @Override
       public void exceptionCaught(Throwable e) {
-        if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+        if (mLockId != BlockWorker.INVALID_LOCK_ID) {
           try {
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException ee) {
             LOG.warn("Failed to unlock lock {} of block {} with error {}.",
                 mLockId, mRequest.getBlockId(), e);
           }
-          mLockId = BlockLockManager.INVALID_LOCK_ID;
+          mLockId = BlockWorker.INVALID_LOCK_ID;
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
@@ -121,7 +120,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   @Override
   public void onError(Throwable t) {
     LogUtils.warnWithException(LOG, "Exception occurred processing read request {}.", mRequest, t);
-    if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+    if (mLockId != BlockWorker.INVALID_LOCK_ID) {
       try {
         mWorker.unlockBlock(mLockId);
       } catch (BlockDoesNotExistException e) {
@@ -141,14 +140,14 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
-        if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
+        if (mLockId != BlockWorker.INVALID_LOCK_ID) {
           try {
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException e) {
             LOG.warn("Failed to unlock lock {} of block {} with error {}.",
                 mLockId, mRequest.getBlockId(), e.getMessage());
           }
-          mLockId = BlockLockManager.INVALID_LOCK_ID;
+          mLockId = BlockWorker.INVALID_LOCK_ID;
         } else if (mRequest != null) {
           LOG.warn("Close a closed block {}.", mRequest.getBlockId());
         }
@@ -158,7 +157,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       @Override
       public void exceptionCaught(Throwable e) {
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
-        mLockId = BlockLockManager.INVALID_LOCK_ID;
+        mLockId = BlockWorker.INVALID_LOCK_ID;
       }
     }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
         mSessionId, mRequest);

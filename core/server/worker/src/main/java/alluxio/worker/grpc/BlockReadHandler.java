@@ -31,7 +31,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.logging.SamplingLogger;
-import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
@@ -185,7 +184,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         } else {
           lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
         }
-        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+        if (lockId != BlockWorker.INVALID_LOCK_ID) {
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
