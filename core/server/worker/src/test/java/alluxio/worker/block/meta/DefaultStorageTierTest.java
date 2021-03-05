@@ -26,9 +26,9 @@ import org.junit.rules.TemporaryFolder;
 import java.util.List;
 
 /**
- * Unit tests for {@link StorageTier}.
+ * Unit tests for {@link DefaultStorageTier}.
  */
-public class StorageTierTest {
+public class DefaultStorageTierTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
@@ -71,13 +71,13 @@ public class StorageTierTest {
 
     mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
-    mTier = StorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier("MEM", false);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
 
   /**
-   * Tests the {@link StorageTier#getTierAlias()} method.
+   * Tests the {@link DefaultStorageTier#getTierAlias()} method.
    */
   @Test
   public void getTierAlias() {
@@ -85,7 +85,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests the {@link StorageTier#getTierOrdinal()} method.
+   * Tests the {@link DefaultStorageTier#getTierOrdinal()} method.
    */
   @Test
   public void getTierLevel() {
@@ -93,7 +93,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests the {@link StorageTier#getCapacityBytes()} method.
+   * Tests the {@link DefaultStorageTier#getCapacityBytes()} method.
    */
   @Test
   public void getCapacityBytes() throws Exception {
@@ -105,7 +105,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests the {@link StorageTier#getAvailableBytes()} method.
+   * Tests the {@link DefaultStorageTier#getAvailableBytes()} method.
    */
   @Test
   public void getAvailableBytes() throws Exception {
@@ -131,7 +131,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests the {@link StorageTier#getStorageDirs()} method.
+   * Tests the {@link DefaultStorageTier#getStorageDirs()} method.
    */
   @Test
   public void getStorageDirs() {
@@ -146,7 +146,7 @@ public class StorageTierTest {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
-    mTier = StorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier("MEM", false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
@@ -160,7 +160,7 @@ public class StorageTierTest {
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
             2000);
-    mTier = StorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier("MEM", false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());

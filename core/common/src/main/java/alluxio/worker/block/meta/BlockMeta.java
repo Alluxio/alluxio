@@ -7,15 +7,33 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ *
  */
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockStoreLocation;
+
 public interface BlockMeta {
+  /**
+   * @return the block id
+   */
+  long getBlockId();
+
+  /**
+   * @return location of the block
+   */
+  BlockStoreLocation getBlockLocation();
+
   /**
    * @return the block size
    */
   long getBlockSize();
+
+  /**
+   * @return the parent directory
+   */
+  StorageDir getParentDir();
 
   /**
    * @return the block path

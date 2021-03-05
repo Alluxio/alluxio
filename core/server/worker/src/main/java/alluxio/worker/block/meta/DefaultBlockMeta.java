@@ -12,6 +12,7 @@
 package alluxio.worker.block.meta;
 
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 
@@ -68,6 +69,17 @@ public class DefaultBlockMeta implements BlockMeta {
   }
 
   @Override
+  public long getBlockId() {
+    return mBlockId;
+  }
+
+  @Override
+  public BlockStoreLocation getBlockLocation() {
+    StorageTier tier = mDir.getParentTier();
+    return new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex(), mDir.getDirMedium());
+  }
+
+  @Override
   public long getBlockSize() {
     return mBlockSize;
   }
@@ -75,5 +87,10 @@ public class DefaultBlockMeta implements BlockMeta {
   @Override
   public String getPath() {
     return commitPath(mDir, mBlockId);
+  }
+
+  @Override
+  public StorageDir getParentDir() {
+    return mDir;
   }
 }

@@ -25,6 +25,7 @@ import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
+import alluxio.worker.block.meta.DefaultStorageTier;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -75,7 +76,7 @@ public final class BlockMetadataManager {
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
+        StorageTier tier = DefaultStorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
             mStorageTierAssoc.size() > 1);
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
