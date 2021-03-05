@@ -275,7 +275,7 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return BlockStoreMeta.Factory.create(this);
+    return new DefaultBlockStoreMeta(this, false);
   }
 
   /**
@@ -284,7 +284,7 @@ public final class BlockMetadataManager {
    * @return the full metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return BlockStoreMeta.Factory.createFull(this);
+    return new DefaultBlockStoreMeta(this, true);
   }
 
   /**

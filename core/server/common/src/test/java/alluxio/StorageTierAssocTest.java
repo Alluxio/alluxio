@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Unit tests for {@link StorageTierAssoc}.
+ * Unit tests for {@link AbstractStorageTierAssoc}.
  */
 public final class StorageTierAssocTest {
 
@@ -107,26 +107,26 @@ public final class StorageTierAssocTest {
 
   @Test
   public void interpretTier() throws Exception {
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(0, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(1, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(2, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(-1, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(-2, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(-3, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 1));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(0, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(1, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(2, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-1, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-2, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-3, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 1));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 1));
 
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(0, 10));
-    Assert.assertEquals(8, StorageTierAssoc.interpretOrdinal(8, 10));
-    Assert.assertEquals(9, StorageTierAssoc.interpretOrdinal(9, 10));
-    Assert.assertEquals(9, StorageTierAssoc.interpretOrdinal(10, 10));
-    Assert.assertEquals(9, StorageTierAssoc.interpretOrdinal(-1, 10));
-    Assert.assertEquals(1, StorageTierAssoc.interpretOrdinal(-9, 10));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(-10, 10));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(-11, 10));
-    Assert.assertEquals(0, StorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 10));
-    Assert.assertEquals(1, StorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 10));
-    Assert.assertEquals(9, StorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 10));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(0, 10));
+    Assert.assertEquals(8, AbstractStorageTierAssoc.interpretOrdinal(8, 10));
+    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(9, 10));
+    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(10, 10));
+    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(-1, 10));
+    Assert.assertEquals(1, AbstractStorageTierAssoc.interpretOrdinal(-9, 10));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-10, 10));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-11, 10));
+    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 10));
+    Assert.assertEquals(1, AbstractStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 10));
+    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 10));
   }
 }
