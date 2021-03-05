@@ -73,7 +73,7 @@ public class StorageTierTest {
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
     mTier = StorageTier.newStorageTier("MEM", false);
     mDir1 = mTier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
+    mTempBlockMeta = new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
 
   /**

@@ -24,6 +24,7 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -153,7 +154,7 @@ public final class BlockMetadataManager {
       throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
           blockMeta.getBlockLocation().tierAlias()));
     }
-    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
@@ -178,9 +179,9 @@ public final class BlockMetadataManager {
 
     // Add new block metas with new block id and sizes.
     blockDir1
-        .addBlockMeta(new BlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
+        .addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
     blockDir2
-        .addBlockMeta(new BlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
+        .addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**
@@ -264,7 +265,7 @@ public final class BlockMetadataManager {
     if (dir == null) {
       return null;
     }
-    return BlockMeta.commitPath(dir, blockId);
+    return DefaultBlockMeta.commitPath(dir, blockId);
   }
 
   /**
@@ -440,7 +441,7 @@ public final class BlockMetadataManager {
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta =
-        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
+        new DefaultBlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
     dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
@@ -494,7 +495,7 @@ public final class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    BlockMeta newBlockMeta = new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);
+    BlockMeta newBlockMeta = new DefaultBlockMeta(blockMeta.getBlockId(), blockSize, newDir);
     newDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }

@@ -115,7 +115,7 @@ public final class DefaultStorageDir implements StorageDir {
    * Initializes metadata for existing blocks in this {@link StorageDir}.
    *
    * Only paths satisfying the contract defined in
-   * {@link BlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
+   * {@link DefaultBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
    * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
@@ -151,7 +151,7 @@ public final class DefaultStorageDir implements StorageDir {
       } else {
         try {
           long blockId = Long.parseLong(path.getName());
-          addBlockMeta(new BlockMeta(blockId, path.length(), this));
+          addBlockMeta(new DefaultBlockMeta(blockId, path.length(), this));
         } catch (NumberFormatException e) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",
               path.getAbsolutePath(), e);

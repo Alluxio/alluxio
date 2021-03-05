@@ -83,9 +83,9 @@ public final class DefaultStorageDirTest {
     mTier = StorageTier.newStorageTier("MEM", false);
     mDir = DefaultStorageDir.newStorageDir(
         mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0, mTestDirPath, "MEM");
-    mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+    mBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
-        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
   /**
@@ -284,8 +284,8 @@ public final class DefaultStorageDirTest {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
-    BlockMeta blockMeta1 = new BlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
-    BlockMeta blockMeta2 = new BlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
+    BlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
+    BlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(blockMeta1);
     mDir.addBlockMeta(blockMeta2);
 
@@ -301,8 +301,8 @@ public final class DefaultStorageDirTest {
     long blockId1 = TEST_BLOCK_ID + 1;
     long blockId2 = TEST_BLOCK_ID + 2;
 
-    BlockMeta blockMeta1 = new BlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
-    BlockMeta blockMeta2 = new BlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
+    BlockMeta blockMeta1 = new DefaultBlockMeta(blockId1, TEST_BLOCK_SIZE, mDir);
+    BlockMeta blockMeta2 = new DefaultBlockMeta(blockId2, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(blockMeta1);
     mDir.addBlockMeta(blockMeta2);
 
@@ -316,7 +316,7 @@ public final class DefaultStorageDirTest {
   @Test
   public void addBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
-    BlockMeta bigBlockMeta = new BlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
+    BlockMeta bigBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigBlockMeta.getBlockLocation().tierAlias();
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
@@ -332,7 +332,7 @@ public final class DefaultStorageDirTest {
     mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_BLOCK_ID, "MEM"));
     mDir.addBlockMeta(mBlockMeta);
-    BlockMeta dupBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+    BlockMeta dupBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(dupBlockMeta);
   }
 
@@ -366,7 +366,7 @@ public final class DefaultStorageDirTest {
   public void addTempBlockMetaTooBig() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     TempBlockMeta bigTempBlockMeta =
-        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
+        new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigTempBlockMeta.getBlockLocation().tierAlias();
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_TEMP_BLOCK_ID,
@@ -385,7 +385,7 @@ public final class DefaultStorageDirTest {
         .expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_TEMP_BLOCK_ID, "MEM"));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta dupTempBlockMeta =
-        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
     mDir.addTempBlockMeta(dupTempBlockMeta);
   }
 
@@ -413,7 +413,7 @@ public final class DefaultStorageDirTest {
         .getMessage(TEST_TEMP_BLOCK_ID, alias, wrongSessionId));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta wrongTempBlockMeta =
-        new TempBlockMeta(wrongSessionId, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(wrongSessionId, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
     mDir.removeTempBlockMeta(wrongTempBlockMeta);
   }
 
@@ -529,11 +529,11 @@ public final class DefaultStorageDirTest {
     long otherSessionId = TEST_SESSION_ID + 1;
 
     TempBlockMeta tempBlockMeta1 =
-        new TempBlockMeta(TEST_SESSION_ID, tempBlockId1, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(TEST_SESSION_ID, tempBlockId1, TEST_TEMP_BLOCK_SIZE, mDir);
     TempBlockMeta tempBlockMeta2 =
-        new TempBlockMeta(TEST_SESSION_ID, tempBlockId2, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(TEST_SESSION_ID, tempBlockId2, TEST_TEMP_BLOCK_SIZE, mDir);
     TempBlockMeta tempBlockMeta3 =
-        new TempBlockMeta(otherSessionId, tempBlockId3, TEST_TEMP_BLOCK_SIZE, mDir);
+        new DefaultTempBlockMeta(otherSessionId, tempBlockId3, TEST_TEMP_BLOCK_SIZE, mDir);
     mDir.addTempBlockMeta(tempBlockMeta1);
     mDir.addTempBlockMeta(tempBlockMeta2);
     mDir.addTempBlockMeta(tempBlockMeta3);

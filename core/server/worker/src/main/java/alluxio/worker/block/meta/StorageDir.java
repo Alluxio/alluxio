@@ -99,19 +99,19 @@ public interface StorageDir {
   boolean hasTempBlockMeta(long blockId);
 
   /**
-   * Gets the {@link BlockMeta} from this storage dir by its block id.
+   * Gets the {@link DefaultBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link BlockMeta} of the given block or null
+   * @return {@link DefaultBlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no block is found
    */
   BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the {@link BlockMeta} from this storage dir by its block id.
+   * Gets the {@link DefaultBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link TempBlockMeta} of the given block or null
+   * @return {@link DefaultTempBlockMeta} of the given block or null
    */
   TempBlockMeta getTempBlockMeta(long blockId);
 

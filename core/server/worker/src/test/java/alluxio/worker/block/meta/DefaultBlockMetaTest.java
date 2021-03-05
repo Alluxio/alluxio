@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -20,10 +21,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+
 /**
- * Unit tests for {@link TempBlockMeta}.
+ * Unit tests for {@link DefaultBlockMeta}.
  */
-public class TempBlockMetaTest {
+public class DefaultBlockMetaTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 100;
@@ -31,10 +34,11 @@ public class TempBlockMetaTest {
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
   private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM"};
-  private static final String TEST_WORKER_DATA_FOLDER = "workertest";
+  private static final String TEST_WORKER_DIR = "testworker";
+  private BlockMeta mBlockMeta;
+  private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
   private String mTestBlockDirPath;
-  private TempBlockMeta mTempBlockMeta;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -49,52 +53,43 @@ public class TempBlockMetaTest {
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
         TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES,
-        TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DATA_FOLDER);
+        TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DIR);
 
+    mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DIR);
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS, false);
     StorageDir dir = tier.getDir(0);
-    // Append the worker data folder to the expected path.
-    mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DATA_FOLDER);
-    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    mTempBlockMeta = new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
   /**
-   * Tests the {@link TempBlockMeta#getPath()} method.
+   * Tests the {@link DefaultBlockMeta#getBlockSize()} method.
+   */
+  @Test
+  public void getBlockSize() throws IOException {
+    // With the block file not really existing, expect committed block size to be zero.
+    mBlockMeta = new DefaultBlockMeta(mTempBlockMeta);
+    Assert.assertEquals(0, mBlockMeta.getBlockSize());
+
+    // With the block file partially written, expect committed block size equals real file size.
+    byte[] buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE - 1);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getCommitPath(), buf);
+    mBlockMeta = new DefaultBlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_BLOCK_SIZE - 1, mBlockMeta.getBlockSize());
+
+    // With the block file fully written, expect committed block size equals target block size.
+    buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getCommitPath(), buf);
+    mBlockMeta = new DefaultBlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_BLOCK_SIZE, mBlockMeta.getBlockSize());
+  }
+
+  /**
+   * Tests the {@link DefaultBlockMeta#getPath()} method.
    */
   @Test
   public void getPath() {
-    Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath,
-        ".tmp_blocks", TEST_SESSION_ID % 1024,
-        String.format("%x-%x", TEST_SESSION_ID, TEST_BLOCK_ID)),
-        mTempBlockMeta.getPath());
-  }
-
-  /**
-   * Tests the {@link TempBlockMeta#getCommitPath()} method.
-   */
-  @Test
-  public void getCommitPath() {
+    mBlockMeta = new DefaultBlockMeta(mTempBlockMeta);
     Assert.assertEquals(PathUtils.concatPath(mTestBlockDirPath, TEST_BLOCK_ID),
-        mTempBlockMeta.getCommitPath());
-  }
-
-  /**
-   * Tests the {@link TempBlockMeta#getSessionId()} method.
-   */
-  @Test
-  public void getSessionId() {
-    Assert.assertEquals(TEST_SESSION_ID, mTempBlockMeta.getSessionId());
-  }
-
-  /**
-   * Tests the {@link TempBlockMeta#setBlockSize(long)} method.
-   */
-  @Test
-  public void setBlockSize() {
-    Assert.assertEquals(TEST_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
-    mTempBlockMeta.setBlockSize(1);
-    Assert.assertEquals(1, mTempBlockMeta.getBlockSize());
-    mTempBlockMeta.setBlockSize(100);
-    Assert.assertEquals(100, mTempBlockMeta.getBlockSize());
+        mBlockMeta.getPath());
   }
 }
