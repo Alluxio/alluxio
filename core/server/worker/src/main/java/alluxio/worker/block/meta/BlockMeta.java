@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.util.io.PathUtils;
+
+import com.google.common.base.Preconditions;
+
 import java.io.File;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -19,8 +23,24 @@ import javax.annotation.concurrent.ThreadSafe;
  * Represents the metadata of a block in Alluxio managed storage.
  */
 @ThreadSafe
-public class BlockMeta extends AbstractBlockMeta {
+public class BlockMeta {
+  private final long mBlockId;
+  private final StorageDir mDir;
   private final long mBlockSize;
+
+  /**
+   * Committed block is stored in BlockStore under its {@link StorageDir} as a block file named
+   * after its blockId. e.g. Block 100 of StorageDir "/mnt/mem/0" has path:
+   * <p>
+   * /mnt/mem/0/100
+   *
+   * @param blockId the block id
+   * @param dir the parent directory
+   * @return committed file path
+   */
+  public static String commitPath(StorageDir dir, long blockId) {
+    return PathUtils.concatPath(dir.getDirPath(), blockId);
+  }
 
   /**
    * Creates a new instance of {@link BlockMeta}.
@@ -30,7 +50,8 @@ public class BlockMeta extends AbstractBlockMeta {
    * @param dir the parent directory
    */
   public BlockMeta(long blockId, long blockSize, StorageDir dir) {
-    super(blockId, dir);
+    mBlockId = blockId;
+    mDir = Preconditions.checkNotNull(dir, "dir");
     mBlockSize = blockSize;
   }
 
@@ -40,17 +61,22 @@ public class BlockMeta extends AbstractBlockMeta {
    * @param tempBlock uncommitted block metadata
    */
   public BlockMeta(TempBlockMeta tempBlock) {
-    super(tempBlock.getBlockId(), tempBlock.getParentDir());
-    // NOTE: TempBlockMeta must be committed after the actual data block file is moved.
-    mBlockSize = new File(tempBlock.getCommitPath()).length();
+    this(tempBlock.getBlockId(),
+        // NOTE: TempBlockMeta must be committed after the actual data block file is moved.
+        new File(tempBlock.getCommitPath()).length(),
+        tempBlock.getParentDir());
   }
 
-  @Override
+  /**
+   * @return the block size
+   */
   public long getBlockSize() {
     return mBlockSize;
   }
 
-  @Override
+  /**
+   * @return the block path
+   */
   public String getPath() {
     return commitPath(mDir, mBlockId);
   }

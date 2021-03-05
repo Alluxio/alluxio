@@ -23,7 +23,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
-import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
@@ -265,7 +264,7 @@ public final class BlockMetadataManager {
     if (dir == null) {
       return null;
     }
-    return AbstractBlockMeta.commitPath(dir, blockId);
+    return BlockMeta.commitPath(dir, blockId);
   }
 
   /**

@@ -197,7 +197,7 @@ public final class TieredBlockStoreTest {
     assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     assertFalse(
         FileUtils.exists(TempBlockMeta.tempPath(mTestDir1, SESSION_ID1, TEMP_BLOCK_ID)));
-    assertTrue(FileUtils.exists(TempBlockMeta.commitPath(mTestDir1, TEMP_BLOCK_ID)));
+    assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir1, TEMP_BLOCK_ID)));
   }
 
   /**
@@ -211,7 +211,7 @@ public final class TieredBlockStoreTest {
     assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     assertFalse(
         FileUtils.exists(TempBlockMeta.tempPath(mTestDir1, SESSION_ID1, TEMP_BLOCK_ID)));
-    assertFalse(FileUtils.exists(TempBlockMeta.commitPath(mTestDir1, TEMP_BLOCK_ID)));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, TEMP_BLOCK_ID)));
   }
 
   /**

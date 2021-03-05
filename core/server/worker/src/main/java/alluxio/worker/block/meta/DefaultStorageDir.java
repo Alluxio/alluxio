@@ -115,7 +115,7 @@ public final class DefaultStorageDir implements StorageDir {
    * Initializes metadata for existing blocks in this {@link StorageDir}.
    *
    * Only paths satisfying the contract defined in
-   * {@link AbstractBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
+   * {@link BlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
    * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
