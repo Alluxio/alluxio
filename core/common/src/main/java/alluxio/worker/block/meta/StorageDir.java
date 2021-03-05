@@ -7,6 +7,7 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ *
  */
 
 package alluxio.worker.block.meta;
@@ -99,19 +100,19 @@ public interface StorageDir {
   boolean hasTempBlockMeta(long blockId);
 
   /**
-   * Gets the {@link DefaultBlockMeta} from this storage dir by its block id.
+   * Gets the {@link BlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link DefaultBlockMeta} of the given block or null
+   * @return {@link BlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no block is found
    */
   BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the {@link DefaultBlockMeta} from this storage dir by its block id.
+   * Gets the {@link TempBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link DefaultTempBlockMeta} of the given block or null
+   * @return {@link TempBlockMeta} of the given block or null
    */
   TempBlockMeta getTempBlockMeta(long blockId);
 
