@@ -73,11 +73,12 @@ public class DefaultStorageTierTest {
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
     mTier = DefaultStorageTier.newStorageTier("MEM", false);
     mDir1 = mTier.getDir(0);
-    mTempBlockMeta = new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
+    mTempBlockMeta =
+        new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
 
   /**
-   * Tests the {@link DefaultStorageTier#getTierAlias()} method.
+   * Tests the {@link StorageTier#getTierAlias()} method.
    */
   @Test
   public void getTierAlias() {
@@ -85,7 +86,7 @@ public class DefaultStorageTierTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageTier#getTierOrdinal()} method.
+   * Tests the {@link StorageTier#getTierOrdinal()} method.
    */
   @Test
   public void getTierLevel() {
@@ -93,7 +94,7 @@ public class DefaultStorageTierTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageTier#getCapacityBytes()} method.
+   * Tests the {@link StorageTier#getCapacityBytes()} method.
    */
   @Test
   public void getCapacityBytes() throws Exception {
@@ -105,7 +106,7 @@ public class DefaultStorageTierTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageTier#getAvailableBytes()} method.
+   * Tests the {@link StorageTier#getAvailableBytes()} method.
    */
   @Test
   public void getAvailableBytes() throws Exception {
@@ -131,7 +132,7 @@ public class DefaultStorageTierTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageTier#getStorageDirs()} method.
+   * Tests the {@link StorageTier#getStorageDirs()} method.
    */
   @Test
   public void getStorageDirs() {

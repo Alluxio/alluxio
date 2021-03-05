@@ -78,12 +78,12 @@ public abstract class StorageDirView {
   }
 
   /**
-   * Creates a {@link DefaultTempBlockMeta} given sessionId, blockId, and initialBlockSize.
+   * Creates a {@link TempBlockMeta} given sessionId, blockId, and initialBlockSize.
    *
    * @param sessionId of the owning session
    * @param blockId of the new block
    * @param initialBlockSize of the new block
-   * @return a new {@link DefaultTempBlockMeta} under the underlying directory
+   * @return a new {@link TempBlockMeta} under the underlying directory
    */
   public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
     return new DefaultTempBlockMeta(sessionId, blockId, initialBlockSize, mDir);

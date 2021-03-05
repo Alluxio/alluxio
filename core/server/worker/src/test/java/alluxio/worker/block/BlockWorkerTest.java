@@ -62,8 +62,8 @@ import java.util.Set;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
-    BlockHeartbeatReporter.class, BlockMetricsReporter.class, DefaultBlockMeta.class,
-    BlockStoreLocation.class, StorageDir.class, ServerConfiguration.class, UnderFileSystem.class,
+    BlockHeartbeatReporter.class, BlockMetricsReporter.class,
+    BlockStoreLocation.class, ServerConfiguration.class, UnderFileSystem.class,
     BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
@@ -176,7 +176,7 @@ public class BlockWorkerTest {
     String mediumType = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
-    BlockMeta blockMeta = PowerMockito.mock(DefaultBlockMeta.class);
+    BlockMeta blockMeta = mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
@@ -210,7 +210,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
-    BlockMeta blockMeta = PowerMockito.mock(DefaultBlockMeta.class);
+    BlockMeta blockMeta = mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
@@ -381,7 +381,7 @@ public class BlockWorkerTest {
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     BlockStoreLocation existingLocation = mock(BlockStoreLocation.class);
     when(existingLocation.belongsTo(location)).thenReturn(false);
-    BlockMeta meta = mock(DefaultBlockMeta.class);
+    BlockMeta meta = mock(BlockMeta.class);
     when(meta.getBlockLocation()).thenReturn(existingLocation);
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
@@ -402,7 +402,7 @@ public class BlockWorkerTest {
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     BlockStoreLocation existingLocation = mock(BlockStoreLocation.class);
     when(existingLocation.belongsTo(location)).thenReturn(true);
-    BlockMeta meta = mock(DefaultBlockMeta.class);
+    BlockMeta meta = mock(BlockMeta.class);
     when(meta.getBlockLocation()).thenReturn(existingLocation);
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);

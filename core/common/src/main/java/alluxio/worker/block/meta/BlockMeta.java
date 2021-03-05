@@ -7,13 +7,15 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.worker.block.meta;
 
 import alluxio.worker.block.BlockStoreLocation;
 
+/**
+ * Metadata of a block in Alluxio managed storage served by workers.
+ */
 public interface BlockMeta {
   /**
    * @return the block id

@@ -13,6 +13,9 @@ package alluxio.worker.block.meta;
 
 import alluxio.worker.block.BlockStoreLocation;
 
+/**
+ * Represents the metadata of an uncommitted block in Alluxio managed storage.
+ */
 public interface TempBlockMeta {
   /**
    * @return the block size

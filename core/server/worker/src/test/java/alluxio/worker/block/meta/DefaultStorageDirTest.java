@@ -216,8 +216,8 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getCapacityBytes()}, the {@link DefaultStorageDir#getAvailableBytes()} and
-   * the {@link DefaultStorageDir#getCommittedBytes()} methods.
+   * Tests the {@link StorageDir#getCapacityBytes()}, the {@link StorageDir#getAvailableBytes()} and
+   * the {@link StorageDir#getCommittedBytes()} methods.
    */
   @Test
   public void getBytes() throws Exception {
@@ -253,7 +253,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getDirPath()} method.
+   * Tests the {@link StorageDir#getDirPath()} method.
    */
   @Test
   public void getDirPath() {
@@ -261,7 +261,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getParentTier()} method.
+   * Tests the {@link StorageDir#getParentTier()} method.
    */
   @Test
   public void getParentTier() {
@@ -269,7 +269,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getDirIndex()} method.
+   * Tests the {@link StorageDir#getDirIndex()} method.
    */
   @Test
   public void getDirIndex() {
@@ -277,7 +277,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getBlockIds()} method.
+   * Tests the {@link StorageDir#getBlockIds()} method.
    */
   @Test
   public void getBlockIds() throws Exception {
@@ -294,7 +294,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#getBlocks()} method.
+   * Tests the {@link StorageDir#getBlocks()} method.
    */
   @Test
   public void getBlocks() throws Exception {
@@ -429,8 +429,8 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#addBlockMeta(BlockMeta)} and the
-   * {@link DefaultStorageDir#removeBlockMeta(BlockMeta)} methods.
+   * Tests the {@link StorageDir#addBlockMeta(BlockMeta)} and the
+   * {@link StorageDir#removeBlockMeta(BlockMeta)} methods.
    */
   @Test
   public void blockMeta() throws Exception {
@@ -448,8 +448,8 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#addTempBlockMeta(TempBlockMeta)} and the
-   * {@link DefaultStorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
+   * Tests the {@link StorageDir#addTempBlockMeta(TempBlockMeta)} and the
+   * {@link StorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
    */
   @Test
   public void tempBlockMeta() throws Exception {
@@ -467,7 +467,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
+   * Tests the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
   public void resizeTempBlockMeta() throws Exception {
@@ -480,7 +480,7 @@ public final class DefaultStorageDirTest {
 
   /**
    * Tests that an {@link InvalidWorkerStateException} is thrown when trying to shrink a block via
-   * the {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
+   * the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
   public void resizeTempBlockMetaInvalidStateException() throws Exception {
@@ -499,7 +499,7 @@ public final class DefaultStorageDirTest {
 
   /**
    * Tests that an exception is thrown when trying to resize a temporary block via the
-   * {@link DefaultStorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
+   * {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
    */
   @Test
   public void resizeTempBlockMetaNoAvailableBytes() throws Exception {
@@ -514,7 +514,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#cleanupSessionTempBlocks(long, List)} method.
+   * Tests the {@link StorageDir#cleanupSessionTempBlocks(long, List)} method.
    */
   @Test
   public void cleanupSession() throws Exception {
@@ -560,7 +560,7 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests the {@link DefaultStorageDir#toBlockStoreLocation()} method.
+   * Tests the {@link StorageDir#toBlockStoreLocation()} method.
    */
   @Test
   public void toBlockStoreLocation() {

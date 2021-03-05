@@ -130,6 +130,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   *
+   * @return metadata of the block or null if the temp block does not exist
+   */
+  @Nullable
+  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+
+  /**
    * Opens a {@link BlockWriter} for an existing temporary block for non short-circuit writes or
    * cache requests. The temporary block must already exist with
    * {@link #createBlockRemote(long, long, String, String, long)}.
@@ -198,15 +207,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockDoesNotExistException, InvalidWorkerStateException;
 
   /**
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   *
-   * @return metadata of the block or null if the temp block does not exist
-   */
-  @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
-
-  /**
    * Checks if the storage has a given block.
    *
    * @param blockId the block id
@@ -215,7 +215,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean hasBlockMeta(long blockId);
 
   /**
-   * Obtains a read lock the block without throwing an exception. If blockId cannot be found, return
+   * Obtains a read lock on a block. If lock is not acquired successfully, return
    * {@link #INVALID_LOCK_ID}.
    *
    * @param sessionId the id of the client

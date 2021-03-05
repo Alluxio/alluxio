@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.worker.block.meta;
@@ -16,6 +15,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+/**
+ * Represents a tier of storage, for example memory or SSD. It serves as a container of
+ * {@link StorageDir} which actually contains metadata information about blocks stored and space
+ * used/available.
+ */
 public interface StorageTier {
   /**
    * @return the tier ordinal

@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.worker.block.meta;
@@ -20,6 +19,10 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
 
+/**
+ * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
+ * instantiation. It contains the set of blocks currently in the storage directory.
+ */
 public interface StorageDir {
   /**
    * Gets the total capacity of this {@link StorageDir} in bytes, which is a constant once this

@@ -62,7 +62,7 @@ public class DefaultBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultBlockMeta#getBlockSize()} method.
+   * Tests the {@link BlockMeta#getBlockSize()} method.
    */
   @Test
   public void getBlockSize() throws IOException {
@@ -84,7 +84,7 @@ public class DefaultBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultBlockMeta#getPath()} method.
+   * Tests the {@link BlockMeta#getPath()} method.
    */
   @Test
   public void getPath() {

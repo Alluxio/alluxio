@@ -76,8 +76,8 @@ public final class BlockMetadataManager {
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = DefaultStorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
-            mStorageTierAssoc.size() > 1);
+        StorageTier tier = DefaultStorageTier
+            .newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal), mStorageTierAssoc.size() > 1);
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
@@ -179,10 +179,10 @@ public final class BlockMetadataManager {
     blockDir2.removeBlockMeta(blockMeta2);
 
     // Add new block metas with new block id and sizes.
-    blockDir1
-        .addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
-    blockDir2
-        .addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
+    blockDir1.addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(),
+        blockMeta2.getBlockSize(), blockDir1));
+    blockDir2.addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(),
+        blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**

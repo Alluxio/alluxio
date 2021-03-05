@@ -59,7 +59,7 @@ public class DefaultTempBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultTempBlockMeta#getPath()} method.
+   * Tests the {@link TempBlockMeta#getPath()} method.
    */
   @Test
   public void getPath() {
@@ -70,7 +70,7 @@ public class DefaultTempBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultTempBlockMeta#getCommitPath()} method.
+   * Tests the {@link TempBlockMeta#getCommitPath()} method.
    */
   @Test
   public void getCommitPath() {
@@ -79,7 +79,7 @@ public class DefaultTempBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultTempBlockMeta#getSessionId()} method.
+   * Tests the {@link TempBlockMeta#getSessionId()} method.
    */
   @Test
   public void getSessionId() {
@@ -87,7 +87,7 @@ public class DefaultTempBlockMetaTest {
   }
 
   /**
-   * Tests the {@link DefaultTempBlockMeta#setBlockSize(long)} method.
+   * Tests the {@link TempBlockMeta#setBlockSize(long)} method.
    */
   @Test
   public void setBlockSize() {

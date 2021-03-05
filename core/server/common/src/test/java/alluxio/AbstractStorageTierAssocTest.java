@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Unit tests for {@link AbstractStorageTierAssoc}.
  */
-public final class StorageTierAssocTest {
+public final class AbstractStorageTierAssocTest {
 
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
       PropertyKey.Template template) {

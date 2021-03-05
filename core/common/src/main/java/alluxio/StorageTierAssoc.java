@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio;
@@ -17,6 +16,9 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
 
+/**
+ * A two-way mapping between storage tier aliases and ordinal numbers from configuration.
+ */
 public interface StorageTierAssoc {
   /**
    * @param ordinal a storage tier ordinal
