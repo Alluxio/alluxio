@@ -49,9 +49,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
 
-  /** Invalid lock ID. */
-  public static final long INVALID_LOCK_ID = -1;
-
   /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
@@ -144,11 +141,11 @@ public final class BlockLockManager {
                   + "session: {}, blockLockType: {}, lock reference count = {}",
               blockId, time, unit, sessionId, blockLockType,
               blockLock.getReferenceCount());
-          return INVALID_LOCK_ID;
+          return BlockWorker.INVALID_LOCK_ID;
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return INVALID_LOCK_ID;
+        return BlockWorker.INVALID_LOCK_ID;
       }
     }
     try {

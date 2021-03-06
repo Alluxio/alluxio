@@ -12,13 +12,13 @@
 package alluxio.worker.block;
 
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -48,6 +48,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -142,6 +143,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
+  @VisibleForTesting
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
@@ -170,11 +172,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public String getName() {
     return Constants.BLOCK_WORKER_NAME;
-  }
-
-  @Override
-  public BlockStore getBlockStore() {
-    return mBlockStore;
   }
 
   @Override
@@ -359,11 +356,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void freeSpace(long sessionId, long availableBytes, String tierAlias)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
-    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.freeSpace(sessionId, availableBytes, availableBytes, location);
+  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    return mBlockStore.getTempBlockMeta(sessionId, blockId);
   }
 
   @Override
@@ -405,12 +399,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    return mBlockStore.lockBlock(sessionId, blockId);
-  }
-
-  @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
+  public long lockBlock(long sessionId, long blockId) {
     return mBlockStore.lockBlockNoException(sessionId, blockId);
   }
 
@@ -492,11 +481,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   // TODO(calvin): Remove when lock and reads are separate operations.
   public boolean unlockBlock(long sessionId, long blockId) {
     return mBlockStore.unlockBlock(sessionId, blockId);
-  }
-
-  @Override
-  public void sessionHeartbeat(long sessionId) {
-    mSessions.sessionHeartbeat(sessionId);
   }
 
   @Override

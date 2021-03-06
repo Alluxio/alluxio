@@ -168,7 +168,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mLockManager.unlockBlockNoException(lockId);
-    return BlockLockManager.INVALID_LOCK_ID;
+    return BlockWorker.INVALID_LOCK_ID;
   }
 
   @Override
@@ -379,7 +379,7 @@ public class TieredBlockStore implements BlockStore {
     LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
     long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
         REMOVE_BLOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    if (lockId == BlockLockManager.INVALID_LOCK_ID) {
+    if (lockId == BlockWorker.INVALID_LOCK_ID) {
       throw new IOException(
           String.format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
