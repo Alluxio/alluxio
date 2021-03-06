@@ -17,50 +17,19 @@ import alluxio.collections.Pair;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Interface for the block store meta in Alluxio.
  */
 public interface BlockStoreMeta {
-
   /**
-   * Factory for {@link BlockStoreMeta}.
-   */
-  @ThreadSafe
-  class Factory{
-
-    private Factory() {}
-
-    /**
-     * Factory method to return a BlockStoreMeta instance without blockIds.
-     *
-     * @param manager the BlockMetadataManager
-     * @return BlockStoreMeta instance
-     */
-    public static BlockStoreMeta create(BlockMetadataManager manager) {
-      return new DefaultBlockStoreMeta(manager, false);
-    }
-
-    /**
-     * Factory method to return a BlockStoreMeta instance with blockIds.
-     *
-     * @param manager the BlockMetadata Manager
-     * @return BlockStoreMeta instance
-     */
-    public static BlockStoreMeta createFull(BlockMetadataManager manager) {
-      return new DefaultBlockStoreMeta(manager, true);
-    }
-  }
-  /**
-   * Note: This is only available in {@link BlockStoreMeta.Factory#createFull}.
+   * Note: This is only available when blocks are included.
    *
    * @return A mapping from storage tier alias to blocks
    */
   Map<String, List<Long>> getBlockList();
 
   /**
-   * Note: This is only available in {@link BlockStoreMeta.Factory#createFull}.
+   * Note: This is only available when blocks are included.
    *
    * @return A mapping from storage location alias to blocks
    */
@@ -92,7 +61,7 @@ public interface BlockStoreMeta {
   Map<String, List<String>> getLostStorage();
 
   /**
-   * Note: This is only available in {@link BlockStoreMeta.Factory#createFull}.
+   * Note: This is only available when blocks are included.
    *
    * @return the number of blocks
    */
