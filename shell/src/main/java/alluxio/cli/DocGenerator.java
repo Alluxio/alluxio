@@ -43,8 +43,8 @@ public class DocGenerator {
       Option.builder().required(false).longOpt(CONF_OPTION_NAME).hasArg(false)
           .desc("the configuration properties used by the master.").build();
 
-  private static final Options OPTIONS =
-      new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION);
+  private static final Options OPTIONS = new Options()
+      .addOption(METRIC_OPTION).addOption(CONF_OPTION);
 
   /**
    * Main entry for this util class.
