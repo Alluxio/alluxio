@@ -40,8 +40,7 @@ public class DocGenerator {
       Option.builder().required(false).longOpt(METRIC_OPTION_NAME).hasArg(false)
           .desc("the configuration properties used by the master.").build();
   private static final Option CONF_OPTION =
-      Option.builder().required(false)
-          .longOpt(CONF_OPTION_NAME).hasArg(false)
+      Option.builder().required(false).longOpt(CONF_OPTION_NAME).hasArg(false)
           .desc("the configuration properties used by the master.").build();
 
   private static final Options OPTIONS = new Options()
