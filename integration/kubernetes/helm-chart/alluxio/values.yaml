@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.6.0-SNAPSHOT
+imageTag: 2.5.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -272,7 +272,7 @@ fuse:
     # Example:
     # JAVA_HOME: /opt/java
   image: alluxio/alluxio-fuse
-  imageTag: 2.6.0-SNAPSHOT
+  imageTag: 2.5.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   # Change both to true to deploy FUSE
   enabled: false
