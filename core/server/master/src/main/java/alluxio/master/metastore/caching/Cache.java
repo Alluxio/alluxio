@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -95,12 +94,8 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
-    mStatsCounter = new StatsCounter();
+    mStatsCounter = new StatsCounter(evictionsKey, hitsKey, loadTimesKey, missesKey);
 
-    MetricsSystem.registerGaugeIfAbsent(evictionsKey.getName(), mStatsCounter.mEvictionCount::get);
-    MetricsSystem.registerGaugeIfAbsent(hitsKey.getName(), mStatsCounter.mHitCount::get);
-    MetricsSystem.registerGaugeIfAbsent(loadTimesKey.getName(), mStatsCounter.mTotalLoadTime::get);
-    MetricsSystem.registerGaugeIfAbsent(missesKey.getName(), mStatsCounter.mMissCount::get);
     MetricsSystem.registerGaugeIfAbsent(sizeKey.getName(), mMap::size);
   }
 
@@ -514,40 +509,6 @@ public abstract class Cache<K, V> implements Closeable {
     private Entry(K key, V value) {
       mKey = key;
       mValue = value;
-    }
-  }
-
-  /**
-   * Implementation of StatsCounter similar to the one in
-   * {@link com.google.common.cache.AbstractCache}.
-   */
-  protected static final class StatsCounter {
-    private final AtomicLong mHitCount;
-    private final AtomicLong mMissCount;
-    private final AtomicLong mTotalLoadTime;
-    private final AtomicLong mEvictionCount;
-
-    public StatsCounter() {
-      mHitCount = new AtomicLong();
-      mMissCount = new AtomicLong();
-      mTotalLoadTime = new AtomicLong();
-      mEvictionCount = new AtomicLong();
-    }
-
-    public void recordHit() {
-      mHitCount.getAndIncrement();
-    }
-
-    public void recordMiss() {
-      mMissCount.getAndIncrement();
-    }
-
-    public void recordLoad(long loadTime) {
-      mTotalLoadTime.getAndAdd(loadTime);
-    }
-
-    public void recordEvictions(long evictionCount) {
-      mEvictionCount.getAndAdd(evictionCount);
     }
   }
 }

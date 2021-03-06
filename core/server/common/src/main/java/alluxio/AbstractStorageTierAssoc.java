@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link ServerConfiguration}.
  */
 @ThreadSafe
-public abstract class StorageTierAssoc {
+public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
   /**
    * An immutable bi-directional mapping between storage level aliases and their ordinals. Immutable
    * maps are thread safe.
@@ -63,7 +63,7 @@ public abstract class StorageTierAssoc {
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param template the format for the conf that identifies the alias for each level
    */
-  protected StorageTierAssoc(PropertyKey levelsProperty, PropertyKey.Template template) {
+  protected AbstractStorageTierAssoc(PropertyKey levelsProperty, PropertyKey.Template template) {
     int levels = ServerConfiguration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
@@ -79,7 +79,7 @@ public abstract class StorageTierAssoc {
    *
    * @param storageTierAliases the list of aliases
    */
-  protected StorageTierAssoc(List<String> storageTierAliases) {
+  protected AbstractStorageTierAssoc(List<String> storageTierAliases) {
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int ordinal = 0; ordinal < storageTierAliases.size(); ordinal++) {
       builder.put(storageTierAliases.get(ordinal), ordinal);
@@ -87,32 +87,22 @@ public abstract class StorageTierAssoc {
     mAliasToOrdinal = builder.build();
   }
 
-  /**
-   * @param ordinal a storage tier ordinal
-   * @return the storage tier alias matching the given ordinal
-   */
+  @Override
   public String getAlias(int ordinal) {
     return mAliasToOrdinal.inverse().get(interpretOrdinal(ordinal, mAliasToOrdinal.size()));
   }
 
-  /**
-   * @param alias a storage tier alias
-   * @return the storage tier ordinal matching the given alias
-   */
+  @Override
   public int getOrdinal(String alias) {
     return mAliasToOrdinal.get(alias);
   }
 
-  /**
-   * @return the size of the alias-ordinal mapping
-   */
+  @Override
   public int size() {
     return mAliasToOrdinal.size();
   }
 
-  /**
-   * @return a list of storage tier aliases in order of their ordinal value
-   */
+  @Override
   public List<String> getOrderedStorageAliases() {
     int size = size();
     List<String> ret = new ArrayList<>(size);
@@ -122,9 +112,7 @@ public abstract class StorageTierAssoc {
     return ret;
   }
 
-  /**
-   * @return list of intersections between tier levels
-   */
+  @Override
   public List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionList() {
     List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionLocations =
         new ArrayList<>(size() - 1);

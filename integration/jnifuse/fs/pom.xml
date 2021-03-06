@@ -19,19 +19,20 @@
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-fs</artifactId>
+  <name>Alluxio Integration - JNIFUSE - Filesystem</name>
+  <description>JNI-based FUSE Integration - Java filesystem stub</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
-    <jnifuse-native.version>${project.version}</jnifuse-native.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-integration-jnifuse-native</artifactId>
-      <version>${jnifuse-native.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>

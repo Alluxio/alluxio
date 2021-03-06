@@ -45,8 +45,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * used/available.
  */
 @NotThreadSafe
-public final class StorageTier {
-  private static final Logger LOG = LoggerFactory.getLogger(StorageTier.class);
+public final class DefaultStorageTier implements StorageTier {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageTier.class);
 
   /** Alias value of this tier in tiered storage. */
   private final String mTierAlias;
@@ -58,7 +58,7 @@ public final class StorageTier {
   /** The lost storage paths that are failed to initialize or lost. */
   private List<String> mLostStorage;
 
-  private StorageTier(String tierAlias) {
+  private DefaultStorageTier(String tierAlias) {
     mTierAlias = tierAlias;
     mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
   }
@@ -104,7 +104,7 @@ public final class StorageTier {
       int mediumTypeindex = i >= dirMedium.length ? dirMedium.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, reservedBytes,
+        StorageDir dir = DefaultStorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths[i], dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.put(i, dir);
@@ -196,35 +196,27 @@ public final class StorageTier {
    */
   public static StorageTier newStorageTier(String tierAlias, boolean isMultiTier)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    StorageTier ret = new StorageTier(tierAlias);
+    DefaultStorageTier ret = new DefaultStorageTier(tierAlias);
     ret.initStorageTier(isMultiTier);
     return ret;
   }
 
-  /**
-   * @return the tier ordinal
-   */
+  @Override
   public int getTierOrdinal() {
     return mTierOrdinal;
   }
 
-  /**
-   * @return the tier alias
-   */
+  @Override
   public String getTierAlias() {
     return mTierAlias;
   }
 
-  /**
-   * @return the capacity (in bytes)
-   */
+  @Override
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
-  /**
-   * @return the remaining capacity (in bytes)
-   */
+  @Override
   public long getAvailableBytes() {
     long availableBytes = 0;
     for (StorageDir dir : mDirs.values()) {
@@ -233,35 +225,23 @@ public final class StorageTier {
     return availableBytes;
   }
 
-  /**
-   * Returns a directory for the given index.
-   *
-   * @param dirIndex the directory index
-   * @return a directory, or null if the directory does not exist
-   */
+  @Override
   @Nullable
   public StorageDir getDir(int dirIndex) {
     return mDirs.get(dirIndex);
   }
 
-  /**
-   * @return a list of directories in this tier
-   */
+  @Override
   public List<StorageDir> getStorageDirs() {
     return new ArrayList<>(mDirs.values());
   }
 
-  /**
-   * @return a list of lost storage paths
-   */
+  @Override
   public List<String> getLostStorage() {
     return new ArrayList<>(mLostStorage);
   }
 
-  /**
-   * Removes a directory.
-   * @param dir directory to be removed
-   */
+  @Override
   public void removeStorageDir(StorageDir dir) {
     if (mDirs.remove(dir.getDirIndex()) != null) {
       mCapacityBytes -=  dir.getCapacityBytes();

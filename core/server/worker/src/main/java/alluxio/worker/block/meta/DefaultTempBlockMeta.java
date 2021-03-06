@@ -11,20 +11,25 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A base class of the metadata of blocks in Alluxio managed storage.
+ * Represents the metadata of an uncommitted block in Alluxio managed storage.
  */
-@ThreadSafe
-public abstract class AbstractBlockMeta {
+@NotThreadSafe
+public final class DefaultTempBlockMeta implements TempBlockMeta {
+  private final long mBlockId;
+  private final StorageDir mDir;
+  private final long mSessionId;
+  private long mTempBlockSize;
+
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
    * subdir of its {@link StorageDir}, the subdir is tmpFolder/sessionId % maxSubdirMax.
@@ -49,62 +54,58 @@ public abstract class AbstractBlockMeta {
   }
 
   /**
-   * Committed block is stored in BlockStore under its {@link StorageDir} as a block file named
-   * after its blockId. e.g. Block 100 of StorageDir "/mnt/mem/0" has path:
-   * <p>
-   * /mnt/mem/0/100
+   * Creates a new instance of {@link DefaultTempBlockMeta}.
    *
+   * @param sessionId the session id
    * @param blockId the block id
-   * @param dir the parent directory
-   * @return committed file path
+   * @param initialBlockSize initial size of this block in bytes
+   * @param dir {@link StorageDir} of this temp block belonging to
    */
-  public static String commitPath(StorageDir dir, long blockId) {
-    return PathUtils.concatPath(dir.getDirPath(), blockId);
-  }
-
-  protected final long mBlockId;
-  protected final StorageDir mDir;
-
-  /**
-   * Creates a new instance of {@link AbstractBlockMeta}.
-   *
-   * @param blockId the block id
-   * @param dir the parent directory
-   */
-  public AbstractBlockMeta(long blockId, StorageDir dir) {
+  public DefaultTempBlockMeta(long sessionId, long blockId, long initialBlockSize, StorageDir dir) {
     mBlockId = blockId;
     mDir = Preconditions.checkNotNull(dir, "dir");
+    mSessionId = sessionId;
+    mTempBlockSize = initialBlockSize;
   }
 
-  /**
-   * @return the block id
-   */
+  @Override
+  public long getBlockSize() {
+    return mTempBlockSize;
+  }
+
+  @Override
+  public String getPath() {
+    return tempPath(mDir, mSessionId, mBlockId);
+  }
+
+  @Override
   public long getBlockId() {
     return mBlockId;
   }
 
-  /**
-   * @return location of the block
-   */
+  @Override
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
     return new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex(), mDir.getDirMedium());
   }
 
-  /**
-   * @return the parent directory
-   */
+  @Override
   public StorageDir getParentDir() {
     return mDir;
   }
 
-  /**
-   * @return the block path
-   */
-  public abstract String getPath();
+  @Override
+  public String getCommitPath() {
+    return DefaultBlockMeta.commitPath(mDir, mBlockId);
+  }
 
-  /**
-   * @return the block size
-   */
-  public abstract long getBlockSize();
+  @Override
+  public long getSessionId() {
+    return mSessionId;
+  }
+
+  @Override
+  public void setBlockSize(long newSize) {
+    mTempBlockSize = newSize;
+  }
 }
