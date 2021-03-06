@@ -307,7 +307,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
 
     // verify the file is deleted
@@ -1700,7 +1700,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1724,7 +1724,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1747,7 +1747,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -1775,7 +1775,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2142,7 +2142,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2195,7 +2195,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2230,7 +2230,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2284,7 +2284,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.NOTHING).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
@@ -2547,7 +2547,7 @@ public final class FileSystemMasterTest {
 
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
-    assertEquals(alluxio.wire.CommandType.Persist, command.getCommandType());
+    assertEquals(alluxio.wire.CommandType.PERSIST, command.getCommandType());
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 

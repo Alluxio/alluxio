@@ -24,27 +24,27 @@ public enum CommandType {
   /**
    * Unknown command.
    */
-  Unknown(0),
+  UNKNOWN(0),
   /**
    * No op command.
    */
-  Nothing(1),
+  NOTHING(1),
   /**
    * Ask worker to re-register.
    */
-  Register(2),
+  REGISTER(2),
   /**
    * Ask worker to free files.
    */
-  Free(3),
+  FREE(3),
   /**
    * Ask worker to delete files.
    */
-  Delete(4),
+  DELETE(4),
   /**
    * Ask worker to persist a file.
    */
-  Persist(5),
+  PERSIST(5),
   ;
 
   private final int mValue;

@@ -3484,7 +3484,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     List<PersistFile> filesToPersist = new ArrayList<>();
     FileSystemCommandOptions commandOptions = new FileSystemCommandOptions();
     commandOptions.setPersistOptions(new PersistCommandOptions(filesToPersist));
-    return new FileSystemCommand(CommandType.Persist, commandOptions);
+    return new FileSystemCommand(CommandType.PERSIST, commandOptions);
   }
 
   /**
