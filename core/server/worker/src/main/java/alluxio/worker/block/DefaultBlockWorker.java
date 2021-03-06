@@ -48,6 +48,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -142,6 +143,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
+  @VisibleForTesting
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {

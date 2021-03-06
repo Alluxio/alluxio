@@ -367,7 +367,7 @@ public class BlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.lockBlock(sessionId, blockId);
-    verify(mBlockStore).lockBlock(sessionId, blockId);
+    verify(mBlockStore).lockBlockNoException(sessionId, blockId);
   }
 
   /**
