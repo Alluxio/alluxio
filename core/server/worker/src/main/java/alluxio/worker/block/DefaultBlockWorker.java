@@ -503,25 +503,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-<<<<<<< HEAD
-  public void sessionHeartbeat(long sessionId) {
-    mSessions.sessionHeartbeat(sessionId);
-  }
-
-  @Override
   public void submitAsyncCacheRequest(AsyncCacheRequest request) {
     mAsyncCacheManager.submitRequest(request);
   }
 
-  @Override
-||||||| merged common ancestors
-  public void sessionHeartbeat(long sessionId) {
-    mSessions.sessionHeartbeat(sessionId);
-  }
-
-  @Override
-=======
->>>>>>> cbcc2dd4825153f3d1e253fc76d03dd46a05b9f2
   public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }
@@ -594,15 +579,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
     while (retryPolicy.attempt()) {
-      long lockId;
-      if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
-          .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
-          .getBlockInUfsTier())) {
-        lockId = lockBlockNoException(request.getSessionId(), request.getId());
-      } else {
-        lockId = lockBlock(request.getSessionId(), request.getId());
+      long lockId = lockBlock(request.getSessionId(), request.getId());
+      boolean checkUfs =
+          (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
+              .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
+              .getBlockInUfsTier()));
+      if (lockId == BlockWorker.INVALID_LOCK_ID && !checkUfs) {
+        throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, request.getId());
       }
-      if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+      if (lockId != BlockWorker.INVALID_LOCK_ID) {
         try {
           BlockReader reader =
               readBlockRemote(request.getSessionId(), request.getId(), lockId);

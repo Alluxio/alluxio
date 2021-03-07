@@ -352,34 +352,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean unlockBlock(long sessionId, long blockId);
 
   /**
-<<<<<<< HEAD:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-   * Handles the heartbeat from a client.
-   *
-   * @param sessionId the id of the client
-   */
-  void sessionHeartbeat(long sessionId);
-
-  /**
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
    */
   void submitAsyncCacheRequest(AsyncCacheRequest request);
 
-  /**
-   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
-||||||| merged common ancestors:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-   * Handles the heartbeat from a client.
-   *
-   * @param sessionId the id of the client
-   */
-  void sessionHeartbeat(long sessionId);
 
   /**
-   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
-=======
    * Sets the pinlist for the underlying block store.
->>>>>>> cbcc2dd4825153f3d1e253fc76d03dd46a05b9f2:core/common/src/main/java/alluxio/worker/block/BlockWorker.java
    *
    * @param pinnedInodes a set of pinned inodes
    */
