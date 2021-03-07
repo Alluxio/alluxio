@@ -16,9 +16,11 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -184,6 +186,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public void submitAsyncCacheRequest(AsyncCacheRequest request) {
+    // noop
+  }
+
+  @Override
   public void updatePinList(Set<Long> pinnedInodes) {
     // noop
   }
@@ -202,6 +209,19 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public void closeUfsBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, IOException, WorkerOutOfSpaceException {
+    // noop
+  }
+
+  @Override
+  public BlockReader getBlockReader(BlockReadRequest request) throws IOException,
+      BlockDoesNotExistException, InvalidWorkerStateException,
+      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+    return null;
+  }
+
+  @Override
+  public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+      throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
     // noop
   }
 

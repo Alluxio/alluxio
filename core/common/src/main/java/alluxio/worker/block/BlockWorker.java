@@ -358,7 +358,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   void submitAsyncCacheRequest(AsyncCacheRequest request);
 
-
   /**
    * Sets the pinlist for the underlying block store.
    *

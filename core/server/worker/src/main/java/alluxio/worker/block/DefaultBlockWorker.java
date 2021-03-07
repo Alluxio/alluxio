@@ -12,20 +12,14 @@
 package alluxio.worker.block;
 
 import alluxio.ClientContext;
-<<<<<<< HEAD
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.ServerConfiguration;
-||||||| merged common ancestors
-import alluxio.conf.ServerConfiguration;
-=======
->>>>>>> cbcc2dd4825153f3d1e253fc76d03dd46a05b9f2
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -507,6 +501,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mAsyncCacheManager.submitRequest(request);
   }
 
+  @Override
   public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }

@@ -23,12 +23,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.logging.SamplingLogger;
-<<<<<<< HEAD
 import alluxio.wire.BlockReadRequest;
-||||||| merged common ancestors
-import alluxio.worker.block.BlockLockManager;
-=======
->>>>>>> cbcc2dd4825153f3d1e253fc76d03dd46a05b9f2
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
