@@ -167,7 +167,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
-        new WorkerInternalClientDataReader.Factory(context, blockId, chunkSize, options),
+        new BlockWorkerDataReader.Factory(context, blockId, chunkSize, options),
         address, BlockInStreamSource.EMBEDDED, blockId, length);
   }
 

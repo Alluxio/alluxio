@@ -16,13 +16,14 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.io.WorkerInternalBlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -349,6 +350,37 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   // TODO(calvin): Remove when lock and reads are separate operations.
   boolean unlockBlock(long sessionId, long blockId);
+
+  /**
+   * Gets the block reader to read from Alluxio block or UFS block.
+   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
+   *
+   * @param request the block read request
+   * @return a block reader to read data from
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store after opening the ufs block reader
+   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws WorkerOutOfSpaceException if there is no enough space
+   * @throws IOException if it fails to get block reader
+   */
+  BlockReader getBlockReader(BlockReadRequest request) throws
+      BlockAlreadyExistsException, BlockDoesNotExistException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
+
+  /**
+   * Cleans data reader and related blocks after using the block reader obtained
+   * from {@link #getBlockReader(BlockReadRequest)}.
+   *
+   * @param reader the to be cleaned block reader
+   * @param request the block read request which used to get block reader
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store when closing the ufs block
+   * @throws WorkerOutOfSpaceException if there is not enough space
+   * @throws IOException if it fails to get block reader
+   */
+  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Submits the async cache request to async cache manager to execute.

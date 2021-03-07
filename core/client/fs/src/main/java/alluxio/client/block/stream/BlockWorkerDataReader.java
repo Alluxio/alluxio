@@ -20,8 +20,8 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.BlockReadRequest;
+import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.WorkerInternalBlockWorker;
 
 import com.google.common.base.Preconditions;
 
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * instead of external RPC frameworks.
  */
 @NotThreadSafe
-public final class WorkerInternalClientDataReader implements DataReader {
+public final class BlockWorkerDataReader implements DataReader {
   /** The block reader to read from the local worker block or UFS block. */
   private final BlockReader mReader;
   private final long mEnd;
@@ -48,14 +48,14 @@ public final class WorkerInternalClientDataReader implements DataReader {
   private boolean mClosed;
 
   /**
-   * Creates an instance of {@link WorkerInternalClientDataReader}.
+   * Creates an instance of {@link BlockWorkerDataReader}.
    *
    * @param reader the block reader to read data from
    * @param offset the offset
    * @param len the length to read
    * @param chunkSize the chunk size
    */
-  private  WorkerInternalClientDataReader(BlockReader reader,
+  private BlockWorkerDataReader(BlockReader reader,
       long offset, long len, long chunkSize) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
@@ -92,12 +92,12 @@ public final class WorkerInternalClientDataReader implements DataReader {
   }
 
   /**
-   * Factory class to create {@link WorkerInternalClientDataReader}s.
+   * Factory class to create {@link BlockWorkerDataReader}s.
    */
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
     private final long mChunkSize;
-    private final WorkerInternalBlockWorker mWorkerInternalBlockWorker;
+    private final BlockWorker mBlockWorker;
 
     private BlockReadRequest mBlockReadRequest;
     private boolean mClosed;
@@ -120,7 +120,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .fromProto(options.getOptions().getReadType()).isPromote();
       mReadRequestPartial = ReadRequest.newBuilder()
           .setBlockId(blockId).setPromote(isPromote).build();
-      mWorkerInternalBlockWorker = context.getInternalBlockWorker();
+      mBlockWorker = context.getInternalBlockWorker();
     }
 
     @Override
@@ -129,8 +129,8 @@ public final class WorkerInternalClientDataReader implements DataReader {
           .setOffset(offset).setLength(len).build();
       mBlockReadRequest = new BlockReadRequest(mReadRequestPartial);
       try {
-        mReader = mWorkerInternalBlockWorker.getBlockReader(mBlockReadRequest);
-        return new WorkerInternalClientDataReader(mReader, offset, len, mChunkSize);
+        mReader = mBlockWorker.getBlockReader(mBlockReadRequest);
+        return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
       }
@@ -147,7 +147,7 @@ public final class WorkerInternalClientDataReader implements DataReader {
         return;
       }
       try {
-        mWorkerInternalBlockWorker.cleanBlockReader(mReader,
+        mBlockWorker.cleanBlockReader(mReader,
             mBlockReadRequest);
       } catch (Exception e) {
         throw new IOException(e);

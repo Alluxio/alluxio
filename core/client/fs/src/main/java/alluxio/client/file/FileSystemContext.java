@@ -42,7 +42,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.io.WorkerInternalBlockWorker;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -99,10 +99,10 @@ public class FileSystemContext implements Closeable {
   private final String mId;
 
   /**
-   * The gateway for worker internal clients to call worker operation directly
+   * The block worker for worker internal clients to call worker operation directly
    * without going through the external RPC frameworks.
    */
-  private final WorkerInternalBlockWorker mWorkerInternalBlockWorker;
+  private final BlockWorker mBlockWorker;
 
   /**
    * Marks whether the context has been closed, closing the context means releasing all resources
@@ -188,18 +188,17 @@ public class FileSystemContext implements Closeable {
   /**
    * @param subject the parent subject, set to null if not present
    * @param conf Alluxio configuration
-   * @param workerInternalBlockWorker the gateway for worker internal clients
-   *        to communicate with the local worker directly
+   * @param blockWorker block worker
    * @return a context
    */
   public static FileSystemContext create(@Nullable Subject subject,
       @Nullable AlluxioConfiguration conf,
-      @Nullable WorkerInternalBlockWorker workerInternalBlockWorker) {
+      @Nullable BlockWorker blockWorker) {
     ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(),
-        workerInternalBlockWorker);
+        blockWorker);
     context.init(ctx, inquireClient);
     return context;
   }
@@ -239,17 +238,16 @@ public class FileSystemContext implements Closeable {
    * Initializes FileSystemContext ID.
    *
    * @param conf Alluxio configuration
-   * @param workerInternalBlockWorker the gateway for worker internal clients
-   *        to communicate with the local worker directly
+   * @param blockWorker block worker
    */
   private FileSystemContext(AlluxioConfiguration conf,
-      @Nullable WorkerInternalBlockWorker workerInternalBlockWorker) {
+      @Nullable BlockWorker blockWorker) {
     mId = IdUtils.createFileSystemContextId();
-    mWorkerInternalBlockWorker = workerInternalBlockWorker;
+    mBlockWorker = blockWorker;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
-        mId, mWorkerInternalBlockWorker == null);
+        mId, mBlockWorker == null);
   }
 
   /**
@@ -590,7 +588,7 @@ public class FileSystemContext implements Closeable {
    * @return if the current client is embedded in a worker
    */
   public synchronized boolean isWorkerInternalClient() {
-    return mWorkerInternalBlockWorker != null;
+    return mBlockWorker != null;
   }
 
   /**
@@ -598,11 +596,11 @@ public class FileSystemContext implements Closeable {
    * as a gateway for worker internal clients to communicate with
    * the local worker directly without going through external RPC frameworks.
    *
-   * @return the acquired worker internal block worker
+   * @return the acquired block worker
    */
   @Nullable
-  public WorkerInternalBlockWorker getInternalBlockWorker() {
-    return mWorkerInternalBlockWorker;
+  public BlockWorker getInternalBlockWorker() {
+    return mBlockWorker;
   }
 
   /**
