@@ -52,8 +52,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    EMBEDDED, // The client is embedded in the worker process
-    LOCAL, // The client is outside the worker process but in the same node
+    EMBEDDED, // The block is from a worker in the same process
+    LOCAL, // The block is from a separate worker process on the same node
     REMOTE,
     UFS
   }
