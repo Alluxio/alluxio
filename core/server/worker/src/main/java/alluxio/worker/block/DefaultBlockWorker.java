@@ -131,6 +131,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private AtomicReference<Long> mWorkerId;
 
   private final AsyncCacheRequestManager mAsyncCacheManager;
+  private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
 
   /**
@@ -172,6 +173,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mUfsManager = ufsManager;
     mAsyncCacheManager = new AsyncCacheRequestManager(
         GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
+    mFuseManager = mResourceCloser.register(new FuseManager(this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -251,6 +253,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   ServerConfiguration.global(), ServerUserState.global()));
+    }
+
+    // Mounts the embedded Fuse application
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
+      mFuseManager.start();
     }
   }
 
@@ -555,9 +562,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader getBlockReader(BlockReadRequest request)
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException,
-      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+  public BlockReader getBlockReader(BlockReadRequest request) throws
+      BlockAlreadyExistsException, BlockDoesNotExistException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Update the locking logic so this can be done better
     if (request.isPromote()) {
       try {
@@ -623,7 +630,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     try {
       if (reader != null) {
         reader.close();

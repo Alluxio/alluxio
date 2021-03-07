@@ -352,6 +352,37 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean unlockBlock(long sessionId, long blockId);
 
   /**
+   * Gets the block reader to read from Alluxio block or UFS block.
+   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
+   *
+   * @param request the block read request
+   * @return a block reader to read data from
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store after opening the ufs block reader
+   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws WorkerOutOfSpaceException if there is no enough space
+   * @throws IOException if it fails to get block reader
+   */
+  BlockReader getBlockReader(BlockReadRequest request) throws
+      BlockAlreadyExistsException, BlockDoesNotExistException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
+
+  /**
+   * Cleans data reader and related blocks after using the block reader obtained
+   * from {@link #getBlockReader(BlockReadRequest)}.
+   *
+   * @param reader the to be cleaned block reader
+   * @param request the block read request which used to get block reader
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store when closing the ufs block
+   * @throws WorkerOutOfSpaceException if there is not enough space
+   * @throws IOException if it fails to get block reader
+   */
+  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
+
+  /**
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
@@ -403,27 +434,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
       WorkerOutOfSpaceException;
-
-  /**
-   * Gets the block reader to read from Alluxio block or UFS block.
-   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
-   *
-   * @param request the block read request
-   * @return a block reader to read data from
-   */
-  BlockReader getBlockReader(BlockReadRequest request) throws IOException,
-      BlockDoesNotExistException, InvalidWorkerStateException,
-      BlockAlreadyExistsException, WorkerOutOfSpaceException;
-
-  /**
-   * Cleans data reader and related blocks after using the block reader obtained
-   * from {@link #getBlockReader(BlockReadRequest)}.
-   *
-   * @param reader the to be cleaned block reader
-   * @param request the block read request which used to get block reader
-   */
-  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
-      throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException;
 
   /**
    * Clears the worker metrics.

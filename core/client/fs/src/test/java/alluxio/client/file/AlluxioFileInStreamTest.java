@@ -96,6 +96,7 @@ public final class AlluxioFileInStreamTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
+      {BlockInStreamSource.EMBEDDED},
       {BlockInStreamSource.LOCAL},
       {BlockInStreamSource.UFS},
       {BlockInStreamSource.REMOTE}

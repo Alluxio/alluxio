@@ -114,8 +114,8 @@ public final class AlluxioFuse {
     if (opts == null) {
       System.exit(1);
     }
-    try {
-      launchFuse(fsContext, opts, true);
+    try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
+      launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       System.exit(-1);
@@ -125,16 +125,16 @@ public final class AlluxioFuse {
   /**
    * Launches Fuse application.
    *
-   * @param fsContext file system context for Fuse client to communicate to servers
+   * @param fs file system for Fuse client to communicate to servers
+   * @param conf the alluxio configuration to create Fuse file system
    * @param opts the fuse mount options
    * @param blocking whether the Fuse application is blocking or not
    */
-  public static void launchFuse(FileSystemContext fsContext,
+  public static void launchFuse(FileSystem fs, AlluxioConfiguration conf,
       FuseMountOptions opts, boolean blocking) throws IOException {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
-    AlluxioConfiguration conf = fsContext.getClusterConf();
-    try (final FileSystem fs = FileSystem.Factory.create(fsContext)) {
+    try {
       final List<String> fuseOpts = opts.getFuseOpts();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
@@ -146,6 +146,9 @@ public final class AlluxioFuse {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
+          // TODO(lu) add umount check and force umount
+          // the mount may be failed but leave the fuse mounts running
+          // which will block the whole worker operations and even system operations
           fuseFs.umount();
           throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
               opts.getAlluxioRoot(), opts.getMountPoint()), e);
@@ -195,24 +198,8 @@ public final class AlluxioFuse {
       String mntPointValue = cli.getOptionValue("m");
       String alluxioRootValue = cli.getOptionValue("r");
 
-      List<String> fuseOpts = new ArrayList<>();
-      boolean noUserMaxWrite = true;
-      if (cli.hasOption("o")) {
-        String[] fopts = cli.getOptionValues("o");
-        // keep the -o
-        for (final String fopt : fopts) {
-          fuseOpts.add("-o" + fopt);
-          if (noUserMaxWrite && fopt.startsWith("max_write")) {
-            noUserMaxWrite = false;
-          }
-        }
-      }
-      // check if the user has specified his own max_write, otherwise get it
-      // from conf
-      if (noUserMaxWrite) {
-        final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
-        fuseOpts.add(String.format("-omax_write=%d", maxWrite));
-      }
+      List<String> fuseOpts = parseFuseOptions(
+          cli.hasOption("o") ? cli.getOptionValues("o") : new String[0], alluxioConf);
 
       final boolean fuseDebug = alluxioConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
@@ -223,5 +210,34 @@ public final class AlluxioFuse {
       fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
       return null;
     }
+  }
+
+  /**
+   * Parses user given fuse options to the format that Fuse application needs.
+   *
+   * @param fuseOptions the fuse options to parse from
+   * @param alluxioConf alluxio configuration
+   * @return the parsed fuse options
+   */
+  public static List<String> parseFuseOptions(String[] fuseOptions,
+      AlluxioConfiguration alluxioConf) {
+    List<String> res = new ArrayList<>();
+    boolean noUserMaxWrite = true;
+    for (final String opt : fuseOptions) {
+      if (opt.isEmpty()) {
+        continue;
+      }
+      res.add("-o" + opt);
+      if (noUserMaxWrite && opt.startsWith("max_write")) {
+        noUserMaxWrite = false;
+      }
+    }
+    // check if the user has specified his own max_write, otherwise get it
+    // from conf
+    if (noUserMaxWrite) {
+      final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
+      res.add(String.format("-omax_write=%d", maxWrite));
+    }
+    return res;
   }
 }

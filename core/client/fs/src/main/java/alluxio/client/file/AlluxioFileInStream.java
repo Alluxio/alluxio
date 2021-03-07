@@ -276,7 +276,9 @@ public class AlluxioFileInStream extends FileInStream {
         len -= bytesRead;
         retry = mRetryPolicySupplier.get();
         lastException = null;
-        if (mCachedPositionedReadStream.getSource() != BlockInStream.BlockInStreamSource.LOCAL) {
+        BlockInStream.BlockInStreamSource source = mCachedPositionedReadStream.getSource();
+        if (source != BlockInStream.BlockInStreamSource.LOCAL
+            && source != BlockInStream.BlockInStreamSource.EMBEDDED) {
           triggerAsyncCaching(mCachedPositionedReadStream);
         }
         if (bytesRead == mBlockSize - offset) {
@@ -375,7 +377,8 @@ public class AlluxioFileInStream extends FileInStream {
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
       }
-      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
+      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL
+          || blockSource == BlockInStream.BlockInStreamSource.EMBEDDED) {
         return;
       }
       triggerAsyncCaching(stream);
@@ -393,25 +396,35 @@ public class AlluxioFileInStream extends FileInStream {
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();
     if (cache && (mLastBlockIdCached != blockId)) {
+      // Construct the async cache request
+      long blockLength = mOptions.getBlockInfo(blockId).getLength();
+      AsyncCacheRequest request =
+          AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+              .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+              .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
+              .build();
+
+      if (mPassiveCachingEnabled && mContext.isWorkerInternalClient()) {
+        try {
+          mContext.getInternalBlockWorker().submitAsyncCacheRequest(request);
+          mLastBlockIdCached = blockId;
+        } catch (Exception e) {
+          LOG.warn("Failed to complete async cache request for block {} of file {} "
+              + "at local worker: {}", blockId, mStatus.getPath(), e.getMessage());
+        }
+        return;
+      }
+
       WorkerNetAddress worker;
       if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
         worker = mContext.getLocalWorker();
       } else { // send request to data source
         worker = dataSource;
       }
-      try {
-        // Construct the async cache request
-        long blockLength = mOptions.getBlockInfo(blockId).getLength();
-        AsyncCacheRequest request =
-            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
-                .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
-                .build();
-        try (CloseableResource<BlockWorkerClient> blockWorker =
-                 mContext.acquireBlockWorkerClient(worker)) {
-          blockWorker.get().asyncCache(request);
-          mLastBlockIdCached = blockId;
-        }
+      try (CloseableResource<BlockWorkerClient> blockWorker =
+        mContext.acquireBlockWorkerClient(worker)) {
+        blockWorker.get().asyncCache(request);
+        mLastBlockIdCached = blockId;
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} of file {} at worker {}: {}",
             blockId, mStatus.getPath(), worker, e.getMessage());

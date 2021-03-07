@@ -521,6 +521,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
+  public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
+      new Builder(Name.CLUSTER_BYTES_READ_DIRECT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. clients embedded in workers).")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_DIRECT_THROUGHPUT =
+      new Builder(Name.CLUSTER_BYTES_READ_DIRECT_THROUGHPUT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. clients embedded in workers).")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
       new Builder(Name.CLUSTER_BYTES_READ_REMOTE)
           .setDescription("Total number of bytes read from Alluxio storage "
@@ -743,19 +759,39 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BYTES_READ_DIRECT =
+      new Builder(Name.WORKER_BYTES_READ_DIRECT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_READ_DIRECT_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_READ_DIRECT_THROUGHPUT)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "without external RPC involved. This records data read "
+              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE =
       new Builder(Name.WORKER_BYTES_READ_REMOTE)
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage. "
-              + "This does not include short-circuit local reads and domain socket reads.")
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "via external RPC channel. This does not include "
+              + "short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_READ_REMOTE_THROUGHPUT)
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage. "
-              + "This does not include short-circuit local reads and domain socket reads.")
+              + "and underlying UFS if data cannot be found in the Alluxio storage "
+              + "via external RPC channel. This does not include "
+              + "short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1265,6 +1301,9 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Master.UfsJournalInitialReplayTimeMs";
 
     // Cluster metrics
+    public static final String CLUSTER_BYTES_READ_DIRECT = "Cluster.BytesReadDirect";
+    public static final String CLUSTER_BYTES_READ_DIRECT_THROUGHPUT
+        = "Cluster.BytesReadDirectThroughput";
     public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";
     public static final String CLUSTER_BYTES_READ_LOCAL_THROUGHPUT
         = "Cluster.BytesReadLocalThroughput";
@@ -1315,6 +1354,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BLOCKS_EVICTED = "Worker.BlocksEvicted";
     public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
     public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
+    public static final String WORKER_BYTES_READ_DIRECT = "Worker.BytesReadDirect";
+    public static final String WORKER_BYTES_READ_DIRECT_THROUGHPUT
+        = "Worker.BytesReadDirectThroughput";
     public static final String WORKER_BYTES_READ_REMOTE = "Worker.BytesReadRemote";
     public static final String WORKER_BYTES_READ_REMOTE_THROUGHPUT
         = "Worker.BytesReadRemoteThroughput";
