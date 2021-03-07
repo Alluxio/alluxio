@@ -26,11 +26,45 @@ interface ITest {
 }
 
 const testCases: ITest[] = [
-  // lt 20 datapoints
+  // % y-axis
+  {
+    input: [
+      {
+        name: '% test',
+        dataPoints: [],
+      },
+    ],
+    output: [
+      {
+        data: [],
+        id: '% test',
+        xAxisLabel: 'Time Stamp',
+        yAxisLabel: 'Percent (%)',
+      },
+    ],
+  },
+  // raw throughput y-axis
   {
     input: [
       {
         name: 'test',
+        dataPoints: [],
+      },
+    ],
+    output: [
+      {
+        data: [],
+        id: 'test',
+        xAxisLabel: 'Time Stamp',
+        yAxisLabel: 'Raw Throughput (Bytes/Minute)',
+      },
+    ],
+  },
+  // lt 20 datapoints
+  {
+    input: [
+      {
+        name: '% test',
         dataPoints: Array.from({ length: 1 }, (_, index) => {
           return { timeStamp: index, value: index };
         }),
@@ -41,7 +75,7 @@ const testCases: ITest[] = [
         data: Array.from({ length: 1 }, (_, index) => {
           return { x: index, y: index };
         }),
-        id: 'test',
+        id: '% test',
         xAxisLabel: 'Time Stamp',
         yAxisLabel: 'Percent (%)',
       },
@@ -51,7 +85,7 @@ const testCases: ITest[] = [
   {
     input: [
       {
-        name: 'test',
+        name: '% test',
         dataPoints: Array.from({ length: 20 }, (_, index) => {
           return { timeStamp: index, value: index };
         }),
@@ -62,7 +96,7 @@ const testCases: ITest[] = [
         data: Array.from({ length: 20 }, (_, index) => {
           return { x: index, y: index };
         }),
-        id: 'test',
+        id: '% test',
         xAxisLabel: 'Time Stamp',
         yAxisLabel: 'Percent (%)',
       },
@@ -72,7 +106,7 @@ const testCases: ITest[] = [
   {
     input: [
       {
-        name: 'test',
+        name: '% test',
         dataPoints: Array.from({ length: 21 }, (_, index) => {
           return { timeStamp: index, value: index };
         }),
@@ -83,7 +117,7 @@ const testCases: ITest[] = [
         data: Array.from({ length: 21 }, (_, index) => {
           return { x: index, y: index };
         }).slice(-20),
-        id: 'test',
+        id: '% test',
         xAxisLabel: 'Time Stamp',
         yAxisLabel: 'Percent (%)',
       },

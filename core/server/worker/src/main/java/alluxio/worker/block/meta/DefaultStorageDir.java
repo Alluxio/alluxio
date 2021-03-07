@@ -27,7 +27,6 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -39,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
  * instantiation. It contains the set of blocks currently in the storage directory.
@@ -49,8 +50,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * - available for internal I/Os.
  */
 @NotThreadSafe
-public final class StorageDir {
-  private static final Logger LOG = LoggerFactory.getLogger(StorageDir.class);
+public final class DefaultStorageDir implements StorageDir {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageDir.class);
 
   private final long mCapacityBytes;
   private final String mDirMedium;
@@ -67,7 +68,7 @@ public final class StorageDir {
   private int mDirIndex;
   private StorageTier mTier;
 
-  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, long reservedBytes,
+  private DefaultStorageDir(StorageTier tier, int dirIndex, long capacityBytes, long reservedBytes,
       String dirPath, String dirMedium) {
     mTier = Preconditions.checkNotNull(tier, "tier");
     mDirIndex = dirIndex;
@@ -104,8 +105,8 @@ public final class StorageDir {
       long reservedBytes, String dirPath, String dirMedium)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException,
       InvalidPathException {
-    StorageDir dir =
-        new StorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
+    DefaultStorageDir dir =
+        new DefaultStorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
     return dir;
   }
@@ -114,7 +115,7 @@ public final class StorageDir {
    * Initializes metadata for existing blocks in this {@link StorageDir}.
    *
    * Only paths satisfying the contract defined in
-   * {@link AbstractBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
+   * {@link DefaultBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
    * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
@@ -150,7 +151,7 @@ public final class StorageDir {
       } else {
         try {
           long blockId = Long.parseLong(path.getName());
-          addBlockMeta(new BlockMeta(blockId, path.length(), this));
+          addBlockMeta(new DefaultBlockMeta(blockId, path.length(), this));
         } catch (NumberFormatException e) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",
               path.getAbsolutePath(), e);
@@ -164,113 +165,62 @@ public final class StorageDir {
     }
   }
 
-  /**
-   * Gets the total capacity of this {@link StorageDir} in bytes, which is a constant once this
-   * {@link StorageDir} has been initialized.
-   *
-   * @return the total capacity of this {@link StorageDir} in bytes
-   */
+  @Override
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
-  /**
-   * Gets the total available capacity of this {@link StorageDir} in bytes. This value equals the
-   * total capacity of this {@link StorageDir}, minus the used bytes by committed blocks and temp
-   * blocks.
-   *
-   * @return available capacity in bytes
-   */
+  @Override
   public long getAvailableBytes() {
     return mAvailableBytes.get();
   }
 
-  /**
-   * Gets the total size of committed blocks in this StorageDir in bytes.
-   *
-   * @return number of committed bytes
-   */
+  @Override
   public long getCommittedBytes() {
     return mCommittedBytes.get();
   }
 
-  /**
-   * @return the path of the directory
-   */
+  @Override
   public String getDirPath() {
     return mDirPath;
   }
 
-  /**
-   * @return the medium of the storage dir
-   */
+  @Override
   public String getDirMedium() {
     return mDirMedium;
   }
 
-  /**
-   * Returns the {@link StorageTier} containing this {@link StorageDir}.
-   *
-   * @return {@link StorageTier}
-   */
+  @Override
   public StorageTier getParentTier() {
     return mTier;
   }
 
-  /**
-   * Returns the zero-based index of this dir in its parent {@link StorageTier}.
-   *
-   * @return index
-   */
+  @Override
   public int getDirIndex() {
     return mDirIndex;
   }
 
-  /**
-   * Returns the list of block ids in this dir.
-   *
-   * @return a list of block ids
-   */
+  @Override
   public List<Long> getBlockIds() {
     return new ArrayList<>(mBlockIdToBlockMap.keySet());
   }
 
-  /**
-   * Returns the list of blocks stored in this dir.
-   *
-   * @return a list of blocks
-   */
+  @Override
   public List<BlockMeta> getBlocks() {
     return new ArrayList<>(mBlockIdToBlockMap.values());
   }
 
-  /**
-   * Checks if a block is in this storage dir.
-   *
-   * @param blockId the block id
-   * @return true if the block is in this storage dir, false otherwise
-   */
+  @Override
   public boolean hasBlockMeta(long blockId) {
     return mBlockIdToBlockMap.containsKey(blockId);
   }
 
-  /**
-   * Checks if a temp block is in this storage dir.
-   *
-   * @param blockId the block id
-   * @return true if the block is in this storage dir, false otherwise
-   */
+  @Override
   public boolean hasTempBlockMeta(long blockId) {
     return mBlockIdToTempBlockMap.containsKey(blockId);
   }
 
-  /**
-   * Gets the {@link BlockMeta} from this storage dir by its block id.
-   *
-   * @param blockId the block id
-   * @return {@link BlockMeta} of the given block or null
-   * @throws BlockDoesNotExistException if no block is found
-   */
+  @Override
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
     if (blockMeta == null) {
@@ -279,23 +229,12 @@ public final class StorageDir {
     return blockMeta;
   }
 
-  /**
-   * Gets the {@link BlockMeta} from this storage dir by its block id.
-   *
-   * @param blockId the block id
-   * @return {@link TempBlockMeta} of the given block or null
-   */
+  @Override
   public TempBlockMeta getTempBlockMeta(long blockId) {
     return mBlockIdToTempBlockMap.get(blockId);
   }
 
-  /**
-   * Adds the metadata of a new block into this storage dir.
-   *
-   * @param blockMeta the metadata of the block
-   * @throws BlockAlreadyExistsException if blockId already exists
-   * @throws WorkerOutOfSpaceException when not enough space to hold block
-   */
+  @Override
   public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException,
       BlockAlreadyExistsException {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
@@ -314,13 +253,7 @@ public final class StorageDir {
     reserveSpace(blockSize, true);
   }
 
-  /**
-   * Adds the metadata of a new block into this storage dir.
-   *
-   * @param tempBlockMeta the metadata of a temp block to add
-   * @throws BlockAlreadyExistsException if blockId already exists
-   * @throws WorkerOutOfSpaceException when not enough space to hold block
-   */
+  @Override
   public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
       BlockAlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
@@ -347,12 +280,7 @@ public final class StorageDir {
     reserveSpace(blockSize, false);
   }
 
-  /**
-   * Removes a block from this storage dir.
-   *
-   * @param blockMeta the metadata of the block
-   * @throws BlockDoesNotExistException if no block is found
-   */
+  @Override
   public void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
@@ -363,12 +291,7 @@ public final class StorageDir {
     reclaimSpace(blockMeta.getBlockSize(), true);
   }
 
-  /**
-   * Removes a temp block from this storage dir.
-   *
-   * @param tempBlockMeta the metadata of the temp block to remove
-   * @throws BlockDoesNotExistException if no temp block is found
-   */
+  @Override
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     final long blockId = tempBlockMeta.getBlockId();
@@ -389,13 +312,7 @@ public final class StorageDir {
     reclaimSpace(tempBlockMeta.getBlockSize(), false);
   }
 
-  /**
-   * Changes the size of a temp block.
-   *
-   * @param tempBlockMeta the metadata of the temp block to resize
-   * @param newSize the new size after change in bytes
-   * @throws InvalidWorkerStateException when newSize is smaller than oldSize
-   */
+  @Override
   public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
       throws InvalidWorkerStateException {
     long oldSize = tempBlockMeta.getBlockSize();
@@ -407,13 +324,7 @@ public final class StorageDir {
     }
   }
 
-  /**
-   * Cleans up the temp block metadata for each block id passed in.
-   *
-   * @param sessionId the id of the client associated with the temporary blocks
-   * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
-   *        nonexistent blocks will be ignored
-   */
+  @Override
   public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     // The session's temporary blocks have already been removed.
@@ -443,13 +354,7 @@ public final class StorageDir {
     }
   }
 
-  /**
-   * Gets the temporary blocks associated with a session in this {@link StorageDir}, an empty list
-   * is returned if the session has no temporary blocks in this {@link StorageDir}.
-   *
-   * @param sessionId the id of the session
-   * @return A list of temporary blocks the session is associated with in this {@link StorageDir}
-   */
+  @Override
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
     Set<Long> sessionTempBlockIds = mSessionIdToTempBlockIdsMap.get(sessionId);
 
@@ -463,16 +368,12 @@ public final class StorageDir {
     return sessionTempBlocks;
   }
 
-  /**
-   * @return the block store location of this directory
-   */
+  @Override
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mDirIndex, mDirMedium);
   }
 
-  /**
-   * @return amount of reserved bytes for this dir
-   */
+  @Override
   public long getReservedBytes() {
     return mReservedBytes.get();
   }

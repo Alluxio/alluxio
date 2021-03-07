@@ -136,6 +136,31 @@ class WriteOperation : public Operation {
            struct fuse_file_info *fi);
 };
 
+class GetxattrOperation : public Operation {
+ public:
+  GetxattrOperation(JniFuseFileSystem *fs);
+  int call(const char *path, const char *name, char *value, size_t size);
+};
+
+class SetxattrOperation : public Operation {
+ public:
+  SetxattrOperation(JniFuseFileSystem *fs);
+  int call(const char *path, const char *name, const char *value,
+           size_t size, int flags);
+};
+
+class ListxattrOperation : public Operation {
+ public:
+  ListxattrOperation(JniFuseFileSystem *fs);
+  int call(const char *path, char *list, size_t size);
+};
+
+class RemovexattrOperation : public Operation {
+ public:
+  RemovexattrOperation(JniFuseFileSystem *fs);
+  int call(const char *path, const char *list);
+};
+
 }  // namespace jnifuse
 
 #endif  // FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_

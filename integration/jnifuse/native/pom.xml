@@ -19,6 +19,8 @@
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-native</artifactId>
+  <name>Alluxio Integration - JNIFUSE - Native</name>
+  <description>JNI-based FUSE Integration - Native code</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
@@ -52,6 +54,11 @@
                       <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile"/>
                     </exec>
                     <copy todir="${project.build.directory}/classes">
+                      <fileset dir="${project.build.directory}/native/">
+                        <include name="libjnifuse.*"/>
+                      </fileset>
+                    </copy>
+                    <copy todir="${project.basedir}/src/main/resources">
                       <fileset dir="${project.build.directory}/native/">
                         <include name="libjnifuse.*"/>
                       </fileset>

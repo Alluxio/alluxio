@@ -15,11 +15,11 @@ import alluxio.ClientContext;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -55,6 +55,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -154,6 +155,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param blockStore an Alluxio block store
    * @param ufsManager ufs manager
    */
+  @VisibleForTesting
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
@@ -185,11 +187,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public String getName() {
     return Constants.BLOCK_WORKER_NAME;
-  }
-
-  @Override
-  public BlockStore getBlockStore() {
-    return mBlockStore;
   }
 
   @Override
@@ -379,11 +376,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void freeSpace(long sessionId, long availableBytes, String tierAlias)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
-    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.freeSpace(sessionId, availableBytes, availableBytes, location);
+  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    return mBlockStore.getTempBlockMeta(sessionId, blockId);
   }
 
   @Override
@@ -425,12 +419,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    return mBlockStore.lockBlock(sessionId, blockId);
-  }
-
-  @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
+  public long lockBlock(long sessionId, long blockId) {
     return mBlockStore.lockBlockNoException(sessionId, blockId);
   }
 
@@ -515,11 +504,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void sessionHeartbeat(long sessionId) {
-    mSessions.sessionHeartbeat(sessionId);
-  }
-
-  @Override
   public void submitAsyncCacheRequest(AsyncCacheRequest request) {
     mAsyncCacheManager.submitRequest(request);
   }
@@ -597,15 +581,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     int retryInterval = Constants.SECOND_MS;
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
     while (retryPolicy.attempt()) {
-      long lockId;
-      if (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
-          .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
-          .getBlockInUfsTier())) {
-        lockId = lockBlockNoException(request.getSessionId(), request.getId());
-      } else {
-        lockId = lockBlock(request.getSessionId(), request.getId());
+      long lockId = lockBlock(request.getSessionId(), request.getId());
+      boolean checkUfs =
+          (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
+              .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
+              .getBlockInUfsTier()));
+      if (lockId == BlockWorker.INVALID_LOCK_ID && !checkUfs) {
+        throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, request.getId());
       }
-      if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+      if (lockId != BlockWorker.INVALID_LOCK_ID) {
         try {
           BlockReader reader =
               readBlockRemote(request.getSessionId(), request.getId(), lockId);

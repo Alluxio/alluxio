@@ -63,7 +63,7 @@ export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsSta
         timeSeriesMetrics.push({
           id: item.name,
           xAxisLabel: 'Time Stamp',
-          yAxisLabel: 'Percent (%)',
+          yAxisLabel: item.name.includes('%') ? 'Percent (%)' : 'Raw Throughput (Bytes/Minute)',
           data: transformToNivoFormat(item.dataPoints.slice(-20), 'timeStamp', 'value'),
         });
       });
