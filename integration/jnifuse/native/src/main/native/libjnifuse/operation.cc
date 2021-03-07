@@ -47,6 +47,30 @@ int GetattrOperation::call(const char *path, struct stat *stbuf) {
   return ret;
 }
 
+GetxattrOperation::GetxattrOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "getxattrCallback", signature);
+}
+
+int GetxattrOperation::call(const char *path, const char *name, char *value, size_t size) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jstring jsname = env->NewStringUTF(name);
+  jobject buffer = env->NewDirectByteBuffer((void *)value, size);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jsname, buffer);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(jsname);
+  env->DeleteLocalRef(buffer);
+
+  return ret;
+}
+
 OpenOperation::OpenOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = this->fs->getEnv();
@@ -189,6 +213,29 @@ int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
   return ret;
 }
 
+ListxattrOperation::ListxattrOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "listxattrCallback", signature);
+}
+
+int ListxattrOperation::call(const char *path, char *list, size_t size) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  int a = 2;
+  a++;
+  jobject buffer = env->NewDirectByteBuffer((void *)list, size * sizeof(char));
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(buffer);
+
+  return ret;
+}
+
 ChmodOperation::ChmodOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = this->fs->getEnv();
@@ -209,7 +256,25 @@ int ChmodOperation::call(const char *path, mode_t mode) {
   return ret;
 }
 
-// TODO: ChownOperation
+ChownOperation::ChownOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;JJ)I";
+  this->methodID = env->GetMethodID(this->clazz, "chownCallback", signature);
+}
+
+int ChownOperation::call(const char *path, uid_t uid, gid_t gid) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, uid, gid);
+
+  env->DeleteLocalRef(jspath);
+
+  return ret;
+}
 
 CreateOperation::CreateOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
@@ -321,6 +386,73 @@ int RenameOperation::call(const char *oldPath, const char *newPath) {
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jspathNew);
+
+  return ret;
+}
+
+RemovexattrOperation::RemovexattrOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
+  this->methodID = env->GetMethodID(this->clazz, "removexattrCallback", signature);
+}
+
+int RemovexattrOperation::call(const char *path, const char *list) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jstring jslist = env->NewStringUTF(list);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jslist);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(jslist);
+
+  return ret;
+}
+
+SetxattrOperation::SetxattrOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;Ljava/nio/ByteBuffer;JI)I";
+  this->methodID = env->GetMethodID(this->clazz, "setxattrCallback", signature);
+}
+
+int SetxattrOperation::call(const char *path, const char *name, const char *value,
+                            size_t size, int flags) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jstring jsname = env->NewStringUTF(name);
+  jobject buffer = env->NewDirectByteBuffer((void *)value, size);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size, flags);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(jsname);
+  env->DeleteLocalRef(buffer);
+
+  return ret;
+}
+
+TruncateOperation::TruncateOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;J)I";
+  this->methodID = env->GetMethodID(this->clazz, "truncateCallback", signature);
+}
+
+int TruncateOperation::call(const char *path, off_t size) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, size);
+
+  env->DeleteLocalRef(jspath);
 
   return ret;
 }

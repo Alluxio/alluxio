@@ -304,14 +304,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     Preconditions.checkArgument(delimiter != null,
         "Illegal separator for Alluxio properties as list");
     String rawValue = get(key);
-
     return ConfigurationUtils.parseAsList(rawValue, delimiter);
   }
 
   @Override
   public <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    String rawValue = get(key);
-
+    String rawValue = get(key).toUpperCase();
     try {
       return Enum.valueOf(enumType, rawValue);
     } catch (IllegalArgumentException e) {

@@ -23,8 +23,9 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
-import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
+import alluxio.worker.block.meta.DefaultStorageTier;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -75,8 +76,8 @@ public final class BlockMetadataManager {
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
-            mStorageTierAssoc.size() > 1);
+        StorageTier tier = DefaultStorageTier
+            .newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal), mStorageTierAssoc.size() > 1);
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
@@ -154,7 +155,7 @@ public final class BlockMetadataManager {
       throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
           blockMeta.getBlockLocation().tierAlias()));
     }
-    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
@@ -178,10 +179,10 @@ public final class BlockMetadataManager {
     blockDir2.removeBlockMeta(blockMeta2);
 
     // Add new block metas with new block id and sizes.
-    blockDir1
-        .addBlockMeta(new BlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
-    blockDir2
-        .addBlockMeta(new BlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
+    blockDir1.addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(),
+        blockMeta2.getBlockSize(), blockDir1));
+    blockDir2.addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(),
+        blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**
@@ -265,7 +266,7 @@ public final class BlockMetadataManager {
     if (dir == null) {
       return null;
     }
-    return AbstractBlockMeta.commitPath(dir, blockId);
+    return DefaultBlockMeta.commitPath(dir, blockId);
   }
 
   /**
@@ -274,7 +275,7 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return BlockStoreMeta.Factory.create(this);
+    return new DefaultBlockStoreMeta(this, false);
   }
 
   /**
@@ -283,7 +284,7 @@ public final class BlockMetadataManager {
    * @return the full metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return BlockStoreMeta.Factory.createFull(this);
+    return new DefaultBlockStoreMeta(this, true);
   }
 
   /**
@@ -441,7 +442,7 @@ public final class BlockMetadataManager {
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta =
-        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
+        new DefaultBlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
     dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
@@ -495,7 +496,7 @@ public final class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    BlockMeta newBlockMeta = new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);
+    BlockMeta newBlockMeta = new DefaultBlockMeta(blockMeta.getBlockId(), blockSize, newDir);
     newDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }

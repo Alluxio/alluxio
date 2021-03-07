@@ -25,19 +25,20 @@ import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 /**
  * A block worker in the Alluxio system.
  */
 public interface BlockWorker extends Worker, SessionCleanable {
-  /**
-   * @return the worker data service bind host
-   */
-  BlockStore getBlockStore();
+  /** Invalid lock ID. */
+  long INVALID_LOCK_ID = -1;
 
   /**
    * @return the worker id
@@ -68,9 +69,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
-   * after {@link BlockStore#commitBlock(long, long, boolean)}. The block will not be accessible
-   * until {@link BlockMasterClient#commitBlock(long, long, String, String, long, long)} succeeds.
+   * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
+   * persisted or accessible before commitBlock succeeds.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
@@ -132,24 +132,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * @deprecated to be removed at Alluxio 3.0
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
    *
-   * Frees space to make a specific amount of bytes available in a best-effort way in the tier. The
-   * implementation should try to free at least 1 byte from the worker, otherwise a
-   * {@link WorkerOutOfSpaceException} should be thrown if no space is available.
-   *
-   * @param sessionId the session id
-   * @param availableBytes the amount of free space in bytes
-   * @param tierAlias the alias of the tier to free space
-   * @throws WorkerOutOfSpaceException if there is not enough space
-   * @throws BlockDoesNotExistException if blocks can not be found
-   * @throws BlockAlreadyExistsException if blocks to move already exists in destination location
-   * @throws InvalidWorkerStateException if blocks to move/evict is uncommitted
+   * @return metadata of the block or null if the temp block does not exist
    */
-  @Deprecated()
-  void freeSpace(long sessionId, long availableBytes, String tierAlias)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException;
+  @Nullable
+  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**
    * Opens a {@link BlockWriter} for an existing temporary block for non short-circuit writes or
@@ -228,25 +217,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean hasBlockMeta(long blockId);
 
   /**
-   * Obtains a read lock the block.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to be locked
-   * @return the lock id that uniquely identifies the lock obtained
-   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
-   */
-  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
-
-  /**
-   * Obtains a read lock the block without throwing an exception. If the lock fails, return
-   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   * Obtains a read lock on a block. If lock is not acquired successfully, return
+   * {@link #INVALID_LOCK_ID}.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be locked
    * @return the lock id that uniquely identifies the lock obtained or
-   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   *         {@link #INVALID_LOCK_ID} if it failed to lock
    */
-  long lockBlockNoException(long sessionId, long blockId);
+  long lockBlock(long sessionId, long blockId);
 
   /**
    * Moves a block from its current location to a target location, currently only tier level moves
@@ -373,13 +352,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean unlockBlock(long sessionId, long blockId);
 
   /**
-   * Handles the heartbeat from a client.
-   *
-   * @param sessionId the id of the client
-   */
-  void sessionHeartbeat(long sessionId);
-
-  /**
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
@@ -387,7 +359,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void submitAsyncCacheRequest(AsyncCacheRequest request);
 
   /**
-   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
+   * Sets the pinlist for the underlying block store.
    *
    * @param pinnedInodes a set of pinned inodes
    */
@@ -411,7 +383,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param options the options
    * @return whether the UFS block is successfully opened
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
-   *         {@link UnderFileSystemBlockStore}
+   *         UFS block store
    */
   boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException;
@@ -425,7 +397,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
    *         because the block exists in the Alluxio block store
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   *         {@link UnderFileSystemBlockStore}
+   *         UFS block store
    * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   void closeUfsBlock(long sessionId, long blockId)

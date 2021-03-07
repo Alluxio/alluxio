@@ -19,6 +19,9 @@
   </parent>
   <packaging>pom</packaging>
   <artifactId>alluxio-integration-jnifuse</artifactId>
+  <name>Alluxio Integration - JNIFUSE</name>
+  <description>JNI-based FUSE Integration</description>
+
   <modules>
     <module>fs</module>
     <module>native</module>
