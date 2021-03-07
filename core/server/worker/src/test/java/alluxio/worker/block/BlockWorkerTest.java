@@ -531,7 +531,7 @@ public class BlockWorkerTest {
     doReturn(blockReader).when(mBlockStore).getBlockReader(anyLong(), anyLong(), anyLong());
 
     Assert.assertEquals(blockReader, mBlockWorker.getBlockReader(request));
-    verify(mBlockStore).lockBlock(sessionId, blockId);
+    verify(mBlockStore).lockBlockNoException(sessionId, blockId);
     verify(mBlockStore).accessBlock(sessionId, blockId);
 
     mBlockWorker.cleanBlockReader(blockReader, request);
