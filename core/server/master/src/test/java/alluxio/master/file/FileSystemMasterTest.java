@@ -2284,7 +2284,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
     // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.NOthing).build(), heartbeat);
+    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
