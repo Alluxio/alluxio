@@ -35,23 +35,9 @@ import javax.annotation.Nullable;
 /**
  * A block worker in the Alluxio system.
  */
-<<<<<<< HEAD:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-public interface BlockWorker extends Worker, WorkerInternalBlockWorker, SessionCleanable {
-  /**
-   * @return the worker data service bind host
-   */
-  BlockStore getBlockStore();
-||||||| merged common ancestors:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-public interface BlockWorker extends Worker, SessionCleanable {
-  /**
-   * @return the worker data service bind host
-   */
-  BlockStore getBlockStore();
-=======
 public interface BlockWorker extends Worker, SessionCleanable {
   /** Invalid lock ID. */
   long INVALID_LOCK_ID = -1;
->>>>>>> 218c2834b5612f9df8850d2b6688004bfd92e383:core/common/src/main/java/alluxio/worker/block/BlockWorker.java
 
   /**
    * @return the worker id
@@ -365,32 +351,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean unlockBlock(long sessionId, long blockId);
 
   /**
-<<<<<<< HEAD:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-   * Handles the heartbeat from a client.
-   *
-   * @param sessionId the id of the client
-   */
-  void sessionHeartbeat(long sessionId);
-
-  /**
-   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
-||||||| merged common ancestors:core/server/worker/src/main/java/alluxio/worker/block/BlockWorker.java
-   * Handles the heartbeat from a client.
-   *
-   * @param sessionId the id of the client
-   */
-  void sessionHeartbeat(long sessionId);
-
-  /**
-   * Submits the async cache request to async cache manager to execute.
-   *
-   * @param request the async cache request
-   */
-  void submitAsyncCacheRequest(AsyncCacheRequest request);
-
-  /**
-   * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
-=======
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
@@ -399,7 +359,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Sets the pinlist for the underlying block store.
->>>>>>> 218c2834b5612f9df8850d2b6688004bfd92e383:core/common/src/main/java/alluxio/worker/block/BlockWorker.java
    *
    * @param pinnedInodes a set of pinned inodes
    */
