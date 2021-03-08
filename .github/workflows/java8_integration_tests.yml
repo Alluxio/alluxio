@@ -45,11 +45,11 @@ jobs:
         with:
           node-version: '10.11.0'
 
-      #- name: Cache local Maven repository
-      #  uses: actions/cache@v2
-      #  with:
-      #    path: ~/.m2/repository
-      #    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Run tests
         id: test0
