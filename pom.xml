@@ -89,18 +89,6 @@
       </snapshots>
     </repository>
     <repository>
-      <!-- for Pivotal's distribution -->
-      <id>spring-releases</id>
-      <name>Spring Release Repository</name>
-      <url>https://repo.spring.io/libs-release</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
       <id>HDPReleases</id>
       <name>HDP Releases</name>
       <url>https://repo.hortonworks.com/content/repositories/releases/</url>
