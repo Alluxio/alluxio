@@ -831,7 +831,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("getFileInfo", path, null, null)) {
 
-      if (syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
+      if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           true).equals(DO_NOT_NEED_SYNC)) {
@@ -984,10 +984,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
-      if (syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
+      if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
           auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
-          false)) {
+          false).equals(DO_NOT_NEED_SYNC)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
