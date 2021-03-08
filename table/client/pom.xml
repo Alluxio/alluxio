@@ -39,12 +39,8 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-core</artifactId>
     </dependency>
+
     <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-base</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
