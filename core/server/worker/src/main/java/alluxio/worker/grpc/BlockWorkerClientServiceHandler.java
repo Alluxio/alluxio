@@ -58,8 +58,8 @@ import java.util.Map;
  * Server side implementation of the gRPC BlockWorker interface.
  */
 @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerImpl.class);
+public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerImplBase {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
 
   private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
@@ -76,7 +76,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
    * @param fsContext context used to read blocks
    * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext,
+  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess, FileSystemContext fsContext,
       boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mRequestManager = new AsyncCacheRequestManager(

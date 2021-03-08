@@ -108,7 +108,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Session metadata, used to keep track of session heartbeats. */
   private Sessions mSessions;
   /** Block Store manager. */
-  private BlockStore mBlockStore;
+  private final BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
 
   /** The under file system block store. */
@@ -118,7 +118,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * The worker ID for this worker. This is initialized in {@link #start(WorkerNetAddress)} and may
    * be updated by the block sync thread if the master requests re-registration.
    */
-  private AtomicReference<Long> mWorkerId;
+  private final AtomicReference<Long> mWorkerId;
 
   private final UfsManager mUfsManager;
 

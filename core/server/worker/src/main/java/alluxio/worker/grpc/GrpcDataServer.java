@@ -91,8 +91,8 @@ public final class GrpcDataServer implements DataServer {
       if (bindAddress instanceof DomainSocketAddress) {
         mDomainSocketAddress = (DomainSocketAddress) bindAddress;
       }
-      BlockWorkerImpl blockWorkerService =
-          new BlockWorkerImpl(workerProcess, mFsContext, mDomainSocketAddress != null);
+      BlockWorkerClientServiceHandler blockWorkerService =
+          new BlockWorkerClientServiceHandler(workerProcess, mFsContext, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
