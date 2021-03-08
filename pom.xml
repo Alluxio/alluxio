@@ -89,6 +89,34 @@
       </snapshots>
     </repository>
     <repository>
+      <!-- for Pivotal's distribution -->
+      <id>spring-releases</id>
+      <name>Spring Release Repository</name>
+      <url>https://repo.spring.io/libs-release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>HDPReleases</id>
+      <name>HDP Releases</name>
+      <url>https://repo.hortonworks.com/content/repositories/releases/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+    <repository>
       <id>bintray-repo</id>
       <name>bintray</name>
       <url>https://jcenter.bintray.com</url>
