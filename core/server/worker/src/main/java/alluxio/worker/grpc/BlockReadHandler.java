@@ -13,8 +13,10 @@ package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.ReadResponse;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -77,7 +79,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected void completeRequest(BlockReadRequestContext context) throws Exception {
       try {
-        mWorker.cleanBlockReader(context.getBlockReader(), context.getRequest());
+        mWorker.closeBlockReader(context.getBlockReader(), context.getRequest());
       } finally {
         context.setBlockReader(null);
       }
@@ -138,7 +140,19 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         return;
       }
       BlockReadRequest request = context.getRequest();
-      BlockReader reader = mWorker.getBlockReader(request);
+      // TODO(calvin): Update the locking logic so this can be done better
+      if (request.isPromote()) {
+        try {
+          mWorker.moveBlock(request.getSessionId(), request.getId(),
+              new WorkerStorageTierAssoc().getAlias(0));
+        } catch (BlockDoesNotExistException e) {
+          LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
+              e.getMessage());
+        } catch (Exception e) {
+          LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
+        }
+      }
+      BlockReader reader = mWorker.newBlockReader(request);
       context.setBlockReader(reader);
       if (reader instanceof UnderFileSystemBlockReader) {
         AlluxioURI ufsMountPointUri =

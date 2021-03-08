@@ -129,7 +129,7 @@ public final class BlockWorkerDataReader implements DataReader {
           .setOffset(offset).setLength(len).build();
       mBlockReadRequest = new BlockReadRequest(mReadRequestPartial);
       try {
-        mReader = mBlockWorker.getBlockReader(mBlockReadRequest);
+        mReader = mBlockWorker.newBlockReader(mBlockReadRequest);
         return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
@@ -147,8 +147,7 @@ public final class BlockWorkerDataReader implements DataReader {
         return;
       }
       try {
-        mBlockWorker.cleanBlockReader(mReader,
-            mBlockReadRequest);
+        mBlockWorker.closeBlockReader(mReader, mBlockReadRequest);
       } catch (Exception e) {
         throw new IOException(e);
       }

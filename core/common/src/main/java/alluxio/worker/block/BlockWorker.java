@@ -278,8 +278,25 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
    *         LockRecord of lockId
    */
-  String readBlock(long sessionId, long blockId, long lockId)
+  String getLocalBlockPath(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException;
+
+  /**
+   * Gets the block reader to read from Alluxio block or UFS block.
+   * This operation must be paired with {@link #closeBlockReader}.
+   *
+   * @param request the block read request
+   * @return a block reader to read data from
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store after opening the ufs block reader
+   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws WorkerOutOfSpaceException if there is no enough space
+   * @throws IOException if it fails to get block reader
+   */
+  BlockReader newBlockReader(BlockReadRequest request) throws
+      BlockAlreadyExistsException, BlockDoesNotExistException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Gets the block reader for the block for non short-circuit reads.
@@ -292,7 +309,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
    *         LockRecord of lockId
    */
-  BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
+  BlockReader newLocalBlockReader(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
@@ -305,7 +322,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean positionShort)
+  BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
       throws BlockDoesNotExistException, IOException;
 
   /**
@@ -352,25 +369,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean unlockBlock(long sessionId, long blockId);
 
   /**
-   * Gets the block reader to read from Alluxio block or UFS block.
-   * This operation must be paired with {@link #cleanBlockReader(BlockReader, BlockReadRequest)}.
-   *
-   * @param request the block read request
-   * @return a block reader to read data from
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store after opening the ufs block reader
-   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
-   * @throws WorkerOutOfSpaceException if there is no enough space
-   * @throws IOException if it fails to get block reader
-   */
-  BlockReader getBlockReader(BlockReadRequest request) throws
-      BlockAlreadyExistsException, BlockDoesNotExistException,
-      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
-
-  /**
    * Cleans data reader and related blocks after using the block reader obtained
-   * from {@link #getBlockReader(BlockReadRequest)}.
+   * from {@link #newBlockReader}.
    *
    * @param reader the to be cleaned block reader
    * @param request the block read request which used to get block reader
@@ -379,7 +379,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws WorkerOutOfSpaceException if there is not enough space
    * @throws IOException if it fails to get block reader
    */
-  void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+  void closeBlockReader(BlockReader reader, BlockReadRequest request)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**

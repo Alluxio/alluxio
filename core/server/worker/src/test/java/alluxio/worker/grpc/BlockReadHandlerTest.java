@@ -50,9 +50,9 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     // TODO(lu) Change DefaultBlockWorker to not final and not use PowerMockRunner
     // Use PowerMockito to mock final class and able to test the method contents
     mBlockWorker = PowerMockito.mock(DefaultBlockWorker.class);
-    doCallRealMethod().when(mBlockWorker).getBlockReader(any(BlockReadRequest.class));
+    doCallRealMethod().when(mBlockWorker).newBlockReader(any(BlockReadRequest.class));
     doCallRealMethod().when(mBlockWorker)
-        .cleanBlockReader(any(BlockReader.class), any(BlockReadRequest.class));
+        .closeBlockReader(any(BlockReader.class), any(BlockReadRequest.class));
 
     doNothing().when(mBlockWorker).accessBlock(anyLong(), anyLong());
     mResponseObserver = Mockito.mock(ServerCallStreamObserver.class);
@@ -93,7 +93,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
   @Override
   protected void mockReader(long start) throws Exception {
     mBlockReader = new LocalFileBlockReader(mFile);
-    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
+    when(mBlockWorker.newBlockReader(any(BlockReadRequest.class)))
         .thenReturn(mBlockReader);
   }
 

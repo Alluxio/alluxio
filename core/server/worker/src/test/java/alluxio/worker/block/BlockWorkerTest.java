@@ -424,7 +424,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#readBlock(long, long, long)} method.
+   * Tests the {@link BlockWorker#getLocalBlockPath(long, long, long)} method.
    */
   @Test
   public void readBlock() throws Exception {
@@ -437,14 +437,14 @@ public class BlockWorkerTest {
     BlockMeta meta = new DefaultBlockMeta(blockId, blockSize, storageDir);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(meta);
 
-    mBlockWorker.readBlock(sessionId, blockId, lockId);
+    mBlockWorker.getLocalBlockPath(sessionId, blockId, lockId);
     verify(mBlockStore).getBlockMeta(sessionId, blockId, lockId);
     assertEquals(PathUtils.concatPath("/tmp", blockId),
-        mBlockWorker.readBlock(sessionId, blockId, lockId));
+        mBlockWorker.getLocalBlockPath(sessionId, blockId, lockId));
   }
 
   /**
-   * Tests the {@link BlockWorker#readBlockRemote(long, long, long)} method.
+   * Tests the {@link BlockWorker#newLocalBlockReader(long, long, long)} method.
    */
   @Test
   public void readBlockRemote() throws Exception {
@@ -452,7 +452,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
 
-    mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
+    mBlockWorker.newLocalBlockReader(sessionId, blockId, lockId);
     verify(mBlockStore).getBlockReader(sessionId, blockId, lockId);
   }
 
@@ -530,11 +530,11 @@ public class BlockWorkerTest {
     BlockReader blockReader = prepareBlockReader();
     doReturn(blockReader).when(mBlockStore).getBlockReader(anyLong(), anyLong(), anyLong());
 
-    Assert.assertEquals(blockReader, mBlockWorker.getBlockReader(request));
+    Assert.assertEquals(blockReader, mBlockWorker.newBlockReader(request));
     verify(mBlockStore).lockBlockNoException(sessionId, blockId);
     verify(mBlockStore).accessBlock(sessionId, blockId);
 
-    mBlockWorker.cleanBlockReader(blockReader, request);
+    mBlockWorker.closeBlockReader(blockReader, request);
     verify(mBlockStore).unlockBlock(sessionId, blockId);
   }
 

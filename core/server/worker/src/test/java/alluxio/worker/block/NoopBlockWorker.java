@@ -146,19 +146,19 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public String readBlock(long sessionId, long blockId, long lockId)
+  public String getLocalBlockPath(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
     return null;
   }
 
   @Override
-  public BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
+  public BlockReader newLocalBlockReader(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     return null;
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean positionShort)
+  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
       throws BlockDoesNotExistException, IOException {
     return null;
   }
@@ -213,14 +213,14 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader getBlockReader(BlockReadRequest request) throws IOException,
+  public BlockReader newBlockReader(BlockReadRequest request) throws IOException,
       BlockDoesNotExistException, InvalidWorkerStateException,
       BlockAlreadyExistsException, WorkerOutOfSpaceException {
     return null;
   }
 
   @Override
-  public void cleanBlockReader(BlockReader reader, BlockReadRequest request)
+  public void closeBlockReader(BlockReader reader, BlockReadRequest request)
       throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
     // noop
   }
