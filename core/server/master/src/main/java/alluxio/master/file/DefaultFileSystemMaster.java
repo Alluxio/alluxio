@@ -11,6 +11,9 @@
 
 package alluxio.master.file;
 
+import static alluxio.master.file.InodeSyncStream.SyncStatus.DO_NOT_NEED_SYNC;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.SYNC_FAILED;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.SYNC_SUCCESS;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
@@ -831,7 +834,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       if (syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
-          true)) {
+          true).equals(DO_NOT_NEED_SYNC)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -3405,21 +3408,24 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param isGetFileInfo            true if syncing for a getFileInfo operation
    * @return true if at least one path was synced
    */
-  private boolean syncMetadata(RpcContext rpcContext, AlluxioURI path,
+  private InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       @Nullable PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
-
     if (mUfsAbsentPathCache.isAbsent(path) || !syncScheme.shouldSync()) {
-      return false;
+      return DO_NOT_NEED_SYNC;
     }
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
         false, false);
-    return sync.sync();
+    if (sync.sync()) {
+      return SYNC_SUCCESS;
+    } else {
+      return SYNC_FAILED;
+    }
   }
 
   @FunctionalInterface

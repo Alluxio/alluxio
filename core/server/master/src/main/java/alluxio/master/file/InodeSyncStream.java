@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -121,6 +122,14 @@ import javax.annotation.Nullable;
  *
  */
 public class InodeSyncStream {
+  /**
+   * Return status of a sync result.
+   */
+  public enum SyncStatus {
+    SYNC_SUCCESS,
+    SYNC_FAILED,
+    DO_NOT_NEED_SYNC
+  }
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
 
   private static final FileSystemMasterCommonPOptions NO_TTL_OPTION =
@@ -309,6 +318,7 @@ public class InodeSyncStream {
         | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);
+      failedSyncPathCount++;
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
       mStatusCache.remove(mRootScheme.getPath());
@@ -504,18 +514,29 @@ public class InodeSyncStream {
       }
       persistingLock.get().close();
 
-      UfsStatus cachedStatus = mStatusCache.getStatus(inodePath.getUri());
+      UfsStatus cachedStatus = null;
+      boolean fileNotFound = false;
+      try {
+        cachedStatus = mStatusCache.getStatus(inodePath.getUri());
+      } catch (FileNotFoundException e) {
+        fileNotFound = true;
+      }
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         String ufsFingerprint;
         Fingerprint ufsFpParsed;
-        if (cachedStatus == null) {
+        // When the status is not cached and it was not due to file not found, we retry
+        if (fileNotFound) {
+          ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+          ufsFpParsed = Fingerprint.parse(ufsFingerprint);
+        } else if (cachedStatus == null) {
           // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
           ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else {
+          // When the status is cached
           Pair<AccessControlList, DefaultAccessControlList> aclPair =
               ufs.getAclPair(ufsUri.toString());
 
@@ -647,7 +668,6 @@ public class InodeSyncStream {
   private void loadMetadataForPath(LockedInodePath inodePath)
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
-
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()

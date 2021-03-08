@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,6 +50,7 @@ public class UfsStatusCache {
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final ConcurrentHashMap<AlluxioURI, Future<Collection<UfsStatus>>> mActivePrefetchJobs;
   private final ConcurrentHashMap<AlluxioURI, Collection<UfsStatus>> mChildren;
+  private final ConcurrentHashSet<AlluxioURI> mAbsentPaths;
   private final ExecutorService mPrefetchExecutor;
 
   /**
@@ -62,6 +64,7 @@ public class UfsStatusCache {
     mStatuses = new ConcurrentHashMap<>();
     mChildren = new ConcurrentHashMap<>();
     mActivePrefetchJobs = new ConcurrentHashMap<>();
+    mAbsentPaths = new ConcurrentHashSet<>();
     mPrefetchExecutor = prefetchExecutor;
   }
 
@@ -84,6 +87,7 @@ public class UfsStatusCache {
           String.format("path name %s does not match ufs status name %s",
               path.getName(), status.getName()));
     }
+    mAbsentPaths.remove(path);
     return mStatuses.put(path, status);
   }
 
@@ -123,6 +127,12 @@ public class UfsStatusCache {
     return removed;
   }
 
+  private void checkAbsentCache(AlluxioURI path) throws FileNotFoundException {
+    if (mAbsentPaths.contains(path)) {
+      throw new FileNotFoundException("UFS Status not found for path " + path.toString());
+    }
+  }
+
   /**
    * Get the UfsStatus from a given AlluxioURI.
    *
@@ -130,7 +140,8 @@ public class UfsStatusCache {
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
   @Nullable
-  public UfsStatus getStatus(AlluxioURI path) {
+  public UfsStatus getStatus(AlluxioURI path) throws FileNotFoundException {
+    checkAbsentCache(path);
     return mStatuses.get(path);
   }
 
@@ -141,10 +152,10 @@ public class UfsStatusCache {
    * @param mountTable the Alluxio mount table
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
-  @Nullable
+  @Nonnull
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
-    UfsStatus status = mStatuses.get(path);
+      throws InvalidPathException, IOException {
+    UfsStatus status = getStatus(path);
     if (status != null) {
       return status;
     }
@@ -154,17 +165,20 @@ public class UfsStatusCache {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
       if (ufsStatus == null) {
-        return null;
+        mAbsentPaths.add(path);
+        throw new FileNotFoundException("UFS returned null status for " + path.toString());
       }
       ufsStatus.setName(path.getName());
       addStatus(path, ufsStatus);
       return ufsStatus;
     } catch (FileNotFoundException e) {
-      // ignore
+      // If the ufs can not find the file, we explicitly mark it absent so we do not recheck it
+      mAbsentPaths.add(path);
+      throw e;
     } catch (IllegalArgumentException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
+      throw e;
     }
-    return null;
   }
 
   /**
@@ -210,7 +224,12 @@ public class UfsStatusCache {
     }
 
     if (useFallback) {
-      return getChildrenIfAbsent(path, mountTable);
+      try {
+        return getChildrenIfAbsent(path, mountTable);
+      } catch (FileNotFoundException e) {
+        LOG.debug("Directory not found in the UFS " + path.toString());
+        return null;
+      }
     }
     return null;
   }
@@ -246,7 +265,7 @@ public class UfsStatusCache {
    */
   @Nullable
   Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
+      throws InvalidPathException, FileNotFoundException {
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
@@ -261,6 +280,9 @@ public class UfsStatusCache {
       }
       children = Arrays.asList(statuses);
       addChildren(path, children);
+    } catch (FileNotFoundException e) {
+      mAbsentPaths.add(path);
+      throw e;
     } catch (IllegalArgumentException | IOException e) {
       LOG.debug("Failed to add status to cache {}", path, e);
     }
