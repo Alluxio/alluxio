@@ -86,7 +86,7 @@ public abstract class StorageDirView {
    * @return a new {@link TempBlockMeta} under the underlying directory
    */
   public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
-    return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
+    return new DefaultTempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
   }
 
   /**
