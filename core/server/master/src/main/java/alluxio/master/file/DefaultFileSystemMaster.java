@@ -3415,7 +3415,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       @Nullable PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
-    if (mUfsAbsentPathCache.isAbsent(path) || !syncScheme.shouldSync()) {
+    if (!syncScheme.shouldSync()) {
       return DO_NOT_NEED_SYNC;
     }
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
