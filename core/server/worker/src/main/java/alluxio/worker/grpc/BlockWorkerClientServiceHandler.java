@@ -60,13 +60,13 @@ import java.util.Map;
 @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
-
   private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
-  private WorkerProcess mWorkerProcess;
+  private final WorkerProcess mWorkerProcess;
+  private final BlockWorker mBlockWorker;
   private final AsyncCacheRequestManager mRequestManager;
-  private ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
-  private WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
+  private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
+  private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
 
   /**
@@ -79,9 +79,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public BlockWorkerClientServiceHandler(WorkerProcess workerProcess, FileSystemContext fsContext,
       boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
+    mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
     mRequestManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
-        fsContext);
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mBlockWorker, fsContext);
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -110,7 +110,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
+        mBlockWorker, callStreamObserver,
         getAuthenticatedUserInfo(), mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
@@ -135,7 +135,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
-        mWorkerProcess.getWorker(BlockWorker.class), responseObserver, getAuthenticatedUserInfo());
+        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
     return handler;
   }
 
@@ -143,7 +143,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
-        mWorkerProcess.getWorker(BlockWorker.class), responseObserver, getAuthenticatedUserInfo());
+        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
     serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
@@ -153,7 +153,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<AsyncCacheResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mRequestManager.submitRequest(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
@@ -163,8 +163,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RemoveBlockResponse>) () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
   }
@@ -173,7 +173,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void moveBlock(MoveBlockRequest request,
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<MoveBlockResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
           request.getBlockId(), request.getMediumType());
       return MoveBlockResponse.getDefaultInstance();
@@ -183,8 +183,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void clearMetrics(ClearMetricsRequest request,
       StreamObserver<ClearMetricsResponse> responseObserver) {
-    long sessionId = IdUtils.createSessionId();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ClearMetricsResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
       return ClearMetricsResponse.getDefaultInstance();
     }, "clearMetrics", "request=%s", responseObserver, request);

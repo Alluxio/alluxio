@@ -172,9 +172,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   }
 
   /**
-   * Handle any exception which should abort the client's read request.
+   * Handles any exception which should abort the client's read request.
    *
-   * @param status the exception thrown
    * @param status the type of {@link Status} exception which should be returned to the user
    */
   private void handleStreamEndingException(Status status) {
