@@ -130,6 +130,7 @@ public class InodeSyncStream {
     SYNC_FAILED,
     DO_NOT_NEED_SYNC
   }
+
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
 
   private static final FileSystemMasterCommonPOptions NO_TTL_OPTION =

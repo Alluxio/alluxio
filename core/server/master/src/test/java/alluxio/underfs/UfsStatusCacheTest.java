@@ -117,7 +117,7 @@ public class UfsStatusCacheTest {
   }
 
   @Test
-  public void testAddRemove() throws Exception{
+  public void testAddRemove() throws Exception {
     AlluxioURI path = new AlluxioURI("/abc/123");
     UfsStatus stat = Mockito.mock(UfsStatus.class);
     when(stat.getName()).thenReturn("123");
