@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
@@ -52,6 +53,7 @@ import org.powermock.reflect.Whitebox;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -59,12 +61,10 @@ import java.util.List;
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
 
-  private static final long LONG_SLEEP_MS = Constants.SECOND_MS * 2;
-
   private FileSystem mFileSystem;
 
   @Rule
-  public TemporaryFolder mTempFoler = new TemporaryFolder();
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   private String mLocalUfsPath;
 
@@ -82,11 +82,12 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
           new SleepingUnderFileSystemOptions()
               .setGetStatusMs(SLEEP_MS)
               .setExistsMs(SLEEP_MS)
-              .setListStatusWithOptionsMs(LONG_SLEEP_MS)));
+              .setListStatusMs(SLEEP_MS)
+              .setListStatusWithOptionsMs(SLEEP_MS)));
 
   @Before
   public void before() throws Exception {
-    mLocalUfsPath = mTempFoler.getRoot().getAbsolutePath();
+    mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
     mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
@@ -101,41 +102,52 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     ServerConfiguration.reset();
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_SYNC_INTERVAL, "0"
+      })
+  @Test
+  public void syncOverrideLoadMetadata() throws Exception {
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+  }
+
   @Test
   public void loadMetadataAlways() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, true);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
   }
 
   @Test
   public void loadMetadataNever() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/file", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE3", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/file", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE3", options, false, 0);
   }
 
   @Test
   public void loadMetadataOnce() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, true);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1/file1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir2", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1/file1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir2", options, false, 0);
   }
 
   @Test
@@ -143,21 +155,21 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     // dirB does not exist yet
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
 
     // create dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
     // 'ONCE' still should not load the metadata
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
 
     // load metadata for dirB with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), true,
-        true);
+        3);
 
     // 'ONCE' should now load the metadata
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
   }
 
   @Test
@@ -167,22 +179,22 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     // create dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
 
     // delete dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").delete());
 
     // 'ONCE' should not be affected if UFS is changed
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
 
     // force load metadata with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), false,
-        true);
+        1);
 
     // 'ONCE' should still not load metadata, since the ancestor is absent
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -192,8 +204,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadAlwaysConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -203,8 +215,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadOnceConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -214,8 +226,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadNeverConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
   }
 
   @Test
@@ -300,12 +312,13 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
    * @param path the path to get the status for
    * @param options the options for the get status call
    * @param expectExists if true, the path should exist
-   * @param expectLoadFromUfs if true, the get status call will load from ufs
+   * @param expectedAccesses the number of expected UFS Accesses
    */
   private void checkGetStatus(final String path, GetStatusPOptions options, boolean expectExists,
-      boolean expectLoadFromUfs)
+      int expectedAccesses)
       throws Exception {
     long startMs = CommonUtils.getCurrentMs();
+    boolean expectLoadFromUfs = (expectedAccesses >= 1);
     try {
       mFileSystem.getStatus(new AlluxioURI(path), options);
       if (!expectExists) {
@@ -317,33 +330,38 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       }
     }
     long durationMs = CommonUtils.getCurrentMs() - startMs;
-    if (expectLoadFromUfs) {
-      assertTrue("Expected to be slow (ufs load). actual duration (ms): " + durationMs,
-          durationMs >= SLEEP_MS);
-    } else {
-      assertTrue("Expected to be fast (no ufs load). actual duration (ms): " + durationMs,
-          durationMs < SLEEP_MS / 2);
-    }
-
+    assertTrue("Expected to be take between " + expectedAccesses * SLEEP_MS
+            + " and " + (expectedAccesses + 0.5) * SLEEP_MS
+            + ". actual duration (ms): " + durationMs,
+        durationMs >= expectedAccesses * SLEEP_MS
+            && durationMs < (expectedAccesses + 0.5) * SLEEP_MS);
     if (!expectExists && expectLoadFromUfs) {
       // The metadata is loaded from Ufs, but the path does not exist, so it will be added to the
       // absent cache. Wait until the path shows up in the absent cache.
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
-      CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
-          () -> cache.isAbsent(new AlluxioURI(path)),
-          WaitForOptions.defaults().setTimeoutMs(60000));
+      try {
+        CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
+            () -> cache.isAbsent(new AlluxioURI(path)),
+            WaitForOptions.defaults().setTimeoutMs(60000));
+      } catch (TimeoutException e) {
+        fail("Absent Path Cache addition timed out");
+      }
     }
 
     if (expectExists && expectLoadFromUfs) {
       // The metadata is loaded from Ufs, and the path exists, so it will be removed from the
       // absent cache. Wait until the path is removed.
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
-      CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
-        if (cache.isAbsent(new AlluxioURI(path))) {
-          return false;
-        }
-        return true;
-      }, WaitForOptions.defaults().setTimeoutMs(60000));
+      try {
+        CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
+          if (cache.isAbsent(new AlluxioURI(path))) {
+            return false;
+          }
+          return true;
+        }, WaitForOptions.defaults().setTimeoutMs(60000));
+      } catch (TimeoutException e) {
+        fail("Absent Path Cache removal timed out");
+      }
     }
   }
 
