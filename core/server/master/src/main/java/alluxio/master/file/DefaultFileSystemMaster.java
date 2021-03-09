@@ -3406,7 +3406,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    *                                 of the permission checkers functions with the given inode path.
    *                                 If null, no permission checking is performed
    * @param isGetFileInfo            true if syncing for a getFileInfo operation
-   * @return true if at least one path was synced
+   * @return syncStatus
    */
   private InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
