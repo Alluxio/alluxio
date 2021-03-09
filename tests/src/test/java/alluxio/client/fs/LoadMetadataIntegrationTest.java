@@ -59,7 +59,7 @@ import java.util.concurrent.TimeoutException;
  * Tests the loading of metadata and the available options.
  */
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
-  private static final long SLEEP_MS = Constants.SECOND_MS / 2;
+  private static final long SLEEP_MS = Constants.SECOND_MS / 5;
 
   private FileSystem mFileSystem;
 
@@ -102,15 +102,35 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     ServerConfiguration.reset();
   }
 
-  @LocalAlluxioClusterResource.Config(
-      confParams = {
-          PropertyKey.Name.USER_FILE_METADATA_SYNC_INTERVAL, "0"
-      })
   @Test
   public void syncOverrideLoadMetadata() throws Exception {
     GetStatusPOptions options =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
+        ).build();
+    // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
+    // and the file itself
     checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    // The second time, it only needs to sync the file, so 1 access
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 1);
+  }
+
+  @Test
+  public void absentCache() throws Exception {
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+        ).build();
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    GetStatusPOptions optionsAlways =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+        ).build();
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", optionsAlways, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", optionsAlways, false, 1);
   }
 
   @Test
