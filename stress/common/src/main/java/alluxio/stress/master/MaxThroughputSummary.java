@@ -154,7 +154,7 @@ public final class MaxThroughputSummary implements Summary {
       // Iterate over all operations
       for (Operation operation : Operation.values()) {
         List<MaxThroughputSummary> opSummaries =
-            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
+            summaries.stream().filter(x -> x.mParameters.getOperation() == operation)
                 .collect(Collectors.toList());
 
         if (!opSummaries.isEmpty()) {
