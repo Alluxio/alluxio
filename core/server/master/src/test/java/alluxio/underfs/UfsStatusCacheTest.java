@@ -117,7 +117,7 @@ public class UfsStatusCacheTest {
   }
 
   @Test
-  public void testAddRemove() {
+  public void testAddRemove() throws Exception{
     AlluxioURI path = new AlluxioURI("/abc/123");
     UfsStatus stat = Mockito.mock(UfsStatus.class);
     when(stat.getName()).thenReturn("123");
@@ -371,7 +371,8 @@ public class UfsStatusCacheTest {
   @Test
   public void testFetchSingleStatusNonExistingPath() throws Exception {
     spyUfs();
-    assertNull(mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable));
+    mThrown.expect(java.io.FileNotFoundException.class);
+    mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
@@ -379,7 +380,8 @@ public class UfsStatusCacheTest {
   public void testFetchSingleStatusThrowsException() throws Exception {
     spyUfs();
     doThrow(new IOException("test exception")).when(mUfs).getStatus(any(String.class));
-    assertNull(mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable));
+    mThrown.expect(IOException.class);
+    mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
