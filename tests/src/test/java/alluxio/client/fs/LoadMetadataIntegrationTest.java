@@ -105,8 +105,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void syncOverrideLoadMetadata() throws Exception {
     GetStatusPOptions options =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
         ).build();
     // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
     // and the file itself
@@ -118,16 +118,16 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void absentCache() throws Exception {
     GetStatusPOptions options =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
         ).build();
     checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
     checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
     GetStatusPOptions optionsAlways =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
         ).build();
     checkGetStatus("/mnt/dir1/dirA/dirDNE/", optionsAlways, false, 1);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", optionsAlways, false, 1);
