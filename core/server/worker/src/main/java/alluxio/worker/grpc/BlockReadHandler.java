@@ -66,7 +66,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class handles {@link ReadRequest}s.
+ * This class handles {@link BlockReadRequest}s.
  *
  * Protocol: Check {@link alluxio.client.block.stream.GrpcDataReader} for additional information.
  * 1. Once a read request is received, the handler creates a {@link DataReader} which reads
@@ -83,9 +83,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 2. The data reader thread keeps reading from the file and writes to buffer. Before reading a
  *    new data chunk, it checks whether there are notifications (e.g. cancel, error), if
  *    there is, handle them properly. See more information about the notifications in the javadoc
- *    of {@link ReadRequestContext} about CANCEL, EOF, and ERROR flags.
+ *    of {@link BlockReadRequestContext} about CANCEL, EOF, and ERROR flags.
  *
- * @see ReadRequestContext
+ * @see BlockReadRequestContext
  */
 @NotThreadSafe
 public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest> {
@@ -122,8 +122,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * Creates an instance of {@link BlockReadHandler}.
    *
    * @param executorService the executor service to run {@link DataReader}s
+   * @param blockWorker block worker
    * @param responseObserver the response observer of the
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
       BlockWorker blockWorker,
@@ -199,7 +201,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
 
   @Override
   public void onError(Throwable cause) {
-    ReadRequest r = mContext == null ? null : mContext.getRequest();
+    BlockReadRequest r = mContext == null ? null : mContext.getRequest();
     LogUtils.warnWithException(LOG, "Exception occurred while processing read request onError "
             + "sessionId: {}, {}",
         r, r == null ? null : r.getSessionId(), cause);
@@ -306,6 +308,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     return new DataReader(context, response);
   }
 
+  /**
+   * Ready to restart data reader.
+   */
   public void onReady() {
     try (LockResource lr = new LockResource(mLock)) {
       if (shouldRestartDataReader()) {
@@ -347,7 +352,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private class DataReader implements Runnable {
     private final CallStreamObserver<ReadResponse> mResponse;
     private final BlockReadRequestContext mContext;
-    private final ReadRequest mRequest;
+    private final BlockReadRequest mRequest;
     private final long mChunkSize;
 
     /**
