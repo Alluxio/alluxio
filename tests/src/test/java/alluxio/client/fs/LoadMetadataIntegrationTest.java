@@ -125,6 +125,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
     checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE", options, false, 0);
     GetStatusPOptions optionsAlways =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
