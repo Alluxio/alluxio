@@ -112,13 +112,13 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         if (!prepareFs.exists(basePath)) {
           throw new IllegalStateException(String
               .format("base path (%s) must exist for operation (%s)", basePath,
-                  mParameters.mOperationName));
+                  mParameters.mOperation));
         }
       }
       if (!prepareFs.isDirectory(basePath)) {
         throw new IllegalStateException(String
             .format("base path (%s) must be a directory for operation (%s)", basePath,
-                mParameters.mOperationName));
+                mParameters.mOperation));
       }
     }
 
@@ -487,7 +487,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           }
           break;
         default:
-          throw new IllegalStateException("Unknown operation: " + mParameters.mOperationName);
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
     }
   }

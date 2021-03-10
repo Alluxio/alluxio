@@ -180,7 +180,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
     if (!summary.getErrors().isEmpty()) {
       throw new IllegalStateException(String
           .format("Could not create files for operation (%s). error: %s",
-              mParameters.mOperationName, summary.getErrors().entrySet().iterator().next()));
+              mParameters.mOperation, summary.getErrors().entrySet().iterator().next()));
     }
   }
 

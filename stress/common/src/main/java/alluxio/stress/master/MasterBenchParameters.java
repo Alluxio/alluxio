@@ -31,7 +31,7 @@ public final class MasterBenchParameters extends Parameters {
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
       required = true)
-  public String mOperationName;
+  public String mOperation;
 
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
@@ -98,6 +98,6 @@ public final class MasterBenchParameters extends Parameters {
    * @return operation of this bench
    */
   public Operation getOperation() {
-    return Operation.fromString(mOperationName);
+    return Operation.fromString(mOperation);
   }
 }
