@@ -459,7 +459,7 @@ public final class AlluxioMasterRestServiceHandler {
         }
 
         filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+            ListStatusPOptions.newBuilder()));
       } catch (FileDoesNotExistException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
         return response;
