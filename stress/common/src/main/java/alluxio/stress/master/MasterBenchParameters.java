@@ -98,6 +98,6 @@ public final class MasterBenchParameters extends Parameters {
    * @return operation of this bench
    */
   public Operation getOperation() {
-    return Operation.valueOf(mOperationName);
+    return Operation.fromString(mOperationName);
   }
 }
