@@ -14,7 +14,6 @@ package alluxio.util.network;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -26,7 +25,6 @@ import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.grpc.StatusRuntimeException;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -667,13 +665,13 @@ public final class NetworkAddressUtils {
   /**
    * Test if the input address is serving an Alluxio service. This method make use of the
    * gRPC protocol for performing service communication.
+   * This methods throws UnauthenticatedException if the user is not authenticated,
+   * StatusRuntimeException If the host not reachable or does not serve the given service.
    *
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
    * @param userState the UserState
-   * @throws UnauthenticatedException If the user is not authenticated
-   * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
       AlluxioConfiguration conf, UserState userState)
