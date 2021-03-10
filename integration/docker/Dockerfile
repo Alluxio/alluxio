@@ -17,7 +17,7 @@
 # - https://github.com/moby/moby/issues/6119
 FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.5.0-SNAPSHOT/alluxio-2.5.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.6.0-SNAPSHOT/alluxio-2.6.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -48,6 +48,12 @@ RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taob
   mkdir -p /opt/arthas && \
   unzip /tmp/arthas.zip -d /opt/arthas && \
   rm /tmp/arthas.zip
+
+# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
+RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
+  tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
+  mv /opt/async-profiler-* /opt/async-profiler && \
+  rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
 
 # disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> $JAVA_HOME/jre/lib/security/java.security

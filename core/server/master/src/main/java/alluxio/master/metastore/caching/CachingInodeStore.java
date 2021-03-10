@@ -37,6 +37,7 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -56,6 +57,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -205,7 +207,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     if (cached.isPresent()) {
       return !cached.get().isEmpty();
     }
-    return !mEdgeCache.getChildIds(inode.getId(), option).isEmpty()
+    return !mListingCache.getDataFromBackingStore(inode.getId(), option).isEmpty()
         || mBackingStore.hasChildren(inode);
   }
 
@@ -269,7 +271,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @VisibleForTesting
   class InodeCache extends Cache<Long, MutableInode<?>> {
     public InodeCache(CacheConfiguration conf) {
-      super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_SIZE);
+      super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_EVICTIONS,
+          MetricKey.MASTER_INODE_CACHE_HITS, MetricKey.MASTER_INODE_CACHE_LOAD_TIMES,
+          MetricKey.MASTER_INODE_CACHE_MISSES, MetricKey.MASTER_INODE_CACHE_SIZE);
     }
 
     @Override
@@ -361,7 +365,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
 
     public EdgeCache(CacheConfiguration conf) {
-      super(conf, "edge-cache", MetricKey.MASTER_EDGE_CACHE_SIZE);
+      super(conf, "edge-cache", MetricKey.MASTER_EDGE_CACHE_EVICTIONS,
+          MetricKey.MASTER_EDGE_CACHE_HITS, MetricKey.MASTER_EDGE_CACHE_LOAD_TIMES,
+          MetricKey.MASTER_EDGE_CACHE_MISSES, MetricKey.MASTER_EDGE_CACHE_SIZE);
     }
 
     /**
@@ -588,6 +594,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     private AtomicLong mWeight = new AtomicLong(0);
     private Lock mEvictionLock = new ReentrantLock();
 
+    StatsCounter mStatsCounter;
+
     private Map<Long, ListingCacheEntry> mMap = new ConcurrentHashMap<>();
     private Iterator<Map.Entry<Long, ListingCacheEntry>> mEvictionHead = mMap.entrySet().iterator();
 
@@ -595,6 +603,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMaxSize = conf.getMaxSize();
       mHighWaterMark = conf.getHighWaterMark();
       mLowWaterMark = conf.getLowWaterMark();
+
+      mStatsCounter = new StatsCounter(
+          MetricKey.MASTER_LISTING_CACHE_EVICTIONS,
+          MetricKey.MASTER_LISTING_CACHE_HITS,
+          MetricKey.MASTER_LISTING_CACHE_LOAD_TIMES,
+          MetricKey.MASTER_LISTING_CACHE_MISSES);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
           () -> mWeight.get());
     }
@@ -654,9 +668,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     public Optional<Collection<Long>> getCachedChildIds(Long inodeId) {
       ListingCacheEntry entry = mMap.get(inodeId);
       if (entry != null && entry.mChildren != null) {
+        mStatsCounter.recordHit();
         entry.mReferenced = true;
         return Optional.of(entry.mChildren.values());
       }
+      mStatsCounter.recordMiss();
       return Optional.empty();
     }
 
@@ -672,12 +688,14 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       AtomicBoolean createdNewEntry = new AtomicBoolean(false);
       ListingCacheEntry entry = mMap.compute(inodeId, (key, value) -> {
         if (value == null) {
+          mStatsCounter.recordMiss();
           if (mWeight.get() >= mMaxSize) {
             return null;
           }
           createdNewEntry.set(true);
           return new ListingCacheEntry();
         }
+        mStatsCounter.recordHit();
         value.mReferenced = true;
         return value;
       });
@@ -686,7 +704,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       }
       if (entry == null || !createdNewEntry.get() || option.shouldSkipCache()) {
         // Skip caching if the cache is full or someone else is already caching.
-        return mEdgeCache.getChildIds(inodeId, option).values();
+        return getDataFromBackingStore(inodeId, option).values();
       }
       return loadChildren(inodeId, entry, option).values();
     }
@@ -701,7 +719,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         ReadOption option) {
       evictIfNecessary();
       entry.mModified = false;
-      Map<String, Long> listing = mEdgeCache.getChildIds(inodeId, option);
+      Map<String, Long> listing = getDataFromBackingStore(inodeId, option);
       mMap.computeIfPresent(inodeId, (key, value) -> {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.
@@ -762,6 +780,13 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       Preconditions.checkNotNull(entry.mChildren);
       // Add 1 to take the key into account.
       return entry.mChildren.size() + 1;
+    }
+
+    private Map<String, Long> getDataFromBackingStore(Long inodeId, ReadOption option) {
+      final Stopwatch stopwatch = Stopwatch.createStarted();
+      final Map<String, Long> result = mEdgeCache.getChildIds(inodeId, option);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      return result;
     }
 
     private class ListingCacheEntry {

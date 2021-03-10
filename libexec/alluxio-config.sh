@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=2.5.0-SNAPSHOT
+VERSION=2.6.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -150,6 +150,12 @@ ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKE
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_WORKER_LOGGER"
 fi
+
+# FUSE specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT+=" -Djava.library.path=${ALLUXIO_HOME}/lib"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT+=" -Dalluxio.logger.type=FUSE_LOGGER"
+ALLUXIO_FUSE_JAVA_OPTS="${ALLUXIO_FUSE_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS}"
 
 # Log server specific parameters that will be passed to alluxio log server
 ALLUXIO_LOGSERVER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}

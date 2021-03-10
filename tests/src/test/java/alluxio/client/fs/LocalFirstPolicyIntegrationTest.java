@@ -104,8 +104,8 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       }
       BlockWorker blockWorker1 = worker1.getWorker(BlockWorker.class);
       BlockWorker blockWorker2 = worker2.getWorker(BlockWorker.class);
-      assertEquals(100, blockWorker1.getBlockStore().getBlockStoreMeta().getUsedBytes());
-      assertEquals(0, blockWorker2.getBlockStore().getBlockStoreMeta().getUsedBytes());
+      assertEquals(100, blockWorker1.getStoreMeta().getUsedBytes());
+      assertEquals(0, blockWorker2.getStoreMeta().getUsedBytes());
     }
 
     // Write to the worker in rack2
@@ -120,8 +120,8 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
       }
       BlockWorker blockWorker1 = worker1.getWorker(BlockWorker.class);
       BlockWorker blockWorker2 = worker2.getWorker(BlockWorker.class);
-      assertEquals(100, blockWorker1.getBlockStore().getBlockStoreMeta().getUsedBytes());
-      assertEquals(10, blockWorker2.getBlockStore().getBlockStoreMeta().getUsedBytes());
+      assertEquals(100, blockWorker1.getStoreMeta().getUsedBytes());
+      assertEquals(10, blockWorker2.getStoreMeta().getUsedBytes());
     }
   }
 

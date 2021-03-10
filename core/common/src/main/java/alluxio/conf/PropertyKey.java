@@ -636,6 +636,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_LOGGING_THRESHOLD =
+      new Builder(Name.UNDERFS_LOGGING_THRESHOLD)
+          .setDefaultValue("10s")
+          .setDescription("Logging a UFS API call when it takes more time than the threshold.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_DEFAULT_MODE =
       new Builder(Name.UNDERFS_GCS_DEFAULT_MODE)
           .setDefaultValue("0700")
@@ -653,11 +660,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
-          .setDescription("Optionally, specify a preset gcs owner id to Alluxio username "
-              + "static mapping in the format \"id1=user1;id2=user2\". The Google Cloud "
-              + "Storage IDs can be found at the console address "
+          .setDescription(String.format("Optionally, specify a preset gcs owner id "
+              + "to Alluxio username static mapping in the format \"id1=user1;id2=user2\". "
+              + "The Google Cloud Storage IDs can be found at the console address "
               + "https://console.cloud.google.com/storage/settings . Please use the "
-              + "\"Owners\" one.")
+              + "\"Owners\" one. This property key is only valid when %s=1",
+              Name.UNDERFS_GCS_VERSION))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_VERSION =
+      new Builder(Name.UNDERFS_GCS_VERSION)
+          .setDefaultValue(1)
+          .setDescription(String.format("Specify the version of GCS module to use. "
+              + "GCS version \"1\" builds on top of jets3t package "
+              + "which requires %s and %s. GCS version \"2\" build on top "
+              + "of Google cloud API which requires %s", Name.GCS_ACCESS_KEY, Name.GCS_SECRET_KEY,
+              Name.GCS_CREDENTIAL_PATH))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -748,6 +767,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
               + "UFS operations, such as directory renames and deletes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+      new Builder(Name.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+          .setDefaultValue(true)
+          .setDescription("Do not create parent directory for new files. Object stores generally "
+              + "uses prefix which is not required for creating new files. Skipping parent "
+              + "directory is recommended for better performance. Set this to false if the "
+              + "object store requires prefix creation for new files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1068,16 +1097,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
-      .setDescription("The access key of GCS bucket.")
+      .setDescription(String.format("The access key of GCS bucket. This property key "
+          + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
-      .setDescription("The secret key of GCS bucket.")
+      .setDescription(String.format("The secret key of GCS bucket. This property key "
+          + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
+      .build();
+  public static final PropertyKey GCS_CREDENTIAL_PATH = new Builder(Name.GCS_CREDENTIAL_PATH)
+      .setDescription(String.format("The json file path of Google application credentials. "
+          + "This property key is only valid when %s=2", Name.UNDERFS_GCS_VERSION))
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
       .build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
@@ -1581,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
-              + "and IO to local disks.")
+              + "and IO to local disks).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1971,8 +2008,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
           .setDescription("Whether to tolerate master state corruption "
-              + "when standby master replaying journal. If enabled, errors from applying journal "
-              + "to master metadata will only be logged instead of forcing master to exit. "
+              + "when leader master recovering from backup and standby master replaying journal. "
+              + "If enabled, errors from applying journal to master metadata will only be logged "
+              + "instead of forcing master to exit. "
               + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
@@ -2433,6 +2471,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
+      new Builder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
+          .setDescription("Report failure if any metadata sync fails")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(true)
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
           .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
@@ -2813,13 +2859,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               OperatingSystemMXBean operatingSystemMXBean =
                   (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
               return operatingSystemMXBean.getTotalPhysicalMemorySize() * 2 / 3;
-            } catch (Exception e) {
+            } catch (Throwable e) {
               // The package com.sun.management may not be available on every platform.
               // fallback to a reasonable size.
               return "1GB";
             }
           }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
-          .setDescription("Memory capacity of each worker node.")
+          .setDescription("Memory capacity of each worker node. "
+                  + "It is recommended to set this value explicitly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3817,7 +3864,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTION_RETRIES =
       new Builder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
-          .setDefaultValue(0)
+          .setDefaultValue(10)
           .setDescription("Max number of eviction retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -4498,8 +4545,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use JNI-Fuse library for better performance. "
+              + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5040,11 +5088,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
         "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_LOGGING_THRESHOLD = "alluxio.underfs.logging.threshold";
     public static final String UNDERFS_GCS_DEFAULT_MODE = "alluxio.underfs.gcs.default.mode";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
+    public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
@@ -5060,6 +5110,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
+    public static final String UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
+        "alluxio.underfs.object.store.skip.parent.directory.creation";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
@@ -5130,6 +5182,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String COS_SOCKET_TIMEOUT = "fs.cos.socket.timeout";
     public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
     public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
+    public static final String GCS_CREDENTIAL_PATH = "fs.gcs.credential.path";
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
@@ -5293,6 +5346,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
+        "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
@@ -6008,7 +6063,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
     USER_NETWORK_KEEPALIVE_TIME_MS("alluxio.user.network.%s.keepalive.time",
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.time"),
-    USER_NETWORK_KEEPALIVE_TIMEOUT_MS ("alluxio.user.network.%s.keepalive.timeout",
+    USER_NETWORK_KEEPALIVE_TIMEOUT_MS("alluxio.user.network.%s.keepalive.timeout",
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.timeout"),
     USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE("alluxio.user.network.%s.max.inbound.message.size",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.inbound\\.message\\.size"),

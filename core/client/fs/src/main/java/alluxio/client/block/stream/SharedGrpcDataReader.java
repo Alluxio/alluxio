@@ -18,6 +18,7 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
@@ -80,7 +81,8 @@ public class SharedGrpcDataReader implements DataReader {
    * @param readRequest the read request
    * @param reader the cached Grpc data reader for the given block
    */
-  private SharedGrpcDataReader(ReadRequest readRequest, BufferCachingGrpcDataReader reader) {
+  @VisibleForTesting
+  protected SharedGrpcDataReader(ReadRequest readRequest, BufferCachingGrpcDataReader reader) {
     mChunkSize = readRequest.getChunkSize();
     mPosToRead = readRequest.getOffset();
     mBlockId = readRequest.getBlockId();

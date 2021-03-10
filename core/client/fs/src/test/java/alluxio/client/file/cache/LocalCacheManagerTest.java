@@ -20,6 +20,9 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.evictor.FIFOEvictor;
+import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.quota.CacheQuota;
@@ -47,13 +50,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -93,7 +93,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "60s");
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOEvictor();
+    mEvictor = new FIFOEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
   }
@@ -246,8 +246,9 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void evictSmallPagesByPutPigPage() throws Exception {
+  public void evictSmallPagesByPutPigPageWithoutRetry() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES, 0);
     mCacheManager = createLocalCacheManager();
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
@@ -267,6 +268,25 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void evictSmallPagesByPutPigPageWithRetry() throws Exception {
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES, numPages);
+    mCacheManager = createLocalCacheManager();
+    for (int i = 0; i < numPages; i++) {
+      PageId id = pageId(i, 0);
+      assertTrue(mCacheManager.put(id, page(i, smallPageLen)));
+    }
+    byte[] bigPage = page(0, PAGE_SIZE_BYTES);
+    PageId bigPageId = pageId(-1, 0);
+    assertTrue(mCacheManager.put(bigPageId, bigPage));
+    byte[] buf = new byte[PAGE_SIZE_BYTES];
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(bigPageId, PAGE_SIZE_BYTES, buf, 0));
+    assertArrayEquals(bigPage, buf);
+  }
+
+  @Test
   public void evictBigPagesByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = createLocalCacheManager();
@@ -279,6 +299,19 @@ public final class LocalCacheManagerTest {
       PageId id = pageId(i, 0);
       assertTrue(mCacheManager.put(id, smallPage));
     }
+  }
+
+  @Test
+  public void noEvictionPolicy() throws Exception {
+    mEvictor = new UnevictableCacheEvictor(mConf);
+    mMetaStore = new DefaultMetaStore(mEvictor);
+    mCacheManager = createLocalCacheManager();
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE) / PAGE_SIZE_BYTES;
+    for (int i = 0; i < numPages; i++) {
+      PageId id = pageId(i, 0);
+      assertTrue(mCacheManager.put(id, PAGE1));
+    }
+    assertFalse(mCacheManager.put(pageId(numPages, 0), PAGE1));
   }
 
   @Test
@@ -837,44 +870,6 @@ public final class LocalCacheManagerTest {
     @Override
     public Stream<PageInfo> getPages() throws IOException {
       return Stream.concat(super.getPages(), Streams.stream(new NonStoppingSlowPageIterator()));
-    }
-  }
-
-  /**
-   * Implementation of Evictor using FIFO eviction policy for the test.
-   */
-  class FIFOEvictor implements CacheEvictor {
-    private final LinkedList<PageId> mQueue = new LinkedList<>();
-
-    public FIFOEvictor() {}
-
-    @Override
-    public void updateOnGet(PageId pageId) {
-      // noop
-    }
-
-    @Override
-    public void updateOnPut(PageId pageId) {
-      mQueue.add(pageId);
-    }
-
-    @Override
-    public void updateOnDelete(PageId pageId) {
-      int idx = mQueue.indexOf(pageId);
-      if (idx >= 0) {
-        mQueue.remove(idx);
-      }
-    }
-
-    @Nullable
-    @Override
-    public PageId evict() {
-      return mQueue.peek();
-    }
-
-    @Override
-    public void reset() {
-      mQueue.clear();
     }
   }
 }

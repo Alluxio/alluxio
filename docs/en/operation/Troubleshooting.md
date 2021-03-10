@@ -29,10 +29,15 @@ Workers are doing, especially when running into any issues. If you do not unders
 search for them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
+You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
 
 The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
 log4j configuration used by the application.
+You can find more details about the client-side logs [here]({{ '/en/operation/Basic-Logging.html#application-logs' | relativize_url }}).
+
+The user logs in `${ALLUXIO_HOME}/logs/user/` are the logs from running Alluxio shell.
+Each user will have separate log files.
 
 For more information about logging, please check out
 [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
@@ -67,8 +72,8 @@ Alluxio has a `collectInfo` command that collect information to troubleshoot an 
 In the end the collected information will be bundled into one tarball which contains a lot of information regarding your Alluxio cluster.
 The tarball size mostly depends on your cluster size and how much information you are collecting.
 For example, `collectLog` operation can be costly if you have huge amounts of logs. Other commands
-typically do not generate files larger than 1MB. The tarball will help you troubleshoot your cluster.
-Or you can shared the tarball with someone you trust to help troubleshoot your Alluxio cluster.
+typically do not generate files larger than 1MB. The information in the tarball will help you troubleshoot your cluster.
+Or you can share the tarball with someone you trust to help troubleshoot your Alluxio cluster.
 
 The `collectInfo` command will SSH to each node and execute the set of sub-commands.
 In the end of execution the collected information will be written to files and tarballed.
@@ -93,7 +98,7 @@ Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
 which prints all the configuration properties, with the credential fields masked.
 So in order to collect Alluxio configuration in the tarball,
 please make sure `collectAlluxioInfo` sub-command is run.
-> WARNING: If you put credential fields in the configuration files except alluxio-site.properties, 
+> WARNING: If you put credential fields in the configuration files except alluxio-site.properties (eg. `alluxio-env.sh`), 
 > DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect Alluxio logs
@@ -221,11 +226,10 @@ Tips:
 - You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster.
 - If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
 
-### Q: Why do I see "Unsupported major.minor version 52.0" error when I start Alluxio?
+### Q: What Java version should I use when I deploy Alluxio?
 
-A: Alluxio requires Java 8 runtime to function properly. If this error is seen at the start of Alluxio master or worker, please setup
-your environment so that the default Java version is 8. If you see this error while using an application to access files on Alluxio,
-please make sure your application is running on Java 8.
+A: Alluxio requires Java 8 or 11 runtime to function properly.
+You can find more details about the system requirements [here]({{ '/en/deploy/Requirements.html' | relativize_url }}).
 
 ## Usage FAQ
 

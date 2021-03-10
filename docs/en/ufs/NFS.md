@@ -16,6 +16,17 @@ You'll need to have a configured and running installation of NFS for the rest of
 If you need to get your own NFS installation up and running, we recommend taking a look at the
 [NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
 
+## Requirements
+
+The prerequisite for this part is that you have a version of
+[Java 8](https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot)
+installed.
+
+Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
+repeatedly input the password, you can add the public SSH key for the host into
+`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
+details.
+
 ## Initial Setup
 
 The Alluxio binaries must be on your machine. You can either
@@ -46,6 +57,7 @@ alluxio.master.mount.table.root.ufs=/mnt/nfs
 Run the following command to start Alluxio filesystem.
 
 ```console
+$ ./bin/alluxio-mount.sh SudoMount
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```

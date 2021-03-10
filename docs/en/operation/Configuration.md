@@ -74,8 +74,8 @@ See
 
 ### `alluxio-site.properties` Files (Recommended)
 
-Alluxio admins can create and customize the properties file `alluxio-site.properties` to
-configure an Alluxio masters or workers.
+Alluxio admins can create and edit the properties file `alluxio-site.properties` to
+configure Alluxio masters or workers.
 If this file does not exist, it can be created from the template file under `${ALLUXIO_HOME}/conf`:
 
 ```console
@@ -152,8 +152,8 @@ through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classp
 
 ### Path Defaults
 
-Since version 2.0, Alluxio administrators can set default client-side configurations for Alluxio
-paths.
+Since version 2.0, Alluxio administrators can set default client-side configurations for specific
+Alluxio filesystem paths.
 Filesystem client operations have options which are derived from client side configuration
 properties.
 Only client-side configuration properties can be set as as path defaults.
@@ -178,7 +178,7 @@ If the administrator updates path defaults using
 $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
 ```
 
-afterwards, all write operations with that occur on a path with the prefix `/tmp` prefix will use
+afterwards, all write operations that occur on a path with the prefix `/tmp` prefix will use
 the `THROUGH` write type by default.
 
 See [`fsadmin pathConf`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
@@ -186,8 +186,8 @@ show, add, update, and remove path defaults.
 
 ## Configuration Sources
 
-An Alluxio property can be possibly configured in multiple sources.
-In this case, its final value is determined by the following priority list, from highest priority to lowest:
+An Alluxio properties can be configured from multiple sources.
+A property's final value is determined by the following priority list, from highest priority to lowest:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
 2. [Environment variables](#environment-variables)
@@ -237,9 +237,12 @@ alluxio.debug=false (DEFAULT)
 ## Java 11 Configuration
 
 Alluxio now supports Java 11.
-To run alluxio on Java 11, configure JAVA_HOME environment variable to point to your Java 11 installation directory.
-If you only want to use Java 11 for Alluxio, you can set the JAVA_HOME environment variable in alluxio-env.sh file.
-This setting will not affect other applications running on your node.
+To run alluxio on Java 11, configure the `JAVA_HOME` environment variable to point to a Java 11
+installation directory.
+If you only want to use Java 11 for Alluxio, you can set the `JAVA_HOME` environment variable in
+the `alluxio-env.sh` file.
+Setting the `JAVA_HOME` in `alluxio-env.sh`will not affect the Java version which may be used
+by other application running in the same environment.
 
 ## Server Configuration Checker
 
