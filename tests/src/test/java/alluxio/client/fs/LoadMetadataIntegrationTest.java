@@ -69,6 +69,7 @@ import java.util.function.Function;
  */
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 4;
+  private static final int EXTRA_DIR_FILES = 6;
 
   private FileSystem mFileSystem;
 
@@ -140,10 +141,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
             ).build();
-    // This can be improved
-    checkListStatus("/mnt/mustcache/", options, true, 2);
-    checkListStatus("/mnt/mustcache/", options, true, 2);
-    checkListStatus("/mnt/mustcache/", options, true, 2);
+    // This can be improved, right now it checks each level of the directory!!
+    checkListStatus("/mnt/mustcache/", options, true, 3);
+    checkListStatus("/mnt/mustcache/", options, true, 3);
   }
 
   @Test
@@ -320,7 +320,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     int createdInodes = createUfsFiles(5);
     List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
     // 25 files, 25 level 2 dirs, 5 level 1 dirs, 1 file and 1 dir created in before
-    assertEquals(createdInodes + 2, list.size());
+    // 4 directories/files in must cache
+    assertEquals(createdInodes + EXTRA_DIR_FILES, list.size());
   }
 
   @Test
@@ -338,7 +339,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
                 .build())
         .build();
     List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
-    assertEquals(created + 2, list.size());
+    assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
       assertEquals(-1, stat.getTtl());
     });
@@ -424,7 +425,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     long startMs = CommonUtils.getCurrentMs();
     boolean expectLoadFromUfs = (expectedAccesses >= 1);
     try {
-      function.apply(path, options);
+      Object result = function.apply(path, options);
       if (!expectExists) {
         Assert.fail("Path is not expected to exist: " + path);
       }
