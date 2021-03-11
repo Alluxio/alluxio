@@ -185,7 +185,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
   }
 
   private void prepareBeforeAllTests(List<String> args) throws Exception {
-    switch (mParameters.getOperation()) {
+    switch (mParameters.mOperation) {
       case GET_BLOCK_LOCATIONS: // initial state requires createFile
       case GET_FILE_STATUS:     // initial state requires createFile
       case LIST_DIR:           // initial state requires createFile
@@ -208,7 +208,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
    * @return the results
    */
   private void prepareBeforeSingleTest(long requiredCount, List<String> args) throws Exception {
-    switch (mParameters.getOperation()) {
+    switch (mParameters.mOperation) {
       case RENAME_FILE: // prepare files
       case DELETE_FILE: // prepare files
         // create an extra buffer of created files

@@ -14,6 +14,7 @@ package alluxio.stress.master;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 import java.util.HashMap;
@@ -30,8 +31,9 @@ public final class MasterBenchParameters extends Parameters {
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      converter = OperationConverter.class,
       required = true)
-  public String mOperation;
+  public Operation mOperation;
 
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
@@ -95,9 +97,12 @@ public final class MasterBenchParameters extends Parameters {
   public Map<String, String> mConf = new HashMap<>();
 
   /**
-   * @return operation of this bench
+   * Converts from String to Operation instance.
    */
-  public Operation getOperation() {
-    return Operation.fromString(mOperation);
+  public static class OperationConverter implements IStringConverter<Operation> {
+    @Override
+    public Operation convert(String value) {
+      return Operation.fromString(value);
+    }
   }
 }

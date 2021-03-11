@@ -94,14 +94,14 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // the base path depends on the operation
       Path basePath;
-      if (mParameters.getOperation() == Operation.CREATE_DIR) {
+      if (mParameters.mOperation == Operation.CREATE_DIR) {
         basePath = new Path(path, "dirs");
       } else {
         basePath = new Path(path, "files");
       }
 
-      if (mParameters.getOperation() == Operation.CREATE_FILE
-          || mParameters.getOperation() == Operation.CREATE_DIR) {
+      if (mParameters.mOperation == Operation.CREATE_FILE
+          || mParameters.mOperation == Operation.CREATE_DIR) {
         long start = CommonUtils.getCurrentMs();
         deletePaths(prepareFs, basePath);
         long end = CommonUtils.getCurrentMs();
@@ -332,7 +332,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mContext = context;
       mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
-      if (mParameters.getOperation() == Operation.CREATE_DIR) {
+      if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
       } else {
@@ -412,7 +412,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       long counter = mContext.getCounter().getAndIncrement();
 
       Path path;
-      switch (mParameters.getOperation()) {
+      switch (mParameters.mOperation) {
         case CREATE_DIR:
           if (counter < mParameters.mFixedCount) {
             path = new Path(mFixedBasePath, Long.toString(counter));

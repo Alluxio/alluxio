@@ -225,7 +225,7 @@ public final class MasterBenchSummary implements Summary {
       // Iterate over all operations
       for (Operation operation : Operation.values()) {
         List<MasterBenchSummary> opSummaries = summaries.stream()
-            .filter(x -> x.mParameters.getOperation() == operation)
+            .filter(x -> x.mParameters.mOperation == operation)
             .collect(Collectors.toList());
 
         if (opSummaries.isEmpty()) {
