@@ -44,7 +44,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 
-import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Message;
 import org.junit.After;
 import org.junit.Assert;
@@ -57,12 +56,9 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -405,16 +401,18 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private void checkGetStatus(final String path, GetStatusPOptions options, boolean expectExists,
       int expectedAccesses)
       throws Exception {
-    checkFunctionCall(path, (String statusPath, Message statusOption)
-            -> mFileSystem.getStatus(new AlluxioURI(statusPath), (GetStatusPOptions) statusOption),
+    checkFunctionCall(path,
+        (String statusPath, Message statusOption) -> mFileSystem.getStatus(
+            new AlluxioURI(statusPath), (GetStatusPOptions) statusOption),
         options, expectExists, expectedAccesses);
   }
 
   private void checkListStatus(final String path, ListStatusPOptions options, boolean expectExists,
       int expectedAccesses)
       throws Exception {
-    checkFunctionCall(path, (String statusPath, Message statusOption)
-            -> mFileSystem.listStatus(new AlluxioURI(statusPath), (ListStatusPOptions) statusOption),
+    checkFunctionCall(path,
+        (String statusPath, Message statusOption) -> mFileSystem.listStatus(
+            new AlluxioURI(statusPath), (ListStatusPOptions) statusOption),
         options, expectExists, expectedAccesses);
   }
 
