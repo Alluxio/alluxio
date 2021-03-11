@@ -50,8 +50,8 @@ public abstract class ReadHandlerTest {
   private final Random mRandom = new Random();
 
   protected String mFile;
-  protected AbstractReadHandler mReadHandlerNoException;
-  protected AbstractReadHandler mReadHandler;
+  protected BlockReadHandler mReadHandlerNoException;
+  protected BlockReadHandler mReadHandler;
   protected ServerCallStreamObserver<ReadResponse> mResponseObserver;
   protected List<ReadResponse> mResponses = new ArrayList<>();
   protected boolean mResponseCompleted;
