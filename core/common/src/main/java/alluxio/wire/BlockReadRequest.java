@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -21,8 +22,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * The internal representation of a block read request.
  */
 @ThreadSafe
-public final class BlockReadRequest extends ReadRequest {
+public final class BlockReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
+  private final long mId;
+  private final long mStart;
+  private final long mEnd;
+  private final long mChunkSize;
+  private final long mSessionId;
   private final boolean mPromote;
   private final boolean mPositionShort;
 
@@ -32,8 +38,11 @@ public final class BlockReadRequest extends ReadRequest {
    * @param request the block read request
    */
   public BlockReadRequest(alluxio.grpc.ReadRequest request) {
-    super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
-        request.getChunkSize());
+    mId = request.getBlockId();
+    mStart = request.getOffset();
+    mEnd = request.getOffset() + request.getLength();
+    mChunkSize = request.getChunkSize();
+    mSessionId = IdUtils.createSessionId();
 
     if (request.hasOpenUfsBlockOptions()) {
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
@@ -43,6 +52,41 @@ public final class BlockReadRequest extends ReadRequest {
     mPromote = request.getPromote();
     mPositionShort = request.getPositionShort();
     // Note that we do not need to seek to offset since the block worker is created at the offset.
+  }
+
+  /**
+   * @return session Id
+   */
+  public long getSessionId() {
+    return mSessionId;
+  }
+
+  /**
+   * @return block id of the read request
+   */
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the start offset in bytes of this read request
+   */
+  public long getStart() {
+    return mStart;
+  }
+
+  /**
+   * @return the end offset in bytes of this read request
+   */
+  public long getEnd() {
+    return mEnd;
+  }
+
+  /**
+   * @return the chunk size in bytes of this read request
+   */
+  public long getChunkSize() {
+    return mChunkSize;
   }
 
   /**
