@@ -33,8 +33,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
@@ -458,8 +456,7 @@ public final class AlluxioMasterRestServiceHandler {
           response.setPathInfos(pathInfos);
         }
 
-        filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.defaults());
       } catch (FileDoesNotExistException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
         return response;
