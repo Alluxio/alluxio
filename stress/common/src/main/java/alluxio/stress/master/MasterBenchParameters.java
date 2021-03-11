@@ -14,6 +14,7 @@ package alluxio.stress.master;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public final class MasterBenchParameters extends Parameters {
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      converter = OperationConverter.class,
       required = true)
   public Operation mOperation;
 
@@ -93,4 +95,14 @@ public final class MasterBenchParameters extends Parameters {
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
+
+  /**
+   * Converts from String to Operation instance.
+   */
+  public static class OperationConverter implements IStringConverter<Operation> {
+    @Override
+    public Operation convert(String value) {
+      return Operation.fromString(value);
+    }
+  }
 }
