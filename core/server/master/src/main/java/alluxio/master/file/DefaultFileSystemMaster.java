@@ -11,9 +11,9 @@
 
 package alluxio.master.file;
 
-import static alluxio.master.file.InodeSyncStream.SyncStatus.DO_NOT_NEED_SYNC;
-import static alluxio.master.file.InodeSyncStream.SyncStatus.SYNC_FAILED;
-import static alluxio.master.file.InodeSyncStream.SyncStatus.SYNC_SUCCESS;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.FAILED;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.SUCCESS;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
@@ -834,7 +834,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
           DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
-          true).equals(DO_NOT_NEED_SYNC)) {
+          true).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -987,7 +987,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
           auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
-          false).equals(DO_NOT_NEED_SYNC)) {
+          false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -3416,15 +3416,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
       boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
     if (!syncScheme.shouldSync()) {
-      return DO_NOT_NEED_SYNC;
+      return NOT_NEEDED;
     }
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
         false, false);
     if (sync.sync()) {
-      return SYNC_SUCCESS;
+      return SUCCESS;
     } else {
-      return SYNC_FAILED;
+      return FAILED;
     }
   }
 

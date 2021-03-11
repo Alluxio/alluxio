@@ -126,9 +126,9 @@ public class InodeSyncStream {
    * Return status of a sync result.
    */
   public enum SyncStatus {
-    SYNC_SUCCESS,
-    SYNC_FAILED,
-    DO_NOT_NEED_SYNC
+    SUCCESS,
+    FAILED,
+    NOT_NEEDED
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
