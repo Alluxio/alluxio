@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
@@ -59,8 +60,10 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private final MountTable mMountTable;
   /** Paths currently being processed. This is used to prevent duplicate processing. */
   private final ConcurrentHashMap<String, PathLock> mCurrentPaths;
-  /** Cache of paths which are absent in the ufs. */
-  private final Cache<String, Long> mCache;
+  /** Cache of paths which are absent in the ufs, maps an alluxio path to a Pair
+   *  which is the sync time and the mount id.
+   */
+  private final Cache<String, Pair<Long, Long>>mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
   /** Number of threads for the async pool. */
@@ -111,7 +114,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public boolean isAbsent(AlluxioURI path) {
+  public boolean isAbsent(AlluxioURI path, long timeMs) {
     MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
       return false;
@@ -119,8 +122,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
 
     while (path != null && !path.equals(mountBaseUri)) {
-      Long cached = mCache.getIfPresent(path.getPath());
-      if (cached != null && cached == mountInfo.getMountId()) {
+      Pair<Long, Long> cacheResult = mCache.getIfPresent(path.getPath());
+
+      if (cacheResult != null && cacheResult.getFirst() != null
+          && cacheResult.getSecond() != null
+          && cacheResult.getFirst() >= timeMs
+          && cacheResult.getSecond() == mountInfo.getMountId()) {
         return true;
       }
       path = path.getParent();
@@ -289,7 +296,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void addCacheEntry(String path, MountInfo mountInfo) {
     LOG.debug("Add cacheEntry={}", path);
-    mCache.put(path, mountInfo.getMountId());
+    mCache.put(path, new Pair<Long, Long>(System.currentTimeMillis(), mountInfo.getMountId()));
   }
 
   private void removeCacheEntry(String path) {

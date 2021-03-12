@@ -24,6 +24,8 @@ import java.util.List;
  * Cache for recording information about paths that are not present in UFS.
  */
 public interface UfsAbsentPathCache {
+  long ANYTIME = -1;
+
   /**
    * Processes the given path for the cache. This will sequentially walk down the path to find
    * components which do and do not exist in the UFS, and updates the cache accordingly.
@@ -42,13 +44,13 @@ public interface UfsAbsentPathCache {
   void processExisting(AlluxioURI path);
 
   /**
-   * Returns true if the given path is absent, according to this cache. A path is absent if one of
-   * its ancestors is absent.
+   * Returns true if the given path was found to be absent since timeMs, according to this cache.
+   * A path is absent if one of its ancestors is absent.
    *
    * @param path the path to check
    * @return true if the path is absent according to the cache
    */
-  boolean isAbsent(AlluxioURI path);
+  boolean isAbsent(AlluxioURI path, long timeMs);
 
   /**
    * Factory class for {@link UfsAbsentPathCache}.

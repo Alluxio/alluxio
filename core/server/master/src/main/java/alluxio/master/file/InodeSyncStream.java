@@ -174,6 +174,9 @@ public class InodeSyncStream {
   /** The sync options on the RPC.  */
   private final FileSystemMasterCommonPOptions mSyncOptions;
 
+  /** The valid cache time we must follow. */
+  private final long mValidCacheTimeMs;
+
   /**
    * Whether the caller is {@link FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}.
    * This is used for the {@link #mUfsSyncPathCache}.
@@ -248,6 +251,13 @@ public class InodeSyncStream {
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
     mPermissionCheckOperation = permissionCheckOperation;
+    if (loadOnly) {
+      mValidCacheTimeMs = -1;
+    } else {
+      long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
+          ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+      mValidCacheTimeMs = System.currentTimeMillis() - syncInterval;
+    }
   }
 
   /**

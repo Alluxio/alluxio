@@ -45,7 +45,7 @@ public final class NoopUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public boolean isAbsent(AlluxioURI path) {
+  public boolean isAbsent(AlluxioURI path, long timeMs) {
     return false;
   }
 }
