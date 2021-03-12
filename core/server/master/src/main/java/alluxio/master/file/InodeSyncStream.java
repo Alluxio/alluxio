@@ -540,7 +540,7 @@ public class InodeSyncStream {
               builder.setGroup(group);
             }
             SetAttributeContext ctx = SetAttributeContext
-                .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode(mode).toProto()))
+                .mergeFrom(builder)
                 .setUfsFingerprint(ufsFingerprint);
             mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
           }
