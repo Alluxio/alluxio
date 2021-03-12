@@ -35,7 +35,12 @@ public final class NoopUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<Inode> prefixInodes) {
+  public void processAsync(AlluxioURI path, List<Inode> prefixInodes) {
+    // Do nothing
+  }
+
+  @Override
+  public void addSinglePath(AlluxioURI path) {
     // Do nothing
   }
 

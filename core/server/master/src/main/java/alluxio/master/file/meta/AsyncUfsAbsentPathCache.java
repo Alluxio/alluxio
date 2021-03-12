@@ -88,8 +88,17 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<Inode> prefixInodes) {
+  public void processAsync(AlluxioURI path, List<Inode> prefixInodes) {
     mPool.submit(() -> processPathSync(path, prefixInodes));
+  }
+
+  @Override
+  public void addSinglePath(AlluxioURI path) {
+    MountInfo mountInfo = getMountInfo(path);
+    if (mountInfo == null) {
+      return;
+    }
+    addCacheEntry(path.getPath(), mountInfo);
   }
 
   @Override

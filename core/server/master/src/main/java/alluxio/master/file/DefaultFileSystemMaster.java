@@ -1200,7 +1200,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       exists = true;
     } finally {
       if (!exists) {
-        mUfsAbsentPathCache.process(inodePath.getUri(), inodePath.getInodeList());
+        mUfsAbsentPathCache.processAsync(inodePath.getUri(), inodePath.getInodeList());
       }
     }
   }
@@ -3459,6 +3459,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   UfsSyncPathCache getSyncPathCache() {
     return mUfsSyncPathCache;
+  }
+
+  UfsAbsentPathCache getAbsentPathCache() {
+    return mUfsAbsentPathCache;
   }
 
   PermissionChecker getPermissionChecker() {

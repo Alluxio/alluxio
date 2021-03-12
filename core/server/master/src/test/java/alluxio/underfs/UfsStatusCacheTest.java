@@ -29,6 +29,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.NoopUfsAbsentPathCache;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.IdUtils;
@@ -76,7 +78,8 @@ public class UfsStatusCacheTest {
     mUfs = new LocalUnderFileSystem(new AlluxioURI(mUfsUri),
         UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     mService = Executors.newSingleThreadExecutor();
-    mCache = new UfsStatusCache(mService);
+    mCache = new UfsStatusCache(mService, new NoopUfsAbsentPathCache(),
+        UfsAbsentPathCache.ANYTIME);
     MountInfo rootMountInfo = new MountInfo(
         new AlluxioURI(MountTable.ROOT),
         new AlluxioURI(mUfsUri),
@@ -311,7 +314,8 @@ public class UfsStatusCacheTest {
   @Test
   public void testNullExecutor() throws Exception {
     createUfsDirs("dir0/dir0");
-    mCache = new UfsStatusCache(null);
+    mCache = new UfsStatusCache(null, new NoopUfsAbsentPathCache(),
+        UfsAbsentPathCache.ANYTIME);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     assertNull(mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false));
   }
@@ -321,7 +325,8 @@ public class UfsStatusCacheTest {
     createUfsDirs("dir0/dir1");
     ExecutorService executor =
         new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new SynchronousQueue<>());
-    mCache = new UfsStatusCache(executor);
+    mCache = new UfsStatusCache(mService, new NoopUfsAbsentPathCache(),
+        UfsAbsentPathCache.ANYTIME);
     mCache = Mockito.spy(mCache);
     Lock l = new ReentrantLock();
     l.lock();

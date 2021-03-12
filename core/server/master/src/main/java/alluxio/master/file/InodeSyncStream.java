@@ -234,7 +234,6 @@ public class InodeSyncStream {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
-    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor);
     mMetadataSyncService = fsMaster.mSyncMetadataExecutor;
     mForceSync = forceSync;
     mRootScheme = rootPath;
@@ -258,6 +257,8 @@ public class InodeSyncStream {
           ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
       mValidCacheTimeMs = System.currentTimeMillis() - syncInterval;
     }
+    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
+        fsMaster.getAbsentPathCache(), mValidCacheTimeMs);
   }
 
   /**
