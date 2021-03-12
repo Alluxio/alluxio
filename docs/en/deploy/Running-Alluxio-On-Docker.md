@@ -409,6 +409,7 @@ $ docker run --rm \
     -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
+    --security-opt apparmor:unconfined \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
 
