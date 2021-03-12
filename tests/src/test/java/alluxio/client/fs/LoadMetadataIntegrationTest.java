@@ -39,6 +39,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -114,36 +115,25 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void syncOverrideLoadMetadata() throws Exception {
-    GetStatusPOptions options =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
-        ).build();
+  public void absentCacheListStatus() throws Exception {
+    ListStatusPOptions options =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+            ).build();
     // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
     // and the file itself
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    checkListStatus("/mnt/dir1/dirA/file", options, true, 3);
     // The second time, it only needs to sync the file, so 1 access
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 1);
+    checkListStatus("/mnt/dir1/dirA/file", options, true, 0);
+    // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
+    // and the file itself
+    checkListStatus("/mnt/dir1/dirDNE", options, false, 1);
+    // The second time, it only needs to sync the file, so 1 access
+    checkListStatus("/mnt/dir1/dirDNE/dirDNE2/file1", options, false, 0);
   }
 
   @Test
-  public void mustCacheDir() throws Exception {
-    ListStatusPOptions options =
-        ListStatusPOptions.newBuilder().setRecursive(true)
-            .setLoadMetadataType(LoadMetadataPType.ONCE)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
-            ).build();
-    GetStatusPOptions getStatusOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
-            ).build();
-    // This can be improved, right now it checks each level of the directory!!
-    checkListStatus("/mnt/mustcache/", options, true, 3);
-    checkListStatus("/mnt/mustcache/", options, true, 3);
-  }
-
-  @Test
-  public void absentCache() throws Exception {
+  public void absentCacheGetStatus() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
@@ -162,6 +152,24 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         ).build();
     checkGetStatus("/mnt/dir1/dirA/dirDNE/", optionsAlways, false, 1);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", optionsAlways, false, 1);
+  }
+
+
+  @Test
+  public void mustCacheDir() throws Exception {
+    ListStatusPOptions options =
+        ListStatusPOptions.newBuilder().setRecursive(true)
+            .setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+            ).build();
+    GetStatusPOptions getStatusOptions =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+            ).build();
+    // This can be improved, right now it checks each level of the directory!!
+    checkListStatus("/mnt/mustcache/dir1/dir2", options, true, 1);
+    checkListStatus("/mnt/mustcache/dir1", options, true, 2);
+    checkListStatus("/mnt/mustcache", options, true, 3);
   }
 
   @Test
@@ -189,6 +197,19 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     // This can be improved
     checkGetStatus("/mnt/dir1/dirA/file", getOptions, true, 3);
     checkListStatus("/mnt/dir1/", listOptions, true, 3);
+  }
+
+  @Test
+  public void syncOverrideLoadMetadata() throws Exception {
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
+            ).build();
+    // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
+    // and the file itself
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    // The second time, it only needs to sync the file, so 1 access
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, 1);
   }
 
   @Test
