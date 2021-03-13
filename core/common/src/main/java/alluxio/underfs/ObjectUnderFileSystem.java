@@ -496,7 +496,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           permissions.getMode());
     }
     LOG.debug("Error fetching directory status, assuming directory {} does not exist", path);
-    throw new FileNotFoundException("Failed to fetch directory status" + path);
+    throw new FileNotFoundException("Failed to fetch directory status " + path);
   }
 
   @Override
@@ -538,7 +538,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.debug("Error fetching file status, assuming file {} does not exist", path);
-      throw new FileNotFoundException("Failed to fetch file status" + path);
+      throw new FileNotFoundException("Failed to fetch file status " + path);
     }
   }
 
