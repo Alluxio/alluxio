@@ -1208,7 +1208,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     String methodName = callable.methodName();
     long startMs = System.currentTimeMillis();
     long durationMs;
-    LOG.debug("Enter: {}: {}", methodName, callable);
+    LOG.debug("Enter: {}({})", methodName, callable);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
       durationMs = System.currentTimeMillis() - startMs;
@@ -1222,10 +1222,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       durationMs = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       LOG.debug("Exit (Error): {}({}) in {} ms, Error={}",
-          methodName, callable, durationMs, e.getMessage());
+          methodName, callable, durationMs, e.toString());
       if (durationMs >= mLoggingThreshold) {
         LOG.warn("{}({}) returned \"{}\" in {} ms (>={} ms)", methodName,
-            callable, e.getMessage(), durationMs, mLoggingThreshold);
+            callable, e.toString(), durationMs, mLoggingThreshold);
       }
       throw e;
     }
