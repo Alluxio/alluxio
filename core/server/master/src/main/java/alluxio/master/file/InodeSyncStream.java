@@ -127,7 +127,7 @@ public class InodeSyncStream {
    * Return status of a sync result.
    */
   public enum SyncStatus {
-    SUCCESS,
+    OK,
     FAILED,
     NOT_NEEDED
   }
@@ -293,7 +293,7 @@ public class InodeSyncStream {
    *
    * @return true if at least one path was synced
    */
-  public boolean sync() throws AccessControlException, InvalidPathException {
+  public SyncStatus sync() throws AccessControlException, InvalidPathException {
     // The high-level process for the syncing is:
     // 1. Given an Alluxio path, determine if it is not consistent with the corresponding UFS path.
     //     this means the UFS path does not exist, or has metadata which differs from Alluxio
@@ -304,6 +304,9 @@ public class InodeSyncStream {
     int syncPathCount = 0;
     int failedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+    if (!mRootScheme.shouldSync() && !mForceSync) {
+      return SyncStatus.NOT_NEEDED;
+    }
     Instant start = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
@@ -437,7 +440,7 @@ public class InodeSyncStream {
     }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
-    return success;
+    return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 
   /**

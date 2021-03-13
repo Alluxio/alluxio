@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
 import static alluxio.master.file.InodeSyncStream.SyncStatus.FAILED;
-import static alluxio.master.file.InodeSyncStream.SyncStatus.SUCCESS;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
@@ -2705,7 +2704,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     // load metadata only and force sync
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
         this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
-    if (!sync.sync()) {
+    if (sync.sync().equals(FAILED)) {
       LOG.debug("Failed to load metadata for path from UFS: {}", path);
     }
   }
@@ -3333,7 +3332,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         LockingScheme scheme = createSyncLockingScheme(path, options, false);
         InodeSyncStream sync = new InodeSyncStream(scheme, this, rpcContext,
             DescendantType.ALL, options, false, false, false, false);
-        if (!sync.sync()) {
+        if (sync.sync().equals(FAILED)) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
         long end = System.currentTimeMillis();
@@ -3351,7 +3350,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             InodeSyncStream sync = new InodeSyncStream(scheme,
                 this, rpcContext,
                 DescendantType.ONE, options, false, false, false, false);
-            if (!sync.sync()) {
+            if (sync.sync().equals(FAILED)) {
               // Use debug because this can be a noisy log
               LOG.debug("Incremental sync on {} didn't sync any paths.", path);
             }
@@ -3419,17 +3418,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
       @Nullable PermissionCheckFunction permissionCheckOperation,
       boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
     LockingScheme syncScheme = createSyncLockingScheme(path, options, isGetFileInfo);
-    if (!syncScheme.shouldSync()) {
-      return NOT_NEEDED;
-    }
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
         false, false, false);
-    if (sync.sync()) {
-      return SUCCESS;
-    } else {
-      return FAILED;
-    }
+    return sync.sync();
   }
 
   @FunctionalInterface
