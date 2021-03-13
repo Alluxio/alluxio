@@ -325,7 +325,7 @@ public class UfsStatusCacheTest {
     createUfsDirs("dir0/dir1");
     ExecutorService executor =
         new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new SynchronousQueue<>());
-    mCache = new UfsStatusCache(mService, new NoopUfsAbsentPathCache(),
+    mCache = new UfsStatusCache(executor, new NoopUfsAbsentPathCache(),
         UfsAbsentPathCache.ALWAYS);
     mCache = Mockito.spy(mCache);
     Lock l = new ReentrantLock();
@@ -376,8 +376,7 @@ public class UfsStatusCacheTest {
   @Test
   public void testFetchSingleStatusNonExistingPath() throws Exception {
     spyUfs();
-    mThrown.expect(java.io.FileNotFoundException.class);
-    mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    assertNull(mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable));
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
@@ -385,8 +384,7 @@ public class UfsStatusCacheTest {
   public void testFetchSingleStatusThrowsException() throws Exception {
     spyUfs();
     doThrow(new IOException("test exception")).when(mUfs).getStatus(any(String.class));
-    mThrown.expect(IOException.class);
-    mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable);
+    assertNull(mCache.fetchStatusIfAbsent(new AlluxioURI("/testFile"), mMountTable));
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
