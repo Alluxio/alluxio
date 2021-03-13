@@ -840,7 +840,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         ufsAccessed = true;
       }
       LoadMetadataContext lmCtx = LoadMetadataContext.mergeFrom(
-          LoadMetadataPOptions.newBuilder().setCreateAncestors(true).setCommonOptions(
+          LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+              .setLoadType(context.getOptions().getLoadMetadataType()).setCommonOptions(
               FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
@@ -1006,6 +1007,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataContext loadMetadataContext = LoadMetadataContext.mergeFrom(
           LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+              .setLoadType(context.getOptions().getLoadMetadataType())
               .setLoadDescendantType(GrpcUtils.toProto(loadDescendantType)).setCommonOptions(
               FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
@@ -1167,7 +1169,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   private void checkLoadMetadataOptions(LoadMetadataPType loadMetadataType, AlluxioURI path)
           throws FileDoesNotExistException {
     if (loadMetadataType == LoadMetadataPType.NEVER || (loadMetadataType == LoadMetadataPType.ONCE
-            && mUfsAbsentPathCache.isAbsent(path, UfsAbsentPathCache.ANYTIME))) {
+            && mUfsAbsentPathCache.isAbsent(path, UfsAbsentPathCache.ALWAYS))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
   }
@@ -2698,9 +2700,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
     FileSystemMasterCommonPOptions commonOptions =
         context.getOptions().getCommonOptions();
+    boolean loadAlways = context.getOptions().hasLoadType()
+        && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
-        this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true);
+        this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
     if (!sync.sync()) {
       LOG.debug("Failed to load metadata for path from UFS: {}", path);
     }
@@ -3328,7 +3332,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
         LockingScheme scheme = createSyncLockingScheme(path, options, false);
         InodeSyncStream sync = new InodeSyncStream(scheme, this, rpcContext,
-            DescendantType.ALL, options, false, false, false);
+            DescendantType.ALL, options, false, false, false, false);
         if (!sync.sync()) {
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
@@ -3346,7 +3350,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             LockingScheme scheme = createSyncLockingScheme(changedFile, options, false);
             InodeSyncStream sync = new InodeSyncStream(scheme,
                 this, rpcContext,
-                DescendantType.ONE, options, false, false, false);
+                DescendantType.ONE, options, false, false, false, false);
             if (!sync.sync()) {
               // Use debug because this can be a noisy log
               LOG.debug("Incremental sync on {} didn't sync any paths.", path);
@@ -3420,7 +3424,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
     InodeSyncStream sync = new InodeSyncStream(syncScheme, this, rpcContext, syncDescendantType,
         options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
-        false, false);
+        false, false, false);
     if (sync.sync()) {
       return SUCCESS;
     } else {

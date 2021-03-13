@@ -72,22 +72,22 @@ public class AsyncUfsAbsentPathCacheTest {
   public void isAbsent() throws Exception {
     AlluxioURI absentPath = new AlluxioURI("/mnt/absent");
     // Existence of absentPath is not known yet
-    assertFalse(mUfsAbsentPathCache.isAbsent(absentPath, UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(absentPath, UfsAbsentPathCache.ALWAYS));
     process(absentPath);
     // absentPath is known to be absent
-    assertTrue(mUfsAbsentPathCache.isAbsent(absentPath, UfsAbsentPathCache.ANYTIME));
+    assertTrue(mUfsAbsentPathCache.isAbsent(absentPath, UfsAbsentPathCache.ALWAYS));
     // child of absentPath is also known to be absent
-    assertTrue(mUfsAbsentPathCache.isAbsent(absentPath.join("a"), UfsAbsentPathCache.ANYTIME));
+    assertTrue(mUfsAbsentPathCache.isAbsent(absentPath.join("a"), UfsAbsentPathCache.ALWAYS));
 
     mTemp.newFolder("folder");
     AlluxioURI newFolder = new AlluxioURI("/mnt/folder");
     // Existence of newFolder is not known yet
-    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder, UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder, UfsAbsentPathCache.ALWAYS));
     process(newFolder);
     // newFolder is known to exist
-    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder, UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder, UfsAbsentPathCache.ALWAYS));
     // Existence of child of newFolder is not known
-    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder.join("a"), UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(newFolder.join("a"), UfsAbsentPathCache.ALWAYS));
   }
 
   @Test
@@ -197,11 +197,16 @@ public class AsyncUfsAbsentPathCacheTest {
         new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/"), UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/"),
+        UfsAbsentPathCache.ALWAYS));
   }
 
   @Test
@@ -219,11 +224,16 @@ public class AsyncUfsAbsentPathCacheTest {
     assertTrue((new File(mLocalUfsPath + ufsBase + "/c/d")).mkdirs());
     process(new AlluxioURI(alluxioBase + "/c/d"));
 
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a"), UfsAbsentPathCache.ANYTIME));
-    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/"), UfsAbsentPathCache.ANYTIME));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c/d"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b/c"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a/b"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/a"),
+        UfsAbsentPathCache.ALWAYS));
+    assertFalse(mUfsAbsentPathCache.isAbsent(new AlluxioURI("/mnt/"),
+        UfsAbsentPathCache.ALWAYS));
   }
 
   private void process(AlluxioURI path) throws Exception {
@@ -241,14 +251,15 @@ public class AsyncUfsAbsentPathCacheTest {
       AlluxioURI levelUri = firstAbsent.join("level" + level);
       for (int dir = 1; dir <= 2; dir++) {
         AlluxioURI uri = levelUri.join("dir" + dir);
-        assertTrue(uri.toString(), mUfsAbsentPathCache.isAbsent(uri, UfsAbsentPathCache.ANYTIME));
+        assertTrue(uri.toString(), mUfsAbsentPathCache.isAbsent(uri, UfsAbsentPathCache.ALWAYS));
       }
     }
 
     // Check all ancestors
     AlluxioURI existing = firstAbsent.getParent();
     while (existing != null) {
-      assertFalse(existing.toString(), mUfsAbsentPathCache.isAbsent(existing, UfsAbsentPathCache.ANYTIME));
+      assertFalse(existing.toString(), mUfsAbsentPathCache.isAbsent(existing,
+          UfsAbsentPathCache.ALWAYS));
       existing = existing.getParent();
     }
   }

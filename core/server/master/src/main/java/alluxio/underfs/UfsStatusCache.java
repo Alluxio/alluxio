@@ -61,6 +61,7 @@ public class UfsStatusCache {
    *                         calls to {@link #prefetchChildren(AlluxioURI, MountTable)} will not
    *                         schedule any tasks.
    * @param absentPathCache the absent cache that ufsStatusCache should consult
+   * @param cacheValidTime  the time when the absent cache entry would be considered valid
    */
   public UfsStatusCache(@Nullable ExecutorService prefetchExecutor,
       UfsAbsentPathCache absentPathCache, long cacheValidTime) {
@@ -273,6 +274,9 @@ public class UfsStatusCache {
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
+    }
+    if (mAbsentCache.isAbsent(path, mCacheValidTime)) {
+      return null;
     }
     MountTable.Resolution resolution = mountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();

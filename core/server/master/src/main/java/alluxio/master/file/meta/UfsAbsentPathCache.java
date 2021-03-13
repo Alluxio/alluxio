@@ -24,7 +24,8 @@ import java.util.List;
  * Cache for recording information about paths that are not present in UFS.
  */
 public interface UfsAbsentPathCache {
-  long ANYTIME = -1;
+  long ALWAYS = -1;
+  long NEVER = Long.MAX_VALUE;
 
   /**
    * Processes the given path for the cache. This will sequentially walk down the path to find
@@ -35,6 +36,10 @@ public interface UfsAbsentPathCache {
    */
   void processAsync(AlluxioURI path, List<Inode> prefixInodes);
 
+  /**
+   * Add a single path to the absent cache synchronously.
+   * @param path the path to process for the cache
+   */
   void addSinglePath(AlluxioURI path);
 
   /**
@@ -50,6 +55,7 @@ public interface UfsAbsentPathCache {
    * A path is absent if one of its ancestors is absent.
    *
    * @param path the path to check
+   * @param timeMs the time when the cache entry would be considered valid
    * @return true if the path is absent according to the cache
    */
   boolean isAbsent(AlluxioURI path, long timeMs);

@@ -39,7 +39,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
-import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -65,7 +64,7 @@ import java.util.concurrent.TimeoutException;
  * Tests the loading of metadata and the available options.
  */
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
-  private static final long SLEEP_MS = Constants.SECOND_MS / 4;
+  private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static final int EXTRA_DIR_FILES = 6;
 
   private FileSystem mFileSystem;
@@ -122,14 +121,14 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
             ).build();
     // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
     // and the file itself
-    checkListStatus("/mnt/dir1/dirA/file", options, true, 3);
+    checkListStatus("/mnt/dir1/dirA/file", options, true, true, 3);
     // The second time, it only needs to sync the file, so 1 access
-    checkListStatus("/mnt/dir1/dirA/file", options, true, 0);
+    checkListStatus("/mnt/dir1/dirA/file", options, true, true, 0);
     // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
     // and the file itself
-    checkListStatus("/mnt/dir1/dirDNE", options, false, 1);
+    checkListStatus("/mnt/dir1/dirDNE", options, false, false, 1);
     // The second time, it only needs to sync the file, so 1 access
-    checkListStatus("/mnt/dir1/dirDNE/dirDNE2/file1", options, false, 0);
+    checkListStatus("/mnt/dir1/dirDNE/dirDNE2/file1", options, false, false, 0);
   }
 
   @Test
@@ -138,25 +137,24 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
         ).build();
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE2/file2", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE2", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dirB/fileDNE", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE2/file2", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE2", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dirB/fileDNE", options, false, false, 0);
     GetStatusPOptions optionsAlways =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
         ).build();
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", optionsAlways, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", optionsAlways, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", optionsAlways, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", optionsAlways, false, false, 1);
   }
 
-
   @Test
-  public void mustCacheDir() throws Exception {
+  public void absentCacheMustCache() throws Exception {
     ListStatusPOptions options =
         ListStatusPOptions.newBuilder().setRecursive(true)
             .setLoadMetadataType(LoadMetadataPType.ONCE)
@@ -166,10 +164,11 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
             ).build();
-    // This can be improved, right now it checks each level of the directory!!
-    checkListStatus("/mnt/mustcache/dir1/dir2", options, true, 1);
-    checkListStatus("/mnt/mustcache/dir1", options, true, 2);
-    checkListStatus("/mnt/mustcache", options, true, 3);
+    // Each of these calls should only check one level of the directory,
+    // because all the sub directories should be in the absent cache.
+    checkListStatus("/mnt/mustcache/dir1/dir2", options, true, false, 1);
+    checkListStatus("/mnt/mustcache/dir1", options, true, false, 1);
+    checkListStatus("/mnt/mustcache", options, true, false, 1);
   }
 
   @Test
@@ -179,8 +178,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
             .setLoadMetadataType(LoadMetadataPType.ONCE)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
             ).build();
-    checkListStatus("/mnt/dir1/", options, true, 3);
-    checkListStatus("/mnt/dir1/", options, true, 0);
+    checkListStatus("/mnt/dir1/", options, true, true, 3);
+    checkListStatus("/mnt/dir1/", options, true, true, 0);
   }
 
   @Test
@@ -195,8 +194,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
             ).build();
     // This can be improved
-    checkGetStatus("/mnt/dir1/dirA/file", getOptions, true, 3);
-    checkListStatus("/mnt/dir1/", listOptions, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/file", getOptions, true, true, 3);
+    checkListStatus("/mnt/dir1/", listOptions, true, true, 3);
   }
 
   @Test
@@ -207,46 +206,46 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
             ).build();
     // The first time, it needs status of /dir1, /dir1/dirA to create the dirs in Alluxio
     // and the file itself
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, true, 3);
     // The second time, it only needs to sync the file, so 1 access
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 1);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, true, 1);
   }
 
   @Test
   public void loadMetadataAlways() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, false, 1);
   }
 
   @Test
   public void loadMetadataNever() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/file", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE3", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/file", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/fileDNE3", options, false, true, 0);
   }
 
   @Test
   public void loadMetadataOnce() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/file", options, true, 3);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1/file1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir2", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/file", options, true, true, 3);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir1/file1", options, false, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirDNE/dir2", options, false, false, 0);
   }
 
   @Test
@@ -254,21 +253,22 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     // dirB does not exist yet
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 1);
 
     // create dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
     // 'ONCE' still should not load the metadata
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
 
     // load metadata for dirB with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), true,
-        3);
+        true, 3);
 
-    // 'ONCE' should now load the metadata
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
+    // 'ONCE' should now load the metadata, but will be handled by the absent cache,
+    // so no need to go to the ufs
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
   }
 
   @Test
@@ -278,22 +278,22 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     // create dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
 
     // delete dirB in UFS
     assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").delete());
 
     // 'ONCE' should not be affected if UFS is changed
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
 
     // force load metadata with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), false,
-        1);
+        false, 1);
 
     // 'ONCE' should still not load metadata, since the ancestor is absent
-    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -303,8 +303,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadAlwaysConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -314,8 +314,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadOnceConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 1);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 1);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false, 0);
   }
 
   @LocalAlluxioClusterResource.Config(
@@ -325,8 +325,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadNeverConfiguration() throws Exception {
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
-    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true, 0);
+    checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true, 0);
   }
 
   @Test
@@ -416,40 +416,42 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
    *
    * @param path the path to get the status for
    * @param options the options for the get status call
-   * @param expectExists if true, the path should exist
+   * @param expectExistsAlluxio if true, the path should exist in Alluxio
+   * @param expectExistsUfs if true, the path should exist in UFS and be removed from absent cache
    * @param expectedAccesses the number of expected UFS Accesses
    */
-  private void checkGetStatus(final String path, GetStatusPOptions options, boolean expectExists,
-      int expectedAccesses)
+  private void checkGetStatus(final String path, GetStatusPOptions options,
+      boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
     checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.getStatus(
             new AlluxioURI(statusPath), (GetStatusPOptions) statusOption),
-        options, expectExists, expectedAccesses);
+        options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
   }
 
-  private void checkListStatus(final String path, ListStatusPOptions options, boolean expectExists,
-      int expectedAccesses)
+  private void checkListStatus(final String path, ListStatusPOptions options,
+      boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
     checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.listStatus(
             new AlluxioURI(statusPath), (ListStatusPOptions) statusOption),
-        options, expectExists, expectedAccesses);
+        options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
   }
 
   private void checkFunctionCall(final String path,
       CheckedBiFunction<String, Message, Object> function,
-      Message options, boolean expectExists,
+      Message options, boolean expectExistsAlluxio, boolean expectExistsUfs,
       int expectedAccesses) throws Exception {
     long startMs = CommonUtils.getCurrentMs();
     boolean expectLoadFromUfs = (expectedAccesses >= 1);
     try {
       Object result = function.apply(path, options);
-      if (!expectExists) {
+      UfsAbsentPathCache cache = getUfsAbsentPathCache();
+      if (!expectExistsAlluxio) {
         Assert.fail("Path is not expected to exist: " + path);
       }
     } catch (FileDoesNotExistException e) {
-      if (expectExists) {
+      if (expectExistsAlluxio) {
         throw e;
       }
     }
@@ -459,26 +461,27 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
             + ". actual duration (ms): " + durationMs,
         durationMs >= expectedAccesses * SLEEP_MS
             && durationMs < (expectedAccesses + 0.5) * SLEEP_MS);
-    if (!expectExists && expectLoadFromUfs) {
+
+    if (!expectExistsUfs) {
       // The metadata is loaded from Ufs, but the path does not exist, so it will be added to the
       // absent cache. Wait until the path shows up in the absent cache.
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
       try {
         CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
-            () -> cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ANYTIME),
+            () -> cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS),
             WaitForOptions.defaults().setTimeoutMs(60000));
       } catch (TimeoutException e) {
         fail("Absent Path Cache addition timed out");
       }
     }
 
-    if (expectExists && expectLoadFromUfs) {
+    if (expectExistsUfs) {
       // The metadata is loaded from Ufs, and the path exists, so it will be removed from the
       // absent cache. Wait until the path is removed.
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
       try {
         CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
-          if (cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ANYTIME)) {
+          if (cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS)) {
             return false;
           }
           return true;

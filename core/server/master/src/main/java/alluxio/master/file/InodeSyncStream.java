@@ -49,6 +49,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.journal.MergeJournalContext;
@@ -174,9 +175,6 @@ public class InodeSyncStream {
   /** The sync options on the RPC.  */
   private final FileSystemMasterCommonPOptions mSyncOptions;
 
-  /** The valid cache time we must follow. */
-  private final long mValidCacheTimeMs;
-
   /**
    * Whether the caller is {@link FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}.
    * This is used for the {@link #mUfsSyncPathCache}.
@@ -224,13 +222,15 @@ public class InodeSyncStream {
    * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
    * @param forceSync whether to sync inode metadata no matter what
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
+   * @param loadAlways whether to always load new metadata from the ufs, even if a file or
+   *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootPath, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
       @Nullable DefaultFileSystemMaster.PermissionCheckFunction permissionCheckOperation,
-      boolean isGetFileInfo, boolean forceSync, boolean loadOnly) {
+      boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
@@ -250,15 +250,21 @@ public class InodeSyncStream {
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
     mPermissionCheckOperation = permissionCheckOperation;
+    // If an absent cache entry was more recent than this value, then it is valid for this sync
+    long validCacheTime;
     if (loadOnly) {
-      mValidCacheTimeMs = -1;
+      if (loadAlways) {
+        validCacheTime = UfsAbsentPathCache.NEVER;
+      } else {
+        validCacheTime = UfsAbsentPathCache.ALWAYS;
+      }
     } else {
       long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
           ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-      mValidCacheTimeMs = System.currentTimeMillis() - syncInterval;
+      validCacheTime = System.currentTimeMillis() - syncInterval;
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
-        fsMaster.getAbsentPathCache(), mValidCacheTimeMs);
+        fsMaster.getAbsentPathCache(), validCacheTime);
   }
 
   /**
@@ -272,12 +278,14 @@ public class InodeSyncStream {
    * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
    * @param forceSync whether to sync inode metadata no matter what
    * @param loadOnly whether to only load new metadata, rather than update existing metadata
+   * @param loadAlways whether to always load new metadata from the ufs, even if a file or
+   *                   directory has been previous found to not exist
    */
   public InodeSyncStream(LockingScheme rootScheme, DefaultFileSystemMaster fsMaster,
       RpcContext rpcContext, DescendantType descendantType, FileSystemMasterCommonPOptions options,
-      boolean isGetFileInfo, boolean forceSync, boolean loadOnly) {
+      boolean isGetFileInfo, boolean forceSync, boolean loadOnly, boolean loadAlways) {
     this(rootScheme, fsMaster, rpcContext, descendantType, options, null, null, null,
-        isGetFileInfo, forceSync, loadOnly);
+        isGetFileInfo, forceSync, loadOnly, loadAlways);
   }
 
   /**

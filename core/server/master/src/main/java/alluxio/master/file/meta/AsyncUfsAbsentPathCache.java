@@ -63,7 +63,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /** Cache of paths which are absent in the ufs, maps an alluxio path to a Pair
    *  which is the sync time and the mount id.
    */
-  private final Cache<String, Pair<Long, Long>>mCache;
+  private final Cache<String, Pair<Long, Long>> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
   /** Number of threads for the async pool. */
