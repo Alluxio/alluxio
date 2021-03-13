@@ -53,6 +53,8 @@ spec:
       hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.worker.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
