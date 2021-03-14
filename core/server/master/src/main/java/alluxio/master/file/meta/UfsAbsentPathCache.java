@@ -52,7 +52,8 @@ public interface UfsAbsentPathCache {
   void processExisting(AlluxioURI path);
 
   /**
-   * Returns true if the given path was found to be absent since absentSince, according to this cache.
+   * Returns true if the given path was found to be absent since absentSince, according to this
+   * cache.
    * A path is absent if one of its ancestors is absent.
    *
    * @param path the path to check
