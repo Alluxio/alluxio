@@ -252,7 +252,7 @@ public class AsyncUfsAbsentPathCacheTest {
       for (int dir = 1; dir <= 2; dir++) {
         AlluxioURI uri = levelUri.join("dir" + dir);
         assertTrue(uri.toString(),
-            ßmUfsAbsentPathCache.isAbsentSince(uri, UfsAbsentPathCache.ALWAYS));
+            mUfsAbsentPathCache.isAbsentSince(uri, UfsAbsentPathCache.ALWAYS));
       }
     }
 
