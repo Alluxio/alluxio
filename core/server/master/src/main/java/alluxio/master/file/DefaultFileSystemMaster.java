@@ -1168,7 +1168,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   private void checkLoadMetadataOptions(LoadMetadataPType loadMetadataType, AlluxioURI path)
           throws FileDoesNotExistException {
     if (loadMetadataType == LoadMetadataPType.NEVER || (loadMetadataType == LoadMetadataPType.ONCE
-            && mUfsAbsentPathCache.isAbsent(path, UfsAbsentPathCache.ALWAYS))) {
+            && mUfsAbsentPathCache.isAbsentSince(path, UfsAbsentPathCache.ALWAYS))) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
   }

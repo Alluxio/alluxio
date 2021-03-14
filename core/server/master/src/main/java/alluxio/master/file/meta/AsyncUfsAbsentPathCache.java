@@ -123,7 +123,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public boolean isAbsent(AlluxioURI path, long timeMs) {
+  public boolean isAbsentSince(AlluxioURI path, long absentSince) {
     MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
       return false;
@@ -135,7 +135,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
       if (cacheResult != null && cacheResult.getFirst() != null
           && cacheResult.getSecond() != null
-          && cacheResult.getFirst() >= timeMs
+          && cacheResult.getFirst() >= absentSince
           && cacheResult.getSecond() == mountInfo.getMountId()) {
         return true;
       }

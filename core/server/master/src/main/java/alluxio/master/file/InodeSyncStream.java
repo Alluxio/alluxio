@@ -291,7 +291,7 @@ public class InodeSyncStream {
   /**
    * Sync the metadata according the the root path the stream was created with.
    *
-   * @return true if at least one path was synced
+   * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
     // The high-level process for the syncing is:

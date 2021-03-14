@@ -133,7 +133,7 @@ public class UfsStatusCache {
   }
 
   private void checkAbsentCache(AlluxioURI path) throws FileNotFoundException {
-    if (mAbsentCache.isAbsent(path, mCacheValidTime)) {
+    if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
       throw new FileNotFoundException("UFS Status not found for path " + path.toString());
     }
   }
@@ -275,7 +275,7 @@ public class UfsStatusCache {
     if (children != null) {
       return children;
     }
-    if (mAbsentCache.isAbsent(path, mCacheValidTime)) {
+    if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
       return null;
     }
     MountTable.Resolution resolution = mountTable.resolve(path);

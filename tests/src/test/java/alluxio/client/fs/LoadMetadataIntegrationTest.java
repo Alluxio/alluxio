@@ -468,7 +468,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
       try {
         CommonUtils.waitFor("path (" + path + ") to be added to absent cache",
-            () -> cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS),
+            () -> cache.isAbsentSince(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS),
             WaitForOptions.defaults().setTimeoutMs(60000));
       } catch (TimeoutException e) {
         fail("Absent Path Cache addition timed out");
@@ -481,7 +481,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
       try {
         CommonUtils.waitFor("path (" + path + ") to be removed from absent cache", () -> {
-          if (cache.isAbsent(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS)) {
+          if (cache.isAbsentSince(new AlluxioURI(path), UfsAbsentPathCache.ALWAYS)) {
             return false;
           }
           return true;
