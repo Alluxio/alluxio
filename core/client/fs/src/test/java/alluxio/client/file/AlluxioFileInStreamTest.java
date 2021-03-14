@@ -643,7 +643,7 @@ public final class AlluxioFileInStreamTest {
   @Test
   public void seekPastEnd() throws IOException {
     try {
-      mTestStream.seek(FILE_LENGTH + 1);
+      mTestStream.seek(FILE_LENGTH);
       fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
       assertEquals(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(),

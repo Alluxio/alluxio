@@ -309,7 +309,7 @@ public class AlluxioFileInStream extends FileInStream {
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= mLength,
+    Preconditions.checkArgument(pos < mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
 
     if (mBlockInStream == null) { // no current stream open, advance position
@@ -383,23 +383,24 @@ public class AlluxioFileInStream extends FileInStream {
   }
 
   // Send an async cache request to a worker based on read type and passive cache options.
-  private void triggerAsyncCaching(BlockInStream stream) throws IOException {
-    boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
-    boolean overReplicated = mStatus.getReplicationMax() > 0
-        && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
-        .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
-    cache = cache && !overReplicated;
-    // Get relevant information from the stream.
-    WorkerNetAddress dataSource = stream.getAddress();
-    long blockId = stream.getId();
-    if (cache && (mLastBlockIdCached != blockId)) {
-      WorkerNetAddress worker;
-      if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
-        worker = mContext.getLocalWorker();
-      } else { // send request to data source
-        worker = dataSource;
-      }
-      try {
+  // Note that, this is best effort
+  private void triggerAsyncCaching(BlockInStream stream) {
+    try {
+      boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
+      boolean overReplicated = mStatus.getReplicationMax() > 0
+          && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
+          .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
+      cache = cache && !overReplicated;
+      // Get relevant information from the stream.
+      WorkerNetAddress dataSource = stream.getAddress();
+      long blockId = stream.getId();
+      if (cache && (mLastBlockIdCached != blockId)) {
+        WorkerNetAddress worker;
+        if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
+          worker = mContext.getLocalWorker();
+        } else { // send request to data source
+          worker = dataSource;
+        }
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
         AsyncCacheRequest request =
@@ -412,10 +413,10 @@ public class AlluxioFileInStream extends FileInStream {
           blockWorker.get().asyncCache(request);
           mLastBlockIdCached = blockId;
         }
-      } catch (Exception e) {
-        LOG.warn("Failed to complete async cache request for block {} of file {} at worker {}: {}",
-            blockId, mStatus.getPath(), worker, e.getMessage());
       }
+    } catch (Exception e) {
+      LOG.warn("Failed to complete async cache request (best effort) for block {} of file {}: {}",
+          stream.getId(), mStatus.getPath(), e.toString());
     }
   }
 

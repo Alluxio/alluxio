@@ -330,7 +330,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions
-        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
+        .checkArgument(pos < mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
             mId);
     if (pos == mPos) {
       return;
