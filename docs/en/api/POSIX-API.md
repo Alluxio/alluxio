@@ -59,13 +59,8 @@ can further simplify the setup.
 - Install JDK 1.8 or newer
 - Install libfuse
     - On Linux, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-reported to also work - with some warnings). For example on a Redhat, run
-
-```console
-$ yum install fuse fuse-devel
-```
-
-    - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer.
+reported to also work - with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+    - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
 - JNI-Fuse is enabled by default for better performance. 
 If JNR-Fuse is needed, set `alluxio.fuse.jnifuse.enabled` to `false` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
