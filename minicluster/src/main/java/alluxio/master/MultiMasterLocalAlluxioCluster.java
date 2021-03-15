@@ -48,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
-  private static final int WAIT_MASTER_START_TIMEOUT_MS = 10000;
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 20000;
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
