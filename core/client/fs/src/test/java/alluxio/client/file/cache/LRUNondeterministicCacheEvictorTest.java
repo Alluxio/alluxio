@@ -15,7 +15,9 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.cache.evictor.LRUNondeterministicCacheEvictor;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+
 import org.hamcrest.Matchers;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,10 +26,10 @@ import org.junit.Test;
  * Tests for the {@link LRUNondeterministicCacheEvictor} class.
  */
 public final class LRUNondeterministicCacheEvictorTest {
-  private LRUNondeterministicCacheEvictor mEvictor;
   private final PageId mFirst = new PageId("1L", 2L);
   private final PageId mSecond = new PageId("3L", 4L);
   private final PageId mThird = new PageId("5L", 6L);
+  private LRUNondeterministicCacheEvictor mEvictor;
 
   /**
    * Sets up the instances.
@@ -45,10 +47,12 @@ public final class LRUNondeterministicCacheEvictorTest {
     mEvictor.updateOnGet(mSecond);
     mEvictor.updateOnGet(mThird);
     PageId evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mFirst == evictionCandidate)).or(Matchers.is(mSecond == evictionCandidate));
+    Matchers.either(Matchers.is(mFirst == evictionCandidate))
+        .or(Matchers.is(mSecond == evictionCandidate));
     mEvictor.updateOnDelete(mFirst);
     evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mSecond == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mSecond == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
   }
 
   @Test
@@ -58,10 +62,12 @@ public final class LRUNondeterministicCacheEvictorTest {
     mEvictor.updateOnGet(mThird);
     mEvictor.updateOnGet(mFirst);
     PageId evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mSecond == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mSecond == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
     mEvictor.updateOnDelete(mSecond);
     evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mFirst == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mFirst == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
     mEvictor.updateOnDelete(mThird);
     Assert.assertEquals(mFirst, mEvictor.evict());
   }
@@ -71,7 +77,8 @@ public final class LRUNondeterministicCacheEvictorTest {
     mEvictor.updateOnPut(mFirst);
     mEvictor.updateOnPut(mSecond);
     PageId evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mFirst == evictionCandidate)).or(Matchers.is(mSecond == evictionCandidate));
+    Matchers.either(Matchers.is(mFirst == evictionCandidate))
+        .or(Matchers.is(mSecond == evictionCandidate));
     mEvictor.updateOnDelete(mFirst);
     Assert.assertEquals(mSecond, mEvictor.evict());
   }
@@ -83,10 +90,12 @@ public final class LRUNondeterministicCacheEvictorTest {
     mEvictor.updateOnPut(mThird);
     mEvictor.updateOnPut(mFirst);
     PageId evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mSecond == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mSecond == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
     mEvictor.updateOnDelete(mSecond);
     evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mFirst == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mFirst == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
     mEvictor.updateOnDelete(mThird);
     Assert.assertEquals(mFirst, mEvictor.evict());
   }
@@ -98,7 +107,8 @@ public final class LRUNondeterministicCacheEvictorTest {
     mEvictor.updateOnPut(mThird);
     mEvictor.updateOnDelete(mSecond);
     PageId evictionCandidate = mEvictor.evict();
-    Matchers.either(Matchers.is(mFirst == evictionCandidate)).or(Matchers.is(mThird == evictionCandidate));
+    Matchers.either(Matchers.is(mFirst == evictionCandidate))
+        .or(Matchers.is(mThird == evictionCandidate));
     mEvictor.updateOnDelete(mFirst);
     Assert.assertEquals(mThird, mEvictor.evict());
   }

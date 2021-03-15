@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,7 +47,8 @@ public class LRUNondeterministicCacheEvictor implements CacheEvictor {
    * @param conf Alluxio configuration
    */
   public LRUNondeterministicCacheEvictor(AlluxioConfiguration conf) {
-    mNumOfCandidate = conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE);
+    mNumOfCandidate =
+        conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE);
   }
 
   @Override

@@ -3849,12 +3849,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE =
           new Builder(Name.USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE)
-                  // TODO(zhenyu): is 4 a good default value?
-                  .setDefaultValue(4)
-                  .setDescription("Number of eviction candidates for client cache LRU non-deterministic evictor to choose from LRU tail.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.CLIENT)
-                  .build();
+          // TODO(zhenyu): is 4 a good default value?
+          .setDefaultValue(4)
+          .setDescription("Number of eviction candidates for client cache LRU "
+              + "non-deterministic evictor to choose from LRU tail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
