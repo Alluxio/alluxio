@@ -399,8 +399,14 @@ You can find more details about the worker storage [here]({{ '/en/core-services/
 Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
 access to Alluxio on Docker host using the POSIX API.
 
-For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
+For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
+First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
+```console
+$ mkdir -p /tmp/mnt && sudo chmod -R a+rwx /tmp/mnt
+```
+
+Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
 ```console
 $ docker run --rm \
     --net=host \
