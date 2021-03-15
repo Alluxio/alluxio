@@ -309,7 +309,7 @@ public class AlluxioFileInStream extends FileInStream {
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos < mLength,
+    Preconditions.checkArgument(pos <= mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
 
     if (mBlockInStream == null) { // no current stream open, advance position
