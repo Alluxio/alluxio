@@ -3847,6 +3847,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE =
+          new Builder(Name.USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE)
+                  // TODO(zhenyu): is 4 a good default value?
+                  .setDefaultValue(4)
+                  .setDescription("Number of eviction candidates for client cache LRU non-deterministic evictor to choose from LRU tail.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.CLIENT)
+                  .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -5687,6 +5695,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE =
         "alluxio.user.client.cache.evictor.lfu.logbase";
+    public static final String USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE =
+            "alluxio.user.client.cache.evictor.lru.nondeterministic.numofcandidate";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
