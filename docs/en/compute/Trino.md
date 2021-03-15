@@ -20,6 +20,7 @@ latency when other storage systems are remote or the network is slow or congeste
 {:toc}
 
 ## Using Trino with the Alluxio Catalog Service
+
 Currently, there are 2 ways to enable Trino to interact with Alluxio:
 * Trino interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
 * Trino interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
