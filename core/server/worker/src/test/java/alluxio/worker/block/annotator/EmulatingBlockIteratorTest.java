@@ -89,7 +89,7 @@ public class EmulatingBlockIteratorTest {
     // That's also why emulation can't be tested reliably with 'Reverse' iteration order.
     for (StorageDir dir : expectedListPerDir.keySet()) {
       validateIteratorHeader(
-          mBlockIterator.getIterator(dir.toBlockStoreLocation(), BlockOrder.Natural),
+          mBlockIterator.getIterator(dir.toBlockStoreLocation(), BlockOrder.NATURAL),
           expectedListPerDir.get(dir).iterator());
     }
   }

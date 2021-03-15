@@ -779,7 +779,7 @@ public class TieredBlockStore implements BlockStore {
     // List of all dirs that belong to the given location.
     List<StorageDirView> dirViews = evictorView.getDirs(location);
 
-    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.Natural);
+    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.NATURAL);
     while (true) {
       // Check if minContiguousBytes is satisfied.
       if (!contiguousSpaceFound) {
