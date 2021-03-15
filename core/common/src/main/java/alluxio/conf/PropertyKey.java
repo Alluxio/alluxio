@@ -1618,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
-              + "and IO to local disks.")
+              + "and IO to local disks).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2008,8 +2008,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
           .setDescription("Whether to tolerate master state corruption "
-              + "when standby master replaying journal. If enabled, errors from applying journal "
-              + "to master metadata will only be logged instead of forcing master to exit. "
+              + "when leader master recovering from backup and standby master replaying journal. "
+              + "If enabled, errors from applying journal to master metadata will only be logged "
+              + "instead of forcing master to exit. "
               + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
@@ -2618,14 +2619,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The permission set for the worker data folder. If short circuit is used "
               + "this folder should be accessible by all users (rwxrwxrwx).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_DATA_SERVER_CLASS =
-      new Builder(Name.WORKER_DATA_SERVER_CLASS)
-          .setDefaultValue("alluxio.worker.grpc.GrpcDataServer")
-          .setDescription("Selects the networking stack to run the worker with. Valid options "
-              + "are: `alluxio.worker.grpc.GrpcDataServer`.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
@@ -4544,8 +4537,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use JNI-Fuse library for better performance. "
+              + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5499,7 +5493,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
     public static final String WORKER_DATA_FOLDER_PERMISSIONS =
         "alluxio.worker.data.folder.permissions";
-    public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =

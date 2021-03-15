@@ -409,6 +409,7 @@ $ docker run --rm \
     -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
+    --security-opt apparmor:unconfined \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
 
@@ -421,8 +422,9 @@ capability.
 
 Additional POSIX API configuration can also be added based on actual use cases.
 For example,
-- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.jnifuse.enbaled=true"` add alluxio client/fuse side configuration
-to Alluxio POSIX API container. The example java opts enables Alluxio JNI-Fuse POSIX implementation.
+- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
+to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
+into Unix users and groups when exposing Alluxio files through the FUSE API.
 - `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
 

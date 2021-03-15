@@ -11,6 +11,9 @@
 
 package alluxio.jnifuse.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The shared library is extracted to a temp folder and loaded from there.
  */
 public class NativeLibraryLoader {
+  private static final Logger LOG = LoggerFactory.getLogger(NativeLibraryLoader.class);
   //singleton
   private static final NativeLibraryLoader INSTANCE = new NativeLibraryLoader();
   private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
@@ -70,9 +74,11 @@ public class NativeLibraryLoader {
   public synchronized void loadLibrary(final String tmpDir) throws IOException {
     try {
       System.loadLibrary(SHARED_LIBRARY_NAME);
+      LOG.info("Loaded {} by System.loadLibrary.", SHARED_LIBRARY_NAME);
     } catch (final UnsatisfiedLinkError ule1) {
       try {
         System.loadLibrary(JNI_LIBRARY_NAME);
+        LOG.info("Loaded {} by System.loadLibrary.", JNI_LIBRARY_NAME);
       } catch (final UnsatisfiedLinkError ule2) {
         loadLibraryFromJar(tmpDir);
       }
@@ -95,8 +101,10 @@ public class NativeLibraryLoader {
   void loadLibraryFromJar(final String tmpDir)
       throws IOException {
     if (!INITIALIZED.get()) {
-      System.load(loadLibraryFromJarToTemp(tmpDir).getAbsolutePath());
+      String libPath = loadLibraryFromJarToTemp(tmpDir).getAbsolutePath();
+      System.load(libPath);
       setInitialized(true);
+      LOG.info("Loaded lib by jar from path {}.", libPath);
     }
   }
 

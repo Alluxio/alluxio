@@ -19,17 +19,23 @@
 namespace jnifuse {
 
 class ChmodOperation;
+class ChownOperation;
 class CreateOperation;
 class FlushOperation;
 class GetattrOperation;
+class GetxattrOperation;
+class ListxattrOperation;
 class MkdirOperation;
 class OpenOperation;
 class Operation;
-class ReaddirOperation;
 class ReadOperation;
+class ReaddirOperation;
 class ReleaseOperation;
+class RemovexattrOperation;
 class RenameOperation;
 class RmdirOperation;
+class SetxattrOperation;
+class TruncateOperation;
 class UnlinkOperation;
 class WriteOperation;
 
@@ -52,16 +58,22 @@ class JniFuseFileSystem {
 
  public:
   ChmodOperation *chmodOper;
+  ChownOperation *chownOper;
   CreateOperation *createOper;
   FlushOperation *flushOper;
   GetattrOperation *getattrOper;
+  GetxattrOperation *getxattrOper;
+  ListxattrOperation *listxattrOper;
   MkdirOperation *mkdirOper;
   OpenOperation *openOper;
   ReadOperation *readOper;
   ReaddirOperation *readdirOper;
   ReleaseOperation *releaseOper;
+  RemovexattrOperation *removexattrOper;
   RenameOperation *renameOper;
   RmdirOperation *rmdirOper;
+  SetxattrOperation *setxattrOper;
+  TruncateOperation *truncateOper;
   UnlinkOperation *unlinkOper;
   WriteOperation *writeOper;
 };

@@ -36,6 +36,8 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
+import alluxio.worker.block.meta.DefaultTempBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -60,8 +62,8 @@ import java.util.Set;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
-    BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, StorageDir.class, ServerConfiguration.class, UnderFileSystem.class,
+    BlockHeartbeatReporter.class, BlockMetricsReporter.class,
+    BlockStoreLocation.class, ServerConfiguration.class, UnderFileSystem.class,
     BlockWorker.class, Sessions.class})
 public class BlockWorkerTest {
 
@@ -174,7 +176,7 @@ public class BlockWorkerTest {
     String mediumType = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
-    BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
+    BlockMeta blockMeta = mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
@@ -208,7 +210,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
-    BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
+    BlockMeta blockMeta = mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
@@ -236,7 +238,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = mock(StorageDir.class);
-    TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
+    TempBlockMeta meta = new DefaultTempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
         AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
@@ -259,7 +261,7 @@ public class BlockWorkerTest {
     String tierAlias = "HDD";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = mock(StorageDir.class);
-    TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
+    TempBlockMeta meta = new DefaultTempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
         AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
@@ -281,7 +283,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = mock(StorageDir.class);
-    TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
+    TempBlockMeta meta = new DefaultTempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
         AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
@@ -290,19 +292,6 @@ public class BlockWorkerTest {
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
-  }
-
-  /**
-   * Tests the {@link BlockWorker#freeSpace(long, long, String)} method.
-   */
-  @Test
-  public void freeSpace() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long availableBytes = mRandom.nextLong();
-    String tierAlias = "MEM";
-    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockWorker.freeSpace(sessionId, availableBytes, tierAlias);
-    verify(mBlockStore).freeSpace(sessionId, availableBytes, availableBytes, location);
   }
 
   /**
@@ -378,7 +367,7 @@ public class BlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.lockBlock(sessionId, blockId);
-    verify(mBlockStore).lockBlock(sessionId, blockId);
+    verify(mBlockStore).lockBlockNoException(sessionId, blockId);
   }
 
   /**
@@ -433,7 +422,7 @@ public class BlockWorkerTest {
     long blockSize = mRandom.nextLong();
     StorageDir storageDir = mock(StorageDir.class);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    BlockMeta meta = new BlockMeta(blockId, blockSize, storageDir);
+    BlockMeta meta = new DefaultBlockMeta(blockId, blockSize, storageDir);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(meta);
 
     mBlockWorker.readBlock(sessionId, blockId, lockId);
@@ -493,17 +482,6 @@ public class BlockWorkerTest {
 
     mBlockWorker.unlockBlock(sessionId, blockId);
     verify(mBlockStore).unlockBlock(sessionId, blockId);
-  }
-
-  /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long)} method.
-   */
-  @Test
-  public void sessionHeartbeat() {
-    long sessionId = mRandom.nextLong();
-
-    mBlockWorker.sessionHeartbeat(sessionId);
-    verify(mSessions).sessionHeartbeat(sessionId);
   }
 
   /**

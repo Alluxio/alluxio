@@ -311,6 +311,22 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public int setxattrCallback(String path, String name, ByteBuffer value, long size, int flags) {
+    return 0;
+  }
+
+  public int getxattrCallback(String path, String name, ByteBuffer value) {
+    return 0;
+  }
+
+  public int listxattrCallback(String path, ByteBuffer list) {
+    return 0;
+  }
+
+  public int removexattrCallback(String path, String name) {
+    return 0;
+  }
+
   @Override
   public FuseContext getContext() {
     ByteBuffer buffer = libFuse.fuse_get_context();

@@ -20,7 +20,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -99,17 +98,8 @@ public class AsyncCacheRequestManager {
         boolean result = false;
         try {
           boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
-          long sessionId = isSourceLocal ? Sessions.ASYNC_CACHE_UFS_SESSION_ID
-              : Sessions.ASYNC_CACHE_WORKER_SESSION_ID;
           // Check if the block has already been cached on this worker
-          long lockId =
-              mBlockWorker.lockBlockNoException(sessionId, blockId);
-          if (lockId != BlockLockManager.INVALID_LOCK_ID) {
-            try {
-              mBlockWorker.unlockBlock(lockId);
-            } catch (BlockDoesNotExistException e) {
-              LOG.error("Failed to unlock block on async caching. We should never reach here", e);
-            }
+          if (mBlockWorker.hasBlockMeta(blockId)) {
             ASYNC_CACHE_DUPLICATE_REQUESTS.inc();
             return;
           }

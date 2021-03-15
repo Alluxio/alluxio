@@ -20,6 +20,7 @@ import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.meta.DefaultTempBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -374,7 +375,7 @@ public final class TieredBlockStoreTestUtils {
   public static TempBlockMeta createTempBlock(long sessionId, long blockId, long bytes,
       StorageDir dir) throws Exception {
     // prepare temp block
-    TempBlockMeta tempBlockMeta = new TempBlockMeta(sessionId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = new DefaultTempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
 
     // write data

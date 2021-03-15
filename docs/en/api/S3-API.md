@@ -46,6 +46,23 @@ In this documentation, we use curl REST calls and python S3 client as usage exam
 For example, you can run the following RESTful API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
+#### Authorization
+
+By default, the user that is used to do any FileSystem operations is the user that was used to launch
+the proxy process. This can be changed by providing the Authorization Header.
+
+```console
+curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+HTTP/1.1 200 OK
+Date: Tue, 02 Mar 2021 00:02:26 GMT
+Content-Length: 0
+Server: Jetty(9.4.31.v20200723)
+
+$ bin/alluxio fs ls /
+drwxr-xr-x  testuser                                    0       PERSISTED 03-01-2021 16:02:26:547  DIR /testbucket0
+
+```
+
 #### Create a bucket
 
 ```console
@@ -55,6 +72,21 @@ HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:23:18 GMT
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
+```
+
+#### List all buckets owned by the user
+
+Authenticating as a user is necessary to have buckets returned by this operation.
+
+```console
+curl -i -H "Authorization: AWS testuser:" -X GET http://localhost:39999/api/v1/s3
+HTTP/1.1 200 OK
+Date: Tue, 02 Mar 2021 00:06:43 GMT
+Content-Type: application/xml
+Content-Length: 109
+Server: Jetty(9.4.31.v20200723)
+
+<ListAllMyBucketsResult><Buckets><Bucket><Name>testbucket0</Name></Bucket></Buckets></ListAllMyBucketsResult>%
 ```
 
 #### Get the bucket (listing objects)
@@ -317,11 +349,35 @@ conn = boto.connect_s3(
 )
 ```
 
+#### Authenticating as a user:
+By default, authenticating with no access_key_id uses the user that was used to launch the proxy
+as the user performing the file system actions.
+
+Set the ```aws_access_key_id``` to a different username to perform the actions under a different user.
+
 #### Create a bucket
 
 ```python
 bucketName = 'bucket-for-testing'
 bucket = conn.create_bucket(bucketName)
+```
+
+#### List all buckets owned by the user
+
+Authenticating as a user is necessary to have buckets returned by this operation.
+
+```python
+conn = boto.connect_s3(
+    aws_access_key_id = 'testuser',
+    aws_secret_access_key = '',
+    host = 'localhost',
+    port = 39999,
+    path = '/api/v1/s3',
+    is_secure=False,
+    calling_format = boto.s3.connection.OrdinaryCallingFormat(),
+)
+
+conn.get_all_buckets()
 ```
 
 #### PUT a small object

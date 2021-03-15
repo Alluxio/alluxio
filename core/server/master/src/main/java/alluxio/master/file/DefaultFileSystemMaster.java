@@ -986,8 +986,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
           auditContext, LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath))
-          .equals(NOT_NEEDED)) {
+          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
+          false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -1224,7 +1224,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           DescendantType.NONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkPermission(bits, inodePath)
+          (inodePath, permChecker) -> permChecker.checkPermission(bits, inodePath),
+          false
       );
 
       LockingScheme lockingScheme =
@@ -1255,7 +1256,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ALL,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath,  permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath));
+          (inodePath,  permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
+          false);
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ);
@@ -1532,7 +1534,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           (inodePath) -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
           (inodePath, permChecker) -> permChecker
-              .checkParentPermission(Mode.Bits.WRITE, inodePath));
+              .checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false);
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
@@ -1688,7 +1691,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
           auditContext,
           LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath)
+          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false
       );
 
       LockingScheme lockingScheme =
@@ -2145,7 +2149,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           inodePath -> context.getOptions().getRecursive()
               ? inodePath.getLastExistingInode() : inodePath.getParentInodeOrNull(),
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath)
+          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false
       );
 
       LockingScheme lockingScheme =
@@ -2241,7 +2246,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath)
+          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false
       );
 
       syncMetadata(rpcContext,
@@ -2250,7 +2256,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath)
+          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false
       );
 
       LockingScheme srcLockingScheme =
@@ -2806,7 +2813,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           DescendantType.ONE,
           auditContext,
           LockedInodePath::getParentInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath)
+          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+          false
       );
 
       LockingScheme lockingScheme =
@@ -2986,7 +2994,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) ->
-              permChecker.checkSetAttributePermission(inodePath, false, true, false)
+              permChecker.checkSetAttributePermission(inodePath, false, true, false),
+          false
       );
 
       LockingScheme lockingScheme =
@@ -3187,7 +3196,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           auditContext,
           LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkSetAttributePermission(
-                      inodePath, rootRequired, ownerRequired, writeRequired)
+                      inodePath, rootRequired, ownerRequired, writeRequired),
+          false
       );
 
       LockingScheme lockingScheme = createLockingScheme(path, options.getCommonOptions(),
@@ -3385,16 +3395,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return true;
   }
 
-  private InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
-      FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
-      @Nullable FileSystemMasterAuditContext auditContext,
-      @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-      @Nullable PermissionCheckFunction permissionCheckOperation) throws AccessControlException,
-      InvalidPathException {
-    return syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-        auditContextSrcInodeFunc, permissionCheckOperation, false);
-  }
-
   /**
    * Sync metadata for an Alluxio path with the UFS.
    *
@@ -3491,7 +3491,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     List<PersistFile> filesToPersist = new ArrayList<>();
     FileSystemCommandOptions commandOptions = new FileSystemCommandOptions();
     commandOptions.setPersistOptions(new PersistCommandOptions(filesToPersist));
-    return new FileSystemCommand(CommandType.Persist, commandOptions);
+    return new FileSystemCommand(CommandType.PERSIST, commandOptions);
   }
 
   /**

@@ -30,8 +30,10 @@ import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.NoopBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -63,6 +65,18 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private File mFile;
   private long mPartialChecksum;
 
+  class MockBlockWorker extends NoopBlockWorker {
+    @Override
+    public AtomicReference<Long> getWorkerId() {
+      return new AtomicReference<>(TEST_WORKER_ID);
+    }
+
+    @Override
+    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+      return mBlockStore.getTempBlockMeta(sessionId, blockId);
+    }
+  }
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -83,10 +97,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mFile = mTestFolder.newFile();
     mOutputStream = new FileOutputStream(mFile);
     mBlockStore = new TieredBlockStore();
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    Mockito.when(mBlockWorker.getBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockWorker.getWorkerId()).thenReturn(
-        new AtomicReference<>(TEST_WORKER_ID));
+    mBlockWorker = new MockBlockWorker();
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
