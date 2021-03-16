@@ -236,7 +236,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
     // FSDataOutputStream.hflush will be the new one.
     //#ifdef HADOOP1
-    o.sync();
+    //o.sync();
     //#else
     o.hflush();
     //#endif
