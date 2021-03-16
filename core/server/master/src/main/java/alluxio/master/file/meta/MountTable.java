@@ -359,6 +359,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
+      PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(uri);
       if (mountPoint != null) {
