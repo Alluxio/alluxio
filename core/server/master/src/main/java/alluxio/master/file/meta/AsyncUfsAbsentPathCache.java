@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
@@ -21,6 +22,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -58,8 +60,10 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private final MountTable mMountTable;
   /** Paths currently being processed. This is used to prevent duplicate processing. */
   private final ConcurrentHashMap<String, PathLock> mCurrentPaths;
-  /** Cache of paths which are absent in the ufs. */
-  private final Cache<String, Long> mCache;
+  /** Cache of paths which are absent in the ufs, maps an alluxio path to a Pair
+   *  which is the sync time and the mount id.
+   */
+  private final Cache<String, Pair<Long, Long>> mCache;
   /** A thread pool for the async tasks. */
   private final ThreadPoolExecutor mPool;
   /** Number of threads for the async pool. */
@@ -84,8 +88,17 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<Inode> prefixInodes) {
-    mPool.submit(new ProcessPathTask(path, prefixInodes));
+  public void processAsync(AlluxioURI path, List<Inode> prefixInodes) {
+    mPool.submit(() -> processPathSync(path, prefixInodes));
+  }
+
+  @Override
+  public void addSinglePath(AlluxioURI path) {
+    MountInfo mountInfo = getMountInfo(path);
+    if (mountInfo == null) {
+      return;
+    }
+    addCacheEntry(path.getPath(), mountInfo);
   }
 
   @Override
@@ -105,12 +118,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       if (pathLock != null) {
         pathLock.setInvalidate();
       }
-      mCache.invalidate(alluxioUri.getPath());
+      removeCacheEntry(alluxioUri.getPath());
     }
   }
 
   @Override
-  public boolean isAbsent(AlluxioURI path) {
+  public boolean isAbsentSince(AlluxioURI path, long absentSince) {
     MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
       return false;
@@ -118,8 +131,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
 
     while (path != null && !path.equals(mountBaseUri)) {
-      Long cached = mCache.getIfPresent(path.getPath());
-      if (cached != null && cached == mountInfo.getMountId()) {
+      Pair<Long, Long> cacheResult = mCache.getIfPresent(path.getPath());
+
+      if (cacheResult != null && cacheResult.getFirst() != null
+          && cacheResult.getSecond() != null
+          && cacheResult.getFirst() >= absentSince
+          && cacheResult.getSecond() == mountInfo.getMountId()) {
         return true;
       }
       path = path.getParent();
@@ -172,16 +189,16 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         }
         if (existsInUfs) {
           // This ufs path exists. Remove the cache entry.
-          mCache.invalidate(alluxioUri.getPath());
+          removeCacheEntry(alluxioUri.getPath());
         } else {
           // This is the first ufs path which does not exist. Add it to the cache.
-          mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
+          addCacheEntry(alluxioUri.getPath(), mountInfo);
 
           if (pathLock.isInvalidate()) {
             // This path was marked to be invalidated, meaning this UFS path was just created,
             // and now exists. Invalidate the entry.
             // This check is necessary to avoid the race with the invalidating thread.
-            mCache.invalidate(alluxioUri.getPath());
+            removeCacheEntry(alluxioUri.getPath());
           } else {
             // Further traversal is unnecessary.
             return false;
@@ -286,43 +303,42 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     }
   }
 
-  /**
-   * This is the async task for adding a path to the cache.
-   */
-  private final class ProcessPathTask implements Runnable {
-    private final AlluxioURI mPath;
-    private final List<Inode> mPrefixInodes;
+  private void addCacheEntry(String path, MountInfo mountInfo) {
+    LOG.debug("Add cacheEntry={}", path);
+    mCache.put(path, new Pair<Long, Long>(System.currentTimeMillis(), mountInfo.getMountId()));
+  }
 
-    /**
-     * @param path the path to add
-     * @param prefixInodes the existing inodes for the path prefix
-     */
-    private ProcessPathTask(AlluxioURI path, List<Inode> prefixInodes) {
-      mPath = path;
-      mPrefixInodes = prefixInodes;
+  private void removeCacheEntry(String path) {
+    LOG.debug("Remove cacheEntry={}", path);
+    mCache.invalidate(path);
+  }
+
+  /**
+   * Processes a path synchronously.
+   *
+   * @param path the path to add
+   * @param prefixInodes the existing inodes for the path prefix
+   */
+  @VisibleForTesting
+  void processPathSync(AlluxioURI path, List<Inode> prefixInodes) {
+    MountInfo mountInfo = getMountInfo(path);
+    if (mountInfo == null) {
+      return;
     }
 
-    @Override
-    public void run() {
-      MountInfo mountInfo = getMountInfo(mPath);
-      if (mountInfo == null) {
-        return;
+    // baseIndex should be the index of the first non-persisted inode under the mount point.
+    int baseIndex = mountInfo.getAlluxioUri().getDepth();
+    while (baseIndex < prefixInodes.size()) {
+      if (prefixInodes.get(baseIndex).isPersisted()) {
+        baseIndex++;
+      } else {
+        break;
       }
+    }
 
-      // baseIndex should be the index of the first non-persisted inode under the mount point.
-      int baseIndex = mountInfo.getAlluxioUri().getDepth();
-      while (baseIndex < mPrefixInodes.size()) {
-        if (mPrefixInodes.get(baseIndex).isPersisted()) {
-          baseIndex++;
-        } else {
-          break;
-        }
-      }
-
-      for (AlluxioURI alluxioUri : getNestedPaths(mPath, baseIndex)) {
-        if (!processSinglePath(alluxioUri, mountInfo)) {
-          break;
-        }
+    for (AlluxioURI alluxioUri : getNestedPaths(path, baseIndex)) {
+      if (!processSinglePath(alluxioUri, mountInfo)) {
+        break;
       }
     }
   }
