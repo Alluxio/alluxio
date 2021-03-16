@@ -11,12 +11,11 @@
 
 package alluxio.worker;
 
+import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.ShellUtils;
-
-import java.io.IOException;
 
 /**
  * Integration tests for worker embedded Fuse application.
@@ -39,7 +38,12 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   @Override
-  public void umountFuse(String mountPath) throws IOException {
+  public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    // mo need to manually mount fuse application
+  }
+
+  @Override
+  public void umountFuse(String mountPath) throws Exception {
     // shell command umount is not needed if Fuse application can be umounted in worker.stop().
     // TODO(lu) add umount in worker.stop(), otherwise all the Fuse applications
     // will remain running for the entire test and may potentially prevent new Fuse applications

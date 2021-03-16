@@ -78,11 +78,16 @@ public abstract class AbstractFuseIntegrationTest {
       String mountPath, String alluxioRoot) throws Exception;
 
   /**
+   * Manually mounts the Fuse application if needed.
+   */
+  public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
+
+  /**
    * Try to umount the given mount path.
    *
-   * @throws IOException if the fuse is already unmounted or the mount path does not exist
+   * @throws Exception if the fuse is already unmounted or the mount path does not exist
    */
-  public abstract void umountFuse(String mountPath) throws IOException;
+  public abstract void umountFuse(String mountPath) throws Exception;
 
   @BeforeClass
   public static void beforeClass() {
@@ -99,7 +104,7 @@ public abstract class AbstractFuseIntegrationTest {
         .createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster = createLocalAlluxioCluster(clusterName, BLOCK_SIZE, mMountPoint, ALLUXIO_ROOT);
     mFileSystem = mAlluxioCluster.getClient();
-
+    mountFuse(mFileSystem, mMountPoint, ALLUXIO_ROOT);
     if (!waitForFuseMounted()) {
       stopClusterAndUmountFuse();
       Assume.assumeTrue(false);
@@ -334,7 +339,7 @@ public abstract class AbstractFuseIntegrationTest {
    *
    * @return true if fuse is mounted, false otherwise
    */
-  private boolean fuseMounted() throws IOException {
+  protected boolean fuseMounted() throws IOException {
     String result = ShellUtils.execCommand("mount");
     return result.contains(mMountPoint);
   }
