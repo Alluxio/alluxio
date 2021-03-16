@@ -396,6 +396,7 @@ public class AlluxioFuseFileSystemTest {
           }
           return 4;
         });
+    when(fakeInStream.remaining()).thenReturn(4L);
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
