@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.client.fuse;
 
 import static org.junit.Assert.fail;
 

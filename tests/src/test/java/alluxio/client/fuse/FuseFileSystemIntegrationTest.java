@@ -18,7 +18,6 @@ import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.ShellUtils;
-import alluxio.worker.AbstractFuseIntegrationTest;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
