@@ -327,11 +327,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           LOG.error("Cannot find fd {} for {}", fd, path);
           return -ErrorCodes.EBADFD();
         }
-        is.seek(offset);
-        while (rd >= 0 && nread < size) {
-          rd = is.read(dest, nread, sz - nread);
-          if (rd >= 0) {
-            nread += rd;
+        if (offset - is.getPos() < is.remaining()) {
+          is.seek(offset);
+          while (rd >= 0 && nread < size) {
+            rd = is.read(dest, nread, sz - nread);
+            if (rd >= 0) {
+              nread += rd;
+            }
           }
         }
       }
