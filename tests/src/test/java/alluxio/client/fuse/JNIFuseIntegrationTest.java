@@ -9,30 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.server.worker;
+package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
-import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.fuse.AlluxioFuseFileSystem;
+import alluxio.fuse.FuseMountOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.ShellUtils;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
 /**
- * Integration tests for worker embedded Fuse application.
+ * Integration tests for {@link alluxio.fuse.AlluxioJniFuseFileSystem}.
  */
-public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
+public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
+  private AlluxioFuseFileSystem mFuseFileSystem;
+
   @Override
   public LocalAlluxioCluster createLocalAlluxioCluster(String clusterName,
       int blockSize, String mountPath, String alluxioRoot) throws Exception {
     LocalAlluxioCluster localAlluxioCluster = new LocalAlluxioCluster();
     localAlluxioCluster.initConfiguration(clusterName);
+    // Overwrite the test configuration with test specific parameters
     ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, blockSize);
-    // Enable to worker internal Fuse application
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mountPath);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
+    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
     ServerConfiguration.global().validate();
     localAlluxioCluster.start();
     return localAlluxioCluster;
@@ -40,15 +44,19 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    // Fuse application is mounted automatically by the worker
+    FuseMountOptions options = new FuseMountOptions(mountPoint,
+        alluxioRoot, false, new ArrayList<>());
+    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options,
+        ServerConfiguration.global());
+    mFuseFileSystem.mount(Paths.get(mountPoint),
+        false, false, new String[]{});
   }
 
   @Override
   public void umountFuse(String mountPath) throws Exception {
-    // shell command umount is not needed if Fuse application can be umounted in worker.stop().
-    // TODO(lu) add umount in worker.stop(), otherwise all the Fuse applications
-    // will remain running for the entire test and may potentially prevent new Fuse applications
-    // from coming up due to Fuse device number limitations
-    ShellUtils.execCommand("umount", mountPath);
+    mFuseFileSystem.umount();
+    if (fuseMounted()) {
+      ShellUtils.execCommand("umount", mountPath);
+    }
   }
 }

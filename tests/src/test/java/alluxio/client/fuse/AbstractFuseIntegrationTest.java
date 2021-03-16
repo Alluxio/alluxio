@@ -69,25 +69,29 @@ public abstract class AbstractFuseIntegrationTest {
    * Creates the local Alluxio cluster for testing.
    *
    * @param blockSize the block size
-   * @param mountPath the Fuse mount path
+   * @param mountPoint the Fuse mount point
    * @param alluxioRoot the Fuse mounted alluxio root
    * @return the created local Alluxio cluster
    * @throws Exception if the cluster cannot be started
    */
   public abstract LocalAlluxioCluster createLocalAlluxioCluster(String clusterName, int blockSize,
-      String mountPath, String alluxioRoot) throws Exception;
+      String mountPoint, String alluxioRoot) throws Exception;
 
   /**
-   * Manually mounts the Fuse application if needed.
+   * Mounts the Fuse application if needed.
+   *
+   * @param fileSystem the filesystem to create the Fuse application
+   * @param mountPoint the Fuse mount point
+   * @param alluxioRoot the Fuse mounted alluxio root
    */
   public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
 
   /**
-   * Try to umount the given mount path.
+   * Umount the given fuse mount point.
    *
-   * @throws Exception if the fuse is already unmounted or the mount path does not exist
+   * @param mountPoint the Fuse mount point
    */
-  public abstract void umountFuse(String mountPath) throws Exception;
+  public abstract void umountFuse(String mountPoint) throws Exception;
 
   @BeforeClass
   public static void beforeClass() {

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 /**
  * Integration tests for {@link AlluxioFuseFileSystem}.
  */
-public class FuseFileSystemIntegrationTest extends AbstractFuseIntegrationTest {
+public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioFuseFileSystem mFuseFileSystem;
 
   @Override
@@ -36,6 +36,7 @@ public class FuseFileSystemIntegrationTest extends AbstractFuseIntegrationTest {
     // Overwrite the test configuration with test specific parameters
     ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, blockSize);
+    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
     ServerConfiguration.global().validate();
     localAlluxioCluster.start();
     return localAlluxioCluster;
