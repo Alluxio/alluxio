@@ -473,7 +473,7 @@ public class AlluxioFuseFileSystemTest {
             myDest[i] = i;
           }
           return myDest.length;
-       });
+        });
     AtomicInteger callCounter = new AtomicInteger();
     when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
       if (callCounter.getAndIncrement() == 0) {
