@@ -121,7 +121,9 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   private void stopClusterAndUmountFuse() throws Exception {
-    mAlluxioCluster.stop();
+    if (mAlluxioCluster != null) {
+      mAlluxioCluster.stop();
+    }
     if (fuseMounted()) {
       try {
         umountFuse(mMountPoint);
