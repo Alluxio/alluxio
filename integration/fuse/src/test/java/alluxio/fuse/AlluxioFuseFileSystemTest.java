@@ -431,14 +431,14 @@ public class AlluxioFuseFileSystemTest {
             myDest[i] = i;
           }
           return myDest.length;
-    });
+        });
     AtomicInteger callCounter = new AtomicInteger();
     when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
-          if (callCounter.getAndIncrement() == 0) {
-            return 4L;
-          } else {
-            return 3L;
-          }
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
     });
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
@@ -473,14 +473,14 @@ public class AlluxioFuseFileSystemTest {
             myDest[i] = i;
           }
           return myDest.length;
-    });
+       });
     AtomicInteger callCounter = new AtomicInteger();
     when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
-          if (callCounter.getAndIncrement() == 0) {
-            return 4L;
-          } else {
-            return 3L;
-          }
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
     });
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
