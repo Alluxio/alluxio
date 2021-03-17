@@ -160,8 +160,8 @@ public final class MigrateDefinition
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions);
-         FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions)) {
+    try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
+         FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
       try {
         IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
       } catch (Throwable t) {
