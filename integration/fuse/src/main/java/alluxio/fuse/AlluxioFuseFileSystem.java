@@ -605,7 +605,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
       return -ErrorCodes.EINVAL();
     }
-    final int sz = (int) size;
+
     final long fd = fi.fh.get();
     OpenFileEntry<FileInStream, FileOutStream> oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
@@ -623,20 +623,24 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.error("Cannot find fd for {} in table", path);
         return -ErrorCodes.EBADFD();
       }
+      FileInStream is = oe.getIn();
       try {
-        oe.getIn().seek(offset);
-        final byte[] dest = new byte[sz];
-        while (rd >= 0 && nread < size) {
-          rd = oe.getIn().read(dest, nread, sz - nread);
-          if (rd >= 0) {
-            nread += rd;
+        if (offset - is.getPos() < is.remaining()) {
+          is.seek(offset);
+          final int sz = (int) size;
+          final byte[] dest = new byte[sz];
+          while (rd >= 0 && nread < sz) {
+            rd = oe.getIn().read(dest, nread, sz - nread);
+            if (rd >= 0) {
+              nread += rd;
+            }
           }
-        }
 
-        if (nread == -1) { // EOF
-          nread = 0;
-        } else if (nread > 0) {
-          buf.put(0, dest, 0, nread);
+          if (nread == -1) { // EOF
+            nread = 0;
+          } else if (nread > 0) {
+            buf.put(0, dest, 0, nread);
+          }
         }
       } catch (Throwable t) {
         LOG.error("Failed to read file={}, offset={}, size={}", path, offset,

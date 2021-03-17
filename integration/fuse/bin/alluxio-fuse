@@ -82,11 +82,7 @@ umount_fuse() {
 }
 
 fuse_stat() {
-  local jps="jps"
-  if [[ ! -z ${JAVA_HOME} ]]; then
-    jps="${JAVA_HOME}/bin/jps"
-  fi
-  local fuse_info=$("${jps}" | grep AlluxioFuse)
+  local fuse_info=$(ps aux | grep [A]lluxioFuse)
   if [[ -z ${fuse_info} ]]; then
     echo "No mount point found. AlluxioFuse process is not running."
     echo -e "${MOUNT_USAGE}"
