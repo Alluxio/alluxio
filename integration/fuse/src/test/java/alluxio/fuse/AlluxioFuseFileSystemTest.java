@@ -417,6 +417,7 @@ public class AlluxioFuseFileSystemTest {
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
 
+  @Test
   public void readOffset() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -425,19 +426,19 @@ public class AlluxioFuseFileSystemTest {
     FileInStream fakeInStream = mock(FileInStream.class);
     when(fakeInStream.read(any(byte[].class),
         anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
-      byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
-      for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
-        myDest[i] = i;
-      }
-      return myDest.length;
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = i;
+          }
+          return myDest.length;
     });
     AtomicInteger callCounter = new AtomicInteger();
     when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
-      if (callCounter.getAndIncrement() == 0) {
-        return 4L;
-      } else {
-        return 3L;
-      }
+          if (callCounter.getAndIncrement() == 0) {
+            return 4L;
+          } else {
+            return 3L;
+          }
     });
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
@@ -458,6 +459,7 @@ public class AlluxioFuseFileSystemTest {
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
 
+  @Test
   public void readOffset2() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -466,19 +468,19 @@ public class AlluxioFuseFileSystemTest {
     FileInStream fakeInStream = mock(FileInStream.class);
     when(fakeInStream.read(any(byte[].class),
         anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
-      byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
-      for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
-        myDest[i] = i;
-      }
-      return myDest.length;
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = i;
+          }
+          return myDest.length;
     });
     AtomicInteger callCounter = new AtomicInteger();
     when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
-      if (callCounter.getAndIncrement() == 0) {
-        return 4L;
-      } else {
-        return 3L;
-      }
+          if (callCounter.getAndIncrement() == 0) {
+            return 4L;
+          } else {
+            return 3L;
+          }
     });
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
