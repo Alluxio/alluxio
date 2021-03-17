@@ -14,19 +14,18 @@ package alluxio.client.fuse;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.ShellUtils;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
  * Integration tests for {@link alluxio.fuse.AlluxioJniFuseFileSystem}.
  */
 public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
-  private AlluxioFuseFileSystem mFuseFileSystem;
+  private AlluxioJniFuseFileSystem mFuseFileSystem;
 
   @Override
   public LocalAlluxioCluster createLocalAlluxioCluster(String clusterName,
@@ -46,10 +45,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     FuseMountOptions options = new FuseMountOptions(mountPoint,
         alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options,
+    mFuseFileSystem = new AlluxioJniFuseFileSystem(fileSystem, options,
         ServerConfiguration.global());
-    mFuseFileSystem.mount(Paths.get(mountPoint),
-        false, false, new String[]{});
+    mFuseFileSystem.mount(false, false, new String[]{});
   }
 
   @Override
