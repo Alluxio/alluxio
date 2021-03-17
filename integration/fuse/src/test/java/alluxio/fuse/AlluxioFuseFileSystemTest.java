@@ -428,7 +428,7 @@ public class AlluxioFuseFileSystemTest {
         anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
           byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
           for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
-            myDest[i] = (byte) (i + (int) invocationOnMock.getArgument(1));
+            myDest[i] = (byte) (i + 1);
           }
           return myDest.length;
         });
