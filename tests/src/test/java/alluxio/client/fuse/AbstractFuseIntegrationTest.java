@@ -203,6 +203,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Test
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
+    Thread.sleep(10000);
     createFileInFuse(testFile);
 
     // Fuse release() is async
@@ -235,6 +236,7 @@ public abstract class AbstractFuseIntegrationTest {
   public void ls() throws Exception {
     // ls -sh has different results in osx
     Assume.assumeTrue(OSUtils.isLinux());
+    Thread.sleep(10000);
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
 
