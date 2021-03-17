@@ -57,4 +57,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       ShellUtils.execCommand("umount", mountPath);
     }
   }
+
+  @Override
+  public void touchAndLs() throws Exception {
+    // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
+  }
 }

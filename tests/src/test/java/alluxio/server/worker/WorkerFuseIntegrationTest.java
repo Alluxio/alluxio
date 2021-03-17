@@ -51,4 +51,9 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
     // from coming up due to Fuse device number limitations
     ShellUtils.execCommand("umount", mountPath);
   }
+
+  @Override
+  public void touchAndLs() throws Exception {
+    // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
+  }
 }
