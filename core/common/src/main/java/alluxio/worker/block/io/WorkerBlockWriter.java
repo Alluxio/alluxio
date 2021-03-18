@@ -22,7 +22,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -34,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * to write data to worker storage.
  */
 @NotThreadSafe
-public final class WorkerBlockWriter extends BlockWriter implements Closeable, Cancelable {
+public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerBlockWriter.class);
 
   private final long mBlockId;
@@ -62,6 +61,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Closeable, C
    * @param pinOnCreate whether to pin on file creation
    * @return the {@link WorkerBlockWriter} created
    */
+  // TODO(lu) Should this create function be moved to DefaultBlockWorker?
   public static WorkerBlockWriter create(BlockWorker blockWorker, long blockId, int writeTier,
       String mediumType, long bytesToReserve, boolean pinOnCreate) throws IOException {
     long sessionId = SessionIdUtils.createSessionId();
@@ -141,6 +141,9 @@ public final class WorkerBlockWriter extends BlockWriter implements Closeable, C
     try {
       mBlockWorker.abortBlock(mSessionId, mBlockId);
     } catch (Exception e) {
+      // TODO(lu) consider removing the cleanup and log logics in this file
+      // since AbstractReadHandler will also cleanup and log
+      // to avoid double cleanup/log
       LogUtils.warnWithException(LOG,
           "Exception occurred when cenceling the write request [sessionId: {}, blockId: {}]",
           mSessionId, mBlockId, e);
@@ -194,6 +197,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Closeable, C
     mPos += size;
   }
 
+  // TODO(lu) change AbstractReadHandler to avoid double log/cleanup
   private void logWriteExceptionAndCleanup(Exception e) {
     LogUtils.warnWithException(LOG, "Exception occurred when writing [sessionId: {}, blockId: {}]",
         mSessionId, mBlockId, e);
