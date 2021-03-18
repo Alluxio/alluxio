@@ -17,6 +17,7 @@ import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -107,6 +108,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
+
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
@@ -362,12 +365,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void createBlockRemote(long sessionId, long blockId, String tierAlias,
+  public void createBlockRemote(long sessionId, long blockId, int tier,
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     if (medium.isEmpty()) {
-      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+      loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
     }
@@ -474,8 +477,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader newUfsBlockReader(long sessionId, long blockId,
+      long offset, boolean positionShort) throws BlockDoesNotExistException, IOException {
     return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, positionShort);
   }
 

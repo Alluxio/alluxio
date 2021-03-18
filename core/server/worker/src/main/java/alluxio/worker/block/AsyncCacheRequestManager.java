@@ -13,8 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -52,7 +50,6 @@ public class AsyncCacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncCacheRequestManager.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mAsyncCacheExecutor;
   /** The block worker. */
@@ -202,7 +199,7 @@ public class AsyncCacheRequestManager {
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     try {
       mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-          mStorageTierAssoc.getAlias(0), "", blockSize);
+          0, "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       return true;

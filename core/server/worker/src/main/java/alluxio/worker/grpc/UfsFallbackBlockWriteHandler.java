@@ -102,8 +102,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()),
-          request.getMediumType(), FILE_BUFFER_SIZE);
+          request.getTier(), request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }

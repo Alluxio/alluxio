@@ -61,6 +61,12 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean shortCircuitPreferred =
           alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
 
+      if (context.isWorkerInternalClient()) {
+        // TODO(lu) consider UFS_FALLBACK_BLOCK case
+        // do the block write only first
+        return BlockWorkerDataWriter.create(context, blockId, options);
+      }
+
       if (CommonUtils.isLocalHost(address, alluxioConf)
           && shortCircuit
           && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {

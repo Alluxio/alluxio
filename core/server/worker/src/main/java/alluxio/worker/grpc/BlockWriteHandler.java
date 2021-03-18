@@ -58,7 +58,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
    * @param domainSocketEnabled whether reading block over domain socket
    */
   BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
-      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+                    AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
@@ -74,8 +74,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(request.getTier()),
-        request.getMediumType(), bytesToReserve);
+        request.getTier(), request.getMediumType(), bytesToReserve);
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
       context.setMeter(MetricsSystem.meter(

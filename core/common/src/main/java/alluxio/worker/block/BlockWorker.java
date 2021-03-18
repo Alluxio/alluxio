@@ -120,14 +120,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created
-   * @param tierAlias the alias of the tier to place the new block in
+   * @param tier the tier to place the new block in
    * @param medium the name of the medium to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  void createBlockRemote(long sessionId, long blockId, String tierAlias,
+  void createBlockRemote(long sessionId, long blockId, int tier,
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
@@ -143,7 +143,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * Opens a {@link BlockWriter} for an existing temporary block for non short-circuit writes or
    * cache requests. The temporary block must already exist with
-   * {@link #createBlockRemote(long, long, String, String, long)}.
+   * {@link #createBlockRemote(long, long, int, String, long)}.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be opened for writing
