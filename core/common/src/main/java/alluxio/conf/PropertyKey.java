@@ -5287,7 +5287,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.init.from.backup";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
-    public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.typelog";
+    public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
