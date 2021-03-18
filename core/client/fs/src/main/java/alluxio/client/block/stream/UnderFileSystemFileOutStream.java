@@ -38,6 +38,7 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
+    // TODO(lu) support worker internal client write here
     return new UnderFileSystemFileOutStream(GrpcDataWriter.create(context, address,
         ID_UNUSED, Long.MAX_VALUE, RequestType.UFS_FILE, options), address);
   }

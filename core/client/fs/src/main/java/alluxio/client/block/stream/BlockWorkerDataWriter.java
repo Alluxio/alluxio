@@ -55,6 +55,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
     // TODO(lu) add metrics
     try {
       BlockWorker blockWorker = context.getInternalBlockWorker();
+      // TODO(lu) create UfsFallbackWorkerBlockWriter, UfsBlockWriter
       WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
           options.getWriteTier(), options.getMediumType(), reservedBytes,
           options.getWriteType() == WriteType.ASYNC_THROUGH);

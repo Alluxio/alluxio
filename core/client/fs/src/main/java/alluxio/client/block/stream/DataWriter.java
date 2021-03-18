@@ -64,6 +64,10 @@ public interface DataWriter extends Closeable, Cancelable {
       if (context.isWorkerInternalClient()) {
         // TODO(lu) consider UFS_FALLBACK_BLOCK case
         // do the block write only first
+        /*if (options.getWriteType() == WriteType.ASYNC_THROUGH
+            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+          return UfsFallbackBlockWorkerDataWriter.create(context, blockId, options);
+        }*/
         return BlockWorkerDataWriter.create(context, blockId, options);
       }
 

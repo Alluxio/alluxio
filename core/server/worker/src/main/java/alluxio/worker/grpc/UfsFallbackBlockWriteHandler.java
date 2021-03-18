@@ -11,8 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -30,6 +28,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.WorkerBlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -59,8 +58,6 @@ public final class UfsFallbackBlockWriteHandler
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
   private final boolean mDomainSocketEnabled;
@@ -101,8 +98,9 @@ public final class UfsFallbackBlockWriteHandler
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
-      mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          request.getTier(), request.getMediumType(), FILE_BUFFER_SIZE);
+      WorkerBlockWriter blockWriter = WorkerBlockWriter.create(mWorker, request.getId(),
+          request.getTier(), request.getMediumType(), FILE_BUFFER_SIZE, request.getPinOnCreate());
+      context.setWorkerBlockWriter(blockWriter);
     }
     return context;
   }
@@ -177,8 +175,8 @@ public final class UfsFallbackBlockWriteHandler
         context.setWritingToLocal(false);
       }
       // close the block writer first
-      if (context.getBlockWriter() != null) {
-        context.getBlockWriter().close();
+      if (context.getWorkerBlockWriter() != null) {
+        context.getWorkerBlockWriter().closeBlockWriter();
       }
       // prepare the UFS block and transfer data from the temp block to UFS
       createUfsBlock(context);

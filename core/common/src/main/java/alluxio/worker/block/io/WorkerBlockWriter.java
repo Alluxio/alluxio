@@ -183,6 +183,16 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
     }
   }
 
+  /**
+   * Closes the block writer before transferring the block to UFS.
+   */
+  public void closeBlockWriter() throws IOException {
+    if (mBlockWriter != null) {
+      mBlockWriter.close();
+      mBlockWriter = null;
+    }
+  }
+
   private void requestSpaceAndGetWriter(long size) throws Exception {
     if (mPosReserved < mPos + size) {
       long bytesToReserve = Math.max(mFileBufferBytes, mPos + size - mPosReserved);
