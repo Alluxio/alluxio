@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.Cancelable;
+import alluxio.io.Cancelable;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -11,20 +11,15 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.SessionIdUtils;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.WorkerBlockWriter;
 
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -40,20 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockWorkerDataWriter implements DataWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerDataWriter.class);
-
-  private final long mBlockId;
-  private final BlockWorker mBlockWorker;
-  private final long mChunkSize;
-  private final long mFileBufferBytes;
-  private final long mSessionId;
-
-  private BlockWriter mBlockWriter;
-
-  /** The position to write the next byte at. */
-  private long mPos;
-  /** The number of bytes reserved on the block worker to hold the block. */
-  private long mPosReserved;
+  private final WorkerBlockWriter mBlockWriter;
+  private final int mChunkSize;
 
   /**
    * Creates an instance of {@link BlockWorkerDataWriter}.
@@ -66,14 +49,16 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public static BlockWorkerDataWriter create(final FileSystemContext context,
       long blockId, OutStreamOptions options) throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
-    long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
-    long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
+    // TODO(lu) add new properties
+    int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
+    long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
+    // TODO(lu) add metrics
     try {
       BlockWorker blockWorker = context.getInternalBlockWorker();
-      long sessionId = SessionIdUtils.createSessionId();
-      blockWorker.createBlockRemote(sessionId, blockId,
-          options.getWriteTier(), options.getMediumType(), chunkSize);
-      return new BlockWorkerDataWriter(blockWorker, sessionId, blockId, chunkSize, fileBufferBytes);
+      WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
+          options.getWriteTier(), options.getMediumType(), reservedBytes,
+          options.getWriteType() == WriteType.ASYNC_THROUGH);
+      return new BlockWorkerDataWriter(blockWriter, chunkSize);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -81,49 +66,22 @@ public final class BlockWorkerDataWriter implements DataWriter {
 
   @Override
   public long pos() {
-    return mPos;
+    return mBlockWriter.getPosition();
   }
 
   @Override
   public int chunkSize() {
-    return (int) mChunkSize;
+    return mChunkSize;
   }
 
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
-    try {
-      int sz = buf.readableBytes();
-      if (mPosReserved < mPos + sz) {
-        long bytesToReserve = Math.max(mFileBufferBytes, mPos + sz - mPosReserved);
-        // Allocate enough space in the existing temporary block for the write.
-        mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
-        mPosReserved += bytesToReserve;
-      }
-      if (mBlockWriter == null) {
-        mBlockWriter = mBlockWorker.getTempBlockWriterRemote(mSessionId, mBlockId);
-      }
-      Preconditions.checkState(mBlockWriter != null);
-      mPos += sz;
-      Preconditions.checkState(mBlockWriter.append(buf) == sz);
-      MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName()).inc(sz);
-      MetricsSystem.meter(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName()).mark(sz);
-    } catch (Exception e) {
-      throw new IOException(e);
-    } finally {
-      buf.release();
-    }
+    mBlockWriter.append(buf);
   }
 
   @Override
   public void cancel() throws IOException {
-    if (mBlockWriter != null) {
-      mBlockWriter.close();
-    }
-    try {
-      mBlockWorker.abortBlock(mSessionId, mBlockId);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    mBlockWriter.cancel();
   }
 
   @Override
@@ -131,31 +89,17 @@ public final class BlockWorkerDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    if (mBlockWriter != null) {
-      mBlockWriter.close();
-    }
-    try {
-      mBlockWorker.commitBlock(mSessionId, mBlockId, false);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    mBlockWriter.close();
   }
 
   /**
    * Creates an instance of {@link BlockWorkerDataWriter}.
    *
-   * @param blockWorker the block worker
-   * @param sessionId the session id
-   * @param blockId id the block id
-   * @param chunkSize the chuck size
-   * @param fileBufferBytes the file buffer size in bytes
+   * @param blockWriter the block writer
+   * @param chunkSize the chunk size
    */
-  private BlockWorkerDataWriter(BlockWorker blockWorker,
-      long sessionId, long blockId, long chunkSize, long fileBufferBytes) {
-    mBlockWorker = blockWorker;
-    mSessionId = sessionId;
-    mBlockId = blockId;
+  private BlockWorkerDataWriter(WorkerBlockWriter blockWriter, int chunkSize) {
+    mBlockWriter = blockWriter;
     mChunkSize = chunkSize;
-    mFileBufferBytes = fileBufferBytes;
   }
 }

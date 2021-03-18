@@ -13,7 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.Cancelable;
+import alluxio.io.Cancelable;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
