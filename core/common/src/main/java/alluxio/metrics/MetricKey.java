@@ -241,6 +241,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Number of cache misses on the absent cache")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
+      new Builder(Name.MASTER_ABSENT_CACHE_INVALIDATIONS)
+          .setDescription("Number of invalidations on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
       new Builder(Name.MASTER_ABSENT_CACHE_SIZE)
           .setDescription("Size of the absent cache")
@@ -1215,6 +1220,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     // metrics names for master status
     public static final String MASTER_ABSENT_CACHE_HITS = "Master.AbsentCacheHits";
     public static final String MASTER_ABSENT_CACHE_MISSES = "Master.AbsentCacheMisses";
+    public static final String MASTER_ABSENT_CACHE_INVALIDATIONS = "Master.AbsentCacheInvalidations";
     public static final String MASTER_ABSENT_CACHE_SIZE = "Master.AbsentCacheSize";
 
     public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";

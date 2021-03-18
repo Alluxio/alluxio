@@ -318,6 +318,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void removeCacheEntry(String path) {
     LOG.debug("Remove cacheEntry={}", path);
+    Metrics.ABSENT_CACHE_INVALIDATIONS.inc();
     mCache.invalidate(path);
   }
 
@@ -359,6 +360,10 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     /** Number of absent cache misses. */
     private static final Counter ABSENT_CACHE_MISSES =
         MetricsSystem.counter(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName());
+
+    /** Number of absent cache invalidations. */
+    private static final Counter ABSENT_CACHE_INVALIDATIONS =
+        MetricsSystem.counter(MetricKey.MASTER_ABSENT_CACHE_INVALIDATIONS.getName());
 
     private Metrics() {} // prevent instantiation
   }
