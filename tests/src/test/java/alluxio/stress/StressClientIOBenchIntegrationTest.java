@@ -39,7 +39,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
 
     String output2 = new StressClientIOBench().run(new String[] {
         "--in-process",
-        "--tag", "ReadArray-NOT_RANDOM",
+        "--tag", "READ_ARRAY-NOT_RANDOM",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "READ_ARRAY",
@@ -52,7 +52,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output3 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "ReadArray-RANDOM",
+        "--tag", "READ_ARRAY-RANDOM",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "READ_ARRAY",
@@ -65,7 +65,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output4 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "ReadByteBuffer",
+        "--tag", "READ_BYTE_BUFFER",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "READ_BYTE_BUFFER",
@@ -78,7 +78,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output5 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "ReadFully",
+        "--tag", "READ_FULLY",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "READ_FULLY",
@@ -91,7 +91,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output6 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "PosRead-test",
+        "--tag", "POS_READ-test",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "POS_READ",
@@ -104,7 +104,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output7 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "PosReadFully",
+        "--tag", "POS_READ_FULLY",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
         "--operation", "POS_READ_FULLY",
