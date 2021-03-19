@@ -28,14 +28,15 @@ For more information on GCS, please read its
 
 ## Setup 
 
-Alluxio provides two ways to access GCS. The default GCS UFS module (GCS version 1) is implemented based on 
+Alluxio provides two ways to access GCS. GCS version 1 is implemented based on 
 [jets3t](http://www.jets3t.org/) library which is design for AWS S3. 
 Thus, it only accepts Google cloud storage interoperability access/secret keypair 
 which allows full access to all Google cloud storages inside a Google cloud project.
 No permission or access control can be placed on the interoperability keys.
 The conjunction of Google interoperability API and jets3t library also impact the performance of the default GCS UFS module. 
 
-GCS with Google Cloud API (GCS version 2) on the other hand accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started). 
+The default GCS UFS module (GCS version 2) is implemented based on Google Cloud API
+which accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started).
 Based on the application credentials, Google cloud can determine what permissions an authenticated client 
 has for its target Google cloud storage bucket. Besides, GCS with Google cloud API has much better performance
 than the default one in metadata and read/write operations. 
@@ -68,11 +69,12 @@ Choose your preferred GCS UFS version and provide the corresponding Google crede
 {% navtab GCS version 1 %}
 In`conf/alluxio-site.properties`, add:
 ```properties
+alluxio.master.mount.table.root.option.alluxio.underfs.gcs.version=1
 alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
 alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 ```
-
-Replace `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` with actual
+- The first property key tells Alluxio to load the Version 1 GCS UFS module which uses the [jets3t](http://www.jets3t.org/) library.
+- Replace `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` with actual
 [GCS interoperable storage access keys](https://console.cloud.google.com/storage/settings),
 or other environment variables that contain your credentials.
 Note: GCS interoperability is disabled by default. Please click on the Interoperability tab
@@ -83,12 +85,10 @@ Click on `Create a new key` to get the Access Key and Secret pair.
 {% navtab GCS version 2 %}
 In`conf/alluxio-site.properties`, add:
 ```properties
-alluxio.master.mount.table.root.option.alluxio.underfs.gcs.version=2
 alluxio.master.mount.table.root.option.fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 ```
 
-- The first property key tells Alluxio to load the Version 2 GCS UFS module which uses the Google cloud API.
-- The second property key provides the path to the Google application credentials json file. Note that the 
+This property key provides the path to the Google application credentials json file. Note that the
 Google application credentials json file should be placed in all the Alluxio nodes in the same path.
 If the nodes running the Alluxio processes already contain the GCS credentials, this property may not be needed
 but it is always recommended to set this property explicitly.
@@ -114,6 +114,7 @@ Then, mount GCS:
 {% navtab GCS version 1 %}
 ```console
 $ ./bin/alluxio fs mount \
+  --option alluxio.underfs.gcs.version=1 \
   --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
   --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
   /gcs gs://GCS_BUCKET/GCS_DIRECTORY
@@ -122,7 +123,6 @@ $ ./bin/alluxio fs mount \
 {% navtab GCS version 2 %}
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.gcs.version=2 \
   --option fs.gcs.credential.path=/path/to/<google_application_credentials>.json \
   /gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
