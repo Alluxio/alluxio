@@ -671,7 +671,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
       new Builder(Name.UNDERFS_GCS_VERSION)
-          .setDefaultValue(1)
+          .setDefaultValue(2)
           .setDescription(String.format("Specify the version of GCS module to use. "
               + "GCS version \"1\" builds on top of jets3t package "
               + "which requires %s and %s. GCS version \"2\" build on top "
