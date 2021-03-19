@@ -60,22 +60,17 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
       boolean shortCircuitPreferred =
           alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
+          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
 
-      if (context.isWorkerInternalClient()) {
-        // TODO(lu) consider UFS_FALLBACK_BLOCK case
-        // do the block write only first
-        /*if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
-          return UfsFallbackBlockWorkerDataWriter.create(context, blockId, options);
-        }*/
+      if (context.isWorkerInternalClient() && !ufsFallbackEnabled) {
         return BlockWorkerDataWriter.create(context, blockId, options);
       }
 
       if (CommonUtils.isLocalHost(address, alluxioConf)
           && shortCircuit
           && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {
-        if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+        if (ufsFallbackEnabled) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(

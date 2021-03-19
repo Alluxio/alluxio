@@ -68,11 +68,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     if (msg.getCommand().hasSpaceToReserve()) {
       bytesToReserve = msg.getCommand().getSpaceToReserve();
     }
-    // TODO(lu) remove the unneeded structure in BlockWriteRequest
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     WorkerBlockWriter blockWriter = WorkerBlockWriter.create(mWorker, request.getId(),
-        request.getTier(), request.getMediumType(), bytesToReserve, request.getPinOnCreate());
+        request.getTier(), request.getMediumType(), bytesToReserve,
+        request.getPinOnCreate(), false);
     context.setWorkerBlockWriter(blockWriter);
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));

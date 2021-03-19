@@ -16,6 +16,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.WorkerBlockWriter;
 
@@ -49,16 +51,13 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public static BlockWorkerDataWriter create(final FileSystemContext context,
       long blockId, OutStreamOptions options) throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
-    // TODO(lu) add new properties
     int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
     long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
-    // TODO(lu) add metrics
     try {
       BlockWorker blockWorker = context.getInternalBlockWorker();
-      // TODO(lu) create UfsFallbackWorkerBlockWriter, UfsBlockWriter
       WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
           options.getWriteTier(), options.getMediumType(), reservedBytes,
-          options.getWriteType() == WriteType.ASYNC_THROUGH);
+          options.getWriteType() == WriteType.ASYNC_THROUGH, true);
       return new BlockWorkerDataWriter(blockWriter, chunkSize);
     } catch (Exception e) {
       throw new IOException(e);
@@ -77,7 +76,10 @@ public final class BlockWorkerDataWriter implements DataWriter {
 
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
-    mBlockWriter.append(buf);
+    long append = mBlockWriter.append(buf);
+    MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DIRECT.getName()).inc(append);
+    MetricsSystem.meter(MetricKey.WORKER_BYTES_READ_DIRECT_THROUGHPUT.getName())
+        .mark(append);
   }
 
   @Override

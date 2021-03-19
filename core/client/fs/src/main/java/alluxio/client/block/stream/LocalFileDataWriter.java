@@ -71,6 +71,7 @@ public final class LocalFileDataWriter implements DataWriter {
       long blockId, OutStreamOptions options) throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
+
     Closer closer = Closer.create();
     try {
       CloseableResource<BlockWorkerClient> blockWorker =

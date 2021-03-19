@@ -39,16 +39,17 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
   private final long mBlockId;
   private final BlockWorker mBlockWorker;
   private final long mFileBufferBytes;
+  // TODO(lu) remove the log and cleanup logics in AbstractWriteHandler and remove this property
+  private final boolean mLogAndCleanup;
+  private final boolean mPinOnCreate;
   private final long mSessionId;
 
+  /** The block writer that responsible for writing the data. */
   private BlockWriter mBlockWriter;
-
   /** The position to write the next byte at. */
   private long mPos;
   /** The number of bytes reserved on the block worker to hold the block. */
   private long mPosReserved;
-
-  private boolean mPinOnCreate;
 
   /**
    * Creates an instance of {@link WorkerBlockWriter}.
@@ -59,20 +60,25 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
    * @param mediumType the medium type
    * @param bytesToReserve bytes to reserve
    * @param pinOnCreate whether to pin on file creation
+   * @param logAndCleanup log and cleanup when exceptions occur, otherwise
+   *                      callers need to log and cleanup themselves
    * @return the {@link WorkerBlockWriter} created
    */
-  // TODO(lu) Should this create function be moved to DefaultBlockWorker?
   public static WorkerBlockWriter create(BlockWorker blockWorker, long blockId, int writeTier,
-      String mediumType, long bytesToReserve, boolean pinOnCreate) throws IOException {
+      String mediumType, long bytesToReserve, boolean pinOnCreate, boolean logAndCleanup)
+      throws IOException {
     long sessionId = SessionIdUtils.createSessionId();
     try {
       blockWorker.createBlockRemote(sessionId, blockId, writeTier, mediumType, bytesToReserve);
-      return new WorkerBlockWriter(blockWorker, sessionId, blockId, bytesToReserve, pinOnCreate);
+      return new WorkerBlockWriter(blockWorker, sessionId, blockId, bytesToReserve,
+          pinOnCreate, logAndCleanup);
     } catch (Exception e) {
-      LogUtils.warnWithException(LOG,
-          "Exception occurred when creating block for writing [sessionId: {}, blockId: {}]",
-          sessionId, blockId, e);
-      blockWorker.cleanupSession(sessionId);
+      if (logAndCleanup) {
+        LogUtils.warnWithException(LOG,
+            "Exception occurred when creating block for writing [sessionId: {}, blockId: {}]",
+            sessionId, blockId, e);
+        blockWorker.cleanupSession(sessionId);
+      }
       throw new IOException(e);
     }
   }
@@ -90,12 +96,10 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
       Preconditions.checkState(mBlockWriter.append(buf) == size);
       return size;
     } catch (Exception e) {
-      logWriteExceptionAndCleanup(e);
+      logExceptionAndCleanup(e);
       throw new IOException(e);
-    } finally {
-      // TODO(lu) is this the right way to release ByteBuffer
-      buf.clear();
     }
+    // TODO(lu) release the ByteBuffer in finally block
   }
 
   @Override
@@ -106,7 +110,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
       Preconditions.checkState(mBlockWriter.append(buf) == size);
       return size;
     } catch (Exception e) {
-      logWriteExceptionAndCleanup(e);
+      logExceptionAndCleanup(e);
       throw new IOException(e);
     } finally {
       buf.release();
@@ -121,7 +125,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
       Preconditions.checkState(mBlockWriter.append(buf) == size);
       return size;
     } catch (Exception e) {
-      logWriteExceptionAndCleanup(e);
+      logExceptionAndCleanup(e);
       throw new IOException(e);
     } finally {
       buf.release();
@@ -141,13 +145,12 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
     try {
       mBlockWorker.abortBlock(mSessionId, mBlockId);
     } catch (Exception e) {
-      // TODO(lu) consider removing the cleanup and log logics in this file
-      // since AbstractReadHandler will also cleanup and log
-      // to avoid double cleanup/log
-      LogUtils.warnWithException(LOG,
-          "Exception occurred when cenceling the write request [sessionId: {}, blockId: {}]",
-          mSessionId, mBlockId, e);
-      cleanup();
+      if (mLogAndCleanup) {
+        LogUtils.warnWithException(LOG,
+            "Exception occurred when cenceling the write request [sessionId: {}, blockId: {}]",
+            mSessionId, mBlockId, e);
+        cleanup();
+      }
       throw new IOException(e);
     }
   }
@@ -160,11 +163,13 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
     try {
       mBlockWorker.commitBlock(mSessionId, mBlockId, mPinOnCreate);
     } catch (Exception e) {
-      LogUtils.warnWithException(LOG,
-          "Exception occurred when completing the write request [sessionId: {}, blockId: {}]",
-          mSessionId, mBlockId, e);
-      cleanup();
-      throw new IOException(e);
+      if (mLogAndCleanup) {
+        LogUtils.warnWithException(LOG,
+            "Exception occurred when completing the write request [sessionId: {}, blockId: {}]",
+            mSessionId, mBlockId, e);
+        cleanup();
+        throw new IOException(e);
+      }
     }
   }
 
@@ -208,10 +213,13 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
   }
 
   // TODO(lu) change AbstractReadHandler to avoid double log/cleanup
-  private void logWriteExceptionAndCleanup(Exception e) {
-    LogUtils.warnWithException(LOG, "Exception occurred when writing [sessionId: {}, blockId: {}]",
-        mSessionId, mBlockId, e);
-    cleanup();
+  private void logExceptionAndCleanup(Exception e) {
+    if (mLogAndCleanup) {
+      LogUtils.warnWithException(LOG,
+          "Exception occurred when writing [sessionId: {}, blockId: {}]",
+          mSessionId, mBlockId, e);
+      cleanup();
+    }
   }
 
   /**
@@ -222,13 +230,16 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
    * @param blockId id the block id
    * @param fileBufferBytes the file buffer size in bytes
    * @param pinOnCreate whether to pin on create
+   * @param logAndCleanup log and cleanup when exceptions occur, otherwise
+   *                      callers need to log and cleanup themselves
    */
-  private WorkerBlockWriter(BlockWorker blockWorker,
-      long sessionId, long blockId, long fileBufferBytes, boolean pinOnCreate) {
+  private WorkerBlockWriter(BlockWorker blockWorker, long sessionId, long blockId,
+      long fileBufferBytes, boolean pinOnCreate, boolean logAndCleanup) {
     mBlockWorker = blockWorker;
     mSessionId = sessionId;
     mBlockId = blockId;
     mFileBufferBytes = fileBufferBytes;
     mPinOnCreate = pinOnCreate;
+    mLogAndCleanup = logAndCleanup;
   }
 }

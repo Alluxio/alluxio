@@ -822,6 +822,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT =
+      new Builder(Name.WORKER_BYTES_WRITTEN_DIRECT)
+          .setDescription("Total number of bytes write to Alluxio storage managed by this worker "
+              + "without external RPC involved. This records data written "
+              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT)
+          .setDescription("Total number of bytes write to Alluxio storage managed by this worker "
+              + "without external RPC involved. This records data written "
+              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE =
       new Builder(Name.WORKER_BYTES_WRITTEN_REMOTE)
           .setDescription("Total number of bytes written to Alluxio storage "
@@ -1358,6 +1374,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BYTES_READ_DIRECT = "Worker.BytesReadDirect";
     public static final String WORKER_BYTES_READ_DIRECT_THROUGHPUT
         = "Worker.BytesReadDirectThroughput";
+    public static final String WORKER_BYTES_WRITTEN_DIRECT = "Worker.BytesWrittenDirect";
+    public static final String WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT
+        = "Worker.BytesWrittenDirectThroughput";
     public static final String WORKER_BYTES_READ_REMOTE = "Worker.BytesReadRemote";
     public static final String WORKER_BYTES_READ_REMOTE_THROUGHPUT
         = "Worker.BytesReadRemoteThroughput";
