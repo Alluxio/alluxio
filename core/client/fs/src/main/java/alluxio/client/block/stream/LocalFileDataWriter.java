@@ -82,7 +82,8 @@ public final class LocalFileDataWriter implements DataWriter {
           conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       long dataTimeout = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
-      long reservedBytes = blockSize;
+      // in cases we know precise block size, make more accurate reservation.
+      long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
 
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
