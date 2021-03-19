@@ -155,7 +155,8 @@ public final class ReplicateDefinitionTest {
     URIStatus status = new URIStatus(
         new FileInfo().setPath(path).setBlockIds(Lists.newArrayList(TEST_BLOCK_ID))
             .setFileBlockInfos(Lists.newArrayList(
-                new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(TEST_BLOCK_ID)))));
+                new FileBlockInfo().setBlockInfo(
+                    new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE)))));
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
     when(mMockFileSystemContext.getCachedWorkers()).thenReturn(blockWorkers);

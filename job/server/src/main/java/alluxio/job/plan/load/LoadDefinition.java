@@ -147,8 +147,7 @@ public final class LoadDefinition
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getFilePath()));
 
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(
-          status, context.getFsContext(), task.getBlockId());
+      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

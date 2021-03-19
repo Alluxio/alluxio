@@ -146,7 +146,6 @@ public final class JobUtils {
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
-    // use -1 to reuse the existing block size for this block
     BlockInfo blockInfo = status.getBlockInfo(blockId);
     Preconditions.checkNotNull(blockInfo, "Can not find block %s in status %s", blockId, status);
     long blockSize = blockInfo.getLength();
