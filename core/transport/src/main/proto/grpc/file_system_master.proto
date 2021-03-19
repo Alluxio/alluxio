@@ -210,6 +210,7 @@ message LoadMetadataPOptions {
   optional bool createAncestors = 2;
   optional fscommon.LoadDescendantPType loadDescendantType = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional LoadMetadataPType loadType = 5;
 }
 
 enum PAclEntryType {
