@@ -11,6 +11,9 @@
 
 package alluxio.client.fuse;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
@@ -36,7 +39,6 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -50,18 +52,18 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 /**
- * This is the base class of Fuse tests. It describes the POSIX API functionalities
- * that all Fuse implementations and launch ways should support. Each Fuse implementation
- * and launch ways is expected to create a test that extends this base class.
+ * This is the base class of Fuse tests. It describes the POSIX API functionalities that all Fuse
+ * implementations and launch ways should support. Each Fuse implementation and launch ways is
+ * expected to create a test that extends this base class.
  */
 public abstract class AbstractFuseIntegrationTest {
-  protected static final String ALLUXIO_ROOT = "/";
-  protected static final int BLOCK_SIZE = 4 * Constants.KB;
+  private static final String ALLUXIO_ROOT = "/";
+  private static final int BLOCK_SIZE = 4 * Constants.KB;
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
   private final LocalAlluxioCluster mAlluxioCluster = new LocalAlluxioCluster();
   private FileSystem mFileSystem;
-  protected String mMountPoint;
+  private String mMountPoint;
 
   @Rule
   public TestName mTestName = new TestName();
@@ -97,10 +99,9 @@ public abstract class AbstractFuseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    String clusterName = IntegrationTestUtils
-        .getTestName(getClass().getSimpleName(), mTestName.getMethodName());
-    mMountPoint = AlluxioTestDirectory
-        .createTemporaryDirectory(clusterName).getAbsolutePath();
+    String clusterName =
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
+    mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
     configureAlluxioCluster();
     ServerConfiguration.global().validate();
@@ -129,9 +130,7 @@ public abstract class AbstractFuseIntegrationTest {
         ShellUtils.execCommand("umount", mMountPoint);
       }
     }
-    if (mAlluxioCluster != null) {
-      mAlluxioCluster.stop();
-    }
+    mAlluxioCluster.stop();
   }
 
   @Test
@@ -144,7 +143,7 @@ public abstract class AbstractFuseIntegrationTest {
     }
 
     String result = ShellUtils.execCommand("cat", mMountPoint + testFile);
-    Assert.assertEquals(content + "\n", result);
+    assertEquals(content + "\n", result);
   }
 
   @Test
@@ -154,7 +153,7 @@ public abstract class AbstractFuseIntegrationTest {
     String groupName = AlluxioFuseUtils.getGroupName(userName);
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("chgrp", groupName, mMountPoint + testFile);
-    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -162,7 +161,7 @@ public abstract class AbstractFuseIntegrationTest {
     String testFile = "/chmodTestFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("chmod", "777", mMountPoint + testFile);
-    Assert.assertEquals((short) 0777, mFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
+    assertEquals((short) 0777, mFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
   }
 
   @Test
@@ -173,8 +172,8 @@ public abstract class AbstractFuseIntegrationTest {
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
     ShellUtils.execCommand("chown", userName + ":" + groupName, mMountPoint + testFile);
-    Assert.assertEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
-    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    assertEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
+    assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -184,21 +183,21 @@ public abstract class AbstractFuseIntegrationTest {
     File localFile = generateFileContent("/TestFileOnLocalPath", content.getBytes());
 
     ShellUtils.execCommand("cp", localFile.getPath(), mMountPoint + testFile);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
 
     // Fuse release() is async
     // Cp again to make sure the first cp is completed
     String testFolder = "/cpTestFolder";
     ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
     ShellUtils.execCommand("cp", mMountPoint + testFile, mMountPoint + testFolder + testFile);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
 
     byte[] read = new byte[content.length()];
     try (FileInStream is = mFileSystem.openFile(new AlluxioURI(testFile),
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       is.read(read);
     }
-    Assert.assertEquals(content, new String(read, "UTF8"));
+    assertEquals(content, new String(read, "UTF8"));
   }
 
   @Test
@@ -210,15 +209,14 @@ public abstract class AbstractFuseIntegrationTest {
     // Open the file to make sure dd is completed
     ShellUtils.execCommand("head", "-c", "10", mMountPoint + testFile);
 
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertEquals(40 * Constants.KB,
-        mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
+    assertEquals(40 * Constants.KB, mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
 
     String output = ShellUtils.execCommand("du", "-k", mMountPoint + testFile);
-    Assert.assertEquals("40", output.split("\\s+")[0]);
+    assertEquals("40", output.split("\\s+")[0]);
 
     ShellUtils.execCommand("rm", mMountPoint + testFile);
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
+    assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
   }
 
   @Test
@@ -229,7 +227,7 @@ public abstract class AbstractFuseIntegrationTest {
       os.write(content.getBytes());
     }
     String result = ShellUtils.execCommand("head", "-c", "17", mMountPoint + testFile);
-    Assert.assertEquals("Alluxio Head Test\n", result);
+    assertEquals("Alluxio Head Test\n", result);
   }
 
   @Test
@@ -242,12 +240,11 @@ public abstract class AbstractFuseIntegrationTest {
     // Fuse getattr() will wait for file to be completed
     // when fuse release returns but does not finish
     String out = ShellUtils.execCommand("ls", "-sh", mMountPoint + testFile);
-    Assert.assertFalse(out.isEmpty());
-    Assert.assertEquals("40K", out.split("\\s+")[0]);
+    assertFalse(out.isEmpty());
+    assertEquals("40K", out.split("\\s+")[0]);
 
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertEquals(40 * Constants.KB,
-        mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
+    assertEquals(40 * Constants.KB, mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
   }
 
   @Test
@@ -256,10 +253,9 @@ public abstract class AbstractFuseIntegrationTest {
     String testFolder = "/mkdirTestFolder";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
-    ShellUtils.execCommand("mv", mMountPoint + testFile,
-        mMountPoint + testFolder + testFile);
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+    ShellUtils.execCommand("mv", mMountPoint + testFile, mMountPoint + testFolder + testFile);
+    assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
   }
 
   @Test
@@ -270,7 +266,7 @@ public abstract class AbstractFuseIntegrationTest {
       os.write(content.getBytes());
     }
     String result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
-    Assert.assertEquals("Test File Content\n", result);
+    assertEquals("Test File Content\n", result);
   }
 
   @Test
@@ -283,7 +279,7 @@ public abstract class AbstractFuseIntegrationTest {
       os.write(content.getBytes());
     }
     String result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
-    Assert.assertEquals("Test File Content\n", result);
+    assertEquals("Test File Content\n", result);
 
     /*
      * Sleeping will ensure that authentication sessions for existing clients held by FUSE will
@@ -295,7 +291,7 @@ public abstract class AbstractFuseIntegrationTest {
     Thread.sleep(500);
 
     result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
-    Assert.assertEquals("Test File Content\n", result);
+    assertEquals("Test File Content\n", result);
   }
 
   @Test
@@ -305,9 +301,9 @@ public abstract class AbstractFuseIntegrationTest {
     ShellUtils.execCommand("touch", mMountPoint + touchTestFile);
 
     String lsResult = ShellUtils.execCommand("ls", mMountPoint);
-    Assert.assertTrue(lsResult.contains("lsTestFile"));
-    Assert.assertTrue(lsResult.contains("touchTestFile"));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(touchTestFile)));
+    assertTrue(lsResult.contains("lsTestFile"));
+    assertTrue(lsResult.contains("touchTestFile"));
+    assertTrue(mFileSystem.exists(new AlluxioURI(touchTestFile)));
   }
 
   /**
@@ -317,8 +313,8 @@ public abstract class AbstractFuseIntegrationTest {
    */
   private void createFileInFuse(String filename) {
     try {
-      ShellUtils.execCommand("dd", "if=/dev/zero",
-          "of=" + mMountPoint + filename, "count=10", "bs=" + 4 * Constants.KB);
+      ShellUtils.execCommand("dd", "if=/dev/zero", "of=" + mMountPoint + filename, "count=10",
+          "bs=" + 4 * Constants.KB);
     } catch (IOException e) {
       fail();
     }
@@ -335,9 +331,9 @@ public abstract class AbstractFuseIntegrationTest {
   private File generateFileContent(String path, byte[] toWrite) throws IOException {
     File testFile = new File(mAlluxioCluster.getAlluxioHome() + path);
     testFile.createNewFile();
-    FileOutputStream fos = new FileOutputStream(testFile);
-    fos.write(toWrite);
-    fos.close();
+    try (FileOutputStream fos = new FileOutputStream(testFile)) {
+      fos.write(toWrite);
+    }
     return testFile;
   }
 
@@ -346,7 +342,7 @@ public abstract class AbstractFuseIntegrationTest {
    *
    * @return true if fuse is mounted, false otherwise
    */
-  protected boolean fuseMounted() throws IOException {
+  private boolean fuseMounted() throws IOException {
     String result = ShellUtils.execCommand("mount");
     return result.contains(mMountPoint);
   }
