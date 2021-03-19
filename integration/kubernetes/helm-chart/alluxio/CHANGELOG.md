@@ -150,4 +150,4 @@
 
 0.6.14
 
-- Migrate master StatefuleSet and worker DaemonSet securityContext to Pod-level (see Issue #13096)
+- Migrate master StatefulSet and worker DaemonSet securityContext to Pod-level (see Issue [#13096](https://github.com/Alluxio/alluxio/issues/13096))
