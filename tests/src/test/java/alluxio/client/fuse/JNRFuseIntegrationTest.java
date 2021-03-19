@@ -15,13 +15,13 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.FuseMountOptions;
+import alluxio.fuse.AlluxioFuseOptions;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
- * Integration tests for {@link AlluxioFuseFileSystem}.
+ * Integration tests for JNR-FUSE based {@link AlluxioFuseFileSystem}.
  */
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioFuseFileSystem mFuseFileSystem;
@@ -34,12 +34,10 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options = new FuseMountOptions(mountPoint,
-        alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options,
-        ServerConfiguration.global());
-    mFuseFileSystem.mount(Paths.get(mountPoint),
-        false, false, new String[]{"-odirect_io"});
+    AlluxioFuseOptions options =
+        new AlluxioFuseOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
+    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, ServerConfiguration.global());
+    mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 
   @Override
