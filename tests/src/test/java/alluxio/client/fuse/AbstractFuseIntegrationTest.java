@@ -12,6 +12,7 @@
 package alluxio.client.fuse;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -21,6 +22,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -35,7 +37,6 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -54,28 +55,24 @@ import java.util.concurrent.TimeoutException;
  * and launch ways is expected to create a test that extends this base class.
  */
 public abstract class AbstractFuseIntegrationTest {
-  private static final String ALLUXIO_ROOT = "/";
-  private static final int BLOCK_SIZE = 4 * Constants.KB;
+  protected static final String ALLUXIO_ROOT = "/";
+  protected static final int BLOCK_SIZE = 4 * Constants.KB;
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
-  private LocalAlluxioCluster mAlluxioCluster;
+  private final LocalAlluxioCluster mAlluxioCluster = new LocalAlluxioCluster();
   private FileSystem mFileSystem;
-  private String mMountPoint;
+  protected String mMountPoint;
 
   @Rule
   public TestName mTestName = new TestName();
 
   /**
-   * Creates the local Alluxio cluster for testing.
-   *
-   * @param blockSize the block size
-   * @param mountPoint the Fuse mount point
-   * @param alluxioRoot the Fuse mounted alluxio root
-   * @return the created local Alluxio cluster
-   * @throws Exception if the cluster cannot be started
+   * Default setting of the local Alluxio cluster for FUSE testing.
    */
-  public abstract LocalAlluxioCluster createLocalAlluxioCluster(String clusterName, int blockSize,
-      String mountPoint, String alluxioRoot) throws Exception;
+  public void configureAlluxioCluster() {
+    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+  }
 
   /**
    * Mounts the Fuse application if needed.
@@ -87,7 +84,7 @@ public abstract class AbstractFuseIntegrationTest {
   public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
 
   /**
-   * Umount the given fuse mount point.
+   * Umounts the given fuse mount point.
    *
    * @param mountPoint the Fuse mount point
    */
@@ -95,9 +92,7 @@ public abstract class AbstractFuseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() {
-    // This test only runs when fuse is installed
-    boolean fuseInstalled = AlluxioFuseUtils.isFuseInstalled();
-    Assume.assumeTrue(fuseInstalled);
+    assumeTrue("This test only runs when fuse is installed", AlluxioFuseUtils.isFuseInstalled());
   }
 
   @Before
@@ -106,30 +101,36 @@ public abstract class AbstractFuseIntegrationTest {
         .getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory
         .createTemporaryDirectory(clusterName).getAbsolutePath();
-    mAlluxioCluster = createLocalAlluxioCluster(clusterName, BLOCK_SIZE, mMountPoint, ALLUXIO_ROOT);
+    mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
+    configureAlluxioCluster();
+    ServerConfiguration.global().validate();
+    mAlluxioCluster.start();
     mFileSystem = mAlluxioCluster.getClient();
     mountFuse(mFileSystem, mMountPoint, ALLUXIO_ROOT);
     if (!waitForFuseMounted()) {
-      stopClusterAndUmountFuse();
-      Assume.assumeTrue(false);
+      stop();
+      fail("Could not setup FUSE mount point");
     }
   }
 
   @After
   public void after() throws Exception {
-    stopClusterAndUmountFuse();
+    stop();
   }
 
-  private void stopClusterAndUmountFuse() throws Exception {
-    if (mAlluxioCluster != null) {
-      mAlluxioCluster.stop();
-    }
+  private void stop() throws Exception {
     if (fuseMounted()) {
       try {
         umountFuse(mMountPoint);
       } catch (Exception e) {
         // The Fuse application may be unmounted by the cluster stop
       }
+      if (fuseMounted()) {
+        ShellUtils.execCommand("umount", mMountPoint);
+      }
+    }
+    if (mAlluxioCluster != null) {
+      mAlluxioCluster.stop();
     }
   }
 
@@ -234,7 +235,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Test
   public void ls() throws Exception {
     // ls -sh has different results in osx
-    Assume.assumeTrue(OSUtils.isLinux());
+    assumeTrue(OSUtils.isLinux());
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
 
@@ -355,7 +356,7 @@ public abstract class AbstractFuseIntegrationTest {
    *
    * @return true if Alluxio-Fuse mounted successfully in the given timeout, false otherwise
    */
-  boolean waitForFuseMounted() throws IOException {
+  boolean waitForFuseMounted() {
     if (OSUtils.isLinux() || OSUtils.isMacOS()) {
       try {
         CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", () -> {

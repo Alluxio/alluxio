@@ -16,8 +16,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.util.ShellUtils;
+
+import org.junit.Ignore;
 
 import java.util.ArrayList;
 
@@ -28,17 +28,10 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioJniFuseFileSystem mFuseFileSystem;
 
   @Override
-  public LocalAlluxioCluster createLocalAlluxioCluster(String clusterName,
-      int blockSize, String mountPath, String alluxioRoot) throws Exception {
-    LocalAlluxioCluster localAlluxioCluster = new LocalAlluxioCluster();
-    localAlluxioCluster.initConfiguration(clusterName);
+  public void configureAlluxioCluster() {
+    super.configureAlluxioCluster();
     // Overwrite the test configuration with test specific parameters
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, blockSize);
     ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
-    ServerConfiguration.global().validate();
-    localAlluxioCluster.start();
-    return localAlluxioCluster;
   }
 
   @Override
@@ -53,11 +46,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void umountFuse(String mountPath) throws Exception {
     mFuseFileSystem.umount();
-    if (fuseMounted()) {
-      ShellUtils.execCommand("umount", mountPath);
-    }
   }
 
+  @Ignore
   @Override
   public void touchAndLs() throws Exception {
     // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved

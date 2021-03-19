@@ -16,8 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.util.ShellUtils;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -29,17 +27,9 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioFuseFileSystem mFuseFileSystem;
 
   @Override
-  public LocalAlluxioCluster createLocalAlluxioCluster(String clusterName,
-      int blockSize, String mountPath, String alluxioRoot) throws Exception {
-    LocalAlluxioCluster localAlluxioCluster = new LocalAlluxioCluster();
-    localAlluxioCluster.initConfiguration(clusterName);
-    // Overwrite the test configuration with test specific parameters
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, blockSize);
+  public void configureAlluxioCluster() {
+    super.configureAlluxioCluster();
     ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
-    ServerConfiguration.global().validate();
-    localAlluxioCluster.start();
-    return localAlluxioCluster;
   }
 
   @Override
@@ -55,8 +45,5 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void umountFuse(String mountPath) throws Exception {
     mFuseFileSystem.umount();
-    if (fuseMounted()) {
-      ShellUtils.execCommand("umount", mountPath);
-    }
   }
 }

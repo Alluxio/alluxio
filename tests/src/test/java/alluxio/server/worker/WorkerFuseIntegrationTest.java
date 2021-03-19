@@ -15,7 +15,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.ShellUtils;
 
 /**
@@ -23,19 +22,12 @@ import alluxio.util.ShellUtils;
  */
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
-  public LocalAlluxioCluster createLocalAlluxioCluster(String clusterName,
-      int blockSize, String mountPath, String alluxioRoot) throws Exception {
-    LocalAlluxioCluster localAlluxioCluster = new LocalAlluxioCluster();
-    localAlluxioCluster.initConfiguration(clusterName);
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, blockSize);
+  public void configureAlluxioCluster() {
+    super.configureAlluxioCluster();
     // Enable to worker internal Fuse application
     ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mountPath);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
-    ServerConfiguration.global().validate();
-    localAlluxioCluster.start();
-    return localAlluxioCluster;
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mMountPoint);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
   }
 
   @Override
