@@ -12,6 +12,7 @@
 package alluxio.client.fuse;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -20,16 +21,14 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.AlluxioFuseOptions;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
+import alluxio.master.LocalAlluxioCluster;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -37,83 +36,101 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Integration tests for {@link AlluxioFuseFileSystem}.
+ * This is the base class of Fuse tests. It describes the POSIX API functionalities
+ * that all Fuse implementations and launch ways should support. Each Fuse implementation
+ * and launch ways is expected to create a test that extends this base class.
  */
-public class FuseFileSystemIntegrationTest {
+public abstract class AbstractFuseIntegrationTest {
+  protected static final String ALLUXIO_ROOT = "/";
+  protected static final int BLOCK_SIZE = 4 * Constants.KB;
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
-  private static final int BLOCK_SIZE = 4 * Constants.KB;
 
-  // Fuse user group translation needs to be enabled to support chown/chgrp/ls commands
-  // to show accurate information
-  @ClassRule
-  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
-          .build();
+  private final LocalAlluxioCluster mAlluxioCluster = new LocalAlluxioCluster();
+  private FileSystem mFileSystem;
+  protected String mMountPoint;
 
-  private static String sAlluxioRoot;
-  private static boolean sFuseInstalled;
-  private static FileSystem sFileSystem;
-  private static AlluxioFuseFileSystem sFuseFileSystem;
-  private static Thread sFuseThread;
-  private static String sMountPoint;
+  @Rule
+  public TestName mTestName = new TestName();
 
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    // This test only runs when fuse is installed
-    sFuseInstalled = AlluxioFuseUtils.isFuseInstalled();
-    Assume.assumeTrue(sFuseInstalled);
-
-    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-
-    sMountPoint = AlluxioTestDirectory
-        .createTemporaryDirectory("FuseMountPoint").getAbsolutePath();
-    sAlluxioRoot = "/";
-
-    AlluxioFuseOptions options = new AlluxioFuseOptions(sMountPoint,
-        sAlluxioRoot, false, new ArrayList<>());
-    sFuseFileSystem = new AlluxioFuseFileSystem(sFileSystem, options,
-        ServerConfiguration.global());
-    sFuseThread = new Thread(() -> sFuseFileSystem.mount(Paths.get(sMountPoint),
-        true, false, new String[]{"-odirect_io"}));
-    sFuseThread.start();
-
-    if (!waitForFuseMounted()) {
-      // Fuse may not be mounted within timeout and we need to umount it
-      umountFuse();
-      Assume.assumeTrue(false);
-    }
+  /**
+   * Default setting of the local Alluxio cluster for FUSE testing.
+   */
+  public void configureAlluxioCluster() {
+    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
   }
 
-  @AfterClass
-  public static void afterClass() throws Exception {
-    if (sFuseInstalled && fuseMounted()) {
-      umountFuse();
+  /**
+   * Mounts the Fuse application if needed.
+   *
+   * @param fileSystem the filesystem to create the Fuse application
+   * @param mountPoint the Fuse mount point
+   * @param alluxioRoot the Fuse mounted alluxio root
+   */
+  public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
+
+  /**
+   * Umounts the given fuse mount point.
+   *
+   * @param mountPoint the Fuse mount point
+   */
+  public abstract void umountFuse(String mountPoint) throws Exception;
+
+  @BeforeClass
+  public static void beforeClass() {
+    assumeTrue("This test only runs when fuse is installed", AlluxioFuseUtils.isFuseInstalled());
+  }
+
+  @Before
+  public void before() throws Exception {
+    String clusterName = IntegrationTestUtils
+        .getTestName(getClass().getSimpleName(), mTestName.getMethodName());
+    mMountPoint = AlluxioTestDirectory
+        .createTemporaryDirectory(clusterName).getAbsolutePath();
+    mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
+    configureAlluxioCluster();
+    ServerConfiguration.global().validate();
+    mAlluxioCluster.start();
+    mFileSystem = mAlluxioCluster.getClient();
+    mountFuse(mFileSystem, mMountPoint, ALLUXIO_ROOT);
+    if (!waitForFuseMounted()) {
+      stop();
+      fail("Could not setup FUSE mount point");
     }
   }
 
   @After
   public void after() throws Exception {
-    for (URIStatus status : sFileSystem.listStatus(new AlluxioURI(sAlluxioRoot))) {
-      DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
-      sFileSystem.delete(new AlluxioURI(status.getPath()), options);
+    stop();
+  }
+
+  private void stop() throws Exception {
+    if (fuseMounted()) {
+      try {
+        umountFuse(mMountPoint);
+      } catch (Exception e) {
+        // The Fuse application may be unmounted by the cluster stop
+      }
+      if (fuseMounted()) {
+        ShellUtils.execCommand("umount", mMountPoint);
+      }
+    }
+    if (mAlluxioCluster != null) {
+      mAlluxioCluster.stop();
     }
   }
 
@@ -122,11 +139,11 @@ public class FuseFileSystemIntegrationTest {
     String testFile = "/catTestFile";
     String content = "Alluxio Cat Test File Content";
 
-    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+    try (FileOutStream os = mFileSystem.createFile(new AlluxioURI(testFile))) {
       os.write(content.getBytes());
     }
 
-    String result = ShellUtils.execCommand("cat", sMountPoint + testFile);
+    String result = ShellUtils.execCommand("cat", mMountPoint + testFile);
     Assert.assertEquals(content + "\n", result);
   }
 
@@ -135,29 +152,29 @@ public class FuseFileSystemIntegrationTest {
     String testFile = "/chgrpTestFile";
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
-    ShellUtils.execCommand("chgrp", groupName, sMountPoint + testFile);
-    Assert.assertEquals(groupName, sFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    ShellUtils.execCommand("chgrp", groupName, mMountPoint + testFile);
+    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
   public void chmod() throws Exception {
     String testFile = "/chmodTestFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
-    ShellUtils.execCommand("chmod", "777", sMountPoint + testFile);
-    Assert.assertEquals((short) 0777, sFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    ShellUtils.execCommand("chmod", "777", mMountPoint + testFile);
+    Assert.assertEquals((short) 0777, mFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
   }
 
   @Test
   public void chown() throws Exception {
     String testFile = "/chownTestFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
 
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
-    ShellUtils.execCommand("chown", userName + ":" + groupName, sMountPoint + testFile);
-    Assert.assertEquals(userName, sFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
-    Assert.assertEquals(groupName, sFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
+    ShellUtils.execCommand("chown", userName + ":" + groupName, mMountPoint + testFile);
+    Assert.assertEquals(userName, mFileSystem.getStatus(new AlluxioURI(testFile)).getOwner());
+    Assert.assertEquals(groupName, mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
 
   @Test
@@ -166,18 +183,18 @@ public class FuseFileSystemIntegrationTest {
     String content = "Alluxio Cp Test File Content";
     File localFile = generateFileContent("/TestFileOnLocalPath", content.getBytes());
 
-    ShellUtils.execCommand("cp", localFile.getPath(), sMountPoint + testFile);
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
+    ShellUtils.execCommand("cp", localFile.getPath(), mMountPoint + testFile);
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
 
     // Fuse release() is async
     // Cp again to make sure the first cp is completed
     String testFolder = "/cpTestFolder";
-    ShellUtils.execCommand("mkdir", sMountPoint + testFolder);
-    ShellUtils.execCommand("cp", sMountPoint + testFile, sMountPoint + testFolder + testFile);
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+    ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
+    ShellUtils.execCommand("cp", mMountPoint + testFile, mMountPoint + testFolder + testFile);
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
 
     byte[] read = new byte[content.length()];
-    try (FileInStream is = sFileSystem.openFile(new AlluxioURI(testFile),
+    try (FileInStream is = mFileSystem.openFile(new AlluxioURI(testFile),
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       is.read(read);
     }
@@ -191,68 +208,68 @@ public class FuseFileSystemIntegrationTest {
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
-    ShellUtils.execCommand("head", "-c", "10", sMountPoint + testFile);
+    ShellUtils.execCommand("head", "-c", "10", mMountPoint + testFile);
 
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
     Assert.assertEquals(40 * Constants.KB,
-        sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+        mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
 
-    String output = ShellUtils.execCommand("du", "-k", sMountPoint + testFile);
+    String output = ShellUtils.execCommand("du", "-k", mMountPoint + testFile);
     Assert.assertEquals("40", output.split("\\s+")[0]);
 
-    ShellUtils.execCommand("rm", sMountPoint + testFile);
-    Assert.assertFalse(sFileSystem.exists(new AlluxioURI(testFile)));
+    ShellUtils.execCommand("rm", mMountPoint + testFile);
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
   }
 
   @Test
   public void head() throws Exception {
     String testFile = "/headTestFile";
     String content = "Alluxio Head Test File Content";
-    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+    try (FileOutStream os = mFileSystem.createFile(new AlluxioURI(testFile))) {
       os.write(content.getBytes());
     }
-    String result = ShellUtils.execCommand("head", "-c", "17", sMountPoint + testFile);
+    String result = ShellUtils.execCommand("head", "-c", "17", mMountPoint + testFile);
     Assert.assertEquals("Alluxio Head Test\n", result);
   }
 
   @Test
   public void ls() throws Exception {
     // ls -sh has different results in osx
-    Assume.assumeTrue(OSUtils.isLinux());
+    assumeTrue(OSUtils.isLinux());
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
 
     // Fuse getattr() will wait for file to be completed
     // when fuse release returns but does not finish
-    String out = ShellUtils.execCommand("ls", "-sh", sMountPoint + testFile);
+    String out = ShellUtils.execCommand("ls", "-sh", mMountPoint + testFile);
     Assert.assertFalse(out.isEmpty());
     Assert.assertEquals("40K", out.split("\\s+")[0]);
 
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFile)));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
     Assert.assertEquals(40 * Constants.KB,
-        sFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
+        mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
   }
 
   @Test
   public void mkdirAndMv() throws Exception {
     String testFile = "/mvTestFile";
     String testFolder = "/mkdirTestFolder";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
-    ShellUtils.execCommand("mkdir", sMountPoint + testFolder);
-    ShellUtils.execCommand("mv", sMountPoint + testFile,
-        sMountPoint + testFolder + testFile);
-    Assert.assertFalse(sFileSystem.exists(new AlluxioURI(testFile)));
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testFolder + testFile)));
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
+    ShellUtils.execCommand("mv", mMountPoint + testFile,
+        mMountPoint + testFolder + testFile);
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testFolder + testFile)));
   }
 
   @Test
   public void tail() throws Exception {
     String testFile = "/tailTestFile";
     String content = "Alluxio Tail Test File Content";
-    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+    try (FileOutStream os = mFileSystem.createFile(new AlluxioURI(testFile))) {
       os.write(content.getBytes());
     }
-    String result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    String result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
     Assert.assertEquals("Test File Content\n", result);
   }
 
@@ -262,10 +279,10 @@ public class FuseFileSystemIntegrationTest {
   public void continueWithRevokedAuth() throws Exception {
     String testFile = "/tailTestFile";
     String content = "Alluxio Tail Test File Content";
-    try (FileOutStream os = sFileSystem.createFile(new AlluxioURI(testFile))) {
+    try (FileOutStream os = mFileSystem.createFile(new AlluxioURI(testFile))) {
       os.write(content.getBytes());
     }
-    String result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    String result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
     Assert.assertEquals("Test File Content\n", result);
 
     /*
@@ -277,20 +294,20 @@ public class FuseFileSystemIntegrationTest {
      */
     Thread.sleep(500);
 
-    result = ShellUtils.execCommand("tail", "-c", "17", sMountPoint + testFile);
+    result = ShellUtils.execCommand("tail", "-c", "17", mMountPoint + testFile);
     Assert.assertEquals("Test File Content\n", result);
   }
 
   @Test
   public void touchAndLs() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
     String touchTestFile = "/touchTestFile";
-    ShellUtils.execCommand("touch", sMountPoint + touchTestFile);
+    ShellUtils.execCommand("touch", mMountPoint + touchTestFile);
 
-    String lsResult = ShellUtils.execCommand("ls", sMountPoint);
+    String lsResult = ShellUtils.execCommand("ls", mMountPoint);
     Assert.assertTrue(lsResult.contains("lsTestFile"));
     Assert.assertTrue(lsResult.contains("touchTestFile"));
-    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(touchTestFile)));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(touchTestFile)));
   }
 
   /**
@@ -301,19 +318,10 @@ public class FuseFileSystemIntegrationTest {
   private void createFileInFuse(String filename) {
     try {
       ShellUtils.execCommand("dd", "if=/dev/zero",
-          "of=" + sMountPoint + filename, "count=10", "bs=" + 4 * Constants.KB);
+          "of=" + mMountPoint + filename, "count=10", "bs=" + 4 * Constants.KB);
     } catch (IOException e) {
       fail();
     }
-  }
-
-  /**
-   * Umounts the Alluxio-Fuse.
-   */
-  private static void umountFuse() throws InterruptedException {
-    sFuseFileSystem.umount();
-    sFuseThread.interrupt();
-    sFuseThread.join();
   }
 
   /**
@@ -325,7 +333,7 @@ public class FuseFileSystemIntegrationTest {
    * @throws FileNotFoundException if file not found
    */
   private File generateFileContent(String path, byte[] toWrite) throws IOException {
-    File testFile = new File(sLocalAlluxioClusterResource.get().getAlluxioHome() + path);
+    File testFile = new File(mAlluxioCluster.getAlluxioHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     fos.write(toWrite);
@@ -338,9 +346,9 @@ public class FuseFileSystemIntegrationTest {
    *
    * @return true if fuse is mounted, false otherwise
    */
-  private static boolean fuseMounted() throws IOException {
+  protected boolean fuseMounted() throws IOException {
     String result = ShellUtils.execCommand("mount");
-    return result.contains(sMountPoint);
+    return result.contains(mMountPoint);
   }
 
   /**
@@ -348,7 +356,7 @@ public class FuseFileSystemIntegrationTest {
    *
    * @return true if Alluxio-Fuse mounted successfully in the given timeout, false otherwise
    */
-  private static boolean waitForFuseMounted() throws IOException {
+  boolean waitForFuseMounted() {
     if (OSUtils.isLinux() || OSUtils.isMacOS()) {
       try {
         CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", () -> {
