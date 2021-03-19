@@ -230,7 +230,28 @@ public final class MetricKey implements Comparable<MetricKey> {
   }
 
   // Master metrics
-  // Master status
+  // Absent cache stats
+  public static final MetricKey MASTER_ABSENT_CACHE_HITS =
+      new Builder(Name.MASTER_ABSENT_CACHE_HITS)
+          .setDescription("Number of cache hits on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
+      new Builder(Name.MASTER_ABSENT_CACHE_MISSES)
+          .setDescription("Number of cache misses on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
+      new Builder(Name.MASTER_ABSENT_CACHE_INVALIDATIONS)
+          .setDescription("Number of invalidations on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
+      new Builder(Name.MASTER_ABSENT_CACHE_SIZE)
+          .setDescription("Size of the absent cache")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   public static final MetricKey MASTER_EDGE_CACHE_SIZE =
       new Builder(Name.MASTER_EDGE_CACHE_SIZE)
           .setDescription("Total number of edges (inode metadata) cached. "
@@ -1055,6 +1076,24 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final class Name {
     // Master metrics
     // metrics names for master status
+<<<<<<< HEAD
+||||||| parent of a7f53499d6 (Add absent cache metrics)
+    public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
+    public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
+    public static final String MASTER_EDGE_CACHE_LOAD_TIMES = "Master.EdgeCacheLoadTimes";
+    public static final String MASTER_EDGE_CACHE_MISSES = "Master.EdgeCacheMisses";
+=======
+    public static final String MASTER_ABSENT_CACHE_HITS = "Master.AbsentCacheHits";
+    public static final String MASTER_ABSENT_CACHE_MISSES = "Master.AbsentCacheMisses";
+    public static final String MASTER_ABSENT_CACHE_INVALIDATIONS
+        = "Master.AbsentCacheInvalidations";
+    public static final String MASTER_ABSENT_CACHE_SIZE = "Master.AbsentCacheSize";
+
+    public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
+    public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
+    public static final String MASTER_EDGE_CACHE_LOAD_TIMES = "Master.EdgeCacheLoadTimes";
+    public static final String MASTER_EDGE_CACHE_MISSES = "Master.EdgeCacheMisses";
+>>>>>>> a7f53499d6 (Add absent cache metrics)
     public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
     public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
