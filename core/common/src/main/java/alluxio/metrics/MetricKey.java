@@ -1220,7 +1220,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     // metrics names for master status
     public static final String MASTER_ABSENT_CACHE_HITS = "Master.AbsentCacheHits";
     public static final String MASTER_ABSENT_CACHE_MISSES = "Master.AbsentCacheMisses";
-    public static final String MASTER_ABSENT_CACHE_INVALIDATIONS = "Master.AbsentCacheInvalidations";
+    public static final String MASTER_ABSENT_CACHE_INVALIDATIONS
+        = "Master.AbsentCacheInvalidations";
     public static final String MASTER_ABSENT_CACHE_SIZE = "Master.AbsentCacheSize";
 
     public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
