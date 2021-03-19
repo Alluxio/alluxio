@@ -158,8 +158,8 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort) throws BlockDoesNotExistException, IOException {
     return null;
   }
 
