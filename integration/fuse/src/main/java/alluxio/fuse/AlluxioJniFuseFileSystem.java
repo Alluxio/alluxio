@@ -391,7 +391,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private int flushInternal(String path, FuseFileInfo fi) {
     final long fd = fi.fh.get();
 
-    try{
+    try {
       FileOutStream os = mCreateFileEntries.get(fd);
       FileInStream is = mOpenFileEntries.get(fd);
 
@@ -401,7 +401,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       }
 
       if (os != null) {
-        synchronized(os) {
+        synchronized (os) {
           os.flush();
         }
       }
