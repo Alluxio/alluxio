@@ -45,23 +45,20 @@ public final class BlockWorkerDataWriter implements DataWriter {
    *
    * @param context the file system context
    * @param blockId the block ID
+   * @param blockSize the block size in bytes
    * @param options the output stream options
    * @return the {@link BlockWorkerDataWriter} created
    */
   public static BlockWorkerDataWriter create(final FileSystemContext context,
-      long blockId, OutStreamOptions options) throws IOException {
+      long blockId, long blockSize, OutStreamOptions options) throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
     int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
-    long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
-    try {
-      BlockWorker blockWorker = context.getInternalBlockWorker();
-      WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
-          options.getWriteTier(), options.getMediumType(), reservedBytes,
-          options.getWriteType() == WriteType.ASYNC_THROUGH, true);
-      return new BlockWorkerDataWriter(blockWriter, chunkSize);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
+    BlockWorker blockWorker = context.getInternalBlockWorker();
+    WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
+        options.getWriteTier(), options.getMediumType(), reservedBytes,
+        options.getWriteType() == WriteType.ASYNC_THROUGH, true);
+    return new BlockWorkerDataWriter(blockWriter, chunkSize);
   }
 
   @Override
@@ -77,8 +74,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
     long append = mBlockWriter.append(buf);
-    MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DIRECT.getName()).inc(append);
-    MetricsSystem.meter(MetricKey.WORKER_BYTES_READ_DIRECT_THROUGHPUT.getName())
+    MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT.getName()).inc(append);
+    MetricsSystem.meter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT.getName())
         .mark(append);
   }
 
