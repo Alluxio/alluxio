@@ -14,6 +14,7 @@ package alluxio.job.plan.load;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
@@ -138,9 +139,15 @@ public final class LoadDefinition
   @Override
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
       RunTaskContext context) throws Exception {
+
+    // TODO(jiri): Replace with internal client that uses file ID once the internal client is
+    // factored out of the core server module. The reason to prefer using file ID for this job is
+    // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
+    // renamed, the job is still working on the correct file.
+    URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getFilePath()));
+
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(
-          context.getFileSystem(), context.getFsContext(), config.getFilePath(), task.getBlockId());
+      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;
