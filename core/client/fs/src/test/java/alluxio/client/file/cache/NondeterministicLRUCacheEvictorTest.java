@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -12,24 +12,21 @@
 package alluxio.client.file.cache;
 
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.file.cache.evictor.LRUNondeterministicCacheEvictor;
+import alluxio.client.file.cache.evictor.NondeterministicLRUCacheEvictor;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-
 import org.hamcrest.Matchers;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for the {@link LRUNondeterministicCacheEvictor} class.
+ * Tests for the {@link NondeterministicLRUCacheEvictor} class.
  */
-public final class LRUNondeterministicCacheEvictorTest {
+public final class NondeterministicLRUCacheEvictorTest {
   private final PageId mFirst = new PageId("1L", 2L);
   private final PageId mSecond = new PageId("3L", 4L);
   private final PageId mThird = new PageId("5L", 6L);
-  private LRUNondeterministicCacheEvictor mEvictor;
+  private NondeterministicLRUCacheEvictor mEvictor;
 
   /**
    * Sets up the instances.
@@ -37,8 +34,8 @@ public final class LRUNondeterministicCacheEvictorTest {
   @Before
   public void before() {
     InstancedConfiguration conf = ConfigurationTestUtils.defaults();
-    conf.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LRU_NONDETERMINISTIC_NUMOFCANDIDATE, "2");
-    mEvictor = new LRUNondeterministicCacheEvictor(conf);
+    mEvictor = new NondeterministicLRUCacheEvictor(conf);
+    mEvictor.setNumOfCandidate(2);
   }
 
   @Test
