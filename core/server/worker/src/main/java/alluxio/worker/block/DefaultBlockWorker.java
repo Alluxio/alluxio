@@ -477,16 +477,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-<<<<<<< HEAD
-  public BlockReader newUfsBlockReader(long sessionId, long blockId,
-      long offset, boolean positionShort) throws BlockDoesNotExistException, IOException {
-||||||| merged common ancestors
-  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
-      throws BlockDoesNotExistException, IOException {
-=======
   public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort) throws BlockDoesNotExistException, IOException {
->>>>>>> upstream/fuse-in-worker
     return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, positionShort);
   }
 

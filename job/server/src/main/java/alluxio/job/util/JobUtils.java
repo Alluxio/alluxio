@@ -11,15 +11,7 @@
 
 package alluxio.job.util;
 
-<<<<<<< HEAD
-import alluxio.AlluxioURI;
 import alluxio.io.Cancelable;
-||||||| merged common ancestors
-import alluxio.AlluxioURI;
-import alluxio.client.Cancelable;
-=======
-import alluxio.client.Cancelable;
->>>>>>> upstream/fuse-in-worker
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
