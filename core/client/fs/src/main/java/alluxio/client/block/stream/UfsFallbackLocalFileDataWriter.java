@@ -54,7 +54,7 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
       throws IOException {
     try {
       LocalFileDataWriter localFilePacketWriter =
-          LocalFileDataWriter.create(context, address, blockId, options);
+          LocalFileDataWriter.create(context, address, blockId, blockSize, options);
       return new UfsFallbackLocalFileDataWriter(localFilePacketWriter, null, context, address,
           blockId, blockSize, options);
     } catch (ResourceExhaustedException e) {
