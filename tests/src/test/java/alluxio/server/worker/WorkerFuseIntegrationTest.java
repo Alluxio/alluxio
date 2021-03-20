@@ -22,9 +22,7 @@ import alluxio.util.ShellUtils;
  */
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
-  public void configureAlluxioCluster() {
-    super.configureAlluxioCluster();
-    // Enable to worker internal Fuse application
+  public void configure() {
     ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
     ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mMountPoint);
     ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
