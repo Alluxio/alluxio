@@ -90,6 +90,7 @@ public class ExtensionsClassLoader extends URLClassLoader {
     Enumeration<URL> resources = super.getResources(name);
     // Falls back to default class loader if not found in the URL class loader
     if (!resources.hasMoreElements()) {
+      LOG.debug("Falling back to default class loader for loading resource {}", name);
       return mDefaultClassloader.getResources(name);
     }
     return resources;
