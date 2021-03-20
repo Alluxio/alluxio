@@ -22,7 +22,7 @@ import org.junit.Ignore;
 import java.util.ArrayList;
 
 /**
- * Integration tests for {@link alluxio.fuse.AlluxioJniFuseFileSystem}.
+ * Integration tests for JNR-FUSE based {@link AlluxioJniFuseFileSystem}.
  */
 public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioJniFuseFileSystem mFuseFileSystem;
@@ -36,11 +36,11 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options = new FuseMountOptions(mountPoint,
-        alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(fileSystem, options,
-        ServerConfiguration.global());
-    mFuseFileSystem.mount(false, false, new String[]{});
+    FuseMountOptions options =
+        new FuseMountOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
+    mFuseFileSystem =
+        new AlluxioJniFuseFileSystem(fileSystem, options, ServerConfiguration.global());
+    mFuseFileSystem.mount(false, false, new String[] {});
   }
 
   @Override
