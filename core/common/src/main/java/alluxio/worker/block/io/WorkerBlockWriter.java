@@ -139,15 +139,13 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
 
   @Override
   public void cancel() throws IOException {
-    if (mBlockWriter != null) {
-      mBlockWriter.close();
-    }
+    closeBlockWriter();
     try {
       mBlockWorker.abortBlock(mSessionId, mBlockId);
     } catch (Exception e) {
       if (mLogAndCleanup) {
         LogUtils.warnWithException(LOG,
-            "Exception occurred when cenceling the write request [sessionId: {}, blockId: {}]",
+            "Exception occurred when canceling the write request [sessionId: {}, blockId: {}]",
             mSessionId, mBlockId, e);
         cleanup();
       }
@@ -157,9 +155,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
 
   @Override
   public void close() throws IOException {
-    if (mBlockWriter != null) {
-      mBlockWriter.close();
-    }
+    closeBlockWriter();
     try {
       mBlockWorker.commitBlock(mSessionId, mBlockId, mPinOnCreate);
     } catch (Exception e) {
@@ -178,9 +174,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
    */
   public void cleanup() {
     try {
-      if (mBlockWriter != null) {
-        mBlockWriter.close();
-      }
+      closeBlockWriter();
       mBlockWorker.cleanupSession(mSessionId);
     } catch (Exception e) {
       LOG.warn("Failed to cleanup states of writing [sessionId: {}, blockId: {}] with error {}",
@@ -189,7 +183,9 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
   }
 
   /**
-   * Closes the block writer before transferring the block to UFS.
+   * Closes the block writer.
+   * This method should only be called internally or before
+   * transferring the data to UFS.
    */
   public void closeBlockWriter() throws IOException {
     if (mBlockWriter != null) {
@@ -212,7 +208,6 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
     mPos += size;
   }
 
-  // TODO(lu) change AbstractReadHandler to avoid double log/cleanup
   private void logExceptionAndCleanup(Exception e) {
     if (mLogAndCleanup) {
       LogUtils.warnWithException(LOG,
@@ -227,7 +222,7 @@ public final class WorkerBlockWriter extends BlockWriter implements Cancelable {
    *
    * @param blockWorker the block worker
    * @param sessionId the session id
-   * @param blockId id the block id
+   * @param blockId the block id
    * @param fileBufferBytes the file buffer size in bytes
    * @param pinOnCreate whether to pin on create
    * @param logAndCleanup log and cleanup when exceptions occur, otherwise

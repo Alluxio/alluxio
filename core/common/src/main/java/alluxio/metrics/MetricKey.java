@@ -846,7 +846,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT =
       new Builder(Name.WORKER_BYTES_WRITTEN_DIRECT)
-          .setDescription("Total number of bytes write to Alluxio storage managed by this worker "
+          .setDescription("Total number of bytes written to Alluxio storage managed by this worker "
               + "without external RPC involved. This records data written "
               + "by worker internal calls (e.g. a client embedded in this worker).")
           .setMetricType(MetricType.COUNTER)
@@ -854,7 +854,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT)
-          .setDescription("Total number of bytes write to Alluxio storage managed by this worker "
+          .setDescription("Total number of bytes written to Alluxio storage managed by this worker "
               + "without external RPC involved. This records data written "
               + "by worker internal calls (e.g. a client embedded in this worker).")
           .setMetricType(MetricType.METER)

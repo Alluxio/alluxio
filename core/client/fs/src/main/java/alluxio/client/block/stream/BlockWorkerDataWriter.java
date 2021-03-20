@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A data writer that issues from a client embedded in a worker
  * to write data to the worker directly via internal communication channel.
  *
- * This data writer is similar to write to local worker via {@link GrpcDataWriter}
+ * This data writer is similar to write to local worker storage via {@link GrpcDataWriter}
  * except that all communication with the local worker is via internal method call
  * instead of external RPC frameworks.
  */
@@ -57,6 +57,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
     BlockWorker blockWorker = context.getInternalBlockWorker();
     WorkerBlockWriter blockWriter = WorkerBlockWriter.create(blockWorker, blockId,
         options.getWriteTier(), options.getMediumType(), reservedBytes,
+        // Pin on create is similar to {@link LocalFileDataWriter}
         options.getWriteType() == WriteType.ASYNC_THROUGH, true);
     return new BlockWorkerDataWriter(blockWriter, chunkSize);
   }
