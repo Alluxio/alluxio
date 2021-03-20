@@ -63,12 +63,13 @@ public final class LocalFileDataWriter implements DataWriter {
    * @param context the file system context
    * @param address the worker network address
    * @param blockId the block ID
+   * @param blockSize the block size in bytes
    * @param options the output stream options
    * @return the {@link LocalFileDataWriter} created
    */
   public static LocalFileDataWriter create(final FileSystemContext context,
       final WorkerNetAddress address,
-      long blockId, OutStreamOptions options) throws IOException {
+      long blockId, long blockSize, OutStreamOptions options) throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
@@ -81,7 +82,8 @@ public final class LocalFileDataWriter implements DataWriter {
           conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       long dataTimeout = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
-      long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
+      // in cases we know precise block size, make more accurate reservation.
+      long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
 
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
