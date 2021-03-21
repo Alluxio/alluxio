@@ -46,4 +46,14 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void touchAndLs() throws Exception {
     // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
   }
+
+  @Override
+  public void ddDuAndRm() throws Exception {
+    // TODO(bin): enable this test
+  }
+
+  @Override
+  public void ls() throws Exception {
+    // TODO(bin): enable this test
+  }
 }
