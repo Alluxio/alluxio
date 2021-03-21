@@ -43,7 +43,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mFile = mTestFolder.newFile();
     mBlockWorker = Mockito.mock(BlockWorker.class);
     Mockito.doNothing().when(mBlockWorker)
-        .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyInt(),
+        .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyInt(),
             Mockito.anyString(), Mockito.anyLong());
     Mockito.doNothing().when(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
@@ -51,7 +51,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong(),
         Mockito.anyBoolean());
     mBlockWriter = new LocalFileBlockWriter(mFile.getPath());
-    Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
+    Mockito.when(mBlockWorker.getBlockWriter(Mockito.anyLong(), Mockito.anyLong()))
         .thenReturn(mBlockWriter)
         .thenReturn(new LocalFileBlockWriter(mTestFolder.newFile().getPath()));
     mResponseObserver = Mockito.mock(StreamObserver.class);

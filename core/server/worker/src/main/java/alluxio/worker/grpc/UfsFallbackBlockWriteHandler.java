@@ -28,7 +28,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.WorkerBlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -98,10 +97,8 @@ public final class UfsFallbackBlockWriteHandler
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
-      WorkerBlockWriter blockWriter = WorkerBlockWriter.create(mWorker, request.getId(),
-          request.getTier(), request.getMediumType(), FILE_BUFFER_SIZE,
-          request.getPinOnCreate(), false);
-      context.setWorkerBlockWriter(blockWriter);
+      mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
+          request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }
@@ -176,8 +173,8 @@ public final class UfsFallbackBlockWriteHandler
         context.setWritingToLocal(false);
       }
       // close the block writer first
-      if (context.getWorkerBlockWriter() != null) {
-        context.getWorkerBlockWriter().closeBlockWriter();
+      if (context.getBlockWriter() != null) {
+        context.getBlockWriter().close();
       }
       // prepare the UFS block and transfer data from the temp block to UFS
       createUfsBlock(context);

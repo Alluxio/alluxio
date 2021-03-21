@@ -366,7 +366,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
 
   /**
    * Writes the buffer.
-   *  @param context context of the request to complete
+   * @param context context of the request to complete
    * @param responseObserver the response observer
    * @param buf the buffer
    * @param pos the pos

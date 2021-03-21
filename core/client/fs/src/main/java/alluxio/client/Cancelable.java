@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.io;
+package alluxio.client;
 
 import java.io.IOException;
 

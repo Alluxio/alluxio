@@ -11,7 +11,7 @@
 
 package alluxio.job.util;
 
-import alluxio.io.Cancelable;
+import alluxio.client.Cancelable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;

@@ -337,12 +337,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public String createBlock(long sessionId, long blockId, String tierAlias,
+  public String createBlock(long sessionId, long blockId, int tier,
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     if (medium.isEmpty()) {
-      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+      loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
     }
@@ -354,7 +354,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       LOG.error(
           "Failed to create block. SessionId: {}, BlockId: {}, "
               + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
-          sessionId, blockId, tierAlias, medium, initialBytes, e);
+          sessionId, blockId, mStorageTierAssoc.getAlias(tier), medium, initialBytes, e);
 
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
@@ -365,25 +365,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void createBlockRemote(long sessionId, long blockId, int tier,
-      String medium, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc;
-    if (medium.isEmpty()) {
-      loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
-    } else {
-      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
-    }
-    mLocalBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(initialBytes, loc));
-  }
-
-  @Override
   public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
     return mLocalBlockStore.getTempBlockMeta(sessionId, blockId);
   }
 
   @Override
-  public BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
+  public BlockWriter getBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return mLocalBlockStore.getBlockWriter(sessionId, blockId);

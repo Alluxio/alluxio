@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.worker.block.io.WorkerBlockWriter;
+import alluxio.worker.block.io.BlockWriter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -21,12 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
+  private BlockWriter mBlockWriter;
   private long mBytesReserved;
   private boolean mIsWritingToLocal = true;
   private alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> mUfsResource;
   private java.io.OutputStream mOutputStream;
   private String mUfsPath;
-  private WorkerBlockWriter mWorkerBlockWriter;
 
   BlockWriteRequestContext(alluxio.grpc.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
@@ -34,11 +34,11 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   }
 
   /**
-   * @return the worker block writer
+   * @return the block writer
    */
   @Nullable
-  public WorkerBlockWriter getWorkerBlockWriter() {
-    return mWorkerBlockWriter;
+  public BlockWriter getBlockWriter() {
+    return mBlockWriter;
   }
 
   /**
@@ -51,8 +51,8 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   /**
    * @param blockWriter block writer to set
    */
-  public void setWorkerBlockWriter(WorkerBlockWriter blockWriter) {
-    mWorkerBlockWriter = blockWriter;
+  public void setBlockWriter(BlockWriter blockWriter) {
+    mBlockWriter = blockWriter;
   }
 
   /**
