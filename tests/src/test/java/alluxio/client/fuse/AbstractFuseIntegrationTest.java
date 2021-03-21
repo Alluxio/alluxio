@@ -41,6 +41,7 @@ import alluxio.util.WaitForOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -199,6 +200,7 @@ public abstract class AbstractFuseIntegrationTest {
     assertEquals(content, new String(read, "UTF8"));
   }
 
+  @Ignore
   @Test
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
@@ -229,6 +231,7 @@ public abstract class AbstractFuseIntegrationTest {
     assertEquals("Alluxio Head Test\n", result);
   }
 
+  @Ignore
   @Test
   public void ls() throws Exception {
     // ls -sh has different results in osx
