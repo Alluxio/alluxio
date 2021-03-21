@@ -616,6 +616,13 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   /**
+   * @return the last raft log index which was applied to the state machine
+   */
+  public long getLastAppliedCommitIndex() {
+    return mLastAppliedCommitIndex;
+  }
+
+  /**
    * @return whether the state machine is in the process of taking a snapshot
    */
   public boolean isSnapshotting() {

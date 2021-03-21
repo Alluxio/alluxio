@@ -49,6 +49,7 @@ import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.GroupInfoReply;
 import org.apache.ratis.protocol.GroupInfoRequest;
+import org.apache.ratis.protocol.LeaderNotReadyException;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
@@ -80,6 +81,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -529,6 +531,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         new JournalEntryCommand(entry).getSerializedJournalEntry()));
   }
 
+  static GroupInfoRequest toRaftMessage(org.apache.ratis.protocol.GroupInfoRequest request) {
+    return request;
+  }
+
   @Override
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
@@ -565,13 +571,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * The caller is responsible for detecting and responding to leadership changes.
    */
   private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
-      throws TimeoutException, InterruptedException {
+          throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     long waitBeforeRetry = ServerConfiguration.global()
         .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
+    OptionalLong endCommitIndex = OptionalLong.empty();
+    try {
+      endCommitIndex = getGroupInfo().getCommitInfos().stream()
+          .mapToLong(RaftProtos.CommitInfoProto::getCommitIndex).min();
+    } catch (IOException e) {
+      LOG.warn("Failed to get raft log information before replay."
+          + " Replay statistics will not be available:", e);
+    }
+    long firstSeqNum = stateMachine.getLastAppliedSequenceNumber();
+    AtomicLong lastMeasuredSeqNum = new AtomicLong(stateMachine.getLastAppliedSequenceNumber());
+    AtomicLong lastMeasuredTime = new AtomicLong(startTime);
+    AtomicLong lastCommitIdx = new AtomicLong(0);
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -604,8 +622,41 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       } catch (TimeoutException | ExecutionException | IOException e) {
         ex = e;
       }
+
       if (ex != null) {
-        LOG.info("Exception submitting term start entry: {}", ex.toString());
+        if (ex instanceof LeaderNotReadyException) {
+          if (endCommitIndex.isPresent()) {
+            long endIndex = endCommitIndex.getAsLong();
+            long now = System.currentTimeMillis();
+            long currSeqNum = stateMachine.getLastAppliedSequenceNumber();
+            long currCommitIdx = stateMachine.getLastAppliedCommitIndex();
+            long totalTime = (now - startTime) / 1000;
+            long totalEntriesRead = currSeqNum - firstSeqNum;
+            long entriesSinceLastMeasured = currSeqNum - lastMeasuredSeqNum.get();
+            long timeSinceLastMeasure = (now - lastMeasuredTime.get());
+            long commitsRemaining = endIndex - stateMachine.getLastAppliedCommitIndex();
+            long commitIdxRead = currCommitIdx - lastCommitIdx.get();
+            double currentRateS = 1000 * ((double) entriesSinceLastMeasured) / timeSinceLastMeasure;
+            double averageRateS = ((double) totalEntriesRead) / totalTime;
+            double commitIdxRateS = 1000 * ((double) commitIdxRead) / timeSinceLastMeasure;
+            double expectedTimeRemaining = ((double) commitsRemaining) / commitIdxRateS;
+
+            // SLF4J formatters can't format decimals
+            String stats = String.format(
+                "catchup stats: current rate=%.2f, entries read in last %dms=%d, average rate=%.2f,"
+                    + " total entries read in %ds=%d. commits remaining=%d,"
+                    + " est. time remaining: %.2fs",
+                currentRateS, timeSinceLastMeasure, entriesSinceLastMeasured, averageRateS,
+                totalTime, totalEntriesRead, commitsRemaining, expectedTimeRemaining);
+            LOG.info(stats);
+            lastMeasuredSeqNum.set(currSeqNum);
+            lastMeasuredTime.set(now);
+            lastCommitIdx.set(currCommitIdx);
+//            Thread.sleep(4000L);
+          }
+        } else {
+          LOG.info("Exception submitting term start entry: {}", ex.toString());
+        }
         // avoid excessive retries when server is not ready
         Thread.sleep(waitBeforeRetry);
         continue;
