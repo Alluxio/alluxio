@@ -39,7 +39,7 @@ public class NondeterministicLRUCacheEvictor extends LRUCacheEvictor {
   }
 
   /**
-   * @param n Number of eviction candidate to randomly select from.
+   * @param n Number of eviction candidate to randomly select from
    */
   public void setNumOfCandidate(int n) {
     mNumOfCandidate = n;
