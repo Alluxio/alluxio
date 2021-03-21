@@ -27,8 +27,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioFuseFileSystem mFuseFileSystem;
 
   @Override
-  public void configureAlluxioCluster() {
-    super.configureAlluxioCluster();
+  public void configure() {
     ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
   }
 

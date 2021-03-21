@@ -9,44 +9,39 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse;
+package alluxio.server.worker;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioJniFuseFileSystem;
-import alluxio.fuse.FuseMountOptions;
-
-import org.junit.Ignore;
-
-import java.util.ArrayList;
+import alluxio.util.ShellUtils;
 
 /**
- * Integration tests for JNR-FUSE based {@link AlluxioJniFuseFileSystem}.
+ * Integration tests for worker embedded Fuse application.
  */
-public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
-  private AlluxioJniFuseFileSystem mFuseFileSystem;
-
+public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {
-    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mMountPoint);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
   }
 
   @Override
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options =
-        new FuseMountOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem =
-        new AlluxioJniFuseFileSystem(fileSystem, options, ServerConfiguration.global());
-    mFuseFileSystem.mount(false, false, new String[] {});
+    // Fuse application is mounted automatically by the worker
   }
 
   @Override
   public void umountFuse(String mountPath) throws Exception {
-    mFuseFileSystem.umount();
+    // shell command umount is not needed if Fuse application can be umounted in worker.stop().
+    // TODO(lu) add umount in worker.stop(), otherwise all the Fuse applications
+    // will remain running for the entire test and may potentially prevent new Fuse applications
+    // from coming up due to Fuse device number limitations
+    ShellUtils.execCommand("umount", mountPath);
   }
 
-  @Ignore
   @Override
   public void touchAndLs() throws Exception {
     // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
