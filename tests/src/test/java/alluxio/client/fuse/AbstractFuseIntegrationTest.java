@@ -204,6 +204,15 @@ public abstract class AbstractFuseIntegrationTest {
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
     createFileInFuse(testFile);
+    AlluxioURI testFileUri = new AlluxioURI(testFile);
+
+    CommonUtils.waitFor("File write completed", () -> {
+      try {
+        return mFileSystem.exists(testFileUri) && mFileSystem.getStatus(testFileUri).isCompleted();
+      } catch (Exception e) {
+        return false;
+      }
+    });
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
@@ -236,6 +245,15 @@ public abstract class AbstractFuseIntegrationTest {
     assumeTrue(OSUtils.isLinux());
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
+    AlluxioURI testFileUri = new AlluxioURI(testFile);
+
+    CommonUtils.waitFor("File write completed", () -> {
+      try {
+        return mFileSystem.exists(testFileUri) && mFileSystem.getStatus(testFileUri).isCompleted();
+      } catch (Exception e) {
+        return false;
+      }
+    });
 
     // Fuse getattr() will wait for file to be completed
     // when fuse release returns but does not finish
