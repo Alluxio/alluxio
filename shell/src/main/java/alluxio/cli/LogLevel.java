@@ -17,10 +17,14 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -44,11 +48,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.annotation.Target;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.master.MasterClientContext;
 
 /**
  * Sets or gets the log level for the specified server.
@@ -154,21 +164,42 @@ public final class LogLevel {
 
   public static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
+    // Put targets into a set so we easily know if we need the master address
+    Set<String> targetSet = new HashSet<>(Arrays.asList(targets));
     List<TargetInfo> targetInfoList = new ArrayList<>();
-    for (String target : targets) {
+
+    // Determine the master address if necessary
+    String primaryHost = null;
+    if (targetSet.contains(ROLE_MASTER) || targetSet.contains(ROLE_JOB_MASTER)) {
+      MasterClientContext clientContext = MasterClientContext.newBuilder(
+              MasterClientContext.create(
+                      new InstancedConfiguration(ConfigurationUtils.defaults()))).build();
+      try {
+        primaryHost = clientContext.getMasterInquireClient().getPrimaryRpcAddress().getHostName();
+        // Should not reach here
+        if (primaryHost == null) {
+          System.err.println("Failed to determine the primary master address");
+          LOG.error("Inquiry for primary master address returned null");
+          System.exit(1);
+        }
+      } catch (UnavailableException e) {
+        System.err.println("Failed to determine the primary master address.");
+        LOG.error("Primary master unavailable", e);
+        System.exit(1);
+      }
+    }
+
+    // Process each target
+    for (String target : targetSet) {
       if (target.equals(ROLE_MASTER)) {
-        // TODO(jiacheng): make this support HA master
-        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB, conf);
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
-        TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
-        System.out.format("Setting log level on master %s:%s%n", master.mHost, master.mPort);
+        TargetInfo master = new TargetInfo(primaryHost, masterPort, ROLE_MASTER);
+        System.out.format("Target: %s%n", master);
         targetInfoList.add(master);
       } else if (target.equals(ROLE_JOB_MASTER)) {
-        String jobMasterHost = NetworkAddressUtils.getConnectHost(ServiceType.JOB_MASTER_WEB, conf);
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
-        TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
-        System.out.format("Setting log level on job master %s:%s%n",
-                jobMaster.mHost, jobMaster.mPort);
+        TargetInfo jobMaster = new TargetInfo(primaryHost, jobMasterPort, ROLE_JOB_MASTER);
+        System.out.format("Target: %s%n", jobMaster);
         targetInfoList.add(jobMaster);
       } else if (target.equals(ROLE_WORKERS)) {
         List<BlockWorkerInfo> workerInfoList =
@@ -181,8 +212,7 @@ public final class LogLevel {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           TargetInfo worker = new TargetInfo(netAddress.getHost(),
                   netAddress.getWebPort(), ROLE_WORKER);
-          System.out.format("Setting log level on worker %s:%s%n",
-                  worker.mHost, worker.mPort);
+          System.out.format("Worker: %s%n", worker);
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {
@@ -198,8 +228,7 @@ public final class LogLevel {
         for (JobWorkerHealth jobWorkerInfo : jobWorkerInfoList) {
           String jobWorkerHost = jobWorkerInfo.getHostname();
           TargetInfo jobWorker = new TargetInfo(jobWorkerHost, jobWorkerPort, ROLE_JOB_WORKER);
-          System.out.format("Setting log level on job worker %s:%s%n",
-                  jobWorker.mHost, jobWorker.mPort);
+          System.out.format("Job worker: %s%n", jobWorker);
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
@@ -210,7 +239,9 @@ public final class LogLevel {
           throw new IllegalArgumentException(String.format("Unrecognized port in %s. "
                           + "Please make sure the port is in %s", target, sPortToRole));
         }
-        targetInfoList.add(new TargetInfo(hostPortPair[0], port, sPortToRole.get(port)));
+        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, sPortToRole.get(port));
+        System.out.format("Unspecified role: %s%n", unspecifiedTarget);
+        targetInfoList.add(unspecifiedTarget);
       } else {
         throw new IOException("Unrecognized target argument: " + target);
       }
