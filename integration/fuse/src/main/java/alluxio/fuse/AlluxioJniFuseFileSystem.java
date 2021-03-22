@@ -74,7 +74,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final String mFsName;
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-  // Create file managements
+
   private static final IndexDefinition<CreateFileEntry, Long>
       ID_INDEX =
       new IndexDefinition<CreateFileEntry, Long>(true) {
@@ -84,6 +84,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         }
       };
 
+  // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<CreateFileEntry, String>
       PATH_INDEX =
       new IndexDefinition<CreateFileEntry, String>(true) {
@@ -407,11 +408,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-    if (ce.getOut() == null) {
-      LOG.error("{} already exists in Alluxio and cannot be overwritten."
-          + " Please delete this file first.", path);
-      return -ErrorCodes.EEXIST();
-    }
     FileOutStream os = ce.getOut();
     if (offset < os.getBytesWritten()) {
       // no op
@@ -438,12 +434,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final long fd = fi.fh.get();
     CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
-      // file could be flush() in read
+      // flush() may be called in places other than write
       return 0;
-    }
-    if (ce.getOut() == null) { // should not happen
-      LOG.error("Failed to flush {}, output stream is null", path);
-      return -ErrorCodes.EBADFD();
     }
     try {
       ce.getOut().flush();
@@ -474,8 +466,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         }
       }
       if (ce != null) {
+        mCreateFileEntries.remove(ce);
         synchronized (ce) {
-          mCreateFileEntries.remove(ce);
+          ce.getOut().close();
         }
       }
     } catch (Throwable e) {
@@ -557,7 +550,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     try {
       mFileSystem.rename(oldUri, newUri);
-      // TODO(lu) can a file be renamed while it's being written
       CreateFileEntry ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
       if (ce != null) {
         ce.setPath(newPath);

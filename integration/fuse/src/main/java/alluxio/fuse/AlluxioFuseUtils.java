@@ -222,7 +222,9 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Waits for the file to complete.
+   * Waits for the file to complete. This method is mainly added to make sure
+   * the async release() when writing a file finished before getting status of
+   * the file or opening the file for read().
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check

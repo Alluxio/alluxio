@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.io.IOException;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -68,7 +67,6 @@ public final class CreateFileEntry
    *
    * @return an opened input stream for the open alluxio file, or null
    */
-  @Nullable
   public FileOutStream getOut() {
     return mOut;
   }
