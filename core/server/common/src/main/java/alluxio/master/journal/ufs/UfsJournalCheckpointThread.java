@@ -187,18 +187,21 @@ public final class UfsJournalCheckpointThread extends Thread {
         long currSeqNum = mLastAppliedSN; // single volatile read
         long interval = currTime - lastMeasuredTime;
         long appliedEntries = currSeqNum - lastMeasuredSeq;
-        long remaining = finalSN.orElse(0) - currSeqNum;
         double entryRateS = ((double) appliedEntries) / interval;
-        double remainingTime = ((double) remaining) / entryRateS;
+
         StringJoiner logMsg = new StringJoiner("|");
         logMsg.add(String.format("journal replay on %s", mJournal));
         logMsg.add(String.format("current SN: %d", currSeqNum));
         logMsg.add(String.format("entries in last %dms=%d", interval, appliedEntries));
-        logMsg.add(String.format("est. entries left: %d", remaining));
-        if (!Double.isNaN(remainingTime)
-            && remainingTime != Double.NEGATIVE_INFINITY
-            && remainingTime != Double.POSITIVE_INFINITY) {
-          logMsg.add(String.format("est. time remaining %.2fms", remainingTime));
+        if (finalSN.isPresent()) {
+          long remaining = finalSN.getAsLong() - currSeqNum;
+          double remainingTime = ((double) remaining) / entryRateS;
+          if (remaining > 0) {
+            logMsg.add(String.format("est. entries left: %d", remaining));
+          }
+          if (!Double.isNaN(remainingTime) && !Double.isInfinite(remainingTime)) {
+            logMsg.add(String.format("est. time remaining %.2fms", remainingTime));
+          }
         }
 
         LOG.info(logMsg.toString());
@@ -214,8 +217,7 @@ public final class UfsJournalCheckpointThread extends Thread {
       ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
           mMaster.getName());
       System.exit(-1);
-    }
-    finally {
+    } finally {
       t.interrupt();
       try {
         t.join();

@@ -83,6 +83,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -531,10 +532,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         new JournalEntryCommand(entry).getSerializedJournalEntry()));
   }
 
-  static GroupInfoRequest toRaftMessage(org.apache.ratis.protocol.GroupInfoRequest request) {
-    return request;
-  }
-
   @Override
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
@@ -586,10 +583,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.warn("Failed to get raft log information before replay."
           + " Replay statistics will not be available:", e);
     }
-    long firstSeqNum = stateMachine.getLastAppliedSequenceNumber();
-    AtomicLong lastMeasuredSeqNum = new AtomicLong(stateMachine.getLastAppliedSequenceNumber());
-    AtomicLong lastMeasuredTime = new AtomicLong(startTime);
-    AtomicLong lastCommitIdx = new AtomicLong(0);
+    long lastMeasuredSeqNum = stateMachine.getLastAppliedSequenceNumber();
+    long lastMeasuredTime = startTime;
+    long lastCommitIdx = 0L;
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -624,36 +620,26 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       }
 
       if (ex != null) {
+        // LeaderNotReadyException typically indicates Ratis is still replaying the journal.
         if (ex instanceof LeaderNotReadyException) {
+          long now = System.currentTimeMillis();
+          long currCommitIdx = stateMachine.getLastAppliedCommitIndex();
+          long timeSinceLastMeasure = (now - lastMeasuredTime);
+          long commitIdxRead = currCommitIdx - lastCommitIdx;
+          double commitIdxRateS = 1000 * ((double) commitIdxRead) / timeSinceLastMeasure;
+          StringJoiner logMsg = new StringJoiner("|");
+          logMsg.add(String.format("current SN: %d", currCommitIdx));
+          logMsg.add(String.format("entries in last %dms=%d", timeSinceLastMeasure, commitIdxRead));
           if (endCommitIndex.isPresent()) {
-            long endIndex = endCommitIndex.getAsLong();
-            long now = System.currentTimeMillis();
-            long currSeqNum = stateMachine.getLastAppliedSequenceNumber();
-            long currCommitIdx = stateMachine.getLastAppliedCommitIndex();
-            long totalTime = (now - startTime) / 1000;
-            long totalEntriesRead = currSeqNum - firstSeqNum;
-            long entriesSinceLastMeasured = currSeqNum - lastMeasuredSeqNum.get();
-            long timeSinceLastMeasure = (now - lastMeasuredTime.get());
-            long commitsRemaining = endIndex - stateMachine.getLastAppliedCommitIndex();
-            long commitIdxRead = currCommitIdx - lastCommitIdx.get();
-            double currentRateS = 1000 * ((double) entriesSinceLastMeasured) / timeSinceLastMeasure;
-            double averageRateS = ((double) totalEntriesRead) / totalTime;
-            double commitIdxRateS = 1000 * ((double) commitIdxRead) / timeSinceLastMeasure;
+            long commitsRemaining = endCommitIndex.getAsLong()
+                - stateMachine.getLastAppliedCommitIndex();
             double expectedTimeRemaining = ((double) commitsRemaining) / commitIdxRateS;
-
-            // SLF4J formatters can't format decimals
-            String stats = String.format(
-                "catchup stats: current rate=%.2f, entries read in last %dms=%d, average rate=%.2f,"
-                    + " total entries read in %ds=%d. commits remaining=%d,"
-                    + " est. time remaining: %.2fs",
-                currentRateS, timeSinceLastMeasure, entriesSinceLastMeasured, averageRateS,
-                totalTime, totalEntriesRead, commitsRemaining, expectedTimeRemaining);
-            LOG.info(stats);
-            lastMeasuredSeqNum.set(currSeqNum);
-            lastMeasuredTime.set(now);
-            lastCommitIdx.set(currCommitIdx);
-//            Thread.sleep(4000L);
+            logMsg.add(String.format("est. commits left: %d", commitsRemaining));
+            logMsg.add(String.format("est. time remaining: %.2fms", expectedTimeRemaining));
           }
+          LOG.info(logMsg.toString());
+          lastMeasuredTime = now;
+          lastCommitIdx = currCommitIdx;
         } else {
           LOG.info("Exception submitting term start entry: {}", ex.toString());
         }

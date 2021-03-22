@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Queue;
 
@@ -211,7 +210,8 @@ public final class UfsJournalReader implements JournalReader {
    * opening a new one.
    */
   private void updateInputStream() throws IOException {
-    if (mInputStream != null && (mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone(mNextSequenceNumber))) {
+    if (mInputStream != null && (mInputStream.mFile.isIncompleteLog()
+        || !mInputStream.isDone(mNextSequenceNumber))) {
       return;
     }
 
