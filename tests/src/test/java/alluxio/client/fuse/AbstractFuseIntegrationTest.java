@@ -204,7 +204,6 @@ public abstract class AbstractFuseIntegrationTest {
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
     createFileInFuse(testFile);
-    AlluxioURI testFileUri = new AlluxioURI(testFile);
 
     // Fuse release() is async
     // Open the file to make sure dd is completed
@@ -237,7 +236,6 @@ public abstract class AbstractFuseIntegrationTest {
     assumeTrue(OSUtils.isLinux());
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
-    AlluxioURI testFileUri = new AlluxioURI(testFile);
 
     // Fuse getattr() will wait for file to be completed
     // when fuse release returns but does not finish
