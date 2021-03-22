@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Queue;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,23 +71,23 @@ public final class UfsJournalReader implements JournalReader {
   /**
    * A simple wrapper that wraps the journal file and the input stream.
    */
-  private class JournalInputStream implements Closeable {
+  private static class JournalInputStream implements Closeable {
     final UfsJournalFile mFile;
     /** The reader reading journal entries from the UfsJournalFile. */
     final JournalEntryStreamReader mReader;
 
-    JournalInputStream(UfsJournalFile file) throws IOException {
+    JournalInputStream(UfsJournalFile file, UnderFileSystem ufs) throws IOException {
       mFile = file;
       LOG.info("Reading journal file {}.", file.getLocation());
-      mReader = new JournalEntryStreamReader(mUfs.open(file.getLocation().toString(),
+      mReader = new JournalEntryStreamReader(ufs.open(file.getLocation().toString(),
           OpenOptions.defaults().setRecoverFailedOpen(true)));
     }
 
     /**
      * @return whether we have finished reading the current file
      */
-    boolean isDone() {
-      return mFile.getEnd() == mNextSequenceNumber;
+    boolean isDone(long seqNumber) {
+      return mFile.getEnd() == seqNumber;
     }
 
     @Override
@@ -209,7 +211,7 @@ public final class UfsJournalReader implements JournalReader {
    * opening a new one.
    */
   private void updateInputStream() throws IOException {
-    if (mInputStream != null && (mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone())) {
+    if (mInputStream != null && (mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone(mNextSequenceNumber))) {
       return;
     }
 
@@ -252,7 +254,7 @@ public final class UfsJournalReader implements JournalReader {
     }
 
     if (!mFilesToProcess.isEmpty()) {
-      mInputStream = new JournalInputStream(mFilesToProcess.poll());
+      mInputStream = new JournalInputStream(mFilesToProcess.poll(), mUfs);
     }
   }
 
@@ -269,5 +271,31 @@ public final class UfsJournalReader implements JournalReader {
       return State.LOG;
     }
     return State.DONE;
+  }
+
+  /**
+   * Iterates over the journal files searching for the greatest SN of all the files.
+   *
+   * This method doesn't actually read the files, so the performance is just dependent on how fast
+   * the files can be iterated over.
+   *
+   * @param journal the UFS journal to get the final sequence number
+   * @return the final sequence number in the journal, or empty if an error occurred
+   */
+  public static OptionalLong getLastSN(UfsJournal journal) {
+    long endSN = 0;
+    try (UfsJournalReader reader = new UfsJournalReader(journal, 0, false)) {
+      reader.updateInputStream();
+      while (!reader.mFilesToProcess.isEmpty()) {
+        UfsJournalFile file = reader.mFilesToProcess.poll();
+        endSN = Math.max(endSN, file.getEnd());
+        reader.mInputStream = new JournalInputStream(file, reader.mUfs);
+        reader.updateInputStream();
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to get last SN from journal: ", e);
+      return OptionalLong.empty();
+    }
+    return OptionalLong.of(endSN);
   }
 }
