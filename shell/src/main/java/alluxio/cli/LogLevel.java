@@ -143,7 +143,7 @@ public final class LogLevel {
     }
   }
 
-  private static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
+  public static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
       throws IOException {
     String[] targets;
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
@@ -162,7 +162,7 @@ public final class LogLevel {
     return getTargetInfos(targets, conf);
   }
 
-  public static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
+  private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
     // Put targets into a set so we easily know if we need the master address
     Set<String> targetSet = new HashSet<>(Arrays.asList(targets));
