@@ -240,7 +240,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, String, long)} method.
+   * Tests the {@link BlockWorker#createBlock)} method.
    */
   @Test
   public void createBlock() throws Exception {
@@ -258,11 +258,11 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, String,  long)} method with
+   * Tests the {@link BlockWorker#createBlock} method with
    * a tier other than MEM.
    */
   @Test
@@ -281,11 +281,11 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, 1, "", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlockRemote(long, long, String, String, long)} method.
+   * Tests the {@link BlockWorker#createBlock} method.
    */
   @Test
   public void createBlockRemote() throws Exception {
@@ -303,17 +303,17 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#getTempBlockWriterRemote(long, long)} method.
+   * Tests the {@link BlockWorker#getBlockWriter(long, long)} method.
    */
   @Test
   public void getTempBlockWriterRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
+    mBlockWorker.getBlockWriter(sessionId, blockId);
     verify(mBlockStore).getBlockWriter(sessionId, blockId);
   }
 

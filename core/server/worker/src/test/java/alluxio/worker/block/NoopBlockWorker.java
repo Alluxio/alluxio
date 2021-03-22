@@ -69,17 +69,10 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public String createBlock(long sessionId, long blockId, String tierAlias, String medium,
+  public String createBlock(long sessionId, long blockId, int tier, String medium,
       long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     return null;
-  }
-
-  @Override
-  public void createBlockRemote(long sessionId, long blockId, String tierAlias, String medium,
-      long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    // noop
   }
 
   @Nullable
@@ -89,7 +82,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
+  public BlockWriter getBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return null;

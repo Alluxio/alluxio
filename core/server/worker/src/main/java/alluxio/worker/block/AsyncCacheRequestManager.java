@@ -13,8 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -52,7 +50,6 @@ public class AsyncCacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncCacheRequestManager.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mAsyncCacheExecutor;
   /** The block worker. */
@@ -201,8 +198,7 @@ public class AsyncCacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     try {
-      mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-          mStorageTierAssoc.getAlias(0), "", blockSize);
+      mBlockWorker.createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       return true;
@@ -215,7 +211,7 @@ public class AsyncCacheRequestManager {
     try (BlockReader reader =
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
-             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
+             .getBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
