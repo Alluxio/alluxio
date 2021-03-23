@@ -104,6 +104,7 @@ public abstract class AbstractFuseIntegrationTest {
     ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     configure();
+    IntegrationTestUtils.reserveMasterPorts();
     ServerConfiguration.global().validate();
     mAlluxioCluster.start();
     mFileSystem = mAlluxioCluster.getClient();
@@ -120,6 +121,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   private void stop() throws Exception {
+    IntegrationTestUtils.releaseMasterPorts();
     if (fuseMounted()) {
       try {
         umountFuse(mMountPoint);
