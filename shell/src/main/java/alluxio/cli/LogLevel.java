@@ -47,10 +47,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -167,7 +167,8 @@ public final class LogLevel {
 
   private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
-    Set<String> targetSet = new HashSet<>(Arrays.asList(targets));
+    // Trim the elements
+    Set<String> targetSet = Arrays.stream(targets).map(String::trim).collect(Collectors.toSet());
     List<TargetInfo> targetInfoList = new ArrayList<>();
 
     // Allow plural form for the master/job_master and print a notice
@@ -178,7 +179,8 @@ public final class LogLevel {
         targetSet.remove(ROLE_MASTERS);
         targetSet.add(ROLE_MASTER);
         System.out.println("Target `masters` is replaced with `master`.");
-      } else {
+      }
+      if (targetSet.contains(ROLE_JOB_MASTERS)) {
         targetSet.remove(ROLE_JOB_MASTERS);
         targetSet.add(ROLE_JOB_MASTER);
         System.out.println("Target `job_masters` is replaced with `job_master`.");
@@ -193,7 +195,9 @@ public final class LogLevel {
 
     // Process each target
     for (String target : targetSet) {
-      if (target.equals(ROLE_MASTER)) {
+      if (target.isEmpty()) {
+        continue;
+      } else if (target.equals(ROLE_MASTER)) {
         if (fsContext == null) {
           fsContext = FileSystemContext.create(clientContext);
         }
@@ -248,17 +252,15 @@ public final class LogLevel {
       } else if (target.contains(":")) {
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
-        if (!sPortToRole.containsKey(port)) {
-          throw new IllegalArgumentException(String.format("Unrecognized port in %s. "
-                          + "Please make sure the port is in %s", target, sPortToRole));
-        }
-        String role = sPortToRole.get(port);
+        String role = inferRoleFromPort(port, conf);
         LOG.debug("Port {} maps to role {}", port, role);
         TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, role);
         System.out.format("Role inferred from port: %s%n", unspecifiedTarget);
         targetInfoList.add(unspecifiedTarget);
       } else {
-        throw new IOException("Unrecognized target argument: " + target);
+        throw new IOException(String.format("Unrecognized target argument: %s. "
+                + "Please pass the targets in the form of <host>:<port>, "
+                + "with comma as the separator.", target));
       }
     }
     return targetInfoList;
@@ -307,6 +309,26 @@ public final class LogLevel {
             NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, sConf), ROLE_WORKER,
             NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, sConf), ROLE_JOB_MASTER,
             NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, sConf), ROLE_JOB_WORKER);
+  }
+
+  private static String inferRoleFromPort(int port, AlluxioConfiguration conf) {
+    if (port == NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf)) {
+      return ROLE_MASTER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, conf)) {
+      return ROLE_WORKER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf)) {
+      return ROLE_JOB_MASTER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, conf)) {
+      return ROLE_JOB_WORKER;
+    } else {
+      throw new IllegalArgumentException(
+              String.format("Unrecognized port in %s. " + "Please make sure the port is in %s",
+                      port,
+                      Arrays.toString(new PropertyKey[]{
+                        PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
+                        PropertyKey.JOB_MASTER_WEB_PORT, PropertyKey.JOB_WORKER_WEB_PORT
+                      })));
+    }
   }
 
   /**
