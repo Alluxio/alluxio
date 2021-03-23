@@ -11,6 +11,8 @@
 
 package alluxio.fuse;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -22,9 +24,11 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
+import alluxio.util.WaitForOptions;
 
 import ru.serce.jnrfuse.ErrorCodes;
 
@@ -32,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,6 +48,7 @@ public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
+  private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
   private AlluxioFuseUtils() {}
 
@@ -212,6 +218,33 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EOPNOTSUPP();
     } catch (AlluxioException ex) {
       return -ErrorCodes.EBADMSG();
+    }
+  }
+
+  /**
+   * Waits for the file to complete. This method is mainly added to make sure
+   * the async release() when writing a file finished before getting status of
+   * the file or opening the file for read().
+   *
+   * @param fileSystem the file system to get file status
+   * @param uri the file path to check
+   * @return whether the file is completed or not
+   */
+  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
+    try {
+      CommonUtils.waitFor("file completed", () -> {
+        try {
+          return fileSystem.getStatus(uri).isCompleted();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
+      return true;
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException te) {
+      return false;
     }
   }
 

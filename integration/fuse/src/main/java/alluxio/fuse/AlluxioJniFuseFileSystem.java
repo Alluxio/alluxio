@@ -16,9 +16,12 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -71,7 +74,27 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final String mFsName;
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-  private final Map<Long, FileOutStream> mCreateFileEntries = new ConcurrentHashMap<>();
+
+  private static final IndexDefinition<CreateFileEntry, Long>
+      ID_INDEX =
+      new IndexDefinition<CreateFileEntry, Long>(true) {
+        @Override
+        public Long getFieldValue(CreateFileEntry o) {
+          return o.getId();
+        }
+      };
+
+  // Add a PATH_INDEX to know getattr() been called when writing this file
+  private static final IndexDefinition<CreateFileEntry, String>
+      PATH_INDEX =
+      new IndexDefinition<CreateFileEntry, String>(true) {
+        @Override
+        public String getFieldValue(CreateFileEntry o) {
+          return o.getPath();
+        }
+      };
+  private final IndexedSet<CreateFileEntry> mCreateFileEntries
+      = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
 
   // To make test build
@@ -189,7 +212,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
               .setMode(new Mode((short) mode).toProto())
               .build());
       long fid = mNextOpenFileId.getAndIncrement();
-      mCreateFileEntries.put(fid, os);
+      mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
       fi.fh.set(fid);
       setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
@@ -209,6 +232,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       URIStatus status = mFileSystem.getStatus(uri);
+      if (!status.isCompleted()) {
+        // Always block waiting for file to be completed except when the file is writing
+        // We do not want to block the writing process
+        if (!mCreateFileEntries.contains(PATH_INDEX, path)
+            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          LOG.error("File {} is not completed", path);
+        }
+        status = mFileSystem.getStatus(uri);
+      }
       long size = status.getLength();
       stat.st_size.set(size);
 
@@ -293,7 +325,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       long fd = mNextOpenFileId.getAndIncrement();
-      FileInStream is = mFileSystem.openFile(uri);
+      FileInStream is;
+      try {
+        is = mFileSystem.openFile(uri);
+      } catch (FileIncompleteException e) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          is = mFileSystem.openFile(uri);
+        } else {
+          throw e;
+        }
+      }
       mOpenFileEntries.put(fd, is);
       fi.fh.set(fd);
       return 0;
@@ -362,11 +403,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    FileOutStream os = mCreateFileEntries.get(fd);
-    if (os == null) {
+    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
+    FileOutStream os = ce.getOut();
     if (offset < os.getBytesWritten()) {
       // no op
       return sz;
@@ -389,6 +431,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int flushInternal(String path, FuseFileInfo fi) {
+    final long fd = fi.fh.get();
+    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null) {
+      // flush() may be called in places other than write
+      return 0;
+    }
+    try {
+      ce.getOut().flush();
+    } catch (IOException e) {
+      LOG.error("Failed to flush {}", path, e);
+      return -ErrorCodes.EIO();
+    }
     return 0;
   }
 
@@ -401,8 +455,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.remove(fd);
-      FileOutStream os = mCreateFileEntries.remove(fd);
-      if (is == null && os == null) {
+      CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
@@ -411,9 +465,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           is.close();
         }
       }
-      if (os != null) {
-        synchronized (os) {
-          os.close();
+      if (ce != null) {
+        mCreateFileEntries.remove(ce);
+        synchronized (ce) {
+          ce.getOut().close();
         }
       }
     } catch (Throwable e) {
@@ -495,6 +550,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     try {
       mFileSystem.rename(oldUri, newUri);
+      CreateFileEntry ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
+      if (ce != null) {
+        ce.setPath(newPath);
+      }
     } catch (Throwable e) {
       LOG.error("Failed to rename {} to {}: ", oldPath, newPath, e);
       return -ErrorCodes.EIO();
