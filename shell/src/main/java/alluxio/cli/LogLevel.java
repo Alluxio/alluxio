@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -116,21 +117,20 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
+   * @param alluxioConf configurations
    * @exception ParseException if there is an error in parsing
    */
-  public static void logLevel(String[] args)
+  public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)
       throws ParseException, IOException {
-    AlluxioConfiguration conf = InstancedConfiguration.defaults();
-
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    List<TargetInfo> targets = parseOptTarget(cmd, conf);
+    List<TargetInfo> targets = parseOptTarget(cmd, alluxioConf);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level, conf);
+      setLogLevel(targetInfo, logName, level, alluxioConf);
     }
   }
 
@@ -327,7 +327,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args);
+      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
