@@ -62,6 +62,8 @@ alluxio.job.worker.hostname:
   'The hostname of the Alluxio job worker.'
 alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
+alluxio.job.worker.tasks.per.worker:
+  'N/A'
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
 alluxio.job.worker.throttling:
@@ -188,6 +190,8 @@ alluxio.underfs.kodo.requests.max:
   'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
+alluxio.underfs.logging.threshold:
+  'Logging a UFS API call when it takes more time than the threshold.'
 alluxio.underfs.object.store.breadcrumbs.enabled:
   'Set this to false to prevent Alluxio from creating zero byte objects during read or list operations on object store UFS. Leaving this on enables more efficient listing of prefixes.'
 alluxio.underfs.object.store.mount.shared.publicly:
@@ -196,6 +200,8 @@ alluxio.underfs.object.store.multi.range.chunk.size:
   'Default chunk size for ranged reads from multi-range object input streams.'
 alluxio.underfs.object.store.service.threads:
   'The number of threads in executor pool for parallel object store UFS operations, such as directory renames and deletes.'
+alluxio.underfs.object.store.skip.parent.directory.creation:
+  'Do not create parent directory for new files. Object stores generally uses prefix which is not required for creating new files. Skipping parent directory is recommended for better performance. Set this to false if the object store requires prefix creation for new files.'
 alluxio.underfs.oss.connection.max:
   'The maximum number of OSS connections.'
 alluxio.underfs.oss.connection.timeout:

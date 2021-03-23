@@ -57,7 +57,7 @@ alluxio.master.embedded.journal.election.timeout:
 alluxio.master.embedded.journal.entry.size.max:
   'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
 alluxio.master.embedded.journal.flush.size.max:
-  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks.'
+  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.heartbeat.interval:
   'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout {alluxio.master.embedded.journal.election.timeout}, because the election is driven by heart beats.'
 alluxio.master.embedded.journal.port:
