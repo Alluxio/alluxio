@@ -15,7 +15,7 @@ to store the metadata:
   * `ROCKS`: an on-disk, RocksDB-based metastore
   * `HEAP`: an on-heap metastore
 
-The default metastore is the `HEAP` meastore.
+The default metastore is the `ROCKS` metastore.
 
 ## RocksDB Metastore
 
