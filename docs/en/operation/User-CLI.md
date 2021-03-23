@@ -235,16 +235,19 @@ where:
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
 The `host:webPort` format can only be used when referencing a worker.
-The default target value is the local master, local job master, all workers and job workers.
+The default target value is the primary master, primary job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
-> Note: To set the log level on a master/job_master, run the command on the current leading master.
-> You can find which is the leader by running `alluxio fs leader`.
 
 See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
 for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
+> You are not able to set the logger level on the standby masters.
+> The standby masters/job masters do not have a running web server.
+> So they are not accepting the requests from this command.
+> If you want to modify the logger level for standby masters, 
+> update the `log4j.properties` and restart the process.
 
 ### runClass
 
