@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.meta.MetaMasterClient;
@@ -34,6 +35,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -71,8 +73,10 @@ public final class LogLevel {
   public static final String LOG_LEVEL = "logLevel";
   public static final String ROLE_WORKERS = "workers";
   public static final String ROLE_MASTER = "master";
+  public static final String ROLE_MASTERS = "masters";
   public static final String ROLE_WORKER = "worker";
   public static final String ROLE_JOB_MASTER = "job_master";
+  public static final String ROLE_JOB_MASTERS = "job_masters";
   public static final String ROLE_JOB_WORKER = "job_worker";
   public static final String ROLE_JOB_WORKERS = "job_workers";
   public static final String TARGET_SEPARATOR = ",";
@@ -164,30 +168,43 @@ public final class LogLevel {
 
   private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
-    // Put targets into a set so we easily know if we need the master address
     Set<String> targetSet = new HashSet<>(Arrays.asList(targets));
     List<TargetInfo> targetInfoList = new ArrayList<>();
 
-    // Determine the master address if necessary
-    String primaryHost = null;
-    if (targetSet.contains(ROLE_MASTER) || targetSet.contains(ROLE_JOB_MASTER)) {
-      MasterClientContext clientContext = MasterClientContext.newBuilder(
-              MasterClientContext.create(
-                      new InstancedConfiguration(ConfigurationUtils.defaults()))).build();
-      try {
-        primaryHost = clientContext.getMasterInquireClient().getPrimaryRpcAddress().getHostName();
-        // Should not reach here
-        if (primaryHost == null) {
-          System.err.println("Failed to determine the primary master address");
-          LOG.error("Inquiry for primary master address returned null");
-          System.exit(1);
-        }
-      } catch (UnavailableException e) {
-        System.err.println("Failed to determine the primary master address.");
-        LOG.error("Primary master unavailable", e);
-        System.exit(1);
+    // Allow plural form for the master/job_master and print a notice
+    if (targetSet.contains(ROLE_MASTERS) || targetSet.contains(ROLE_JOB_MASTERS)) {
+      System.out.println("The logLevel command will only take effect on the primary master, "
+              + "instead of on all the masters. ");
+      if (targetSet.contains(ROLE_MASTERS)) {
+        targetSet.remove(ROLE_MASTERS);
+        targetSet.add(ROLE_MASTER);
+        System.out.println("Target `masters` is replaced with `master`.");
+      } else {
+        targetSet.remove(ROLE_JOB_MASTERS);
+        targetSet.add(ROLE_JOB_MASTER);
+        System.out.println("Target `job_masters` is replaced with `job_master`.");
       }
     }
+
+    // Determine the master address if necessary
+    ClientContext clientContext = ClientContext.create(conf);
+    FileSystemContext fsContext = FileSystemContext.create(clientContext);
+    String primaryHost = null;
+    try {
+      primaryHost = fsContext.getMasterAddress().getHostName();
+      // We should not reach here
+      if (primaryHost == null) {
+        System.err.format("Failed to determine the primary master address.");
+        LOG.error("Got null for primary master address");
+        System.exit(1);
+      }
+    } catch (UnavailableException e) {
+      System.err.println("Failed to determine the primary master address.");
+      LOG.error("Primary master unavailable", e);
+      System.exit(1);
+    }
+    JobMasterClient jobClient = JobMasterClient.Factory.create(JobMasterClientContext
+            .newBuilder(clientContext).build());
 
     // Process each target
     for (String target : targetSet) {
@@ -202,8 +219,7 @@ public final class LogLevel {
         System.out.format("Target: %s%n", jobMaster);
         targetInfoList.add(jobMaster);
       } else if (target.equals(ROLE_WORKERS)) {
-        List<BlockWorkerInfo> workerInfoList =
-            FileSystemContext.create(ClientContext.create(conf)).getCachedWorkers();
+        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
         if (workerInfoList.size() == 0) {
           System.out.println("No workers found");
           System.exit(1);
@@ -216,10 +232,7 @@ public final class LogLevel {
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {
-        JobMasterClientContext context = JobMasterClientContext
-                .newBuilder(ClientContext.create(conf)).build();
-        JobMasterClient client = JobMasterClient.Factory.create(context);
-        List<JobWorkerHealth> jobWorkerInfoList = client.getAllWorkerHealth();
+        List<JobWorkerHealth> jobWorkerInfoList = jobClient.getAllWorkerHealth();
         if (jobWorkerInfoList.size() == 0) {
           System.out.println("No job workers found");
           System.exit(1);
@@ -232,15 +245,16 @@ public final class LogLevel {
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
-        // TODO(jiacheng): Support all other roles, not just worker
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
         if (!sPortToRole.containsKey(port)) {
           throw new IllegalArgumentException(String.format("Unrecognized port in %s. "
                           + "Please make sure the port is in %s", target, sPortToRole));
         }
-        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, sPortToRole.get(port));
-        System.out.format("Unspecified role: %s%n", unspecifiedTarget);
+        String role = sPortToRole.get(port);
+        LOG.debug("Port {} maps to role {}", port, role);
+        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, role);
+        System.out.format("Role inferred from port: %s%n", unspecifiedTarget);
         targetInfoList.add(unspecifiedTarget);
       } else {
         throw new IOException("Unrecognized target argument: " + target);
@@ -341,6 +355,21 @@ public final class LogLevel {
     @Override
     public String toString() {
       return mHost + ":" + mPort + "[" + mRole + "]";
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof TargetInfo)) {
+        return false;
+      }
+      TargetInfo otherTarget = (TargetInfo) other;
+      return mRole.equals(otherTarget.mRole) && mHost.equals(otherTarget.mHost)
+              && mPort == otherTarget.mPort;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mRole, mHost, mPort);
     }
   }
 }
