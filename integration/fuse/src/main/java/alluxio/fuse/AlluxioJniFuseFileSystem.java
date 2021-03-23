@@ -432,14 +432,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int flushInternal(String path, FuseFileInfo fi) {
     final long fd = fi.fh.get();
+
+    FileInStream is = mOpenFileEntries.get(fd);
     CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null && is == null) {
+      LOG.error("Cannot find fd for {} in table", path);
+      return -ErrorCodes.EBADFD();
+    }
+
     if (ce == null) {
       // flush() may be called in places other than write
       return 0;
     }
+
     try {
-      ce.getOut().flush();
-    } catch (IOException e) {
+      synchronized (ce) {
+        ce.getOut().flush();
+      }
+    } catch (Throwable e) {
       LOG.error("Failed to flush {}", path, e);
       return -ErrorCodes.EIO();
     }
