@@ -20,7 +20,6 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
@@ -186,39 +185,37 @@ public final class LogLevel {
       }
     }
 
-    // Determine the master address if necessary
     ClientContext clientContext = ClientContext.create(conf);
-    FileSystemContext fsContext = FileSystemContext.create(clientContext);
-    String primaryHost = null;
-    try {
-      primaryHost = fsContext.getMasterAddress().getHostName();
-      // We should not reach here
-      if (primaryHost == null) {
-        System.err.format("Failed to determine the primary master address.");
-        LOG.error("Got null for primary master address");
-        System.exit(1);
-      }
-    } catch (UnavailableException e) {
-      System.err.println("Failed to determine the primary master address.");
-      LOG.error("Primary master unavailable", e);
-      System.exit(1);
-    }
-    JobMasterClient jobClient = JobMasterClient.Factory.create(JobMasterClientContext
-            .newBuilder(clientContext).build());
+    // Created only when needed by master and workers
+    FileSystemContext fsContext = null;
+    // Created only when needed by the job master and job workers
+    JobMasterClient jobClient = null;
 
     // Process each target
     for (String target : targetSet) {
       if (target.equals(ROLE_MASTER)) {
+        if (fsContext == null) {
+          fsContext = FileSystemContext.create(clientContext);
+        }
+        String masterHost = fsContext.getMasterAddress().getHostName();
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
-        TargetInfo master = new TargetInfo(primaryHost, masterPort, ROLE_MASTER);
-        System.out.format("Target: %s%n", master);
+        TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
+        System.out.format("Primary master: %s%n", master);
         targetInfoList.add(master);
       } else if (target.equals(ROLE_JOB_MASTER)) {
+        if (jobClient == null) {
+          jobClient = JobMasterClient.Factory.create(JobMasterClientContext
+                  .newBuilder(clientContext).build());
+        }
+        String jobMasterHost = jobClient.getAddress().getHostName();
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
-        TargetInfo jobMaster = new TargetInfo(primaryHost, jobMasterPort, ROLE_JOB_MASTER);
-        System.out.format("Target: %s%n", jobMaster);
+        TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
+        System.out.format("Primary job master: %s%n", jobMaster);
         targetInfoList.add(jobMaster);
       } else if (target.equals(ROLE_WORKERS)) {
+        if (fsContext == null) {
+          fsContext = FileSystemContext.create(ClientContext.create(conf));
+        }
         List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
         if (workerInfoList.size() == 0) {
           System.out.println("No workers found");
@@ -232,6 +229,10 @@ public final class LogLevel {
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {
+        if (jobClient == null) {
+          jobClient = JobMasterClient.Factory.create(JobMasterClientContext
+                  .newBuilder(clientContext).build());
+        }
         List<JobWorkerHealth> jobWorkerInfoList = jobClient.getAllWorkerHealth();
         if (jobWorkerInfoList.size() == 0) {
           System.out.println("No job workers found");
