@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
+import alluxio.fuse.FuseUmountable;
 
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private static final String FUSE_OPTION_SEPARATOR = ",";
   private final BlockWorker mBlockWorker;
+  private FuseUmountable mFuseUmountable;
   /** Used to close resources during stop. */
   private Closer mResourceCloser;
 
@@ -84,7 +86,7 @@ public class FuseManager implements Closeable {
       FileSystemContext fsContext = mResourceCloser
           .register(FileSystemContext.create(null, conf, mBlockWorker));
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(fsContext));
-      AlluxioFuse.launchFuse(fileSystem, conf, options, false);
+      mFuseUmountable = AlluxioFuse.launchFuse(fileSystem, conf, options, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);
@@ -93,6 +95,9 @@ public class FuseManager implements Closeable {
 
   @Override
   public void close() throws IOException {
+    if (mFuseUmountable != null) {
+      mFuseUmountable.umount();
+    }
     mResourceCloser.close();
   }
 }
