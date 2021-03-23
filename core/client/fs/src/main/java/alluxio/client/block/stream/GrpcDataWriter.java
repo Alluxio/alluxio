@@ -127,7 +127,8 @@ public final class GrpcDataWriter implements DataWriter {
     mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);
-    long reservedBytes = conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES);
+    // in cases we know precise block size, make more accurate reservation.
+    long reservedBytes = Math.min(mLength, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
 
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)

@@ -20,6 +20,7 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.stream.DataWriter;
 import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -27,11 +28,9 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
@@ -241,8 +240,7 @@ public final class AlluxioBlockStore {
    * Gets a stream to write data to a block. The stream can only be backed by Alluxio storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Alluxio again)
+   * @param blockSize the standard block size to write
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
@@ -251,20 +249,13 @@ public final class AlluxioBlockStore {
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
-    if (blockSize == -1) {
-      try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-          mContext.acquireBlockMasterClientResource()) {
-        blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
-      }
-    }
     // No specified location to write to.
-    if (address == null) {
-      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER
-          .getMessage(FormatUtils.getSizeFromBytes(blockSize)));
-    }
-    LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
+    Preconditions.checkNotNull(address, "address");
+    LOG.debug("Create BlockOutStream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
-    return BlockOutStream.create(mContext, blockId, blockSize, address, options);
+    DataWriter dataWriter =
+        DataWriter.Factory.create(mContext, blockId, blockSize, address, options);
+    return new BlockOutStream(dataWriter, blockSize, address);
   }
 
   /**
@@ -272,8 +263,7 @@ public final class AlluxioBlockStore {
    * Alluxio storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Alluxio again)
+   * @param blockSize the standard block size to write
    * @param options the output stream option
    * @return a {@link BlockOutStream} which can be used to write data to the block in a streaming
    *         fashion
