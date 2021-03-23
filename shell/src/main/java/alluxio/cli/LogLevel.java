@@ -21,7 +21,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -31,7 +30,6 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -48,7 +46,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -104,10 +101,6 @@ public final class LogLevel {
       .addOption(LOG_NAME_OPTION)
       .addOption(LEVEL_OPTION);
 
-  private static AlluxioConfiguration sConf =
-          new InstancedConfiguration(ConfigurationUtils.defaults());
-  private static Map<Integer, String> sPortToRole = mapPortToRole();
-
   /**
    * Prints the help message.
    *
@@ -127,15 +120,17 @@ public final class LogLevel {
    */
   public static void logLevel(String[] args)
       throws ParseException, IOException {
+    AlluxioConfiguration conf = InstancedConfiguration.defaults();
+
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    List<TargetInfo> targets = parseOptTarget(cmd, sConf);
+    List<TargetInfo> targets = parseOptTarget(cmd, conf);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level, sConf);
+      setLogLevel(targetInfo, logName, level, conf);
     }
   }
 
@@ -302,13 +297,6 @@ public final class LogLevel {
       LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
       System.out.println(targetInfo.toString() + logInfo.toString());
     });
-  }
-
-  private static Map<Integer, String> mapPortToRole() {
-    return ImmutableMap.of(NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, sConf), ROLE_MASTER,
-            NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, sConf), ROLE_WORKER,
-            NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, sConf), ROLE_JOB_MASTER,
-            NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, sConf), ROLE_JOB_WORKER);
   }
 
   private static String inferRoleFromPort(int port, AlluxioConfiguration conf) {
