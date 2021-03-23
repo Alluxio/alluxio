@@ -47,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -59,6 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
+  private static final int MAX_UMOUNT_WAITTIME_MS = 60 * 1000;
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -466,10 +468,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         }
       }
       if (ce != null) {
-        mCreateFileEntries.remove(ce);
         synchronized (ce) {
           ce.getOut().close();
         }
+        mCreateFileEntries.remove(ce);
       }
     } catch (Throwable e) {
       LOG.error("Failed closing {}", path, e);
@@ -655,6 +657,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public String getFileSystemName() {
     return mFsName;
+  }
+
+  @Override
+  public void umount() {
+    // Release operation is async, we need to make sure
+    // all out stream is closed before umount the fuse
+    LOG.info("Waiting for all file out stream closed");
+    long startTime = System.currentTimeMillis();
+    while (!mCreateFileEntries.isEmpty()) {
+      try {
+        if (System.currentTimeMillis() - startTime >= MAX_UMOUNT_WAITTIME_MS) {
+          throw new TimeoutException("reach the max umount waiting time");
+        }
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        LOG.error("unmount interrupted");
+        Thread.currentThread().interrupt();
+        break;
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting file out stream close,"
+                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
+        break;
+      }
+    }
+
+    super.umount();
   }
 
   @VisibleForTesting
