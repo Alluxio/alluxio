@@ -15,17 +15,13 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -50,8 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.annotation.Target;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -60,7 +54,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import alluxio.master.MasterClientContext;
 
 /**
  * Sets or gets the log level for the specified server.
@@ -147,6 +140,13 @@ public final class LogLevel {
     }
   }
 
+  /**
+   * Parse the command options to a list of targets endpoints.
+   *
+   * @param cmd the command
+   * @param conf Alluxio configuration
+   * @return a list of {@link TargetInfo}
+   * */
   public static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
       throws IOException {
     String[] targets;
@@ -329,25 +329,44 @@ public final class LogLevel {
 
   private LogLevel() {} // this class is not intended for instantiation
 
+  /**
+   * Object that represents a REST endpoint that logLevel sends HTTP request to.
+   * */
   public static final class TargetInfo {
     private String mRole;
     private String mHost;
     private int mPort;
 
+    /**
+     * Constructor.
+     *
+     * @param host hostname
+     * @param port port
+     * @param role the Alluxio component name(part of URL)
+     * */
     public TargetInfo(String host, int port, String role) {
       mHost = host;
       mPort = port;
       mRole = role;
     }
 
+    /**
+     * @return port
+     * */
     public int getPort() {
       return mPort;
     }
 
+    /**
+     * @return hostname
+     * */
     public String getHost() {
       return mHost;
     }
 
+    /**
+     * @return component name
+     * */
     public String getRole() {
       return mRole;
     }
