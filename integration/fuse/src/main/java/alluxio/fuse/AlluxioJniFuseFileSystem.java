@@ -455,9 +455,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
+    FileInStream is = mOpenFileEntries.remove(fd);
+    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     try {
-      FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
@@ -471,11 +471,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         synchronized (ce) {
           ce.getOut().close();
         }
-        mCreateFileEntries.remove(ce);
       }
     } catch (Throwable e) {
       LOG.error("Failed closing {}", path, e);
       return -ErrorCodes.EIO();
+    } finally {
+      mCreateFileEntries.remove(ce);
     }
     return 0;
   }
