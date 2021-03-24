@@ -35,8 +35,9 @@ public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private static final String FUSE_OPTION_SEPARATOR = ",";
   private final BlockWorker mBlockWorker;
+  /** Use to umount Fuse application during stop. */
   private FuseUmountable mFuseUmountable;
-  /** Used to close resources during stop. */
+  /** Use to close resources during stop. */
   private Closer mResourceCloser;
 
   /**
@@ -96,7 +97,11 @@ public class FuseManager implements Closeable {
   @Override
   public void close() throws IOException {
     if (mFuseUmountable != null) {
-      mFuseUmountable.umount();
+      try {
+        mFuseUmountable.umount();
+      } catch (Throwable throwable) {
+        LOG.error("Failed to umount worker internal Fuse application", throwable);
+      }
     }
     mResourceCloser.close();
   }
