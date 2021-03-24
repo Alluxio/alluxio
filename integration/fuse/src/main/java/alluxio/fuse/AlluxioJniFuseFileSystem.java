@@ -476,7 +476,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Failed closing {}", path, e);
       return -ErrorCodes.EIO();
     } finally {
-      mCreateFileEntries.remove(ce);
+      if (ce != null) {
+        mCreateFileEntries.remove(ce);
+      }
     }
     return 0;
   }
