@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -217,6 +218,13 @@ public class AsyncCacheRequestManager {
     }
 
     @Override
+    public int hashCode() {
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return Objects.hash(mRequest.getBlockId());
+    }
+
+    @Override
     public boolean equals(Object obj) {
       if (this == obj) {
         return true;
@@ -228,9 +236,12 @@ public class AsyncCacheRequestManager {
       if (mRequest == that.mRequest) {
         return true;
       }
-      if ((this.mRequest == null && that.mRequest != null) || (this.mRequest != null && that.mRequest == null)) {
+      if ((this.mRequest == null && that.mRequest != null)
+          || (this.mRequest != null && that.mRequest == null)) {
         return false;
       }
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
       return mRequest.getBlockId() == that.mRequest.getBlockId();
     }
 

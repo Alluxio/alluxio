@@ -29,6 +29,11 @@ public class UniqueBlockingQueue<T> extends AbstractQueue<T> implements Blocking
   private ConcurrentHashSet<T> mElementSet = new ConcurrentHashSet<>();
   private BlockingQueue<T> mBlockingQueue;
 
+  /**
+   * Constructor for a UniqueBlockingQueue.
+   *
+   * @param capacity capacity of the blocking queue
+   */
   public UniqueBlockingQueue(int capacity) {
     mBlockingQueue = new LinkedBlockingQueue<>(capacity);
   }
