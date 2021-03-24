@@ -16,16 +16,26 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.util.io.FileUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,6 +53,10 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 public class StackFS extends AbstractFuseFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(StackFS.class);
+  private static final long ID_NOT_SET_VALUE = -1;
+  private static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
+
   private final Path mRoot;
 
   /**
@@ -58,18 +72,13 @@ public class StackFS extends AbstractFuseFileSystem {
     return mRoot + path;
   }
 
-  private int getMode(Path path) {
-    int mode = 0;
+  private int getMode(Path path) throws IOException {
+    Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+    int mode = FileUtils.translatePosixPermissionToMode(permissions);
     if (Files.isDirectory(path)) {
       mode |= FileStat.S_IFDIR;
     } else {
       mode |= FileStat.S_IFREG;
-    }
-    if (Files.isReadable(path)) {
-      mode |= FileStat.ALL_READ;
-    }
-    if (Files.isExecutable(path)) {
-      mode |= FileStat.S_IXUGO;
     }
     return mode;
   }
@@ -100,7 +109,7 @@ public class StackFS extends AbstractFuseFileSystem {
       int mode = getMode(filePath);
       stat.st_mode.set(mode);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Failed to getattr {}", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -127,7 +136,7 @@ public class StackFS extends AbstractFuseFileSystem {
     try (FileInputStream fis = new FileInputStream(path)) {
       return 0;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Failed to open {}", path, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -144,7 +153,7 @@ public class StackFS extends AbstractFuseFileSystem {
     } catch (IndexOutOfBoundsException e) {
       return 0;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Failed to read {}", path, e);
       return -ErrorCodes.EIO();
     }
     return nread;
@@ -155,14 +164,14 @@ public class StackFS extends AbstractFuseFileSystem {
     path = transformPath(path);
     Path filePath = Paths.get(path);
     if (Files.exists(filePath)) {
-      System.out.printf("File %s already exist%n", path);
+      LOG.error("File {} already exist", path);
       return -ErrorCodes.EEXIST();
     }
     try {
       Files.createFile(filePath);
       return 0;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Failed to create {}", path, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -179,7 +188,7 @@ public class StackFS extends AbstractFuseFileSystem {
       outputStream.write(dest);
       return sz;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Failed to write to {}", path, e);
     }
     return -ErrorCodes.EIO();
   }
@@ -189,14 +198,14 @@ public class StackFS extends AbstractFuseFileSystem {
     path = transformPath(path);
     Path dirPath = Paths.get(path);
     if (Files.exists(dirPath)) {
-      System.out.printf("Dir %s already exist%n", path);
+      LOG.error("Dir {} already exist", path);
       return -ErrorCodes.EEXIST();
     }
     try {
       Files.createDirectory(dirPath);
       return 0;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Failed to mkdir {}", path, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -212,7 +221,7 @@ public class StackFS extends AbstractFuseFileSystem {
       Files.delete(filePath);
       return 0;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Failed to unlink {}", path, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -224,18 +233,79 @@ public class StackFS extends AbstractFuseFileSystem {
     Path oldFilePath = Paths.get(oldPath);
     Path newFilePath = Paths.get(newPath);
     if (!Files.exists(oldFilePath)) {
-      System.out.printf("Old path %s does not exist%n", oldPath);
+      LOG.error("Old path {} does not exist", oldPath);
       return -ErrorCodes.ENOENT();
     }
     if (Files.exists(newFilePath)) {
-      System.out.printf("New path %s already exist%n", newPath);
+      LOG.error("New path {} does not exist", newPath);
       return -ErrorCodes.ENOENT();
     }
     try {
       Files.move(oldFilePath, newFilePath);
       return 0;
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Failed to move {} to {}", oldFilePath, newFilePath, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int chmod(String path, long mode) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (!Files.exists(filePath)) {
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      Files.setPosixFilePermissions(filePath,
+          FileUtils.translateModeToPosixPermissions((int) mode));
+      return 0;
+    } catch (IOException e) {
+      LOG.error("Failed to chmod {}", path, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int chown(String path, long uid, long gid) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (!Files.exists(filePath)) {
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      UserPrincipalLookupService lookupService =
+          FileSystems.getDefault().getUserPrincipalLookupService();
+      PosixFileAttributeView view = Files.getFileAttributeView(filePath,
+          PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+      String userName = "";
+      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
+        userName = AlluxioFuseUtils.getUserName(uid);
+        if (userName.isEmpty()) {
+          // This should never be reached
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EINVAL();
+        }
+        view.setOwner(lookupService.lookupPrincipalByName(userName));
+      }
+
+      String groupName = "";
+      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
+        groupName = AlluxioFuseUtils.getGroupName(gid);
+        if (groupName.isEmpty()) {
+          // This should never be reached
+          LOG.error("Failed to get group name from gid {}", gid);
+          return -ErrorCodes.EINVAL();
+        }
+        view.setGroup(lookupService.lookupPrincipalByGroupName(groupName));
+      } else if (!userName.isEmpty()) {
+        groupName = AlluxioFuseUtils.getGroupName(userName);
+        view.setGroup(lookupService.lookupPrincipalByGroupName(groupName));
+      }
+
+      return 0;
+    } catch (IOException e) {
+      LOG.error("Failed to chown {}", path, e);
       return -ErrorCodes.EIO();
     }
   }
