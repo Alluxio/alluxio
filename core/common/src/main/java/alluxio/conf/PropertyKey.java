@@ -3547,6 +3547,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
