@@ -129,8 +129,9 @@ public final class AlluxioFuse {
    * @param conf the alluxio configuration to create Fuse file system
    * @param opts the fuse mount options
    * @param blocking whether the Fuse application is blocking or not
+   * @return the Fuse application handler for future Fuse umount operation
    */
-  public static void launchFuse(FileSystem fs, AlluxioConfiguration conf,
+  public static FuseUmountable launchFuse(FileSystem fs, AlluxioConfiguration conf,
       FuseMountOptions opts, boolean blocking) throws IOException {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
@@ -142,6 +143,7 @@ public final class AlluxioFuse {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
               opts.getMountPoint(), fuseOpts.toArray(new String[0]));
           fuseFs.mount(blocking, opts.isDebug(), fuseOpts.toArray(new String[0]));
+          return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
@@ -163,6 +165,7 @@ public final class AlluxioFuse {
         try {
           fuseFs.mount(Paths.get(opts.getMountPoint()), blocking, opts.isDebug(),
               fuseOpts.toArray(new String[0]));
+          return fuseFs;
         } catch (ru.serce.jnrfuse.FuseException e) {
           // only try to umount file system when exception occurred.
           // jnr-fuse registers JVM shutdown hook to ensure fs.umount()

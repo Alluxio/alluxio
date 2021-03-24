@@ -57,7 +57,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
+public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
+    implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
