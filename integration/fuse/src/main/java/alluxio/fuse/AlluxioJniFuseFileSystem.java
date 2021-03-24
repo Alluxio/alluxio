@@ -32,6 +32,8 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -668,21 +670,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     // all out stream is closed before umount the fuse
     LOG.info("Waiting for all file out stream closed");
     long startTime = System.currentTimeMillis();
-    while (!mCreateFileEntries.isEmpty()) {
-      try {
-        if (System.currentTimeMillis() - startTime >= MAX_UMOUNT_WAITTIME_MS) {
-          throw new TimeoutException("reach the max umount waiting time");
-        }
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        LOG.error("unmount interrupted");
-        Thread.currentThread().interrupt();
-        break;
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting file out stream close,"
-                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
-        break;
-      }
+    try {
+      CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
+              WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
+    } catch (InterruptedException e) {
+      LOG.error("unmount interrupted");
+      Thread.currentThread().interrupt();
+    } catch (TimeoutException e) {
+      LOG.error("Timeout when waiting file out stream close,"
+              + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
     }
 
     super.umount();
