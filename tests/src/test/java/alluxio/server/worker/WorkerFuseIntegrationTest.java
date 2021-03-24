@@ -15,7 +15,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.util.ShellUtils;
 
 /**
  * Integration tests for worker embedded Fuse application.
