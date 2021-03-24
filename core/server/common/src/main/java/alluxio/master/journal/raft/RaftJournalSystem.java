@@ -562,6 +562,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return services;
   }
 
+  private static final long JOURNAL_STAT_LOG_MAX_INTERVAL_MS = 30000L;
+
   /**
    * Attempts to catch up. If the master loses leadership during this method, it will return early.
    *
@@ -586,6 +588,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     long lastMeasuredTime = startTime;
     long lastCommitIdx = 0L;
+    long logCount = 0;
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -621,8 +624,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
       if (ex != null) {
         // LeaderNotReadyException typically indicates Ratis is still replaying the journal.
-        if (ex instanceof LeaderNotReadyException) {
-          long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        // powers of 2, but capped to the JOURNAL_STAT_MAX_LOG_INTERVAL_MS
+        long nextLogTime = 1000L * Math.min(
+            1L << (logCount > 30 ? 30 : logCount),
+            JOURNAL_STAT_LOG_MAX_INTERVAL_MS);
+        if (ex instanceof LeaderNotReadyException
+            && (now - lastMeasuredTime) > nextLogTime) {
+          logCount++;
           long currCommitIdx = stateMachine.getLastAppliedCommitIndex();
           long timeSinceLastMeasure = (now - lastMeasuredTime);
           long commitIdxRead = currCommitIdx - lastCommitIdx;
@@ -640,7 +649,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           LOG.info(logMsg.toString());
           lastMeasuredTime = now;
           lastCommitIdx = currCommitIdx;
-        } else {
+        } else if (!(ex instanceof LeaderNotReadyException)) {
           LOG.info("Exception submitting term start entry: {}", ex.toString());
         }
         // avoid excessive retries when server is not ready
