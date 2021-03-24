@@ -19,6 +19,8 @@ import alluxio.jnifuse.struct.FuseFileInfo;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -146,6 +148,96 @@ public class StackFS extends AbstractFuseFileSystem {
       return -ErrorCodes.EIO();
     }
     return nread;
+  }
+
+  @Override
+  public int create(String path, long mode, FuseFileInfo fi) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (Files.exists(filePath)) {
+      System.out.printf("File %s already exist%n", path);
+      return -ErrorCodes.EEXIST();
+    }
+    try {
+      Files.createFile(filePath);
+      return 0;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+    path = transformPath(path);
+    final int sz = (int) size;
+    // TODO(lu) is it needed to check if offset < bytesWritten
+    // is the write guarantee to be sequential?
+    try (FileOutputStream outputStream = new FileOutputStream(path)) {
+      final byte[] dest = new byte[sz];
+      buf.get(dest, 0, sz);
+      outputStream.write(dest);
+      return sz;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return -ErrorCodes.EIO();
+  }
+
+  @Override
+  public int mkdir(String path, long mode) {
+    path = transformPath(path);
+    Path dirPath = Paths.get(path);
+    if (Files.exists(dirPath)) {
+      System.out.printf("Dir %s already exist%n", path);
+      return -ErrorCodes.EEXIST();
+    }
+    try {
+      Files.createDirectory(dirPath);
+      return 0;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int unlink(String path) {
+    path = transformPath(path);
+    Path filePath = Paths.get(path);
+    if (!Files.exists(filePath)) {
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      Files.delete(filePath);
+      return 0;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
+  }
+
+  @Override
+  public int rename(String oldPath, String newPath) {
+    oldPath = transformPath(oldPath);
+    newPath = transformPath(newPath);
+    Path oldFilePath = Paths.get(oldPath);
+    Path newFilePath = Paths.get(newPath);
+    if (!Files.exists(oldFilePath)) {
+      System.out.printf("Old path %s does not exist%n", oldPath);
+      return -ErrorCodes.ENOENT();
+    }
+    if (Files.exists(newFilePath)) {
+      System.out.printf("New path %s already exist%n", newPath);
+      return -ErrorCodes.ENOENT();
+    }
+    try {
+      Files.move(oldFilePath, newFilePath);
+      return 0;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return -ErrorCodes.EIO();
+    }
   }
 
   @Override
