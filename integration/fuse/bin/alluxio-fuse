@@ -49,7 +49,18 @@ mount_fuse() {
     -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root}"
-  echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
+  if [[ ${STACK_FS} -eq "1" ]]; then
+    cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+    alluxio.fuse.StackMain \
+    ${alluxio_root} \
+    ${mount_point} \
+    ${full_mount_option}"
+
+    echo "Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\" with options=\"${full_mount_option}\""
+  else
+    echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
+  fi
+
   if [[ ${NO_DAEMON} -eq "1" ]]; then
     exec ${cmd}
   else
@@ -108,7 +119,8 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
 \talluxio-fuse mount
 
 -o \tmount options for the fuse daemon
--n \tno-daemon. This launches the process in the foreground and logs to stdout"
+-n \tno-daemon. This launches the process in the foreground and logs to stdout
+-s \tstackFS. This launches StackFS process for testing purpose"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
@@ -124,13 +136,16 @@ fi
 case $1 in
   mount)
     shift
-    while getopts "o:n" option; do
+    while getopts "o:ns" option; do
       case "${option}" in
         o)
           mount_option=${OPTARG}
           ;;
         n)
           NO_DAEMON="1"
+          ;;
+        s)
+          STACK_FS="1"
           ;;
         *)
           echo -e "${MOUNT_USAGE}" >&2
