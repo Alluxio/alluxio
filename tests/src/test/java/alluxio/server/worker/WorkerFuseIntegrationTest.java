@@ -35,11 +35,7 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void umountFuse(String mountPath) throws Exception {
-    // shell command umount is not needed if Fuse application can be umounted in worker.stop().
-    // TODO(lu) add umount in worker.stop(), otherwise all the Fuse applications
-    // will remain running for the entire test and may potentially prevent new Fuse applications
-    // from coming up due to Fuse device number limitations
-    ShellUtils.execCommand("umount", mountPath);
+    // Fuse application is unmounted automatically when stopping the worker
   }
 
   @Override

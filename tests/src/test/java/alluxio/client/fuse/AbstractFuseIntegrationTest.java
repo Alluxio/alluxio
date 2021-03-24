@@ -69,7 +69,7 @@ public abstract class AbstractFuseIntegrationTest {
   public TestName mTestName = new TestName();
 
   /**
-   * Overwrite the test configuration in this method.
+   * Overwrites the test configuration in this method.
    */
   public abstract void configure();
 
