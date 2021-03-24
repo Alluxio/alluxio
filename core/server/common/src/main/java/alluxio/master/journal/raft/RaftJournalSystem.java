@@ -568,7 +568,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * The caller is responsible for detecting and responding to leadership changes.
    */
   private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
-          throws TimeoutException, InterruptedException {
+      throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     long waitBeforeRetry = ServerConfiguration.global()
         .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
@@ -580,10 +580,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       endCommitIndex = getGroupInfo().getCommitInfos().stream()
           .mapToLong(RaftProtos.CommitInfoProto::getCommitIndex).min();
     } catch (IOException e) {
-      LOG.warn("Failed to get raft log information before replay."
-          + " Replay statistics will not be available:", e);
+      LogUtils.warnWithException(LOG, "Failed to get raft log information before replay."
+          + " Replay statistics will not be available", e);
     }
-    long lastMeasuredSeqNum = stateMachine.getLastAppliedSequenceNumber();
+
     long lastMeasuredTime = startTime;
     long lastCommitIdx = 0L;
 
