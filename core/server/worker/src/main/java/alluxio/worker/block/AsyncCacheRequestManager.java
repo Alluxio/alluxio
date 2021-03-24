@@ -236,8 +236,7 @@ public class AsyncCacheRequestManager {
       if (mRequest == that.mRequest) {
         return true;
       }
-      if ((this.mRequest == null && that.mRequest != null)
-          || (this.mRequest != null && that.mRequest == null)) {
+      if (this.mRequest == null || that.mRequest == null) {
         return false;
       }
       // Only care about the block id being the same.
