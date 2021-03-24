@@ -27,7 +27,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class UniqueBlockingQueue<T> extends AbstractQueue<T> implements BlockingQueue<T> {
   private ConcurrentHashSet<T> mElementSet = new ConcurrentHashSet<>();
-  private BlockingQueue<T> mBlockingQueue = new LinkedBlockingQueue<>();
+  private BlockingQueue<T> mBlockingQueue;
+
+  public UniqueBlockingQueue(int capacity) {
+    mBlockingQueue = new LinkedBlockingQueue<>(capacity);
+  }
 
   @Override
   public synchronized void put(T e) throws InterruptedException {
