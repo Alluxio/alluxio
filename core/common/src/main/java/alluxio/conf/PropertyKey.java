@@ -671,7 +671,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
       new Builder(Name.UNDERFS_GCS_VERSION)
-          .setDefaultValue(1)
+          .setDefaultValue(2)
           .setDescription(String.format("Specify the version of GCS module to use. "
               + "GCS version \"1\" builds on top of jets3t package "
               + "which requires %s and %s. GCS version \"2\" build on top "
@@ -1776,7 +1776,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE =
       new Builder(Name.MASTER_METASTORE)
-          .setDefaultValue("HEAP")
+          .setDefaultValue("ROCKS")
           .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
               + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
               + "heap and some metadata on disk. The rocks metastore has the advantage of being "
@@ -5667,10 +5667,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.min";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
         "alluxio.user.block.worker.client.pool.max";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-        "alluxio.user.block.worker.client.pool.size";
-    public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
-        "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =

@@ -53,6 +53,8 @@ spec:
       hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.worker.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
@@ -64,9 +66,6 @@ spec:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           {{- if .Values.worker.resources  }}
 {{ include "alluxio.worker.resources" . | indent 10 }}
           {{- end }}
@@ -122,9 +121,6 @@ spec:
             {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.jobWorker.resources  }}
 {{ include "alluxio.jobWorker.resources" . | indent 10 }}
