@@ -30,7 +30,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "--in-process",
         "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "WRITE",
+        "--operation", "Write",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -39,10 +39,10 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
 
     String output2 = new StressClientIOBench().run(new String[] {
         "--in-process",
-        "--tag", "READ_ARRAY-NOT_RANDOM",
+        "--tag", "ReadArray-NOT_RANDOM",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "READ_ARRAY",
+        "--operation", "ReadArray",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -52,10 +52,10 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output3 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "READ_ARRAY-RANDOM",
+        "--tag", "ReadArray-RANDOM",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "READ_ARRAY",
+        "--operation", "ReadArray",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -65,10 +65,10 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output4 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "READ_BYTE_BUFFER",
+        "--tag", "ReadByteBuffer",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "READ_BYTE_BUFFER",
+        "--operation", "ReadByteBuffer",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -78,10 +78,10 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output5 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "READ_FULLY",
+        "--tag", "ReadFully",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "READ_FULLY",
+        "--operation", "ReadFully",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -91,10 +91,10 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output6 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "POS_READ-test",
+        "--tag", "PosRead-test",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "POS_READ",
+        "--operation", "PosRead",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
@@ -104,18 +104,18 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     String output7 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--read-random",
-        "--tag", "POS_READ_FULLY",
+        "--tag", "PosReadFully",
         "--start-ms", Long.toString(System.currentTimeMillis() + 1000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "POS_READ_FULLY",
+        "--operation", "PosReadFully",
         "--threads", "2",
         "--file-size", "1m",
         "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
     });
     generateAndVerifyReport(Arrays.asList(
-        "WRITE", "READ_ARRAY-NOT_RANDOM", "READ_ARRAY-RANDOM", "READ_BYTE_BUFFER", "READ_FULLY",
-        "POS_READ-test", "POS_READ_FULLY"),
+        "Write", "ReadArray-NOT_RANDOM", "ReadArray-RANDOM", "ReadByteBuffer", "ReadFully",
+        "PosRead-test", "PosReadFully"),
         output1, output2, output3, output4, output5, output6, output7);
   }
 }

@@ -22,18 +22,18 @@ package alluxio.stress.client;
  */
 public enum ClientIOOperation {
   /** The write operation, for writing data for the read operations. */
-  WRITE,
+  Write,
 
   /** Streaming read api, using arrays. */
-  READ_ARRAY,
+  ReadArray,
   /** Streaming read api, using byte buffers. */
-  READ_BYTE_BUFFER,
+  ReadByteBuffer,
   /** Streaming read fully api. */
-  READ_FULLY,
+  ReadFully,
   /** Positioned read api. */
-  POS_READ,
+  PosRead,
   /** Positioned read fully api. */
-  POS_READ_FULLY,
+  PosReadFully,
   ;
 
   /**
@@ -42,11 +42,11 @@ public enum ClientIOOperation {
    */
   public static boolean isRead(ClientIOOperation operation) {
     switch (operation) {
-      case READ_ARRAY:
-      case READ_BYTE_BUFFER:
-      case READ_FULLY:
-      case POS_READ:
-      case POS_READ_FULLY:
+      case ReadArray:
+      case ReadByteBuffer:
+      case ReadFully:
+      case PosRead:
+      case PosReadFully:
         return true;
       default:
         return false;
@@ -59,8 +59,8 @@ public enum ClientIOOperation {
    */
   public static boolean isPosRead(ClientIOOperation operation) {
     switch (operation) {
-      case POS_READ:
-      case POS_READ_FULLY:
+      case PosRead:
+      case PosReadFully:
         return true;
       default:
         return false;
