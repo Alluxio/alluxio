@@ -136,7 +136,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
       cascadingFromAbove = moveOutBytes;
 
       Iterator<Long> tierIterator = mMetadataManager.getBlockIterator()
-          .getIterator(BlockStoreLocation.anyDirInTier(tierAlias), BlockOrder.Natural);
+          .getIterator(BlockStoreLocation.anyDirInTier(tierAlias), BlockOrder.NATURAL);
       while (tierIterator.hasNext() && moveOutBytes > 0) {
         long blockId = tierIterator.next();
         try {
@@ -174,7 +174,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
       for (StorageDirView dirView : tierView.getDirViews()) {
         Iterator<Long> dirBlockIter = mMetadataManager.getBlockIterator().getIterator(
             new BlockStoreLocation(tierView.getTierViewAlias(), dirView.getDirViewIndex()),
-            BlockOrder.Natural);
+            BlockOrder.NATURAL);
         while (dirBlockIter.hasNext() && dirView.getAvailableBytes() < dirView.getReservedBytes()) {
           long blockId = dirBlockIter.next();
           try {
