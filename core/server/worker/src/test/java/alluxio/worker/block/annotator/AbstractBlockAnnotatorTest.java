@@ -105,12 +105,12 @@ public abstract class AbstractBlockAnnotatorTest {
         add(0L);
       }
     };
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Natural),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.NATURAL),
         expectedList.iterator());
 
     removeBlock(0);
     expectedList.clear();
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Natural),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.NATURAL),
         expectedList.iterator());
   }
 
@@ -124,11 +124,11 @@ public abstract class AbstractBlockAnnotatorTest {
         add(0L);
       }
     };
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Natural),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.NATURAL),
         expectedList.iterator());
 
     moveBlock(0, dstDir);
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Natural),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.NATURAL),
         expectedList.iterator());
   }
 }
