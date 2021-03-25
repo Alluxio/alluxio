@@ -44,7 +44,7 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mFile = mTestFolder.newFile();
     mBlockWorker = new NoopBlockWorker() {
       @Override
-      public BlockWriter getBlockWriter(long sessionId, long blockId) {
+      public BlockWriter createBlockWriter(long sessionId, long blockId) {
         return mBlockWriter;
       }
     };

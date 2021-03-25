@@ -197,8 +197,7 @@ public class FileSystemContext implements Closeable {
     ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
-    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(),
-        blockWorker);
+    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
     context.init(ctx, inquireClient);
     return context;
   }
@@ -240,8 +239,7 @@ public class FileSystemContext implements Closeable {
    * @param conf Alluxio configuration
    * @param blockWorker block worker
    */
-  private FileSystemContext(AlluxioConfiguration conf,
-      @Nullable BlockWorker blockWorker) {
+  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
     mWorkerRefreshPolicy =
@@ -587,26 +585,25 @@ public class FileSystemContext implements Closeable {
   /**
    * @return if the current client is embedded in a worker
    */
-  public synchronized boolean isWorkerInternalClient() {
+  public synchronized boolean hasProcessLocalWorker() {
     return mBlockWorker != null;
   }
 
   /**
-   * Acquires the internal block worker
-   * as a gateway for worker internal clients to communicate with
-   * the local worker directly without going through external RPC frameworks.
+   * Acquires the internal block worker as a gateway for worker internal clients to communicate
+   * with the local worker directly without going through external RPC frameworks.
    *
-   * @return the acquired block worker
+   * @return the acquired block worker or null if this client is not interal to a block worker
    */
   @Nullable
-  public BlockWorker getInternalBlockWorker() {
+  public BlockWorker getProcessLocalWorker() {
     return mBlockWorker;
   }
 
   /**
    * @return if there is a local worker running the same machine
    */
-  public synchronized boolean hasLocalWorker() throws IOException {
+  public synchronized boolean hasNodeLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }
@@ -616,7 +613,7 @@ public class FileSystemContext implements Closeable {
   /**
    * @return a local worker running the same machine, or null if none is found
    */
-  public synchronized WorkerNetAddress getLocalWorker() throws IOException {
+  public synchronized WorkerNetAddress getNodeLocalWorker() throws IOException {
     if (!mLocalWorkerInitialized) {
       initializeLocalWorker();
     }

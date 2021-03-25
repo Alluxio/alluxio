@@ -63,7 +63,7 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
           && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
 
-      if (context.isWorkerInternalClient() && !ufsFallbackEnabled) {
+      if (context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
 

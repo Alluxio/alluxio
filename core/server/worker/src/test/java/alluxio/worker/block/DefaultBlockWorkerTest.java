@@ -74,7 +74,7 @@ import java.util.Set;
     BlockHeartbeatReporter.class, BlockMetricsReporter.class,
     BlockStoreLocation.class, ServerConfiguration.class, UnderFileSystem.class,
     BlockWorker.class, Sessions.class})
-public class BlockWorkerTest {
+public class DefaultBlockWorkerTest {
 
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
@@ -83,7 +83,7 @@ public class BlockWorkerTest {
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
-  private BlockWorker mBlockWorker;
+  private DefaultBlockWorker mBlockWorker;
   private UfsManager mUfsManager;
 
   @Rule
@@ -307,13 +307,13 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#getBlockWriter(long, long)} method.
+   * Tests the {@link BlockWorker#createBlockWriter(long, long)} method.
    */
   @Test
   public void getTempBlockWriterRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.getBlockWriter(sessionId, blockId);
+    mBlockWorker.createBlockWriter(sessionId, blockId);
     verify(mBlockStore).getBlockWriter(sessionId, blockId);
   }
 
@@ -444,15 +444,15 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#newLocalBlockReader(long, long, long)} method.
+   * Tests the {@link BlockWorker#createLocalBlockReader(long, long, long, long)} method.
    */
   @Test
-  public void readBlockRemote() throws Exception {
+  public void getLocalBlockReader() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
 
-    mBlockWorker.newLocalBlockReader(sessionId, blockId, lockId);
+    mBlockWorker.createLocalBlockReader(sessionId, blockId, lockId, 0);
     verify(mBlockStore).getBlockReader(sessionId, blockId, lockId);
   }
 
@@ -480,20 +480,14 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#unlockBlock(long)} and {@link BlockWorker#unlockBlock(long, long)}
-   * method.
+   * Tests the {@link BlockWorker#unlockBlock(long)} method.
    */
   @Test
   public void unlockBlock() throws Exception {
     long lockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
 
     mBlockWorker.unlockBlock(lockId);
     verify(mBlockStore).unlockBlock(lockId);
-
-    mBlockWorker.unlockBlock(sessionId, blockId);
-    verify(mBlockStore).unlockBlock(sessionId, blockId);
   }
 
   /**
@@ -530,11 +524,11 @@ public class BlockWorkerTest {
     BlockReader blockReader = prepareBlockReader();
     doReturn(blockReader).when(mBlockStore).getBlockReader(anyLong(), anyLong(), anyLong());
 
-    Assert.assertEquals(blockReader, mBlockWorker.newBlockReader(request));
+    Assert.assertEquals(blockReader, mBlockWorker.createBlockReader(request));
     verify(mBlockStore).lockBlockNoException(sessionId, blockId);
     verify(mBlockStore).accessBlock(sessionId, blockId);
 
-    mBlockWorker.closeBlockReader(blockReader, request);
+    blockReader.close();
     verify(mBlockStore).unlockBlock(sessionId, blockId);
   }
 

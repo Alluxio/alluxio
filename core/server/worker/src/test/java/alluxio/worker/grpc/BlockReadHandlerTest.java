@@ -87,7 +87,7 @@ public class BlockReadHandlerTest {
     mBlockReader = new LocalFileBlockReader(mFile.getPath());
     mBlockWorker = new NoopBlockWorker() {
       @Override
-      public BlockReader newBlockReader(BlockReadRequest request) throws IOException {
+      public BlockReader createBlockReader(BlockReadRequest request) throws IOException {
         ((FileChannel) mBlockReader.getChannel()).position(request.getStart());
         return mBlockReader;
       }

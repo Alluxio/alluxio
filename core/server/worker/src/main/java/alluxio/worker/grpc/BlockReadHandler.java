@@ -478,9 +478,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
      * @param context context of the request to complete
      */
     private void completeRequest(BlockReadRequestContext context) throws Exception {
-      BlockReader reader = null;
       try {
-        mWorker.closeBlockReader(context.getBlockReader(), context.getRequest());
+        if (context.getBlockReader() != null) {
+          context.getBlockReader().close();
+        }
       } finally {
         context.setBlockReader(null);
       }
@@ -560,7 +561,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
         }
       }
-      BlockReader reader = mWorker.newBlockReader(request);
+      BlockReader reader = mWorker.createBlockReader(request);
       context.setBlockReader(reader);
       if (reader instanceof UnderFileSystemBlockReader) {
         AlluxioURI ufsMountPointUri =

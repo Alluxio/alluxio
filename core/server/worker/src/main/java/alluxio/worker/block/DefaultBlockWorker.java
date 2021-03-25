@@ -18,6 +18,7 @@ import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -50,6 +51,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -82,7 +84,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Logic: {@link DefaultBlockWorker} (Logic for all block related storage operations)
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
+@NotThreadSafe
 public final class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
@@ -132,6 +134,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   private final AtomicReference<Long> mWorkerId;
 
+  private final FileSystemContext mFsContext;
   private final AsyncCacheRequestManager mAsyncCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
@@ -173,9 +176,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
+    mFsContext = mResourceCloser.register(
+        FileSystemContext.create(null, ServerConfiguration.global(), this));
     mAsyncCacheManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this);
-    mFuseManager = mResourceCloser.register(new FuseManager(this));
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
+    mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
@@ -370,7 +375,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockWriter getBlockWriter(long sessionId, long blockId)
+  public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return mLocalBlockStore.getBlockWriter(sessionId, blockId);
@@ -458,15 +463,54 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader newLocalBlockReader(long sessionId, long blockId, long lockId)
+  public BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
-    return mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);
+    try {
+      BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);
+      ((FileChannel) reader.getChannel()).position(offset);
+      return new DelegatingBlockReader(reader, () -> {
+        try {
+          unlockBlock(lockId);
+        } catch (BlockDoesNotExistException e) {
+          throw new IOException(e);
+        }
+      });
+    } catch (IOException e) {
+      try {
+        unlockBlock(lockId);
+      } catch (Exception ee) {
+        LOG.warn("Failed to unlock block blockId={}, lockId={}", blockId, lockId, ee);
+      }
+      throw new IOException(String.format("Failed to get local block reader, sessionId=%d, "
+              + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
+    }
   }
 
   @Override
-  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort) throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, positionShort);
+  public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws BlockDoesNotExistException, IOException {
+    try {
+      openUfsBlock(sessionId, blockId, options);
+      BlockReader reader = mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset,
+          positionShort);
+      return new DelegatingBlockReader(reader, () -> {
+        try {
+          closeUfsBlock(sessionId, blockId);
+        } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
+          throw new IOException(e);
+        }
+      });
+    } catch (Exception e) {
+      try {
+        closeUfsBlock(sessionId, blockId);
+      } catch (Exception ee) {
+        LOG.warn("Failed to close UFS block", ee);
+      }
+      throw new IOException(String.format("Failed to get UFS block reader, sessionId=%d, "
+              + "blockId=%d, offset=%d, positionShort=%s, options=%s",
+          sessionId, blockId, offset, positionShort, options), e);
+    }
   }
 
   @Override
@@ -487,13 +531,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  // TODO(calvin): Remove when lock and reads are separate operations.
-  public boolean unlockBlock(long sessionId, long blockId) {
-    return mLocalBlockStore.unlockBlock(sessionId, blockId);
-  }
-
-  @Override
-  public void submitAsyncCacheRequest(AsyncCacheRequest request) {
+  public void asyncCache(AsyncCacheRequest request) {
     mAsyncCacheManager.submitRequest(request);
   }
 
@@ -507,7 +545,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
-  @Override
   public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
@@ -527,7 +564,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
-  @Override
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {
@@ -551,7 +587,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader newBlockReader(BlockReadRequest request) throws
+  public BlockReader createBlockReader(BlockReadRequest request) throws
       BlockAlreadyExistsException, BlockDoesNotExistException,
       InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     long sessionId = request.getSessionId();
@@ -569,9 +605,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
       if (lockId != BlockWorker.INVALID_LOCK_ID) {
         try {
-          BlockReader reader = newLocalBlockReader(sessionId, blockId, lockId);
+          BlockReader reader = createLocalBlockReader(sessionId, blockId, lockId, 0);
           accessBlock(sessionId, blockId);
-          ((FileChannel) reader.getChannel()).position(request.getStart());
           return reader;
         } catch (BlockDoesNotExistException | InvalidWorkerStateException | IOException e) {
           unlockBlock(lockId);
@@ -583,45 +618,16 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
 
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
       try {
-        if (openUfsBlock(request.getSessionId(), request.getId(),
-            Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
-          BlockReader reader =
-              newUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
-                  request.isPositionShort());
-          return reader;
-        }
+         return createUfsBlockReader(request.getSessionId(), request.getId(),
+             request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
-        // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
-        // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
-        // workaround.
-        closeUfsBlock(request.getSessionId(), request.getId());
         throw new UnavailableException(String.format("Failed to read block ID=%s from tiered "
             + "storage and UFS tier: %s", request.getId(), e.getMessage()));
       }
     }
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
         .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
-  }
-
-  @Override
-  public void closeBlockReader(BlockReader reader, BlockReadRequest request)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    try {
-      if (reader != null) {
-        reader.close();
-      }
-    } catch (Exception e) {
-      LOG.warn("Failed to close block reader for block {} with error {}.",
-          request.getId(), e.getMessage());
-    } finally {
-      if (!unlockBlock(request.getSessionId(), request.getId())) {
-        if (reader != null) {
-          closeUfsBlock(request.getSessionId(), request.getId());
-        }
-      }
-    }
   }
 
   @Override
