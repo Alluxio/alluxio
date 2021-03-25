@@ -145,33 +145,33 @@ public final class FileUtils {
       throws IOException {
     Set<PosixFilePermission> perms = new HashSet<>();
     // add owners permission
-    if ((mode & 0400) > 0) {
+    if ((mode & 0400) != 0) {
       perms.add(PosixFilePermission.OWNER_READ);
     }
-    if ((mode & 0200) > 0) {
+    if ((mode & 0200) != 0) {
       perms.add(PosixFilePermission.OWNER_WRITE);
     }
-    if ((mode & 0100) > 0) {
+    if ((mode & 0100) != 0) {
       perms.add(PosixFilePermission.OWNER_EXECUTE);
     }
     // add group permissions
-    if ((mode & 0040) > 0) {
+    if ((mode & 0040) != 0) {
       perms.add(PosixFilePermission.GROUP_READ);
     }
-    if ((mode & 0020) > 0) {
+    if ((mode & 0020) != 0) {
       perms.add(PosixFilePermission.GROUP_WRITE);
     }
-    if ((mode & 0010) > 0) {
+    if ((mode & 0010) != 0) {
       perms.add(PosixFilePermission.GROUP_EXECUTE);
     }
     // add others permissions
-    if ((mode & 0004) > 0) {
+    if ((mode & 0004) != 0) {
       perms.add(PosixFilePermission.OTHERS_READ);
     }
-    if ((mode & 0002) > 0) {
+    if ((mode & 0002) != 0) {
       perms.add(PosixFilePermission.OTHERS_WRITE);
     }
-    if ((mode & 0001) > 0) {
+    if ((mode & 0001) != 0) {
       perms.add(PosixFilePermission.OTHERS_EXECUTE);
     }
     return perms;
