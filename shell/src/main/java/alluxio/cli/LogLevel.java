@@ -199,7 +199,6 @@ public final class LogLevel {
         String masterHost = fsContext.getMasterAddress().getHostName();
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
-        System.out.format("Primary master: %s%n", master);
         targetInfoList.add(master);
       } else if (target.equals(ROLE_JOB_MASTER)) {
         if (jobClient == null) {
@@ -209,7 +208,6 @@ public final class LogLevel {
         String jobMasterHost = jobClient.getAddress().getHostName();
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
         TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
-        System.out.format("Primary job master: %s%n", jobMaster);
         targetInfoList.add(jobMaster);
       } else if (target.equals(ROLE_WORKERS)) {
         if (fsContext == null) {
@@ -224,7 +222,6 @@ public final class LogLevel {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           TargetInfo worker = new TargetInfo(netAddress.getHost(),
                   netAddress.getWebPort(), ROLE_WORKER);
-          System.out.format("Worker: %s%n", worker);
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {
@@ -241,7 +238,6 @@ public final class LogLevel {
         for (JobWorkerHealth jobWorkerInfo : jobWorkerInfoList) {
           String jobWorkerHost = jobWorkerInfo.getHostname();
           TargetInfo jobWorker = new TargetInfo(jobWorkerHost, jobWorkerPort, ROLE_JOB_WORKER);
-          System.out.format("Job worker: %s%n", jobWorker);
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
