@@ -668,17 +668,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   public void umount() {
     // Release operation is async, we need to make sure
     // all out stream is closed before umount the fuse
-    LOG.info("Waiting for all file out stream closed");
-    long startTime = System.currentTimeMillis();
-    try {
-      CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
-              WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
-    } catch (InterruptedException e) {
-      LOG.error("unmount interrupted");
-      Thread.currentThread().interrupt();
-    } catch (TimeoutException e) {
-      LOG.error("Timeout when waiting file out stream close,"
-              + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
+    if (!mCreateFileEntries.isEmpty()) {
+      LOG.info("Waiting for all file out stream closed");
+      try {
+        CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
+                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
+      } catch (InterruptedException e) {
+        LOG.error("unmount interrupted");
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting file out stream close,"
+                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
+      }
     }
 
     super.umount();
