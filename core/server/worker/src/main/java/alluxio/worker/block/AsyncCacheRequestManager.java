@@ -13,8 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Constants;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -52,31 +50,28 @@ public class AsyncCacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncCacheRequestManager.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mAsyncCacheExecutor;
   /** The block worker. */
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
-  private final FileSystemContext mFsContext;
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
   /** Keeps track of the number of rejected cache requests. */
   private final AtomicLong mNumRejected = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
    * @param blockWorker handler to the block worker
-   * @param fsContext context used to instantiate {@link RemoteBlockReader}
    */
-  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker,
-      FileSystemContext fsContext) {
+  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker) {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    mFsContext = fsContext;
   }
 
   /**
@@ -166,7 +161,7 @@ public class AsyncCacheRequestManager {
       return true;
     }
     try (BlockReader reader = mBlockWorker
-        .readUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false)) {
+        .newUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
       // memory when concurrent async requests are received and thus trigger GC.
@@ -203,8 +198,7 @@ public class AsyncCacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     try {
-      mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-          mStorageTierAssoc.getAlias(0), "", blockSize);
+      mBlockWorker.createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       return true;
@@ -217,7 +211,7 @@ public class AsyncCacheRequestManager {
     try (BlockReader reader =
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
-             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
+             .getBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;

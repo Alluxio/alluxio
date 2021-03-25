@@ -52,7 +52,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    LOCAL, REMOTE, UFS
+    EMBEDDED, // The block is from a worker in the same process
+    LOCAL, // The block is from a separate worker process on the same node
+    REMOTE,
+    UFS
   }
 
   private final WorkerNetAddress mAddress;
@@ -114,6 +117,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean shortCircuitPreferred =
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
+
+    if (dataSourceType == BlockInStreamSource.EMBEDDED) {
+      // Interaction between the current client and the worker it embedded to should
+      // go through worker internal communication directly without RPC involves
+      return createWorkerInternalBlockInStream(context, dataSource, blockId, blockSize, options);
+    }
+
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
     // Short circuit is enabled when
@@ -138,6 +148,27 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
+  }
+
+  /**
+   * Creates a {@link BlockInStream} to read from the worker this client embedded into
+   * directly without RPC involves, if the block does not exist in this worker, will read from
+   * the UFS storage via this worker.
+   *
+   * @param context the file system context
+   * @param address the network address of the gRPC data server to read from
+   * @param blockId the block ID
+   * @param length the block length
+   * @param options the in stream options
+   * @return the {@link BlockInStream} created
+   */
+  private static BlockInStream createWorkerInternalBlockInStream(FileSystemContext context,
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
+    long chunkSize = context.getClusterConf().getBytes(
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    return new BlockInStream(
+        new BlockWorkerDataReader.Factory(context, blockId, chunkSize, options),
+        address, BlockInStreamSource.EMBEDDED, blockId, length);
   }
 
   /**

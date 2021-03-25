@@ -38,7 +38,6 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
-import alluxio.worker.block.AsyncCacheRequestManager;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableMap;
@@ -64,7 +63,6 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
   private final WorkerProcess mWorkerProcess;
   private final BlockWorker mBlockWorker;
-  private final AsyncCacheRequestManager mRequestManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
@@ -80,8 +78,6 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
-    mRequestManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mBlockWorker, fsContext);
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -154,7 +150,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mRequestManager.submitRequest(request);
+      mBlockWorker.submitAsyncCacheRequest(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
   }

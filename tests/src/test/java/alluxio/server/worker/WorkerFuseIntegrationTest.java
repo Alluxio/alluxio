@@ -9,38 +9,36 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse;
+package alluxio.server.worker;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.FuseMountOptions;
-
-import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
- * Integration tests for JNR-FUSE based {@link AlluxioFuseFileSystem}.
+ * Integration tests for worker embedded Fuse application.
  */
-public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
-  private AlluxioFuseFileSystem mFuseFileSystem;
-
+public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {
-    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mMountPoint);
+    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
   }
 
   @Override
   public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options =
-        new FuseMountOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, ServerConfiguration.global());
-    mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
+    // Fuse application is mounted automatically by the worker
   }
 
   @Override
   public void umountFuse(String mountPath) throws Exception {
-    mFuseFileSystem.umount();
+    // Fuse application is unmounted automatically when stopping the worker
+  }
+
+  @Override
+  public void touchAndLs() throws Exception {
+    // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
   }
 }
