@@ -31,6 +31,13 @@ public interface CacheEvictor {
    * @return a CacheEvictor instance
    */
   static CacheEvictor create(AlluxioConfiguration conf) {
+    boolean isNondeterministic =
+        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED);
+    boolean isLRU =
+        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS).equals(LRUCacheEvictor.class);
+    if (isNondeterministic && isLRU) {
+      return new NondeterministicLRUCacheEvictor(conf);
+    }
     return CommonUtils.createNewClassInstance(
         conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS),
         new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
