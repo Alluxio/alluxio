@@ -31,6 +31,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,7 +206,8 @@ public class AsyncCacheRequestManager {
    * AsyncCacheTask is a runnable task that can be considered equal if
    * the blockId of the request is the same.
    */
-  private class AsyncCacheTask implements Runnable {
+  @VisibleForTesting
+  class AsyncCacheTask implements Runnable {
     private final AsyncCacheRequest mRequest;
 
     /**
