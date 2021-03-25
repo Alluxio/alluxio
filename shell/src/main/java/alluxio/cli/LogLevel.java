@@ -167,19 +167,19 @@ public final class LogLevel {
     List<TargetInfo> targetInfoList = new ArrayList<>();
 
     // Allow plural form for the master/job_master and print a notice
-    if (targetSet.contains(ROLE_MASTERS) || targetSet.contains(ROLE_JOB_MASTERS)) {
+    if (targetSet.contains(ROLE_MASTERS)) {
       System.out.println("The logLevel command will only take effect on the primary master, "
               + "instead of on all the masters. ");
-      if (targetSet.contains(ROLE_MASTERS)) {
-        targetSet.remove(ROLE_MASTERS);
-        targetSet.add(ROLE_MASTER);
-        System.out.println("Target `masters` is replaced with `master`.");
-      }
-      if (targetSet.contains(ROLE_JOB_MASTERS)) {
-        targetSet.remove(ROLE_JOB_MASTERS);
-        targetSet.add(ROLE_JOB_MASTER);
-        System.out.println("Target `job_masters` is replaced with `job_master`.");
-      }
+      targetSet.remove(ROLE_MASTERS);
+      targetSet.add(ROLE_MASTER);
+      System.out.println("Target `masters` is replaced with `master`.");
+    }
+    if (targetSet.contains(ROLE_JOB_MASTERS)) {
+      System.out.println("The logLevel command will only take effect on the primary job master, "
+              + "instead of on all the masters. ");
+      targetSet.remove(ROLE_JOB_MASTERS);
+      targetSet.add(ROLE_JOB_MASTER);
+      System.out.println("Target `job_masters` is replaced with `job_master`.");
     }
 
     ClientContext clientContext = ClientContext.create(conf);
@@ -280,7 +280,7 @@ public final class LogLevel {
   }
 
   private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
-                                  AlluxioConfiguration conf)
+                                  AlluxioConfiguration alluxioConf)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -309,13 +309,13 @@ public final class LogLevel {
     } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, conf)) {
       return ROLE_JOB_WORKER;
     } else {
-      throw new IllegalArgumentException(
-              String.format("Unrecognized port in %s. " + "Please make sure the port is in %s",
-                      port,
-                      Arrays.toString(new PropertyKey[]{
-                        PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
-                        PropertyKey.JOB_MASTER_WEB_PORT, PropertyKey.JOB_WORKER_WEB_PORT
-                      })));
+      throw new IllegalArgumentException(String.format(
+              "Unrecognized port in %s. " + "Please make sure the port is in %s",
+              port,
+              Arrays.toString(new PropertyKey[]{
+                PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
+                PropertyKey.JOB_MASTER_WEB_PORT, PropertyKey.JOB_WORKER_WEB_PORT
+              })));
     }
   }
 
