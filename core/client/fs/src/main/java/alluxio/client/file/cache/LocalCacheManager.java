@@ -23,6 +23,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -217,6 +218,7 @@ public class LocalCacheManager implements CacheManager {
     OK,
     INSUFFICIENT_SPACE,
     BENIGN_RACING,
+    NO_SPACE,
     OTHER,
   }
 
@@ -300,6 +302,9 @@ public class LocalCacheManager implements CacheManager {
           // note that, we only evict one item a time in putAttempt. So it is possible the evicted
           // page is not large enough to cover the space needed by this page. Try again
           continue;
+        case NO_SPACE:
+          // fall through intentionally
+          // TODO(binfan): smart way to handle this case
         case OTHER:
           // fall through intentionally
         default:
@@ -348,9 +353,14 @@ public class LocalCacheManager implements CacheManager {
           mPageStore.put(pageId, page);
           Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
           return PutResult.OK;
+        } catch (ResourceExhaustedException e) {
+          undoAddPage(pageId);
+          LOG.error("Failed to add page {} to pageStore: ", pageId, e);
+          Metrics.PUT_STORE_WRITE_NO_SPACE_ERRORS.inc();
+          return PutResult.NO_SPACE;
         } catch (IOException e) {
           undoAddPage(pageId);
-          LOG.error("Failed to add page {}: {}", pageId, e);
+          LOG.error("Failed to add page {} to pageStore: ", pageId, e);
           Metrics.PUT_STORE_WRITE_ERRORS.inc();
           return PutResult.OTHER;
         }
@@ -392,7 +402,7 @@ public class LocalCacheManager implements CacheManager {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
         }
-        LOG.error("Failed to delete page {} from pageStore", pageId, e);
+        LOG.error("Failed to delete page {} from pageStore: ", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -406,7 +416,7 @@ public class LocalCacheManager implements CacheManager {
       } catch (IOException e) {
         // Failed to add page, remove new page from metastoree
         undoAddPage(pageId);
-        LOG.error("Failed to add page {}: {}", pageId, e);
+        LOG.error("Failed to add page {} to pageStore: ", pageId, e);
         Metrics.PUT_STORE_WRITE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -419,7 +429,7 @@ public class LocalCacheManager implements CacheManager {
     } catch (Exception e) {
       // best effort to remove this page from meta store and ignore the exception
       Metrics.CLEANUP_PUT_ERRORS.inc();
-      LOG.error("Failed to undo page add {}", pageId, e);
+      LOG.error("Failed to undo page add {}: ", pageId, e);
     }
   }
 
@@ -479,7 +489,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {} from metaStore: {}", pageId, e);
+          LOG.error("Failed to delete page {} from metaStore: ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
@@ -615,7 +625,7 @@ public class LocalCacheManager implements CacheManager {
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {}: {}", pageId, e);
+      LOG.error("Failed to get existing page {} from pageStore: ", pageId, e);
       return -1;
     }
     return bytesToRead;
@@ -682,6 +692,9 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when adding pages due to failed writes to page store. */
     private static final Counter PUT_STORE_WRITE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS.getName());
+    /** Errors when adding pages due to failed writes but before reaching cache capacity. */
+    private static final Counter PUT_STORE_WRITE_NO_SPACE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS.getName());
     /** State of the cache. */
     private static final Counter STATE =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_STATE.getName());

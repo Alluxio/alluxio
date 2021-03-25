@@ -16,6 +16,7 @@ import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
@@ -115,8 +116,10 @@ public interface PageStore extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param page page data
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
    */
-  void put(PageId pageId, byte[] page) throws IOException;
+  void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException;
 
   /**
    * Gets a page from the store to the destination buffer.

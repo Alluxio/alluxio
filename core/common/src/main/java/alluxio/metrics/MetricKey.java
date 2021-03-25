@@ -1177,6 +1177,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache due to"
+              + " failed writes to page store but disk is full before reaching cache capacity.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_STORE_DELETE_TIMEOUT =
       new Builder(Name.CLIENT_CACHE_STORE_DELETE_TIMEOUT)
           .setDescription("Number of timeouts when deleting pages from page store.")
@@ -1489,6 +1496,8 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
+    public static final String CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS =
+        "Client.CachePutStoreWriteNoSpaceErrors";
     public static final String CLIENT_CACHE_STORE_DELETE_TIMEOUT =
         "Client.CacheStoreDeleteTimeout";
     public static final String CLIENT_CACHE_STORE_GET_TIMEOUT =

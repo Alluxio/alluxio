@@ -15,6 +15,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -65,21 +66,24 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
     Path p = getFilePath(pageId);
-    if (!Files.exists(p)) {
-      Path parent = Preconditions.checkNotNull(p.getParent(),
-          "parent of cache file should not be null");
-      Files.createDirectories(parent);
-      Files.createFile(p);
-    }
     try {
+      if (!Files.exists(p)) {
+        Path parent = Preconditions.checkNotNull(p.getParent(),
+            "parent of cache file should not be null");
+        Files.createDirectories(parent);
+        Files.createFile(p);
+      }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
         fos.write(page);
       }
     } catch (Exception e) {
       Files.deleteIfExists(p);
+      if (e.getMessage().contains("No space left on device")) {
+        throw new ResourceExhaustedException("No space left on device");
+      }
       throw new IOException("Failed to write file " + p + " for page " + pageId);
     }
   }
