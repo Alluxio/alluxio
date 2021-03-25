@@ -22,8 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A blocking queue containing only unique elements, based on LinkedBlockingQueue implementation.
- * 
- * We serialize the insertion into the queue, otherwise, we may end up with duplicate elements in the queue.
+ *
+ * We serialize the insertion into the queue, otherwise, we may end up with duplicate elements
+ * in the queue.
  *
  * @param <T> element type
  */
@@ -39,7 +40,7 @@ public class UniqueBlockingQueue<T> extends AbstractQueue<T> implements Blocking
   public UniqueBlockingQueue(int capacity) {
     mBlockingQueue = new LinkedBlockingQueue<>(capacity);
   }
-  
+
   @Override
   public synchronized void put(T e) throws InterruptedException {
     if (!mElementSet.contains(e)) {
