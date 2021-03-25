@@ -145,6 +145,9 @@ public final class FileUtils {
       throws IOException {
     Set<PosixFilePermission> perms = new HashSet<>();
     // add owners permission
+    if (mode < 0) {
+      throw new IOException("Mode can not be a negative value");
+    }
     if ((mode & 0400) != 0) {
       perms.add(PosixFilePermission.OWNER_READ);
     }
