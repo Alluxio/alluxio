@@ -57,24 +57,21 @@ import java.util.concurrent.TimeoutException;
  * expected to create a test that extends this base class.
  */
 public abstract class AbstractFuseIntegrationTest {
-  private static final String ALLUXIO_ROOT = "/";
+  protected static final String ALLUXIO_ROOT = "/";
   private static final int BLOCK_SIZE = 4 * Constants.KB;
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
   private final LocalAlluxioCluster mAlluxioCluster = new LocalAlluxioCluster();
   private FileSystem mFileSystem;
-  private String mMountPoint;
+  protected String mMountPoint;
 
   @Rule
   public TestName mTestName = new TestName();
 
   /**
-   * Default setting of the local Alluxio cluster for FUSE testing.
+   * Overwrites the test configuration in this method.
    */
-  public void configureAlluxioCluster() {
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-  }
+  public abstract void configure();
 
   /**
    * Mounts the Fuse application if needed.
@@ -94,7 +91,7 @@ public abstract class AbstractFuseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() {
-    assumeTrue("This test only runs when fuse is installed", AlluxioFuseUtils.isFuseInstalled());
+    assumeTrue("This test only runs when libfuse is installed", AlluxioFuseUtils.isFuseInstalled());
   }
 
   @Before
@@ -103,7 +100,10 @@ public abstract class AbstractFuseIntegrationTest {
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
-    configureAlluxioCluster();
+    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    configure();
+    IntegrationTestUtils.reserveMasterPorts();
     ServerConfiguration.global().validate();
     mAlluxioCluster.start();
     mFileSystem = mAlluxioCluster.getClient();
@@ -120,6 +120,11 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   private void stop() throws Exception {
+    try {
+      mAlluxioCluster.stop();
+    } finally {
+      IntegrationTestUtils.releaseMasterPorts();
+    }
     if (fuseMounted()) {
       try {
         umountFuse(mMountPoint);
@@ -130,7 +135,6 @@ public abstract class AbstractFuseIntegrationTest {
         ShellUtils.execCommand("umount", mMountPoint);
       }
     }
-    mAlluxioCluster.stop();
   }
 
   @Test

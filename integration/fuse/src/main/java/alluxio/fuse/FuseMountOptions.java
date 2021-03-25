@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Convenience class to pass around Alluxio-FUSE options.
  */
 @ThreadSafe
-public final class AlluxioFuseOptions {
+public final class FuseMountOptions {
   private final String mMountPoint;
   private final String mAlluxioRoot;
   private final boolean mDebug;
@@ -31,7 +31,7 @@ public final class AlluxioFuseOptions {
    * @param debug whether the file system should be mounted in debug mode
    * @param fuseOpts extra options to pass to the FUSE mount command
    */
-  public AlluxioFuseOptions(String mountPoint, String alluxioRoot,
+  public FuseMountOptions(String mountPoint, String alluxioRoot,
       boolean debug, List<String> fuseOpts) {
     mMountPoint = mountPoint;
     mAlluxioRoot = alluxioRoot;

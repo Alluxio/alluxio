@@ -188,8 +188,8 @@ public final class AlluxioBlockStore {
           BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
       if (nearest.isPresent()) {
         dataSource = nearest.get().getFirst();
-        dataSourceType =
-            nearest.get().getSecond() ? BlockInStreamSource.LOCAL : BlockInStreamSource.REMOTE;
+        dataSourceType = nearest.get().getSecond() ? mContext.isWorkerInternalClient()
+            ? BlockInStreamSource.EMBEDDED : BlockInStreamSource.LOCAL : BlockInStreamSource.REMOTE;
       }
     }
     // Can't get data from Alluxio, get it from the UFS instead

@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.util.IdUtils;
 
 import org.slf4j.Logger;
@@ -77,23 +75,6 @@ public final class Sessions {
     LOG.debug("Cleaning up session {}", sessionId);
     synchronized (mSessions) {
       mSessions.remove(sessionId);
-    }
-  }
-
-  /**
-   * Performs session heartbeat.
-   *
-   * @param sessionId the id of the session
-   */
-  public void sessionHeartbeat(long sessionId) {
-    synchronized (mSessions) {
-      if (mSessions.containsKey(sessionId)) {
-        mSessions.get(sessionId).heartbeat();
-      } else {
-        int sessionTimeoutMs = (int) ServerConfiguration
-            .getMs(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
-        mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
-      }
     }
   }
 

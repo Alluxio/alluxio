@@ -2702,6 +2702,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FUSE_ENABLED =
+      new Builder(Name.WORKER_FUSE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, launch worker embedded Fuse application.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
+      new Builder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
+          .setDefaultValue("/")
+          .setDescription(String.format("The Alluxio path to mount to the given "
+                  + "Fuse mount point configured by %s in this worker.",
+              Name.WORKER_FUSE_MOUNT_POINT))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
+      new Builder(Name.WORKER_FUSE_MOUNT_OPTIONS)
+          .setDescription("The platform specific Fuse mount options "
+              + "to mount the given Fuse mount point. "
+              + "If multiple mount options are provided, separate them with comma.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
+      new Builder(Name.WORKER_FUSE_MOUNT_POINT)
+          .setDescription("The absolute local filesystem path that this worker will "
+              + "mount Alluxio path to. If the value is not set, no Fuse application"
+              + "will be mounted in this worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
           .setDefaultValue("ANY")
@@ -5507,6 +5539,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_FUSE_ENABLED =
+        "alluxio.worker.fuse.enabled";
+    public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
+        "alluxio.worker.fuse.mount.alluxio.path";
+    public static final String WORKER_FUSE_MOUNT_OPTIONS =
+        "alluxio.worker.fuse.mount.options";
+    public static final String WORKER_FUSE_MOUNT_POINT =
+        "alluxio.worker.fuse.mount.point";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =

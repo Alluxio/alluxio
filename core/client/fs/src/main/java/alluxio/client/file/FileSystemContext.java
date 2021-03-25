@@ -42,6 +42,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -96,6 +97,12 @@ public class FileSystemContext implements Closeable {
    * One example usage is to uniquely identify the heartbeat thread for ConfigHashSync.
    */
   private final String mId;
+
+  /**
+   * The block worker for worker internal clients to call worker operation directly
+   * without going through the external RPC frameworks.
+   */
+  private final BlockWorker mBlockWorker;
 
   /**
    * Marks whether the context has been closed, closing the context means releasing all resources
@@ -157,14 +164,15 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
-   * Creates a {@link FileSystemContext} with a null subject.
+   * Creates a {@link FileSystemContext} with a null subject
+   * and a null local block worker.
    *
    * @param conf Alluxio configuration
    * @return an instance of file system context with no subject associated
    */
   public static FileSystemContext create(AlluxioConfiguration conf) {
     Preconditions.checkNotNull(conf);
-    return create(null, conf);
+    return create(null, conf, null);
   }
 
   /**
@@ -174,10 +182,23 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(@Nullable Subject subject,
       @Nullable AlluxioConfiguration conf) {
+    return create(subject, conf, null);
+  }
+
+  /**
+   * @param subject the parent subject, set to null if not present
+   * @param conf Alluxio configuration
+   * @param blockWorker block worker
+   * @return a context
+   */
+  public static FileSystemContext create(@Nullable Subject subject,
+      @Nullable AlluxioConfiguration conf,
+      @Nullable BlockWorker blockWorker) {
     ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
-    FileSystemContext context = new FileSystemContext(ctx.getClusterConf());
+    FileSystemContext context = new FileSystemContext(ctx.getClusterConf(),
+        blockWorker);
     context.init(ctx, inquireClient);
     return context;
   }
@@ -187,7 +208,7 @@ public class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf());
+    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf(), null);
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
         clientContext.getUserState()));
     return ctx;
@@ -207,7 +228,7 @@ public class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(alluxioConf);
+    FileSystemContext context = new FileSystemContext(alluxioConf, null);
     ClientContext ctx = ClientContext.create(subject, alluxioConf);
     context.init(ctx, masterInquireClient);
     return context;
@@ -215,13 +236,18 @@ public class FileSystemContext implements Closeable {
 
   /**
    * Initializes FileSystemContext ID.
+   *
    * @param conf Alluxio configuration
+   * @param blockWorker block worker
    */
-  private FileSystemContext(AlluxioConfiguration conf) {
+  private FileSystemContext(AlluxioConfiguration conf,
+      @Nullable BlockWorker blockWorker) {
     mId = IdUtils.createFileSystemContextId();
+    mBlockWorker = blockWorker;
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
-    LOG.debug("Created context with id: {}", mId);
+    LOG.debug("Created context with id: {}, with local block worker: {}",
+        mId, mBlockWorker == null);
   }
 
   /**
@@ -556,6 +582,25 @@ public class FileSystemContext implements Closeable {
         LOG.warn("Error closing block worker client for key {}", key, e);
       }
     }
+  }
+
+  /**
+   * @return if the current client is embedded in a worker
+   */
+  public synchronized boolean isWorkerInternalClient() {
+    return mBlockWorker != null;
+  }
+
+  /**
+   * Acquires the internal block worker
+   * as a gateway for worker internal clients to communicate with
+   * the local worker directly without going through external RPC frameworks.
+   *
+   * @return the acquired block worker
+   */
+  @Nullable
+  public BlockWorker getInternalBlockWorker() {
+    return mBlockWorker;
   }
 
   /**
