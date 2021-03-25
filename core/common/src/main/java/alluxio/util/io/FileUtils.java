@@ -14,6 +14,7 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,11 +142,10 @@ public final class FileUtils {
    * @param mode the file mode
    * @return posix file permissions
    */
-  public static Set<PosixFilePermission> translateModeToPosixPermissions(int mode)
-      throws IOException {
+  public static Set<PosixFilePermission> translateModeToPosixPermissions(int mode) {
     Set<PosixFilePermission> perms = new HashSet<>();
     // add owners permission
-    Preconditions.checkArgument(mode >=0, "Mode can not be a negative value");
+    Preconditions.checkArgument(mode >= 0, "Mode can not be a negative value");
     if ((mode & 0400) != 0) {
       perms.add(PosixFilePermission.OWNER_READ);
     }
