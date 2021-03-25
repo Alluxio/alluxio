@@ -28,6 +28,8 @@ public class DelegatingBlockReader extends BlockReader {
 
   /**
    * Default constructor for the abstract reader implementations.
+   * @param blockReader block reader
+   * @param closeable closer
    */
   public DelegatingBlockReader(BlockReader blockReader, Closeable closeable) {
     mCloser = Closer.create();

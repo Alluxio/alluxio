@@ -478,9 +478,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
      * @param context context of the request to complete
      */
     private void completeRequest(BlockReadRequestContext context) throws Exception {
+      BlockReader reader = context.getBlockReader();
       try {
-        if (context.getBlockReader() != null) {
-          context.getBlockReader().close();
+        if (reader != null) {
+          reader.close();
         }
       } finally {
         context.setBlockReader(null);
