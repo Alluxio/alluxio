@@ -306,7 +306,7 @@ public final class LogLevel {
       return ROLE_JOB_WORKER;
     } else {
       throw new IllegalArgumentException(String.format(
-              "Unrecognized port in %s. " + "Please make sure the port is in %s",
+              "Unrecognized port in %s. Please make sure the port is in %s",
               port,
               Arrays.toString(new PropertyKey[]{
                 PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
