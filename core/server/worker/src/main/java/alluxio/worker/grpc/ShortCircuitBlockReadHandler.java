@@ -12,8 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -40,7 +38,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The block worker. */
   private final BlockWorker mWorker;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
@@ -79,7 +76,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
           // TODO(calvin): Update the locking logic so this can be done better
           if (mRequest.getPromote()) {
             try {
-              mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+              mWorker.moveBlock(mSessionId, mRequest.getBlockId(), 0);
             } catch (BlockDoesNotExistException e) {
               LOG.debug("Block {} to promote does not exist in Alluxio: {}", mRequest.getBlockId(),
                   e.getMessage());
@@ -100,7 +97,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
               ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
         }
         OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
-            .setPath(mWorker.getLocalBlockPath(mSessionId, mRequest.getBlockId(), mLockId)).build();
+            .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId).getPath())
+            .build();
         return response;
       }
 

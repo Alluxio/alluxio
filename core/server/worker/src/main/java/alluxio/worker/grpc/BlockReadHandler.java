@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
@@ -553,8 +552,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(),
-              new WorkerStorageTierAssoc().getAlias(0));
+          mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
         } catch (BlockDoesNotExistException e) {
           LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
               e.getMessage());

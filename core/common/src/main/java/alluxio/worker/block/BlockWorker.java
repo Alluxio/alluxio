@@ -213,7 +213,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to move
-   * @param tierAlias the alias of the tier to move the block to
+   * @param tier the tier to move the block to
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation
@@ -221,7 +221,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
-  void moveBlock(long sessionId, long blockId, String tierAlias)
+  void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
@@ -245,22 +245,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       WorkerOutOfSpaceException, IOException;
 
   /**
-   * Gets the path to the block file in local storage. The block must be a permanent block, and the
-   * caller must first obtain the lock on the block.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to read
-   * @param lockId the id of the lock on this block
-   * @return a string representing the path to this block in local storage
-   * @throws BlockDoesNotExistException if the blockId cannot be found in committed blocks or lockId
-   *         cannot be found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
-   */
-  String getLocalBlockPath(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
-
-  /**
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *
@@ -276,22 +260,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   BlockReader createBlockReader(BlockReadRequest request) throws
       BlockAlreadyExistsException, BlockDoesNotExistException,
       InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Creates the block reader to read the local cached block starting from given block offset.
-   * Owner of this block reader must close it or lock will leak.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to read
-   * @param lockId the id of the lock on this block
-   * @param offset the offset within this block
-   * @return the block reader for the block
-   * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.

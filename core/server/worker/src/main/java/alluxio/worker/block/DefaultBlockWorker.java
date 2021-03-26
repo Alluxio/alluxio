@@ -418,12 +418,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, String tierAlias)
+  public void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
     // Because the move operation is expensive, we first check if the operation is necessary
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
@@ -455,15 +455,20 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
   }
 
-  @Override
-  public String getLocalBlockPath(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-    return meta.getPath();
-  }
-
-  @Override
-  public BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
+  /**
+   * Creates the block reader to read the local cached block starting from given block offset.
+   * Owner of this block reader must close it or lock will leak.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to read
+   * @param lockId the id of the lock on this block
+   * @param offset the offset within this block
+   * @return the block reader for the block
+   * @throws BlockDoesNotExistException if lockId is not found
+   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   *         LockRecord of lockId
+   */
+  private BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     try {
       BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);

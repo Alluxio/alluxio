@@ -125,7 +125,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, String tierAlias)
+  public void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // noop
@@ -136,18 +136,6 @@ public class NoopBlockWorker implements BlockWorker {
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // noop
-  }
-
-  @Override
-  public String getLocalBlockPath(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return null;
-  }
-
-  @Override
-  public BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
-    return null;
   }
 
   @Override

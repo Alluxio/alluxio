@@ -18,6 +18,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
@@ -36,6 +37,7 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -377,10 +379,24 @@ public class TieredBlockStore implements BlockStore {
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
+    BlockMeta blockMeta = removeBlockInternal(sessionId, blockId, location,
+        REMOVE_BLOCK_TIMEOUT_MS);
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlock(sessionId, blockId, blockMeta.getBlockLocation());
+      }
+    }
+  }
+
+  @VisibleForTesting
+  BlockMeta removeBlockInternal(long sessionId, long blockId, BlockStoreLocation location,
+      long timeoutMs)
+      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
-        REMOVE_BLOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        timeoutMs, TimeUnit.MILLISECONDS);
     if (lockId == BlockWorker.INVALID_LOCK_ID) {
-      throw new IOException(
+      throw new DeadlineExceededException(
           String.format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
     }
@@ -406,13 +422,7 @@ public class TieredBlockStore implements BlockStore {
     } finally {
       mLockManager.unlockBlock(lockId);
     }
-
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onRemoveBlockByClient(sessionId, blockId);
-        listener.onRemoveBlock(sessionId, blockId, blockMeta.getBlockLocation());
-      }
-    }
+    return blockMeta;
   }
 
   @Override
