@@ -44,8 +44,8 @@ public class UniqueBlockingQueue<T> extends AbstractQueue<T> implements Blocking
   @Override
   public synchronized void put(T e) throws InterruptedException {
     if (!mElementSet.contains(e)) {
-      mElementSet.add(e);
       mBlockingQueue.put(e);
+      mElementSet.add(e);
     }
   }
 
