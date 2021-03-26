@@ -411,7 +411,8 @@ public class AlluxioFileInStream extends FileInStream {
           return;
         }
         WorkerNetAddress worker;
-        if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) { // send request to local worker
+        if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
+          // send request to local worker
           worker = mContext.getNodeLocalWorker();
         } else { // send request to data source
           worker = dataSource;

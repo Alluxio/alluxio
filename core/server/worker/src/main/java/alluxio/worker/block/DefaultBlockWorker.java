@@ -545,6 +545,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
+  /**
+   * Opens a UFS block. It registers the block metadata information to the UFS block store. It
+   * returns false if the number of concurrent readers on this block exceeds a threshold.
+   *
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @param options the options
+   * @return whether the UFS block is successfully opened
+   * @throws BlockAlreadyExistsException if the UFS block already exists in the
+   *         UFS block store
+   */
+  @VisibleForTesting
   public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
@@ -564,6 +576,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
+  /**
+   * Closes a UFS block for a client session. It also commits the block to Alluxio block store
+   * if the UFS block has been cached successfully.
+   *
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
+   *         because the block exists in the Alluxio block store
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   *         UFS block store
+   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
+   */
+  @VisibleForTesting
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {
@@ -619,11 +644,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       try {
-         return createUfsBlockReader(request.getSessionId(), request.getId(),
-             request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
+        return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
+            request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
-        throw new UnavailableException(String.format("Failed to read block ID=%s from tiered "
-            + "storage and UFS tier: %s", request.getId(), e.getMessage()));
+        throw new UnavailableException(
+            String.format("Failed to read block ID=%s from tiered " + "storage and UFS tier: %s",
+                request.getId(), e.getMessage()));
       }
     }
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE

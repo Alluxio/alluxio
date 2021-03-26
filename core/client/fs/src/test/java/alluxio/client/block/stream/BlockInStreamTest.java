@@ -120,7 +120,8 @@ public class BlockInStreamTest {
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-      BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
+      BlockInStream.BlockInStreamSource dataSourceType =
+          BlockInStream.BlockInStreamSource.NODE_LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
       assertFalse(stream.isShortCircuit());
