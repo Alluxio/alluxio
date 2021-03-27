@@ -66,13 +66,13 @@ public final class BlockWorkerDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getClusterConf();
     int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
     long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
-    BlockWorker blockWorker = context.getInternalBlockWorker();
+    BlockWorker blockWorker = context.getProcessLocalWorker();
     Preconditions.checkNotNull(blockWorker, "blockWorker");
     long sessionId = SessionIdUtils.createSessionId();
     try {
       blockWorker.createBlock(sessionId, blockId, options.getWriteTier(), options.getMediumType(),
           reservedBytes);
-      BlockWriter blockWriter = blockWorker.getBlockWriter(sessionId, blockId);
+      BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
     } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistException

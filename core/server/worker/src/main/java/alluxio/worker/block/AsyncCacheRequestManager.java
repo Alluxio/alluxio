@@ -56,18 +56,20 @@ public class AsyncCacheRequestManager {
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
-  private final FileSystemContext mFsContext =
-      FileSystemContext.create(ServerConfiguration.global());
+  private final FileSystemContext mFsContext;
   /** Keeps track of the number of rejected cache requests. */
   private final AtomicLong mNumRejected = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
    * @param blockWorker handler to the block worker
+   * @param fsContext context
    */
-  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker) {
+  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker,
+      FileSystemContext fsContext) {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
+    mFsContext = fsContext;
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
@@ -149,19 +151,8 @@ public class AsyncCacheRequestManager {
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
-    // Check if the block has been requested in UFS block store
-    try {
-      if (!mBlockWorker
-          .openUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, openUfsBlockOptions)) {
-        LOG.warn("Failed to async cache block {} from UFS on opening the block", blockId);
-        return false;
-      }
-    } catch (BlockAlreadyExistsException e) {
-      // It is already cached
-      return true;
-    }
-    try (BlockReader reader = mBlockWorker
-        .newUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false)) {
+    try (BlockReader reader = mBlockWorker.createUfsBlockReader(
+        Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
       // memory when concurrent async requests are received and thus trigger GC.
@@ -175,13 +166,6 @@ public class AsyncCacheRequestManager {
       // This is only best effort
       LOG.warn("Failed to async cache block {} from UFS on copying the block: {}", blockId, e);
       return false;
-    } finally {
-      try {
-        mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId);
-      } catch (AlluxioException | IOException ee) {
-        LOG.warn("Failed to close UFS block {}: {}", blockId, ee);
-        return false;
-      }
     }
     return true;
   }
@@ -211,7 +195,7 @@ public class AsyncCacheRequestManager {
     try (BlockReader reader =
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
-             .getBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
+             .createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;

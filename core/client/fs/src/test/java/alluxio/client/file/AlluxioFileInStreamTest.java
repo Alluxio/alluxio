@@ -96,8 +96,8 @@ public final class AlluxioFileInStreamTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-      {BlockInStreamSource.EMBEDDED},
-      {BlockInStreamSource.LOCAL},
+      {BlockInStreamSource.PROCESS_LOCAL},
+      {BlockInStreamSource.NODE_LOCAL},
       {BlockInStreamSource.UFS},
       {BlockInStreamSource.REMOTE}
     });
@@ -131,7 +131,7 @@ public final class AlluxioFileInStreamTest {
     when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));
     when(mContext.getClusterConf()).thenReturn(sConf);
     when(mContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
-    PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
+    PowerMockito.when(mContext.getNodeLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
@@ -403,7 +403,7 @@ public final class AlluxioFileInStreamTest {
   @Test
   public void testSeekWithNoLocalWorker() throws IOException {
     // Overrides the get local worker call
-    PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
+    PowerMockito.when(mContext.getNodeLocalWorker()).thenReturn(null);
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream =

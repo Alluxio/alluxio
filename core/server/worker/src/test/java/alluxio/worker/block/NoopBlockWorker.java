@@ -82,7 +82,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockWriter getBlockWriter(long sessionId, long blockId)
+  public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return null;
@@ -125,7 +125,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, String tierAlias)
+  public void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // noop
@@ -139,20 +139,9 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public String getLocalBlockPath(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return null;
-  }
-
-  @Override
-  public BlockReader newLocalBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
-    return null;
-  }
-
-  @Override
-  public BlockReader newUfsBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort) throws BlockDoesNotExistException, IOException {
+  public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws BlockDoesNotExistException, IOException {
     return null;
   }
 
@@ -174,12 +163,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public boolean unlockBlock(long sessionId, long blockId) {
-    return false;
-  }
-
-  @Override
-  public void submitAsyncCacheRequest(AsyncCacheRequest request) {
+  public void asyncCache(AsyncCacheRequest request) {
     // noop
   }
 
@@ -194,28 +178,9 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException {
-    return false;
-  }
-
-  @Override
-  public void closeUfsBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, IOException, WorkerOutOfSpaceException {
-    // noop
-  }
-
-  @Override
-  public BlockReader newBlockReader(BlockReadRequest request) throws IOException,
-      BlockDoesNotExistException, InvalidWorkerStateException,
-      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+  public BlockReader createBlockReader(BlockReadRequest request)
+      throws BlockDoesNotExistException, IOException {
     return null;
-  }
-
-  @Override
-  public void closeBlockReader(BlockReader reader, BlockReadRequest request)
-      throws IOException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
-    // noop
   }
 
   @Override

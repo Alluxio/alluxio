@@ -129,7 +129,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
     if (context.getBlockWriter() == null) {
       context.setBlockWriter(
-          mWorker.getBlockWriter(request.getSessionId(), request.getId()));
+          mWorker.createBlockWriter(request.getSessionId(), request.getId()));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();

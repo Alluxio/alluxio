@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.proto.dataserver.Protocol;
@@ -94,7 +93,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Creates a block in Alluxio managed space.
-   * Calls {@link #getBlockWriter} to get a writer for writing to the block.
+   * Calls {@link #createBlockWriter} to get a writer for writing to the block.
    * The block will be temporary until it is committed by {@link #commitBlock} .
    * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
@@ -132,7 +131,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId)
+  BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
@@ -214,7 +213,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to move
-   * @param tierAlias the alias of the tier to move the block to
+   * @param tier the tier to move the block to
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation
@@ -222,7 +221,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
-  void moveBlock(long sessionId, long blockId, String tierAlias)
+  void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
@@ -246,63 +245,31 @@ public interface BlockWorker extends Worker, SessionCleanable {
       WorkerOutOfSpaceException, IOException;
 
   /**
-   * Gets the path to the block file in local storage. The block must be a permanent block, and the
-   * caller must first obtain the lock on the block.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to read
-   * @param lockId the id of the lock on this block
-   * @return a string representing the path to this block in local storage
-   * @throws BlockDoesNotExistException if the blockId cannot be found in committed blocks or lockId
-   *         cannot be found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
-   */
-  String getLocalBlockPath(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
-
-  /**
-   * Gets the block reader to read from Alluxio block or UFS block.
-   * This operation must be paired with {@link #closeBlockReader}.
+   * Creates the block reader to read from Alluxio block or UFS block.
+   * Owner of this block reader must close it or lock will leak.
    *
    * @param request the block read request
    * @return a block reader to read data from
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store after opening the ufs block reader
    * @throws BlockDoesNotExistException if the requested block does not exist in this worker
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
-   * @throws WorkerOutOfSpaceException if there is no enough space
    * @throws IOException if it fails to get block reader
    */
-  BlockReader newBlockReader(BlockReadRequest request) throws
-      BlockAlreadyExistsException, BlockDoesNotExistException,
-      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException;
+  BlockReader createBlockReader(BlockReadRequest request)
+      throws BlockDoesNotExistException, IOException;
 
   /**
-   * Gets the block reader for the block for non short-circuit reads.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to read
-   * @param lockId the id of the lock on this block
-   * @return the block reader for the block
-   * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockReader newLocalBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
-
-  /**
-   * Gets a block reader to read a UFS block for non short-circuit reads.
+   * Creates a block reader to read a UFS block starting from given block offset.
+   * Owner of this block reader must close it to cleanup state.
    *
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read
    * @param offset the offset within the block
    * @param positionShort whether the operation is using positioned read to a small buffer size
+   * @param options the options
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader newUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort)
+  BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
+      Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException;
 
   /**
@@ -339,35 +306,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
 
   /**
-   * Releases the lock with the specified session and block id.
-   *
-   * @param sessionId the session id
-   * @param blockId the block id
-   * @return false if it fails to unlock due to the lock is not found
-   */
-  // TODO(calvin): Remove when lock and reads are separate operations.
-  boolean unlockBlock(long sessionId, long blockId);
-
-  /**
-   * Cleans data reader and related blocks after using the block reader obtained
-   * from {@link #newBlockReader}.
-   *
-   * @param reader the to be cleaned block reader
-   * @param request the block read request which used to get block reader
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store when closing the ufs block
-   * @throws WorkerOutOfSpaceException if there is not enough space
-   * @throws IOException if it fails to get block reader
-   */
-  void closeBlockReader(BlockReader reader, BlockReadRequest request)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
-
-  /**
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
    */
-  void submitAsyncCacheRequest(AsyncCacheRequest request);
+  void asyncCache(AsyncCacheRequest request);
 
   /**
    * Sets the pinlist for the underlying block store.
@@ -383,37 +326,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the file info
    */
   FileInfo getFileInfo(long fileId) throws IOException;
-
-  /**
-   * Opens a UFS block. It registers the block metadata information to the UFS block store. It
-   * throws an {@link UfsBlockAccessTokenUnavailableException} if the number of concurrent readers
-   * on this block exceeds a threshold.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @param options the options
-   * @return whether the UFS block is successfully opened
-   * @throws BlockAlreadyExistsException if the UFS block already exists in the
-   *         UFS block store
-   */
-  boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException;
-
-  /**
-   * Closes a UFS block for a client session. It also commits the block to Alluxio block store
-   * if the UFS block has been cached successfully.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   *         UFS block store
-   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
-   */
-  void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
-      WorkerOutOfSpaceException;
 
   /**
    * Clears the worker metrics.

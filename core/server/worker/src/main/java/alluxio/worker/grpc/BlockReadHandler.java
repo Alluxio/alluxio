@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
@@ -478,9 +477,11 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
      * @param context context of the request to complete
      */
     private void completeRequest(BlockReadRequestContext context) throws Exception {
-      BlockReader reader = null;
+      BlockReader reader = context.getBlockReader();
       try {
-        mWorker.closeBlockReader(context.getBlockReader(), context.getRequest());
+        if (reader != null) {
+          reader.close();
+        }
       } finally {
         context.setBlockReader(null);
       }
@@ -551,8 +552,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(),
-              new WorkerStorageTierAssoc().getAlias(0));
+          mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
         } catch (BlockDoesNotExistException e) {
           LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
               e.getMessage());
@@ -560,14 +560,12 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
         }
       }
-      BlockReader reader = mWorker.newBlockReader(request);
+      BlockReader reader = mWorker.createBlockReader(request);
       context.setBlockReader(reader);
       if (reader instanceof UnderFileSystemBlockReader) {
         AlluxioURI ufsMountPointUri =
             ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
         String ufsString = MetricsSystem.escape(ufsMountPointUri);
-        context.setBlockReader(reader);
-
         MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
         MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
         context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),

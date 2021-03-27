@@ -246,7 +246,8 @@ public final class ReplicateDefinitionTest {
     byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
 
     TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false, BlockInStreamSource.LOCAL);
+        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+            BlockInStreamSource.NODE_LOCAL);
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
     mThrown.expect(NotFoundException.class);
@@ -260,7 +261,8 @@ public final class ReplicateDefinitionTest {
     byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
 
     TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false, BlockInStreamSource.LOCAL);
+        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+            BlockInStreamSource.NODE_LOCAL);
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
     BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);

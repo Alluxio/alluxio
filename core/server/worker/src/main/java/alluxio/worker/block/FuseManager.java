@@ -34,7 +34,7 @@ import java.util.List;
 public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
   private static final String FUSE_OPTION_SEPARATOR = ",";
-  private final BlockWorker mBlockWorker;
+  private final FileSystemContext mFsContext;
   /** Use to umount Fuse application during stop. */
   private FuseUmountable mFuseUmountable;
   /** Use to close resources during stop. */
@@ -43,10 +43,10 @@ public class FuseManager implements Closeable {
   /**
    * Constructs a new {@link FuseManager}.
    *
-   * @param blockWorker the block worekr
+   * @param fsContext fs context
    */
-  public FuseManager(BlockWorker blockWorker) {
-    mBlockWorker = blockWorker;
+  public FuseManager(FileSystemContext fsContext) {
+    mFsContext = fsContext;
     mResourceCloser = Closer.create();
   }
 
@@ -84,9 +84,7 @@ public class FuseManager implements Closeable {
           conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
-      FileSystemContext fsContext = mResourceCloser
-          .register(FileSystemContext.create(null, conf, mBlockWorker));
-      FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(fsContext));
+      FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
       mFuseUmountable = AlluxioFuse.launchFuse(fileSystem, conf, options, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
