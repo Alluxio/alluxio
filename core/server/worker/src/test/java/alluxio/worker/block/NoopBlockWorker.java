@@ -178,9 +178,8 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request) throws IOException,
-      BlockDoesNotExistException, InvalidWorkerStateException,
-      BlockAlreadyExistsException, WorkerOutOfSpaceException {
+  public BlockReader createBlockReader(BlockReadRequest request)
+      throws BlockDoesNotExistException, IOException {
     return null;
   }
 

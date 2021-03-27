@@ -72,6 +72,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -461,28 +462,30 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to read
-   * @param lockId the id of the lock on this block
    * @param offset the offset within this block
-   * @return the block reader for the block
-   * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
-   *         LockRecord of lockId
+   * @return the block reader for the block or null if block not found
    */
-  private BlockReader createLocalBlockReader(long sessionId, long blockId, long lockId, long offset)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+  @Nullable
+  private BlockReader createLocalBlockReader(long sessionId, long blockId, long offset)
+      throws IOException {
+    long lockId = mLocalBlockStore.lockBlockNoException(sessionId, blockId);
+    if (lockId == BlockWorker.INVALID_LOCK_ID) {
+      return null;
+    }
     try {
       BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);
       ((FileChannel) reader.getChannel()).position(offset);
+      mLocalBlockStore.accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, () -> {
         try {
-          unlockBlock(lockId);
+          mLocalBlockStore.unlockBlock(lockId);
         } catch (BlockDoesNotExistException e) {
           throw new IOException(e);
         }
       });
-    } catch (IOException e) {
+    } catch (Exception e) {
       try {
-        unlockBlock(lockId);
+        mLocalBlockStore.unlockBlock(lockId);
       } catch (Exception ee) {
         LOG.warn("Failed to unlock block blockId={}, lockId={}", blockId, lockId, ee);
       }
@@ -618,35 +621,22 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public BlockReader createBlockReader(BlockReadRequest request) throws
-      BlockAlreadyExistsException, BlockDoesNotExistException,
-      InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
+      BlockDoesNotExistException, IOException {
     long sessionId = request.getSessionId();
     long blockId = request.getId();
-    int retryInterval = Constants.SECOND_MS;
-    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, Constants.SECOND_MS);
     while (retryPolicy.attempt()) {
-      long lockId = lockBlock(sessionId, blockId);
+      BlockReader reader = createLocalBlockReader(sessionId, blockId, request.getStart());
+      if (reader != null) {
+        return reader;
+      }
       boolean checkUfs =
-          (request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
+          request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
               .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
-              .getBlockInUfsTier()));
-      if (lockId == BlockWorker.INVALID_LOCK_ID && !checkUfs) {
+              .getBlockInUfsTier());
+      if (!checkUfs) {
         throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
       }
-      if (lockId != BlockWorker.INVALID_LOCK_ID) {
-        try {
-          BlockReader reader = createLocalBlockReader(sessionId, blockId, lockId, 0);
-          accessBlock(sessionId, blockId);
-          return reader;
-        } catch (BlockDoesNotExistException | InvalidWorkerStateException | IOException e) {
-          unlockBlock(lockId);
-          throw e;
-        } catch (Throwable e) {
-          unlockBlock(lockId);
-          throw new IOException(e);
-        }
-      }
-
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       try {
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
