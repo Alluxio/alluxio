@@ -923,8 +923,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
     // Rehydrate missing block-infos for persisted files.
-    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
-        && inode.isPersisted()) {
+    if (fileInfo.isCompleted()
+          && fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
+          && inode.isPersisted()) {
       List<Long> missingBlockIds = fileInfo.getBlockIds().stream()
           .filter((bId) -> fileInfo.getFileBlockInfo(bId) != null).collect(Collectors.toList());
 
