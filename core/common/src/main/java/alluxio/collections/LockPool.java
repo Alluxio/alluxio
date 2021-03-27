@@ -270,6 +270,9 @@ public class LockPool<K> implements Closeable {
         return v;
       }
       Resource res = mResueLockPool.acquireWithoutBlocking();
+      if (res == null) {
+        res = new Resource(mDefaultLoader.get());
+      }
       res.reset();
       return res;
     });

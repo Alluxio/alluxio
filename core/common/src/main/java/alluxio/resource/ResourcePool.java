@@ -148,7 +148,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    *
    * @return a resource taken from the pool
    */
-  @Null
+  @Nullable
   public T acquireWithoutBlocking() {
     // Try to take a resource without blocking
     T resource = mResources.poll();
