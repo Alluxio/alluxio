@@ -103,7 +103,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
-        stop();
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        }
       }
     }
   }
