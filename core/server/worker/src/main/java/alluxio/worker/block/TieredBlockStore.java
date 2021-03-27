@@ -418,7 +418,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      removeBlockInternal(blockMeta);
+      removeBlockFileAndMeta(blockMeta);
     } finally {
       mLockManager.unlockBlock(lockId);
     }
@@ -821,7 +821,7 @@ public class TieredBlockStore implements BlockStore {
       if (evictorView.isBlockEvictable(blockToDelete)) {
         try {
           BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
-          removeBlockInternal(blockMeta);
+          removeBlockFileAndMeta(blockMeta);
           blocksRemoved++;
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
             synchronized (listener) {
@@ -954,7 +954,7 @@ public class TieredBlockStore implements BlockStore {
    * @throws InvalidWorkerStateException if the block to remove is a temp block
    * @throws BlockDoesNotExistException if this block can not be found
    */
-  private void removeBlockInternal(BlockMeta blockMeta)
+  private void removeBlockFileAndMeta(BlockMeta blockMeta)
       throws BlockDoesNotExistException, IOException {
     String filePath = blockMeta.getPath();
     Files.delete(Paths.get(filePath));

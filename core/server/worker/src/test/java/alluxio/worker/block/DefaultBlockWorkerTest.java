@@ -195,7 +195,7 @@ public class DefaultBlockWorkerTest {
     assertTrue(path.startsWith(mHddDir));
   }
 
- @Test
+  @Test
   public void getTempBlockWriter() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
