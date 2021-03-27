@@ -81,9 +81,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -579,8 +579,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
     OptionalLong endCommitIndex = OptionalLong.empty();
     try {
-      endCommitIndex = getGroupInfo().getCommitInfos().stream()
-          .mapToLong(RaftProtos.CommitInfoProto::getCommitIndex).min();
+      // raft peer IDs are unique, so there should really only ever be one result.
+      // If for some reason there is more than one..it should be fine as it only
+      // affects the completion time estimate in the logs.
+      Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
+              .filter(commit ->
+                  mServer.getId().equals(RaftPeerId.valueOf(commit.getServer().getId())))
+              .findFirst();
+      if (commitInfo.isPresent()) {
+        endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
+      }
     } catch (IOException e) {
       LogUtils.warnWithException(LOG, "Failed to get raft log information before replay."
           + " Replay statistics will not be available", e);
@@ -589,6 +597,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     long lastMeasuredTime = startTime;
     long lastCommitIdx = 0L;
     long logCount = 0;
+    RaftJournalProgressLogger progressLogger =
+        new RaftJournalProgressLogger(mStateMachine, endCommitIndex);
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -631,24 +641,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
             JOURNAL_STAT_LOG_MAX_INTERVAL_MS);
         if (ex instanceof LeaderNotReadyException
             && (now - lastMeasuredTime) > nextLogTime) {
-          logCount++;
-          long currCommitIdx = stateMachine.getLastAppliedCommitIndex();
-          long timeSinceLastMeasure = (now - lastMeasuredTime);
-          long commitIdxRead = currCommitIdx - lastCommitIdx;
-          double commitIdxRateS = 1000 * ((double) commitIdxRead) / timeSinceLastMeasure;
-          StringJoiner logMsg = new StringJoiner("|");
-          logMsg.add(String.format("current SN: %d", currCommitIdx));
-          logMsg.add(String.format("entries in last %dms=%d", timeSinceLastMeasure, commitIdxRead));
-          if (endCommitIndex.isPresent()) {
-            long commitsRemaining = endCommitIndex.getAsLong()
-                - stateMachine.getLastAppliedCommitIndex();
-            double expectedTimeRemaining = ((double) commitsRemaining) / commitIdxRateS;
-            logMsg.add(String.format("est. commits left: %d", commitsRemaining));
-            logMsg.add(String.format("est. time remaining: %.2fms", expectedTimeRemaining));
-          }
-          LOG.info(logMsg.toString());
-          lastMeasuredTime = now;
-          lastCommitIdx = currCommitIdx;
+          progressLogger.logProgress();
         } else if (!(ex instanceof LeaderNotReadyException)) {
           LOG.info("Exception submitting term start entry: {}", ex.toString());
         }

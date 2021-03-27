@@ -20,6 +20,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.LogUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -293,7 +294,7 @@ public final class UfsJournalReader implements JournalReader {
         reader.updateInputStream();
       }
     } catch (IOException e) {
-      LOG.warn("Failed to get last SN from journal: ", e);
+      LogUtils.warnWithException(LOG, "Failed to get last SN from journal", e);
       return OptionalLong.empty();
     }
     return OptionalLong.of(endSN);
