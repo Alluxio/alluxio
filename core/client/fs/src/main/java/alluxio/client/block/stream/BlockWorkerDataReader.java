@@ -31,8 +31,7 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A data reader that issues from a client embedded in a worker
- * to read data from the worker directly via internal communication channel.
+ * A data reader that reads from a worker in the same process of this client directly.
  *
  * This data reader is similar to read from local worker via {@link GrpcDataReader}
  * except that all communication with the local worker is via internal method call
@@ -120,7 +119,7 @@ public final class BlockWorkerDataReader implements DataReader {
           .fromProto(options.getOptions().getReadType()).isPromote();
       mReadRequestPartial = ReadRequest.newBuilder()
           .setBlockId(blockId).setPromote(isPromote).build();
-      mBlockWorker = context.getInternalBlockWorker();
+      mBlockWorker = context.getProcessLocalWorker();
     }
 
     @Override
@@ -129,7 +128,7 @@ public final class BlockWorkerDataReader implements DataReader {
           .setOffset(offset).setLength(len).build();
       mBlockReadRequest = new BlockReadRequest(mReadRequestPartial);
       try {
-        mReader = mBlockWorker.newBlockReader(mBlockReadRequest);
+        mReader = mBlockWorker.createBlockReader(mBlockReadRequest);
         return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
@@ -146,11 +145,8 @@ public final class BlockWorkerDataReader implements DataReader {
       if (mClosed) {
         return;
       }
-      try {
-        mBlockWorker.closeBlockReader(mReader, mBlockReadRequest);
-      } catch (Exception e) {
-        throw new IOException(e);
-      }
+      mReader.close();
+      mClosed = true;
     }
   }
 }

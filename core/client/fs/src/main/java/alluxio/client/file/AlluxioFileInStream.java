@@ -277,8 +277,8 @@ public class AlluxioFileInStream extends FileInStream {
         retry = mRetryPolicySupplier.get();
         lastException = null;
         BlockInStream.BlockInStreamSource source = mCachedPositionedReadStream.getSource();
-        if (source != BlockInStream.BlockInStreamSource.LOCAL
-            && source != BlockInStream.BlockInStreamSource.EMBEDDED) {
+        if (source != BlockInStream.BlockInStreamSource.NODE_LOCAL
+            && source != BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
           triggerAsyncCaching(mCachedPositionedReadStream);
         }
         if (bytesRead == mBlockSize - offset) {
@@ -377,8 +377,8 @@ public class AlluxioFileInStream extends FileInStream {
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
       }
-      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL
-          || blockSource == BlockInStream.BlockInStreamSource.EMBEDDED) {
+      if (blockSource == BlockInStream.BlockInStreamSource.NODE_LOCAL
+          || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
         return;
       }
       triggerAsyncCaching(stream);
@@ -405,14 +405,15 @@ public class AlluxioFileInStream extends FileInStream {
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        if (mPassiveCachingEnabled && mContext.isWorkerInternalClient()) {
-          mContext.getInternalBlockWorker().submitAsyncCacheRequest(request);
+        if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
+          mContext.getProcessLocalWorker().asyncCache(request);
           mLastBlockIdCached = blockId;
           return;
         }
         WorkerNetAddress worker;
-        if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
-          worker = mContext.getLocalWorker();
+        if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
+          // send request to local worker
+          worker = mContext.getNodeLocalWorker();
         } else { // send request to data source
           worker = dataSource;
         }

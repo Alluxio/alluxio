@@ -150,7 +150,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.submitAsyncCacheRequest(request);
+      mBlockWorker.asyncCache(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
   }
