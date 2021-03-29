@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -246,5 +247,24 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     for (WorkerInfo worker : workers) {
       Assert.assertEquals(0, worker.getUsedBytes());
     }
+  }
+
+  @Test
+  public void getStatusBeforeClose() throws Exception {
+    AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
+    try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
+            .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
+      System.out.println(mWriteType);
+      for (int i = 0; i < 3; i++) {
+        os.write(BufferUtils.getIncreasingByteArray(i * BLOCK_SIZE_BYTES, BLOCK_SIZE_BYTES));
+        URIStatus status = mFileSystem.getStatus(path);
+        System.out.format("Iter %s, BlockIds=%s, BlockInfo=%s%n", i, status.getBlockIds(), status.getFileBlockInfos());
+        System.out.println(status);
+      }
+      os.write(BufferUtils.getIncreasingByteArray(3 * BLOCK_SIZE_BYTES, 1));
+    }
+    URIStatus status = mFileSystem.getStatus(path);
+    System.out.format("After close, BlockIds=%s, BlockInfo=%s%n", status.getBlockIds(), status.getFileBlockInfos());
+    System.out.println(status);
   }
 }
