@@ -50,7 +50,8 @@ mount_fuse() {
     -m ${mount_point} \
     -r ${alluxio_root}"
   if [[ ${STACK_FS} -eq "1" ]]; then
-    stackfs_mount_option=`echo "${full_mount_option}" | sed -E 's/([^,]+)/-o\1/g'`
+    stackfs_mount_option=`echo "${full_mount_option}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g'`
+
     cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.StackMain \
     ${mount_point} \
