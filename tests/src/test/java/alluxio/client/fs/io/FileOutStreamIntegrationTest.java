@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -28,6 +27,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
@@ -254,17 +254,25 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
             .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
-      System.out.println(mWriteType);
       for (int i = 0; i < 3; i++) {
         os.write(BufferUtils.getIncreasingByteArray(i * BLOCK_SIZE_BYTES, BLOCK_SIZE_BYTES));
+        // Fetch file status when the stream is still open
         URIStatus status = mFileSystem.getStatus(path);
-        System.out.format("Iter %s, BlockIds=%s, BlockInfo=%s%n", i, status.getBlockIds(), status.getFileBlockInfos());
-        System.out.println(status);
+        if (!mWriteType.isThrough()) {
+          // When the writeType is THROUGH, we only see the blocks when the file is committed
+          // When the file is not committed, we do not see the FileBlockInfo
+          Assert.assertEquals(i + 1, status.getBlockIds().size());
+        }
       }
       os.write(BufferUtils.getIncreasingByteArray(3 * BLOCK_SIZE_BYTES, 1));
     }
-    URIStatus status = mFileSystem.getStatus(path);
-    System.out.format("After close, BlockIds=%s, BlockInfo=%s%n", status.getBlockIds(), status.getFileBlockInfos());
-    System.out.println(status);
+    URIStatus finalStatus = mFileSystem.getStatus(path);
+    Assert.assertEquals(4, finalStatus.getBlockIds().size());
+    List<FileBlockInfo> fileBlocks = finalStatus.getFileBlockInfos();
+    Assert.assertEquals(4, fileBlocks.size());
+    for (int i = 0; i < 3; i++) {
+      Assert.assertEquals(BLOCK_SIZE_BYTES, fileBlocks.get(i).getBlockInfo().getLength());
+    }
+    Assert.assertEquals(1, fileBlocks.get(3).getBlockInfo().getLength());
   }
 }
