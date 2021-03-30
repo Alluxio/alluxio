@@ -274,7 +274,7 @@ public class BaseFileSystem implements FileSystem {
     checkUri(path);
     URIStatus status = rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
-              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.getStatus(path, mergedOptions);
     });
     if (!status.isCompleted()) {
