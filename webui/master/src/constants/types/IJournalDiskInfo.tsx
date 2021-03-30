@@ -10,11 +10,10 @@
  */
 
 export interface IJournalDiskInfo {
-    diskPath: string;
-    usedBytes: number;
-    totalAllocatedBytes: number;
-    availableBytes: number;
-    percentAvailable: number;
-    mountPath: string;
-  }
-  
+  diskPath: string;
+  usedBytes: number;
+  totalAllocatedBytes: number;
+  availableBytes: number;
+  percentAvailable: number;
+  mountPath: string;
+}

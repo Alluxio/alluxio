@@ -140,17 +140,15 @@ export class OverviewPresenter extends React.Component<AllProps> {
     }
 
     const warningRender = warnings.map((warning: string, idx: number) => (
-    <tr key={idx}>
-      <th scope="row" className={className}>
-        Journal Disk Warning
-      </th>
-      <td className={className}>{warning}</td>
+      <tr key={idx}>
+        <th scope="row" className={className}>
+          Journal Disk Warning
+        </th>
+        <td className={className}>{warning}</td>
       </tr>
-    ))
+    ));
 
-    return <React.Fragment>
-      {warningRender}
-    </React.Fragment> 
+    return <React.Fragment>{warningRender}</React.Fragment>;
   }
 
   private renderConfigurationIssues(issues: IScopedPropertyInfo[], className: string): JSX.Element | null {
