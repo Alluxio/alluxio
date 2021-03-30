@@ -62,7 +62,7 @@ public final class BlockMasterWorkerServiceHandler extends
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Block heartbeat request is {} bytes, {} added blocks and {} removed blocks",
+      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks and {} removed blocks",
               request.getSerializedSize(),
               request.getAddedBlocksCount(),
               request.getRemovedBlockIdsCount());
@@ -103,7 +103,10 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void commitBlock(CommitBlockPRequest request,
       StreamObserver<CommitBlockPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("commitBlock request is {} bytes",
+              request.getSerializedSize());
+    }
     final long workerId = request.getWorkerId();
     final long usedBytesOnTier = request.getUsedBytesOnTier();
     final String tierAlias = request.getTierAlias();
@@ -121,7 +124,10 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("commitBlockInUfs request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
           mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
@@ -132,6 +138,10 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getWorkerId request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
       return GetWorkerIdPResponse.newBuilder()
           .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
@@ -143,7 +153,7 @@ public final class BlockMasterWorkerServiceHandler extends
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Register worker request is {} bytes, containing {} blocks",
+      LOG.debug("registerWorker request is {} bytes, containing {} blocks",
               request.getSerializedSize(),
               request.getCurrentBlocksCount());
     }
