@@ -21,6 +21,7 @@ import static org.mockito.Mockito.doThrow;
 import alluxio.TestLoggerRule;
 import alluxio.shell.CommandReturn;
 import alluxio.util.OSUtils;
+import alluxio.wire.JournalDiskInfo;
 
 import org.apache.log4j.Level;
 import org.junit.Assume;
@@ -48,7 +49,7 @@ public class JournalSpaceMonitorTest {
   }
 
   @Test
-  public void testNonExitentJournalPath() {
+  public void testNonExistentJournalPath() {
     assertThrows(IllegalArgumentException.class,
         () -> new JournalSpaceMonitor("/nonexistent/path", 10));
   }
@@ -58,9 +59,9 @@ public class JournalSpaceMonitorTest {
     JournalSpaceMonitor monitor = Mockito.spy(
         new JournalSpaceMonitor(Paths.get(".").toAbsolutePath().toString(), 10));
     doReturn(new CommandReturn(0, CMD_RETURN_MOCK)).when(monitor).getRawDiskInfo();
-    List<JournalSpaceMonitor.DiskInfo> infos = monitor.getDiskInfo();
+    List<JournalDiskInfo> infos = monitor.getDiskInfo();
     assertEquals(1, infos.size());
-    JournalSpaceMonitor.DiskInfo info = infos.get(0);
+    JournalDiskInfo info = infos.get(0);
     assertEquals("/dev/nvme0n1p2", info.getDiskPath());
     assertEquals(959863856L * 1024, info.getTotalAllocatedBytes());
     assertEquals(145802864L * 1024, info.getUsedBytes());
