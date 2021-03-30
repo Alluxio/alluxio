@@ -32,11 +32,9 @@ import alluxio.underfs.MasterUfsManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.nio.file.Files;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,7 +43,7 @@ public class TableMasterFactoryTest {
   private CoreMasterContext mContext;
 
   @ClassRule
-  public static TemporaryFolder mTemp = new TemporaryFolder();
+  public static TemporaryFolder sTemp = new TemporaryFolder();
 
   @Before
   public void before() {
@@ -57,7 +55,7 @@ public class TableMasterFactoryTest {
         .setInodeStoreFactory(x -> new HeapInodeStore())
         .setUfsManager(new MasterUfsManager())
         .build();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mTemp.getRoot().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, sTemp.getRoot().getAbsolutePath());
   }
 
   @After
