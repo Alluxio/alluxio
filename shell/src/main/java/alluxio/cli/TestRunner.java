@@ -55,11 +55,13 @@ public final class TestRunner {
   private String mOperation;
 
   @Parameter(names = "--readType",
-      description = "The read type to use. By default all readTypes are tested.")
+      description = "The read type to use, one of NO_CACHE, CACHE, CACHE_PROMOTE. "
+      + "By default all readTypes are tested.")
   private String mReadType;
 
   @Parameter(names = "--writeType",
-      description = "The write type to use. By default all writeTypes are tested.")
+      description = "The write type to use, one of MUST_CACHE, CACHE_THROUGH, "
+      + "THROUGH, ASYNC_THROUGH. By default all writeTypes are tested.")
   private String mWriteType;
 
   /**

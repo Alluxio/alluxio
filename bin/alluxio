@@ -16,8 +16,9 @@ function printUsage {
   echo "COMMAND is one of:"
   echo -e "  extensions    \t Manage extensions to core Alluxio"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
-  echo -e "  formatMaster  \t Format Alluxio master"
-  echo -e "  formatWorker  \t Format Alluxio worker storage"
+  echo -e "  formatJournal \t Format Alluxio master journal locally"
+  echo -e "  formatMasters \t Format Alluxio master nodes"
+  echo -e "  formatWorker  \t Format Alluxio worker nodes"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
@@ -246,7 +247,7 @@ function main {
     formatJournal
   ;;
   "formatMaster")
-    echo "formatMaster is deprecated - use formatMasters instead"
+    echo "formatMaster is deprecated - use formatJournal or formatMasters instead"
     formatJournal
   ;;
   "formatMasters")
