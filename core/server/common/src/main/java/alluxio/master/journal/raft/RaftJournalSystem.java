@@ -583,9 +583,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // If for some reason there is more than one..it should be fine as it only
       // affects the completion time estimate in the logs.
       synchronized (this) { // synchronized to appease findbugs; shouldn't make any difference
+        RaftPeerId serverId = mServer.getId();
         Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
-            .filter(commit ->
-                mServer.getId().equals(RaftPeerId.valueOf(commit.getServer().getId())))
+            .filter(commit -> serverId.equals(RaftPeerId.valueOf(commit.getServer().getId())))
             .findFirst();
         if (commitInfo.isPresent()) {
           endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
