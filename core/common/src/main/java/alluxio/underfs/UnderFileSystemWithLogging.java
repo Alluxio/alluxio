@@ -1203,14 +1203,15 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     String methodName = callable.methodName();
-    LOG.debug("Enter: {}: {}", methodName, callable);
+    LOG.debug("Enter: {}({})", methodName, callable);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
       LOG.debug("Exit (OK): {}: {}", methodName, callable);
       return ret;
     } catch (IOException e) {
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      LOG.debug("Exit (Error): {}: {}, Error={}", methodName, callable, e.getMessage());
+      LOG.debug("Exit (Error): {}({}), Error={}",
+          methodName, callable, e.toString());
       throw e;
     }
   }
