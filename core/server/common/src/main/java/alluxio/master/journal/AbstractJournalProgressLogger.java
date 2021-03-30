@@ -25,7 +25,7 @@ public abstract class AbstractJournalProgressLogger {
 
   // could have been configurable. decided it is not really necessary.
   /** Max time to wait before actually logging. */
-  private static final long MAX_LOG_INTERVAL_MS = 30_000;
+  public static final long MAX_LOG_INTERVAL_MS = 30_000;
 
   private long mLastMeasuredTime;
   private long mLastCommitIdx;
@@ -72,25 +72,27 @@ public abstract class AbstractJournalProgressLogger {
     if ((now - mLastMeasuredTime) < nextLogTime) {
       return false;
     }
-    mLogCount++;
     long currCommitIdx = getLastAppliedIndex();
     long timeSinceLastMeasure = (now - mLastMeasuredTime);
     long commitIdxRead = currCommitIdx - mLastCommitIdx;
-    double commitIdxRateS = 1000 * ((double) commitIdxRead) / timeSinceLastMeasure;
+
+    double commitIdxRateMs = ((double) commitIdxRead) / timeSinceLastMeasure;
     StringJoiner logMsg = new StringJoiner("|");
     logMsg.add(getJournalName());
     logMsg.add(String.format("current SN: %d", currCommitIdx));
     logMsg.add(String.format("entries in last %dms=%d", timeSinceLastMeasure, commitIdxRead));
     if (mEndCommitIdx.isPresent()) {
       long commitsRemaining = mEndCommitIdx.getAsLong() - currCommitIdx;
-      double expectedTimeRemaining = ((double) commitsRemaining) / commitIdxRateS;
+      double expectedTimeRemaining = ((double) commitsRemaining) / commitIdxRateMs;
       if (commitsRemaining > 0) {
         logMsg.add(String.format("est. commits left: %d", commitsRemaining));
       }
-      if (!Double.isNaN(expectedTimeRemaining) && !Double.isInfinite(expectedTimeRemaining)) {
+      if (!Double.isNaN(expectedTimeRemaining) && !Double.isInfinite(expectedTimeRemaining)
+          && expectedTimeRemaining > 0) {
         logMsg.add(String.format("est. time remaining: %.2fms", expectedTimeRemaining));
       }
     }
+    mLogCount++;
     LOG.info(logMsg.toString());
     mLastMeasuredTime = now;
     mLastCommitIdx = currCommitIdx;

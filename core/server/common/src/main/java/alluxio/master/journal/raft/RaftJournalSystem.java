@@ -582,21 +582,23 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // raft peer IDs are unique, so there should really only ever be one result.
       // If for some reason there is more than one..it should be fine as it only
       // affects the completion time estimate in the logs.
-      Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
-              .filter(commit ->
-                  mServer.getId().equals(RaftPeerId.valueOf(commit.getServer().getId())))
-              .findFirst();
-      if (commitInfo.isPresent()) {
-        endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
+      synchronized (this) { // synchronized to appease findbugs; shouldn't make any difference
+        Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
+            .filter(commit ->
+                mServer.getId().equals(RaftPeerId.valueOf(commit.getServer().getId())))
+            .findFirst();
+        if (commitInfo.isPresent()) {
+          endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
+        } else {
+          throw new IOException("Commit info was not present. Couldn't find the current server's "
+              + "latest commit");
+        }
       }
     } catch (IOException e) {
       LogUtils.warnWithException(LOG, "Failed to get raft log information before replay."
           + " Replay statistics will not be available", e);
     }
 
-    long lastMeasuredTime = startTime;
-    long lastCommitIdx = 0L;
-    long logCount = 0;
     RaftJournalProgressLogger progressLogger =
         new RaftJournalProgressLogger(mStateMachine, endCommitIndex);
 
@@ -634,15 +636,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
       if (ex != null) {
         // LeaderNotReadyException typically indicates Ratis is still replaying the journal.
-        long now = System.currentTimeMillis();
-        // powers of 2, but capped to the JOURNAL_STAT_MAX_LOG_INTERVAL_MS
-        long nextLogTime = 1000L * Math.min(
-            1L << (logCount > 30 ? 30 : logCount),
-            JOURNAL_STAT_LOG_MAX_INTERVAL_MS);
-        if (ex instanceof LeaderNotReadyException
-            && (now - lastMeasuredTime) > nextLogTime) {
+        if (ex instanceof LeaderNotReadyException) {
           progressLogger.logProgress();
-        } else if (!(ex instanceof LeaderNotReadyException)) {
+        } else {
           LOG.info("Exception submitting term start entry: {}", ex.toString());
         }
         // avoid excessive retries when server is not ready
