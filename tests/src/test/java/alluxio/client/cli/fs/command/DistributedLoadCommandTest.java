@@ -14,15 +14,19 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -59,5 +63,30 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     sFsShell.run("distributedLoad", "/testFile");
     status = sFileSystem.getStatus(uri);
     Assert.assertEquals(100, status.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadIndexFile() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 50);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
+
+    AlluxioURI uri = new AlluxioURI("/testFile");
+    FileSystem fs = FileSystem.Factory.get();
+    FileOutStream out = fs.createFile(uri);
+    out.write("/testFileA\n/testFileB\n".getBytes(StandardCharsets.UTF_8));
+
+    AlluxioURI uriA = new AlluxioURI("/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testFileB");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+
+    sFsShell.run("distributedLoad", "-f", "/testFile");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
 }
