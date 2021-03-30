@@ -24,11 +24,11 @@ public class StackMain {
    */
   public static void main(String[] args) {
     if (args.length < 2) {
-      System.out.println("Usage: <root> <mountPoint> <fuseOpts...>");
+      System.out.println("Usage: <mountPoint> <sourcePath> <fuseOpts e.g. -obig_writes...>");
       System.exit(1);
     }
-    Path root = Paths.get(args[0]);
-    Path mountPoint = Paths.get(args[1]);
+    Path root = Paths.get(args[1]);
+    Path mountPoint = Paths.get(args[0]);
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
     System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);

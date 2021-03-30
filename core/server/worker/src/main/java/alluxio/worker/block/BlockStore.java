@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
@@ -285,9 +286,11 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @param location the location of the block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
+   * @throws DeadlineExceededException if locking takes longer than timeout
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+      throws InvalidWorkerStateException, BlockDoesNotExistException, DeadlineExceededException,
+      IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

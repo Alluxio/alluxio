@@ -74,14 +74,14 @@ public class AlignTaskTest extends BaseTierManagementTaskTest {
 
     // Validate tiers are not aligned. (It's not guaranteed but using LRU helps.)
     Assert.assertTrue(!mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-        BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false));
+        BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.NATURAL, (b) -> false));
 
     // Stop the load for align task to continue.
     stopSimulateLoad();
 
     CommonUtils.waitFor("Tiers to be aligned by a background task.",
         () -> mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-            BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false),
+            BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.NATURAL, (b) -> false),
         WaitForOptions.defaults().setTimeoutMs(60000));
   }
 }

@@ -52,7 +52,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    LOCAL, REMOTE, UFS
+    PROCESS_LOCAL, // The block is from a worker in the same process
+    NODE_LOCAL, // The block is from a separate worker process on the same node
+    REMOTE, // The block is from a remote worker
+    UFS // The block is in UFS
   }
 
   private final WorkerNetAddress mAddress;
@@ -114,7 +117,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean shortCircuitPreferred =
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
-    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
+
+    if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL) {
+      // Interaction between the current client and the worker it embedded to should
+      // go through worker internal communication directly without RPC involves
+      return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
+    }
+
+    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -141,6 +151,27 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
+   * Creates a {@link BlockInStream} to read from the worker process-local to this client
+   * directly without RPC involves, if the block does not exist in this worker, will read from
+   * the UFS storage via this worker.
+   *
+   * @param context the file system context
+   * @param address the network address of the gRPC data server to read from
+   * @param blockId the block ID
+   * @param length the block length
+   * @param options the in stream options
+   * @return the {@link BlockInStream} created
+   */
+  private static BlockInStream createProcessLocalBlockInStream(FileSystemContext context,
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
+    long chunkSize = context.getClusterConf().getBytes(
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    return new BlockInStream(
+        new BlockWorkerDataReader.Factory(context, blockId, chunkSize, options),
+        address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
+  }
+
+  /**
    * Creates a {@link BlockInStream} to read from a local file.
    *
    * @param context the file system context
@@ -157,7 +188,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
-        address, BlockInStreamSource.LOCAL, blockId, length);
+        address, BlockInStreamSource.NODE_LOCAL, blockId, length);
   }
 
   /**

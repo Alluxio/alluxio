@@ -65,7 +65,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -695,7 +695,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
                 .setCommonOptions(FileSystemOptions.commonDefaults(
                     mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
           } catch (Exception e) {
-            return new ArrayList<>();
+            return Collections.<URIStatus>emptyList();
           }
         });
         Thread.sleep(200);

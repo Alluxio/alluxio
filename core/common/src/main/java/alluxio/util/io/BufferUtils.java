@@ -11,6 +11,7 @@
 
 package alluxio.util.io;
 
+import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -358,8 +359,7 @@ public final class BufferUtils {
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {
-    // TODO(yupeng): make the buffer size configurable
-    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+    final ByteBuffer buffer = ByteBuffer.allocateDirect(4 * Constants.MB);
 
     while (src.read(buffer) != -1) {
       buffer.flip();

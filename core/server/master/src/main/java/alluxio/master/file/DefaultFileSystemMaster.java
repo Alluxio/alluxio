@@ -916,6 +916,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
+      if (!fileInfo.isCompleted()) {
+        LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+                fileInfo.getPath());
+      }
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
@@ -923,8 +927,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
     }
     // Rehydrate missing block-infos for persisted files.
-    if (fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
-        && inode.isPersisted()) {
+    if (fileInfo.isCompleted()
+          && fileInfo.getBlockIds().size() > fileInfo.getFileBlockInfos().size()
+          && inode.isPersisted()) {
       List<Long> missingBlockIds = fileInfo.getBlockIds().stream()
           .filter((bId) -> fileInfo.getFileBlockInfo(bId) != null).collect(Collectors.toList());
 

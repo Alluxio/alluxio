@@ -60,7 +60,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
+public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
+    implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private static final int MAX_UMOUNT_WAITTIME_MS = 60 * 1000;
   private final FileSystem mFileSystem;
@@ -130,7 +131,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
    * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+      FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
     super(Paths.get(opts.getMountPoint()));
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
@@ -436,14 +437,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   private int flushInternal(String path, FuseFileInfo fi) {
     final long fd = fi.fh.get();
+
+    FileInStream is = mOpenFileEntries.get(fd);
     CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null && is == null) {
+      LOG.error("Cannot find fd for {} in table", path);
+      return -ErrorCodes.EBADFD();
+    }
+
     if (ce == null) {
       // flush() may be called in places other than write
       return 0;
     }
+
     try {
-      ce.getOut().flush();
-    } catch (IOException e) {
+      synchronized (ce) {
+        ce.getOut().flush();
+      }
+    } catch (Throwable e) {
       LOG.error("Failed to flush {}", path, e);
       return -ErrorCodes.EIO();
     }
