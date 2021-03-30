@@ -58,7 +58,11 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public void fileSystemHeartbeat(FileSystemHeartbeatPRequest request,
       StreamObserver<FileSystemHeartbeatPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("fileSystemHeartbeat request is {} bytes, {} persisted files",
+              request.getSerializedSize(),
+              request.getPersistedFilesCount());
+    }
     final long workerId = request.getWorkerId();
     final List<Long> persistedFiles = request.getPersistedFilesList();
     FileSystemHeartbeatPOptions options = request.getOptions();
@@ -77,7 +81,10 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public void getFileInfo(GetFileInfoPRequest request,
       StreamObserver<GetFileInfoPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getFileInfo request is {} bytes",
+              request.getSerializedSize());
+    }
     final long fileId = request.getFileId();
     GetFileInfoPOptions options = request.getOptions();
 
@@ -91,7 +98,10 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public void getPinnedFileIds(GetPinnedFileIdsPRequest request,
       StreamObserver<GetPinnedFileIdsPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getPinnedFileIds request is {} bytes",
+              request.getSerializedSize());
+    }
     GetPinnedFileIdsPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
@@ -104,7 +114,10 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public void getUfsInfo(GetUfsInfoPRequest request,
       StreamObserver<GetUfsInfoPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getUfsInfo request is {} bytes",
+              request.getSerializedSize());
+    }
     final long mountId = request.getMountId();
     GetUfsInfoPOptions options = request.getOptions();
 

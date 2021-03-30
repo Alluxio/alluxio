@@ -53,7 +53,11 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("heartbeat request is {} bytes, {} TaskInfo",
+              request.getSerializedSize(),
+              request.getTaskInfosCount());
+    }
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
       List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
@@ -73,7 +77,10 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("registerJobWorker request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
           return RegisterJobWorkerPResponse.newBuilder()
