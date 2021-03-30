@@ -260,7 +260,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
         URIStatus status = mFileSystem.getStatus(path);
         if (!mWriteType.isThrough()) {
           // When the writeType is THROUGH, we only see the blocks when the file is committed
-          // When the file is not committed, we do not see the FileBlockInfo
+          // When the file is not committed, we only see incomplete FileBlockInfo
           Assert.assertEquals(i + 1, status.getBlockIds().size());
         }
       }

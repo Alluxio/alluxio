@@ -916,6 +916,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
+      if (!fileInfo.isCompleted()) {
+        LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+                fileInfo.getPath());
+      }
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
