@@ -219,11 +219,11 @@ request
 require
 rerun
 reset
+reserve
 resolve
 respect
 respond
 restore
-reserve
 restructure
 retrieve
 retry
