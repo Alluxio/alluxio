@@ -311,7 +311,9 @@ public class TieredBlockStore implements BlockStore {
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
-
+    if (additionalBytes <=0) {
+      return;
+    }
     // NOTE: a temp block is only visible to its own writer, unnecessary to acquire
     // block lock here since no sharing
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
@@ -321,7 +323,8 @@ public class TieredBlockStore implements BlockStore {
           AllocateOptions.forRequestSpace(additionalBytes, tempBlockMeta.getBlockLocation()));
       if (allocationDir == null) {
         throw new WorkerOutOfSpaceException(String.format(
-            "Can't reserve more space for block: %d under session: %d.", blockId, sessionId));
+            "Can't reserve additional %d bytes for block %d under session %d",
+            additionalBytes, blockId, sessionId));
       }
 
       if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
