@@ -218,8 +218,8 @@ report
 request
 require
 rerun
-reset
 reserve
+reset
 resolve
 respect
 respond
