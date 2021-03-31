@@ -117,6 +117,7 @@ get
 give
 group
 handle
+hardcode
 heartbeat
 hide
 ignore
@@ -222,6 +223,7 @@ resolve
 respect
 respond
 restore
+reserve
 restructure
 retrieve
 retry
