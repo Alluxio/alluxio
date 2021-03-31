@@ -3648,12 +3648,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
           .setDefaultValue("2min")
           .build();
-  // TODO(cc): remove this since configuration propagation is always enabled?
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
           .setDefaultValue(true)
           .setDescription("When this property is true, an Alluxio client will load the default "
-              + "values of configuration properties set by Alluxio master.")
+              + "values of cluster-wide configuration and path-specific configuration set by "
+              + "Alluxio master.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
