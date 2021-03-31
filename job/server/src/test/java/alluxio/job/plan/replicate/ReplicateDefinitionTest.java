@@ -154,6 +154,7 @@ public final class ReplicateDefinitionTest {
     String path = "/test";
     URIStatus status = new URIStatus(
         new FileInfo().setPath(path).setBlockIds(Lists.newArrayList(TEST_BLOCK_ID))
+            .setMediumTypes(Sets.newHashSet("MEM"))
             .setFileBlockInfos(Lists.newArrayList(
                 new FileBlockInfo().setBlockInfo(
                     new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE)))));
