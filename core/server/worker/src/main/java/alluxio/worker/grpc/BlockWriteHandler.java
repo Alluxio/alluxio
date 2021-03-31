@@ -11,8 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.Constants;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -37,8 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);
-  private static final long FILE_BUFFER_SIZE = ServerConfiguration.getBytes(
-      PropertyKey.WORKER_FILE_BUFFER_SIZE);
+  private static final long FILE_BUFFER_SIZE = Constants.MB;
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;

@@ -132,6 +132,7 @@ public final class RemovedKey {
       put("alluxio.worker.data.port", replacedSince(V2_0_0, PropertyKey.WORKER_RPC_PORT.getName()));
       put("alluxio.worker.data.server.class", removedSince(V2_6_0));
       put("alluxio.worker.filesystem.heartbeat.interval", removedSince(V2_1_0));
+      put("alluxio.worker.file.buffer.size", removedSince(V2_6_0));
       put("alluxio.worker.file.persist.pool.size", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit.enabled", removedSince(V2_1_0));
