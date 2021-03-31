@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.util.LogUtils;
 
@@ -22,8 +23,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,6 +32,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class is a cache from an Alluxio namespace URI ({@link AlluxioURI}, i.e. /path/to/inode) to
@@ -47,6 +50,8 @@ public class UfsStatusCache {
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final ConcurrentHashMap<AlluxioURI, Future<Collection<UfsStatus>>> mActivePrefetchJobs;
   private final ConcurrentHashMap<AlluxioURI, Collection<UfsStatus>> mChildren;
+  private final UfsAbsentPathCache mAbsentCache;
+  private final long mCacheValidTime;
   private final ExecutorService mPrefetchExecutor;
 
   /**
@@ -55,11 +60,16 @@ public class UfsStatusCache {
    * @param prefetchExecutor the executor service used to prefetch statuses. If set to null, then
    *                         calls to {@link #prefetchChildren(AlluxioURI, MountTable)} will not
    *                         schedule any tasks.
+   * @param absentPathCache the absent cache that ufsStatusCache should consult
+   * @param cacheValidTime  the time when the absent cache entry would be considered valid
    */
-  public UfsStatusCache(@Nullable ExecutorService prefetchExecutor) {
+  public UfsStatusCache(@Nullable ExecutorService prefetchExecutor,
+      UfsAbsentPathCache absentPathCache, long cacheValidTime) {
     mStatuses = new ConcurrentHashMap<>();
     mChildren = new ConcurrentHashMap<>();
     mActivePrefetchJobs = new ConcurrentHashMap<>();
+    mAbsentCache = absentPathCache;
+    mCacheValidTime = cacheValidTime;
     mPrefetchExecutor = prefetchExecutor;
   }
 
@@ -82,6 +92,7 @@ public class UfsStatusCache {
           String.format("path name %s does not match ufs status name %s",
               path.getName(), status.getName()));
     }
+    mAbsentCache.processExisting(path);
     return mStatuses.put(path, status);
   }
 
@@ -121,14 +132,22 @@ public class UfsStatusCache {
     return removed;
   }
 
+  private void checkAbsentCache(AlluxioURI path) throws FileNotFoundException {
+    if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
+      throw new FileNotFoundException("UFS Status not found for path " + path.toString());
+    }
+  }
+
   /**
    * Get the UfsStatus from a given AlluxioURI.
    *
    * @param path the path the retrieve
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
+   * @throws FileNotFoundException if the UFS does not contain the file
    */
   @Nullable
-  public UfsStatus getStatus(AlluxioURI path) {
+  public UfsStatus getStatus(AlluxioURI path) throws FileNotFoundException {
+    checkAbsentCache(path);
     return mStatuses.get(path);
   }
 
@@ -141,8 +160,13 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
-    UfsStatus status = mStatuses.get(path);
+      throws InvalidPathException, IOException {
+    UfsStatus status;
+    try {
+      status = getStatus(path);
+    } catch (FileNotFoundException e) {
+      return null;
+    }
     if (status != null) {
       return status;
     }
@@ -152,11 +176,15 @@ public class UfsStatusCache {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
       if (ufsStatus == null) {
+        mAbsentCache.addSinglePath(path);
         return null;
       }
       ufsStatus.setName(path.getName());
       addStatus(path, ufsStatus);
       return ufsStatus;
+    } catch (FileNotFoundException e) {
+      // If the ufs can not find the file, we explicitly mark it absent so we do not recheck it
+      mAbsentCache.addSinglePath(path);
     } catch (IllegalArgumentException | IOException e) {
       LogUtils.warnWithException(LOG, "Failed to fetch status for {}", path, e);
     }
@@ -247,12 +275,16 @@ public class UfsStatusCache {
     if (children != null) {
       return children;
     }
+    if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
+      return null;
+    }
     MountTable.Resolution resolution = mountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus[] statuses = ufs.listStatus(ufsUri.toString());
       if (statuses == null) {
+        mAbsentCache.addSinglePath(path);
         return null;
       }
       children = Arrays.asList(statuses);
