@@ -11,14 +11,14 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何使用Docker映像
 *目录
 {:toc}
 
-##先决条件
+## 先决条件
 
 一个Kubernetes集群(版本> = 1.8)。在默认规范下，Alluxio workers可以通过设置`sizeLimit`参数来决定`emptyDir`卷的大小。这是Kubernetes 1.8版本中的一个Alpha特性。在使用前请确保此功能已启用。
 
 一个Alluxio Docker镜像[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)。如果使用私有Docker注册表，请参阅Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
 确保[Kubernetes网络策略](https://kubernetes.io/docs/concepts/services-networking/network-policies/)允许应用程序(Alluxio客户端)和Alluxio Pods之间在已定义端口上的连接。
 
-##基本设置
+## 基本设置
 
 本教程介绍了在Kubernetes上的基本Alluxio安装。 Alluxio支持在Kubernetes上两种安装方法:使用[helm](https://helm.sh/docs/)图表或使用`kubectl`。如果可选，`helm`是首选安装Alluxio方法。如果没法使用`helm`安装或需要额外定制化部署，则可以直接通过原生Kubernetes资源规范使用`kubectl`。
 
@@ -81,12 +81,12 @@ $ kubectl create -f alluxio-master-journal-pv.yaml
   {% endcollapsible %}
 {% endaccordion %}
 
-###部署
+### 部署
 
 {% navtabs deploy %} 
 {% navtab helm %}
 
-####前提条件
+#### 前提条件
 
 A.安装Helm
 
@@ -471,7 +471,7 @@ $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 -*singleMaster-hdfsJournal*目录为你提供Kubernetes ConfigMap，1个Aluxio master以及一
 组workers。日志位于共享的UFS路径。在此模板中，我们将用HDFS作为UFS。
 
-####配置
+#### 配置
 
 一旦部署选项确定，从相应子目录复制模板
 
@@ -496,7 +496,7 @@ $ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
 $ kubectl create -f alluxio-configmap.yaml
 ```
 
-####安装
+#### 安装
 
 ***准备规范。***基于模板准备Alluxio部署规范。修改任何所需参数，例如Docker镜像的位置以及Pod的CPU和内存要求。
 
@@ -572,7 +572,7 @@ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}
 $ kubectl create -f ./master/
 $ kubectl create -f ./worker/
 ```
-####卸载
+#### 卸载
 
 卸载Alluxio如下
 
@@ -584,7 +584,7 @@ $ kubectl delete configmap alluxio-config
 
 >注意:这将删除`./master/`和`./worker/`下的所有资源。 如果在这些目录下由持久卷或其他重要资源请注意不要不小心一并删除。  
 
-####格式化日志
+#### 格式化日志
 
 您可以手动添加一个`initContainer`以便在Pod创建时格式化日志。`initContainer`将在创建Pod时运行`alluxio formatJournal`并格式化日志。
 ```yaml
@@ -600,7 +600,7 @@ $ kubectl delete configmap alluxio-config
 ```
 > 注:从Alluxio V2.1及更高版本，默认Alluxio Docker容器除了Fuse以外将以非root 具有UID 1000和GID 1000 的用户`alluxio` 身份运行。 确保Alluxio master Pod运行和日志格式化都是以同一用户身份进行的。 
 
-####升级
+#### 升级
 
 本节将介绍如何使用`kubectl`升级Kubernetes集群中的Alluxio。
 {% accordion kubectlUpgrade %}
@@ -679,7 +679,7 @@ $ kubectl get pods
 {% endnavtab %}
 {% endnavtabs %}
 
-###访问Web UI
+### 访问Web UI
 
 可以使用端口转发从kubernetes集群外部访问Alluxio UI。
 
@@ -709,7 +709,7 @@ $ kubectl get pv
 $ kubectl get pvc
 ```
 
-##高级设置
+## 高级设置
 
 ### POSIX API
 
@@ -767,7 +767,7 @@ $ kubectl create -f alluxio-fuse-client.yaml
 {% endnavtab %}
 {% endnavtabs %}
 
-###短路访问
+### 短路访问
 
 短路访问使客户端可以绕过网络接口直接对worker执行读写操作。对于性能至关重要的应用程序，建议对Alluxio启用短路操作，因为当与Alluxio worker共置时，可以增加客户端的读写吞吐量。
 
@@ -949,7 +949,7 @@ volumes:
 1.或[metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url}}) as `cluster.BytesReadDomain` 和 `cluster.BytesWrittenDomain`
 1.或the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url}}) as `Short-circuit Read (Domain Socket)` 和` Alluxio Write (Domain Socket)`
 
-##故障排除
+## 故障排除
 
 {% accordion worker_host %} 
    {% collapsible Worker Host Unreachable %} 
