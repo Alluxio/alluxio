@@ -230,7 +230,29 @@ public final class MetricKey implements Comparable<MetricKey> {
   }
 
   // Master metrics
-  // Master status
+  // Absent cache stats
+  public static final MetricKey MASTER_ABSENT_CACHE_HITS =
+      new Builder(Name.MASTER_ABSENT_CACHE_HITS)
+          .setDescription("Number of cache hits on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
+      new Builder(Name.MASTER_ABSENT_CACHE_MISSES)
+          .setDescription("Number of cache misses on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
+      new Builder(Name.MASTER_ABSENT_CACHE_INVALIDATIONS)
+          .setDescription("Number of invalidations on the absent cache")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
+      new Builder(Name.MASTER_ABSENT_CACHE_SIZE)
+          .setDescription("Size of the absent cache")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
+  // Edge cache stats
   public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
       new Builder(Name.MASTER_EDGE_CACHE_EVICTIONS)
           .setDescription("Total number of edges (inode metadata) that was evicted from cache. "
@@ -1196,6 +1218,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final class Name {
     // Master metrics
     // metrics names for master status
+    public static final String MASTER_ABSENT_CACHE_HITS = "Master.AbsentCacheHits";
+    public static final String MASTER_ABSENT_CACHE_MISSES = "Master.AbsentCacheMisses";
+    public static final String MASTER_ABSENT_CACHE_INVALIDATIONS
+        = "Master.AbsentCacheInvalidations";
+    public static final String MASTER_ABSENT_CACHE_SIZE = "Master.AbsentCacheSize";
+
     public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
     public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
     public static final String MASTER_EDGE_CACHE_LOAD_TIMES = "Master.EdgeCacheLoadTimes";
