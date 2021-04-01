@@ -32,8 +32,6 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.security.authorization.Mode;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -49,7 +47,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -63,7 +60,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
-  private static final int MAX_UMOUNT_WAITTIME_MS = 60 * 1000;
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -471,9 +467,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
-    FileInStream is = mOpenFileEntries.remove(fd);
-    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     try {
+      FileInStream is = mOpenFileEntries.remove(fd);
+      CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
@@ -491,6 +487,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           mReleasingWriteEntries.remove(ce);
         }
       }
+<<<<<<< HEAD
       if (is != null) {
         mReleasingReadEntries.put(fd, is);
         try {
@@ -499,6 +496,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         } finally {
           mReleasingWriteEntries.remove(fd);
+||||||| merged common ancestors
+      if (ce != null) {
+        synchronized (ce) {
+          ce.getOut().close();
+=======
+      if (ce != null) {
+        mCreateFileEntries.remove(ce);
+        synchronized (ce) {
+          ce.getOut().close();
+>>>>>>> ef27597df5aed2cb6e0b82d18de627ab332992a9
         }
       }
     } catch (Throwable e) {
@@ -687,6 +694,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return mFsName;
   }
 
+<<<<<<< HEAD
   @Override
   public void umount() {
     // Waiting for in progress async release to finish
@@ -748,6 +756,30 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     super.umount();
   }
 
+||||||| merged common ancestors
+  @Override
+  public void umount() {
+    // Release operation is async, we need to make sure
+    // all out stream is closed before umount the fuse
+    if (!mCreateFileEntries.isEmpty()) {
+      LOG.info("Waiting for all file out stream closed");
+      try {
+        CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
+                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
+      } catch (InterruptedException e) {
+        LOG.error("unmount interrupted");
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting file out stream close,"
+                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
+      }
+    }
+
+    super.umount();
+  }
+
+=======
+>>>>>>> ef27597df5aed2cb6e0b82d18de627ab332992a9
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
