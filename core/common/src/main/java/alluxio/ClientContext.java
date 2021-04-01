@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
@@ -152,6 +153,9 @@ public class ClientContext {
    */
   public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
+    if (!mClusterConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)) {
+      return;
+    }
     loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
     mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
   }
