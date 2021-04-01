@@ -484,13 +484,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // Remove earlier to try best effort to avoid write() - async release() - getAttr()
         // without waiting for file completed and return 0 bytes file size error
         mCreateFileEntries.remove(ce);
-        mReleasingWriteEntries.put(ce.getId(), ce);
+        mReleasingWriteEntries.put(fd, ce);
         try {
           synchronized (ce) {
             ce.close();
           }
         } finally {
-          mReleasingWriteEntries.remove(ce);
+          mReleasingWriteEntries.remove(fd);
         }
       }
       if (is != null) {
