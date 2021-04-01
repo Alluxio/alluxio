@@ -12,6 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -32,6 +33,8 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -47,6 +50,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,6 +64,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
+  private static final int MAX_UMOUNT_WAITTIME_MS = Constants.MINUTE_MS;
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -98,6 +103,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
 
+  // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
   private final Map<Long, CreateFileEntry> mReleasingWriteEntries = new ConcurrentHashMap<>();
 
@@ -475,8 +481,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return -ErrorCodes.EBADFD();
       }
       if (ce != null) {
-        // Remove earlier to try best effort to avoid
-        // write() - async release() - getAttr() without waiting for file completed and return 0 bytes file size error
+        // Remove earlier to try best effort to avoid write() - async release() - getAttr()
+        // without waiting for file completed and return 0 bytes file size error
         mCreateFileEntries.remove(ce);
         mReleasingWriteEntries.put(ce.getId(), ce);
         try {
@@ -487,25 +493,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           mReleasingWriteEntries.remove(ce);
         }
       }
-<<<<<<< HEAD
       if (is != null) {
         mReleasingReadEntries.put(fd, is);
         try {
           synchronized (is) {
-              is.close();
+            is.close();
           }
         } finally {
           mReleasingWriteEntries.remove(fd);
-||||||| merged common ancestors
-      if (ce != null) {
-        synchronized (ce) {
-          ce.getOut().close();
-=======
-      if (ce != null) {
-        mCreateFileEntries.remove(ce);
-        synchronized (ce) {
-          ce.getOut().close();
->>>>>>> ef27597df5aed2cb6e0b82d18de627ab332992a9
         }
       }
     } catch (Throwable e) {
@@ -694,7 +689,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return mFsName;
   }
 
-<<<<<<< HEAD
   @Override
   public void umount() {
     // Waiting for in progress async release to finish
@@ -733,7 +727,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             is.close();
           }
         } catch (Throwable t) {
-          LOG.error("Failed to close opened file with id {} in umount operation", entry.getKey(), t);
+          LOG.error("Failed to close opened file with id {} in umount operation",
+              entry.getKey(), t);
         }
       }
     }
@@ -756,30 +751,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     super.umount();
   }
 
-||||||| merged common ancestors
-  @Override
-  public void umount() {
-    // Release operation is async, we need to make sure
-    // all out stream is closed before umount the fuse
-    if (!mCreateFileEntries.isEmpty()) {
-      LOG.info("Waiting for all file out stream closed");
-      try {
-        CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
-                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
-      } catch (InterruptedException e) {
-        LOG.error("unmount interrupted");
-        Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting file out stream close,"
-                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
-      }
-    }
-
-    super.umount();
-  }
-
-=======
->>>>>>> ef27597df5aed2cb6e0b82d18de627ab332992a9
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
