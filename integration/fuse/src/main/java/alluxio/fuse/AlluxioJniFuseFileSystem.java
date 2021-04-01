@@ -102,6 +102,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
 
+  private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
+  private final Map<Long, CreateFileEntry> mReleasingWriteEntries = new ConcurrentHashMap<>();
+
   // To make test build
   @VisibleForTesting
   public static final long ID_NOT_SET_VALUE = -1;
@@ -475,23 +478,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
-      if (is != null) {
-        synchronized (is) {
-          is.close();
+      if (ce != null) {
+        // Remove earlier to try best effort to avoid
+        // write() - async release() - getAttr() without waiting for file completed and return 0 bytes file size error
+        mCreateFileEntries.remove(ce);
+        mReleasingWriteEntries.put(ce.getId(), ce);
+        try {
+          synchronized (ce) {
+            ce.close();
+          }
+        } finally {
+          mReleasingWriteEntries.remove(ce);
         }
       }
-      if (ce != null) {
-        synchronized (ce) {
-          ce.getOut().close();
+      if (is != null) {
+        mReleasingReadEntries.put(fd, is);
+        try {
+          synchronized (is) {
+              is.close();
+          }
+        } finally {
+          mReleasingWriteEntries.remove(fd);
         }
       }
     } catch (Throwable e) {
       LOG.error("Failed closing {}", path, e);
       return -ErrorCodes.EIO();
-    } finally {
-      if (ce != null) {
-        mCreateFileEntries.remove(ce);
-      }
     }
     return 0;
   }
@@ -677,13 +689,53 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public void umount() {
+    // Waiting for in progress async release to finish
+    if (!mReleasingReadEntries.isEmpty()) {
+      LOG.info("Waiting for all in progress file in stream closing to finish");
+      try {
+        CommonUtils.waitFor("async opened files releasing finished", mReleasingReadEntries::isEmpty,
+            WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
+      } catch (InterruptedException e) {
+        LOG.error("Umount interrupted");
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting in progress file in stream closing,"
+            + "the number of closing entries is {}", mReleasingReadEntries.size());
+      }
+    }
+    if (!mReleasingWriteEntries.isEmpty()) {
+      LOG.info("Waiting for all in progress file out stream closing to finish");
+      try {
+        CommonUtils.waitFor("async write releasing finished", mReleasingWriteEntries::isEmpty,
+            WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
+      } catch (InterruptedException e) {
+        LOG.error("Umount interrupted");
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting in progress file out stream closing,"
+            + "the number of closing entries is {}", mReleasingWriteEntries.size());
+      }
+    }
+
+    if (!mOpenFileEntries.isEmpty()) {
+      for (Map.Entry<Long, FileInStream> entry : mOpenFileEntries.entrySet()) {
+        FileInStream is = entry.getValue();
+        try {
+          synchronized (is) {
+            is.close();
+          }
+        } catch (Throwable t) {
+          LOG.error("Failed to close opened file with id {} in umount operation", entry.getKey(), t);
+        }
+      }
+    }
     // Release operation is async, we need to make sure
     // all out stream is closed before umount the fuse
     if (!mCreateFileEntries.isEmpty()) {
       LOG.info("Waiting for all file out stream closed");
       try {
         CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
-                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS));
+                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
       } catch (InterruptedException e) {
         LOG.error("unmount interrupted");
         Thread.currentThread().interrupt();
