@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
@@ -52,7 +51,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UfsFallbackBlockWriteHandler
     extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
-  private static final long FILE_BUFFER_SIZE = Constants.MB;
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
