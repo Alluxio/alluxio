@@ -146,7 +146,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // gRPC
     LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
-    return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
+    return createGrpcBlockInStream(context, dataSource, dataSourceType, builder,
         blockSize, options);
   }
 
@@ -198,13 +198,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param blockSize the block size
-   * @param readRequestPartial the partial read request
+   * @param readRequestBuilder the partial read request
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
-    ReadRequest.Builder readRequestBuilder = readRequestPartial.toBuilder();
+      ReadRequest.Builder readRequestBuilder, long blockSize, InStreamOptions options) {
     long chunkSize = context.getClusterConf().getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
@@ -216,9 +215,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       factory = new SharedGrpcDataReader
           .Factory(context, address, readRequestBuilder.build(), blockSize);
     } else {
-      factory = new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
+      factory = new GrpcDataReader.Factory(context, address, readRequestBuilder);
     }
-    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
+    return new BlockInStream(factory, address, blockSource, readRequestBuilder.getBlockId(),
         blockSize);
   }
 
@@ -244,7 +243,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
-        readRequest.toBuilder().buildPartial());
+        readRequest.toBuilder());
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 

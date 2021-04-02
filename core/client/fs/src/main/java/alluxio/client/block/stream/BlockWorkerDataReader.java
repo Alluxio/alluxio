@@ -99,7 +99,7 @@ public final class BlockWorkerDataReader implements DataReader {
     private final BlockWorker mBlockWorker;
     private final long mBlockId;
     private final boolean mIsPromote;
-    private final boolean mIsPositionShot;
+    private final boolean mIsPositionShort;
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private BlockReadRequest mBlockReadRequest;
     private boolean mClosed;
@@ -119,7 +119,7 @@ public final class BlockWorkerDataReader implements DataReader {
       mChunkSize = chunkSize;
       mClosed = false;
       mIsPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
-      mIsPositionShot = options.getPositionShort();
+      mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
       mBlockWorker = context.getProcessLocalWorker();
     }
@@ -127,7 +127,7 @@ public final class BlockWorkerDataReader implements DataReader {
     @Override
     public DataReader create(long offset, long len) throws IOException {
       mBlockReadRequest = new BlockReadRequest(mBlockId, offset, offset + len, mChunkSize,
-          mIsPromote, mIsPositionShot, mOpenUfsBlockOptions);
+          mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
         mReader = mBlockWorker.createBlockReader(mBlockReadRequest);
         return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);

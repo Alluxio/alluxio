@@ -55,7 +55,7 @@ public final class BlockReadRequest {
    * @param openUfsBlockOptions options to read file from UFS
    */
   public BlockReadRequest(long id, long start, long end, long chunkSize, boolean promote,
-    boolean positionShort, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
+      boolean positionShort, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     mId = id;
     mStart = start;
     mEnd = end;
