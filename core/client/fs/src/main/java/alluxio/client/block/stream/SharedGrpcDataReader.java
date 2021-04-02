@@ -138,7 +138,7 @@ public class SharedGrpcDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequestPartial;
+    private final ReadRequest.Builder mReadRequestBuilder;
     private final long mBlockSize;
 
     /**
@@ -146,14 +146,14 @@ public class SharedGrpcDataReader implements DataReader {
      *
      * @param context the file system context
      * @param address the worker address
-     * @param readRequestPartial the partial read request
+     * @param readRequestBuilder the builder of read request
      * @param blockSize the block size
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequestPartial, long blockSize) {
+        ReadRequest.Builder readRequestBuilder, long blockSize) {
       mContext = context;
       mAddress = address;
-      mReadRequestPartial = readRequestPartial;
+      mReadRequestBuilder = readRequestBuilder;
       mBlockSize = blockSize;
     }
 
@@ -162,22 +162,21 @@ public class SharedGrpcDataReader implements DataReader {
         justification = "operation is still atomic guarded by block Ølock")
     @Override
     public DataReader create(long offset, long len) throws IOException {
-      long blockId = mReadRequestPartial.getBlockId();
+      long blockId = mReadRequestBuilder.getBlockId();
       BufferCachingGrpcDataReader reader;
       try (LockResource lockResource = new LockResource(getLock(blockId).writeLock())) {
         reader = BLOCK_READERS.get(blockId);
         if (reader == null) {
           // Even we may only need a portion, create a reader to read the whole block
-          ReadRequest cacheRequest = mReadRequestPartial
-              .toBuilder().setOffset(0).setLength(mBlockSize).build();
+          ReadRequest cacheRequest = mReadRequestBuilder.setOffset(0).setLength(mBlockSize).build();
           reader = BufferCachingGrpcDataReader.create(mContext, mAddress, cacheRequest);
           BLOCK_READERS.put(blockId, reader);
         }
 
         reader.ref();
       }
-      return new SharedGrpcDataReader(mReadRequestPartial
-          .toBuilder().setOffset(offset).setLength(len).build(), reader);
+      return new SharedGrpcDataReader(
+          mReadRequestBuilder.setOffset(offset).setLength(len).build(), reader);
     }
 
     @Override
