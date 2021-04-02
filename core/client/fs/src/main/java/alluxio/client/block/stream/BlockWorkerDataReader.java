@@ -14,11 +14,11 @@ package alluxio.client.block.stream;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.grpc.ReadRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -97,11 +97,13 @@ public final class BlockWorkerDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final long mChunkSize;
     private final BlockWorker mBlockWorker;
-
+    private final long mBlockId;
+    private final boolean mIsPromote;
+    private final boolean mIsPositionShort;
+    private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private BlockReadRequest mBlockReadRequest;
     private boolean mClosed;
     private BlockReader mReader;
-    private ReadRequest mReadRequestPartial;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -113,20 +115,19 @@ public final class BlockWorkerDataReader implements DataReader {
      */
     public Factory(FileSystemContext context, long blockId,
         long chunkSize, InStreamOptions options)  {
+      mBlockId = blockId;
       mChunkSize = chunkSize;
       mClosed = false;
-      boolean isPromote = ReadType
-          .fromProto(options.getOptions().getReadType()).isPromote();
-      mReadRequestPartial = ReadRequest.newBuilder()
-          .setBlockId(blockId).setPromote(isPromote).build();
+      mIsPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
+      mIsPositionShort = options.getPositionShort();
+      mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
       mBlockWorker = context.getProcessLocalWorker();
     }
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
-      mReadRequestPartial = mReadRequestPartial.toBuilder()
-          .setOffset(offset).setLength(len).build();
-      mBlockReadRequest = new BlockReadRequest(mReadRequestPartial);
+      mBlockReadRequest = new BlockReadRequest(mBlockId, offset, offset + len, mChunkSize,
+          mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
         mReader = mBlockWorker.createBlockReader(mBlockReadRequest);
         return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
