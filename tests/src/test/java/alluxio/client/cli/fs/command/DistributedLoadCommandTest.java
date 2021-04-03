@@ -67,14 +67,13 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadIndexFile() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 50);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
 
     AlluxioURI uri = new AlluxioURI("/testFile");
-    FileSystem fs = FileSystem.Factory.get();
-    FileOutStream out = fs.createFile(uri);
+    FileOutStream out = sFileSystem.createFile(uri);
     out.write("/testFileA\n/testFileB\n".getBytes(StandardCharsets.UTF_8));
+    out.close();
 
     AlluxioURI uriA = new AlluxioURI("/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testFileB");
@@ -84,6 +83,30 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
 
     sFsShell.run("distributedLoad", "-f", "/testFile");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadMultipleCommands() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
+
+    AlluxioURI uri = new AlluxioURI("/testFile");
+    FileOutStream out = sFileSystem.createFile(uri);
+    out.write("/testFileA\n/testFileB\n".getBytes(StandardCharsets.UTF_8));
+    out.close();
+
+    AlluxioURI uriA = new AlluxioURI("/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testFileB");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+
+    sFsShell.run("distributedLoad", "-f", "--replication", "2", "/testFile");
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
