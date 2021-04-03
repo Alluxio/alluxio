@@ -50,6 +50,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
@@ -384,6 +385,12 @@ public class BaseFileSystem implements FileSystem {
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
+    long cacheThresholdBytes = conf.getBytes(PropertyKey.USER_FILE_CACHE_THRESHOLD);
+    if (cacheThresholdBytes != 0 && status.getLength() > cacheThresholdBytes) {
+      options = OpenFilePOptions.getDefaultInstance().toBuilder()
+              .setReadType(ReadPType.NO_CACHE)
+              .mergeFrom(options).build();
+    }
     return openFile(status, options);
   }
 
