@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
@@ -65,6 +66,15 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
                   + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
+  private static final Option INDEX_FILE =
+      Option.builder("f")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(0)
+          .type(String.class)
+          .argName("index file")
+          .desc("Name of the index file that lists all files to be loaded")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -82,7 +92,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION);
+    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
+            .addOption(INDEX_FILE);
   }
 
   @Override
@@ -92,7 +103,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] <path>";
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] [-f] <path>";
   }
 
   @Override
@@ -109,7 +120,20 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    distributedLoad(path, replication);
+
+    if (!cl.hasOption('f')) {
+      distributedLoad(path, replication);
+    } else {
+      FileInStream is = mFileSystem.openFile(path);
+      int size = (int) is.remaining();
+      byte[] bytes = new byte[size];
+      is.read(bytes);
+      String s = new String(bytes);
+      String[] filenames = s.split("\n");
+      for (String filename : filenames) {
+        distributedLoad(new AlluxioURI(filename), replication);
+      }
+    }
     return 0;
   }
 
