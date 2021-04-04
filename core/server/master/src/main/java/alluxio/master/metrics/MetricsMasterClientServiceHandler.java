@@ -54,6 +54,11 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void clearMetrics(ClearMetricsPRequest request,
       StreamObserver<ClearMetricsPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("clearMetrics request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mMetricsMaster.clearMetrics();
       return ClearMetricsPResponse.newBuilder().build();
@@ -63,6 +68,12 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void metricsHeartbeat(MetricsHeartbeatPRequest request,
       StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("metricsHeartbeat request is {} bytes, {} client metrics",
+              request.getSerializedSize(),
+              request.getOptions().getClientMetricsCount());
+    }
+
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
 

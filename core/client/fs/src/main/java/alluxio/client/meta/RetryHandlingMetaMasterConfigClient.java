@@ -16,11 +16,15 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigHashPOptions;
+import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.RemovePathConfigurationPRequest;
+import alluxio.grpc.RemovePathConfigurationPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.SetPathConfigurationPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -78,18 +82,29 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
 
   @Override
   public Configuration getConfiguration(GetConfigurationPOptions options) throws IOException {
-    return Configuration.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
-        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
-        TimeUnit.MILLISECONDS).getConfiguration(options),
-        RPC_LOG, "GetConfiguration", "options=%s", options));
+    return Configuration.fromProto(retryRPC(() -> {
+              GetConfigurationPResponse response = mClient.withDeadlineAfter(
+                      mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
+                      TimeUnit.MILLISECONDS).getConfiguration(options);
+              if (RPC_LOG.isDebugEnabled()) {
+                RPC_LOG.debug("getConfiguration response has {} bytes, {} cluster conf, {} path conf", response.getSerializedSize(),
+                        response.getClusterConfigsCount(), response.getPathConfigsCount());
+              }
+              return response;
+              }, RPC_LOG, "GetConfiguration", "options=%s", options));
   }
 
   @Override
   public ConfigHash getConfigHash() throws IOException {
-    return ConfigHash.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
+    return ConfigHash.fromProto(retryRPC(() -> {
+      GetConfigHashPResponse response = mClient.withDeadlineAfter(
         mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
-        TimeUnit.MILLISECONDS).getConfigHash(GetConfigHashPOptions.getDefaultInstance()),
-        RPC_LOG, "GetConfigHash", ""));
+        TimeUnit.MILLISECONDS).getConfigHash(GetConfigHashPOptions.getDefaultInstance());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getConfigHash response has {} bytes", response.getSerializedSize());
+      }
+      return response;
+      }, RPC_LOG, "GetConfigHash", ""));
   }
 
   @Override
@@ -97,9 +112,14 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
       throws IOException {
     Map<String, String> props = new HashMap<>();
     properties.forEach((key, value) -> props.put(key.getName(), value));
-    retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).putAllProperties(props).build()),
-        RPC_LOG, "setPathConfiguration", "path=%s,properties=%s", path, properties);
+    retryRPC(() -> {
+      SetPathConfigurationPResponse response = mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
+              .setPath(path.getPath()).putAllProperties(props).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getConfigHash response has {} bytes", response.getSerializedSize());
+      }
+      return response;
+      }, RPC_LOG, "setPathConfiguration", "path=%s,properties=%s", path, properties);
   }
 
   @Override
@@ -108,14 +128,26 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     for (PropertyKey key : keys) {
       keySet.add(key.getName());
     }
-    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).addAllKeys(keySet).build()),
-        RPC_LOG, "removePathConfiguration", "path=%s,keys=%s", path, keys);
+    retryRPC(() -> {
+      RemovePathConfigurationPResponse response =
+        mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+          .setPath(path.getPath()).addAllKeys(keySet).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("removePathConfiguration response has {} bytes", response.getSerializedSize());
+      }
+      return response;
+      }, RPC_LOG, "removePathConfiguration", "path=%s,keys=%s", path, keys);
   }
 
   @Override
   public void removePathConfiguration(AlluxioURI path) throws IOException {
-    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).build()), RPC_LOG, "removePathConfiguration", "path=%s", path);
+    retryRPC(() -> {
+      RemovePathConfigurationPResponse response = mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+        .setPath(path.getPath()).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("removePathConfiguration response has {} bytes", response.getSerializedSize());
+      }
+      return response;
+      }, RPC_LOG, "removePathConfiguration", "path=%s", path);
   }
 }

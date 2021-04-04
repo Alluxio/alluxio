@@ -16,11 +16,15 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClearMetricsPRequest;
+import alluxio.grpc.ClearMetricsPResponse;
+import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.ClientMetrics;
 import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
+import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
@@ -75,8 +79,13 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
 
   @Override
   public void clearMetrics() throws IOException {
-    retryRPC(() -> mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build()),
-        LOG, "ClearMetrics", "");
+    retryRPC(() -> {
+      ClearMetricsPResponse response = mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("clearMetrics response has {} bytes", response.getSerializedSize());
+      }
+      return null;
+      }, LOG, "ClearMetrics", "");
   }
 
   @Override
@@ -86,7 +95,10 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
       request.setOptions(MetricsHeartbeatPOptions.newBuilder()
           .addAllClientMetrics(metrics).build());
-      mClient.metricsHeartbeat(request.build());
+      MetricsHeartbeatPResponse response = mClient.metricsHeartbeat(request.build());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("metricsHeartbeat response is {} bytes", response.getSerializedSize());
+      }
     } catch (io.grpc.StatusRuntimeException e) {
       disconnect();
       throw new UnavailableException(e);
@@ -96,7 +108,13 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   @Override
   public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
-        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap(),
-        LOG, "GetMetrics", "");
+        () -> {
+            GetMetricsPResponse response = mClient.getMetrics(GetMetricsPOptions.getDefaultInstance());
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("getMetrics response has {} bytes, {} metrics", response.getSerializedSize(),
+                      response.getMetricsCount());
+            }
+            return response.getMetricsMap();
+            }, LOG, "GetMetrics", "");
   }
 }
