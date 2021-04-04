@@ -222,7 +222,7 @@ public abstract class AbstractClient implements Client {
       }
       try {
         beforeConnect();
-        LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
+        LOG.trace("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
@@ -234,7 +234,7 @@ public abstract class AbstractClient implements Client {
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
-        LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+        LOG.trace("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mAddress);
         return;
       } catch (IOException e) {
@@ -287,7 +287,7 @@ public abstract class AbstractClient implements Client {
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
-      LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
+      LOG.trace("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
       mChannel.shutdown();
       mConnected = false;
@@ -367,14 +367,14 @@ public abstract class AbstractClient implements Client {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
     long startMs = System.currentTimeMillis();
-    logger.debug("Enter: {}({})", rpcName, debugDesc);
+    logger.trace("Enter: {}({})", rpcName, debugDesc);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
       V ret = retryRPCInternal(retryPolicy, rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
       long duration = System.currentTimeMillis() - startMs;
-      logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
+      logger.trace("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) returned {} in {} ms (>={} ms)",
             rpcName, String.format(description, args), ret, duration, mRpcThreshold);

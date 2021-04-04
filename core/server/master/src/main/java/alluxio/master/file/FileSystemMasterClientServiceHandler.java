@@ -123,6 +123,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void checkAccess(CheckAccessPRequest request,
       StreamObserver<CheckAccessPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("checkAccess request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG,
         () -> {
           AlluxioURI pathUri = getAlluxioURI(request.getPath());
@@ -135,6 +140,10 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void checkConsistency(CheckConsistencyPRequest request,
       StreamObserver<CheckConsistencyPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("checkConsistency request is {} bytes",
+              request.getSerializedSize());
+    }
     CheckConsistencyPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
@@ -151,6 +160,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void completeFile(CompleteFilePRequest request,
       StreamObserver<CompleteFilePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("completeFile request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.completeFile(pathUri,
@@ -162,6 +176,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void createDirectory(CreateDirectoryPRequest request,
       StreamObserver<CreateDirectoryPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("createDirectory request is {} bytes",
+              request.getSerializedSize());
+    }
+
     CreateDirectoryPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
@@ -174,6 +193,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void createFile(CreateFilePRequest request,
       StreamObserver<CreateFilePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("createFile request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
@@ -186,6 +210,11 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void free(FreePRequest request, StreamObserver<FreePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("free request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
@@ -196,6 +225,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getNewBlockIdForFile(GetNewBlockIdForFilePRequest request,
       StreamObserver<GetNewBlockIdForFilePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getNewBlockIdsForFile request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetNewBlockIdForFilePResponse.newBuilder()
@@ -206,6 +240,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getFilePath(GetFilePathPRequest request,
       StreamObserver<GetFilePathPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getFilePath request is {} bytes",
+              request.getSerializedSize());
+    }
+
     long fileId = request.getFileId();
     RpcUtils.call(LOG,
         () -> GetFilePathPResponse.newBuilder()
@@ -216,6 +255,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getStatus request is {} bytes",
+              request.getSerializedSize());
+    }
+
     String path = request.getPath();
     GetStatusPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
@@ -230,6 +274,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("listStatus request is {} bytes",
+              request.getSerializedSize());
+    }
+
     final int listStatusBatchSize =
         ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
@@ -256,6 +305,11 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("mount request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
           new AlluxioURI(request.getUfsPath()),
@@ -268,6 +322,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void updateMount(UpdateMountPRequest request,
       StreamObserver<UpdateMountPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("updateMount request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.updateMount(new AlluxioURI(request.getAlluxioPath()),
           MountContext.create(request.getOptions().toBuilder())
@@ -279,6 +338,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getMountTable request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
@@ -292,6 +356,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getSyncPathList(GetSyncPathListPRequest request,
       StreamObserver<GetSyncPathListPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getSyncPathList request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
@@ -302,6 +371,11 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("remove request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder())
@@ -312,6 +386,10 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void rename(RenamePRequest request, StreamObserver<RenamePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("rename request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG, () -> {
       AlluxioURI srcPathUri = getAlluxioURI(request.getPath());
       AlluxioURI dstPathUri = getAlluxioURI(request.getDstPath());
@@ -325,6 +403,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void reverseResolve(ReverseResolvePRequest request,
       StreamObserver<ReverseResolvePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("reverseResolve request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI ufsUri = new AlluxioURI(request.getUfsUri());
       AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
@@ -335,6 +418,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest request,
       StreamObserver<ScheduleAsyncPersistencePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("scheduleAsyncPersistence request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(request.getPath()),
           ScheduleAsyncPersistenceContext.create(request.getOptions().toBuilder()));
@@ -345,6 +433,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void setAttribute(SetAttributePRequest request,
       StreamObserver<SetAttributePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setAttribute request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAttribute(pathUri,
@@ -357,6 +450,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void startSync(StartSyncPRequest request,
       StreamObserver<StartSyncPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("startSync request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
       return StartSyncPResponse.newBuilder().build();
@@ -366,6 +464,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void stopSync(StopSyncPRequest request,
       StreamObserver<StopSyncPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("stopSync request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
       return StopSyncPResponse.newBuilder().build();
@@ -374,6 +477,11 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void unmount(UnmountPRequest request, StreamObserver<UnmountPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("unmount request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mFileSystemMaster.unmount(new AlluxioURI(request.getAlluxioPath()));
       return UnmountPResponse.newBuilder().build();
@@ -383,6 +491,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void updateUfsMode(UpdateUfsModePRequest request,
       StreamObserver<UpdateUfsModePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("updateUfsMode request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       UfsMode ufsMode;
       switch (request.getOptions().getUfsMode()) {
@@ -403,6 +516,11 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void setAcl(SetAclPRequest request, StreamObserver<SetAclPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("setAcl request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAcl(pathUri, request.getAction(),
@@ -416,6 +534,11 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getStateLockHolders(GetStateLockHoldersPRequest request,
                                   StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getStateLockHolders request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
