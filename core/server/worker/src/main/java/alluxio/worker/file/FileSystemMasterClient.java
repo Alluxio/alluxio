@@ -16,8 +16,11 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetFileInfoPResponse;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
+import alluxio.grpc.GetPinnedFileIdsPResponse;
 import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
@@ -77,8 +80,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(() -> GrpcUtils.fromProto(mClient
-        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()),
+    return retryRPC(() -> {
+              GetFileInfoPResponse response = mClient.getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build());
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("getFileInfo response is {} bytes", response.getSerializedSize());
+              }
+              return GrpcUtils.fromProto(response.getFileInfo());
+            },
         LOG, "GetFileInfo", "fileId=%d", fileId);
   }
 
@@ -86,11 +94,16 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the set of pinned file ids
    */
   public Set<Long> getPinList() throws IOException {
-    return retryRPC(() -> new HashSet<>(mClient.withDeadlineAfter(mContext.getClusterConf()
-            .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-            .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build())
-            .getPinnedFileIdsList()),
-        LOG, "GetPinList", "");
+    return retryRPC(() ->
+    {
+      GetPinnedFileIdsPResponse response = mClient.withDeadlineAfter(mContext.getClusterConf()
+              .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+              .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("getPinnedFileIds response has {} bytes, {} pinned files", response.getSerializedSize(), response.getPinnedFileIdsCount());
+      }
+      return new HashSet<>(response.getPinnedFileIdsList());
+    }, LOG, "GetPinList", "");
   }
 
   /**
@@ -99,8 +112,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws IOException if an I/O error occurs
    */
   public UfsInfo getUfsInfo(final long mountId) throws IOException {
-    return retryRPC(() -> mClient
-        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo(),
-        LOG, "GetUfsInfo", "mountId=%d", mountId);
+    return retryRPC(() -> {
+      GetUfsInfoPResponse response = mClient
+              .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("getUfsInfo response is {} bytes", response.getSerializedSize());
+      }
+      return response.getUfsInfo();
+    }, LOG, "GetUfsInfo", "mountId=%d", mountId);
   }
 }
