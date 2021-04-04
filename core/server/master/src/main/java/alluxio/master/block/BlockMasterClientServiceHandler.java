@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+// TODO(jiacheng)
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio client.
  */
@@ -62,6 +63,11 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getBlockInfo(GetBlockInfoPRequest request,
       StreamObserver<GetBlockInfoPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getBlockInfo request is {} bytes",
+              request.getSerializedSize());
+    }
+
     long blockId = request.getBlockId();
     GetBlockInfoPOptions options = request.getOptions();
     RpcUtils.call(LOG,
