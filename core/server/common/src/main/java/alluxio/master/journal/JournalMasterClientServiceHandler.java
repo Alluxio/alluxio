@@ -44,6 +44,11 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getQuorumInfo(GetQuorumInfoPRequest request,
       StreamObserver<GetQuorumInfoPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getQuoromInfo request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> mJournalMaster.getQuorumInfo(), "getQuorumInfo", "request=%s",
         responseObserver, request);
   }
@@ -51,6 +56,11 @@ public class JournalMasterClientServiceHandler
   @Override
   public void removeQuorumServer(RemoveQuorumServerPRequest request,
       StreamObserver<RemoveQuorumServerPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("removeQuorumServer request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       mJournalMaster.removeQuorumServer(request.getServerAddress());
       return RemoveQuorumServerPResponse.getDefaultInstance();
