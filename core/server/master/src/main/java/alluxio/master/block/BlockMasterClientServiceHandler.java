@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-// TODO(jiacheng)
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio client.
  */
