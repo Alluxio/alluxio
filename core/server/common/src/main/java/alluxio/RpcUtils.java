@@ -109,9 +109,9 @@ public final class RpcUtils {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      logger.trace("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
-      logger.debug("Exit: {}: {}", methodName, debugDesc);
+      logger.trace("Exit: {}: {}", methodName, debugDesc);
       return res;
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
@@ -159,17 +159,17 @@ public final class RpcUtils {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
+      logger.trace("Enter(stream): {}: {}", methodName, debugDesc);
       T result = callable.call();
-      logger.debug("Exit(stream) (OK): {}: {}", methodName, debugDesc);
+      logger.trace("Exit(stream) (OK): {}: {}", methodName, debugDesc);
       if (sendResponse) {
-        logger.debug("OnNext(stream): {}: {}", methodName, debugDesc);
+        logger.trace("OnNext(stream): {}: {}", methodName, debugDesc);
         responseObserver.onNext(result);
       }
       if (completeResponse) {
-        logger.debug("Completing(stream): {}: {}", methodName, debugDesc);
+        logger.trace("Completing(stream): {}: {}", methodName, debugDesc);
         responseObserver.onCompleted();
-        logger.debug("Completed(stream): {}: {}", methodName, debugDesc);
+        logger.trace("Completed(stream): {}: {}", methodName, debugDesc);
       }
     } catch (Exception e) {
       logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
