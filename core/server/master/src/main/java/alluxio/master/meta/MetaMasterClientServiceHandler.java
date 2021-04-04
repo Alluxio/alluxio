@@ -55,6 +55,10 @@ public final class MetaMasterClientServiceHandler
 
   @Override
   public void backup(BackupPRequest request, StreamObserver<BackupPStatus> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("backup request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG,
         () -> mMetaMaster.backup(request, StateLockOptions.defaultsForShellBackup()).toProto(),
         "backup", "request=%s", responseObserver, request);
@@ -63,6 +67,10 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getBackupStatus(BackupStatusPRequest request,
       StreamObserver<BackupPStatus> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getBackupStatus request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus(request).toProto(),
         "getBackupStatus", "request=%s", responseObserver, request);
   }
@@ -81,6 +89,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
+
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
