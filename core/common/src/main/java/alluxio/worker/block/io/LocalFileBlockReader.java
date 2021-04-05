@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -30,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalFileBlockReader extends BlockReader {
   private final String mFilePath;
-  private final RandomAccessFile mLocalFile;
+  private final FileInputStream mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
   private final long mFileSize;
@@ -44,9 +45,11 @@ public class LocalFileBlockReader extends BlockReader {
    */
   public LocalFileBlockReader(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path, "path");
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
-    mFileSize = mLocalFile.length();
+    mLocalFile = mCloser.register(new FileInputStream(mFilePath));
+
+    // The file channel is used to get file size
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+    mFileSize = mLocalFileChannel.size();
   }
 
   @Override
@@ -96,8 +99,10 @@ public class LocalFileBlockReader extends BlockReader {
     if (length == -1L) {
       length = mFileSize - offset;
     }
-    MappedByteBuffer buffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
-    buffer.load(); // best effort to reduce page fault
+    byte[] tmpbuf = new byte[(int) length];
+    mLocalFile.skip(offset);
+    mLocalFile.read(tmpbuf, 0, (int) length);
+    ByteBuffer buffer = ByteBuffer.wrap(tmpbuf);
     return buffer;
   }
 
