@@ -18,6 +18,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
@@ -95,7 +96,9 @@ public class LocalFileBlockReader extends BlockReader {
     if (length == -1L) {
       length = mFileSize - offset;
     }
-    return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+    MappedByteBuffer buffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+    buffer.load(); // best effort to reduce page fault
+    return buffer;
   }
 
   @Override

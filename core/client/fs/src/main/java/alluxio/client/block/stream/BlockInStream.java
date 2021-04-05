@@ -315,7 +315,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    byteBuffer.limit(off + toRead);
+    byteBuffer.position(off).limit(off + toRead);
     mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
     return toRead;
