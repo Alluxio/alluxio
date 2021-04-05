@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.retry.TimeoutRetry;
+import alluxio.util.CommonUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
@@ -49,6 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
+  public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * 1000;
 
   private final String mDbPath;
   private final String mDbCheckpointPath;
@@ -142,7 +145,20 @@ public final class RocksStore implements Closeable {
     cfDescriptors.addAll(mColumnFamilyDescriptors);
     // a list which will hold the handles for the column families once the db is opened
     List<ColumnFamilyHandle> columns = new ArrayList<>();
-    mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
+    final TimeoutRetry retryPolicy = new TimeoutRetry(ROCKS_OPEN_RETRY_TIMEOUT, 100);
+    RocksDBException lastException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
+      } catch (RocksDBException e) {
+        // sometimes the previous terminated process's lock may not have been fully cleared yet
+        // retry until timeout to make sure that isn't the case
+        lastException = e;
+      }
+    }
+    if (mDb == null && lastException != null) {
+      throw lastException;
+    }
     mCheckpoint = Checkpoint.create(mDb);
     for (int i = 0; i < columns.size() - 1; i++) {
       // Skip the default column.
