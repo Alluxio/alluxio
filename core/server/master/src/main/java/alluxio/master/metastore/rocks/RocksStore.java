@@ -50,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
-  public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * 1000;
+  public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
 
   private final String mDbPath;
   private final String mDbCheckpointPath;
