@@ -19,6 +19,7 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RemoveQuorumServerPRequest;
+import alluxio.grpc.RemoveQuorumServerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 
@@ -64,14 +65,24 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
 
   @Override
   public GetQuorumInfoPResponse getQuorumInfo() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getQuorumInfo(GetQuorumInfoPRequest.getDefaultInstance()),
-        RPC_LOG, "GetQuorumInfo",  "");
+    return retryRPC(() -> {
+      GetQuorumInfoPResponse response = mClient.getQuorumInfo(GetQuorumInfoPRequest.getDefaultInstance());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getQuorumInfo response has {} bytes, {} ServerInfo", response.getSerializedSize(),
+                response.getServerInfoCount());
+      }
+      return response;
+    }, RPC_LOG, "GetQuorumInfo",  "");
   }
 
   @Override
   public void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException {
-    retryRPC(() -> mClient.removeQuorumServer(
-        RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()),
-        RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
+    retryRPC(() -> {
+      RemoveQuorumServerPResponse response = mClient.removeQuorumServer(
+        RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("removeQuorumServer response has {} bytes", response.getSerializedSize());
+      }
+      return response; }, RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
   }
 }
