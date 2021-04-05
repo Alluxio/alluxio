@@ -16,7 +16,6 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.CommonUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
