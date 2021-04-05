@@ -297,9 +297,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *         the end of the stream has been reached
    */
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    checkIfClosed();
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
         PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
+    checkIfClosed();
     if (len == 0) {
       return 0;
     }
