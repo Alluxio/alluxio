@@ -69,6 +69,12 @@ public class TableMasterClientServiceHandler
   @Override
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("attachDatabase request is {} bytes, {} options",
+              request.getSerializedSize(),
+              request.getOptionsCount());
+    }
+
     RpcUtils.call(LOG, () -> {
       SyncStatus status = mTableMaster
           .attachDatabase(request.getUdbType(), request.getUdbConnectionUri(),
@@ -82,6 +88,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void detachDatabase(DetachDatabasePRequest request,
       StreamObserver<DetachDatabasePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("detachDatabase request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
             .detachDatabase(request.getDbName())).build(), "detachDatabase", "",
         responseObserver);
@@ -90,6 +101,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getAllDatabases request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
         .addAllDatabase(mTableMaster.getAllDatabases()).build(),
         "getAllDatabases", "", responseObserver);
@@ -98,6 +114,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllTables(GetAllTablesPRequest request,
       StreamObserver<GetAllTablesPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getAllTables request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
         .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build(),
         "getAllTables", "", responseObserver);
@@ -106,6 +127,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void getDatabase(GetDatabasePRequest request,
       StreamObserver<GetDatabasePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getDatabase request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
         mTableMaster.getDatabase(request.getDbName())).build(),
         "getDatabase", "", responseObserver);
@@ -114,6 +140,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTable(GetTablePRequest request,
       StreamObserver<GetTablePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getTable request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       Table table = mTableMaster.getTable(request.getDbName(), request.getTableName());
       if (table != null) {
@@ -126,6 +157,12 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTableColumnStatistics(GetTableColumnStatisticsPRequest request,
       StreamObserver<GetTableColumnStatisticsPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getTableColumnStatistics request is {} bytes, {} column names",
+              request.getSerializedSize(),
+              request.getColNamesCount());
+    }
+
     RpcUtils.call(LOG, () -> GetTableColumnStatisticsPResponse.newBuilder().addAllStatistics(
         mTableMaster.getTableColumnStatistics(request.getDbName(),
             request.getTableName(), request.getColNamesList())).build(),
@@ -135,6 +172,14 @@ public class TableMasterClientServiceHandler
   @Override
   public void getPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest request,
       StreamObserver<GetPartitionColumnStatisticsPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getPartitionColumnStatistics request is {} bytes, {} column names, "
+                      + "{} partition names",
+              request.getSerializedSize(),
+              request.getColNamesCount(),
+              request.getPartNamesCount());
+    }
+
     RpcUtils.call(LOG, () -> GetPartitionColumnStatisticsPResponse.newBuilder()
             .putAllPartitionStatistics(mTableMaster.getPartitionColumnStatistics(
                 request.getDbName(), request.getTableName(), request.getPartNamesList(),
@@ -145,6 +190,10 @@ public class TableMasterClientServiceHandler
   @Override
   public void readTable(ReadTablePRequest request,
       StreamObserver<ReadTablePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("readTable request is {} bytes",
+              request.getSerializedSize());
+    }
     RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
         .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
         .build(), "readTable", "", responseObserver);
@@ -153,6 +202,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void transformTable(TransformTablePRequest request,
       StreamObserver<TransformTablePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("transformTable request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
         .transformTable(request.getDbName(), request.getTableName(), request.getDefinition()))
         .build(), "transformTable", "", responseObserver);
@@ -161,6 +215,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void syncDatabase(SyncDatabasePRequest request,
       StreamObserver<SyncDatabasePResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("syncDatabase request is {} bytes",
+              request.getSerializedSize());
+    }
+
     RpcUtils.call(LOG, () -> {
       SyncStatus status = mTableMaster.syncDatabase(request.getDbName());
       return SyncDatabasePResponse.newBuilder().setSuccess(status.getTablesErrorsCount() == 0)
@@ -171,6 +230,11 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTransformJobInfo(GetTransformJobInfoPRequest request,
       StreamObserver<GetTransformJobInfoPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getTransformJobInfo request is {} bytes",
+              request.getSerializedSize());
+    }
+
     if (request.hasJobId()) {
       RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
           .getTransformJobInfo(request.getJobId()).toProto()).build(),
