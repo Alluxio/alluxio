@@ -14,17 +14,16 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -70,10 +69,10 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
 
-    AlluxioURI uri = new AlluxioURI("/testFile");
-    FileOutStream out = sFileSystem.createFile(uri);
-    out.write("/testFileA\n/testFileB\n".getBytes(StandardCharsets.UTF_8));
-    out.close();
+    String dir = System.getProperty("user.dir");
+    File testFile = File.createTempFile("testFile", "", new File(dir));
+    FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
+    testFile.deleteOnExit();
 
     AlluxioURI uriA = new AlluxioURI("/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testFileB");
@@ -82,7 +81,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
 
-    sFsShell.run("distributedLoad", "-f", "/testFile");
+    sFsShell.run("distributedLoad", "-f", testFile.getName());
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());

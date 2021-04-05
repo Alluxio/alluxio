@@ -16,7 +16,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
@@ -33,6 +32,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -118,20 +119,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
 
     if (!cl.hasOption('f')) {
+      AlluxioURI path = new AlluxioURI(args[0]);
       distributedLoad(path, replication);
     } else {
-      FileInStream is = mFileSystem.openFile(path);
-      int size = (int) is.remaining();
-      byte[] bytes = new byte[size];
-      is.read(bytes);
-      String s = new String(bytes);
-      String[] filenames = s.split("\n");
-      for (String filename : filenames) {
-        distributedLoad(new AlluxioURI(filename), replication);
+      BufferedReader reader = new BufferedReader(new FileReader(args[0]));
+      for (String filename; (filename = reader.readLine()) != null; ) {
+        AlluxioURI path = new AlluxioURI(filename);
+        distributedLoad(path, replication);
       }
     }
     return 0;
