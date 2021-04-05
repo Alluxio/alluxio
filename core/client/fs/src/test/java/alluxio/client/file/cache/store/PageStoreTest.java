@@ -11,10 +11,6 @@
 
 package alluxio.client.file.cache.store;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
@@ -28,7 +24,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -44,6 +39,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.*;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -63,9 +60,6 @@ public class PageStoreTest {
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -120,8 +114,8 @@ public class PageStoreTest {
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
-    mThrown.expect(IllegalArgumentException.class);
-    mPageStore.get(id, offset, len, buf, 0);
+    assertThrows(IllegalArgumentException.class,
+            () -> mPageStore.get(id, offset, len, buf, 0));
   }
 
   @Test

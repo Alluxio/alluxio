@@ -52,9 +52,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -94,9 +92,6 @@ public class AbstractFileSystemTest {
 
   private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
   private FileSystemContext mMockFileSystemContext = mock(FileSystemContext.class);
-
-  @Rule
-  public ExpectedException mExpectedException = ExpectedException.none();
 
   /**
    * Sets up the configuration before a test runs.

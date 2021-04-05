@@ -12,10 +12,7 @@
 package alluxio.client.block.stream;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -148,7 +145,6 @@ public final class GrpcBlockingStreamTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
     mResponseObserver.onError(Status.UNAUTHENTICATED.asRuntimeException());
-
     mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
   }
 
@@ -158,10 +154,11 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendFailsAfterClosed() throws Exception {
     mStream.close();
-    mThrown.expect(CancelledException.class);
-    mThrown.expectMessage(containsString(TEST_MESSAGE));
-
-    mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
+    // TODO(jiacheng): Change all message check to this flavor
+    Exception e = assertThrows(CancelledException.class,
+            () -> mStream.send(WriteRequest.newBuilder().build(), TIMEOUT));
+    System.out.println(e.getMessage());
+    assertTrue(e.getMessage().contains(TEST_MESSAGE));
   }
 
   /**

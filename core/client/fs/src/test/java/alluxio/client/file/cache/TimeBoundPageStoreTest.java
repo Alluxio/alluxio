@@ -12,11 +12,7 @@
 package alluxio.client.file.cache;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -29,7 +25,6 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -53,8 +48,6 @@ public class TimeBoundPageStoreTest {
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -89,8 +82,8 @@ public class TimeBoundPageStoreTest {
   public void delete() throws Exception {
     mPageStore.put(PAGE_ID, PAGE);
     mTimeBoundPageStore.delete(PAGE_ID);
-    mThrown.expect(PageNotFoundException.class);
-    mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0);
+    assertThrows(PageNotFoundException.class, () ->
+            mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
   }
 
   @Test

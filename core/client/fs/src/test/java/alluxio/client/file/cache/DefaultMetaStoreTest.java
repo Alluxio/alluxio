@@ -17,17 +17,14 @@ import alluxio.exception.PageNotFoundException;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
+import static org.junit.Assert.assertThrows;
 
 /**
  * Tests for the {@link DefaultMetaStore} class.
  */
 public class DefaultMetaStoreTest {
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
-
   protected final PageId mPage = new PageId("1L", 2L);
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -64,7 +61,9 @@ public class DefaultMetaStoreTest {
 
   @Test
   public void removeNotExist() throws Exception {
-    mThrown.expect(PageNotFoundException.class);
+    // TODO(jiacheng)
+//    mThrown.expect(PageNotFoundException.class);
+    assertThrows(PageNotFoundException.class, () -> mMetaStore.removePage(mPage));
     Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
   }
 
@@ -83,8 +82,7 @@ public class DefaultMetaStoreTest {
 
   @Test
   public void getPageInfoNotExist() throws Exception {
-    mThrown.expect(PageNotFoundException.class);
-    mMetaStore.getPageInfo(mPage);
+    assertThrows(PageNotFoundException.class, () -> mMetaStore.getPageInfo(mPage));
   }
 
   @Test

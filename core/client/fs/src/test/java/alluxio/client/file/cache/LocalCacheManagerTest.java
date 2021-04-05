@@ -11,13 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -43,7 +36,6 @@ import com.google.common.collect.Streams;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -55,6 +47,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -77,9 +72,6 @@ public final class LocalCacheManagerTest {
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -487,8 +479,8 @@ public final class LocalCacheManagerTest {
   @Test
   public void getNotEnoughSpaceException() throws Exception {
     byte[] buf = new byte[PAGE1.length - 1];
-    mThrown.expect(IllegalArgumentException.class);
-    mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0);
+    assertThrows(IllegalArgumentException.class, () ->
+            mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0));
   }
 
   @Test

@@ -12,10 +12,7 @@
 package alluxio.client.file;
 
 import static alluxio.client.file.FileSystemCache.Key;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.InstancedConfiguration;
@@ -23,9 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.security.User;
 import alluxio.util.ConfigurationUtils;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -35,9 +30,6 @@ import java.util.Set;
 import javax.security.auth.Subject;
 
 public class FileSystemCacheTest {
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   private FileSystemCache mFileSystemCache = new FileSystemCache();
 
   // Helper method to get the underlying delegated file system from cache
@@ -120,13 +112,15 @@ public class FileSystemCacheTest {
 
   @Test
   public void listStatusClosed() throws IOException, AlluxioException {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE);
-    Key key1 = createTestFSKey("user1");
-    FileSystem fs1 = mFileSystemCache.get(key1);
-    fs1.close();
-    assertTrue(fs1.isClosed());
-    fs1.listStatus(new AlluxioURI("/"));
+    assertThrows(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE,
+      IOException.class,
+      () -> {
+        Key key1 = createTestFSKey("user1");
+        FileSystem fs1 = mFileSystemCache.get(key1);
+        fs1.close();
+        assertTrue(fs1.isClosed());
+        fs1.listStatus(new AlluxioURI("/"));
+      });
   }
 
   private Key createTestFSKey(String username) {

@@ -11,7 +11,7 @@
 
 package alluxio.client.block;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -56,9 +56,7 @@ import com.google.common.collect.Sets;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -144,9 +142,6 @@ public final class AlluxioBlockStoreTest {
     }
   }
 
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
-
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mWorkerClient;
   private AlluxioBlockStore mBlockStore;
@@ -192,8 +187,7 @@ public final class AlluxioBlockStoreTest {
             .setLocationPolicy((workerOptions) -> {
               throw new RuntimeException("policy threw exception");
             });
-    mException.expect(Exception.class);
-    mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    assertThrows(Exception.class, () -> mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
   }
 
   @Test
@@ -201,10 +195,10 @@ public final class AlluxioBlockStoreTest {
     OutStreamOptions options =
         OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
-    mException.expect(NullPointerException.class);
-    mException.expectMessage(
-        PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED.toString());
-    mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    Exception e = assertThrows(NullPointerException.class,
+            () -> mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
+    assertTrue(e.getMessage()
+            .contains(PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED.toString()));
   }
 
   @Test
@@ -216,10 +210,10 @@ public final class AlluxioBlockStoreTest {
             .setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(
                 new MockBlockLocationPolicy(Lists.<WorkerNetAddress>newArrayList()));
-    mException.expect(UnavailableException.class);
-    mException
-        .expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(BLOCK_LENGTH));
-    mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    Exception e = assertThrows(UnavailableException.class,
+            () -> mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
+    assertTrue(e.getMessage()
+            .contains(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(BLOCK_LENGTH)));
   }
 
   @Test
@@ -321,9 +315,9 @@ public final class AlluxioBlockStoreTest {
             sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(Collections.emptyList());
-    mException.expect(UnavailableException.class);
-    mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
+    Exception e = assertThrows(UnavailableException.class,
+            () -> mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+    assertTrue(e.getMessage().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
   }
 
   @Test
@@ -333,10 +327,9 @@ public final class AlluxioBlockStoreTest {
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
-
-    mException.expect(UnavailableException.class);
-    mException.expectMessage("unavailable in both Alluxio and UFS");
-    mBlockStore.getInStream(BLOCK_ID, options).getAddress();
+    Exception e = assertThrows(UnavailableException.class,
+            () -> mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+    assertTrue(e.getMessage().contains("unavailable in both Alluxio and UFS"));
   }
 
   @Test
