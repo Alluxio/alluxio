@@ -125,10 +125,11 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       AlluxioURI path = new AlluxioURI(args[0]);
       distributedLoad(path, replication);
     } else {
-      BufferedReader reader = new BufferedReader(new FileReader(args[0]));
-      for (String filename; (filename = reader.readLine()) != null; ) {
-        AlluxioURI path = new AlluxioURI(filename);
-        distributedLoad(path, replication);
+      try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
+        for (String filename; (filename = reader.readLine()) != null; ) {
+          AlluxioURI path = new AlluxioURI(filename);
+          distributedLoad(path, replication);
+        }
       }
     }
     return 0;
