@@ -149,6 +149,7 @@ public final class RocksStore implements Closeable {
     while (retryPolicy.attempt()) {
       try {
         mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
+        break;
       } catch (RocksDBException e) {
         // sometimes the previous terminated process's lock may not have been fully cleared yet
         // retry until timeout to make sure that isn't the case
