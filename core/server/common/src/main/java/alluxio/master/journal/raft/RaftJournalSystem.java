@@ -49,6 +49,7 @@ import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.GroupInfoReply;
 import org.apache.ratis.protocol.GroupInfoRequest;
+import org.apache.ratis.protocol.LeaderNotReadyException;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
@@ -80,6 +81,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -559,6 +562,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return services;
   }
 
+  private static final long JOURNAL_STAT_LOG_MAX_INTERVAL_MS = 30000L;
+
   /**
    * Attempts to catch up. If the master loses leadership during this method, it will return early.
    *
@@ -572,6 +577,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
+    OptionalLong endCommitIndex = OptionalLong.empty();
+    try {
+      // raft peer IDs are unique, so there should really only ever be one result.
+      // If for some reason there is more than one..it should be fine as it only
+      // affects the completion time estimate in the logs.
+      synchronized (this) { // synchronized to appease findbugs; shouldn't make any difference
+        RaftPeerId serverId = mServer.getId();
+        Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
+            .filter(commit -> serverId.equals(RaftPeerId.valueOf(commit.getServer().getId())))
+            .findFirst();
+        if (commitInfo.isPresent()) {
+          endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
+        } else {
+          throw new IOException("Commit info was not present. Couldn't find the current server's "
+              + "latest commit");
+        }
+      }
+    } catch (IOException e) {
+      LogUtils.warnWithException(LOG, "Failed to get raft log information before replay."
+          + " Replay statistics will not be available", e);
+    }
+
+    RaftJournalProgressLogger progressLogger =
+        new RaftJournalProgressLogger(mStateMachine, endCommitIndex);
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -604,8 +633,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       } catch (TimeoutException | ExecutionException | IOException e) {
         ex = e;
       }
+
       if (ex != null) {
-        LOG.info("Exception submitting term start entry: {}", ex.toString());
+        // LeaderNotReadyException typically indicates Ratis is still replaying the journal.
+        if (ex instanceof LeaderNotReadyException) {
+          progressLogger.logProgress();
+        } else {
+          LOG.info("Exception submitting term start entry: {}", ex.toString());
+        }
         // avoid excessive retries when server is not ready
         Thread.sleep(waitBeforeRetry);
         continue;

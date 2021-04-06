@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
 
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -81,6 +83,9 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   /** A supplier of journal sinks for this journal. */
   private final Supplier<Set<JournalSink>> mJournalSinks;
+
+  /** The last sequence number applied to the journal. */
+  private volatile long mLastAppliedSN;
 
   /**
    * The state of the journal catchup.
@@ -168,12 +173,34 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   @Override
   public void run() {
+    // Start a new thread which tracks the journal replay statistics
+    ExponentialBackoffRetry retry = new ExponentialBackoffRetry(1000, 30000, Integer.MAX_VALUE);
+    long start = System.currentTimeMillis();
+    final OptionalLong finalSN = UfsJournalReader.getLastSN(mJournal);
+    Thread t = new Thread(() -> {
+      UfsJournalProgressLogger progressLogger =
+          new UfsJournalProgressLogger(mJournal, finalSN, () -> mLastAppliedSN);
+      while (!Thread.currentThread().isInterrupted() && retry.attempt()) {
+        // log current stats
+        progressLogger.logProgress();
+      }
+    });
     try {
+      t.start();
       runInternal();
     } catch (Throwable e) {
+      t.interrupt();
       ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
           mMaster.getName());
       System.exit(-1);
+    } finally {
+      t.interrupt();
+      try {
+        t.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        LOG.warn("interrupted while waiting for journal stats thread to shut down.");
+      }
     }
   }
 
@@ -213,6 +240,7 @@ public final class UfsJournalCheckpointThread extends Thread {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
             }
+            mLastAppliedSN = entry.getSequenceNumber();
             break;
           default:
             mCatchupState = CatchupState.DONE;
