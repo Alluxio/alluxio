@@ -165,7 +165,7 @@ public class AsyncCacheRequestManager {
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
              .createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
-      BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
+      BufferUtils.transfer(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
     } catch (AlluxioException | IOException e) {
