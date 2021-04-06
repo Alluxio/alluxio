@@ -248,6 +248,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServingWebServer() {
     stopRejectingWebServer();
+    // TODO(jiacheng): what if the web server exists? Can we just init another one?
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
     // reset master web port
@@ -361,6 +362,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();
     }
+    // TODO(jiacheng): What if we don't stop serving here and redirect to primary?
+    // TODO(jiacheng): identify if this is stopping the process or shifting to secondary
+    LOG.warn("Do not stop web server here. We should redirect to the primary master.");
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;

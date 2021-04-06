@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
-final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
+public final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
 
@@ -201,5 +201,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
   }
 }

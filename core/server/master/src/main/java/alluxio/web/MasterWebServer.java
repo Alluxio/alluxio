@@ -15,7 +15,11 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.AbstractPrimarySelector;
 import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.FaultTolerantAlluxioMasterProcess;
+import alluxio.master.PrimarySelector;
+import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -31,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -48,6 +53,8 @@ public final class MasterWebServer extends WebServer {
 
   private final FileSystem mFileSystem;
 
+  private PrimarySelector mPrimarySelector;
+
   /**
    * Creates a new instance of {@link MasterWebServer}.
    *
@@ -55,6 +62,7 @@ public final class MasterWebServer extends WebServer {
    * @param address the service address
    * @param masterProcess the Alluxio master process
    */
+  // TODO(jiacheng): start isPrimary=true or false?
   public MasterWebServer(String serviceName, InetSocketAddress address,
       final AlluxioMasterProcess masterProcess) {
     super(serviceName, address);
@@ -100,11 +108,44 @@ public final class MasterWebServer extends WebServer {
     } catch (IOException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }
+
+    if (masterProcess instanceof FaultTolerantAlluxioMasterProcess) {
+      mPrimarySelector = ((FaultTolerantAlluxioMasterProcess) masterProcess).getPrimarySelector();
+    } else {
+      mPrimarySelector = new SingleMasterPrimarySelector();
+    }
+
+    // If the server is not the primary master, the HTTP request will be redirected to the primary.
+    WebServerUtils.addRedirectionFilter(mServletContextHandler, mPrimarySelector);
   }
 
   @Override
   public void stop() throws Exception {
     mFileSystem.close();
     super.stop();
+  }
+
+  public static class SingleMasterPrimarySelector implements PrimarySelector {
+    @Override
+    public State getState() {
+      return State.PRIMARY;
+    }
+
+    @Override
+    public Scoped onStateChange(Consumer<State> listener) {
+      return null;
+    }
+
+    @Override
+    public void waitForState(State state) throws InterruptedException {
+    }
+
+    @Override
+    public void start(InetSocketAddress localAddress) throws IOException {
+    }
+
+    @Override
+    public void stop() throws IOException {
+    }
   }
 }

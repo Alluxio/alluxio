@@ -160,6 +160,7 @@ public abstract class MasterProcess implements Process {
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
+      // TODO(jiacheng): change this logic because the web server may be long running
       CommonUtils.waitFor(this + " to start",
           () -> isServing() && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
