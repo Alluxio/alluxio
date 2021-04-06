@@ -16,6 +16,7 @@ import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
 
 import org.slf4j.Logger;
@@ -85,6 +86,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int getattr(String path, FileStat stat) {
+    MetricsSystem.counter("Client.GetattroOps").inc();
     path = transformPath(path);
     try {
       Path filePath = Paths.get(path);
@@ -117,6 +119,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int readdir(String path, long bufaddr, long filter, long offset, FuseFileInfo fi) {
+    MetricsSystem.counter("Client.ReadDirOps").inc();
     path = transformPath(path);
     File dir = new File(path);
     FuseFillDir.apply(filter, bufaddr, ".", null, 0);
@@ -132,6 +135,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int open(String path, FuseFileInfo fi) {
+    MetricsSystem.counter("Client.OpenFileOps").inc();
     path = transformPath(path);
     try (FileInputStream fis = new FileInputStream(path)) {
       return 0;
@@ -163,11 +167,13 @@ public class StackFS extends AbstractFuseFileSystem {
       LOG.error("Failed to read {}", path, e);
       return -ErrorCodes.EIO();
     }
+    MetricsSystem.counter("Client.ReadBytes").inc(nread);
     return nread;
   }
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
+    MetricsSystem.counter("Client.CreateFileOps").inc();
     path = transformPath(path);
     Path filePath = Paths.get(path);
     if (Files.exists(filePath)) {
@@ -193,6 +199,7 @@ public class StackFS extends AbstractFuseFileSystem {
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
       outputStream.write(dest);
+      MetricsSystem.counter("Client.WriteBytes").inc(sz);
       return sz;
     } catch (IOException e) {
       LOG.error("Failed to write to {}", path, e);
@@ -202,6 +209,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int mkdir(String path, long mode) {
+    MetricsSystem.counter("Client.MkdirOps").inc();
     path = transformPath(path);
     Path dirPath = Paths.get(path);
     if (Files.exists(dirPath)) {
@@ -219,6 +227,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int unlink(String path) {
+    MetricsSystem.counter("Client.UnlinkOps").inc();
     path = transformPath(path);
     Path filePath = Paths.get(path);
     if (!Files.exists(filePath)) {
@@ -235,6 +244,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int rename(String oldPath, String newPath) {
+    MetricsSystem.counter("Client.RenameOps").inc();
     oldPath = transformPath(oldPath);
     newPath = transformPath(newPath);
     Path oldFilePath = Paths.get(oldPath);
@@ -258,6 +268,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int chmod(String path, long mode) {
+    MetricsSystem.counter("Client.ChmodOps").inc();
     path = transformPath(path);
     Path filePath = Paths.get(path);
     if (!Files.exists(filePath)) {
@@ -275,6 +286,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int chown(String path, long uid, long gid) {
+    MetricsSystem.counter("Client.ChownOps").inc();
     path = transformPath(path);
     Path filePath = Paths.get(path);
     if (!Files.exists(filePath)) {
