@@ -1076,24 +1076,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final class Name {
     // Master metrics
     // metrics names for master status
-<<<<<<< HEAD
-||||||| parent of a7f53499d6 (Add absent cache metrics)
-    public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
-    public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
-    public static final String MASTER_EDGE_CACHE_LOAD_TIMES = "Master.EdgeCacheLoadTimes";
-    public static final String MASTER_EDGE_CACHE_MISSES = "Master.EdgeCacheMisses";
-=======
     public static final String MASTER_ABSENT_CACHE_HITS = "Master.AbsentCacheHits";
     public static final String MASTER_ABSENT_CACHE_MISSES = "Master.AbsentCacheMisses";
     public static final String MASTER_ABSENT_CACHE_INVALIDATIONS
         = "Master.AbsentCacheInvalidations";
     public static final String MASTER_ABSENT_CACHE_SIZE = "Master.AbsentCacheSize";
 
-    public static final String MASTER_EDGE_CACHE_EVICTIONS = "Master.EdgeCacheEvictions";
-    public static final String MASTER_EDGE_CACHE_HITS = "Master.EdgeCacheHits";
-    public static final String MASTER_EDGE_CACHE_LOAD_TIMES = "Master.EdgeCacheLoadTimes";
-    public static final String MASTER_EDGE_CACHE_MISSES = "Master.EdgeCacheMisses";
->>>>>>> a7f53499d6 (Add absent cache metrics)
     public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
     public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
