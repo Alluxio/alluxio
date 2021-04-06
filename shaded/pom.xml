@@ -27,6 +27,7 @@
     <module>hadoop</module>
     <module>ozone</module>
     <module>cosn</module>
+    <module>hcfs-cephfs</module>
   </modules>
 
   <properties>
