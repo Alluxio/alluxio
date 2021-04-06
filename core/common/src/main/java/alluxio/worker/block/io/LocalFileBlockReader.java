@@ -17,9 +17,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
@@ -95,10 +93,6 @@ public class LocalFileBlockReader extends BlockReader {
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
-    // TODO(calvin): May need to make sure length is an int.
-    if (length == -1L) {
-      length = mFileSize - offset;
-    }
     byte[] tmpbuf = new byte[(int) length];
     mLocalFile.skip(offset);
     mLocalFile.read(tmpbuf, 0, (int) length);

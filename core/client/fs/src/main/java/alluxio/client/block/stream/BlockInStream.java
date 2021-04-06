@@ -103,18 +103,17 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
-    AlluxioConfiguration alluxioConf = context.getClusterConf();
-    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean shortCircuitPreferred =
-        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
-
     if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
       return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
 
+    AlluxioConfiguration alluxioConf = context.getClusterConf();
+    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+    boolean shortCircuitPreferred =
+        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
     // Short circuit is enabled when

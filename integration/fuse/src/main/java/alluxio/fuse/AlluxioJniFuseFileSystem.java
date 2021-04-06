@@ -355,9 +355,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     final int sz = (int) size;
     int nread = 0;
-    long fd = fi.fh.get();
+    Long fd = fi.fh.get();
     try {
-      AlluxioFileInStream is = (AlluxioFileInStream) mOpenFileEntries.get(fd);
+      FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
@@ -372,7 +372,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           is.seek(offset);
           int rd = 0;
           while (rd >= 0 && nread < sz) {
-            rd = is.read(buf, nread, sz - nread);
+            rd = ((AlluxioFileInStream) is).read(buf, nread, sz - nread);
             if (rd >= 0) {
               nread += rd;
             }
