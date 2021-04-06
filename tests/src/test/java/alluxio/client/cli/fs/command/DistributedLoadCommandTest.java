@@ -21,7 +21,9 @@ import alluxio.grpc.WritePType;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +33,9 @@ import java.nio.charset.StandardCharsets;
  * Test for {@link DistributedLoadCommand}.
  */
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
   @Test
   public void loadDir() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
@@ -69,10 +74,8 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
 
-    String dir = System.getProperty("user.dir");
-    File testFile = File.createTempFile("testFile", "", new File(dir));
+    File testFile = mTempFolder.newFile("testFile");
     FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
-    testFile.deleteOnExit();
 
     AlluxioURI uriA = new AlluxioURI("/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testFileB");
@@ -81,7 +84,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
 
-    sFsShell.run("distributedLoad", "-f", testFile.getName());
+    sFsShell.run("distributedLoad", "-f", testFile.getAbsolutePath());
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
