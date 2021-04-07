@@ -445,7 +445,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public Optional<JournalSpaceMonitor> getJournalSpaceMonitor() {
-    return mJournalSpaceMonitor == null ? Optional.empty() : Optional.of(mJournalSpaceMonitor);
+    return Optional.ofNullable(mJournalSpaceMonitor);
   }
 
   @Override

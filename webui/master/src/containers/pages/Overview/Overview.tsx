@@ -141,18 +141,20 @@ export class OverviewPresenter extends React.Component<AllProps> {
 
     const warningRender = warnings.map((warning: string, idx: number) => (
       <tr key={idx}>
-        <td colSpan={2} className={className}>{warning}</td>
+        <td colSpan={2} className={className}>
+          {warning}
+        </td>
       </tr>
     ));
     const header = (
-      <tr key="-1" >
-          <th colSpan={2} scope="row" className={className}>
-            Journal Disk Warning{warnings.length > 1 ? "s" : ""}
-          </th>
+      <tr key="-1">
+        <th colSpan={2} scope="row" className={className}>
+          Journal Disk Warning{warnings.length > 1 ? 's' : ''}
+        </th>
       </tr>
     );
-    warningRender.unshift(header)
-    
+    warningRender.unshift(header);
+
     return <React.Fragment>{warningRender}</React.Fragment>;
   }
 

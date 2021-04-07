@@ -291,35 +291,33 @@ export class MetricsPresenter extends React.Component<AllProps> {
             </Table>
           </div>
         ))}
-        {Object.keys(data.journalDiskMetrics).map((key: string) => (
-          <div key={key} className="col-12">
-            <h5>Alluxio Master Journal Disk Status</h5>
-            <Table hover={true}>
-              <tbody>
-                <tr>
-                  <th>Device Path</th>
-                  <th>Allocated Bytes</th>
-                  <th>Used Bytes</th>
-                  <th>Available Bytes</th>
-                  <th>Percent Available</th>
-                  <th>Mount Path</th>
-                </tr>
-                {data.journalDiskMetrics.map((info: IJournalDiskInfo, idx: number) => {
-                  return (
-                    <tr key={idx}>
-                      <td>{info.diskPath}</td>
-                      <td>{info.totalAllocatedBytes}</td>
-                      <td>{info.usedBytes}</td>
-                      <td>{info.availableBytes}</td>
-                      <td>{info.percentAvailable.toFixed(2)}%</td>
-                      <td>{info.mountPath}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          </div>
-        ))}
+        <div className="col-12">
+          <h5>Alluxio Master Journal Disk Status</h5>
+          <Table hover={true}>
+            <tbody>
+              <tr>
+                <th>Device Path</th>
+                <th>Allocated Bytes</th>
+                <th>Used Bytes</th>
+                <th>Available Bytes</th>
+                <th>Percent Available</th>
+                <th>Mount Path</th>
+              </tr>
+              {data.journalDiskMetrics.map((info: IJournalDiskInfo, idx: number) => {
+                return (
+                  <tr key={idx}>
+                    <td>{info.diskPath}</td>
+                    <td>{info.totalAllocatedBytes}</td>
+                    <td>{info.usedBytes}</td>
+                    <td>{info.availableBytes}</td>
+                    <td>{info.percentAvailable.toFixed(2)}%</td>
+                    <td>{info.mountPath}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
       </React.Fragment>
     );
   }

@@ -2047,8 +2047,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
       .setDefaultValue("10min")
-      .setDescription("How often to check and update information on space utilization of the"
-          + " journal disk. This is currently only compatible with linux-based systems")
+      .setDescription(String.format("How often to check and update information on space "
+          + "utilization of the journal disk. This is currently only compatible with linux-based"
+          + "systems and when %s is configured to EMBEDDED", Name.MASTER_JOURNAL_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
