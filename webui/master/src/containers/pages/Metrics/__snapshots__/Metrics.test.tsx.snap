@@ -329,5 +329,40 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
       </tbody>
     </Table>
   </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Alluxio Master Journal Disk Status
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Device Path
+          </th>
+          <th>
+            Allocated Bytes
+          </th>
+          <th>
+            Used Bytes
+          </th>
+          <th>
+            Available Bytes
+          </th>
+          <th>
+            Percent Available
+          </th>
+          <th>
+            Mount Path
+          </th>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
 </Fragment>
 `;
