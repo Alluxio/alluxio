@@ -1955,6 +1955,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_EXIT_ON_DEMOTION =
+      new Builder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) When this flag is set to true, the master process may "
+              + "start as the primary or secondary in a quorum, but at any point in time after "
+              + "becoming a primary it is demoted to secondary, the process will shut down. This "
+              + "leaves the responsibility of restarting the master to re-join the quorum (e.g. in"
+              + " case of a journal failure on a particular node) to an external entity such as "
+              + "kubernetes or systemd.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME =
       new Builder(Name.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME)
           .setDefaultValue("10min")
@@ -5319,6 +5331,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
         "alluxio.master.journal.catchup.protect.enabled";
+    public static final String MASTER_JOURNAL_EXIT_ON_DEMOTION =
+        "alluxio.master.journal.exit.on.demotion";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
