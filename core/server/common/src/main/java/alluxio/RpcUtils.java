@@ -143,7 +143,7 @@ public final class RpcUtils {
       long[] startValues = traceGauges();
       T res = callable.call();
       logger.trace("Exit: {}: {}", methodName, debugDesc);
-      reportDifference(startValues, methodName);
+      reportDifference(startValues, methodName, false);
       return res;
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
@@ -204,7 +204,7 @@ public final class RpcUtils {
         responseObserver.onCompleted();
         logger.trace("Completed(stream): {}: {}", methodName, debugDesc);
       }
-      reportDifference(startValues, methodName);
+      reportDifference(startValues, methodName, true);
     } catch (Exception e) {
       logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
           String.format(description, args), e);
@@ -226,13 +226,15 @@ public final class RpcUtils {
     return numbers;
   }
 
-  private static void reportDifference(long[] startValues, String rpcName) {
+  private static void reportDifference(long[] startValues, String rpcName, boolean isStream) {
     long[] numbers = traceGauges();
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < numbers.length; i++) {
       sb.append(String.format("%s: %s, ", sMetricList.get(i), numbers[i] - startValues[i]));
     }
-    LOG.debug("Thread {} - Diff in RPC {}: [{}]", Thread.currentThread().getId(), rpcName, sb.toString());
+    LOG.debug("Thread {} - Diff in {}RPC {}: [{}]", Thread.currentThread().getId(),
+            isStream ? "stream " : "",
+            rpcName, sb.toString());
   }
 
   private static String getQualifiedMetricName(String methodName) {
