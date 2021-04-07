@@ -97,12 +97,22 @@ public class LocalFileBlockReader extends BlockReader {
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
     MetricsSystem.counter("Client.LocalReaderOps").inc();
     MetricsSystem.counter("Client.LocalReaderRequestBytes").inc(length);
+    int sz = (int) length;
     try (Timer.Context timer = MetricsSystem.timer("Client.LocalReaderTimer").time()) {
-      byte[] tmpbuf = new byte[(int) length];
-      mLocalFile.skip(offset);
-      mLocalFile.read(tmpbuf, 0, (int) length);
-      ByteBuffer buffer = ByteBuffer.wrap(tmpbuf);
-      return buffer;
+      byte[] tmpbuf = new byte[sz];
+      try (Timer.Context timer2 = MetricsSystem.timer("Client.LocalReaderTimer2").time()) {
+        mLocalFile.skip(offset);
+        int rd = 0;
+        int nread = 0;
+        while (rd >= 0 && nread < sz) {
+          rd = mLocalFile.read(tmpbuf, nread, sz - nread);
+          if (rd >= 0) {
+            nread += rd;
+          }
+        }
+        ByteBuffer buffer = ByteBuffer.wrap(tmpbuf, 0, nread);
+        return buffer;
+      }
     }
   }
 

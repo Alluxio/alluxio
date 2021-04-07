@@ -154,22 +154,24 @@ public class StackFS extends AbstractFuseFileSystem {
     final int sz = (int) size;
     int nread = 0;
     try (Timer.Context timer = MetricsSystem.timer("Client.StackFsReadTimer").time()) {
-      try (FileInputStream fis = new FileInputStream(path)) {
-        byte[] tmpbuf = new byte[(int) size];
-        long nskipped = fis.skip(offset);
-        int rd = 0;
-        while (rd >= 0 && nread < sz) {
-          rd = fis.read(tmpbuf, nread, sz - nread);
-          if (rd >= 0) {
-            nread += rd;
+      byte[] tmpbuf = new byte[(int) size];
+      try (Timer.Context timer2 = MetricsSystem.timer("Client.StackFsReadTimer2").time()) {
+        try (FileInputStream fis = new FileInputStream(path)) {
+          long nskipped = fis.skip(offset);
+          int rd = 0;
+          while (rd >= 0 && nread < sz) {
+            rd = fis.read(tmpbuf, nread, sz - nread);
+            if (rd >= 0) {
+              nread += rd;
+            }
           }
+          buf.put(tmpbuf, 0, nread);
+        } catch (IndexOutOfBoundsException e) {
+          return 0;
+        } catch (Exception e) {
+          LOG.error("Failed to read {}", path, e);
+          return -ErrorCodes.EIO();
         }
-        buf.put(tmpbuf, 0, nread);
-      } catch (IndexOutOfBoundsException e) {
-        return 0;
-      } catch (Exception e) {
-        LOG.error("Failed to read {}", path, e);
-        return -ErrorCodes.EIO();
       }
     }
     MetricsSystem.counter("Client.StackfsReadResponseTotalBytes").inc(nread);
