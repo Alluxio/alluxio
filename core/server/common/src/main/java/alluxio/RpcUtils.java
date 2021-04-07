@@ -19,12 +19,21 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.google.common.collect.ImmutableMap;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utilities for handling server RPC calls.
@@ -35,6 +44,27 @@ import java.io.IOException;
  */
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
+  private static final Logger LOG =
+          LoggerFactory.getLogger(RpcUtils.class);
+
+  private static List<String> sMetricList = new ArrayList<>();
+
+  static {
+    // Multiple Gauges related to GC
+    // For ParNew + CMS, the gauges will be:
+    // ParNew.time, ParNew.count, ConcurrentMarkSweep.time, ConcurrentMarkSweep.count
+    // For PS the gauges will be:
+    // PS-Scavenge.count, PS-Scavenge.time, PS-MarkSweep.count, PS-MarkSweep.time
+    GarbageCollectorMetricSet gcSet = new GarbageCollectorMetricSet();
+    sMetricList.addAll(gcSet.getMetrics().keySet());
+
+    // We currently track the memory usage at the granularity of heap vs non-heap
+    // A finer granularity can include parts of the heap including:
+    // PS-Eden-Space, PS-Old-Gen, Code-Cache, Metaspace
+    sMetricList.add("heap.used");
+    sMetricList.add("non-heap.used");
+    LOG.info("Tracked gauges are: {}", sMetricList);
+  }
 
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. If the
@@ -110,8 +140,10 @@ public final class RpcUtils {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.trace("Enter: {}: {}", methodName, debugDesc);
+      long[] startValues = traceGauges();
       T res = callable.call();
       logger.trace("Exit: {}: {}", methodName, debugDesc);
+      reportDifference(startValues, methodName);
       return res;
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
@@ -160,6 +192,7 @@ public final class RpcUtils {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.trace("Enter(stream): {}: {}", methodName, debugDesc);
+      long[] startValues = traceGauges();
       T result = callable.call();
       logger.trace("Exit(stream) (OK): {}: {}", methodName, debugDesc);
       if (sendResponse) {
@@ -171,12 +204,35 @@ public final class RpcUtils {
         responseObserver.onCompleted();
         logger.trace("Completed(stream): {}: {}", methodName, debugDesc);
       }
+      reportDifference(startValues, methodName);
     } catch (Exception e) {
       logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
           String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }
+  }
+
+  private static long getGaugeValue(String name) {
+    com.codahale.metrics.Metric m = MetricsSystem.METRIC_REGISTRY.getMetrics().get(name);
+    return (Long)((Gauge) m).getValue();
+  }
+
+  private static long[] traceGauges() {
+    long[] numbers = new long[sMetricList.size()];
+    for (int i = 0; i < sMetricList.size(); i++) {
+      numbers[i] = getGaugeValue(sMetricList.get(i));
+    }
+    return numbers;
+  }
+
+  private static void reportDifference(long[] startValues, String rpcName) {
+    long[] numbers = traceGauges();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < numbers.length; i++) {
+      sb.append(String.format("%s: %s, ", sMetricList.get(i), numbers[i] - startValues[i]));
+    }
+    LOG.debug("Thread {} - Diff in RPC {}: [{}]", Thread.currentThread().getId(), rpcName, sb.toString());
   }
 
   private static String getQualifiedMetricName(String methodName) {
