@@ -1,0 +1,330 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Paginator Shallow component Matches percent y-axis snapshot 1`] = `
+<div
+  className="lineGraph col-12 col-md-6 col-xl-4"
+>
+  <h5>
+    % Test
+  </h5>
+  <ResponsiveLine
+    animate={true}
+    areaBaselineValue={0}
+    areaOpacity={0.5}
+    axisBottom={
+      Object {
+        "format": "%x %H:%M:%S",
+        "legend": "Time Stamp",
+        "legendOffset": 140,
+        "legendPosition": "middle",
+        "tickPadding": 5,
+        "tickRotation": -90,
+        "tickSize": 5,
+      }
+    }
+    axisLeft={
+      Object {
+        "legend": "Percent (%)",
+        "legendOffset": -40,
+        "legendPosition": "middle",
+        "tickPadding": 5,
+        "tickRotation": 0,
+        "tickSize": 5,
+      }
+    }
+    axisRight={null}
+    axisTop={null}
+    colors="set3"
+    curve="natural"
+    data={
+      Array [
+        Object {
+          "data": Array [
+            Object {
+              "x": 1614803627951,
+              "y": 0,
+            },
+          ],
+          "id": "% Test",
+        },
+      ]
+    }
+    dotBorderColor="#fff"
+    dotBorderWidth={1}
+    dotColor="inherit:darker(0.3)"
+    dotSize={8}
+    enableArea={true}
+    enableDotLabel={true}
+    enableStackTooltip={true}
+    isInteractive={true}
+    margin={
+      Object {
+        "bottom": 200,
+        "left": 75,
+        "right": 50,
+        "top": 25,
+      }
+    }
+    motionDamping={15}
+    motionStiffness={90}
+    theme={
+      Object {
+        "axis": Object {
+          "domain": Object {
+            "line": Object {
+              "stroke": "transparent",
+              "strokeWidth": 1,
+            },
+          },
+          "legend": Object {
+            "text": Object {
+              "fill": "#bbb",
+              "fontSize": 12,
+            },
+          },
+          "ticks": Object {
+            "line": Object {
+              "stroke": "#fff",
+              "strokeWidth": 1,
+            },
+            "text": Object {
+              "fill": "#bbb",
+              "fontSize": 12,
+            },
+          },
+        },
+        "background": "transparent",
+        "dots": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "grid": Object {
+          "line": Object {
+            "stroke": "#ddd",
+            "strokeWidth": 1,
+          },
+        },
+        "labels": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "legends": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "markers": Object {
+          "fontSize": "12",
+          "lineColor": "#fff",
+          "lineStrokeWidth": 1,
+          "textColor": "#999",
+        },
+        "tooltip": Object {
+          "basic": Object {
+            "alignItems": "center",
+            "display": "flex",
+            "whiteSpace": "pre",
+          },
+          "container": Object {
+            "background": "#222",
+            "borderRadius": "2px",
+            "boxShadow": "0 1px 2px rgba(255, 255, 255, 0.25)",
+            "color": "inherit",
+            "fontSize": "inherit",
+            "padding": "5px 9px",
+          },
+          "table": Object {},
+          "tableCell": Object {
+            "padding": "3px 5px",
+          },
+        },
+      }
+    }
+    xScale={
+      Object {
+        "format": "%Q",
+        "precision": "minute",
+        "type": "time",
+      }
+    }
+    yScale={
+      Object {
+        "max": 100,
+        "min": 0,
+        "stacked": false,
+        "type": "linear",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`Paginator Shallow component Matches throughput y-axis snapshot 1`] = `
+<div
+  className="lineGraph col-12 col-md-6 col-xl-4"
+>
+  <h5>
+    Test
+     (Bytes/Minute)
+  </h5>
+  <ResponsiveLine
+    animate={true}
+    areaBaselineValue={0}
+    areaOpacity={0.5}
+    axisBottom={
+      Object {
+        "format": "%x %H:%M:%S",
+        "legend": "Time Stamp",
+        "legendOffset": 140,
+        "legendPosition": "middle",
+        "tickPadding": 5,
+        "tickRotation": -90,
+        "tickSize": 5,
+      }
+    }
+    axisLeft={
+      Object {
+        "legend": undefined,
+        "legendOffset": -40,
+        "legendPosition": "middle",
+        "tickPadding": 5,
+        "tickRotation": 0,
+        "tickSize": 5,
+      }
+    }
+    axisRight={null}
+    axisTop={null}
+    colors="set3"
+    curve="natural"
+    data={
+      Array [
+        Object {
+          "data": Array [
+            Object {
+              "x": 1614803627951,
+              "y": 0,
+            },
+          ],
+          "id": "Test",
+        },
+      ]
+    }
+    dotBorderColor="#fff"
+    dotBorderWidth={1}
+    dotColor="inherit:darker(0.3)"
+    dotSize={8}
+    enableArea={true}
+    enableDotLabel={true}
+    enableStackTooltip={true}
+    isInteractive={true}
+    margin={
+      Object {
+        "bottom": 200,
+        "left": 75,
+        "right": 50,
+        "top": 25,
+      }
+    }
+    motionDamping={15}
+    motionStiffness={90}
+    theme={
+      Object {
+        "axis": Object {
+          "domain": Object {
+            "line": Object {
+              "stroke": "transparent",
+              "strokeWidth": 1,
+            },
+          },
+          "legend": Object {
+            "text": Object {
+              "fill": "#bbb",
+              "fontSize": 12,
+            },
+          },
+          "ticks": Object {
+            "line": Object {
+              "stroke": "#fff",
+              "strokeWidth": 1,
+            },
+            "text": Object {
+              "fill": "#bbb",
+              "fontSize": 12,
+            },
+          },
+        },
+        "background": "transparent",
+        "dots": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "grid": Object {
+          "line": Object {
+            "stroke": "#ddd",
+            "strokeWidth": 1,
+          },
+        },
+        "labels": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "legends": Object {
+          "text": Object {
+            "fill": "#bbb",
+            "fontSize": 12,
+          },
+        },
+        "markers": Object {
+          "fontSize": "12",
+          "lineColor": "#fff",
+          "lineStrokeWidth": 1,
+          "textColor": "#999",
+        },
+        "tooltip": Object {
+          "basic": Object {
+            "alignItems": "center",
+            "display": "flex",
+            "whiteSpace": "pre",
+          },
+          "container": Object {
+            "background": "#222",
+            "borderRadius": "2px",
+            "boxShadow": "0 1px 2px rgba(255, 255, 255, 0.25)",
+            "color": "inherit",
+            "fontSize": "inherit",
+            "padding": "5px 9px",
+          },
+          "table": Object {},
+          "tableCell": Object {
+            "padding": "3px 5px",
+          },
+        },
+      }
+    }
+    xScale={
+      Object {
+        "format": "%Q",
+        "precision": "minute",
+        "type": "time",
+      }
+    }
+    yScale={
+      Object {
+        "max": "auto",
+        "min": "auto",
+        "stacked": false,
+        "type": "linear",
+      }
+    }
+  />
+</div>
+`;

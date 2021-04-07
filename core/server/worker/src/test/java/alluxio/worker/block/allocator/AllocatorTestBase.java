@@ -21,7 +21,7 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
@@ -155,7 +155,7 @@ public class AllocatorTestBase {
       assertEquals(tierAlias, pTier.getTierAlias());
 
       //update the dir meta info
-      pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));
+      pDir.addBlockMeta(new DefaultBlockMeta(mTestBlockId, blockSize, pDir));
     }
   }
 

@@ -39,10 +39,10 @@ Please read the [section of limitations](#assumptions-and-limitations) for detai
 
 The Alluxio POSIX API has two implementations for users to choose from:
 * Alluxio JNR-Fuse
-Alluxio's default Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
+Alluxio's first generation Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 JNR-Fuse targets for low concurrency scenarios and has some known limitations in performance.
-* Alluxio JNI-Fuse (Experimental)
-This is a new in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
+* Alluxio JNI-Fuse
+Alluxio's default in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
 
 Here is a guideline To choose between the default JNR-Fuse and experimental JNI-Fuse:
 
@@ -59,18 +59,14 @@ can further simplify the setup.
 - Install JDK 1.8 or newer
 - Install libfuse
     - On Linux, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-reported to also work - with some warnings). For example on a Redhat, run
+reported to also work - with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+    - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
-```console
-$ yum install fuse fuse-devel
-```
-
-    - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer.
-
-- To enable JNI-Fuse, set `alluxio.fuse.jnifuse.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`; otherwise JNR-Fuse is used by default.
+- JNI-Fuse is enabled by default for better performance. 
+If JNR-Fuse is needed, set `alluxio.fuse.jnifuse.enabled` to `false` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
 ```
-alluxio.fuse.jnifuse.enabled=true
+alluxio.fuse.jnifuse.enabled=false
 ```
 
 ## Basic Setup

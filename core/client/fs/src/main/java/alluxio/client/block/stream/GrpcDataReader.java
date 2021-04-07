@@ -203,26 +203,26 @@ public final class GrpcDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequestPartial;
+    private final ReadRequest.Builder mReadRequestBuilder;
 
     /**
      * Creates an instance of {@link GrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
-     * @param readRequestPartial the partial read request
+     * @param readRequestBuilder the builder of read request
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequestPartial) {
+        ReadRequest.Builder readRequestBuilder) {
       mContext = context;
       mAddress = address;
-      mReadRequestPartial = readRequestPartial;
+      mReadRequestBuilder = readRequestBuilder;
     }
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
       return new GrpcDataReader(mContext, mAddress,
-          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
+          mReadRequestBuilder.setOffset(offset).setLength(len).build());
     }
 
     @Override

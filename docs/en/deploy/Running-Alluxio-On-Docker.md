@@ -399,8 +399,14 @@ You can find more details about the worker storage [here]({{ '/en/core-services/
 Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
 access to Alluxio on Docker host using the POSIX API.
 
-For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
+For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
+First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
+```console
+$ mkdir -p /tmp/mnt && sudo chmod -R a+rwx /tmp/mnt
+```
+
+Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
 ```console
 $ docker run --rm \
     --net=host \
@@ -409,6 +415,7 @@ $ docker run --rm \
     -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
+    --security-opt apparmor:unconfined \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
 
@@ -421,8 +428,9 @@ capability.
 
 Additional POSIX API configuration can also be added based on actual use cases.
 For example,
-- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.jnifuse.enbaled=true"` add alluxio client/fuse side configuration
-to Alluxio POSIX API container. The example java opts enables Alluxio JNI-Fuse POSIX implementation.
+- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
+to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
+into Unix users and groups when exposing Alluxio files through the FUSE API.
 - `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
 

@@ -15,14 +15,16 @@ You can invoke the following command line utility to get all the subcommands:
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
-	 [backup [directory] [--local]]                            
-	 [doctor [category]]                                       
-	 [getBlockInfo [blockId]]                                  
-	 [journal [checkpoint] [quorum]]                           
-	 [metrics [clear]]                                         
-	 [pathConf [add] [show] [list] [remove]]                   
-	 [report [category] [category args]]                       
-	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>] 
+	 [backup [directory] [--local]]
+	 [doctor [category]]
+	 [getBlockInfo [blockId]]
+	 [journal [checkpoint] [quorum]]
+	 [metrics [clear]]
+	 [pathConf [add] [show] [list] [remove]]
+	 [report [category] [category args]]
+	 [statelock]
+	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
+
 ```
 
 ## Operations
@@ -272,6 +274,11 @@ Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist  
 
 10 Longest Running Jobs:
 ```
+
+### statelock
+
+The `statelock` command provides information about the waiters and holders of the alluxio statelock.
+This command can help diagnose any long running requests issued by users or the Alluxio system.
 
 ### ufs
 

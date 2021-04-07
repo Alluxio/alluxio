@@ -153,7 +153,7 @@ public class EmulatingBlockIterator implements BlockIterator {
     }
 
     // Reverse the list if requested.
-    if (order == BlockOrder.Reverse) {
+    if (order == BlockOrder.REVERSE) {
       Collections.reverse(iteratorList);
     }
 

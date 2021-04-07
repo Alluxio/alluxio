@@ -11,6 +11,13 @@
 
 package alluxio.fuse;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -24,15 +31,19 @@ public class StackMain {
    */
   public static void main(String[] args) {
     if (args.length < 2) {
-      System.out.println("Usage: <root> <mountPoint> <fuseOpts...>");
+      System.out.println("Usage: <mountPoint> <sourcePath> <fuseOpts e.g. -obig_writes...>");
       System.exit(1);
     }
-    Path root = Paths.get(args[0]);
-    Path mountPoint = Paths.get(args[1]);
+    Path root = Paths.get(args[1]);
+    Path mountPoint = Paths.get(args[0]);
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
     System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);
     try {
+      AlluxioConfiguration conf = new InstancedConfiguration(
+          ConfigurationUtils.defaults());
+      CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+      MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {
       e.printStackTrace();

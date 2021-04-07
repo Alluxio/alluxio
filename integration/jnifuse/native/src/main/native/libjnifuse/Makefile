@@ -23,6 +23,7 @@ endif
 ifeq ($(UNAME), Darwin)
 	INCDIR += -I $(JAVA_HOME)/include/darwin
 	TARGET_LIB := libjnifuse.dylib
+	INCDIR += -D__APPLE__
 endif
 
 CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
