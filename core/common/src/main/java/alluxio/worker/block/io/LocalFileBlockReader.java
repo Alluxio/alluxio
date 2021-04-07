@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.metrics.MetricsSystem;
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
@@ -93,11 +95,15 @@ public class LocalFileBlockReader extends BlockReader {
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
-    byte[] tmpbuf = new byte[(int) length];
-    mLocalFile.skip(offset);
-    mLocalFile.read(tmpbuf, 0, (int) length);
-    ByteBuffer buffer = ByteBuffer.wrap(tmpbuf);
-    return buffer;
+    MetricsSystem.counter("Client.LocalReaderOps").inc();
+    MetricsSystem.counter("Client.LocalReaderRequestBytes").inc(length);
+    try (Timer.Context timer = MetricsSystem.timer("Client.LocalReaderTimer").time()) {
+      byte[] tmpbuf = new byte[(int) length];
+      mLocalFile.skip(offset);
+      mLocalFile.read(tmpbuf, 0, (int) length);
+      ByteBuffer buffer = ByteBuffer.wrap(tmpbuf);
+      return buffer;
+    }
   }
 
   @Override

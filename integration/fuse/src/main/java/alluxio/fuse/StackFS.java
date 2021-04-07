@@ -19,6 +19,7 @@ import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
 
+import com.codahale.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,27 +148,31 @@ public class StackFS extends AbstractFuseFileSystem {
 
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+    MetricsSystem.counter("Client.StackFsReadOps").inc();
+    MetricsSystem.counter("Client.StackFsReadRequestTotalBytes").inc(size);
     path = transformPath(path);
     final int sz = (int) size;
     int nread = 0;
-    try (FileInputStream fis = new FileInputStream(path)) {
-      byte[] tmpbuf = new byte[(int) size];
-      long nskipped = fis.skip(offset);
-      int rd = 0;
-      while (rd >= 0 && nread < sz) {
-        rd = fis.read(tmpbuf, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+    try (Timer.Context timer = MetricsSystem.timer("Client.StackFsReadTimer").time()) {
+      try (FileInputStream fis = new FileInputStream(path)) {
+        byte[] tmpbuf = new byte[(int) size];
+        long nskipped = fis.skip(offset);
+        int rd = 0;
+        while (rd >= 0 && nread < sz) {
+          rd = fis.read(tmpbuf, nread, sz - nread);
+          if (rd >= 0) {
+            nread += rd;
+          }
         }
+        buf.put(tmpbuf, 0, nread);
+      } catch (IndexOutOfBoundsException e) {
+        return 0;
+      } catch (Exception e) {
+        LOG.error("Failed to read {}", path, e);
+        return -ErrorCodes.EIO();
       }
-      buf.put(tmpbuf, 0, nread);
-    } catch (IndexOutOfBoundsException e) {
-      return 0;
-    } catch (Exception e) {
-      LOG.error("Failed to read {}", path, e);
-      return -ErrorCodes.EIO();
     }
-    MetricsSystem.counter("Client.ReadBytes").inc(nread);
+    MetricsSystem.counter("Client.StackfsReadResponseTotalBytes").inc(nread);
     return nread;
   }
 
