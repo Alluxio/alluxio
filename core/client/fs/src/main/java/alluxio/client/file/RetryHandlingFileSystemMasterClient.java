@@ -111,7 +111,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * A wrapper for the gRPC client to interact with the file system master, used by alluxio clients.
  *
  */
-// TODO(jiacheng)
 @ThreadSafe
 public final class RetryHandlingFileSystemMasterClient extends AbstractMasterClient
     implements FileSystemMasterClient {
@@ -328,16 +327,21 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         RetryUtils.noRetryPolicy(),
         () ->  {
-          // TODO(jiacheng)
           StreamSupport.stream(
               Spliterators.spliteratorUnknownSize(
                   mClient.listStatus(ListStatusPRequest.newBuilder()
                       .setPath(getTransportPath(path)).setOptions(options).build()),
                   Spliterator.ORDERED),
               false)
-              .flatMap(pListStatusResponse -> pListStatusResponse.getFileInfosList().stream()
-                  .map(pFileInfo -> new URIStatus(GrpcUtils.fromProto(pFileInfo))))
-              .forEach(action);
+              .flatMap(pListStatusResponse -> {
+                if (RPC_LOG.isDebugEnabled()) {
+                  RPC_LOG.debug("Streaming listStatus response has {} bytes, {} FileInfo",
+                          pListStatusResponse.getSerializedSize(),
+                          pListStatusResponse.getFileInfosCount());
+                }
+                return pListStatusResponse.getFileInfosList().stream()
+                  .map(pFileInfo -> new URIStatus(GrpcUtils.fromProto(pFileInfo)));
+              }).forEach(action);
           return null;
         },
         RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
@@ -348,14 +352,20 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
-      // TODO(jiacheng)
       mClient
           .listStatus(ListStatusPRequest.newBuilder().setPath(getTransportPath(path))
               .setOptions(options).build())
           .forEachRemaining(
-              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+              (pListStatusResponse) -> {
+                if (RPC_LOG.isDebugEnabled()) {
+                  RPC_LOG.debug("Streaming listStatus response has {} bytes, {} FileInfo",
+                          pListStatusResponse.getSerializedSize(),
+                          pListStatusResponse.getFileInfosCount());
+                }
+                result.addAll(pListStatusResponse.getFileInfosList().stream()
                   .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
-                  .collect(Collectors.toList())));
+                  .collect(Collectors.toList()));
+              });
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
