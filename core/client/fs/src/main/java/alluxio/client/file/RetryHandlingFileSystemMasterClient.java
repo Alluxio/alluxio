@@ -152,14 +152,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> {
-              CheckAccessPResponse response = mClient.checkAccess(
-                      CheckAccessPRequest.newBuilder().setPath(getTransportPath(path))
-                              .setOptions(options).build());
-              if (RPC_LOG.isDebugEnabled()) {
-                RPC_LOG.debug("checkAccess response is {} bytes", response.getSerializedSize());
-              }
-              return response;
-            }, RPC_LOG, "CheckAccess", "path=%s,options=%s", path, options);
+      CheckAccessPResponse response = mClient.checkAccess(
+          CheckAccessPRequest.newBuilder().setPath(getTransportPath(path))
+              .setOptions(options).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("checkAccess response is {} bytes", response.getSerializedSize());
+      }
+      return response;
+    }, RPC_LOG, "CheckAccess", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -169,8 +169,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       CheckConsistencyPResponse response = mClient.checkConsistency(CheckConsistencyPRequest
               .newBuilder().setPath(getTransportPath(path)).setOptions(options).build());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("checkConsistency response is {} bytes, {} inconsistent paths", response.getSerializedSize(),
-                response.getInconsistentPathsList());
+        RPC_LOG.debug("checkConsistency response is {} bytes, {} inconsistent paths",
+            response.getSerializedSize(), response.getInconsistentPathsList());
       }
       List<String> inconsistentPaths = response.getInconsistentPathsList();
       List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
@@ -186,13 +186,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final CreateDirectoryPOptions options) throws AlluxioStatusException {
     retryRPC(
         () -> {
-          CreateDirectoryPResponse response = mClient.createDirectory(CreateDirectoryPRequest.newBuilder()
-            .setPath(getTransportPath(path)).setOptions(options).build());
+          CreateDirectoryPResponse response =
+              mClient.createDirectory(CreateDirectoryPRequest.newBuilder()
+                  .setPath(getTransportPath(path)).setOptions(options).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("createDirectory response is {} bytes", response.getSerializedSize());
           }
           return response;
-          },
+        },
         RPC_LOG, "CreateDirectory", "path=%s,options=%s", path, options);
   }
 
@@ -214,13 +215,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void completeFile(final AlluxioURI path, final CompleteFilePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> {
-              CompleteFilePResponse response = mClient.completeFile(CompleteFilePRequest.newBuilder()
-                      .setPath(getTransportPath(path)).setOptions(options).build());
-              if (RPC_LOG.isDebugEnabled()) {
-                RPC_LOG.debug("completeFile response is {} bytes", response.getSerializedSize());
-              }
-              return response;
-            }, RPC_LOG, "CompleteFile",
+      CompleteFilePResponse response = mClient.completeFile(CompleteFilePRequest.newBuilder()
+          .setPath(getTransportPath(path)).setOptions(options).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("completeFile response is {} bytes", response.getSerializedSize());
+      }
+      return response;
+    }, RPC_LOG, "CompleteFile",
         "path=%s,options=%s", path, options);
   }
 
@@ -228,90 +229,95 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void delete(final AlluxioURI path, final DeletePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> {
-              DeletePResponse response = mClient.remove(DeletePRequest.newBuilder().setPath(getTransportPath(path))
-                      .setOptions(options).build());
-              if (RPC_LOG.isDebugEnabled()) {
-                RPC_LOG.debug("delete response is {} bytes", response.getSerializedSize());
-              }
-              return response;
-            }, RPC_LOG, "Delete",
-        "path=%s,options=%s", path, options);
+      DeletePResponse response =
+          mClient.remove(DeletePRequest.newBuilder().setPath(getTransportPath(path))
+              .setOptions(options).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("delete response is {} bytes", response.getSerializedSize());
+      }
+      return response;
+    }, RPC_LOG, "Delete", "path=%s,options=%s", path, options);
   }
 
   @Override
   public void free(final AlluxioURI path, final FreePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> {
-      FreePResponse response = mClient.free(FreePRequest.newBuilder().setPath(getTransportPath(path))
+      FreePResponse response =
+          mClient.free(FreePRequest.newBuilder().setPath(getTransportPath(path))
               .setOptions(options).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("free response is {} bytes", response.getSerializedSize());
       }
       return response;
-      }, RPC_LOG, "Free", "path=%s,options=%s", path, options);
+    }, RPC_LOG, "Free", "path=%s,options=%s", path, options);
   }
 
   @Override
   public String getFilePath(long fileId) throws AlluxioStatusException {
     return retryRPC(() -> {
-                GetFilePathPResponse response = mClient.getFilePath(GetFilePathPRequest.newBuilder().setFileId(fileId).build());
-                if (RPC_LOG.isDebugEnabled()) {
-                  RPC_LOG.debug("getFilePath response is {} bytes", response.getSerializedSize());
-                }
-                return response.getPath();
-              }, RPC_LOG, "GetFilePath", "fileId=%d", fileId);
+      GetFilePathPResponse response =
+          mClient.getFilePath(GetFilePathPRequest.newBuilder().setFileId(fileId).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getFilePath response is {} bytes", response.getSerializedSize());
+      }
+      return response.getPath();
+    }, RPC_LOG, "GetFilePath", "fileId=%d", fileId);
   }
 
   @Override
   public URIStatus getStatus(final AlluxioURI path, final GetStatusPOptions options)
       throws AlluxioStatusException {
     return retryRPC(() -> {
-              GetStatusPResponse response = mClient.getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
-                .setOptions(options).build());
-              if (RPC_LOG.isDebugEnabled()) {
-                RPC_LOG.debug("getStatus response is {} bytes", response.getSerializedSize());
-              }
-              return new URIStatus(GrpcUtils.fromProto(response.getFileInfo()));
-            },
-        RPC_LOG, "GetStatus", "path=%s,options=%s", path, options);
+      GetStatusPResponse response =
+          mClient.getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
+              .setOptions(options).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getStatus response is {} bytes", response.getSerializedSize());
+      }
+      return new URIStatus(GrpcUtils.fromProto(response.getFileInfo()));
+    }, RPC_LOG, "GetStatus", "path=%s,options=%s", path, options);
   }
 
   @Override
   public synchronized List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
     return retryRPC(() -> {
-      GetSyncPathListPResponse response = mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance());
+      GetSyncPathListPResponse response =
+          mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("getSyncPathList response is {} bytes, {} sync paths", response.getSerializedSize(), response.getSyncPathsCount());
+        RPC_LOG.debug("getSyncPathList response is {} bytes, {} sync paths",
+            response.getSerializedSize(), response.getSyncPathsCount());
       }
       return response.getSyncPathsList().stream().map(x -> alluxio.wire.SyncPointInfo.fromProto(x))
         .collect(Collectors.toList());
-      }, RPC_LOG, "GetSyncPathList", "");
+    }, RPC_LOG, "GetSyncPathList", "");
   }
 
   @Override
   public long getNewBlockIdForFile(final AlluxioURI path)
       throws AlluxioStatusException {
     return retryRPC(() -> {
-          GetNewBlockIdForFilePResponse response = mClient.getNewBlockIdForFile(
-                  GetNewBlockIdForFilePRequest.newBuilder().setPath(getTransportPath(path))
-                          .setOptions(GetNewBlockIdForFilePOptions.newBuilder().build()).build());
-          if (RPC_LOG.isDebugEnabled()) {
-            RPC_LOG.debug("getNewBlockIdForFile response is {} bytes", response.getSerializedSize());
-          }
-          return response.getId();
-          }, RPC_LOG, "GetNewBlockIdForFile", "path=%s", path);
+      GetNewBlockIdForFilePResponse response =
+          mClient.getNewBlockIdForFile(
+              GetNewBlockIdForFilePRequest.newBuilder().setPath(getTransportPath(path))
+                  .setOptions(GetNewBlockIdForFilePOptions.newBuilder().build()).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getNewBlockIdForFile response is {} bytes", response.getSerializedSize());
+      }
+      return response.getId();
+    }, RPC_LOG, "GetNewBlockIdForFile", "path=%s", path);
   }
 
   @Override
   public Map<String, alluxio.wire.MountPointInfo> getMountTable() throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
-      GetMountTablePResponse response = mClient.getMountTable(GetMountTablePRequest.newBuilder().build());
+      GetMountTablePResponse response =
+          mClient.getMountTable(GetMountTablePRequest.newBuilder().build());
       Map<String, alluxio.grpc.MountPointInfo> mountTable = response.getMountPointsMap();
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getMountTable response is {} bytes, mount table size is {}",
-                response.getSerializedSize(),
-                mountTable.size());
+            response.getSerializedSize(), mountTable.size());
       }
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mountTable.entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
@@ -363,8 +369,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                           pListStatusResponse.getFileInfosCount());
                 }
                 result.addAll(pListStatusResponse.getFileInfosList().stream()
-                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
-                  .collect(Collectors.toList()));
+                    .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                    .collect(Collectors.toList()));
               });
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
@@ -375,13 +381,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       final MountPOptions options) throws AlluxioStatusException {
     retryRPC(
         () -> {
-          MountPResponse response = mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
-            .setUfsPath(ufsPath.toString()).setOptions(options).build());
+          MountPResponse response =
+              mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
+                  .setUfsPath(ufsPath.toString()).setOptions(options).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("mount response is {} bytes", response.getSerializedSize());
           }
           return response;
-          }, RPC_LOG, "Mount", "alluxioPath=%s,ufsPath=%s,options=%s", alluxioPath, ufsPath, options);
+        }, RPC_LOG, "Mount", "alluxioPath=%s,ufsPath=%s,options=%s",
+        alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -390,13 +398,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> {
           UpdateMountPResponse response = mClient.updateMount(UpdateMountPRequest.newBuilder()
-            .setAlluxioPath(alluxioPath.toString())
-            .setOptions(options).build());
+              .setAlluxioPath(alluxioPath.toString())
+              .setOptions(options).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("updateMount response is {} bytes", response.getSerializedSize());
           }
           return response;
-          }, RPC_LOG, "UpdateMount", "path=%s,options=%s", alluxioPath, options);
+        }, RPC_LOG, "UpdateMount", "path=%s,options=%s", alluxioPath, options);
   }
 
   @Override
@@ -409,26 +417,26 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void rename(final AlluxioURI src, final AlluxioURI dst,
       final RenamePOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
-      RenamePResponse response = mClient.rename(RenamePRequest.newBuilder().setPath(getTransportPath(src))
-        .setDstPath(getTransportPath(dst)).setOptions(options).build());
+      RenamePResponse response =
+          mClient.rename(RenamePRequest.newBuilder().setPath(getTransportPath(src))
+              .setDstPath(getTransportPath(dst)).setOptions(options).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("rename response is {} bytes", response.getSerializedSize());
       }
       return response;
-      }, RPC_LOG, "Rename",
-        "src=%s,dst=%s,options=%s", src, dst, options);
+    }, RPC_LOG, "Rename", "src=%s,dst=%s,options=%s", src, dst, options);
   }
 
   @Override
   public AlluxioURI reverseResolve(final AlluxioURI ufsUri) throws AlluxioStatusException {
     return retryRPC(() -> {
       ReverseResolvePResponse response = mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
-        .setUfsUri(ufsUri.toString()).build());
+          .setUfsUri(ufsUri.toString()).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("reverseResolve response is {} bytes", response.getSerializedSize());
       }
       return new AlluxioURI(response.getAlluxioPath());
-      }, RPC_LOG, "ReverseResolve",
+    }, RPC_LOG, "ReverseResolve",
         "ufsUri=%s", ufsUri);
   }
 
@@ -437,15 +445,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       SetAclPOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
       SetAclPResponse response = mClient.setAcl(
-        SetAclPRequest.newBuilder().setPath(getTransportPath(path)).setAction(action)
-            .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
-            .setOptions(options).build());
-        if (RPC_LOG.isDebugEnabled()) {
-          RPC_LOG.debug("setAcl response is {} bytes", response.getSerializedSize());
-        }
-        return response;
-        },
-        RPC_LOG, "SetAcl", "path=%s,action=%s,entries=%s,options=%s",
+          SetAclPRequest.newBuilder().setPath(getTransportPath(path)).setAction(action)
+              .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
+              .setOptions(options).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("setAcl response is {} bytes", response.getSerializedSize());
+      }
+      return response;
+    }, RPC_LOG, "SetAcl", "path=%s,action=%s,entries=%s,options=%s",
         path, action, entries, options);
   }
 
@@ -454,12 +461,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> {
       SetAttributePResponse response = mClient.setAttribute(SetAttributePRequest.newBuilder()
-        .setPath(getTransportPath(path)).setOptions(options).build());
+          .setPath(getTransportPath(path)).setOptions(options).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("setAttribute response is {} bytes", response.getSerializedSize());
       }
       return response;
-      }, RPC_LOG, "SetAttribute",
+    }, RPC_LOG, "SetAttribute",
         "path=%s,options=%s", path, options);
   }
 
@@ -467,14 +474,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void scheduleAsyncPersist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> {
-      ScheduleAsyncPersistencePResponse response = mClient.scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest.newBuilder()
-        .setPath(getTransportPath(path)).setOptions(options).build());
+      ScheduleAsyncPersistencePResponse response =
+          mClient.scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest.newBuilder()
+              .setPath(getTransportPath(path)).setOptions(options).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("scheduleAsyncPersist response is {} bytes", response.getSerializedSize());
       }
       return response;
-      }, RPC_LOG,
-        "ScheduleAsyncPersist", "path=%s,options=%s", path, options);
+    }, RPC_LOG, "ScheduleAsyncPersist", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -482,12 +489,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> {
           StartSyncPResponse response = mClient
-            .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path)).build());
+              .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path)).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("startSync response is {} bytes", response.getSerializedSize());
           }
           return response;
-          }, RPC_LOG, "StartSync", "path=%s", path);
+        }, RPC_LOG, "StartSync", "path=%s", path);
   }
 
   @Override
@@ -495,20 +502,20 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> {
           StopSyncPResponse response = mClient
-            .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path)).build());
+              .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path)).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("stopSync response is {} bytes", response.getSerializedSize());
           }
           return response;
-          },
-        RPC_LOG, "StopSync", "path=%s", path);
+        }, RPC_LOG, "StopSync", "path=%s", path);
   }
 
   @Override
   public void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
     retryRPC(() -> {
-      UnmountPResponse response = mClient.unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
-            .setOptions(UnmountPOptions.newBuilder().build()).build());
+      UnmountPResponse response =
+          mClient.unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
+              .setOptions(UnmountPOptions.newBuilder().build()).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("unmount response is {} bytes", response.getSerializedSize());
       }
@@ -522,12 +529,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> {
           UpdateUfsModePResponse response = mClient.updateUfsMode(UpdateUfsModePRequest.newBuilder()
-            .setUfsPath(ufsUri.getRootPath()).setOptions(options).build());
+              .setUfsPath(ufsUri.getRootPath()).setOptions(options).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("updateUfsMode response is {} bytes", response.getSerializedSize());
           }
           return response;
-          }, RPC_LOG, "UpdateUfsMode", "ufsUri=%s,options=%s", ufsUri, options);
+        }, RPC_LOG, "UpdateUfsMode", "ufsUri=%s,options=%s", ufsUri, options);
   }
 
   @Override
@@ -535,8 +542,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     return retryRPC(() -> {
       final ArrayList<String> result = new ArrayList<>();
-      GetStateLockHoldersPResponse response = mClient.getStateLockHolders(GetStateLockHoldersPRequest.newBuilder()
-          .setOptions(GetStateLockHoldersPOptions.newBuilder().build()).build());
+      GetStateLockHoldersPResponse response =
+          mClient.getStateLockHolders(GetStateLockHoldersPRequest.newBuilder()
+              .setOptions(GetStateLockHoldersPOptions.newBuilder().build()).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getStateLockHolders response is {} bytes", response.getSerializedSize());
       }

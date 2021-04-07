@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
-import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
@@ -208,16 +207,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> {
-              Command command = mClient.withDeadlineAfter(mContext.getClusterConf()
-                      .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-                      .blockHeartbeat(request).getCommand();
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("heartbeat command is {} bytes, data count {}", command.getSerializedSize(),
-                        command.getDataCount());
-              }
-              return command;
-            }
-            , LOG, "Heartbeat", "workerId=%d", workerId);
+      Command command = mClient.withDeadlineAfter(mContext.getClusterConf()
+          .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+          .blockHeartbeat(request).getCommand();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("heartbeat command is {} bytes, data count {}", command.getSerializedSize(),
+            command.getDataCount());
+      }
+      return command;
+    }, LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
   /**

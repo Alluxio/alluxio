@@ -22,8 +22,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.google.common.collect.ImmutableMap;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -31,9 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Utilities for handling server RPC calls.
@@ -44,8 +40,8 @@ import java.util.Map;
  */
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
-  private static final Logger LOG =
-          LoggerFactory.getLogger(RpcUtils.class);
+
+  private static final Logger LOG = LoggerFactory.getLogger(RpcUtils.class);
 
   private static List<String> sMetricList = new ArrayList<>();
 
@@ -215,7 +211,7 @@ public final class RpcUtils {
 
   private static long getGaugeValue(String name) {
     com.codahale.metrics.Metric m = MetricsSystem.METRIC_REGISTRY.getMetrics().get(name);
-    return (Long)((Gauge) m).getValue();
+    return (Long) ((Gauge) m).getValue();
   }
 
   private static long[] traceGauges() {
