@@ -100,45 +100,45 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   public List<String> getAllDatabases() throws AlluxioStatusException {
     return retryRPC(() -> {
       GetAllDatabasesPResponse response = mClient.getAllDatabases(
-        GetAllDatabasesPRequest.newBuilder().build());
+          GetAllDatabasesPRequest.newBuilder().build());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("getAllDatabases response has {} bytes, {} databases", response.getSerializedSize(),
-                response.getDatabaseCount());
+        RPC_LOG.debug("getAllDatabases response has {} bytes, {} databases",
+            response.getSerializedSize(), response.getDatabaseCount());
       }
       return response.getDatabaseList();
-      }, RPC_LOG, "GetAllDatabases", "");
+    }, RPC_LOG, "GetAllDatabases", "");
   }
 
   @Override
   public Database getDatabase(String databaseName) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetDatabasePResponse response = mClient.getDatabase(GetDatabasePRequest.newBuilder()
-        .setDbName(databaseName).build());
+          .setDbName(databaseName).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getDatabase response has {} bytes", response.getSerializedSize());
       }
       return response;
-      }, RPC_LOG, "GetDatabase", "databaseName=%s", databaseName).getDb();
+    }, RPC_LOG, "GetDatabase", "databaseName=%s", databaseName).getDb();
   }
 
   @Override
   public List<String> getAllTables(String databaseName) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetAllTablesPResponse response = mClient.getAllTables(
-        GetAllTablesPRequest.newBuilder().setDatabase(databaseName).build());
+          GetAllTablesPRequest.newBuilder().setDatabase(databaseName).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getAllTables response has {} bytes, {} tables", response.getSerializedSize(),
                 response.getTableCount());
       }
       return response.getTableList();
-      }, RPC_LOG, "GetAllTables", "databaseName=%s", databaseName);
+    }, RPC_LOG, "GetAllTables", "databaseName=%s", databaseName);
   }
 
   @Override
   public TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetTablePResponse response = mClient.getTable(
-        GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build());
+          GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getTable response has {} bytes", response.getSerializedSize());
       }
@@ -152,16 +152,16 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       String dbName, Map<String, String> configuration, boolean ignoreSyncErrors)
       throws AlluxioStatusException {
     return retryRPC(() -> {
-        AttachDatabasePResponse response = mClient.attachDatabase(
+      AttachDatabasePResponse response = mClient.attachDatabase(
           AttachDatabasePRequest.newBuilder().setUdbType(udbType)
-            .setUdbConnectionUri(udbConnectionUri).setUdbDbName(udbDbName).setDbName(dbName)
-            .putAllOptions(configuration).setIgnoreSyncErrors(ignoreSyncErrors).build());
-        if (RPC_LOG.isDebugEnabled()) {
-          RPC_LOG.debug("attachDatabase response has {} bytes", response.getSerializedSize());
-        }
-        return response.getSyncStatus();
-        }, RPC_LOG, "AttachDatabase", "udbType=%s,udbConnectionUri=%s,udbDbName=%s,dbName=%s,"
-            + "configuration=%s,ignoreSyncErrors=%s",
+              .setUdbConnectionUri(udbConnectionUri).setUdbDbName(udbDbName).setDbName(dbName)
+              .putAllOptions(configuration).setIgnoreSyncErrors(ignoreSyncErrors).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("attachDatabase response has {} bytes", response.getSerializedSize());
+      }
+      return response.getSyncStatus();
+    }, RPC_LOG, "AttachDatabase", "udbType=%s,udbConnectionUri=%s,"
+            + "udbDbName=%s,dbName=%s, configuration=%s,ignoreSyncErrors=%s",
         udbType, udbConnectionUri, udbDbName, dbName, configuration, ignoreSyncErrors);
   }
 
@@ -170,24 +170,24 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       throws AlluxioStatusException {
     return retryRPC(() -> {
       DetachDatabasePResponse response = mClient.detachDatabase(
-        DetachDatabasePRequest.newBuilder().setDbName(dbName).build());
+          DetachDatabasePRequest.newBuilder().setDbName(dbName).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("detachDatabase response has {} bytes", response.getSerializedSize());
       }
       return response.getSuccess();
-      }, RPC_LOG, "DetachDatabase", "dbName=%s", dbName);
+    }, RPC_LOG, "DetachDatabase", "dbName=%s", dbName);
   }
 
   @Override
   public SyncStatus syncDatabase(String dbName) throws AlluxioStatusException {
     return retryRPC(() -> {
       SyncDatabasePResponse response = mClient.syncDatabase(
-        SyncDatabasePRequest.newBuilder().setDbName(dbName).build());
+          SyncDatabasePRequest.newBuilder().setDbName(dbName).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("syncDatabase response has {} bytes", response.getSerializedSize());
       }
       return response.getStatus();
-      }, RPC_LOG, "SyncDatabase", "dbName=%s", dbName);
+    }, RPC_LOG, "SyncDatabase", "dbName=%s", dbName);
   }
 
   @Override
@@ -195,15 +195,15 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       throws AlluxioStatusException {
     return retryRPC(() -> {
       ReadTablePResponse response = mClient.readTable(
-        ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
-            .setConstraint(constraint).build());
+          ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
+              .setConstraint(constraint).build());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("readTable response has {} bytes, {} partitions", response.getSerializedSize(),
-                response.getPartitionsCount());
+        RPC_LOG.debug("readTable response has {} bytes, {} partitions",
+            response.getSerializedSize(), response.getPartitionsCount());
       }
       return response.getPartitionsList();
-      }, RPC_LOG, "ReadTable", "databaseName=%s,tableName=%s,constraint=%s", databaseName, tableName,
-        constraint);
+    }, RPC_LOG, "ReadTable", "databaseName=%s,tableName=%s,constraint=%s",
+        databaseName, tableName, constraint);
   }
 
   @Override
@@ -212,17 +212,17 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
           String tableName,
           List<String> columnNames) throws AlluxioStatusException {
     return retryRPC(() -> {
-        GetTableColumnStatisticsPResponse response = mClient.getTableColumnStatistics(
+      GetTableColumnStatisticsPResponse response = mClient.getTableColumnStatistics(
           GetTableColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
-            .setTableName(tableName).addAllColNames(columnNames).build());
-        if (RPC_LOG.isDebugEnabled()) {
-          RPC_LOG.debug("getTableColumnStatistics response has {} bytes, {} statistics",
-                  response.getSerializedSize(),
-                  response.getStatisticsCount());
-        }
-        return response.getStatisticsList();
-        }, RPC_LOG, "GetTableColumnStatistics",
-        "databaseName=%s,tableName=%s,columnNames=%s", databaseName, tableName, columnNames);
+              .setTableName(tableName).addAllColNames(columnNames).build());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("getTableColumnStatistics response has {} bytes, {} statistics",
+            response.getSerializedSize(), response.getStatisticsCount());
+      }
+      return response.getStatisticsList();
+    }, RPC_LOG, "GetTableColumnStatistics",
+        "databaseName=%s,tableName=%s,columnNames=%s",
+        databaseName, tableName, columnNames);
   }
 
   @Override
@@ -240,16 +240,16 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
           List<String> columnNames) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetPartitionColumnStatisticsPResponse response = mClient.getPartitionColumnStatistics(
-        GetPartitionColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
-            .setTableName(tableName).addAllColNames(columnNames)
-            .addAllPartNames(partitionNames).build());
+          GetPartitionColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
+              .setTableName(tableName).addAllColNames(columnNames)
+              .addAllPartNames(partitionNames).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getPartitionColumnStatistics response has {} bytes, {} partition statistics",
                 response.getSerializedSize(),
                 response.getPartitionStatisticsCount());
       }
       return response.getPartitionStatisticsMap();
-      }, RPC_LOG, "GetPartitionColumnStatistics",
+    }, RPC_LOG, "GetPartitionColumnStatistics",
         "databaseName=%s,tableName=%s,partitionNames=%s,columnNames=%s",
         databaseName, tableName, partitionNames, columnNames)
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
@@ -261,17 +261,17 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       throws AlluxioStatusException {
     return retryRPC(() -> {
       TransformTablePResponse response = mClient.transformTable(
-        TransformTablePRequest.newBuilder()
-            .setDbName(dbName)
-            .setTableName(tableName)
-            .setDefinition(definition)
-            .build());
+          TransformTablePRequest.newBuilder()
+              .setDbName(dbName)
+              .setTableName(tableName)
+              .setDefinition(definition)
+              .build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("transformTable response has {} bytes",
                 response.getSerializedSize());
       }
       return response.getJobId();
-      }, RPC_LOG, "TransformTable", "dbName=%s,tableName=%s,definition=%s",
+    }, RPC_LOG, "TransformTable", "dbName=%s,tableName=%s,definition=%s",
         dbName, tableName, definition);
   }
 
@@ -279,29 +279,29 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   public TransformJobInfo getTransformJobInfo(long jobId) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetTransformJobInfoPResponse response = mClient.getTransformJobInfo(
-        GetTransformJobInfoPRequest.newBuilder()
-            .setJobId(jobId)
-            .build());
+          GetTransformJobInfoPRequest.newBuilder()
+              .setJobId(jobId)
+              .build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getTransformJobInfo response has {} bytes, {} JobInfo",
                 response.getSerializedSize(),
                 response.getInfoCount());
       }
       return response.getInfo(0);
-      }, RPC_LOG, "GetTransformJobInfo", "jobId=%d", jobId);
+    }, RPC_LOG, "GetTransformJobInfo", "jobId=%d", jobId);
   }
 
   @Override
   public List<TransformJobInfo> getAllTransformJobInfo() throws AlluxioStatusException {
     return retryRPC(() -> {
       GetTransformJobInfoPResponse response = mClient.getTransformJobInfo(
-        GetTransformJobInfoPRequest.newBuilder().build());
+          GetTransformJobInfoPRequest.newBuilder().build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getAllTransformJobInfo response has {} bytes, {} JobInfo",
                 response.getSerializedSize(),
                 response.getInfoCount());
       }
       return response.getInfoList();
-      }, RPC_LOG, "GetAllTransformJobInfo", "");
+    }, RPC_LOG, "GetAllTransformJobInfo", "");
   }
 }

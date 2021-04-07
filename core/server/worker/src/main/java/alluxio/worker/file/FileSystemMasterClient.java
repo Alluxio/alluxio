@@ -81,13 +81,13 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(() -> {
-              GetFileInfoPResponse response = mClient.getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build());
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("getFileInfo response is {} bytes", response.getSerializedSize());
-              }
-              return GrpcUtils.fromProto(response.getFileInfo());
-            },
-        LOG, "GetFileInfo", "fileId=%d", fileId);
+      GetFileInfoPResponse response =
+          mClient.getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("getFileInfo response is {} bytes", response.getSerializedSize());
+      }
+      return GrpcUtils.fromProto(response.getFileInfo());
+    }, LOG, "GetFileInfo", "fileId=%d", fileId);
   }
 
   /**
@@ -100,7 +100,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
               .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
               .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build());
       if (LOG.isDebugEnabled()) {
-        LOG.debug("getPinnedFileIds response has {} bytes, {} pinned files", response.getSerializedSize(), response.getPinnedFileIdsCount());
+        LOG.debug("getPinnedFileIds response has {} bytes, {} pinned files",
+            response.getSerializedSize(), response.getPinnedFileIdsCount());
       }
       return new HashSet<>(response.getPinnedFileIdsList());
     }, LOG, "GetPinList", "");

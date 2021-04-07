@@ -25,7 +25,6 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetUsedBytesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
-import alluxio.grpc.GetWorkerInfoListPResponseOrBuilder;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.ServiceType;
@@ -90,10 +89,11 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
-      GetWorkerInfoListPResponse response = mClient.getWorkerInfoList(GetWorkerInfoListPOptions.getDefaultInstance());
+      GetWorkerInfoListPResponse response =
+          mClient.getWorkerInfoList(GetWorkerInfoListPOptions.getDefaultInstance());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("getWorkerInfoList response has {} bytes, {} WorkerInfo", response.getSerializedSize(),
-                response.getWorkerInfosCount());
+        RPC_LOG.debug("getWorkerInfoList response has {} bytes, {} WorkerInfo",
+            response.getSerializedSize(), response.getWorkerInfosCount());
       }
       for (alluxio.grpc.WorkerInfo workerInfo : response.getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
@@ -124,15 +124,14 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public List<WorkerLostStorageInfo> getWorkerLostStorage() throws IOException {
     return retryRPC(() -> {
       GetWorkerLostStoragePResponse response = mClient
-        .getWorkerLostStorage(GetWorkerLostStoragePOptions.getDefaultInstance());
+          .getWorkerLostStorage(GetWorkerLostStoragePOptions.getDefaultInstance());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getWorkerLostStorage response has {} bytes, {} lost storage info",
                 response.getSerializedSize(),
                 response.getWorkerLostStorageInfoCount());
       }
       return response.getWorkerLostStorageInfoList();
-      },
-        RPC_LOG, "GetWorkerLostStorage", "");
+    }, RPC_LOG, "GetWorkerLostStorage", "");
   }
 
   /**
@@ -143,7 +142,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public BlockInfo getBlockInfo(final long blockId) throws IOException {
     return retryRPC(() -> {
-      GetBlockInfoPResponse response = mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build());
+      GetBlockInfoPResponse response =
+          mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getBlockInfo response has {} bytes",
                 response.getSerializedSize());
@@ -159,7 +159,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       GetBlockMasterInfoPResponse response = mClient
               .getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
               .addAllFilters(
-                      fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
+                  fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
               .build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getBlockMasterInfo response has {} bytes",
@@ -177,13 +177,13 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public long getCapacityBytes() throws IOException {
     return retryRPC(() -> {
       GetCapacityBytesPResponse response = mClient
-        .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance());
+          .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("getCapacityBytes response has {} bytes",
                 response.getSerializedSize());
       }
       return response.getBytes();
-      }, RPC_LOG, "GetCapacityBytes", "");
+    }, RPC_LOG, "GetCapacityBytes", "");
   }
 
   /**
@@ -194,10 +194,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public long getUsedBytes() throws IOException {
     return retryRPC(
         () -> {
-          GetUsedBytesPResponse response = mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance());
+          GetUsedBytesPResponse response =
+              mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance());
           if (RPC_LOG.isDebugEnabled()) {
-            RPC_LOG.debug("getUsedBytes response has {} bytes",
-                    response.getSerializedSize());
+            RPC_LOG.debug("getUsedBytes response has {} bytes", response.getSerializedSize());
           }
           return response.getBytes();
         }, RPC_LOG, "GetUsedBytes", "");

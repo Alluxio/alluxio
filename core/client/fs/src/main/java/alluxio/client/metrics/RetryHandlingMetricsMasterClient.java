@@ -17,7 +17,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClearMetricsPResponse;
-import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.ClientMetrics;
 import alluxio.grpc.GetMetricsPOptions;
 import alluxio.grpc.GetMetricsPResponse;
@@ -80,12 +79,13 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   @Override
   public void clearMetrics() throws IOException {
     retryRPC(() -> {
-      ClearMetricsPResponse response = mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build());
+      ClearMetricsPResponse response =
+          mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build());
       if (LOG.isDebugEnabled()) {
         LOG.debug("clearMetrics response has {} bytes", response.getSerializedSize());
       }
       return null;
-      }, LOG, "ClearMetrics", "");
+    }, LOG, "ClearMetrics", "");
   }
 
   @Override
@@ -109,12 +109,13 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
         () -> {
-            GetMetricsPResponse response = mClient.getMetrics(GetMetricsPOptions.getDefaultInstance());
+            GetMetricsPResponse response =
+                mClient.getMetrics(GetMetricsPOptions.getDefaultInstance());
             if (LOG.isDebugEnabled()) {
-              LOG.debug("getMetrics response has {} bytes, {} metrics", response.getSerializedSize(),
-                      response.getMetricsCount());
+              LOG.debug("getMetrics response has {} bytes, {} metrics",
+                  response.getSerializedSize(), response.getMetricsCount());
             }
             return response.getMetricsMap();
-            }, LOG, "GetMetrics", "");
+        }, LOG, "GetMetrics", "");
   }
 }

@@ -91,7 +91,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public void cancel(final long jobId) throws IOException {
     retryRPC((RpcCallable<Void>) () -> {
-      CancelPResponse response = mClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
+      CancelPResponse response =
+          mClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
       if (RPC_LOG.isDebugEnabled()) {
         RPC_LOG.debug("cancel response has {} bytes", response.getSerializedSize());
       }
@@ -103,14 +104,16 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   public JobInfo getJobStatus(final long id) throws IOException {
     return ProtoUtils.fromProto(
         retryRPC(() -> {
-          GetJobStatusPResponse response = mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build());
+          GetJobStatusPResponse response =
+              mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build());
           alluxio.grpc.JobInfo jobInfo = response.getJobInfo();
           if (RPC_LOG.isDebugEnabled()) {
-            RPC_LOG.debug("getJobStatus response has {} bytes, {} affected paths, {} children", response.getSerializedSize(),
-                    jobInfo.getAffectedPathsCount(), jobInfo.getChildrenCount());
+            RPC_LOG.debug("getJobStatus response has {} bytes, {} affected paths, {} children",
+                response.getSerializedSize(), jobInfo.getAffectedPathsCount(),
+                jobInfo.getChildrenCount());
           }
           return jobInfo;
-          }, RPC_LOG, "GetJobStatus", "id=%d", id));
+        }, RPC_LOG, "GetJobStatus", "id=%d", id));
   }
 
   @Override
@@ -118,11 +121,13 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     return ProtoUtils.fromProto(
         retryRPC(() -> {
           GetJobStatusDetailedPResponse response = mClient.getJobStatusDetailed(
-            GetJobStatusDetailedPRequest.newBuilder().setJobId(id).build());
+              GetJobStatusDetailedPRequest.newBuilder().setJobId(id).build());
           alluxio.grpc.JobInfo jobInfo = response.getJobInfo();
           if (RPC_LOG.isDebugEnabled()) {
-            RPC_LOG.debug("getJobStatusDetailed response has {} bytes, {} affected paths, {} children", response.getSerializedSize(),
-                    jobInfo.getAffectedPathsCount(), jobInfo.getChildrenCount());
+            RPC_LOG.debug("getJobStatusDetailed response has {} bytes,"
+                    + " {} affected paths, {} children",
+                response.getSerializedSize(), jobInfo.getAffectedPathsCount(),
+                jobInfo.getChildrenCount());
           }
           return jobInfo;
         }, RPC_LOG, "GetJobStatusDetailed", "id=%d", id));
@@ -132,44 +137,43 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   public JobServiceSummary getJobServiceSummary() throws IOException {
     return new JobServiceSummary(retryRPC(() -> {
       GetJobServiceSummaryPResponse response = mClient
-        .getJobServiceSummary(GetJobServiceSummaryPRequest.newBuilder().build());
+          .getJobServiceSummary(GetJobServiceSummaryPRequest.newBuilder().build());
       alluxio.grpc.JobServiceSummary summary = response.getSummary();
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("getJobServiceSummary response has {} bytes, {} longest running, {} recent activities, {} recent failures, {} summary per status",
-                response.getSerializedSize(),
-                summary.getLongestRunningCount(),
-                summary.getRecentActivitiesCount(),
-                summary.getRecentFailuresCount(),
+        RPC_LOG.debug("getJobServiceSummary response has {} bytes, {} longest running, "
+                + "{} recent activities, {} recent failures, {} summary per status",
+                response.getSerializedSize(), summary.getLongestRunningCount(),
+                summary.getRecentActivitiesCount(), summary.getRecentFailuresCount(),
                 summary.getSummaryPerStatusCount());
       }
       return summary;
-      }, RPC_LOG, "GetJobServiceSummary", ""));
+    }, RPC_LOG, "GetJobServiceSummary", ""));
   }
 
   @Override
   public List<Long> list() throws IOException {
     return retryRPC(() -> {
-              ListAllPResponse response = mClient.listAll(ListAllPRequest.getDefaultInstance());
-              if (RPC_LOG.isDebugEnabled()) {
-                RPC_LOG.debug("listAll response has {} bytes, {} JobIds, {} JobInfos", response.getSerializedSize(),
-                        response.getJobIdsCount(), response.getJobInfosCount());
-              }
-              return response.getJobIdsList();
-              }, RPC_LOG, "List", "");
+      ListAllPResponse response = mClient.listAll(ListAllPRequest.getDefaultInstance());
+      if (RPC_LOG.isDebugEnabled()) {
+        RPC_LOG.debug("listAll response has {} bytes, {} JobIds, {} JobInfos",
+            response.getSerializedSize(), response.getJobIdsCount(), response.getJobInfosCount());
+      }
+      return response.getJobIdsList();
+    }, RPC_LOG, "List", "");
   }
 
   @Override
   public List<JobInfo> listDetailed() throws IOException {
     List<alluxio.grpc.JobInfo> jobProtoInfos =
         retryRPC(() -> {
-          ListAllPResponse response =
-          mClient.listAll(ListAllPRequest.getDefaultInstance());
+          ListAllPResponse response = mClient.listAll(ListAllPRequest.getDefaultInstance());
           if (RPC_LOG.isDebugEnabled()) {
-            RPC_LOG.debug("listAll response has {} bytes, {} JobIds, {} JobInfos", response.getSerializedSize(),
-                    response.getJobIdsCount(), response.getJobInfosCount());
+            RPC_LOG.debug("listAll response has {} bytes, {} JobIds, {} JobInfos",
+                response.getSerializedSize(), response.getJobIdsCount(),
+                response.getJobInfosCount());
           }
           return response.getJobInfosList();
-          }, RPC_LOG, "ListDetailed", "");
+        }, RPC_LOG, "ListDetailed", "");
     ArrayList<JobInfo> result = Lists.newArrayList();
     for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
       result.add(ProtoUtils.fromProto(jobProtoInfo));
@@ -182,22 +186,24 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     final ByteString jobConfigStr = ByteString.copyFrom(SerializationUtils.serialize(jobConfig));
     return retryRPC(
         () -> {
-          RunPResponse response = mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build());
+          RunPResponse response =
+              mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build());
           if (RPC_LOG.isDebugEnabled()) {
             RPC_LOG.debug("run response has {} bytes", response.getSerializedSize());
           }
           return response.getJobId();
-          },
+        },
         RPC_LOG, "Run", "jobConfig=%s", jobConfig);
   }
 
   @Override
   public List<JobWorkerHealth> getAllWorkerHealth() throws IOException {
     return retryRPC(() -> {
-      GetAllWorkerHealthPResponse response = mClient.getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build());
+      GetAllWorkerHealthPResponse response =
+          mClient.getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build());
       if (RPC_LOG.isDebugEnabled()) {
-        RPC_LOG.debug("getAllWorkerHealth response has {} bytes, {} WorkerHealth", response.getSerializedSize(),
-                response.getWorkerHealthsCount());
+        RPC_LOG.debug("getAllWorkerHealth response has {} bytes, {} WorkerHealth",
+            response.getSerializedSize(), response.getWorkerHealthsCount());
       }
       List<alluxio.grpc.JobWorkerHealth> workerHealthsList = response.getWorkerHealthsList();
       return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
