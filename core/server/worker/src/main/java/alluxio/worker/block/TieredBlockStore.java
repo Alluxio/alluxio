@@ -741,7 +741,7 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the session id
    * @param minContiguousBytes the minimum amount of contigious free space in bytes
-   * @param minAvailableBytes the maximum amount of free space in bytes
+   * @param minAvailableBytes the minimum amount of free space in bytes
    * @param location the location to free space
    * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
    */
