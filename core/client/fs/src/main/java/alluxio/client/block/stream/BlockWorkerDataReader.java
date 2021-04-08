@@ -146,7 +146,9 @@ public final class BlockWorkerDataReader implements DataReader {
       if (mClosed) {
         return;
       }
-      mReader.close();
+      if (mReader != null) {
+        mReader.close();
+      }
       mClosed = true;
     }
   }
