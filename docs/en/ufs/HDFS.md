@@ -65,11 +65,17 @@ address and the HDFS directory you want to mount to Alluxio. For example, the un
 can be `hdfs://localhost:8020` if you are running the HDFS namenode locally with default port and
 mapping HDFS root directory to Alluxio, or `hdfs://localhost:8020/alluxio/data` if only the HDFS
 directory `/alluxio/data` is mapped to Alluxio.
-To find out where hdfs is runing, use `hdfs getconf -confKey fs.defaultFS` to get the default hostname
+To find out where HDFS is running, use `hdfs getconf -confKey fs.defaultFS` to get the default hostname
 and port HDFS is listening on.
 
 ```
 alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
+```
+
+Additionally, you may need to specify the following property to be your HDFS version.
+See [mounting HDFS with specific versions]({{ '/en/ufs/HDFS.html' | relativize_url }}#mount-hdfs-with-specific-versions).
+```
+alluxio.master.mount.table.root.option.alluxio.underfs.version=<HADOOP VERSION>
 ```
 
 ## Example: Running Alluxio Locally with HDFS
@@ -131,8 +137,9 @@ There are two possible approaches:
 this is set up on all servers running Alluxio.
 
 - Alternatively, you can
-set the property `alluxio.underfs.hdfs.configuration` in `conf/alluxio-site.properties` to point to
-your `hdfs-site.xml` and `core-site.xml`. Make sure this configuration is set on all servers running Alluxio.
+set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration` in
+`conf/alluxio-site.properties` to point to your `hdfs-site.xml` and `core-site.xml`.
+Make sure this configuration is set on all servers running Alluxio.
 
 ```
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
