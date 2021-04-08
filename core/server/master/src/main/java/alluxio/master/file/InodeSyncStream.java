@@ -625,17 +625,6 @@ public class InodeSyncStream {
       }
     }
 
-    // Only sync children when
-    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
-    if (mDescendantType == DescendantType.ONE) {
-      syncChildren =
-          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
-    } else if (mDescendantType == DescendantType.ALL) {
-      syncChildren = syncChildren && inode.isDirectory();
-    } else {
-      syncChildren = false;
-    }
-
     Map<String, Inode> inodeChildren = new HashMap<>();
     if (syncChildren) {
       // maps children name to inode
@@ -668,7 +657,7 @@ public class InodeSyncStream {
       loadMetadataForPath(inodePath);
     }
 
-    if (syncChildren) {
+    if (syncChildren && mDescendantType == DescendantType.ALL) {
       // Iterate over Alluxio children and process persisted children.
       mInodeStore.getChildren(inode.asDirectory()).forEach(childInode -> {
         // If we are only loading non-existing metadata, then don't process any child which
