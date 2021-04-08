@@ -84,7 +84,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
 
-    sFsShell.run("distributedLoad", "-f", testFile.getAbsolutePath());
+    sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath());
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());

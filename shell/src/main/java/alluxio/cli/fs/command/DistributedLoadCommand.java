@@ -68,7 +68,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
   private static final Option INDEX_FILE =
-      Option.builder("f")
+      Option.builder()
+          .longOpt("index")
           .required(false)
           .hasArg(true)
           .numberOfArgs(0)
@@ -104,7 +105,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] [-f] <path>";
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] <path>";
   }
 
   @Override
@@ -121,7 +122,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
 
-    if (!cl.hasOption('f')) {
+    if (!cl.hasOption("index")) {
       AlluxioURI path = new AlluxioURI(args[0]);
       distributedLoad(path, replication);
     } else {
