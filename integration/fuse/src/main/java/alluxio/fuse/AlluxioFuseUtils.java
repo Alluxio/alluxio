@@ -272,12 +272,12 @@ public final class AlluxioFuseUtils {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     logger.debug("Enter: {}({})", methodName, debugDesc);
     int ret = -1;
-    try (Timer.Context ctx = MetricsSystem.timer("Fuse" + methodName).time()) {
+    try (Timer.Context ctx = MetricsSystem.timer(methodName).time()) {
       ret = callable.call();
     }
     if (ret < 0) {
       logger.debug("Exit (Error) ({}): {}({})", ret, methodName, debugDesc);
-      MetricsSystem.counter("Fuse" + methodName + "Failures").inc();
+      MetricsSystem.counter(methodName + "Failures").inc();
     } else {
       logger.debug("Exit ({}): {}({})", ret, methodName, debugDesc);
     }

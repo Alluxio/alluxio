@@ -1531,11 +1531,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_STATE = "Client.CacheState";
     public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
 
-    // Fuse metrics can be collected by client (standalone Fuse process)
-    // or by worker (Fuse embedded in worker)
-    // so instance prefix will be added by metrics system at runtime.
-    public static final String FUSE_BYTES_TO_READ = "FuseBytesToRead";
-    public static final String FUSE_BYTES_READ = "FuseBytesRead";
+    public static final String FUSE_BYTES_TO_READ = "Fuse.BytesToRead";
+    public static final String FUSE_BYTES_READ = "Fuse.BytesRead";
 
     private Name() {} // prevent instantiation
   }

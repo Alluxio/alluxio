@@ -57,7 +57,6 @@ public class StackFS extends AbstractFuseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(StackFS.class);
   private static final long ID_NOT_SET_VALUE = -1;
   private static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
-  private static final String STACK_FS_PREFIX = "Stack";
 
   private final Path mRoot;
 
@@ -88,7 +87,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int getattr(String path, FileStat stat) {
     return AlluxioFuseUtils.call(
-        LOG, () -> getattrInternal(path, stat), STACK_FS_PREFIX + "Getattr", "path=%s", path);
+        LOG, () -> getattrInternal(path, stat), "Stackfs.Getattr", "path=%s", path);
   }
 
   private int getattrInternal(String path, FileStat stat) {
@@ -126,7 +125,7 @@ public class StackFS extends AbstractFuseFileSystem {
   public int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
-        STACK_FS_PREFIX + "Readdir", "path=%s,buf=%s", path, buff);
+        "Stackfs.Readdir", "path=%s,buf=%s", path, buff);
   }
 
   private int readdirInternal(String path, long buff, long filter, long offset,
@@ -147,7 +146,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int open(String path, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi),
-        STACK_FS_PREFIX + "Open", "path=%s", path);
+        "Stackfs.Open", "path=%s", path);
   }
 
   private int openInternal(String path, FuseFileInfo fi) {
@@ -163,11 +162,11 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
-        STACK_FS_PREFIX + "Read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Stackfs.Read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    MetricsSystem.counter("FuseStackBytesToRead").inc(size);
+    MetricsSystem.counter("Stackfs.BytesToRead").inc(size);
     path = transformPath(path);
     int nread = 0;
     try (FileInputStream fis = new FileInputStream(path)) {
@@ -181,14 +180,14 @@ public class StackFS extends AbstractFuseFileSystem {
       LOG.error("Failed to read {}", path, e);
       return -ErrorCodes.EIO();
     }
-    MetricsSystem.counter("FuseStackBytesRead").inc(nread);
+    MetricsSystem.counter("Stackfs.BytesRead").inc(nread);
     return nread;
   }
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
-        STACK_FS_PREFIX + "Create", "path=%s,mode=%o", path, mode);
+        "Stackfs.Create", "path=%s,mode=%o", path, mode);
   }
 
   private int createInternal(String path, long mode, FuseFileInfo fi) {
@@ -210,7 +209,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
-        STACK_FS_PREFIX + "Write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Stackfs.Write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int writeInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
@@ -233,7 +232,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int mkdir(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode),
-        STACK_FS_PREFIX + "Mkdir", "path=%s,mode=%o,", path, mode);
+        "Stackfs.Mkdir", "path=%s,mode=%o,", path, mode);
   }
 
   private int mkdirInternal(String path, long mode) {
@@ -255,7 +254,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int unlink(String path) {
     return AlluxioFuseUtils.call(LOG, () -> unlinkInternal(path),
-        STACK_FS_PREFIX + "Unlink", "path=%s", path);
+        "Stackfs.Unlink", "path=%s", path);
   }
 
   private int unlinkInternal(String path) {
@@ -276,7 +275,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int rename(String oldPath, String newPath) {
     return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
-        STACK_FS_PREFIX + "Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
+        "Stackfs.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
   private int renameInternal(String oldPath, String newPath) {
@@ -304,7 +303,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int chmod(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode),
-        STACK_FS_PREFIX + "Chmod", "path=%s,mode=%o", path, mode);
+        "Stackfs.Chmod", "path=%s,mode=%o", path, mode);
   }
 
   private int chmodInternal(String path, long mode) {
@@ -326,7 +325,7 @@ public class StackFS extends AbstractFuseFileSystem {
   @Override
   public int chown(String path, long uid, long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        STACK_FS_PREFIX + "Chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "Stackfs.Chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
   }
 
   private int chownInternal(String path, long uid, long gid) {
