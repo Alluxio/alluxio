@@ -23,6 +23,7 @@ import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -68,7 +69,12 @@ public final class BlockWorkerDataReader implements DataReader {
     if (mPos >= mEnd) {
       return null;
     }
-    ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
+    long toRead = Math.min(mChunkSize, mEnd - mPos);
+    ByteBuffer buffer;
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.WORKER_BYTES_READ_DIRECT_TIMER.getName()).time()) {
+      buffer = mReader.read(mPos, toRead);
+    }
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DIRECT.getName()).inc(dataBuffer.getLength());

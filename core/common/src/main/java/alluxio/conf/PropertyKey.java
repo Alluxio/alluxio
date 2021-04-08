@@ -4608,13 +4608,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_LOGGING_THRESHOLD =
-      new Builder(Name.FUSE_LOGGING_THRESHOLD)
-          .setDefaultValue("10s")
-          .setDescription("Logging a FUSE API call when it takes more time than the threshold.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue("128KB")

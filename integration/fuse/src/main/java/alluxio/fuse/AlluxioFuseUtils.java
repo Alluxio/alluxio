@@ -13,8 +13,6 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -24,12 +22,13 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.codahale.metrics.Timer;
 import ru.serce.jnrfuse.ErrorCodes;
 
 import org.slf4j.Logger;
@@ -46,8 +45,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
-  private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
-      .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
   private AlluxioFuseUtils() {}
@@ -274,13 +271,15 @@ public final class AlluxioFuseUtils {
       String description, Object... args) {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     logger.debug("Enter: {}({})", methodName, debugDesc);
-    long startMs = System.currentTimeMillis();
-    int ret = callable.call();
-    long durationMs = System.currentTimeMillis() - startMs;
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
-    if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
-          String.format(description, args), ret, durationMs, THRESHOLD);
+    int ret = -1;
+    try (Timer.Context ctx = MetricsSystem.timer("Fuse" + methodName).time()) {
+      ret = callable.call();
+    }
+    if (ret != 0) {
+      logger.debug("Exit (Error) ({}): {}({})", ret, methodName, debugDesc);
+      MetricsSystem.counter("Fuse" + methodName + "Failures").inc();
+    } else {
+      logger.debug("Exit ({}): {}({})", ret, methodName, debugDesc);
     }
     return ret;
   }

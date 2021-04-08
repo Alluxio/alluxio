@@ -791,6 +791,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  public static final MetricKey WORKER_BYTES_READ_DIRECT_TIMER =
+      new Builder(Name.WORKER_BYTES_READ_DIRECT_TIMER)
+          .setDescription("The timer statistics of reading data from worker "
+              + "(or UFS if data cannot be found in worker storage) in chunks directly.")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_READ_DIRECT_THROUGHPUT)
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
@@ -1209,6 +1216,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  // Fuse operation timer and failure counter metrics are added dynamically.
+  // Other Fuse related metrics are added here
+  public static final MetricKey FUSE_BYTES_TO_READ =
+      new Builder(Name.FUSE_BYTES_TO_READ)
+          .setDescription("Total number of bytes requested by Fuse.read() operations.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_BYTES_READ =
+      new Builder(Name.FUSE_BYTES_READ)
+          .setDescription("Total number of bytes read through Fuse.read() operations.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   /**
    * Registers the given key to the global key map.
    *
@@ -1400,6 +1422,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
     public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
     public static final String WORKER_BYTES_READ_DIRECT = "Worker.BytesReadDirect";
+    public static final String WORKER_BYTES_READ_DIRECT_TIMER = "Worker.BytesReadDirectTimer";
     public static final String WORKER_BYTES_READ_DIRECT_THROUGHPUT
         = "Worker.BytesReadDirectThroughput";
     public static final String WORKER_BYTES_WRITTEN_DIRECT = "Worker.BytesWrittenDirect";
@@ -1499,6 +1522,12 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CacheStoreThreadsRejected";
     public static final String CLIENT_CACHE_STATE = "Client.CacheState";
     public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
+
+    // Fuse metrics can be collected by client (standalone Fuse process)
+    // or by worker (Fuse embedded in worker)
+    // so instance prefix will be added by metrics system at runtime.
+    public static final String FUSE_BYTES_TO_READ = "FuseBytesToRead";
+    public static final String FUSE_BYTES_READ = "FuseBytesRead";
 
     private Name() {} // prevent instantiation
   }
