@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -32,7 +31,6 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -354,11 +352,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    MetricsSystem.counter("Client.JniFuseReadOps").inc();
-    MetricsSystem.counter("Client.JniFuseReadRequestTotalBytes").inc(size);
-    final int sz = (int) size;
     int nread = 0;
-    Long fd = fi.fh.get();
+    int rd = 0;
+    long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
@@ -373,12 +369,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
         if (offset - is.getPos() < is.remaining()) {
           is.seek(offset);
-          int rd = 0;
+          final int sz = (int) size;
+          final byte[] dest = new byte[sz];
           while (rd >= 0 && nread < sz) {
-            rd = ((AlluxioFileInStream) is).read(buf, nread, sz - nread);
+            rd = is.read(dest, nread, sz - nread);
             if (rd >= 0) {
               nread += rd;
             }
+          }
+          if (nread == -1) { // EOF
+            nread = 0;
+          } else if (nread > 0) {
+            buf.put(dest, 0, nread);
           }
         }
       }
@@ -386,7 +388,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to read, path: {} size: {} offset: {}", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
-    MetricsSystem.counter("Client.JniFuseReadResponseTotalBytes").inc(nread);
     return nread;
   }
 

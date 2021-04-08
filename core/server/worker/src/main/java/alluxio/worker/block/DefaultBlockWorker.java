@@ -475,7 +475,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);
       ((FileChannel) reader.getChannel()).position(offset);
-      // mLocalBlockStore.accessBlock(sessionId, blockId);
+      mLocalBlockStore.accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, () -> {
         try {
           mLocalBlockStore.unlockBlock(lockId);
