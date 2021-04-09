@@ -514,11 +514,12 @@ public class InodeSyncStream {
     boolean deletedInode = false;
     // whether we need to load metadata for the current path
     boolean loadMetadata = mLoadOnly;
-    boolean syncChildren = true;
     LOG.trace("Syncing inode metadata {}", inodePath.getUri());
 
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
+    // initialize sync children to true if it is a listStatus call on a directory
+    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo;
 
     // if the lock pattern is WRITE_EDGE, then we can sync (update or delete). Otherwise, if it is
     // we can only load metadata.
@@ -632,8 +633,6 @@ public class InodeSyncStream {
           syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
     } else if (mDescendantType == DescendantType.ALL) {
       syncChildren = syncChildren && inode.isDirectory();
-    } else {
-      syncChildren = false;
     }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
@@ -681,7 +680,7 @@ public class InodeSyncStream {
         AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
         mPendingPaths.add(child);
         // This asynchronously schedules a job to pre-fetch the statuses into the cache.
-        if (childInode.isDirectory()) {
+        if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
           mStatusCache.prefetchChildren(child, mMountTable);
         }
       });
