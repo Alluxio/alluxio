@@ -306,7 +306,6 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         true, 1);
   }
 
-
   @Test
   public void loadMetadataOnceAfterUfsDelete() throws Exception {
     GetStatusPOptions options =
