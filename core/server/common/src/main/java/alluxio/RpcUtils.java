@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,15 +135,19 @@ public final class RpcUtils {
       String methodName, boolean failureOk, String description, Object... args)
       throws StatusException {
     // avoid string format for better performance if debug is off
+    long[] startValues = null;
+    Instant startTime = null;
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.trace("Enter: {}: {}", methodName, debugDesc);
-      long[] startValues = traceGauges();
+      startValues = traceGauges();
+      startTime = Instant.now();
       T res = callable.call();
       logger.trace("Exit: {}: {}", methodName, debugDesc);
-      reportDifference(startValues, methodName, false);
+      reportDifference(startValues, methodName, false, startTime);
       return res;
     } catch (AlluxioException e) {
+      reportDifference(startValues, methodName, false, startTime);
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
@@ -152,6 +158,7 @@ public final class RpcUtils {
       }
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
     } catch (IOException e) {
+      reportDifference(startValues, methodName, false, startTime);
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
@@ -162,6 +169,7 @@ public final class RpcUtils {
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
     } catch (RuntimeException e) {
+      reportDifference(startValues, methodName, false, startTime);
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
@@ -186,9 +194,12 @@ public final class RpcUtils {
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    long[] startValues = null;
+    Instant startTime = null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.trace("Enter(stream): {}: {}", methodName, debugDesc);
-      long[] startValues = traceGauges();
+      startValues = traceGauges();
+      startTime = Instant.now();
       T result = callable.call();
       logger.trace("Exit(stream) (OK): {}: {}", methodName, debugDesc);
       if (sendResponse) {
@@ -200,8 +211,9 @@ public final class RpcUtils {
         responseObserver.onCompleted();
         logger.trace("Completed(stream): {}: {}", methodName, debugDesc);
       }
-      reportDifference(startValues, methodName, true);
+      reportDifference(startValues, methodName, true, startTime);
     } catch (Exception e) {
+      reportDifference(startValues, methodName, true, startTime);
       logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
           String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
@@ -222,13 +234,21 @@ public final class RpcUtils {
     return numbers;
   }
 
-  private static void reportDifference(long[] startValues, String rpcName, boolean isStream) {
+  private static void reportDifference(long[] startValues, String rpcName, boolean isStream, Instant startTime) {
+    if (startValues == null || startTime == null) {
+      LOG.warn("Thread {} {}RPC {} - null in startValue={} startTime={}", Thread.currentThread().getId(),
+              isStream ? "stream " : "",
+              rpcName, startValues, startTime);
+      return;
+    }
+    Instant endTime = Instant.now();
     long[] numbers = traceGauges();
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < numbers.length; i++) {
       sb.append(String.format("%s: %s, ", sMetricList.get(i), numbers[i] - startValues[i]));
     }
-    LOG.debug("Thread {} - Diff in {}RPC {}: [{}]", Thread.currentThread().getId(),
+    LOG.debug("Thread {} - Time: {}, Diff in {}RPC {}: [{}]", Thread.currentThread().getId(),
+            Duration.between(startTime, endTime).toMillis(),
             isStream ? "stream " : "",
             rpcName, sb.toString());
   }
