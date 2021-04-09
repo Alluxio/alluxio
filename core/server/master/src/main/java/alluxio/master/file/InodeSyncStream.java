@@ -518,7 +518,8 @@ public class InodeSyncStream {
 
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
-    boolean syncChildren = inode.isDirectory();
+    // initialize sync children to true if it is a listStatus call on a directory
+    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo;
 
     // if the lock pattern is WRITE_EDGE, then we can sync (update or delete). Otherwise, if it is
     // we can only load metadata.
