@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -64,7 +63,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
-  private static final int MAX_UMOUNT_WAITTIME_MS = Constants.MINUTE_MS;
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -72,12 +70,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
+  private final String mFsName;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
+  private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
-  private final String mFsName;
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
 
@@ -171,6 +170,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_WAITTIME);
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
@@ -691,39 +691,52 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public void umount() {
-    // Waiting for in progress async release to finish
-    if (!mReleasingReadEntries.isEmpty()) {
-      LOG.info("Waiting for all in progress file in stream closing to finish");
+    // Try our best effort to close all the in/out streams
+
+    // Release operation is async, we need to make sure
+    // all in/out streams are closed before umount the fuse
+    if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
+      LOG.info("Waiting for all file out stream closed");
       try {
-        CommonUtils.waitFor("async opened files releasing finished", mReleasingReadEntries::isEmpty,
-            WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
+        CommonUtils.waitFor("all opened file in stream and out stream closed",
+            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+                WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
-        LOG.error("Umount interrupted");
+        LOG.error("unmount interrupted");
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting in progress file in stream closing,"
-            + "the number of closing entries is {}", mReleasingReadEntries.size());
-      }
-    }
-    if (!mReleasingWriteEntries.isEmpty()) {
-      LOG.info("Waiting for all in progress file out stream closing to finish");
-      try {
-        CommonUtils.waitFor("async write releasing finished", mReleasingWriteEntries::isEmpty,
-            WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
-      } catch (InterruptedException e) {
-        LOG.error("Umount interrupted");
-        Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting in progress file out stream closing,"
-            + "the number of closing entries is {}", mReleasingWriteEntries.size());
+        LOG.error("Timeout when waiting all file in stream and file out stream to close."
+            + "{} fileInStream remain unclosed. {} fileOutStream remain unclosed. ",
+            mOpenFileEntries.size(), mCreateFileEntries.size());
       }
     }
 
+    // Waiting for in progress async release to finish
+    if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
+      LOG.info("Waiting for all in progress file in/out stream closing to finish");
+      try {
+        CommonUtils.waitFor("all in/out stream finish inprogress releasing",
+            () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
+            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+      } catch (InterruptedException e) {
+        LOG.error("Umount interrupted");
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting in progress file in/out stream closing,"
+            + "{} fileInStream and {} fileOutStream are still in releasing.",
+            mReleasingReadEntries.size(), mReleasingWriteEntries.size());
+      }
+    }
+
+    // Force close all opened stream
     if (!mOpenFileEntries.isEmpty()) {
+      LOG.info("Force to close all opened file in stream");
       for (Map.Entry<Long, FileInStream> entry : mOpenFileEntries.entrySet()) {
         FileInStream is = entry.getValue();
         try {
           synchronized (is) {
+            // Files have a small chance to be double closed in umount() and release()
+            // but AlluxioFileInStream supports double closed.
             is.close();
           }
         } catch (Throwable t) {
@@ -732,22 +745,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
       }
     }
-    // Release operation is async, we need to make sure
-    // all out stream is closed before umount the fuse
     if (!mCreateFileEntries.isEmpty()) {
-      LOG.info("Waiting for all file out stream closed");
-      try {
-        CommonUtils.waitFor("file out stream closed", mCreateFileEntries::isEmpty,
-                WaitForOptions.defaults().setTimeoutMs(MAX_UMOUNT_WAITTIME_MS / 3));
-      } catch (InterruptedException e) {
-        LOG.error("unmount interrupted");
-        Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting file out stream close,"
-                + "the number of unclosed fileOutStream is {}", mCreateFileEntries.size());
+      LOG.info("Force to close all inprogress file out stream");
+      for (CreateFileEntry ce : mCreateFileEntries) {
+        try {
+          synchronized (ce) {
+            ce.getOut().cancel();
+            LOG.info("Cancelled output stream with id {} and path {}", ce.getId(), ce.getPath());
+          }
+        } catch (Throwable t) {
+          LOG.error("Failed to cancel output stream with id {} and path{}: {}",
+              ce.getId(), ce.getPath(), t);
+        }
       }
     }
-
     super.umount();
   }
 
