@@ -221,7 +221,7 @@ public class StackFS extends AbstractFuseFileSystem {
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
       outputStream.write(dest);
-      MetricsSystem.counter("FuseStackBytesWritten").inc(sz);
+      MetricsSystem.counter("Stackfs.BytesWritten").inc(sz);
       return sz;
     } catch (IOException e) {
       LOG.error("Failed to write to {}", path, e);
