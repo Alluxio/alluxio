@@ -949,8 +949,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       String folderName = convertToFolderName(dir);
       if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
-              x -> x.mContentLength==0 && x.getName().equals(folderName))) {
-         mkdirsInternal(dir);
+              x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
+        mkdirsInternal(dir);
       }
       return objs;
     }
