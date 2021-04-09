@@ -13,11 +13,10 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.client.file.FileSystem;
-import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -52,12 +51,10 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
 
   protected static final int WORKER_MEMORY_SIZE = 1500;
-  protected static final int BUFFER_BYTES = 100;
 
   @Override
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
     resource.setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE)
-        .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0");
   }
@@ -87,12 +84,12 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
   @Parameterized.Parameter(2)
   public int mUserFileBufferSize;
 
+  @Ignore
   @Test
   public void shortCircuitWrite() throws Exception {
 
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
-        put(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(mUserFileBufferSize));
         put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, String.valueOf(mBlockSize));
       }
     }, ServerConfiguration.global()).toResource()) {

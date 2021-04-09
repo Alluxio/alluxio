@@ -64,6 +64,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger SLOW_WRITE_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
   private static final long SLOW_WRITE_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+  public static final long FILE_BUFFER_SIZE = Constants.MB;
 
   /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
