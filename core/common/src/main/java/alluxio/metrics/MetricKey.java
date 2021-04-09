@@ -952,7 +952,8 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
       new Builder(Name.CLIENT_BLOCK_READ_CHUNK)
-          .setDescription("The timer statistics of reading block data in chunks from Alluxio workers.")
+          .setDescription("The timer statistics of reading block data in chunks "
+              + "from Alluxio workers.")
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();

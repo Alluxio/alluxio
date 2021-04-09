@@ -23,7 +23,6 @@ import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
-import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
