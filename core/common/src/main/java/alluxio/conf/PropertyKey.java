@@ -3531,7 +3531,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
-          .setDefaultValue(10)
+          .setDefaultValue(500)
           .setDescription("The maximum number of block master clients cached in the block master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3707,7 +3707,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
-          .setDefaultValue(10)
+          .setDefaultValue(500)
           .setDescription("The maximum number of fs master clients cached in the fs master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
