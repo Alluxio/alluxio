@@ -30,9 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class CsvSink implements Sink {
-
   private static final Logger LOG = LoggerFactory.getLogger(CsvSink.class);
-
   private static final int CSV_DEFAULT_PERIOD = 10;
   private static final String CSV_DEFAULT_UNIT = "SECONDS";
   private static final String CSV_DEFAULT_DIR = "/tmp/";
@@ -43,7 +41,7 @@ public class CsvSink implements Sink {
 
   private CsvReporter mReporter;
   private Properties mProperties;
-  private File mFile;
+  private final File mDir;
 
   /**
    * Creates a new {@link CsvSink} with a {@link Properties} and {@link MetricRegistry}.
@@ -54,12 +52,12 @@ public class CsvSink implements Sink {
    */
   public CsvSink(Properties properties, MetricRegistry registry) {
     mProperties = properties;
-    mFile = new File(getPollDir());
-    createPollDir(mFile);
+    mDir = new File(getPollDir());
+    createPollDir(mDir);
     mReporter =
         CsvReporter.forRegistry(registry).formatFor(Locale.US)
             .convertDurationsTo(TimeUnit.MILLISECONDS).convertRatesTo(TimeUnit.SECONDS)
-            .build(mFile);
+            .build(mDir);
     MetricsSystem.checkMinimalPollingPeriod(getPollUnit(), getPollPeriod());
   }
 
@@ -115,16 +113,16 @@ public class CsvSink implements Sink {
   }
 
   /**
-   * Create the path for CSV sink if target path is not created.
+   * Create the directory for CSV sink if target directory is not created.
    *
-   * @param path CSV target path
+   * @param dir CSV target directory
    */
-  private void createPollDir(File path) {
-    if (!path.exists()) {
+  private void createPollDir(File dir) {
+    if (!dir.exists()) {
       try {
-        path.mkdirs();
+        dir.mkdirs();
       } catch (SecurityException e) {
-        LOG.warn("Fail to create path {} for CSV sink, {}", path.toString(), e.getMessage());
+        LOG.warn("Fail to create directory {} for CSV sink, {}", dir, e.getMessage());
       }
     }
   }
