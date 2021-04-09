@@ -791,13 +791,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_DIRECT_TIMER =
-      new Builder(Name.WORKER_BYTES_READ_DIRECT_TIMER)
-          .setDescription("The timer statistics of reading data from worker "
-              + "(or UFS if data cannot be found in worker storage) in chunks directly.")
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_READ_DIRECT_THROUGHPUT)
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
@@ -957,6 +950,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Client metrics
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
+      new Builder(Name.CLIENT_BLOCK_READ_CHUNK)
+          .setDescription("The timer statistics of reading block data in chunks from Alluxio workers.")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
+      new Builder(Name.CLIENT_BLOCK_READ_FROM_CHUNK)
+          .setDescription("The timer statistics of reading data from data chunks which have "
+              + "already fetched from Alluxio workers.")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
       new Builder(Name.CLIENT_BYTES_READ_LOCAL)
           .setDescription("Total number of bytes short-circuit read from local storage "
@@ -1422,7 +1428,6 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
     public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
     public static final String WORKER_BYTES_READ_DIRECT = "Worker.BytesReadDirect";
-    public static final String WORKER_BYTES_READ_DIRECT_TIMER = "Worker.BytesReadDirectTimer";
     public static final String WORKER_BYTES_READ_DIRECT_THROUGHPUT
         = "Worker.BytesReadDirectThroughput";
     public static final String WORKER_BYTES_WRITTEN_DIRECT = "Worker.BytesWrittenDirect";
@@ -1459,6 +1464,8 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Worker.BlockRemoverRemovingBlocksSize";
 
     // Client metrics
+    public static final String CLIENT_BLOCK_READ_CHUNK = "Client.BlockReadDataChunk";
+    public static final String CLIENT_BLOCK_READ_FROM_CHUNK = "Client.BlockReadDataFromChunk";
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
     public static final String CLIENT_BYTES_READ_LOCAL_THROUGHPUT
         = "Client.BytesReadLocalThroughput";

@@ -22,6 +22,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -30,6 +32,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -301,7 +304,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    mCurrentChunk.readBytes(b, off, toRead);
+    try (Timer.Context ctx = MetricsSystem.timer(MetricKey.CLIENT_BLOCK_READ_FROM_CHUNK.getName()).time()) {
+      mCurrentChunk.readBytes(b, off, toRead);
+    }
     mPos += toRead;
     return toRead;
   }
@@ -456,7 +461,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mCurrentChunk = null;
     }
     if (mCurrentChunk == null) {
-      mCurrentChunk = mDataReader.readChunk();
+      try (Timer.Context ctx = MetricsSystem.timer(MetricKey.CLIENT_BLOCK_READ_CHUNK.getName()).time()) {
+        mCurrentChunk = mDataReader.readChunk();
+      }
     }
   }
 
