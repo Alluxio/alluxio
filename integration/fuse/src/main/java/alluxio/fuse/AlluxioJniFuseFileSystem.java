@@ -691,10 +691,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public void umount() {
-    // Try our best effort to close all the in/out streams
-
-    // Release operation is async, we need to make sure
-    // all in/out streams are closed before umount the fuse
+    // Release operation is async, we will try our best efforts to
+    // close all opened file in/out stream before umounting the fuse
     if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
       LOG.info("Waiting for all file out stream closed");
       try {
