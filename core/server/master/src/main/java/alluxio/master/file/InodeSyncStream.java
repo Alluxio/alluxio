@@ -657,7 +657,7 @@ public class InodeSyncStream {
       loadMetadataForPath(inodePath);
     }
 
-    if (syncChildren && mDescendantType == DescendantType.ALL) {
+    if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
       mInodeStore.getChildren(inode.asDirectory()).forEach(childInode -> {
         // If we are only loading non-existing metadata, then don't process any child which
@@ -670,7 +670,7 @@ public class InodeSyncStream {
         AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
         mPendingPaths.add(child);
         // This asynchronously schedules a job to pre-fetch the statuses into the cache.
-        if (childInode.isDirectory()) {
+        if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
           mStatusCache.prefetchChildren(child, mMountTable);
         }
       });
