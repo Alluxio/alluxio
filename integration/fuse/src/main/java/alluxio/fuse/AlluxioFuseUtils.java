@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -271,15 +272,13 @@ public final class AlluxioFuseUtils {
       String description, Object... args) {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     logger.debug("Enter: {}({})", methodName, debugDesc);
-    int ret = -1;
-    try (Timer.Context ctx = MetricsSystem.timer(methodName).time()) {
-      ret = callable.call();
-    }
+    long startMs = System.currentTimeMillis();
+    int ret = callable.call();
+    long durationMs = System.currentTimeMillis() - startMs;
+    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
+    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     if (ret < 0) {
-      logger.debug("Exit (Error) ({}): {}({})", ret, methodName, debugDesc);
       MetricsSystem.counter(methodName + "Failures").inc();
-    } else {
-      logger.debug("Exit ({}): {}({})", ret, methodName, debugDesc);
     }
     return ret;
   }

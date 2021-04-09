@@ -61,6 +61,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   private final WorkerNetAddress mAddress;
+  private final boolean mDetailedMetricsEnabled;
   private final BlockInStreamSource mInStreamSource;
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
@@ -177,11 +178,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    long chunkSize = context.getClusterConf().getBytes(
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
-        address, BlockInStreamSource.NODE_LOCAL, blockId, length);
+        conf, address, BlockInStreamSource.NODE_LOCAL, blockId, length);
   }
 
   /**
@@ -197,7 +199,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
       long blockId, long blockSize, InStreamOptions options) {
-    long chunkSize = context.getClusterConf().getBytes(
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     // Construct the partial read request
     ReadRequest.Builder builder = ReadRequest.newBuilder()
@@ -215,7 +218,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     } else {
       factory = new GrpcDataReader.Factory(context, address, builder);
     }
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, conf, address, blockSource, blockId, blockSize);
   }
 
   /**
@@ -234,33 +237,35 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    long chunkSize =
-        context.getClusterConf()
-            .getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
+        PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder());
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, conf, address, blockSource, blockId, blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param dataReaderFactory the data reader factory
+   * @param conf the Alluxio configuration
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
   @VisibleForTesting
-  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
-      BlockInStreamSource blockSource, long id, long length) {
+  protected BlockInStream(DataReader.Factory dataReaderFactory, AlluxioConfiguration conf,
+      WorkerNetAddress address, BlockInStreamSource blockSource, long id, long length) {
     mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
+    mDetailedMetricsEnabled = conf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
   }
 
   @Override
@@ -304,8 +309,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    try (Timer.Context ctx = MetricsSystem
-        .timer(MetricKey.CLIENT_BLOCK_READ_FROM_CHUNK.getName()).time()) {
+    if (mDetailedMetricsEnabled) {
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.CLIENT_BLOCK_READ_FROM_CHUNK.getName()).time()) {
+        mCurrentChunk.readBytes(b, off, toRead);
+      }
+    } else {
       mCurrentChunk.readBytes(b, off, toRead);
     }
     mPos += toRead;
@@ -462,8 +471,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mCurrentChunk = null;
     }
     if (mCurrentChunk == null) {
-      try (Timer.Context ctx = MetricsSystem
-          .timer(MetricKey.CLIENT_BLOCK_READ_CHUNK.getName()).time()) {
+      if (mDetailedMetricsEnabled) {
+        try (Timer.Context ctx = MetricsSystem
+            .timer(MetricKey.CLIENT_BLOCK_READ_CHUNK.getName()).time()) {
+          mCurrentChunk = mDataReader.readChunk();
+        }
+      } else {
         mCurrentChunk = mDataReader.readChunk();
       }
     }
