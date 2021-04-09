@@ -20,6 +20,8 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.List;
@@ -38,6 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RpcContext implements Closeable, Supplier<JournalContext> {
+  private static final Logger LOG = LoggerFactory.getLogger(RpcContext.class);
   public static final RpcContext NOOP = new RpcContext(NoopBlockDeletionContext.INSTANCE,
       NoopJournalContext.INSTANCE, new InternalOperationContext());
 
@@ -99,9 +102,13 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    */
   public void throwIfCancelled() {
     List<CallTracker> cancelledTrackers = mOperationContext.getCancelledTrackers();
+    LOG.info("call cancel check");
     if (cancelledTrackers.size() > 0) {
-      throw new RuntimeException(String.format("Call cancelled by trackers: %s", cancelledTrackers
+      final RuntimeException e = new RuntimeException(String.format("Call cancelled by trackers: %s", cancelledTrackers
           .stream().map((t) -> t.getType().name()).collect(Collectors.joining(", "))));
+      LOG.info("call cancelled by trackers");
+      e.printStackTrace();
+      throw e;
     }
   }
 

@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
@@ -32,6 +33,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -210,22 +213,28 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable,
-      boolean useFallback)
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+                                                     MountTable mountTable, boolean useFallback)
       throws InterruptedException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
-      try {
-        return prefetchJob.get();
-      } catch (InterruptedException | ExecutionException e) {
-        LogUtils.warnWithException(LOG, "Failed to get result for prefetch job on alluxio path {}",
-            path, e);
-        if (e instanceof InterruptedException) {
-          Thread.currentThread().interrupt();
-          throw (InterruptedException) e;
+      while (true) {
+        try {
+          return prefetchJob.get(100, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+          if (rpcContext != null) {
+            rpcContext.throwIfCancelled();
+          }
+        } catch (InterruptedException | ExecutionException e) {
+          LogUtils.warnWithException(LOG, "Failed to get result for prefetch job on alluxio path {}",
+              path, e);
+          if (e instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+            throw (InterruptedException) e;
+          }
+        } finally {
+          mActivePrefetchJobs.remove(path);
         }
-      } finally {
-        mActivePrefetchJobs.remove(path);
       }
     }
     Collection<UfsStatus> children = getChildren(path);
@@ -251,9 +260,10 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+                                                     MountTable mountTable)
       throws InterruptedException, InvalidPathException {
-    return fetchChildrenIfAbsent(path, mountTable, true);
+    return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
   }
 
   /**
