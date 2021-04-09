@@ -625,6 +625,15 @@ public class InodeSyncStream {
       }
     }
 
+    // Only sync children when
+    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
+    if (mDescendantType == DescendantType.ONE) {
+      syncChildren =
+          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.ALL) {
+      syncChildren = syncChildren && inode.isDirectory();
+    }
+
     Map<String, Inode> inodeChildren = new HashMap<>();
     if (syncChildren) {
       // maps children name to inode
