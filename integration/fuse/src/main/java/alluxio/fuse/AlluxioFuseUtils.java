@@ -275,7 +275,7 @@ public final class AlluxioFuseUtils {
     try (Timer.Context ctx = MetricsSystem.timer("Fuse" + methodName).time()) {
       ret = callable.call();
     }
-    if (ret != 0) {
+    if (ret < 0) {
       logger.debug("Exit (Error) ({}): {}({})", ret, methodName, debugDesc);
       MetricsSystem.counter("Fuse" + methodName + "Failures").inc();
     } else {
