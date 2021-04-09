@@ -13,6 +13,8 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -24,11 +26,11 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import com.codahale.metrics.Timer;
 import ru.serce.jnrfuse.ErrorCodes;
 
 import org.slf4j.Logger;
@@ -46,6 +48,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
+  private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
+      .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
   private AlluxioFuseUtils() {}
@@ -279,6 +283,10 @@ public final class AlluxioFuseUtils {
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     if (ret < 0) {
       MetricsSystem.counter(methodName + "Failures").inc();
+    }
+    if (durationMs >= THRESHOLD) {
+      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+          String.format(description, args), ret, durationMs, THRESHOLD);
     }
     return ret;
   }
