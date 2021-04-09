@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
@@ -952,15 +953,18 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
       new Builder(Name.CLIENT_BLOCK_READ_CHUNK)
-          .setDescription("The timer statistics of reading block data in chunks "
-              + "from Alluxio workers.")
+          .setDescription(String.format("The timer statistics of reading block data in chunks "
+              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
+              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
       new Builder(Name.CLIENT_BLOCK_READ_FROM_CHUNK)
-          .setDescription("The timer statistics of reading data from data chunks which have "
-              + "already fetched from Alluxio workers.")
+          .setDescription(String.format("The timer statistics of reading data from data chunks "
+              + "which have already fetched from Alluxio workers. "
+              + "This metrics will only be recorded when %s is set to true",
+              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
