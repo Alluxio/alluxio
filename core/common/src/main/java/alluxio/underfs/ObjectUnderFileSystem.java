@@ -945,11 +945,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
-      // If the breadcrumb exists, this is a no-op
+      // Do not recreate the breadcrumb if it already exists
+      String folderName = convertToFolderName(dir);
       if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
-              x -> x.mContentLength==0 && x.getName().equals(dir))) {
-        mkdirsInternal(dir);
+              x -> x.mContentLength==0 && x.getName().equals(folderName))) {
+         mkdirsInternal(dir);
       }
       return objs;
     }
