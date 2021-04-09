@@ -613,6 +613,7 @@ public class TieredBlockStore implements BlockStore {
     StorageDirView dirView;
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
+    // Convenient way to break on failure cases, no intention to loop
     while (true) {
       if (options.isForceLocation()) {
         // Try allocating from given location. Skip the review because the location is forced.
