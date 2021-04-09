@@ -158,11 +158,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   private static BlockInStream createProcessLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
-    long chunkSize = context.getClusterConf().getBytes(
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new BlockWorkerDataReader.Factory(context, blockId, chunkSize, options),
-        address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
+        conf, address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
   }
 
   /**
