@@ -1,4 +1,6 @@
 metricName,metricType
+Cluster.BytesReadDirect,COUNTER
+Cluster.BytesReadDirectThroughput,GAUGE
 Cluster.BytesReadDomain,COUNTER
 Cluster.BytesReadDomainThroughput,GAUGE
 Cluster.BytesReadLocal,COUNTER
