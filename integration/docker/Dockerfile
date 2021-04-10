@@ -79,14 +79,16 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
     && [ ${ALLUXIO_GROUP} != "root" ] \
     && [ ${ALLUXIO_UID} -ne 0 ] \
     && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      addgroup -g ${ALLUXIO_GID} -S ${ALLUXIO_GROUP} && \
-      adduser -u ${ALLUXIO_UID} -S ${ALLUXIO_USERNAME} -G ${ALLUXIO_GROUP} && \
+      addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
+      adduser --system --uid ${ALLUXIO_UID} --gid ${ALLUXIO_GID} ${ALLUXIO_USERNAME} && \
       usermod -a -G root ${ALLUXIO_USERNAME} && \
       mkdir -p /journal && \
-      chown -R ${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /journal && \
-      chmod -R g=u /journal; \
-      mkdir /alluxio-fuse && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /alluxio-fuse; \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /journal && \
+      chmod -R g=u /journal && \
+      mkdir /mnt/alluxio-fuse && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio-fuse; \
+      mkdir /mnt/alluxio-fuse2 && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio-fuse2; \
     fi
 
 # Docker 19.03+ required to expand variables in --chown argument
