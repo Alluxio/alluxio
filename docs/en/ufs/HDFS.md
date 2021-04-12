@@ -261,7 +261,7 @@ Alluxio supports the following versions of HDFS as a valid argument of mount opt
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
 To build this module yourself, build the shaded hadoop client and then the UFS module. 
-Please refer to Building from Source ({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) instructions 
+Please refer to [Building from Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) instructions 
 to see how to build additional UFS libraries. 
 
 ### Use Hadoop Native Library
