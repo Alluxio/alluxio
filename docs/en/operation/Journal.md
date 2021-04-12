@@ -389,3 +389,21 @@ $ ./bin/alluxio readJournal
 ```
 
 See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for more detailed usage.
+
+
+### Exiting upon Demotion
+
+By default Alluxio will transition masters from primaries to secondaries.
+During this process the JVM is _not_ shut down at any point.
+This occasionally leaves behind resources and may lead to a bloated memory footprint.
+To avoid taking up too much memory this, there is a flag which forces a master JVM to exit once it
+has been demoted from a primary to a secondary.
+This moves the responsibility of restarting the process to join the quorum as a secondary to a
+process supervisor such as a Kubernetes cluster manager or systemd.
+
+To configure this behavior for an Alluxio master, set the following configuration inside of 
+`alluxio-site.properties`
+
+```properties
+alluxio.master.journal.exit.on.demotion=true
+```
