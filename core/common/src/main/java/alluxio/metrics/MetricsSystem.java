@@ -498,7 +498,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add meter with the given name.
-   * The returned meter may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Meter instance since
+   * the returned Meter instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a meter object with the qualified metric name
@@ -530,7 +531,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add timer with the given name.
-   * The returned timer may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Timer instance since
+   * the returned Timer instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name

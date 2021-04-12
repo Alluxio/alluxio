@@ -31,6 +31,8 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -197,7 +199,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
-        "create", "path=%s,mode=%o", path, mode);
+        "Fuse.Create", "path=%s,mode=%o", path, mode);
   }
 
   private int createInternal(String path, long mode, FuseFileInfo fi) {
@@ -226,7 +228,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int getattr(String path, FileStat stat) {
     return AlluxioFuseUtils.call(
-        LOG, () -> getattrInternal(path, stat), "getattr", "path=%s", path);
+        LOG, () -> getattrInternal(path, stat), "Fuse.Getattr", "path=%s", path);
   }
 
   private int getattrInternal(String path, FileStat stat) {
@@ -295,7 +297,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
-        "readdir", "path=%s,buf=%s", path, buff);
+        "Fuse.Readdir", "path=%s,buf=%s", path, buff);
   }
 
   private int readdirInternal(String path, long buff, long filter, long offset,
@@ -319,7 +321,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int open(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi), "open", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi), "Fuse.Open", "path=%s", path);
   }
 
   private int openInternal(String path, FuseFileInfo fi) {
@@ -348,10 +350,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
-        "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Fuse.Read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+    MetricsSystem.counter(MetricKey.FUSE_BYTES_TO_READ.getName()).inc(size);
     int nread = 0;
     int rd = 0;
     long fd = fi.fh.get();
@@ -388,13 +391,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to read, path: {} size: {} offset: {}", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
+    MetricsSystem.counter(MetricKey.FUSE_BYTES_READ.getName()).inc(nread);
     return nread;
   }
 
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
-        "write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Fuse.Write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int writeInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
@@ -428,7 +432,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int flush(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> flushInternal(path, fi), "flush", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> flushInternal(path, fi), "Fuse.Flush", "path=%s", path);
   }
 
   private int flushInternal(String path, FuseFileInfo fi) {
@@ -459,7 +463,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int release(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> releaseInternal(path, fi), "release", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> releaseInternal(path, fi),
+        "Fuse.Release", "path=%s", path);
   }
 
   private int releaseInternal(String path, FuseFileInfo fi) {
@@ -492,7 +497,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int mkdir(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode),
-        "mkdir", "path=%s,mode=%o,", path, mode);
+        "Fuse.Mkdir", "path=%s,mode=%o,", path, mode);
   }
 
   private int mkdirInternal(String path, long mode) {
@@ -517,12 +522,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int unlink(String path) {
-    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "unlink", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "Fuse.Unlink", "path=%s", path);
   }
 
   @Override
   public int rmdir(String path) {
-    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "rmdir", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "Fuse.Rmdir", "path=%s", path);
   }
 
   /**
@@ -547,7 +552,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int rename(String oldPath, String newPath) {
     return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
-        "rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
+        "Fuse.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
   private int renameInternal(String oldPath, String newPath) {
@@ -576,7 +581,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int chmod(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode),
-        "chmod", "path=%s,mode=%o", path, mode);
+        "Fuse.Chmod", "path=%s,mode=%o", path, mode);
   }
 
   private int chmodInternal(String path, long mode) {
@@ -596,7 +601,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int chown(String path, long uid, long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "Fuse.Chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
   }
 
   private int chownInternal(String path, long uid, long gid) {
