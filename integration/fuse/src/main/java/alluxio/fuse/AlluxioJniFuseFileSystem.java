@@ -70,6 +70,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
+  private final String mMountPoint;
   private final String mFsName;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
@@ -141,6 +142,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFileSystem = fs;
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mMountPoint = opts.getMountPoint();
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -170,7 +172,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_WAITTIME);
+    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
@@ -694,41 +696,44 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
     if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
-      LOG.info("Waiting for all file out stream closed");
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
-        CommonUtils.waitFor("all opened file in stream and out stream closed",
+        CommonUtils.waitFor("all in progress file read/write to finish",
             () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
                 WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
-        LOG.error("unmount interrupted");
+        LOG.error("Unmount {} interrupted", mMountPoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting all file in stream and file out stream to close."
-            + "{} fileInStream remain unclosed. {} fileOutStream remain unclosed. ",
-            mOpenFileEntries.size(), mCreateFileEntries.size());
+        LOG.error("Timeout when waiting all in progress file read/write to finish "
+            + "when unmounting {}. {} fileInStream remain unclosed. "
+            + "{} fileOutStream remain unclosed.",
+            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
       }
     }
 
     // Waiting for in progress async release to finish
     if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
-      LOG.info("Waiting for all in progress file in/out stream closing to finish");
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write closing to finish",
+          mMountPoint);
       try {
-        CommonUtils.waitFor("all in/out stream finish inprogress releasing",
+        CommonUtils.waitFor("all in progress file read/write closing to finish",
             () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
             WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
-        LOG.error("Umount interrupted");
+        LOG.error("Unmount {} interrupted", mMountPoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting in progress file in/out stream closing,"
-            + "{} fileInStream and {} fileOutStream are still in releasing.",
-            mReleasingReadEntries.size(), mReleasingWriteEntries.size());
+        LOG.error("Timeout when waiting in progress file read/write closing to finish "
+            + "when unmounting {}. {} fileInStream and {} fileOutStream "
+            + "are still in closing process.",
+            mMountPoint, mReleasingReadEntries.size(), mReleasingWriteEntries.size());
       }
     }
 
     // Force close all opened stream
     if (!mOpenFileEntries.isEmpty()) {
-      LOG.info("Force to close all opened file in stream");
+      LOG.info("Unmounting {}. Force closing all remaining file read", mMountPoint);
       for (Map.Entry<Long, FileInStream> entry : mOpenFileEntries.entrySet()) {
         FileInStream is = entry.getValue();
         try {
@@ -738,22 +743,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             is.close();
           }
         } catch (Throwable t) {
-          LOG.error("Failed to close opened file with id {} in umount operation",
-              entry.getKey(), t);
+          LOG.error("Failed to close opened file with id {} when unmounting {}",
+              entry.getKey(), mMountPoint, t);
         }
       }
     }
     if (!mCreateFileEntries.isEmpty()) {
-      LOG.info("Force to close all inprogress file out stream");
+      LOG.info("Unmounting {}. Force abandoning all remaining file write", mMountPoint);
       for (CreateFileEntry ce : mCreateFileEntries) {
         try {
           synchronized (ce) {
             ce.getOut().cancel();
-            LOG.info("Cancelled output stream with id {} and path {}", ce.getId(), ce.getPath());
+            LOG.info("Abandoned file write with id {} and path {} when unmounting {}",
+                ce.getId(), ce.getPath(), mMountPoint);
           }
         } catch (Throwable t) {
-          LOG.error("Failed to cancel output stream with id {} and path{}: {}",
-              ce.getId(), ce.getPath(), t);
+          LOG.error("Failed to abandon file write with id {} and path{} when unmounting {}: {}",
+              ce.getId(), ce.getPath(), mMountPoint, t);
         }
       }
     }

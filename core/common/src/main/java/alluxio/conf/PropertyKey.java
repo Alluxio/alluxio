@@ -4611,11 +4611,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_UMOUNT_WAITTIME =
-      new Builder(Name.FUSE_UMOUNT_WAITTIME)
+  public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
+      new Builder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
-          .setDescription("The maximum wait time to wait for all file in stream and out stream "
-              + "closed in Fuse umount() operation.")
+          .setDescription("The timeout to wait for all in progress file read and write to finish "
+              + "before unmounting the Fuse filesystem. After the timeout, "
+              + "all in progress file read will be forced to stop "
+              + "and all in progress file write will be abandoned.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5933,8 +5935,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-    public static final String FUSE_UMOUNT_WAITTIME =
-        "alluxio.fuse.umount.waittime";
+    public static final String FUSE_UMOUNT_TIMEOUT =
+        "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 
