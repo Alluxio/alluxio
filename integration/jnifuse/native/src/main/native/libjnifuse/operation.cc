@@ -457,4 +457,17 @@ int TruncateOperation::call(const char *path, off_t size) {
   return ret;
 }
 
+UtimensOperation::UtimensOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  //TODO(baoloongmao) TO be done.
+}
+
+int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
+//TODO(baoloongmao) TO be done.
+  return 0;
+}
+
 }  // namespace jnifuse
