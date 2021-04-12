@@ -12,7 +12,11 @@
 package alluxio.client.file;
 
 import static alluxio.client.file.FileSystemCache.Key;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.InstancedConfiguration;
@@ -112,15 +116,15 @@ public class FileSystemCacheTest {
 
   @Test
   public void listStatusClosed() throws IOException, AlluxioException {
-    assertThrows(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE,
-      IOException.class,
-      () -> {
-        Key key1 = createTestFSKey("user1");
-        FileSystem fs1 = mFileSystemCache.get(key1);
-        fs1.close();
-        assertTrue(fs1.isClosed());
-        fs1.listStatus(new AlluxioURI("/"));
-      });
+    Exception e = assertThrows(IOException.class, () -> {
+      Key key1 = createTestFSKey("user1");
+      FileSystem fs1 = mFileSystemCache.get(key1);
+      fs1.close();
+      assertTrue(fs1.isClosed());
+      fs1.listStatus(new AlluxioURI("/"));
+    });
+    assertTrue(e.getMessage()
+            .contains(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE));
   }
 
   private Key createTestFSKey(String username) {

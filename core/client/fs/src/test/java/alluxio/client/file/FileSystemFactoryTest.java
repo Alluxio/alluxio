@@ -11,6 +11,13 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import alluxio.SystemPropertyRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -33,8 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.security.auth.Subject;
-
-import static org.junit.Assert.*;
 
 public class FileSystemFactoryTest {
   @Before

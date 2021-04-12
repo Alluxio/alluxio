@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.PageNotFoundException;
@@ -18,8 +20,6 @@ import alluxio.exception.PageNotFoundException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertThrows;
 
 /**
  * Tests for the {@link DefaultMetaStore} class.
@@ -61,8 +61,6 @@ public class DefaultMetaStoreTest {
 
   @Test
   public void removeNotExist() throws Exception {
-    // TODO(jiacheng)
-//    mThrown.expect(PageNotFoundException.class);
     assertThrows(PageNotFoundException.class, () -> mMetaStore.removePage(mPage));
     Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
   }

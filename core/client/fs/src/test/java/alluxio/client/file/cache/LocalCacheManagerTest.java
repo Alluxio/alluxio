@@ -11,6 +11,14 @@
 
 package alluxio.client.file.cache;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -48,8 +56,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
