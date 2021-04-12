@@ -41,6 +41,18 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-logserver
     spec:
+      nodeSelector:
+      {{- if .Values.logserver.nodeSelector }}
+{{ toYaml .Values.logserver.nodeSelector | trim | indent 8  }}
+      {{- else if .Values.nodeSelector }}
+{{ toYaml .Values.nodeSelector | trim | indent 8  }}
+      {{- end }}
+      tolerations:
+      {{- if .Values.logserver.tolerations }}
+{{ toYaml .Values.logserver.tolerations | trim | indent 8  }}
+      {{- else if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       containers:
         - name: alluxio-logserver
           image: {{ .Values.image }}:{{ .Values.imageTag }}

@@ -49,6 +49,12 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      tolerations:
+      {{- if .Values.fuse.tolerations }}
+{{ toYaml .Values.fuse.tolerations | trim | indent 8  }}
+      {{- else if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       securityContext:
         runAsUser: {{ .Values.fuse.user }}
         runAsGroup: {{ .Values.fuse.group }}
