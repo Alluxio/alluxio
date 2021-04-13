@@ -19,7 +19,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.FuseException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -114,6 +116,8 @@ public final class AlluxioFuse {
     if (opts == null) {
       System.exit(1);
     }
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+    MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
