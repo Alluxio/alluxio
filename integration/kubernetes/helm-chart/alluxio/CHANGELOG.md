@@ -155,3 +155,7 @@
 0.6.15
 
 - Fix incorrect indentation in logserver secret volume mount
+
+0.6.16
+
+- Change helm-chart fuse hostPath type from File to CharDevice
