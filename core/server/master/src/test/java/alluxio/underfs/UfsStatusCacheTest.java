@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -28,14 +29,22 @@ import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
+import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.RpcContext;
+import alluxio.master.file.contexts.CallTracker;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.JournalContext;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +55,8 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -180,6 +191,51 @@ public class UfsStatusCacheTest {
     t.interrupt();
     t.join();
     assertNull(ref.get());
+  }
+
+
+  @Test
+  public void testFetchCancel() throws Exception {
+    spyUfs();
+    doAnswer((Answer<UfsStatus[]>) invocation -> {
+      Thread.sleep(30 * Constants.HOUR_MS);
+      return new UfsStatus[] {Mockito.mock(UfsStatus.class)};
+    }).when(mUfs).listStatus(any(String.class));
+    mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
+
+    final BlockDeletionContext bdc = mock(BlockDeletionContext.class);
+    final JournalContext jc = mock(JournalContext.class);
+    final OperationContext oc = mock(OperationContext.class);
+    when(oc.getCancelledTrackers()).thenReturn(Lists.newArrayList());
+    final RpcContext rpcContext = new RpcContext(bdc, jc, oc);
+
+    AtomicReference<RuntimeException> ref = new AtomicReference<>(null);
+    Thread t = new Thread(() -> {
+      try {
+        mCache.fetchChildrenIfAbsent(rpcContext, new AlluxioURI("/"), mMountTable);
+        fail("Should not have been able to fetch children");
+      } catch (RuntimeException e) {
+        ref.set(e);
+      } catch (InterruptedException | InvalidPathException e) {
+      }
+    });
+    t.start();
+    when(oc.getCancelledTrackers()).thenReturn(Lists.newArrayList(new CallTracker() {
+      @Override
+      public boolean isCancelled() {
+        return true;
+      }
+
+      @Override
+      public Type getType() {
+        return Type.GRPC_CLIENT_TRACKER;
+      }
+    }));
+    t.join();
+    final RuntimeException runtimeException = ref.get();
+    assertNotNull(runtimeException);
+    MatcherAssert.assertThat(runtimeException.getMessage(),
+        Matchers.stringContainsInOrder("Call cancelled"));
   }
 
   @Test

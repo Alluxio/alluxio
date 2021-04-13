@@ -233,6 +233,7 @@ public class UfsStatusCache {
             Thread.currentThread().interrupt();
             throw (InterruptedException) e;
           }
+          break;
         } finally {
           mActivePrefetchJobs.remove(path);
         }
