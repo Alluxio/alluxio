@@ -121,7 +121,6 @@ public enum ExceptionMessage {
 
   // Raft journal
   FAILED_RAFT_BOOTSTRAP("Failed to bootstrap raft cluster with addresses {0}: {1}"),
-  FAILED_RAFT_CONNECT("Failed to connect to raft cluster with addresses {0}: {1}"),
 
   // file
   CANNOT_READ_INCOMPLETE_FILE(
