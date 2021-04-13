@@ -205,6 +205,7 @@ public class UfsStatusCache {
    * parameter is true, fetch them from the UFS and store them in the cache. Otherwise, simply
    * return null.
    *
+   * @param rpcContext the rpcContext of the source of this call
    * @param path the Alluxio path to get the children of
    * @param mountTable the Alluxio mount table
    * @param useFallback whether or not to fall back to calling the UFS
@@ -226,8 +227,8 @@ public class UfsStatusCache {
             rpcContext.throwIfCancelled();
           }
         } catch (InterruptedException | ExecutionException e) {
-          LogUtils.warnWithException(LOG, "Failed to get result for prefetch job on alluxio path {}",
-              path, e);
+          LogUtils.warnWithException(LOG,
+              "Failed to get result for prefetch job on alluxio path {}", path, e);
           if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
             throw (InterruptedException) e;
@@ -254,6 +255,7 @@ public class UfsStatusCache {
    * Will always return statuses from the UFS whether or not they exist in the cache, and whether
    * a prefetch job was scheduled or not.
    *
+   * @param rpcContext the rpcContext of the source of this call
    * @param path the Alluxio path
    * @param mountTable the Alluxio mount table
    * @return child UFS statuses of the alluxio path
@@ -319,8 +321,8 @@ public class UfsStatusCache {
   /**
    * Submit a request to asynchronously fetch the statuses corresponding to a given directory.
    *
-   * Retrieve any fetched statuses by calling {@link #fetchChildrenIfAbsent(AlluxioURI, MountTable)}
-   * with the same Alluxio path.
+   * Retrieve any fetched statuses by calling
+   * {@link #fetchChildrenIfAbsent(RpcContext, AlluxioURI, MountTable)} with the same Alluxio path.
    *
    * If no {@link ExecutorService} was provided to this object before instantiation, this method is
    * a no-op.
