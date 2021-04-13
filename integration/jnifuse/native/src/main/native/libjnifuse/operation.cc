@@ -462,12 +462,19 @@ UtimensOperation::UtimensOperation(JniFuseFileSystem *fs) {
   JNIEnv *env = this->fs->getEnv();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
-  //TODO(baoloongmao) TO be done.
+  this->signature = "(Ljava/lang/String;JJJJ)I";
+  this->methodID = env->GetMethodID(this->clazz, "utimensCallback", signature);
 }
 
 int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
-//TODO(baoloongmao) TO be done.
-  return 0;
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, ts[0].tv_sec, ts[0].tv_nsec, ts[1].tv_sec, ts[1].tv_nsec);
+
+  env->DeleteLocalRef(jspath);
+
+  return ret;
 }
 
 }  // namespace jnifuse
