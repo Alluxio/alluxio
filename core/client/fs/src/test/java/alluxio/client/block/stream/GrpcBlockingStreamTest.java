@@ -141,7 +141,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendError() throws Exception {
     mResponseObserver.onError(Status.UNAUTHENTICATED.asRuntimeException());
-    Exception e = assertThrows(CancelledException.class,
+    Exception e = assertThrows(UnauthenticatedException.class,
         () -> mStream.send(WriteRequest.newBuilder().build(), TIMEOUT));
     assertTrue(e.getMessage().contains(TEST_MESSAGE));
   }
