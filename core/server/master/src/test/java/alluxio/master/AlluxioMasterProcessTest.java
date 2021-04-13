@@ -102,6 +102,32 @@ public final class AlluxioMasterProcessTest {
     startStopTest(master);
   }
 
+  @Test
+  public void stopAfterSecondaryTransition() throws Exception {
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+        new NoopJournalSystem(), primarySelector);
+    Thread t = new Thread(() -> {
+      try {
+        master.start();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    waitForServing(ServiceType.MASTER_RPC);
+    waitForServing(ServiceType.MASTER_WEB);
+    assertTrue(isBound(mRpcPort));
+    assertTrue(isBound(mWebPort));
+    primarySelector.setState(PrimarySelector.State.SECONDARY);
+    t.join(10000);
+    assertFalse(isBound(mRpcPort));
+    assertFalse(isBound(mWebPort));
+    assertFalse(master.isRunning());
+  }
+
   /**
    * This test ensures that given a root UFS which is <i>not</i> local, that we can still provide a
    * local path to an Alluxio backup and start the master.

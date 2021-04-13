@@ -17,7 +17,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.worker.SessionCleanable;
-import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -336,20 +335,6 @@ public interface BlockStore extends SessionCleanable, Closeable {
    */
   @Override
   void cleanupSession(long sessionId);
-
-  /**
-   * Frees space to make a specific amount of bytes available in the location.
-   *
-   * @param sessionId the session id
-   * @param minContigiousBytes the minimum amount of contigious free space in bytes
-   * @param minAvailableBytes the maximum amount of free space in bytes
-   * @param location the location to free space
-   * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
-   * @throws BlockDoesNotExistException if blocks in {@link EvictionPlan} can not be found
-   */
-  void freeSpace(long sessionId, long minContigiousBytes, long minAvailableBytes,
-      BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

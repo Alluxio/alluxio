@@ -67,6 +67,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static final int EXTRA_DIR_FILES = 6;
 
+  private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+
   private FileSystem mFileSystem;
 
   @Rule
@@ -269,6 +272,38 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     // 'ONCE' should now load the metadata, but will be handled by the absent cache,
     // so no need to go to the ufs
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false, 0);
+  }
+
+  @Test
+  public void listStatusLoadsFile() throws Exception {
+    GetStatusPOptions getStatusOptions =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
+    ListStatusPOptions lsOptions =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)
+            .setCommonOptions(PSYNC_ALWAYS).build();
+    // load metadata for dirA with 'ALWAYS'
+    checkListStatus("/mnt/dir1/dirA", lsOptions, true,
+        true, 3);
+
+    // the file should already be loaded
+    checkGetStatus("/mnt/dir1/dirA/file", getStatusOptions, true,
+        true, 0);
+  }
+
+  @Test
+  public void getStatusDoesNotLoadFile() throws Exception {
+    GetStatusPOptions getStatusOptions =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
+    ListStatusPOptions lsOptions =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)
+            .setCommonOptions(PSYNC_ALWAYS).build();
+    // load metadata for dirA with 'ALWAYS'
+    checkGetStatus("/mnt/dir1/dirA", getStatusOptions, true,
+        true, 2);
+
+    // the file should NOT already be loaded
+    checkGetStatus("/mnt/dir1/dirA/file", getStatusOptions, true,
+        true, 1);
   }
 
   @Test
