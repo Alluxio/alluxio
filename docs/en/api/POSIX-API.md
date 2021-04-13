@@ -68,13 +68,13 @@ However, the FUSE process needs to communicate with Alluxio service through netw
 
 * Enabling FUSE on worker
 Alluxio POSIX integration can also be provided by a running Alluxio worker process.
-This integration provides bettter performance because the FUSE service can communicate with the Alluxio worker without involking RPCs,
+This integration provides better performance because the FUSE service can communicate with the Alluxio worker without invoking RPCs,
 which help improve the read/write throughput on local cache hit.
 
 Here is a guideline to choose between them:
 
 * Workloads: If your workload is estimated to have a good hit ratio on local cache, and there are a lot of read/writes of small files, embedded FUSE on the worker process can achieve higher performance with less resource overhead.
-* Deployment: If you want to enable multiple local mount points on a single host, choose standalone procoess. Otherwise, you can reduce one process to deploy with FUSE on worker.
+* Deployment: If you want to enable multiple local mount points on a single host, choose standalone process. Otherwise, you can reduce one process to deploy with FUSE on worker.
 
 ## Requirements
 
@@ -91,7 +91,7 @@ reported to also work - with some warnings). For example on a Redhat, run `yum i
 
 ## Basic Setup
 
-The basic setup deploys deploys the standalone process.
+The basic setup deploys the standalone process.
 After reading the basic setup section, checkout fuse in worker setup [here](#fuse-on-worker-process) if it suits your needs.
 
 ### Mount Alluxio as a FUSE mount point
