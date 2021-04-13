@@ -22,6 +22,7 @@ import alluxio.jnifuse.FuseException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -140,6 +141,11 @@ public final class AlluxioFuse {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
     try {
+      String mountPoint = opts.getMountPoint();
+      if (!FileUtils.exists(mountPoint)) {
+        LOG.warn("Mount point on local fs does not exist, creating {}", mountPoint);
+        FileUtils.createDir(mountPoint);
+      }
       final List<String> fuseOpts = opts.getFuseOpts();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);

@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
@@ -950,6 +951,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Client metrics
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
+      new Builder(Name.CLIENT_BLOCK_READ_CHUNK)
+          .setDescription(String.format("The timer statistics of reading block data in chunks "
+              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
+              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
+      new Builder(Name.CLIENT_BLOCK_READ_FROM_CHUNK)
+          .setDescription(String.format("The timer statistics of reading data from data chunks "
+              + "which have already fetched from Alluxio workers. "
+              + "This metrics will only be recorded when %s is set to true",
+              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
       new Builder(Name.CLIENT_BYTES_READ_LOCAL)
           .setDescription("Total number of bytes short-circuit read from local storage "
@@ -1209,6 +1227,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  // Fuse operation timer and failure counter metrics are added dynamically.
+  // Other Fuse related metrics are added here
+  public static final MetricKey FUSE_BYTES_TO_READ =
+      new Builder(Name.FUSE_BYTES_TO_READ)
+          .setDescription("Total number of bytes requested by Fuse.read() operations.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_BYTES_READ =
+      new Builder(Name.FUSE_BYTES_READ)
+          .setDescription("Total number of bytes read through Fuse.read() operations.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   /**
    * Registers the given key to the global key map.
    *
@@ -1436,6 +1469,8 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Worker.BlockRemoverRemovingBlocksSize";
 
     // Client metrics
+    public static final String CLIENT_BLOCK_READ_CHUNK = "Client.BlockReadDataChunk";
+    public static final String CLIENT_BLOCK_READ_FROM_CHUNK = "Client.BlockReadDataFromChunk";
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
     public static final String CLIENT_BYTES_READ_LOCAL_THROUGHPUT
         = "Client.BytesReadLocalThroughput";
@@ -1499,6 +1534,9 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CacheStoreThreadsRejected";
     public static final String CLIENT_CACHE_STATE = "Client.CacheState";
     public static final String CLIENT_CACHE_UNREMOVABLE_FILES = "Client.CacheUnremovableFiles";
+
+    public static final String FUSE_BYTES_TO_READ = "Fuse.BytesToRead";
+    public static final String FUSE_BYTES_READ = "Fuse.BytesRead";
 
     private Name() {} // prevent instantiation
   }
