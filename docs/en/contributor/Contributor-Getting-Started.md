@@ -211,7 +211,7 @@ and press the **Pull request** button next to the **Compare** button.
 In the **Comparing changes** page, the base repository should be `Alluxio/alluxio` and the base branch
 should be **master**. The head repository should be your fork and the compare branch should be the branch
 you want to submit the pull request for (**awesome_feature** in this example). Click on the **Create pull request** button.
-The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title 
+The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title
 and the description of your pull request. 
 
 
