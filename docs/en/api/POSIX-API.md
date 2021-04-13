@@ -44,10 +44,29 @@ JNR-Fuse targets for low concurrency scenarios and has some known limitations in
 * Alluxio JNI-Fuse
 Alluxio's default in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
 
-Here is a guideline To choose between the default JNR-Fuse and experimental JNI-Fuse:
+Here is a guideline to choose between the JNR-Fuse and default JNI-Fuse:
 
 * Workloads: If your data access pattern is highly concurrent (e.g., deep learning training), JNI-Fuse is better and more stable.
-* Maintenance: JNI-Fuse is experimental but under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
+* Maintenance: JNI-Fuse is under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
+
+## Choose POSIX API Deployment
+
+The Alluxio POSIX API has two deploy ways to choose from:
+* Standalone process
+Alluxio POSIX API can be launched in a standalone `AlluxioFuse` process.
+Each `AlluxioFuse` process represents a single Fuse mounting Alluxio path to a local path.
+Using the standalone process way, you can easily add or remove a Fuse mount point in a node with or without Alluxio servers.
+Those Fuse mount modifications will not interfere the running of Alluxio servers.
+* Fuse in worker process
+Alluxio POSIX API can be launched inside a worker process.
+This launch way is mainly added for performance consideration.
+By embedded Fuse in the worker, interactions between the Fuse client and the Alluxio worker it embedded into can go through internal communication channel without RPC framework involves
+which help improve the read/write throughput in some training workloads.
+
+Here is a guideline to choose between the standalone process and embedded in worker process:
+
+* Workloads: If Fuse client in your workloads interacts with the local worker frequently, embedded it in the worker process is safer and is likely to have better performance.
+* Maintenance: Fuse in worker is under active testing and performance improving.
 
 ## Requirements
 
@@ -70,6 +89,9 @@ alluxio.fuse.jnifuse.enabled=false
 ```
 
 ## Basic Setup
+
+The basic setup deploys default JNI-Fuse or JNR-Fuse in the standalone process.
+After reading the basic setup section, checkout fuse in worker setup [here](#fuse-in-worker-process) if it suits your needs.
 
 ### Mount Alluxio as a FUSE mount point
 
@@ -139,6 +161,34 @@ pid mount_point alluxio_path
 ```
 
 ## Advanced Setup
+
+### Fuse in worker process
+
+Unlike standalone Fuse which you can mount at any time without Alluxio worker involves,
+the embedded Fuse has the exact same life cycle as the worker process it embeds into.
+When the worker starts, the Fuse is mounted based on worker configuration.
+When the worker ends, the embedded Fuse is unmounted automatically.
+If you want to modify your Fuse mount, change the configuration and restart the worker process.
+
+Enable the fuse in worker by setting `alluxio.worker.fuse.enabled` to `true` in the `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+```
+alluxio.worker.fuse.enabled=true
+```
+
+All the information about the Fuse mount needs to be provided as the worker configuration.
+```
+alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
+alluxio.worker.fuse.mount.point=<mount_point>
+alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
+```
+
+For example, the following example mounts Alluxio path `/mnt/people` to local path `/`
+with `kernel_cache,entry_timeout=7200,attr_timeout=N` mount options.
+```
+alluxio.worker.fuse.mount.alluxio.path=/
+alluxio.worker.fuse.mount.point=/mnt/people
+alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=N
+```
 
 ### Configure Alluxio fuse options
 
