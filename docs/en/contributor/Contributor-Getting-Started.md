@@ -123,7 +123,7 @@ Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxi
 and find one that is unassigned. 
 In order to assign an issue to yourself, leave a comment in the issue like `/assign @yourUserName`
 to indicate that you are working on the issue.
-You should assign a ticket to yourself before you start working on it, so others
+You should always assign a ticket to yourself this way before you start working on it, so others
 in the community know you are working on the ticket.
 
 Notice that all New Contributor issues on Github are assigned with a number. The number can be
