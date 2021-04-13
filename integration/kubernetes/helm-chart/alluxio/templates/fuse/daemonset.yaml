@@ -130,7 +130,7 @@ spec:
         - name: alluxio-fuse-device
           hostPath:
             path: /dev/fuse
-            type: File
+            type: CharDevice
         - name: alluxio-fuse-mount
           hostPath:
             path: {{ .Values.fuse.mountPath | dir }}
