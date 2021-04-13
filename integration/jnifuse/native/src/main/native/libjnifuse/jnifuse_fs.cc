@@ -64,6 +64,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->setxattrOper = new SetxattrOperation(this);
   this->truncateOper = new TruncateOperation(this);
   this->unlinkOper = new UnlinkOperation(this);
+  this->utimensOper = new UtimensOperation(this);
   this->writeOper = new WriteOperation(this);
 }
 
@@ -86,6 +87,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->setxattrOper;
   delete this->truncateOper;
   delete this->unlinkOper;
+  delete this->utimensOper;
   delete this->writeOper;
 }
 

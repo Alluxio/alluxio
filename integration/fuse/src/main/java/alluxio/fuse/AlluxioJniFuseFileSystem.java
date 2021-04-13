@@ -665,6 +665,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return -ErrorCodes.EOPNOTSUPP();
   }
 
+  @Override
+  public int utimensCallback(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    // TODO(maobaolong): implements this logic for alluxio.
+    LOG.debug("utimens for {}, but do nothing for this filesystem", path);
+    return 0;
+  }
+
   /**
    * @return Name of the file system
    */
