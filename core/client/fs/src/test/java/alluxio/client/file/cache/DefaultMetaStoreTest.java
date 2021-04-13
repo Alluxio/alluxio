@@ -61,8 +61,9 @@ public class DefaultMetaStoreTest {
 
   @Test
   public void removeNotExist() throws Exception {
-    assertThrows(PageNotFoundException.class, () -> mMetaStore.removePage(mPage));
-    Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
+    assertThrows(PageNotFoundException.class, () -> {
+      Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
+    });
   }
 
   @Test
