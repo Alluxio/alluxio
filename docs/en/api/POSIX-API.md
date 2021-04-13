@@ -171,27 +171,29 @@ When the worker starts, the Fuse is mounted based on worker configuration.
 When the worker ends, the embedded Fuse is unmounted automatically.
 If you want to modify your Fuse mount, change the configuration and restart the worker process.
 
-Enable FUSE on worker by setting `alluxio.worker.fuse.enabled` to `true` in the `${ALLUXIO_HOME}/conf/alluxio-site.properties` for workers:
+Enable FUSE on worker by setting the following properties in the `${ALLUXIO_HOME}/conf/alluxio-site.properties` for workers:
 
 ```
 alluxio.worker.fuse.enabled=true
+alluxio.worker.fuse.mount.point=<mount_point>
 ```
 
-All the FUSE configuration needs to be provided as the worker configuration.
+By default, Fuse on worker will mount the Alluxio root path `/` to the configured mount point with no extra mount options.
+You can change the alluxio path and mount options through Alluxio configuration:
 
 ```
 alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
-alluxio.worker.fuse.mount.point=<mount_point>
 alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
 ```
 
-For example, the following example mounts Alluxio path `/` to local path `/mnt/people`
-with `kernel_cache,entry_timeout=7200,attr_timeout=N` mount options.
+For example, the following example mounts Alluxio path `/people` to local path `/mnt/people`
+with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process.
 
 ```
-alluxio.worker.fuse.mount.alluxio.path=/
+alluxio.worker.fuse.enabled=true
+alluxio.worker.fuse.mount.alluxio.path=/people
 alluxio.worker.fuse.mount.point=/mnt/people
-alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=N
+alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
 ```
 
 ### Configure Alluxio fuse options
