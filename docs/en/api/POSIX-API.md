@@ -186,8 +186,8 @@ alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
 alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
 ```
 
-For example, the following example mounts Alluxio path `/people` to local path `/mnt/people`
-with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process.
+For example, one can mount Alluxio path `/people` to local path `/mnt/people`
+with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
 
 ```
 alluxio.worker.fuse.enabled=true
