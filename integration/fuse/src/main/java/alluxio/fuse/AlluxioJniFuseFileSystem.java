@@ -27,6 +27,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
@@ -731,37 +732,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
     }
 
-    // Force close all opened stream
-    if (!mOpenFileEntries.isEmpty()) {
-      LOG.info("Unmounting {}. Force closing all remaining file read", mMountPoint);
-      for (Map.Entry<Long, FileInStream> entry : mOpenFileEntries.entrySet()) {
-        FileInStream is = entry.getValue();
-        try {
-          synchronized (is) {
-            // Files have a small chance to be double closed in umount() and release()
-            // but AlluxioFileInStream supports double closed.
-            is.close();
-          }
-        } catch (Throwable t) {
-          LOG.error("Failed to close opened file with id {} when unmounting {}",
-              entry.getKey(), mMountPoint, t);
-        }
-      }
-    }
-    if (!mCreateFileEntries.isEmpty()) {
-      LOG.info("Unmounting {}. Force abandoning all remaining file write", mMountPoint);
-      for (CreateFileEntry ce : mCreateFileEntries) {
-        try {
-          synchronized (ce) {
-            ce.getOut().cancel();
-            LOG.info("Abandoned file write with id {} and path {} when unmounting {}",
-                ce.getId(), ce.getPath(), mMountPoint);
-          }
-        } catch (Throwable t) {
-          LOG.error("Failed to abandon file write with id {} and path{} when unmounting {}: {}",
-              ce.getId(), ce.getPath(), mMountPoint, t);
-        }
-      }
+    if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
+      // TODO(lu) consider the case that client application may not call release()
+      // for all open() or create(). Force closing those operations.
+      throw new FuseException("Cannot unmount Fuse, device or resource busy");
     }
     super.umount();
   }
