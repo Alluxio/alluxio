@@ -28,6 +28,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
@@ -35,6 +36,8 @@ import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -50,6 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,12 +74,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
+  private final String mMountPoint;
+  private final String mFsName;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
+  private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
-  private final String mFsName;
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
 
@@ -100,6 +106,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final IndexedSet<CreateFileEntry> mCreateFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
+
+  // Map for holding the async releasing entries for proper umount
+  private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
+  private final Map<Long, CreateFileEntry> mReleasingWriteEntries = new ConcurrentHashMap<>();
 
   // To make test build
   @VisibleForTesting
@@ -136,6 +146,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFileSystem = fs;
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mMountPoint = opts.getMountPoint();
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -165,6 +176,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
@@ -471,15 +483,27 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
-      if (is != null) {
-        synchronized (is) {
-          is.close();
+      if (ce != null) {
+        // Remove earlier to try best effort to avoid write() - async release() - getAttr()
+        // without waiting for file completed and return 0 bytes file size error
+        mCreateFileEntries.remove(ce);
+        mReleasingWriteEntries.put(fd, ce);
+        try {
+          synchronized (ce) {
+            ce.close();
+          }
+        } finally {
+          mReleasingWriteEntries.remove(fd);
         }
       }
-      if (ce != null) {
-        mCreateFileEntries.remove(ce);
-        synchronized (ce) {
-          ce.getOut().close();
+      if (is != null) {
+        mReleasingReadEntries.put(fd, is);
+        try {
+          synchronized (is) {
+            is.close();
+          }
+        } finally {
+          mReleasingReadEntries.remove(fd);
         }
       }
     } catch (Throwable e) {
@@ -673,6 +697,54 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public String getFileSystemName() {
     return mFsName;
+  }
+
+  @Override
+  public void umount() {
+    // Release operation is async, we will try our best efforts to
+    // close all opened file in/out stream before umounting the fuse
+    if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
+      try {
+        CommonUtils.waitFor("all in progress file read/write to finish",
+            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+                WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+      } catch (InterruptedException e) {
+        LOG.error("Unmount {} interrupted", mMountPoint);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting all in progress file read/write to finish "
+            + "when unmounting {}. {} fileInStream remain unclosed. "
+            + "{} fileOutStream remain unclosed.",
+            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
+      }
+    }
+
+    // Waiting for in progress async release to finish
+    if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write closing to finish",
+          mMountPoint);
+      try {
+        CommonUtils.waitFor("all in progress file read/write closing to finish",
+            () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
+            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+      } catch (InterruptedException e) {
+        LOG.error("Unmount {} interrupted", mMountPoint);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting in progress file read/write closing to finish "
+            + "when unmounting {}. {} fileInStream and {} fileOutStream "
+            + "are still in closing process.",
+            mMountPoint, mReleasingReadEntries.size(), mReleasingWriteEntries.size());
+      }
+    }
+
+    if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
+      // TODO(lu) consider the case that client application may not call release()
+      // for all open() or create(). Force closing those operations.
+      throw new FuseException("Cannot unmount Fuse, device or resource busy");
+    }
+    super.umount();
   }
 
   @VisibleForTesting
