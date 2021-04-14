@@ -49,13 +49,16 @@ func Single(args []string) error {
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if customUfsModuleFlag != "" {
-		customUfsModuleFlagArray := strings.Split(customUfsModuleFlag, "|")
-		if len(customUfsModuleFlagArray) == 2 {
-			customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
-			ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
-		} else {
-			fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
-			os.Exit(1)
+		customUfsModules := strings.Split(customUfsModuleFlag, "%")
+		for _, customUfsModule := range customUfsModules {
+			customUfsModuleFlagArray := strings.Split(customUfsModule, "|")
+			if len(customUfsModuleFlagArray) == 2 {
+				customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
+				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+			} else {
+				fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
+				os.Exit(1)
+			}
 		}
 	}
 	if err := updateRootFlags(); err != nil {
@@ -211,11 +214,14 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
+		fmt.Sprintf("lib/alluxio-underfs-abfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
+		fmt.Sprintf("lib/alluxio-underfs-cosn-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-oss-%v.jar", version),
+		fmt.Sprintf("lib/alluxio-underfs-ozone-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-s3a-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
@@ -225,8 +231,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		fmt.Sprintf("lib/alluxio-integration-tools-hms-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-integration-tools-validation-%v.jar", version),
 		"libexec/alluxio-config.sh",
-		"lib/libjnifuse.dylib",
-		"lib/libjnifuse.so",
 		"LICENSE",
 	}
 	if includeYarnIntegration(hadoopVersion) {

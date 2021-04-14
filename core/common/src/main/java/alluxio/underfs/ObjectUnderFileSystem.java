@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -373,7 +374,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (options.getCreateParent() && !mkdirs(getParentPath(path))) {
+    if (options.getCreateParent()
+        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+        && !mkdirs(getParentPath(path))) {
       throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
     }
     return createObject(stripPrefixIfPresent(path));
@@ -493,8 +496,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
           permissions.getMode());
     }
-    LOG.warn("Error fetching directory status, assuming directory {} does not exist", path);
-    throw new FileNotFoundException(path);
+    LOG.debug("Error fetching directory status, assuming directory {} does not exist", path);
+    throw new FileNotFoundException("Failed to fetch directory status " + path);
   }
 
   @Override
@@ -535,8 +538,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
           permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
-      LOG.warn("Error fetching file status, assuming file {} does not exist", path);
-      throw new FileNotFoundException(path);
+      LOG.debug("Error fetching file status, assuming file {} does not exist", path);
+      throw new FileNotFoundException("Failed to fetch file status " + path);
     }
   }
 
@@ -942,8 +945,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
-      // If the breadcrumb exists, this is a no-op
-      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled) {
+      // Do not recreate the breadcrumb if it already exists
+      String folderName = convertToFolderName(dir);
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+          && Arrays.stream(objs.getObjectStatuses()).noneMatch(
+              x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);
       }
       return objs;
@@ -1048,11 +1054,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.containsKey(child)) {
-            // This directory has not been created through Alluxio.
-            if (!mUfsConf.isReadOnly()
-                && mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)) {
-              mkdirsInternal(commonPrefix);
-            }
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             ObjectPermissions permissions = getPermissions();

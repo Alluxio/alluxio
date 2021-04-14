@@ -127,8 +127,7 @@ Since Alluxio 1.7, Alluxio client jar built and located at
 ### Build different HDFS under storage
 
 By default, Alluxio is built with the HDFS under storage of Hadoop 3.3.
-Run the following command by specifying `<UFS_HADOOP_PROFILE>` and the corresponding `ufs.hadoop
-.version` to build ufs with different versions.
+Run the following command by specifying `<UFS_HADOOP_PROFILE>` and the corresponding `ufs.hadoop.version` to build ufs with different versions.
 
 ```console
 $ mvn install -pl underfs/hdfs/ \
@@ -139,24 +138,26 @@ Here `<UFS_HADOOP_VERSION>` can be set for different distributions.
 Available Hadoop profiles include `ufs-hadoop-1`, `ufs-hadoop-2`, `ufs-hadoop-3` to cover the major
 Hadoop versions 1.x, 2.x and 3.x.
 
-For example,
-```
-$ mvn clean install -pl underfs/hdfs/ -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+For examples,
+```console
+$ mvn clean install -pl underfs/hdfs/ \
+  -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
   -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
 ```
 
-```
-$ mvn clean install -pl underfs/hdfs/ -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
+```console
+$ mvn clean install -pl underfs/hdfs/ \
+  -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
   -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.0
 ```
 
-If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-<ALLUXIO_VERSION>.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
+If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
 
-Checkout the flags for differnt HDFS distributions.
+Checkout the flags for different HDFS distributions.
 
-{% accordion HDFS Distributions %}
+{% accordion HdfsDistributions %}
   {% collapsible Apache %}
 All main builds are from Apache so all Apache releases can be used directly
 
@@ -208,5 +209,7 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 
 ### An error occurred while running protolock
 
-If you see following error meesage by maven:
-` An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory -> [Help 1]`, please make sure the maven flag `-Dskip.protoc` is NOT included when building the source code.
+If you see following error message by maven:
+"`An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory`"
+
+please make sure the maven flag "`-Dskip.protoc`" is NOT included when building the source code.

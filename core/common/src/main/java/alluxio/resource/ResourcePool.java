@@ -142,6 +142,20 @@ public abstract class ResourcePool<T> implements Pool<T> {
   }
 
   /**
+   * Acquires an object of type {@code T} from the pool. This operation is without blocking,
+   * if no resource is available. Each call of {@link #acquire()} should trigger to create
+   * a new object.
+   *
+   * @return a resource taken from the pool
+   */
+  @Nullable
+  public T acquireWithoutBlocking() {
+    // Try to take a resource without blocking
+    T resource = mResources.poll();
+    return resource;
+  }
+
+  /**
    * Closes the resource pool. After this call, the object should be discarded. Inheriting classes
    * should clean up all their resources here.
    */

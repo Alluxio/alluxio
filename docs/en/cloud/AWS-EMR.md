@@ -50,7 +50,8 @@ $ aws emr create-default-roles
 
   {% endcollapsible %}
   {% collapsible Run the aws create-cluster command with the bootstrap action %}
-The `create-cluster` command requires passing in multiple flags to successfully execute:
+The [`create-cluster` command](https://docs.aws.amazon.com/cli/latest/reference/emr/create-cluster.html)
+requires passing in multiple flags to successfully execute:
 - `release-label`: The version of EMR to install with.
 The current version of Alluxio is compatible with `emr-5.25.0`.
 - `instance-count`: The number of nodes to provision for the cluster.
@@ -71,8 +72,9 @@ A good instance type to start off with is `r4.4xlarge`.
     - You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
     For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs Alluxio to write files synchronously to the underlying storage system.
     See more about [write type options]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}).
-- `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_VERSION_STRING}}/alluxio-emr.json`
-- `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
+- `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `https://s3.amazonaws.com/alluxio-public/emr/{{site.ALLUXIO_VERSION_STRING}}/alluxio-emr.json`
+  Alternatively, download the linked JSON file and provide the local path to the file, ex. `file:///path/to/alluxio-emr.json`.
+- `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair used to connect to the cluster.
 
 Below is a sample command with all of the above flags populated:
 
@@ -135,7 +137,7 @@ $ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
 
   {% endcollapsible %}
   {% collapsible Cluster details %}
-Using this boostrap script, Alluxio is installed in `/opt/alluxio/` by default.
+Using this bootstrap script, Alluxio is installed in `/opt/alluxio/` by default.
 Hive and Presto are already configured to connect to Alluxio.
 The cluster also uses AWS Glue as the default metastore for both Presto and Hive.
 This will allow you to maintain table definitions between multiple runs of the Alluxio cluster.

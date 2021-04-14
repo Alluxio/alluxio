@@ -70,9 +70,9 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 ```
 5. Format the Alluxio master by running `bin/alluxio formatMaster`
 6. In Intellij, start Alluxio master process by selecting `Run > Run > AlluxioMaster`
-7. Format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
+7. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 8. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
-9. Execute alluxio command
+9. Verify the Alluxio cluster is up as [Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }})
 
 ## Maven Targets and Plugins
 

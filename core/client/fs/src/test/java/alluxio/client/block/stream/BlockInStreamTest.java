@@ -89,7 +89,7 @@ public class BlockInStreamTest {
   @Test
   public void createShortCircuit() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();
-    BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
+    BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
     assertTrue(stream.isShortCircuit());
@@ -120,7 +120,8 @@ public class BlockInStreamTest {
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-      BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
+      BlockInStream.BlockInStreamSource dataSourceType =
+          BlockInStream.BlockInStreamSource.NODE_LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
       assertFalse(stream.isShortCircuit());
@@ -136,7 +137,7 @@ public class BlockInStreamTest {
     PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
-    BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
+    BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
         mOptions);
     assertFalse(stream.isShortCircuit());

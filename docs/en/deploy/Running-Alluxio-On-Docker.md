@@ -60,12 +60,12 @@ containers data. To create a host volume, run:
   ```
   The file or directory is referenced by its full path on the Docker host. It can exist on the Docker host already, or it will be created automatically if it does not yet exist.
 
-+ **Named Volume**: Docker manage where they are located.  It should be be referred to by specific names.
++ **Named Volume**: Docker manage where they are located. It should be be referred to by specific names.
 To create a named volume, run:
 
   ```console
   $ docker volume create volumeName
-  $ docker run -v  volumeName:/path/in/container ...
+  $ docker run -v volumeName:/path/in/container ...
   ```
 
 Either host volume or named volume can be used for Alluxio containers. For purpose of test,
@@ -85,7 +85,7 @@ $ docker run -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage   ...
 Of course, you can choose to mount a different path instead of `/tmp/alluxio_ufs`.
 From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
-Please make sure it is writable by the user the Docker image is run as.
+Please make sure the host volume is writable by the user the Docker image is run as.
 
 ## Launch Alluxio Containers for Master and Worker
 
@@ -344,7 +344,7 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
+You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#raft-based-embedded-journal' | relativize_url }}).
 
 {% endnavtab %}
 {% navtab Zookeeper and Shared Journal Storage %}
@@ -377,25 +377,92 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
+You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#zookeeper-and-shared-journal-storage' | relativize_url }}).
 
 {% endnavtab %}
 {% endnavtabs %}
 
 ### Relaunch Alluxio Servers
 
-When relaunching Alluxio masters, use the `--no-format` flag to avoid re-formatting
+When relaunching Alluxio master docker containers, use the `--no-format` flag to avoid re-formatting
 the journal. The journal should only be formatted the first time the image is run.
 Formatting the journal deletes all Alluxio metadata, and starts the cluster in
 a fresh state.
+You can find more details about the Alluxio journal [here]({{ '/en/operation/Journal.html' | relativize_url }}).
+
+The same applies to Alluxio worker docker containers, use the `--no-format` flag to avoid re-formatting
+the worker storage. Formatting the worker storage deletes all the cached blocks.
+You can find more details about the worker storage [here]({{ '/en/core-services/Caching.html#configuring-alluxio-storage' | relativize_url }}).
 
 ### Enable POSIX API access
+
+Alluxio POSIX access is implemented via FUSE.
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+There are two options to enable POSIX access to Alluxio in a docker environment.
+
++ Option1: Enable FUSE support when running a worker container, or
++ Option2: Run a standalone Alluxio FUSE container.
+
+Enabling FUSE on a worker container may yield easier deployment and higher performance
+as it only requires setting a property `alluxio.worker.fuse.enabled=true`,
+and introduces no network communication between FUSE service and Alluxio worker on local cache hit.
+However, current worker only supports one mount point for Alluxio service, and users must start or
+stop this worker container in order to start or stop FUSE service.
+Using standalone FUSE can be a complementary approach to provide the translation between POSIX and
+Alluxio on hosts without adding resources required to run workers.
+
+{% navtabs Fuse-docker %}
+{% navtab FUSE on worker %}
+
+When running a worker container, specifying FUSE enabled:
+
+```console
+$ docker run -d \
+    --net=host \
+    --name=alluxio-worker \
+    --shm-size=1G \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/mnt:/mnt:rshared \
+    --cap-add SYS_ADMIN \
+    --device /dev/fuse \
+    --security-opt apparmor:unconfined \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.worker.ramdisk.size=1G \
+       -Dalluxio.master.hostname=localhost \
+       -Dalluxio.worker.fuse.enabled=true \
+       -Dalluxio.worker.fuse.mount.point=/mnt/alluxio-fuse" \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
+```
+
+Notes
+- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
+To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability.
+- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
+- Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
+- Property `alluxio.worker.fuse.mount.point=/mnt/alluxio-fuse` specifies the mount point to
+`/mnt/alluxio-fuse` inside this worker container.
+
+Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
+This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,
+and mount point of Alluxio service is `/mnt/alluxio-fuse`, mapped to host path
+`/tmp/mnt/alluxio-fuse`.
+
+{% endnavtab %}
+{% navtab Standalone FUSE %}
 
 Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
 access to Alluxio on Docker host using the POSIX API.
 
-For example, this following command runs the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
+For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
+First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
+```console
+$ mkdir -p /tmp/mnt && sudo chmod -R a+rwx /tmp/mnt
+```
+
+Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
 ```console
 $ docker run --rm \
     --net=host \
@@ -404,6 +471,7 @@ $ docker run --rm \
     -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
+    --security-opt apparmor:unconfined \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
 ```
 
@@ -414,14 +482,17 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 
+{% endnavtab %}
+{% endnavtabs %}
+
 Additional POSIX API configuration can also be added based on actual use cases.
 For example,
-- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.jnifuse.enbaled=true"` add alluxio client/fuse side configuration
-to Alluxio POSIX API container. The example java opts enables Alluxio JNI-Fuse POSIX implementation.
+- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
+to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
+into Unix users and groups when exposing Alluxio files through the FUSE API.
 - `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
 
-## Performance Optimiztion
+## Performance Optimization
 
 ### Enable short-circuit reads and writes
 

@@ -178,6 +178,9 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       // worker metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+              MetricKey.WORKER_BYTES_READ_DIRECT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_READ_REMOTE.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()));
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,

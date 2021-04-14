@@ -36,6 +36,9 @@ You can checkout more details in its structure and how to join Alluxio PMC
 Please use the following to reach members of the community:
 
 * [Alluxio Community Slack Channel](https://www.alluxio.io/slack)
+* [Special Interest Groups (SIG) for Alluxio users and developers](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meetings)
+     * Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio
+     * Alluxio and Presto workloads: e.g., running Presto on Alluxio, running Alluxio catalog service
 * Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.io/events)
 * Meetup Groups: [Global Online Meetup](https://www.meetup.com/Alluxio-Global-Online-Meetup/), [Bay Area Meetup](http://www.meetup.com/Alluxio),
 [New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),

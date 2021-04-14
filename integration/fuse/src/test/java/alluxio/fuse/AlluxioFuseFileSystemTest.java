@@ -68,6 +68,7 @@ import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
@@ -92,8 +93,8 @@ public class AlluxioFuseFileSystemTest {
   @Before
   public void before() throws Exception {
     final List<String> empty = Collections.emptyList();
-    AlluxioFuseOptions opts =
-        new AlluxioFuseOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    FuseMountOptions opts =
+        new FuseMountOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
     try {
@@ -396,6 +397,7 @@ public class AlluxioFuseFileSystemTest {
           }
           return 4;
         });
+    when(fakeInStream.remaining()).thenReturn(4L);
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
@@ -411,6 +413,90 @@ public class AlluxioFuseFileSystemTest {
     final byte[] dst = new byte[4];
     ptr.get(0, dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
+
+    assertArrayEquals("Source and dst data should be equal", expected, dst);
+  }
+
+  @Test
+  public void readOffset() throws Exception {
+    // mocks set-up
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    setUpOpenMock(expectedPath);
+
+    FileInStream fakeInStream = mock(FileInStream.class);
+    when(fakeInStream.read(any(byte[].class),
+        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = (byte) (i + 1);
+          }
+          return myDest.length;
+        });
+    AtomicInteger callCounter = new AtomicInteger();
+    when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
+    });
+
+    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    mFileInfo.flags.set(O_RDONLY.intValue());
+
+    // prepare something to read to it
+    Runtime r = Runtime.getSystemRuntime();
+    Pointer ptr = r.getMemoryManager().allocateTemporary(2, true);
+
+    // actual test
+    mFuseFs.open("/foo/bar", mFileInfo);
+
+    mFuseFs.read("/foo/bar", ptr, 2, 1, mFileInfo);
+    final byte[] dst = new byte[2];
+    ptr.get(0, dst, 0, 2);
+    final byte[] expected = new byte[] {1, 2};
+
+    assertArrayEquals("Source and dst data should be equal", expected, dst);
+  }
+
+  @Test
+  public void readOffset2() throws Exception {
+    // mocks set-up
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    setUpOpenMock(expectedPath);
+
+    FileInStream fakeInStream = mock(FileInStream.class);
+    when(fakeInStream.read(any(byte[].class),
+        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = i;
+          }
+          return myDest.length;
+        });
+    AtomicInteger callCounter = new AtomicInteger();
+    when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
+    });
+
+    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    mFileInfo.flags.set(O_RDONLY.intValue());
+
+    // prepare something to read to it
+    Runtime r = Runtime.getSystemRuntime();
+    Pointer ptr = r.getMemoryManager().allocateTemporary(4, true);
+
+    // actual test
+    mFuseFs.open("/foo/bar", mFileInfo);
+
+    mFuseFs.read("/foo/bar", ptr, 4, 4, mFileInfo);
+    final byte[] dst = new byte[0];
+    ptr.get(0, dst, 0, 0);
+    final byte[] expected = new byte[0];
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }

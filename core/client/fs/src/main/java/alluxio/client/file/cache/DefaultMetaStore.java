@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;

@@ -27,6 +27,7 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -53,6 +54,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import io.grpc.Context;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,9 +65,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -655,6 +660,63 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
     Assert.assertNotNull(statusListAfterSleeping);
     assertEquals(1, statusListAfterSleeping.size());
+  }
+
+  /** This is a timing based test and may become flaky.
+   *  The goal is to simulate a user interrupted listStatus call.
+   *
+   *  In this case, the user's listStatus should have synced the first level directory but have
+   *  not completed the second level directory sync. Thus resulting in a partial sync.
+   */
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
+      })
+  @Test
+  public void interruptSync() throws Exception {
+    // make large nested directories/files in UFS
+    for (int i = 0; i < 100; i++) {
+      new File(ufsPath("/dir" + i)).mkdirs();
+      for (int j = 0; j < 100; j++) {
+        new File(ufsPath("/dir" + i + "/dir" + j)).mkdirs();
+        writeUfsFile(ufsPath("/dir" + i + "/dir" + j + "/file"), 1);
+      }
+    }
+    List<URIStatus> status;
+    try (Context.CancellableContext c = Context.current()
+        .withDeadlineAfter(100, TimeUnit.MILLISECONDS,
+            Executors.newScheduledThreadPool(1))) {
+      Context toRestore = c.attach();
+      try {
+        status = Context.current().withCancellation().call(() -> {
+          try {
+            return mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
+                .setRecursive(true)
+                .setCommonOptions(FileSystemOptions.commonDefaults(
+                    mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
+          } catch (Exception e) {
+            return Collections.<URIStatus>emptyList();
+          }
+        });
+        Thread.sleep(200);
+        c.cancel(new AlluxioException("test exception"));
+      } finally {
+        c.detach(toRestore);
+      }
+    }
+    assertEquals(0, status.size());
+    status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
+        .setRecursive(true)
+        .setCommonOptions(FileSystemOptions.commonDefaults(
+            mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
+    final int TOTAL_FILE_COUNT = 20103;
+    assertTrue(status.size() < TOTAL_FILE_COUNT);
+    for (URIStatus stat : status) {
+      assertTrue(stat.isCompleted());
+    }
+    status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
+        .setRecursive(true).setCommonOptions(PSYNC_LARGE_INTERVAL).build());
+    assertEquals(TOTAL_FILE_COUNT, status.size());
   }
 
   @LocalAlluxioClusterResource.Config(

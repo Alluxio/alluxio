@@ -11,10 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -39,13 +35,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);
-  private static final long FILE_BUFFER_SIZE = ServerConfiguration.getBytes(
-      PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   private final boolean mDomainSocketEnabled;
 
@@ -73,8 +65,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
-    mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(request.getTier()),
+    mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
         request.getMediumType(), bytesToReserve);
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
@@ -134,7 +125,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     }
     if (context.getBlockWriter() == null) {
       context.setBlockWriter(
-          mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
+          mWorker.createBlockWriter(request.getSessionId(), request.getId()));
     }
     Preconditions.checkState(context.getBlockWriter() != null);
     int sz = buf.readableBytes();

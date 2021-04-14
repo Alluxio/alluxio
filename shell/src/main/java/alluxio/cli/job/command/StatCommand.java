@@ -88,7 +88,12 @@ public final class StatCommand extends AbstractFileSystemCommand {
     StringBuilder output = new StringBuilder();
     output.append("ID: ").append(info.getId()).append("\n");
     output.append("Name: ").append(info.getName()).append("\n");
-    output.append("Description: ").append(StringUtils.abbreviate(info.getDescription(), 200));
+    output.append("Description: ");
+    if (cl.hasOption("v")) {
+      output.append(info.getDescription());
+    } else {
+      output.append(StringUtils.abbreviate(info.getDescription(), 200));
+    }
     output.append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {

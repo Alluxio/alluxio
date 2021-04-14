@@ -17,7 +17,7 @@
 # - https://github.com/moby/moby/issues/6119
 FROM alpine:3.10.2 AS extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.5.0-SNAPSHOT/alluxio-2.5.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.6.0-SNAPSHOT/alluxio-2.6.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -29,7 +29,8 @@ RUN cd /opt && \
     ln -s alluxio-* alluxio
 
 # Remove the UFS libraries from the container, as the fuse daemon doesn't need them
-RUN rm -rf /opt/alluxio/lib/*
+# Make sure to keep the JNI FUSE libraries
+RUN find /opt/alluxio/lib/ -type f -not -name 'libjnifuse*' -delete
 
 RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
