@@ -42,15 +42,15 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
-# Add Tini since it isn't included in Ubuntu by default
-# - https://github.com/krallin/tini
-ENV TINI_VERSION v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
-RUN chmod +x /usr/local/bin/tini
-
 # Specify versions for known vulnerabilities reported by trivy scan
 # RUN apk --no-cache --update add bash libc6-compat shadow tini 'libbz2>=1.0.6-r7' 'sqlite-libs>=3.28.0-r3' && \
 #    rm -rf /var/cache/apk/*
+
+# Add Tini
+# - https://github.com/krallin/tini
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
+RUN chmod +x /usr/local/bin/tini
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
   add-apt-repository -y ppa:openjdk-r/ppa && \
