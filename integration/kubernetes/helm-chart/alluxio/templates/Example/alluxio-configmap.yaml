@@ -1,0 +1,41 @@
+---
+# Source: alluxio/templates/config/alluxio-conf.yaml
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  name: alluxio-config
+  labels:
+    name: alluxio-config
+    app: alluxio
+    chart: alluxio-0.6.16
+    release: alluxio
+    heritage: Helm
+data:
+  ALLUXIO_JAVA_OPTS: |-
+    -Dalluxio.security.stale.channel.purge.interval=365d -Daws.secretKey=JxMP+DIyNjdAiANlmpsUupkWcOIMoJ7Zpu9hFvBF -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.underfs.hdfs.remote=false -Daws.accessKeyId=AKIAILKAXYH6P472TE7A -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.master.journal.type=EMBEDDED -Dalluxio.master.journal.folder=/journal -Dalluxio.master.embedded.journal.addresses=,alluxio-master-0:19200,alluxio-master-1:19200,alluxio-master-2:19200 -Dalluxio.worker.tieredstore.level0.dirs.quota=10GB -Dalluxio.master.mount.table.root.ufs=s3a://autobots-kubernetesfusetest-meqy8r/autobots-test -Dalluxio.worker.memory.size="10G" -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm 
+  ALLUXIO_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} 
+  ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} 
+  ALLUXIO_WORKER_JAVA_OPTS: |-
+    -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.container.hostname=${ALLUXIO_WORKER_CONTAINER_HOSTNAME} -Dalluxio.worker.ramdisk.size=2G -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.alias=MEM -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7 
+  ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
+    -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} -Dalluxio.job.worker.rpc.port=30001 -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 
+  ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} -XX:MaxDirectMemorySize=2g 
+  ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm

@@ -1,0 +1,149 @@
+---
+# Source: alluxio/templates/worker/daemonset.yaml
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alluxio-worker
+  labels:
+    app: alluxio
+    chart: alluxio-0.6.16
+    release: alluxio
+    heritage: Helm
+    role: alluxio-worker
+spec:
+  selector:
+    matchLabels:
+      app: alluxio
+      release: alluxio
+      role: alluxio-worker
+  template:
+    metadata:
+      labels:
+        app: alluxio
+        chart: alluxio-0.6.16
+        release: alluxio
+        heritage: Helm
+        role: alluxio-worker
+    spec:
+      hostNetwork: false
+      hostPID: false
+      dnsPolicy: ClusterFirst
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      nodeSelector:
+      containers:
+        - name: alluxio-worker
+          image: alluxio/alluxio:2.6.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 4
+              memory: "10G"
+            requests:
+              cpu: 1
+              memory: "10G"
+          command: ["tini", "--", "/entrypoint.sh"]
+          args:
+            - worker-only
+            - --no-format
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          readinessProbe:
+            tcpSocket:
+              port: rpc
+          livenessProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
+          ports:
+          - containerPort: 29999
+            name: rpc
+          - containerPort: 30000
+            name: web
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
+            - mountPath: /dev/shm
+              name: mem
+        - name: alluxio-job-worker
+          image: alluxio/alluxio:2.6.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 4
+              memory: "10G"
+            requests:
+              cpu: 1
+              memory: "10G"
+          command: ["tini", "--", "/entrypoint.sh"]
+          args:
+            - job-worker
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          readinessProbe:
+            tcpSocket:
+              port: job-rpc
+          livenessProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
+          ports:
+          - containerPort: 30001
+            name: job-rpc
+          - containerPort: 30002
+            name: job-data
+          - containerPort: 30003
+            name: job-web
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
+            - mountPath: /dev/shm
+              name: mem
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-domain
+          persistentVolumeClaim:
+            claimName: "alluxio-worker-domain-socket"
+        - name: mem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: "10G"

@@ -1,0 +1,108 @@
+---
+# Source: alluxio/templates/master/service.yaml
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alluxio-master-0
+  labels:
+    app: alluxio
+    chart: alluxio-0.6.16
+    release: alluxio
+    heritage: Helm
+    role: alluxio-master
+spec:
+  ports:
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+    - port: 20003
+      name: job-embedded
+  clusterIP: None
+  selector:
+    role: alluxio-master
+    app: alluxio
+    release: alluxio
+    statefulset.kubernetes.io/pod-name: alluxio-master-0
+---
+# Source: alluxio/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: alluxio-master-1
+  labels:
+    app: alluxio
+    chart: alluxio-0.6.16
+    release: alluxio
+    heritage: Helm
+    role: alluxio-master
+spec:
+  ports:
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+    - port: 20003
+      name: job-embedded
+  clusterIP: None
+  selector:
+    role: alluxio-master
+    app: alluxio
+    release: alluxio
+    statefulset.kubernetes.io/pod-name: alluxio-master-1
+---
+# Source: alluxio/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: alluxio-master-2
+  labels:
+    app: alluxio
+    chart: alluxio-0.6.16
+    release: alluxio
+    heritage: Helm
+    role: alluxio-master
+spec:
+  ports:
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+    - port: 20003
+      name: job-embedded
+  clusterIP: None
+  selector:
+    role: alluxio-master
+    app: alluxio
+    release: alluxio
+    statefulset.kubernetes.io/pod-name: alluxio-master-2
