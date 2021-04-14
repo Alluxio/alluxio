@@ -502,7 +502,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             is.close();
           }
         } finally {
-          mReleasingWriteEntries.remove(fd);
+          mReleasingReadEntries.remove(fd);
         }
       }
     } catch (Throwable e) {
