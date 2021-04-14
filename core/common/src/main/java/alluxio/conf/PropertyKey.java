@@ -4622,6 +4622,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
+      new Builder(Name.FUSE_UMOUNT_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("The timeout to wait for all in progress file read and write to finish "
+              + "before unmounting the Fuse filesystem. After the timeout, "
+              + "all in progress file read will be forced to stop "
+              + "and all in progress file write will be abandoned.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
       new Builder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
           .setDefaultValue(false)
@@ -5939,6 +5949,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_UMOUNT_TIMEOUT =
+        "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 
