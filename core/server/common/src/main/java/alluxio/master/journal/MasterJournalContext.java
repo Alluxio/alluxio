@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
@@ -89,6 +90,11 @@ public final class MasterJournalContext implements JournalContext {
           LOG.warn("Journal flush failed. retrying...", e);
         }
       } catch (IOException e) {
+        if (e instanceof AlluxioStatusException
+            && ((AlluxioStatusException) e).getStatusCode() == Status.Code.CANCELLED) {
+          throw new UnavailableException(String.format("Failed to complete request: %s",
+              e.getMessage()), e);
+        }
         LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
         ProcessUtils.fatalError(LOG, e, "Journal flush failed");
