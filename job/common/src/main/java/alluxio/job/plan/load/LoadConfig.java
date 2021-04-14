@@ -39,15 +39,6 @@ public class LoadConfig implements PlanConfig {
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
-   */
-  public LoadConfig(@JsonProperty("filePath") String filePath,
-      @JsonProperty("replication") Integer replication) {
-    this(filePath, replication, Collections.EMPTY_SET);
-  }
-
-  /**
-   * @param filePath the file path
-   * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
