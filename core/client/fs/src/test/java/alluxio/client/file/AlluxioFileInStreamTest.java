@@ -59,6 +59,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -590,7 +591,7 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void failGetInStream() throws IOException {
-    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
+    when(mBlockStore.getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -695,7 +696,7 @@ public final class AlluxioFileInStreamTest {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
     when(mBlockStore
-        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.read()).thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(offset);
@@ -704,8 +705,7 @@ public final class AlluxioFileInStreamTest {
     int b = mTestStream.read();
 
     doReturn(0).when(brokenStream).read();
-    verify(brokenStream, times(1))
-        .read();
+    verify(brokenStream, times(1)).read();
     assertEquals(offset, b);
   }
 
@@ -714,9 +714,9 @@ public final class AlluxioFileInStreamTest {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
     when(mBlockStore
-        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
-    when(brokenStream.read(any(byte[].class), anyInt(), anyInt()))
+    when(brokenStream.read(any(ByteBuffer.class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(BLOCK_LENGTH / 2);
 
@@ -724,9 +724,9 @@ public final class AlluxioFileInStreamTest {
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.read(b, 0, b.length);
 
-    doReturn(0).when(brokenStream).read(any(byte[].class), anyInt(), anyInt());
+    doReturn(0).when(brokenStream).read(any(ByteBuffer.class), anyInt(), anyInt());
     verify(brokenStream, times(1))
-        .read(any(byte[].class), anyInt(), anyInt());
+        .read(any(ByteBuffer.class), anyInt(), anyInt());
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
         BLOCK_LENGTH * 2), b);
   }
@@ -759,7 +759,7 @@ public final class AlluxioFileInStreamTest {
    */
   @Test
   public void blockInStreamOutOfSync() throws Exception {
-    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
+    when(mBlockStore.getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
