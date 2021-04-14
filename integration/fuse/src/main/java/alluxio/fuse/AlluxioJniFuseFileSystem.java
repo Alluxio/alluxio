@@ -28,7 +28,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
-import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
@@ -742,7 +741,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
       // TODO(lu) consider the case that client application may not call release()
       // for all open() or create(). Force closing those operations.
-      throw new FuseException("Cannot unmount Fuse, device or resource busy");
+      // TODO(lu,bin) properly prevent umount when device is busy
+      LOG.error("Unmounting {} when device is busy in reading/writing files. "
+          + "{} fileInStream and {} fileOutStream remain open.",
+          mMountPoint, mCreateFileEntries.size(), mOpenFileEntries.size());
     }
     super.umount();
   }
