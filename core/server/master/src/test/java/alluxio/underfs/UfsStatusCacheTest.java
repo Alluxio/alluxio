@@ -55,8 +55,6 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -193,7 +191,6 @@ public class UfsStatusCacheTest {
     assertNull(ref.get());
   }
 
-
   @Test
   public void testFetchCancel() throws Exception {
     spyUfs();
@@ -217,6 +214,7 @@ public class UfsStatusCacheTest {
       } catch (RuntimeException e) {
         ref.set(e);
       } catch (InterruptedException | InvalidPathException e) {
+        // do nothing
       }
     });
     t.start();
