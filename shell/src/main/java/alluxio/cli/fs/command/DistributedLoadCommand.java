@@ -107,7 +107,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] <path>";
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] "
+        + "[--worker-set <host1,host2,...,hostn>] <path>";
   }
 
   @Override
