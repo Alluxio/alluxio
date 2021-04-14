@@ -31,8 +31,12 @@ import alluxio.retry.RetryPolicy;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,6 +69,15 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
                   + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
+  private static final Option WORKER_SET_OPTION =
+      Option.builder()
+          .longOpt("worker-set")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("worker set")
+          .desc("Worker host list separated by comma")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -82,7 +95,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION);
+    return new Options().addOption(REPLICATION_OPTION)
+        .addOption(ACTIVE_JOB_COUNT_OPTION)
+        .addOption(WORKER_SET_OPTION);
   }
 
   @Override
@@ -109,7 +124,14 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    distributedLoad(path, replication);
+    Set<String> workerSet = Collections.EMPTY_SET;
+    if (cl.hasOption(WORKER_SET_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(WORKER_SET_OPTION.getLongOpt());
+      String[] workerArray = StringUtils.split(argOption, ",");
+      workerSet = new HashSet<>();
+      Collections.addAll(workerSet, workerArray);
+    }
+    distributedLoad(path, replication, workerSet);
     return 0;
   }
 
@@ -124,9 +146,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
    */
-  private LoadJobAttempt newJob(AlluxioURI filePath, int replication) {
+  private LoadJobAttempt newJob(AlluxioURI filePath, int replication, Set<String> workerSet) {
     LoadJobAttempt jobAttempt = new LoadJobAttempt(mClient, new
-        LoadConfig(filePath.getPath(), replication), new CountingRetry(3));
+        LoadConfig(filePath.getPath(), replication, workerSet), new CountingRetry(3));
 
     jobAttempt.run();
 
@@ -136,7 +158,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   /**
    * Add one job.
    */
-  private void addJob(URIStatus status, int replication) {
+  private void addJob(URIStatus status, int replication, Set<String> workerSet) {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
     if (status.getInAlluxioPercentage() == 100) {
       // The file has already been fully loaded into Alluxio.
@@ -148,7 +170,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       waitJob();
     }
     System.out.println(filePath + " loading");
-    mSubmittedJobAttempts.add(newJob(filePath, replication));
+    mSubmittedJobAttempts.add(newJob(filePath, replication, workerSet));
   }
 
   /**
@@ -157,9 +179,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
    */
-  private void distributedLoad(AlluxioURI filePath, int replication)
+  private void distributedLoad(AlluxioURI filePath, int replication, Set<String> workerSet)
       throws AlluxioException, IOException {
-    load(filePath, replication);
+    load(filePath, replication, workerSet);
     // Wait remaining jobs to complete.
     drain();
   }
@@ -171,12 +193,12 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException      when non-Alluxio exception occurs
    */
-  private void load(AlluxioURI filePath, int replication)
+  private void load(AlluxioURI filePath, int replication, Set<String> workerSet)
       throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
-        addJob(uriStatus, replication);
+        addJob(uriStatus, replication, workerSet);
       }
     });
   }
