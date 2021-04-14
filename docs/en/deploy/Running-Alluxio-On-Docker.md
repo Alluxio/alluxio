@@ -430,7 +430,6 @@ $ docker run -d \
        -Dalluxio.worker.ramdisk.size=1G \
        -Dalluxio.master.hostname=localhost \
        -Dalluxio.worker.fuse.enabled=true \
-       -Dalluxio.worker.fuse.mount.point=/mnt/alluxio-fuse" \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
@@ -441,8 +440,8 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 - Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
-- Property `alluxio.worker.fuse.mount.point=/mnt/alluxio-fuse` specifies the mount point to
-`/mnt/alluxio-fuse` inside this worker container.
+The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
+To change the fuse mount point, specify `alluxio.worker.fuse.mount.point=<mount_point>`.
 
 Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
 This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,

@@ -2742,9 +2742,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
       new Builder(Name.WORKER_FUSE_MOUNT_POINT)
+          .setDefaultValue("/mnt/alluxio-fuse")
           .setDescription("The absolute local filesystem path that this worker will "
-              + "mount Alluxio path to. If the value is not set, no Fuse application"
-              + "will be mounted in this worker.")
+              + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
