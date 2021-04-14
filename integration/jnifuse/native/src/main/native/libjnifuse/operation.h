@@ -161,6 +161,12 @@ class RemovexattrOperation : public Operation {
   int call(const char *path, const char *list);
 };
 
+class UtimensOperation : public Operation {
+ public:
+  UtimensOperation(JniFuseFileSystem *fs);
+  int call(const char *path, const struct timespec ts[2]);
+};
+
 }  // namespace jnifuse
 
 #endif  // FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_

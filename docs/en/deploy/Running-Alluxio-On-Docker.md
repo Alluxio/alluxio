@@ -396,6 +396,62 @@ You can find more details about the worker storage [here]({{ '/en/core-services/
 
 ### Enable POSIX API access
 
+Alluxio POSIX access is implemented via FUSE.
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+There are two options to enable POSIX access to Alluxio in a docker environment.
+
++ Option1: Enable FUSE support when running a worker container, or
++ Option2: Run a standalone Alluxio FUSE container.
+
+Enabling FUSE on a worker container may yield easier deployment and higher performance
+as it only requires setting a property `alluxio.worker.fuse.enabled=true`,
+and introduces no network communication between FUSE service and Alluxio worker on local cache hit.
+However, current worker only supports one mount point for Alluxio service, and users must start or
+stop this worker container in order to start or stop FUSE service.
+Using standalone FUSE can be a complementary approach to provide the translation between POSIX and
+Alluxio on hosts without adding resources required to run workers.
+
+{% navtabs Fuse-docker %}
+{% navtab FUSE on worker %}
+
+When running a worker container, specifying FUSE enabled:
+
+```console
+$ docker run -d \
+    --net=host \
+    --name=alluxio-worker \
+    --shm-size=1G \
+    -v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage \
+    -v /tmp/mnt:/mnt:rshared \
+    --cap-add SYS_ADMIN \
+    --device /dev/fuse \
+    --security-opt apparmor:unconfined \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.worker.ramdisk.size=1G \
+       -Dalluxio.master.hostname=localhost \
+       -Dalluxio.worker.fuse.enabled=true \
+       -Dalluxio.worker.fuse.mount.point=/mnt/alluxio-fuse" \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
+```
+
+Notes
+- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
+To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability.
+- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
+- Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
+- Property `alluxio.worker.fuse.mount.point=/mnt/alluxio-fuse` specifies the mount point to
+`/mnt/alluxio-fuse` inside this worker container.
+
+Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
+This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,
+and mount point of Alluxio service is `/mnt/alluxio-fuse`, mapped to host path
+`/tmp/mnt/alluxio-fuse`.
+
+{% endnavtab %}
+{% navtab Standalone FUSE %}
+
 Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
 access to Alluxio on Docker host using the POSIX API.
 
@@ -426,15 +482,17 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 
+{% endnavtab %}
+{% endnavtabs %}
+
 Additional POSIX API configuration can also be added based on actual use cases.
 For example,
 - `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
 to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
 into Unix users and groups when exposing Alluxio files through the FUSE API.
 - `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
 
-## Performance Optimiztion
+## Performance Optimization
 
 ### Enable short-circuit reads and writes
 

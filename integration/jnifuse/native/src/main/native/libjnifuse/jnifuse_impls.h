@@ -44,6 +44,7 @@ int rename_wrapper(const char *oldPath, const char *newPath);
 int rmdir_wrapper(const char *path);
 int truncate_wrapper(const char *path, off_t size);
 int unlink_wrapper(const char *path);
+int utimens_wrapper(const char *path, const struct timespec ts[2]);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
 

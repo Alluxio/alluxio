@@ -37,17 +37,44 @@ Please read the [section of limitations](#assumptions-and-limitations) for detai
 
 ## Choose POSIX API Implementation
 
-The Alluxio POSIX API has two implementations for users to choose from:
+The Alluxio POSIX API has two implementations:
 * Alluxio JNR-Fuse
 Alluxio's first generation Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 JNR-Fuse targets for low concurrency scenarios and has some known limitations in performance.
 * Alluxio JNI-Fuse
 Alluxio's default in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
 
-Here is a guideline To choose between the default JNR-Fuse and experimental JNI-Fuse:
+Here is a guideline to choose between the JNR-Fuse and JNI-Fuse:
 
-* Workloads: If your data access pattern is highly concurrent (e.g., deep learning training), JNI-Fuse is better and more stable.
-* Maintenance: JNI-Fuse is experimental but under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
+* Workloads: If your data access is highly concurrent (e.g., deep learning training), JNI-Fuse is better and more stable.
+* Maintenance: JNI-Fuse is under active development (checkout our [developer meeting notes](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meeting-Notes)). Alluxio community will focus more on developing JNI-Fuse and deprecate Alluxio JNR-Fuse eventually.
+
+JNI-Fuse is enabled by default for better performance. 
+If JNR-Fuse is needed for legacy reasons, set `alluxio.fuse.jnifuse.enabled` to `false` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
+
+```
+alluxio.fuse.jnifuse.enabled=false
+```
+
+## Choose Deployment Mode
+
+There are two approaches to deploy Alluxio POSIX integration:
+
+* Serving POSIX API by Standalone FUSE process
+Alluxio POSIX integration can be launched as a standalone process, independent from existing running Alluxio clusters.
+Each process is essentially a long-running Alluxio client, serving a file system mount point that maps an Alluxio path to a local path.
+This approach is flexible so that users can enable or disable POSIX integration on hosts regardless Alluxio servers are running locally.
+However, the FUSE process needs to communicate with Alluxio service through network.
+
+* Enabling FUSE on worker
+Alluxio POSIX integration can also be provided by a running Alluxio worker process.
+This integration provides better performance because the FUSE service can communicate with the Alluxio worker without invoking RPCs,
+which help improve the read/write throughput on local cache hit.
+
+Here is a guideline to choose between them:
+
+* Workloads: If your workload is estimated to have a good hit ratio on local cache, and there are a lot of read/writes of small files, embedded FUSE on the worker process can achieve higher performance with less resource overhead.
+* Deployment: If you want to enable multiple local mount points on a single host, choose standalone process. Otherwise, you can reduce one process to deploy with FUSE on worker.
 
 ## Requirements
 
@@ -62,14 +89,10 @@ can further simplify the setup.
 reported to also work - with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
-- JNI-Fuse is enabled by default for better performance. 
-If JNR-Fuse is needed, set `alluxio.fuse.jnifuse.enabled` to `false` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
-
-```
-alluxio.fuse.jnifuse.enabled=false
-```
-
 ## Basic Setup
+
+The basic setup deploys the standalone process.
+After reading the basic setup section, checkout fuse in worker setup [here](#fuse-on-worker-process) if it suits your needs.
 
 ### Mount Alluxio as a FUSE mount point
 
@@ -139,6 +162,39 @@ pid mount_point alluxio_path
 ```
 
 ## Advanced Setup
+
+### Fuse on worker process
+
+Unlike standalone Fuse which you can mount at any time without Alluxio worker involves,
+the embedded Fuse has the exact same life cycle as the worker process it embeds into.
+When the worker starts, the Fuse is mounted based on worker configuration.
+When the worker ends, the embedded Fuse is unmounted automatically.
+If you want to modify your Fuse mount, change the configuration and restart the worker process.
+
+Enable FUSE on worker by setting the following properties in the `${ALLUXIO_HOME}/conf/alluxio-site.properties` for workers:
+
+```
+alluxio.worker.fuse.enabled=true
+alluxio.worker.fuse.mount.point=<mount_point>
+```
+
+By default, Fuse on worker will mount the Alluxio root path `/` to the configured mount point with no extra mount options.
+You can change the alluxio path and mount options through Alluxio configuration:
+
+```
+alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
+alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
+```
+
+For example, one can mount Alluxio path `/people` to local path `/mnt/people`
+with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
+
+```
+alluxio.worker.fuse.enabled=true
+alluxio.worker.fuse.mount.alluxio.path=/people
+alluxio.worker.fuse.mount.point=/mnt/people
+alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
+```
 
 ### Configure Alluxio fuse options
 
