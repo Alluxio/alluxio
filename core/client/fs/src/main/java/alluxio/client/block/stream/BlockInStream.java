@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -106,18 +107,17 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
-    AlluxioConfiguration alluxioConf = context.getClusterConf();
-    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean shortCircuitPreferred =
-        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
-
     if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
       return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
 
+    AlluxioConfiguration alluxioConf = context.getClusterConf();
+    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+    boolean shortCircuitPreferred =
+        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
     // Short circuit is enabled when
@@ -291,10 +291,23 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    return read(ByteBuffer.wrap(b), off, len);
+  }
+
+  /**
+   * Reads up to len bytes of data from the input stream into the byte buffer.
+   *
+   * @param byteBuffer the buffer into which the data is read
+   * @param off the start offset in the buffer at which the data is written
+   * @param len the maximum number of bytes to read
+   * @return the total number of bytes read into the buffer, or -1 if there is no more data because
+   *         the end of the stream has been reached
+   */
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
+    checkIfClosed();
     if (len == 0) {
       return 0;
     }
@@ -310,13 +323,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
+    byteBuffer.position(off).limit(off + toRead);
     if (mDetailedMetricsEnabled) {
       try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.CLIENT_BLOCK_READ_FROM_CHUNK.getName()).time()) {
-        mCurrentChunk.readBytes(b, off, toRead);
+        mCurrentChunk.readBytes(byteBuffer);
       }
     } else {
-      mCurrentChunk.readBytes(b, off, toRead);
+      mCurrentChunk.readBytes(byteBuffer);
     }
     mPos += toRead;
     return toRead;
