@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 /**
