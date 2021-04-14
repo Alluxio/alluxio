@@ -73,7 +73,8 @@ public final class LoadDefinition
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
-        if (config.getWorkerSet().isEmpty()
+        if (config.getWorkerSet() == null
+            || config.getWorkerSet().isEmpty()
             || config.getWorkerSet().contains(worker.getNetAddress().getHost())) {
           workers.add(worker);
         }
