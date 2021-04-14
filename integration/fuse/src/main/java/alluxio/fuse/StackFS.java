@@ -168,11 +168,18 @@ public class StackFS extends AbstractFuseFileSystem {
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     MetricsSystem.counter("Stackfs.BytesToRead").inc(size);
     path = transformPath(path);
+    final int sz = (int) size;
     int nread = 0;
+    byte[] tmpbuf = new byte[sz];
     try (FileInputStream fis = new FileInputStream(path)) {
-      byte[] tmpbuf = new byte[(int) size];
       long nskipped = fis.skip(offset);
-      nread = fis.read(tmpbuf, 0, (int) size);
+      int rd = 0;
+      while (rd >= 0 && nread < sz) {
+        rd = fis.read(tmpbuf, nread, sz - nread);
+        if (rd >= 0) {
+          nread += rd;
+        }
+      }
       buf.put(tmpbuf, 0, nread);
     } catch (IndexOutOfBoundsException e) {
       return 0;

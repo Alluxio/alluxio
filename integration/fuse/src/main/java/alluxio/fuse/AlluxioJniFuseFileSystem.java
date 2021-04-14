@@ -12,6 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -355,9 +356,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     MetricsSystem.counter(MetricKey.FUSE_BYTES_TO_READ.getName()).inc(size);
+    final int sz = (int) size;
     int nread = 0;
     int rd = 0;
-    long fd = fi.fh.get();
+    Long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
@@ -372,18 +374,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
         if (offset - is.getPos() < is.remaining()) {
           is.seek(offset);
-          final int sz = (int) size;
-          final byte[] dest = new byte[sz];
           while (rd >= 0 && nread < sz) {
-            rd = is.read(dest, nread, sz - nread);
+            rd = ((AlluxioFileInStream) is).read(buf, nread, sz - nread);
             if (rd >= 0) {
               nread += rd;
             }
-          }
-          if (nread == -1) { // EOF
-            nread = 0;
-          } else if (nread > 0) {
-            buf.put(dest, 0, nread);
           }
         }
       }
