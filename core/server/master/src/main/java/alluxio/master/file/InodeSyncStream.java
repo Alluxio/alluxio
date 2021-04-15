@@ -491,8 +491,9 @@ public class InodeSyncStream {
       InterruptedException {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
+    } else {
+      syncExistingInodeMetadata(inodePath);
     }
-    syncExistingInodeMetadata(inodePath);
   }
 
   /**
@@ -691,11 +692,16 @@ public class InodeSyncStream {
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
+    DescendantType descendantType = mDescendantType;
+    if (descendantType.equals(DescendantType.ONE) &&
+        !inodePath.getUri().equals(mRootScheme.getPath())) {
+      descendantType = DescendantType.NONE;
+    }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
             .setCommonOptions(NO_TTL_OPTION)
             .setCreateAncestors(true)
-            .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
+            .setLoadDescendantType(GrpcUtils.toProto(descendantType)))
         .setUfsStatus(status);
     loadMetadata(inodePath, ctx);
   }
@@ -751,7 +757,8 @@ public class InodeSyncStream {
             }
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
-                    .setLoadDescendantType(LoadDescendantPType.NONE)
+                    .setLoadDescendantType(type.equals(LoadDescendantPType.ONE)
+                        ? LoadDescendantPType.NONE : type)
                     // No Ttl on loaded files
                     .setCommonOptions(NO_TTL_OPTION)
                     .setCreateAncestors(false))
