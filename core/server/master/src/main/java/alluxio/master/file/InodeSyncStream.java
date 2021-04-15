@@ -693,8 +693,8 @@ public class InodeSyncStream {
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     DescendantType descendantType = mDescendantType;
-    if (descendantType.equals(DescendantType.ONE) &&
-        !inodePath.getUri().equals(mRootScheme.getPath())) {
+    if (descendantType.equals(DescendantType.ONE)
+        && !inodePath.getUri().equals(mRootScheme.getPath())) {
       descendantType = DescendantType.NONE;
     }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
