@@ -60,14 +60,7 @@ spec:
     {{- end }}
     spec:
       {{ if .Values.hostAliases }}
-      hostAliases:
-        {{- range .Values.hostAliases }}
-        - ip: {{ .ip }}
-          hostnames:
-            {{- range .hostnames }}
-            - {{ . }}
-            {{- end }}
-        {{- end }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
       {{ end }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
