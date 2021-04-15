@@ -1,3 +1,7 @@
+Client.BlockReadDataChunk:
+  'The timer statistics of reading block data in chunks from Alluxio workers. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
+Client.BlockReadDataFromChunk:
+  'The timer statistics of reading data from data chunks which have already fetched from Alluxio workers. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
 Client.BytesReadLocal:
   'Total number of bytes short-circuit read from local storage by this client'
 Client.BytesReadLocalThroughput:

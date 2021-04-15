@@ -10,6 +10,8 @@ alluxio.user.block.master.client.pool.size.max:
   'The maximum number of block master clients cached in the block master client pool.'
 alluxio.user.block.master.client.pool.size.min:
   'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
+alluxio.user.block.read.metrics.enabled:
+  'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
   'N/A'
 alluxio.user.block.read.retry.sleep.base:

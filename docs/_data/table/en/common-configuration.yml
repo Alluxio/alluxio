@@ -18,6 +18,8 @@ alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
+alluxio.fuse.umount.timeout:
+  'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem. After the timeout, all in progress file read will be forced to stop and all in progress file write will be abandoned.'
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
