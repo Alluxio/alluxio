@@ -338,20 +338,30 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int openInternal(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final int flags = fi.flags.get();
+    LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
       long fd = mNextOpenFileId.getAndIncrement();
-      FileInStream is;
-      try {
-        is = mFileSystem.openFile(uri);
-      } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+      if ((flags & 0b11) != 0) {
+        FileOutStream os = mFileSystem.createFile(uri);
+        long fid = mNextOpenFileId.getAndIncrement();
+        mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
+        fi.fh.set(fid);
+        setUserGroupIfNeeded(uri);
+      } else {
+        FileInStream is;
+        try {
           is = mFileSystem.openFile(uri);
-        } else {
-          throw e;
+        } catch (FileIncompleteException e) {
+          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+            is = mFileSystem.openFile(uri);
+          } else {
+            throw e;
+          }
         }
+        mOpenFileEntries.put(fd, is);
+        fi.fh.set(fd);
       }
-      mOpenFileEntries.put(fd, is);
-      fi.fh.set(fd);
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
