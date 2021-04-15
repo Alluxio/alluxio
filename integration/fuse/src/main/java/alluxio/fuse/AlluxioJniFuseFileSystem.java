@@ -343,6 +343,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       long fd = mNextOpenFileId.getAndIncrement();
       if ((flags & 0b11) != 0) {
+        mFileSystem.delete(uri);
         FileOutStream os = mFileSystem.createFile(uri);
         long fid = mNextOpenFileId.getAndIncrement();
         mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
@@ -689,8 +690,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int truncate(String path, long size) {
-    LOG.error("Truncate is not supported {}", path);
-    return -ErrorCodes.EOPNOTSUPP();
+    LOG.info("truncate {} to {}", path, size);
+    return 0;
   }
 
   @Override
