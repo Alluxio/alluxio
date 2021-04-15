@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Convenience class to encapsulate output stream
  * and its information (path, id) for create alluxio file.
+ * @param <T> the concrete output stream subclass
  */
 @NotThreadSafe
 public final class CreateFileEntry<T extends OutputStream>
