@@ -97,7 +97,8 @@ public final class MetricsSystem {
     WORKER("Worker"),
     CLUSTER("Cluster"),
     CLIENT("Client"),
-    PROXY("Proxy");
+    PROXY("Proxy"),
+    FUSE("Fuse");
 
     private String mValue;
 
