@@ -22,8 +22,6 @@ alluxio.worker.data.folder.permissions:
   'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
-alluxio.worker.data.server.class:
-  'Selects the networking stack to run the worker with. Valid options are: `alluxio.worker.grpc.GrpcDataServer`.'
 alluxio.worker.data.server.domain.socket.address:
   'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be {path}/{uuid}.'
 alluxio.worker.data.server.domain.socket.as.uuid:
@@ -32,10 +30,16 @@ alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in ${alluxio.worker.data.tmp.folder}.'
 alluxio.worker.evictor.class:
   'The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid options include `alluxio.worker.block.evictor.LRFUEvictor`, `alluxio.worker.block.evictor.GreedyEvictor`, `alluxio.worker.block.evictor.LRUEvictor`, `alluxio.worker.block.evictor.PartialLRUEvictor`.'
-alluxio.worker.file.buffer.size:
-  'The buffer size for worker to write data into the tiered storage.'
 alluxio.worker.free.space.timeout:
   'The duration for which a worker will wait for eviction to make space available for a client write request.'
+alluxio.worker.fuse.enabled:
+  'If true, launch worker embedded Fuse application.'
+alluxio.worker.fuse.mount.alluxio.path:
+  'The Alluxio path to mount to the given Fuse mount point configured by alluxio.worker.fuse.mount.point in this worker.'
+alluxio.worker.fuse.mount.options:
+  'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
+alluxio.worker.fuse.mount.point:
+  'The absolute local filesystem path that this worker will mount Alluxio path to.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.jvm.monitor.enabled:

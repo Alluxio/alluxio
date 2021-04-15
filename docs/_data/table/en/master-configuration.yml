@@ -57,7 +57,7 @@ alluxio.master.embedded.journal.election.timeout:
 alluxio.master.embedded.journal.entry.size.max:
   'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
 alluxio.master.embedded.journal.flush.size.max:
-  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks.'
+  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.heartbeat.interval:
   'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout {alluxio.master.embedded.journal.election.timeout}, because the election is driven by heart beats.'
 alluxio.master.embedded.journal.port:
@@ -98,6 +98,8 @@ alluxio.master.journal.catchup.protect.enabled:
   '(Experimental) make sure the journal catchup finish before joining the quorum in fault tolerant mode when starting the master process and before the current master becoming the leader.This is added to prevent frequently leadership transition during heavy journal catchup stage. Catchup is only implemented in ufs journal with Zookeeper.'
 alluxio.master.journal.checkpoint.period.entries:
   'The number of journal entries to write before creating a new journal checkpoint.'
+alluxio.master.journal.exit.on.demotion:
+  '(Experimental) When this flag is set to true, the master process may start as the primary or secondary in a quorum, but at any point in time after becoming a primary it is demoted to secondary, the process will shut down. This leaves the responsibility of restarting the master to re-join the quorum (e.g. in case of a journal failure on a particular node) to an external entity such as kubernetes or systemd.'
 alluxio.master.journal.flush.batch.time:
   'Time to wait for batching journal writes.'
 alluxio.master.journal.flush.timeout:
