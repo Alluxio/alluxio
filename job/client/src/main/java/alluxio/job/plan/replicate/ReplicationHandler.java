@@ -13,6 +13,7 @@ package alluxio.job.plan.replicate;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
+import alluxio.job.wire.Status;
 
 import java.io.IOException;
 
@@ -20,6 +21,8 @@ import java.io.IOException;
  * Interface for adjusting the replication level of blocks.
  */
 public interface ReplicationHandler {
+
+  Status getJobStatus(long jobId) throws IOException;
 
   /**
    * Decreases the block replication level by a target number of replicas.

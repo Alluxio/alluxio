@@ -2171,7 +2171,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
-          .setDefaultValue("1min")
+          .setDefaultValue("10sec")
           .setDescription("How often the master runs background process to check replication "
               + "level for files")
           .setScope(Scope.MASTER)
