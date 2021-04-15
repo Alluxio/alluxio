@@ -684,7 +684,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
     List<URIStatus> status;
     try (Context.CancellableContext c = Context.current()
-        .withDeadlineAfter(10, TimeUnit.MILLISECONDS,
+        .withDeadlineAfter(1, TimeUnit.MILLISECONDS,
             Executors.newScheduledThreadPool(1))) {
       Context toRestore = c.attach();
       try {
@@ -698,7 +698,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
             return Collections.<URIStatus>emptyList();
           }
         });
-        Thread.sleep(20);
+        Thread.sleep(5);
         c.cancel(new AlluxioException("test exception"));
       } finally {
         c.detach(toRestore);
