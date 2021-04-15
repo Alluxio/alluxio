@@ -31,7 +31,7 @@
     <!-- External dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-hcfscephfs</artifactId>
+      <artifactId>alluxio-shaded-hcfs-cephfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Internal dependencies -->
