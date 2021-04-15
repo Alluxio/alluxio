@@ -40,9 +40,9 @@ spec:
       hostPID: false
       dnsPolicy: ClusterFirst
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       nodeSelector:
       containers:
         - name: alluxio-worker
@@ -68,6 +68,15 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          - name: ALLUXIO_CLIENT_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -91,6 +100,11 @@ spec:
               mountPath: /opt/domain
             - mountPath: /dev/shm
               name: mem
+            - name: alluxio-fuse-device
+              mountPath: /dev/fuse
+            - name: alluxio-fuse-mount
+              mountPath: /mnt
+              mountPropagation: Bidirectional
         - name: alluxio-job-worker
           image: alluxio/alluxio:2.6.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
@@ -147,3 +161,11 @@ spec:
           emptyDir:
             medium: "Memory"
             sizeLimit: "10G"
+        - name: alluxio-fuse-device
+          hostPath:
+            path: /dev/fuse
+            type: CharDevice
+        - name: alluxio-fuse-mount
+          hostPath:
+            path: /mnt
+            type: DirectoryOrCreate
