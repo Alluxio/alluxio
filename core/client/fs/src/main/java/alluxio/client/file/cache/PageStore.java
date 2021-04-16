@@ -58,7 +58,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException if I/O error happens
    */
   static PageStore open(PageStoreOptions options) throws IOException {
-    LOG.info("Creating PageStore with option={}", options.toString());
+    LOG.info("Opening PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
@@ -98,7 +98,7 @@ public interface PageStore extends AutoCloseable {
   static void initialize(PageStoreOptions options) throws IOException {
     String rootPath = options.getRootDir();
     Files.createDirectories(Paths.get(rootPath));
-    LOG.debug("Clean cache directory {}", rootPath);
+    LOG.info("Cleaning cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.forEach(path -> {
         try {

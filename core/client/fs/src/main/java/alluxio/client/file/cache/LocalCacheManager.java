@@ -134,7 +134,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           manager.restoreOrInit(options);
         } catch (IOException e) {
-          LOG.error("Failed to restore LocalCacheManager: ", e);
+          LOG.error("Failed to restore LocalCacheManager", e);
         }
       });
     } else {
@@ -226,7 +226,8 @@ public class LocalCacheManager implements CacheManager {
    * @return which scope to evict a page or null if space is sufficient
    */
   @Nullable
-  private CacheScope checkScopeToEvict(int pageSize, CacheScope scope, CacheQuota quota) {
+  private CacheScope checkScopeToEvict(int pageSize, CacheScope scope, CacheQuota quota,
+      boolean forcedToEvict) {
     if (mQuotaEnabled) {
       // Check quota usage for each scope
       for (CacheScope currentScope = scope; currentScope != null;
@@ -238,7 +239,7 @@ public class LocalCacheManager implements CacheManager {
       }
     }
     // Check cache space usage
-    if (mMetaStore.bytes() + pageSize > mCacheSize) {
+    if (forcedToEvict || mMetaStore.bytes() + pageSize > mCacheSize) {
       return CacheScope.GLOBAL;
     }
     return null;
@@ -290,8 +291,9 @@ public class LocalCacheManager implements CacheManager {
 
   private boolean putInternal(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
     PutResult result = PutResult.OK;
+    boolean forcedToEvict = false;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
-      result = putAttempt(pageId, page, scope, quota);
+      result = putAttempt(pageId, page, scope, quota, forcedToEvict);
       switch (result) {
         case OK:
           return true;
@@ -303,8 +305,11 @@ public class LocalCacheManager implements CacheManager {
           // page is not large enough to cover the space needed by this page. Try again
           continue;
         case NO_SPACE:
-          // fall through intentionally
-          // TODO(binfan): smart way to handle this case
+          // failed put attempt due to "No space left on device" error. This can happen when
+          // configured cache capacity is larger than what's available, or other disk issues.
+          // In this case, we need to force data to be evicted in retry, or hit ratio will drop.
+          forcedToEvict = true;
+          continue;
         case OTHER:
           // fall through intentionally
         default:
@@ -319,7 +324,8 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
-  private PutResult putAttempt(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
+  private PutResult putAttempt(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota,
+      boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
@@ -331,7 +337,7 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        scopeToEvict = checkScopeToEvict(page.length, scope, quota);
+        scopeToEvict = checkScopeToEvict(page.length, scope, quota, forcedToEvict);
         if (scopeToEvict == null) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         } else {
@@ -355,12 +361,12 @@ public class LocalCacheManager implements CacheManager {
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
-          LOG.error("Failed to add page {} to pageStore: ", pageId, e);
+          LOG.error("Failed to add page {} to pageStore", pageId, e);
           Metrics.PUT_STORE_WRITE_NO_SPACE_ERRORS.inc();
           return PutResult.NO_SPACE;
         } catch (IOException e) {
           undoAddPage(pageId);
-          LOG.error("Failed to add page {} to pageStore: ", pageId, e);
+          LOG.error("Failed to add page {} to pageStore", pageId, e);
           Metrics.PUT_STORE_WRITE_ERRORS.inc();
           return PutResult.OTHER;
         }
@@ -385,7 +391,8 @@ public class LocalCacheManager implements CacheManager {
               victimPageInfo.getPageId());
           return PutResult.BENIGN_RACING;
         }
-        scopeToEvict = checkScopeToEvict(page.length, scope, quota);
+        // Check if we are able to insert page after evicting victim page
+        scopeToEvict = checkScopeToEvict(page.length, scope, quota, false);
         if (scopeToEvict == null) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
         }
@@ -402,7 +409,7 @@ public class LocalCacheManager implements CacheManager {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
         }
-        LOG.error("Failed to delete page {} from pageStore: ", pageId, e);
+        LOG.error("Failed to delete page {} from pageStore", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -416,7 +423,7 @@ public class LocalCacheManager implements CacheManager {
       } catch (IOException e) {
         // Failed to add page, remove new page from metastoree
         undoAddPage(pageId);
-        LOG.error("Failed to add page {} to pageStore: ", pageId, e);
+        LOG.error("Failed to add page {} to pageStore", pageId, e);
         Metrics.PUT_STORE_WRITE_ERRORS.inc();
         return PutResult.OTHER;
       }
@@ -429,7 +436,7 @@ public class LocalCacheManager implements CacheManager {
     } catch (Exception e) {
       // best effort to remove this page from meta store and ignore the exception
       Metrics.CLEANUP_PUT_ERRORS.inc();
-      LOG.error("Failed to undo page add {}: ", pageId, e);
+      LOG.error("Failed to undo page add {} ", pageId, e);
     }
   }
 
@@ -489,7 +496,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {} from metaStore: ", pageId, e);
+          LOG.error("Failed to delete page {} from metaStore ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
@@ -541,7 +548,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean restore(PageStoreOptions options) {
-    LOG.info("Attempt to restore PageStore with {}", options);
+    LOG.info("Restoring PageStore ({})", options);
     Path rootDir = Paths.get(options.getRootDir());
     if (!Files.exists(rootDir)) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
@@ -576,12 +583,12 @@ public class LocalCacheManager implements CacheManager {
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to restore PageStore: ", e);
+      LOG.error("Failed to restore PageStore", e);
       return false;
     }
-    LOG.info("Successfully restored PageStore with {} pages ({} bytes), "
+    LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
-        mMetaStore.pages(), mMetaStore.bytes(), discardedPages, discardedBytes);
+        options, mMetaStore.pages(), mMetaStore.bytes(), discardedPages, discardedBytes);
     return true;
   }
 
@@ -608,7 +615,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       mPageStore.delete(pageId);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {} from pageStore: {}", pageId, e);
+      LOG.error("Failed to delete page {} from pageStore", pageId, e);
       return false;
     }
     return true;
@@ -625,7 +632,7 @@ public class LocalCacheManager implements CacheManager {
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {} from pageStore: ", pageId, e);
+      LOG.error("Failed to get existing page {} from pageStore", pageId, e);
       return -1;
     }
     return bytesToRead;
