@@ -34,6 +34,7 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
+import com.google.common.collect.HashBiMap;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -70,8 +71,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   /** Manager of master safe mode state. */
   private final SafeModeManager mSafeModeManager;
 
-  private final HashSet<Long> mActiveInodeIDs;
-  private final HashMap<Long, Long> mActiveJobToInodeID;
+  private final HashBiMap<Long, Long> mActiveJobToInodeID;
 
   private enum Mode {
     EVICT,
@@ -109,8 +109,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mSafeModeManager = safeModeManager;
     mReplicationHandler = replicationHandler;
 
-    mActiveInodeIDs = new HashSet<>();
-    mActiveJobToInodeID = new HashMap<>();
+    mActiveJobToInodeID = HashBiMap.create();
   }
 
   /**
@@ -138,8 +137,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       try {
         final Status jobStatus = mReplicationHandler.getJobStatus(jobId);
         if (jobStatus.isFinished()) {
-          final long inodeId = mActiveJobToInodeID.get(jobId);
-          mActiveInodeIDs.remove(inodeId);
           jobIterator.remove();
         }
       } catch (IOException e) {
@@ -219,7 +216,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       if (mActiveJobToInodeID.size() >= MAX_ACTIVE_JOBS) {
         return;
       }
-      if (mActiveInodeIDs.contains(inodeId)) {
+      if (mActiveJobToInodeID.containsValue(inodeId)) {
         continue;
       }
       // Throw if interrupted.
@@ -248,8 +245,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           for (Map.Entry<String, String> entry
               : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
-              final long jobId = handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
-              mActiveInodeIDs.add(inodeId);
+              final long jobId =
+                  handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
               mActiveJobToInodeID.put(jobId, inodeId);
             } catch (Exception e) {
               LOG.warn(
@@ -273,7 +270,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       if (mActiveJobToInodeID.size() >= MAX_ACTIVE_JOBS) {
         return;
       }
-      if (mActiveInodeIDs.contains(inodeId)) {
+      if (mActiveJobToInodeID.containsValue(inodeId)) {
         continue;
       }
       Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
@@ -350,7 +347,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
           }
           mActiveJobToInodeID.put(jobId, inodeId);
-          mActiveInodeIDs.add(inodeId);
         } catch (JobDoesNotExistException | ResourceExhaustedException e) {
           LOG.warn("The job service is busy, will retry later. {}", e.toString());
           return;

@@ -16,7 +16,6 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 
 import java.io.IOException;
