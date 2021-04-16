@@ -22,6 +22,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.job.plan.replicate.ReplicationHandler;
+import alluxio.job.wire.Status;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -61,6 +62,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +96,11 @@ public final class ReplicationCheckerTest {
     private final Map<Long, Integer> mReplicateRequests = Maps.newHashMap();
     private final Map<Long, Pair<String, String>>
         mMigrateRequests = Maps.newHashMap();
+
+    @Override
+    public Status getJobStatus(long jobId) throws IOException {
+      return null;
+    }
 
     @Override
     public long evict(AlluxioURI uri, long blockId, int numReplicas) {
