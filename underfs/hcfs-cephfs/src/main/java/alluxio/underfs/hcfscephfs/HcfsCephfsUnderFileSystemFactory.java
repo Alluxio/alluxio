@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.cephfs;
+package alluxio.underfs.hcfscephfs;
 
 import alluxio.Constants;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
-public class CephfsUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+public class HcfsCephfsUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
