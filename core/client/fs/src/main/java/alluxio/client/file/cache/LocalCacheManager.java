@@ -215,10 +215,10 @@ public class LocalCacheManager implements CacheManager {
    * Results of Put.
    */
   enum PutResult {
-    OK,
-    INSUFFICIENT_SPACE,
     BENIGN_RACING,
-    NO_SPACE,
+    INSUFFICIENT_SPACE_EVICTED,
+    NO_SPACE_LEFT,
+    OK,
     OTHER,
   }
 
@@ -299,12 +299,12 @@ public class LocalCacheManager implements CacheManager {
           return true;
         case BENIGN_RACING:
           // failed put attempt due to a benign race, try again.
-        case INSUFFICIENT_SPACE:
+        case INSUFFICIENT_SPACE_EVICTED:
           // failed put attempt due to insufficient space, try another time.
           // note that, we only evict one item a time in putAttempt. So it is possible the evicted
           // page is not large enough to cover the space needed by this page. Try again
           continue;
-        case NO_SPACE:
+        case NO_SPACE_LEFT:
           // failed put attempt due to "No space left on device" error. This can happen when
           // configured cache capacity is larger than what's available, or other disk issues.
           // In this case, we need to force data to be evicted in retry, or hit ratio will drop.
@@ -318,7 +318,7 @@ public class LocalCacheManager implements CacheManager {
     }
     if (result == PutResult.BENIGN_RACING) {
       Metrics.PUT_BENIGN_RACING_ERRORS.inc();
-    } else if (result == PutResult.INSUFFICIENT_SPACE) {
+    } else if (result == PutResult.INSUFFICIENT_SPACE_EVICTED) {
       Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
     }
     return false;
@@ -363,7 +363,7 @@ public class LocalCacheManager implements CacheManager {
           undoAddPage(pageId);
           LOG.error("Failed to add page {} to pageStore", pageId, e);
           Metrics.PUT_STORE_WRITE_NO_SPACE_ERRORS.inc();
-          return PutResult.NO_SPACE;
+          return PutResult.NO_SPACE_LEFT;
         } catch (IOException e) {
           undoAddPage(pageId);
           LOG.error("Failed to add page {} to pageStore", pageId, e);
@@ -414,7 +414,7 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.OTHER;
       }
       if (scopeToEvict != null) {
-        return PutResult.INSUFFICIENT_SPACE;
+        return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
         mPageStore.put(pageId, page);
@@ -436,7 +436,7 @@ public class LocalCacheManager implements CacheManager {
     } catch (Exception e) {
       // best effort to remove this page from meta store and ignore the exception
       Metrics.CLEANUP_PUT_ERRORS.inc();
-      LOG.error("Failed to undo page add {} ", pageId, e);
+      LOG.error("Failed to undo page add {}", pageId, e);
     }
   }
 
