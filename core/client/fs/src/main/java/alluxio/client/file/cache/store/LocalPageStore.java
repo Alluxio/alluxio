@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache.store;
 
-import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,13 +41,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
-  // We assume some overhead using local fs as a page store, i.e., with 1GB space allocated, we
-  // expect no more than 1024MB - LOCAL_OVERHEAD_SPACE logical data stored
-  private static final long LOCAL_OVERHEAD_SPACE = 100 * Constants.MB;
+  // We assume there will be some overhead using local fs as a page store,
+  // i.e., with 1GB space allocated, we
+  // expect no more than 1024MB / (1 + LOCAL_OVERHEAD_RATIO) logical data stored
+  private static final double LOCAL_OVERHEAD_RATIO = 0.005;
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
   private final String mRoot;
   private final long mPageSize;
-  private final long mCacheSize;
+  private final long mCapacity;
   private final int mFileBuckets;
   private final Pattern mPagePattern;
 
@@ -61,7 +60,7 @@ public class LocalPageStore implements PageStore {
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
-    mCacheSize = options.getCacheSize();
+    mCapacity = (long) (options.getCacheSize() / (1 + LOCAL_OVERHEAD_RATIO));
     mFileBuckets = options.getFileBuckets();
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
@@ -88,7 +87,7 @@ public class LocalPageStore implements PageStore {
       Files.deleteIfExists(p);
       if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
-            String.format("%s is full, configured with %d bytes", mRoot, mCacheSize), e);
+            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
       }
       throw new IOException("Failed to write file " + p + " for page " + pageId);
     }
@@ -208,6 +207,6 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public long getCacheSize() {
-    return mCacheSize - LOCAL_OVERHEAD_SPACE;
+    return mCapacity;
   }
 }
