@@ -381,3 +381,14 @@ livenessProbe:
     claimName: "{{ .Values.logserver.pvcName }}"
 {{- end }}
 {{- end -}}
+
+{{- define "alluxio.hostAliases" -}}
+hostAliases:
+{{- range .Values.hostAliases }}
+- ip: {{ .ip }}
+  hostnames:
+  {{- range .hostnames }}
+  - {{ . }}
+  {{- end }}
+{{- end }}
+{{- end -}}

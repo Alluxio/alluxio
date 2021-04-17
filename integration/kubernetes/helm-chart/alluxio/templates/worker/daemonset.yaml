@@ -52,6 +52,9 @@ spec:
       hostNetwork: {{ $hostNetwork }}
       hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.worker.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
       securityContext:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
