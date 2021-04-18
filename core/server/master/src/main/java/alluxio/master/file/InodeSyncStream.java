@@ -491,8 +491,10 @@ public class InodeSyncStream {
       InterruptedException {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
+      // skip the load metadata step in the sync if it has been just loaded
+      syncExistingInodeMetadata(inodePath, true);
     } else {
-      syncExistingInodeMetadata(inodePath);
+      syncExistingInodeMetadata(inodePath, false);
     }
   }
 
@@ -501,7 +503,7 @@ public class InodeSyncStream {
    *
    * This method expects the {@code inodePath} to already exist in the inode tree.
    */
-  private void syncExistingInodeMetadata(LockedInodePath inodePath)
+  private void syncExistingInodeMetadata(LockedInodePath inodePath, boolean skipLoad)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException,
       InterruptedException {
@@ -634,6 +636,8 @@ public class InodeSyncStream {
           syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
     } else if (mDescendantType == DescendantType.ALL) {
       syncChildren = syncChildren && inode.isDirectory();
+    } else {
+      syncChildren = false;
     }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
@@ -664,7 +668,7 @@ public class InodeSyncStream {
     }
 
     // load metadata if necessary.
-    if (loadMetadata) {
+    if (loadMetadata && !skipLoad) {
       loadMetadataForPath(inodePath);
     }
 
@@ -693,6 +697,8 @@ public class InodeSyncStream {
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
     DescendantType descendantType = mDescendantType;
+    // If loadMetadata is only for one level, and the path is not the root of the loadMetadata,
+    // do not load the subdirectory
     if (descendantType.equals(DescendantType.ONE)
         && !inodePath.getUri().equals(mRootScheme.getPath())) {
       descendantType = DescendantType.NONE;
@@ -757,8 +763,7 @@ public class InodeSyncStream {
             }
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
-                    .setLoadDescendantType(type.equals(LoadDescendantPType.ONE)
-                        ? LoadDescendantPType.NONE : type)
+                    .setLoadDescendantType(LoadDescendantPType.NONE)
                     // No Ttl on loaded files
                     .setCommonOptions(NO_TTL_OPTION)
                     .setCreateAncestors(false))
