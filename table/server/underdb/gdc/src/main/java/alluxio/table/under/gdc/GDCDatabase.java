@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,7 +71,7 @@ public class GDCDatabase implements UnderDatabase {
   @Override
   public List<String> getTableNames() throws IOException {
     SearchCatalogRequest.Scope scope = SearchCatalogRequest.Scope.newBuilder().build();
-    List<String> tableNames = null;
+    List<String> tableNames = new ArrayList<>();
     try (DataCatalogClient dataCatalogClient = DataCatalogClient.create()) {
       String query = "type=table";
       SearchCatalogPagedResponse response = dataCatalogClient.searchCatalog(scope, query);
