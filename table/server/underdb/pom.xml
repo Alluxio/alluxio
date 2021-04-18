@@ -25,6 +25,7 @@
   <modules>
     <module>hive</module>
     <module>glue</module>
+      <module>gdc</module>
   </modules>
 
   <properties>
