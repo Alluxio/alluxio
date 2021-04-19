@@ -18,9 +18,9 @@
     <version>2.6.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>alluxio-underfs-hcfs-cephfs</artifactId>
-  <name>Alluxio Under File System - HCFS-CephFS</name>
-  <description>CephFS Under File System implementation based on cephfs-hadoop</description>
+  <artifactId>alluxio-underfs-cephfs-hadoop</artifactId>
+  <name>Alluxio Under File System - Cephfs-hadoop</name>
+  <description>Cephfs-hadoop Under File System implementation based on cephfs-hadoop</description>
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
@@ -31,7 +31,7 @@
     <!-- External dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-hcfs-cephfs</artifactId>
+      <artifactId>alluxio-shaded-cephfs-hadoop</artifactId>
       <version>${project.version}</version>
     </dependency>
     <!-- Internal dependencies -->

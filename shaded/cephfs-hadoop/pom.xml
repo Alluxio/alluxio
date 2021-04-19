@@ -17,16 +17,16 @@
     <artifactId>alluxio-shaded</artifactId>
     <version>2.6.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-shaded-hcfs-cephfs</artifactId>
+  <artifactId>alluxio-shaded-cephfs-hadoop</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Shaded Libraries - Hcfscephfs</name>
-  <description>Shaded hcfs-cephfs Module</description>
+  <name>Alluxio Shaded Libraries - cephfs-hadoop</name>
+  <description>Shaded cephfs-hadoop Module</description>
 
   <properties>
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.hcfscephfs.version>0.80.6</ufs.hcfscephfs.version>
+    <ufs.cephfs-hadoop.version>0.80.6</ufs.cephfs-hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
   </properties>
 
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>com.ceph.fs</groupId>
       <artifactId>cephfs-hadoop</artifactId>
-      <version>${ufs.hcfscephfs.version}</version>
+      <version>${ufs.cephfs-hadoop.version}</version>
     </dependency>
   </dependencies>
 
