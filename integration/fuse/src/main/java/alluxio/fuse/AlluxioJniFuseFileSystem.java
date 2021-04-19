@@ -84,31 +84,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
 
-  private static final IndexDefinition<CreateFileEntry, Long>
+  private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
-      new IndexDefinition<CreateFileEntry, Long>(true) {
+      new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
         @Override
-        public Long getFieldValue(CreateFileEntry o) {
+        public Long getFieldValue(CreateFileEntry<FileOutStream> o) {
           return o.getId();
         }
       };
 
   // Add a PATH_INDEX to know getattr() been called when writing this file
-  private static final IndexDefinition<CreateFileEntry, String>
+  private static final IndexDefinition<CreateFileEntry<FileOutStream>, String>
       PATH_INDEX =
-      new IndexDefinition<CreateFileEntry, String>(true) {
+      new IndexDefinition<CreateFileEntry<FileOutStream>, String>(true) {
         @Override
-        public String getFieldValue(CreateFileEntry o) {
+        public String getFieldValue(CreateFileEntry<FileOutStream> o) {
           return o.getPath();
         }
       };
-  private final IndexedSet<CreateFileEntry> mCreateFileEntries
+  private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
 
   // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
-  private final Map<Long, CreateFileEntry> mReleasingWriteEntries = new ConcurrentHashMap<>();
+  private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
+      new ConcurrentHashMap<>();
 
   // To make test build
   @VisibleForTesting
@@ -414,7 +415,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -445,7 +446,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final long fd = fi.fh.get();
 
     FileInStream is = mOpenFileEntries.get(fd);
-    CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null && is == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -477,7 +478,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
@@ -584,7 +585,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     try {
       mFileSystem.rename(oldUri, newUri);
-      CreateFileEntry ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
       if (ce != null) {
         ce.setPath(newPath);
       }

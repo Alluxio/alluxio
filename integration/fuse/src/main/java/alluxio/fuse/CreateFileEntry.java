@@ -11,24 +11,24 @@
 
 package alluxio.fuse;
 
-import alluxio.client.file.FileOutStream;
-
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Convenience class to encapsulate output stream
  * and its information (path, id) for create alluxio file.
+ * @param <T> the concrete output stream subclass
  */
 @NotThreadSafe
-public final class CreateFileEntry
+public final class CreateFileEntry<T extends OutputStream>
     implements Closeable {
   private final long mId;
-  private final FileOutStream mOut;
+  private final T mOut;
   // Path is likely to be changed when fuse rename() is called
   private String mPath;
 
@@ -39,7 +39,7 @@ public final class CreateFileEntry
    * @param path the path of the file
    * @param out the output stream of the file
    */
-  public CreateFileEntry(long id, String path, FileOutStream out) {
+  public CreateFileEntry(long id, String path, T out) {
     Preconditions.checkArgument(id != -1 && !path.isEmpty());
     Preconditions.checkArgument(out != null);
     mId = id;
@@ -67,7 +67,7 @@ public final class CreateFileEntry
    *
    * @return an opened input stream for the open alluxio file, or null
    */
-  public FileOutStream getOut() {
+  public T getOut() {
     return mOut;
   }
 
