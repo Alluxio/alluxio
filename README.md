@@ -112,13 +112,13 @@ Here are examples to declare the dependecies on  `alluxio-shaded-client` using M
   <dependency>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded-client</artifactId>
-    <version>2.3.0</version>
+    <version>2.5.0-2</version>
   </dependency>
   ```
 
 - SBT
   ```
-  libraryDependencies += "org.alluxio" % "alluxio-shaded-client" % "2.3.0"
+  libraryDependencies += "org.alluxio" % "alluxio-shaded-client" % "2.5.0-2"
   ```
 
 ## Contributing
