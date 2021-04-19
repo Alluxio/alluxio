@@ -32,6 +32,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,6 +67,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
                   + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
+  private static final Option INDEX_FILE =
+      Option.builder()
+          .longOpt("index")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(0)
+          .type(String.class)
+          .argName("index file")
+          .desc("Name of the index file that lists all files to be loaded")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -82,7 +94,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION);
+    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
+            .addOption(INDEX_FILE);
   }
 
   @Override
@@ -92,7 +105,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] <path>";
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] <path>";
   }
 
   @Override
@@ -107,9 +120,19 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    distributedLoad(path, replication);
+
+    if (!cl.hasOption("index")) {
+      AlluxioURI path = new AlluxioURI(args[0]);
+      distributedLoad(path, replication);
+    } else {
+      try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
+        for (String filename; (filename = reader.readLine()) != null; ) {
+          AlluxioURI path = new AlluxioURI(filename);
+          distributedLoad(path, replication);
+        }
+      }
+    }
     return 0;
   }
 
