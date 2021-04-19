@@ -63,7 +63,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
-  /** Maximum number of active jobs to be submitted to the job service **/
+  /** Maximum number of active jobs to be submitted to the job service. **/
   private int mMaxActiveJobs;
 
   /** Handler to the inode tree. */
@@ -114,7 +114,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mReplicationHandler = replicationHandler;
 
     // Do not use more than 10% of the job service
-    mMaxActiveJobs = Math.max(1, (int)(ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+    mMaxActiveJobs = Math.max(1,
+        (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
   }
 
