@@ -42,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -339,11 +340,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int openInternal(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
+    OpenFlags openFlag = OpenFlags.valueOf(flags);
     LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
-      long fd = mNextOpenFileId.getAndIncrement();
-      if ((flags & 0b11) != 0) {
-        mFileSystem.delete(uri);
+      if (openFlag == OpenFlags.O_WRONLY) {
+        if (mFileSystem.exists(uri)) {
+          mFileSystem.delete(uri);
+        }
         FileOutStream os = mFileSystem.createFile(uri);
         long fid = mNextOpenFileId.getAndIncrement();
         mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
@@ -360,6 +363,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             throw e;
           }
         }
+        long fd = mNextOpenFileId.getAndIncrement();
         mOpenFileEntries.put(fd, is);
         fi.fh.set(fd);
       }
@@ -690,8 +694,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int truncate(String path, long size) {
-    LOG.info("truncate {} to {}", path, size);
-    return 0;
+    LOG.trace("truncate {} to {}", path, size);
+    if (size == 0) {
+      return 0;
+    } else {
+      LOG.trace("truncate {} to {} is not supported by alluxio", path, size);
+      return -ErrorCodes.EOPNOTSUPP();
+    }
   }
 
   @Override
