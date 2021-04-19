@@ -252,6 +252,12 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
         <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem).</td>
     </tr>
     <tr>
+        <td>auto_cache</td>
+        <td></td>
+        <td>This option is an alternative to `kernel_cache`. Unable to set in JNR-Fuse.</td>
+        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. </td>
+    </tr>
+    <tr>
         <td>attr_timeout=N</td>
         <td>1.0</td>
         <td>7200</td>
