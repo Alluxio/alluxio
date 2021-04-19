@@ -14,6 +14,8 @@ package alluxio.master.file.replication;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.job.JobMasterClientPool;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -60,7 +62,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
-  private static final Integer MAX_ACTIVE_JOBS = 10000;
+
+  /** Maximum number of active jobs to be submitted to the job service **/
+  private int mMaxActiveJobs;
 
   /** Handler to the inode tree. */
   private final InodeTree mInodeTree;
@@ -109,6 +113,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mSafeModeManager = safeModeManager;
     mReplicationHandler = replicationHandler;
 
+    // Do not use more than 10% of the job service
+    mMaxActiveJobs = Math.max(1, (int)(ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
   }
 
@@ -140,7 +146,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           jobIterator.remove();
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new RuntimeException(e);
       }
     }
 
@@ -213,7 +219,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
       throws InterruptedException {
     for (long inodeId : inodes) {
-      if (mActiveJobToInodeID.size() >= MAX_ACTIVE_JOBS) {
+      if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         return;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
@@ -267,7 +273,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       throws InterruptedException {
     Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
     for (long inodeId : inodes) {
-      if (mActiveJobToInodeID.size() >= MAX_ACTIVE_JOBS) {
+      if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         return;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
