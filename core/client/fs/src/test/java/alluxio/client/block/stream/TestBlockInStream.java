@@ -16,6 +16,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * A {@link BlockInStream} which reads from the given byte array. The stream is able to track how
@@ -35,8 +36,8 @@ public class TestBlockInStream extends BlockInStream {
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    int bytesRead = super.read(b, off, len);
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    int bytesRead = super.read(byteBuffer, off, len);
     if (bytesRead <= 0) {
       return bytesRead;
     }

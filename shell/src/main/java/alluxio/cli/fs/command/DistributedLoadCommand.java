@@ -33,6 +33,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,6 +72,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
                   + "The default upper limit is "
                   + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
           .build();
+  private static final Option INDEX_FILE =
+      Option.builder()
+          .longOpt("index")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(0)
+          .type(String.class)
+          .argName("index file")
+          .desc("Name of the index file that lists all files to be loaded")
+          .build();
   private static final Option WORKER_SET_OPTION =
       Option.builder()
           .longOpt("worker-set")
@@ -96,8 +108,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION)
-        .addOption(ACTIVE_JOB_COUNT_OPTION)
+    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
+        .addOption(INDEX_FILE)
         .addOption(WORKER_SET_OPTION);
   }
 
@@ -108,7 +120,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] "
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
         + "[--worker-set <host1,host2,...,hostn>] <path>";
   }
 
@@ -124,7 +136,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = Collections.EMPTY_SET;
     if (cl.hasOption(WORKER_SET_OPTION.getLongOpt())) {
@@ -133,7 +144,18 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .map(str -> str.trim().toUpperCase())
           .collect(Collectors.toSet());
     }
-    distributedLoad(path, replication, workerSet);
+
+    if (!cl.hasOption("index")) {
+      AlluxioURI path = new AlluxioURI(args[0]);
+      distributedLoad(path, replication, workerSet);
+    } else {
+      try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
+        for (String filename; (filename = reader.readLine()) != null; ) {
+          AlluxioURI path = new AlluxioURI(filename);
+          distributedLoad(path, replication, workerSet);
+        }
+      }
+    }
     return 0;
   }
 

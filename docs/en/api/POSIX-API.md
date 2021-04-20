@@ -171,18 +171,18 @@ When the worker starts, the Fuse is mounted based on worker configuration.
 When the worker ends, the embedded Fuse is unmounted automatically.
 If you want to modify your Fuse mount, change the configuration and restart the worker process.
 
-Enable FUSE on worker by setting the following properties in the `${ALLUXIO_HOME}/conf/alluxio-site.properties` for workers:
+Enable FUSE on worker by setting `alluxio.worker.fuse.enabled` to `true` in the `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
 ```
 alluxio.worker.fuse.enabled=true
-alluxio.worker.fuse.mount.point=<mount_point>
 ```
 
-By default, Fuse on worker will mount the Alluxio root path `/` to the configured mount point with no extra mount options.
-You can change the alluxio path and mount options through Alluxio configuration:
+By default, Fuse on worker will mount the Alluxio root path `/` to default local mount point `/mnt/alluxio-fuse` with no extra mount options.
+You can change the alluxio path, mount point, and mount options through Alluxio configuration:
 
 ```
 alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
+alluxio.worker.fuse.mount.point=<mount_point>
 alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
 ```
 
@@ -250,6 +250,12 @@ $ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
         <td></td>
         <td>Unable to set in JNR-Fuse, recommend to set in JNI-Fuse based on workloads</td>
         <td>`kernel_cache` utilizes kernel system caching and improves read performance. This should only be enabled on filesystems, where the file data is never changed externally (not through the mounted FUSE filesystem).</td>
+    </tr>
+    <tr>
+        <td>auto_cache</td>
+        <td></td>
+        <td>This option is an alternative to `kernel_cache`. Unable to set in JNR-Fuse.</td>
+        <td>`auto_cache` utilizes kernel system caching and improves read performance. Instead of unconditionally keeping cached data, the cached data is invalidated if the modification time or the size of the file has changed since it was last opened. See [libfuse documentation](https://libfuse.github.io/doxygen/structfuse__config.html#a9db154b1f75284dd4fccc0248be71f66) for more info. </td>
     </tr>
     <tr>
         <td>attr_timeout=N</td>
