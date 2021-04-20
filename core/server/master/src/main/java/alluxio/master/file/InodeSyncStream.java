@@ -522,7 +522,8 @@ public class InodeSyncStream {
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
     // initialize sync children to true if it is a listStatus call on a directory
-    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo;
+    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo
+        && !mDescendantType.equals(DescendantType.NONE);
 
     // if the lock pattern is WRITE_EDGE, then we can sync (update or delete). Otherwise, if it is
     // we can only load metadata.
@@ -629,15 +630,11 @@ public class InodeSyncStream {
       }
     }
 
-    // Only sync children when
-    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
+    // sync plan does not know about the root of the sync
+    // if DescendantType.ONE we only sync children if we are syncing root of this stream
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
-          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
-    } else if (mDescendantType == DescendantType.ALL) {
-      syncChildren = syncChildren && inode.isDirectory();
-    } else {
-      syncChildren = false;
+          syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
     }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
