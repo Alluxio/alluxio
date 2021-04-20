@@ -108,6 +108,7 @@ fuse_stat() {
     fuse_alluxio_path="$(echo ${fuse_info} | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
     echo -e "pid\tmount_point\talluxio_path"
     echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
+    return 0
   fi
   fuse_info=$(ps aux | grep [S]tackMain)
   if [[ -n ${fuse_info} ]]; then
