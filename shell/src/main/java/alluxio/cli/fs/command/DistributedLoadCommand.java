@@ -84,11 +84,11 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .build();
   private static final Option WORKER_SET_OPTION =
       Option.builder()
-          .longOpt("worker-set")
+          .longOpt("host")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
-          .argName("worker set")
+          .argName("host")
           .desc("Worker host list separated by comma")
           .build();
 
@@ -121,7 +121,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
-        + "[--worker-set <host1,host2,...,hostn>] <path>";
+        + "[--host <host1,host2,...,hostn>] <path>";
   }
 
   @Override
