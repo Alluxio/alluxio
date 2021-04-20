@@ -45,7 +45,7 @@ public class LoadConfig implements PlanConfig {
       @JsonProperty("workerSet") Set<String> workerSet) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
-    mWorkerSet = workerSet;
+    mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet) ;
   }
 
   /**
