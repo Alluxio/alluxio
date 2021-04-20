@@ -42,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -339,20 +340,34 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int openInternal(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final int flags = fi.flags.get();
+    OpenFlags openFlag = OpenFlags.valueOf(flags);
+    LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
-      long fd = mNextOpenFileId.getAndIncrement();
-      FileInStream is;
-      try {
-        is = mFileSystem.openFile(uri);
-      } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          is = mFileSystem.openFile(uri);
-        } else {
-          throw e;
+      if (openFlag == OpenFlags.O_WRONLY) {
+        if (mFileSystem.exists(uri)) {
+          mFileSystem.delete(uri);
         }
+        FileOutStream os = mFileSystem.createFile(uri);
+        long fid = mNextOpenFileId.getAndIncrement();
+        mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
+        fi.fh.set(fid);
+        setUserGroupIfNeeded(uri);
+      } else {
+        FileInStream is;
+        try {
+          is = mFileSystem.openFile(uri);
+        } catch (FileIncompleteException e) {
+          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+            is = mFileSystem.openFile(uri);
+          } else {
+            throw e;
+          }
+        }
+        long fd = mNextOpenFileId.getAndIncrement();
+        mOpenFileEntries.put(fd, is);
+        fi.fh.set(fd);
       }
-      mOpenFileEntries.put(fd, is);
-      fi.fh.set(fd);
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -680,8 +695,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int truncate(String path, long size) {
-    LOG.error("Truncate is not supported {}", path);
-    return -ErrorCodes.EOPNOTSUPP();
+    LOG.trace("truncate {} to {}", path, size);
+    if (size == 0) {
+      return 0;
+    } else {
+      LOG.trace("truncate {} to {} is not supported by alluxio", path, size);
+      return -ErrorCodes.EOPNOTSUPP();
+    }
   }
 
   @Override
