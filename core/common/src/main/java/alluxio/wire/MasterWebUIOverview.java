@@ -42,6 +42,7 @@ public final class MasterWebUIOverview implements Serializable {
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
+  private List<String> mJournalDiskWarnings;
   private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
@@ -143,6 +144,13 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getFreeCapacity() {
     return mFreeCapacity;
+  }
+
+  /**
+   * @return the journal disk warnings
+   */
+  public List<String> getJournalDiskWarnings() {
+    return mJournalDiskWarnings;
   }
 
   /**
@@ -327,6 +335,15 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
+    return this;
+  }
+
+  /**
+    * @param journalDiskWarnings the list of journal disk warnings
+   * @return the updated {@link MasterWebUIOverview} object
+   */
+  public MasterWebUIOverview setJournalDiskWarnings(List<String> journalDiskWarnings) {
+    mJournalDiskWarnings = journalDiskWarnings;
     return this;
   }
 
