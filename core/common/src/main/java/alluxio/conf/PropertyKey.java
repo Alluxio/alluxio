@@ -2018,6 +2018,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD =
+      new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
+          .setDefaultValue(10)
+          .setDescription("When the percent of free space on any disk which backs the journal "
+              + "falls below this percentage, begin logging warning messages to let "
+              + "administrators know the journal disk(s) may be running low on space.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TOLERATE_CORRUPTION =
       new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
@@ -2044,6 +2053,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("10MB")
           .setDescription("If a log file is bigger than this value, it will rotate to next "
               + "file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
+      new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
+      .setDefaultValue("10min")
+      .setDescription(String.format("How often to check and update information on space "
+          + "utilization of the journal disk. This is currently only compatible with linux-based"
+          + "systems and when %s is configured to EMBEDDED", Name.MASTER_JOURNAL_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5351,6 +5369,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
+    public static final String MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
+        "alluxio.master.journal.space.monitor.interval";
+    public static final String MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD
+        = "alluxio.master.journal.space.monitor.percent.free.threshold";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";

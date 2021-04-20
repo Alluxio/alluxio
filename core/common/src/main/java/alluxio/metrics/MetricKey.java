@@ -321,6 +321,17 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of inodes (inode metadata) cached.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_JOURNAL_SPACE_FREE_BYTES =
+      new Builder(Name.MASTER_JOURNAL_SPACE_FREE_BYTES)
+          .setDescription("Bytes left on the journal disk(s) for an Alluxio master")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_SPACE_FREE_PERCENT =
+      new Builder(Name.MASTER_JOURNAL_SPACE_FREE_PERCENT)
+          .setDescription(
+              "Percentage of free space left on the journal disk(s) for an Alluxio master")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder(Name.MASTER_TOTAL_PATHS)
           .setDescription("Total number of files and directory in Alluxio namespace")
@@ -1322,6 +1333,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_INODE_CACHE_LOAD_TIMES = "Master.InodeCacheLoadTimes";
     public static final String MASTER_INODE_CACHE_MISSES = "Master.InodeCacheMisses";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
+
+    public static final String MASTER_JOURNAL_SPACE_FREE_BYTES = "Master.JournalFreeBytes";
+    public static final String MASTER_JOURNAL_SPACE_FREE_PERCENT = "Master.JournalFreePercent";
 
     public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
 

@@ -64,13 +64,16 @@ public final class AlluxioMasterProcessTest {
   private int mWebPort;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     ServerConfiguration.reset();
     mRpcPort = mRpcPortRule.getPort();
     mWebPort = mWebPortRule.getPort();
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
+    String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
+    FileUtils.createDir(journalPath);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
   }
 
   @Test
