@@ -22,10 +22,13 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Objects;
 import com.google.common.io.Closer;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +56,7 @@ public final class MetricsDocGenerator {
   /**
    * Writes the supported files for metrics system docs.
    */
-  public static void generate() throws IOException {
+  public static void generate(boolean validate) throws IOException {
     // Gets and sorts the metric keys
     List<MetricKey> defaultKeys = new ArrayList<>(MetricKey.allMetricKeys());
     Collections.sort(defaultKeys);
@@ -77,10 +80,10 @@ public final class MetricsDocGenerator {
       FileWriter ymlFileWriter;
       for (String category : CATEGORIES) {
         csvFileWriter = new FileWriter(PathUtils
-            .concatPath(csvFolder, category + "-metrics." + CSV_SUFFIX));
+            .concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)));
         csvFileWriter.append(CSV_FILE_HEADER + "\n");
         ymlFileWriter = new FileWriter(PathUtils
-            .concatPath(ymlFolder, category + "-metrics." + YML_SUFFIX));
+            .concatPath(ymlFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)));
         fileWriterMap.put(new FileWriterKey(category, CSV_SUFFIX), csvFileWriter);
         fileWriterMap.put(new FileWriterKey(category, YML_SUFFIX), ymlFileWriter);
         //register file writer
@@ -108,6 +111,35 @@ public final class MetricsDocGenerator {
         csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
         ymlFileWriter.append(String.format("%s:%n  '%s'%n",
             key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
+      }
+      boolean hasDiff = false;
+      for (String category : CATEGORIES) {
+        ProcessBuilder pb = new ProcessBuilder("diff",
+            PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)),
+            PathUtils.concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
+        String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+
+        if(output.length()>0){
+          hasDiff = true;
+          System.out.println("Metrics file "+ category + "-metrics changed.");
+        }
+        File f = new File(csvFolder, "temp-" + category + "-metrics." + CSV_SUFFIX);
+        f.delete();
+
+        pb = new ProcessBuilder("diff",
+            PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)),
+            PathUtils.concatPath(csvFolder, (category + "-metrics." + YML_SUFFIX)));
+        output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+
+        if(output.length()>0){
+          hasDiff = true;
+          System.out.println("Metrics file "+ category + "-metrics changed.");
+        }
+        f = new File(csvFolder, ("temp-" + category + "-metrics." + YML_SUFFIX));
+        f.delete();
+      }
+      if(!hasDiff){
+        System.out.println("No change in config file detected.");
       }
     }
     LOG.info("Metrics CSV/YML files were created successfully.");
