@@ -464,7 +464,7 @@ public final class ReplicationCheckerTest {
     mReplicationChecker.heartbeat();
     Assert.assertEquals(0, replicateRequests.size());
 
-    mMockReplicationHandler.setJobStatus(1, Status.COMPLETED);
+    mMockReplicationHandler.setJobStatus(1, Status.FAILED);
     mReplicationChecker.heartbeat();
     Assert.assertEquals(1, replicateRequests.size());
     Assert.assertEquals(2, replicateRequests.values().toArray()[0]);
