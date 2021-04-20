@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -45,7 +47,7 @@ public class LoadConfig implements PlanConfig {
       @JsonProperty("workerSet") Set<String> workerSet) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
-    mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet) ;
+    mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
   }
 
   /**
