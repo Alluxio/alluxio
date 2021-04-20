@@ -52,7 +52,8 @@ spec:
       tolerations:
       {{- if .Values.fuse.tolerations }}
 {{ toYaml .Values.fuse.tolerations | trim | indent 8  }}
-      {{- else if .Values.tolerations }}
+      {{- end }}
+      {{- if .Values.tolerations }}
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
       securityContext:

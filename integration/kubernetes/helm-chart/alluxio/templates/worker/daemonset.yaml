@@ -68,7 +68,8 @@ spec:
       tolerations:
       {{- if .Values.worker.tolerations }}
 {{ toYaml .Values.worker.tolerations | trim | indent 8  }}
-      {{- else if .Values.tolerations }}
+      {{- end }}
+      {{- if .Values.tolerations }}
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
       containers:

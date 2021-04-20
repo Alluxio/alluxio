@@ -46,9 +46,10 @@ properties:
 # Use labels to run Alluxio on a subset of the K8s nodes
 # nodeSelector: {}
 
-# A list of k8s Node taints to allow scheduling on.
+# A list of K8s Node taints to allow scheduling on.
 # See the Kubernetes docs for more info:
 # - https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+# eg: tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
 # tolerations: []
 
 ## Master ##
