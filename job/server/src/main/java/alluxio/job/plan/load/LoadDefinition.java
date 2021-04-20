@@ -75,7 +75,7 @@ public final class LoadDefinition
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         if (config.getWorkerSet() == null
             || config.getWorkerSet().isEmpty()
-            || config.getWorkerSet().contains(worker.getNetAddress().getHost())) {
+            || config.getWorkerSet().contains(worker.getNetAddress().getHost().toLowerCase())) {
           workers.add(worker);
         }
       } else {

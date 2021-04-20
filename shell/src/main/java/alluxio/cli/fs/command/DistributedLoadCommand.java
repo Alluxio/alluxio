@@ -34,9 +34,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -127,10 +128,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = Collections.EMPTY_SET;
     if (cl.hasOption(WORKER_SET_OPTION.getLongOpt())) {
-      String argOption = cl.getOptionValue(WORKER_SET_OPTION.getLongOpt());
-      String[] workerArray = StringUtils.split(argOption, ",");
-      workerSet = new HashSet<>();
-      Collections.addAll(workerSet, workerArray);
+      String argOption = cl.getOptionValue(WORKER_SET_OPTION.getLongOpt()).trim();
+      workerSet = Arrays.stream(StringUtils.split(argOption, ","))
+          .map(str -> str.trim().toUpperCase())
+          .collect(Collectors.toSet());
     }
     distributedLoad(path, replication, workerSet);
     return 0;
