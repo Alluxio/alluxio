@@ -76,7 +76,7 @@ public class GDCDatabase implements UnderDatabase {
       String query = "type=table";
       SearchCatalogPagedResponse response = dataCatalogClient.searchCatalog(scope, query);
       for (SearchCatalogResult result : response.iterateAll()) {
-        tableNames.add(result.getFullyQualifiedName());
+        tableNames.add(result.toString());
       }
     }
     return tableNames;

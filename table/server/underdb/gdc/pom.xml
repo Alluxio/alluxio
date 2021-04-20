@@ -25,22 +25,8 @@
     <name>Alluxio Table - Server - UnderDB - GDC</name>
     <description>Alluxio table underDB implementation for Google Data Catalog</description>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>libraries-bom</artifactId>
-                <version>20.0.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <properties>
         <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -55,10 +41,6 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-datacatalog</artifactId>
             <version>1.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-bigquery</artifactId>
         </dependency>
 
         <!-- Internal dependencies (must have provided scope) -->
