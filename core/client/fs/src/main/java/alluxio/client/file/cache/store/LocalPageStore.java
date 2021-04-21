@@ -15,6 +15,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -40,10 +41,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
-
+  private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
   private final String mRoot;
   private final long mPageSize;
-  private final long mCacheSize;
+  private final long mCapacity;
   private final int mFileBuckets;
   private final Pattern mPagePattern;
 
@@ -55,7 +56,7 @@ public class LocalPageStore implements PageStore {
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
-    mCacheSize = options.getCacheSize();
+    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mFileBuckets = options.getFileBuckets();
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
@@ -65,21 +66,25 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
     Path p = getFilePath(pageId);
-    if (!Files.exists(p)) {
-      Path parent = Preconditions.checkNotNull(p.getParent(),
-          "parent of cache file should not be null");
-      Files.createDirectories(parent);
-      Files.createFile(p);
-    }
     try {
+      if (!Files.exists(p)) {
+        Path parent = Preconditions.checkNotNull(p.getParent(),
+            "parent of cache file should not be null");
+        Files.createDirectories(parent);
+        Files.createFile(p);
+      }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
         fos.write(page);
       }
     } catch (Exception e) {
       Files.deleteIfExists(p);
+      if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+        throw new ResourceExhaustedException(
+            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
+      }
       throw new IOException("Failed to write file " + p + " for page " + pageId);
     }
   }
@@ -198,6 +203,6 @@ public class LocalPageStore implements PageStore {
 
   @Override
   public long getCacheSize() {
-    return mCacheSize;
+    return mCapacity;
   }
 }

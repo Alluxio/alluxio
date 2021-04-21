@@ -3952,6 +3952,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
+      new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
+          .setDescription("A fraction value representing the storage overhead writing to disk. "
+              + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
+              + "no more than 1024MB / (1 + 10%) user data to store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
@@ -5802,6 +5810,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.quota.enabled";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
+    public static final String USER_CLIENT_CACHE_STORE_OVERHEAD =
+        "alluxio.user.client.cache.store.overhead";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =
         "alluxio.user.client.cache.store.type";
     public static final String USER_CLIENT_CACHE_TIMEOUT_DURATION =
