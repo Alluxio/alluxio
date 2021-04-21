@@ -202,8 +202,10 @@ alluxio.user.short.circuit.enabled:
   'The short circuit read/write which allows the clients to read/write data without going through Alluxio workers if the data is local is enabled if set to true.'
 alluxio.user.short.circuit.preferred:
   'When short circuit and domain socket both enabled, prefer to use short circuit.'
-alluxio.user.streaming.data.timeout:
-  'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker. Keep in mind that some streaming operations may take an unexpectedly long time, such as UFS io. In order to handle occasional slow operations, it is recommended for this parameter to be set to a large value, to avoid spurious timeouts.'
+alluxio.user.streaming.data.read.timeout:
+  'The maximum time for an Alluxio client to wait for a data response for read requests from Alluxio worker. Keep in mind that some streaming operations may take an unexpectedly long time, such as UFS io. In order to handle occasional slow operations, it is recommended for this parameter to be set to a large value, to avoid spurious timeouts.'
+alluxio.user.streaming.data.write.timeout:
+  'The maximum time for an Alluxio client to wait for when writing 1 chunk for block writes to an Alluxio worker. This value can be tuned to offset instability from the UFS.'
 alluxio.user.streaming.reader.buffer.size.messages:
   'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.streaming.reader.chunk.size.bytes:
