@@ -3913,20 +3913,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
+      new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
+          .setDescription("A fraction value representing the storage overhead writing to disk. "
+              + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
+              + "no more than 1024MB / (1 + 10%) user data to store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
           .setDescription("The type of page store to use for client-side cache. Can be either "
               + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
               + "the `ROCKS` page store utilizes rocksDB to persist the data.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
-      new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
-          .setDescription("A fraction value representing the storage overhead. "
-              + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
-              + "no more than 1024MB / (1 + 10%) user data to store.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

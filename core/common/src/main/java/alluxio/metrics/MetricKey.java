@@ -1179,8 +1179,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS =
       new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS)
-          .setDescription("Number of failures when putting cached data in the client cache due to"
-              + " failed writes to page store but disk is full before reaching cache capacity.")
+          .setDescription("Number of failures when putting cached data in the client cache but"
+              + " getting disk is full while cache capacity is not achieved. This can happen if"
+              + " the storage overhead ratio to write data is underestimated.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();

@@ -305,9 +305,11 @@ public class LocalCacheManager implements CacheManager {
           // page is not large enough to cover the space needed by this page. Try again
           continue;
         case NO_SPACE_LEFT:
-          // failed put attempt due to "No space left on device" error. This can happen when
-          // configured cache capacity is larger than what's available, or other disk issues.
-          // In this case, we need to force data to be evicted in retry, or hit ratio will drop.
+          // failed put attempt due to "No space left on device" error. This can happen on
+          // misconfiguration (e.g., cache capacity is larger than what's available), disk issues,
+          // or under-estimation of file system overhead (e.g., writing a file of 10B may result
+          // in 512 B on disk). In this case, we need to force data to be evicted in retries,
+          // otherwise hitratio may drop due to inability to write new data to cache.
           forcedToEvict = true;
           continue;
         case OTHER:
