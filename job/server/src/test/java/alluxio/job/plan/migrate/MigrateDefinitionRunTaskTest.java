@@ -11,8 +11,11 @@
 
 package alluxio.job.plan.migrate;
 
+import static junit.framework.TestCase.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.calls;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +30,8 @@ import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -47,6 +52,8 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, MigrateCommand, RunTaskContext)}.
@@ -162,11 +169,31 @@ public final class MigrateDefinitionRunTaskTest {
 
   @Test
   public void overwriteTest() throws Exception {
+    final AtomicBoolean deleteCalled = new AtomicBoolean(false);
 
-    when(mMockFileSystem.createFile(eq(new AlluxioURI)))
+    when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)), any())).thenAnswer((invocation) -> {
+      if (deleteCalled.get()) {
+        return mMockOutStream;
+      }
+      throw new FileAlreadyExistsException("already exists");
+    });
 
-    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
+    doAnswer((invocation) -> {
+      if (deleteCalled.get()) {
+        throw new FileDoesNotExistException("doesn't exist");
+      }
+      deleteCalled.set(true);
+      return null;
+    }).when(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
 
+    try {
+      runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, false);
+      fail();
+    } catch (FileAlreadyExistsException e) {
+      // expected
+    }
+
+    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, true);
   }
 
   /**
