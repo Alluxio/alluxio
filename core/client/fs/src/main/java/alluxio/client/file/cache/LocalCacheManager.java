@@ -420,6 +420,11 @@ public class LocalCacheManager implements CacheManager {
         mPageStore.put(pageId, page);
         Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
         return PutResult.OK;
+      } catch (ResourceExhaustedException e) {
+        undoAddPage(pageId);
+        LOG.error("Failed to add page {} to pageStore", pageId, e);
+        Metrics.PUT_STORE_WRITE_NO_SPACE_ERRORS.inc();
+        return PutResult.NO_SPACE_LEFT;
       } catch (IOException e) {
         // Failed to add page, remove new page from metastoree
         undoAddPage(pageId);

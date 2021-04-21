@@ -41,10 +41,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
-  // We assume there will be some overhead using local fs as a page store,
-  // i.e., with 1GB space allocated, we
-  // expect no more than 1024MB / (1 + LOCAL_OVERHEAD_RATIO) logical data stored
-  private static final double LOCAL_OVERHEAD_RATIO = 0.005;
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
   private final String mRoot;
   private final long mPageSize;
@@ -60,7 +56,7 @@ public class LocalPageStore implements PageStore {
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
-    mCapacity = (long) (options.getCacheSize() / (1 + LOCAL_OVERHEAD_RATIO));
+    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mFileBuckets = options.getFileBuckets();
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
