@@ -14,7 +14,6 @@ package alluxio.job.plan.migrate;
 import static junit.framework.TestCase.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.calls;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -171,12 +170,13 @@ public final class MigrateDefinitionRunTaskTest {
   public void overwriteTest() throws Exception {
     final AtomicBoolean deleteCalled = new AtomicBoolean(false);
 
-    when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)), any())).thenAnswer((invocation) -> {
-      if (deleteCalled.get()) {
-        return mMockOutStream;
-      }
-      throw new FileAlreadyExistsException("already exists");
-    });
+    when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)), any()))
+        .thenAnswer((invocation) -> {
+          if (deleteCalled.get()) {
+            return mMockOutStream;
+          }
+          throw new FileAlreadyExistsException("already exists");
+        });
 
     doAnswer((invocation) -> {
       if (deleteCalled.get()) {
