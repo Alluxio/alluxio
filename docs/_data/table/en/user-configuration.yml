@@ -10,14 +10,14 @@ alluxio.user.block.master.client.pool.size.max:
   'The maximum number of block master clients cached in the block master client pool.'
 alluxio.user.block.master.client.pool.size.min:
   'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
+alluxio.user.block.read.metrics.enabled:
+  'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
   'N/A'
 alluxio.user.block.read.retry.sleep.base:
   'N/A'
 alluxio.user.block.read.retry.sleep.max:
   'N/A'
-alluxio.user.block.remote.read.buffer.size.bytes:
-  'The size of the file buffer to read data from remote Alluxio worker.'
 alluxio.user.block.size.bytes.default:
   'Default block size for Alluxio files.'
 alluxio.user.block.worker.client.pool.gc.threshold:
@@ -42,6 +42,8 @@ alluxio.user.client.cache.evictor.class:
   'The strategy that client uses to evict local cached pages when running out of space. Currently valid options include `alluxio.client.file.cache.evictor.LRUCacheEvictor`,`alluxio.client.file.cache.evictor.LFUCacheEvictor`.'
 alluxio.user.client.cache.evictor.lfu.logbase:
   'The log base for client cache LFU evictor bucket index.'
+alluxio.user.client.cache.evictor.nondeterministic.enabled:
+  'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
 alluxio.user.client.cache.local.store.file.buckets:
   'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
 alluxio.user.client.cache.page.size:
@@ -57,7 +59,7 @@ alluxio.user.client.cache.timeout.duration:
 alluxio.user.client.cache.timeout.threads:
   'The number of threads to handle cache I/O operation timeout, when alluxio.user.client.cache.timeout.duration is positive.'
 alluxio.user.conf.cluster.default.enabled:
-  'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
+  'When this property is true, an Alluxio client will load the default values of cluster-wide configuration and path-specific configuration set by Alluxio master.'
 alluxio.user.conf.sync.interval:
   'The time period of client master heartbeat to update the configuration if necessary from meta master.'
 alluxio.user.date.format.pattern:

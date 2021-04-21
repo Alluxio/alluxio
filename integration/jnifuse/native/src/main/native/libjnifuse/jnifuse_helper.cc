@@ -64,6 +64,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.setxattr = setxattr_wrapper;
   jnifuse_oper.truncate = truncate_wrapper;
   jnifuse_oper.unlink = unlink_wrapper;
+  jnifuse_oper.utimens = utimens_wrapper;
   jnifuse_oper.write = write_wrapper;
 
   int ret = fuse_main_real(argc, argv, &jnifuse_oper,

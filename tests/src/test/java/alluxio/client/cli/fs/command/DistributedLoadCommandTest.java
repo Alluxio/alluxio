@@ -19,15 +19,23 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Test for {@link DistributedLoadCommand}.
  */
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
   @Test
   public void loadDir() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
@@ -59,5 +67,27 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     sFsShell.run("distributedLoad", "/testFile");
     status = sFileSystem.getStatus(uri);
     Assert.assertEquals(100, status.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadIndexFile() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
+
+    File testFile = mTempFolder.newFile("testFile");
+    FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
+
+    AlluxioURI uriA = new AlluxioURI("/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testFileB");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+
+    sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath());
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
 }

@@ -436,3 +436,11 @@ logserver:
   medium: ""
   size: 4Gi
 
+# The pod's HostAliases. HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
+# It is mainly to provide the external host addresses for services not in the K8s cluster, like HDFS.
+# Example:
+# hostAliases:
+# - ip: "192.168.0.1"
+#   hostnames:
+#     - "example1.com"
+#     - "example2.com"

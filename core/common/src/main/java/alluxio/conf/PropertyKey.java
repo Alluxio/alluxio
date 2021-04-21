@@ -2742,9 +2742,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
       new Builder(Name.WORKER_FUSE_MOUNT_POINT)
+          .setDefaultValue("/mnt/alluxio-fuse")
           .setDescription("The absolute local filesystem path that this worker will "
-              + "mount Alluxio path to. If the value is not set, no Fuse application"
-              + "will be mounted in this worker.")
+              + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3826,6 +3826,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
+      new Builder(Name.USER_BLOCK_READ_METRICS_ENABLED)
+          .setDescription("Whether detailed block read metrics will be recorded and sink.")
+          .setDefaultValue(false)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
@@ -4613,6 +4619,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
+      new Builder(Name.FUSE_UMOUNT_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("The timeout to wait for all in progress file read and write to finish "
+              + "before unmounting the Fuse filesystem. After the timeout, "
+              + "all in progress file read will be forced to stop "
+              + "and all in progress file write will be abandoned.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5708,6 +5724,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.master.client.pool.gc.interval";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.master.client.pool.gc.threshold";
+    public static final String USER_BLOCK_READ_METRICS_ENABLED =
+        "alluxio.user.block.read.metrics.enabled";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -5931,6 +5949,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_UMOUNT_TIMEOUT =
+        "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 

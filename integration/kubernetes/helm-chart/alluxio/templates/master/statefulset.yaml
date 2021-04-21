@@ -59,6 +59,9 @@ spec:
       {{- end }}
     {{- end }}
     spec:
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:

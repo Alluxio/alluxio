@@ -42,7 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class MetricsDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
-  private static final String[] CATEGORIES = new String[]{"cluster", "master", "worker", "client"};
+  private static final String[] CATEGORIES =
+      new String[]{"cluster", "master", "worker", "client", "fuse"};
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";
@@ -95,18 +96,18 @@ public final class MetricsDocGenerator {
           throw new IOException(String
               .format("The given metric key %s doesn't have two or more components", key));
         }
-        if (metricTypeMap.containsKey(components[0])) {
-          csvFileWriter = fileWriterMap.get(
-              new FileWriterKey(metricTypeMap.get(components[0]), CSV_SUFFIX));
-          ymlFileWriter = fileWriterMap.get(
-              new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
-          csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
-          ymlFileWriter.append(String.format("%s:%n  '%s'%n",
-              key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
-        } else {
+        if (!metricTypeMap.containsKey(components[0])) {
           throw new IOException(String
-              .format("The metric key starts with invalid instance type %s", components[0]));
+              .format("The metric key %s starts with invalid instance type %s", key,
+                  components[0]));
         }
+        csvFileWriter = fileWriterMap.get(
+            new FileWriterKey(metricTypeMap.get(components[0]), CSV_SUFFIX));
+        ymlFileWriter = fileWriterMap.get(
+            new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
+        csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
+        ymlFileWriter.append(String.format("%s:%n  '%s'%n",
+            key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
       }
     }
     LOG.info("Metrics CSV/YML files were created successfully.");
