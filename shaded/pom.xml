@@ -23,10 +23,11 @@
   <description>Parent POM for different shaded Libraries</description>
 
   <modules>
+    <module>cephfs-hadoop</module>
     <module>client</module>
+    <module>cosn</module>
     <module>hadoop</module>
     <module>ozone</module>
-    <module>cosn</module>
   </modules>
 
   <properties>
