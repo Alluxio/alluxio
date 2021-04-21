@@ -19,8 +19,8 @@ import alluxio.table.common.udb.UnderDatabase;
 
 import com.google.cloud.datacatalog.v1.DataCatalogClient;
 import com.google.cloud.datacatalog.v1.DataCatalogClient.SearchCatalogPagedResponse;
-import com.google.cloud.datacatalog.v1.SearchCatalogRequest;
 import com.google.cloud.datacatalog.v1.SearchCatalogResult;
+import com.google.cloud.datacatalog.v1.SearchCatalogRequest.Scope;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +37,13 @@ public class GDCDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
-  private final String mGDCDbName;
+  private final String mGdcProjectID;
 
   @VisibleForTesting
-  protected GDCDatabase(UdbContext udbContext, UdbConfiguration GDCConfig, String GDCDbName) {
+  protected GDCDatabase(UdbContext udbContext, UdbConfiguration GDCConfig) {
     mUdbContext = udbContext;
     mConfiguration = GDCConfig;
-    mGDCDbName = GDCDbName;
+    mGdcProjectID = udbContext.getUdbDbName();
   }
 
   /**
@@ -54,8 +54,7 @@ public class GDCDatabase implements UnderDatabase {
    * @return the new instance
    */
   public static GDCDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    String gdcDbName = udbContext.getUdbDbName();
-    return new GDCDatabase(udbContext, configuration, gdcDbName);
+    return new GDCDatabase(udbContext, configuration);
   }
 
   @Override
@@ -65,18 +64,19 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return mGDCDbName;
+    return mGdcProjectID;
   }
 
   @Override
   public List<String> getTableNames() throws IOException {
-    SearchCatalogRequest.Scope scope = SearchCatalogRequest.Scope.newBuilder().build();
+    Scope scope = Scope.newBuilder().addIncludeProjectIds(mGdcProjectID).build();
     List<String> tableNames = new ArrayList<>();
     try (DataCatalogClient dataCatalogClient = DataCatalogClient.create()) {
       String query = "type=table";
       SearchCatalogPagedResponse response = dataCatalogClient.searchCatalog(scope, query);
       for (SearchCatalogResult result : response.iterateAll()) {
-        tableNames.add(result.toString());
+        String[] decomposedPath = result.getLinkedResource().split("/");
+        tableNames.add(decomposedPath[decomposedPath.length - 1]);
       }
     }
     return tableNames;

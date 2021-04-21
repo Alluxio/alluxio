@@ -28,7 +28,7 @@ public class GDCDatabaseTest {
   @Test
   public void getTableNames() throws IOException {
     UdbConfiguration mUdbConfiguration = new UdbConfiguration(ImmutableMap.of());
-    UdbContext mUdbContext = new UdbContext(null, null, "glue", "null", DB_NAME, DB_NAME);
+    UdbContext mUdbContext = new UdbContext(null, null, "gdc", "null", DB_NAME, DB_NAME);
     GDCDatabase db = GDCDatabase.create(mUdbContext, mUdbConfiguration);
 
     List<String> tableNames = db.getTableNames();
