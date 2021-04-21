@@ -35,6 +35,7 @@ public class DocGenerator {
 
   private static final String METRIC_OPTION_NAME = "metric";
   private static final String CONF_OPTION_NAME = "conf";
+  private static final String VALIDATE_OPTION_NAME = "validate";
 
   private static final Option METRIC_OPTION =
       Option.builder().required(false).longOpt(METRIC_OPTION_NAME).hasArg(false)
@@ -42,9 +43,11 @@ public class DocGenerator {
   private static final Option CONF_OPTION =
       Option.builder().required(false).longOpt(CONF_OPTION_NAME).hasArg(false)
           .desc("the configuration properties used by the master.").build();
-
+  private static final Option VALIDATE_OPTION =
+      Option.builder().required(false).longOpt(VALIDATE_OPTION_NAME).hasArg(false)
+          .desc("the configuration properties used by the master.").build();
   private static final Options OPTIONS =
-      new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION);
+      new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION).addOption(VALIDATE_OPTION);
 
   /**
    * Main entry for this util class.
@@ -52,6 +55,7 @@ public class DocGenerator {
    * @param args arguments for command line
    */
   public static void main(String[] args) throws IOException {
+    boolean validate = false;
     if (args.length != 0) {
       CommandLineParser parser = new DefaultParser();
       CommandLine cmd;
@@ -61,15 +65,21 @@ public class DocGenerator {
         printHelp("Unable to parse input args: " + e.getMessage());
         return;
       }
+      if (cmd.hasOption(VALIDATE_OPTION_NAME)){
+        validate = true;
+      }
       if (cmd.hasOption(METRIC_OPTION_NAME)) {
-        MetricsDocGenerator.generate();
+        System.out.println("Validate flag is: " + validate);
+        MetricsDocGenerator.generate(validate);
       }
       if (cmd.hasOption(CONF_OPTION_NAME)) {
-        ConfigurationDocGenerator.generate();
+        System.out.println("Validate flag is: " + validate);
+        ConfigurationDocGenerator.generate(validate);
       }
     } else {
-      MetricsDocGenerator.generate();
-      ConfigurationDocGenerator.generate();
+      System.out.println("Validate flag is: " + validate);
+      MetricsDocGenerator.generate(validate);
+      ConfigurationDocGenerator.generate(validate);
     }
   }
 
