@@ -213,8 +213,7 @@ should be **master**. The head repository should be your fork and the compare br
 you want to submit the pull request for (**awesome_feature** in this example).
 Click on the **Create pull request** button.
 The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title
-and the description of your pull request. 
-
+and the description of your pull request.
 
 #### Pull Request Title
 
