@@ -31,6 +31,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -87,6 +88,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, false);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0);
     // default setting in prestodb
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     // default setting in prestodb
@@ -800,6 +802,42 @@ public final class LocalCacheManagerTest {
     pageStore.setDeleteHanging(true);
     assertFalse(mCacheManager.delete(PAGE_ID1));
     pageStore.setDeleteHanging(false);
+  }
+
+  @Test
+  public void noSpaceLeftPageStorePut() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(PageStoreOptions.create(mConf).toOptions()) {
+      private long mFreeBytes = PAGE_SIZE_BYTES;
+      @Override
+      public void delete(PageId pageId) throws IOException, PageNotFoundException {
+        mFreeBytes += PAGE_SIZE_BYTES;
+        super.delete(pageId);
+      }
+
+      @Override
+      public void put(PageId pageId, byte[] page) throws IOException {
+        if (mFreeBytes < page.length) {
+          throw new ResourceExhaustedException("No space left on device");
+        }
+        mFreeBytes -= page.length;
+        super.put(pageId, page);
+      }
+    };
+    mCacheManager = createLocalCacheManager(mConf, mMetaStore,
+        new TimeBoundPageStore(pageStore, mPageStoreOptions));
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    // trigger evicting PAGE1
+    assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+  }
+
+  @Test
+  public void highStorageOverheadPut() throws Exception {
+    // a store that is so inefficient to store any data
+    double highOverhead = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES + 0.1;
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, highOverhead);
+    mCacheManager = createLocalCacheManager();
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
   }
 
   /**
