@@ -160,6 +160,15 @@ public final class MigrateDefinitionRunTaskTest {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.ASYNC_THROUGH);
   }
 
+  @Test
+  public void overwriteTest() throws Exception {
+
+    when(mMockFileSystem.createFile(eq(new AlluxioURI)))
+
+    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
+
+  }
+
   /**
    * Runs the task.
    *
@@ -170,8 +179,22 @@ public final class MigrateDefinitionRunTaskTest {
    */
   private void runTask(String configSource, String commandSource, String commandDestination,
       WriteType writeType) throws Exception {
+    runTask(configSource, commandSource, commandDestination, writeType, false);
+  }
+
+  /**
+   * Runs the task.
+   *
+   * @param configSource {@link MigrateConfig} source
+   * @param commandSource {@link MigrateCommand} source
+   * @param commandDestination {@link MigrateCommand} destination
+   * @param writeType {@link MigrateConfig} writeType
+   * @param overwrite (@link MigrateConfig} overwrite
+   */
+  private void runTask(String configSource, String commandSource, String commandDestination,
+                       WriteType writeType, boolean overwrite) throws Exception {
     new MigrateDefinition().runTask(
-        new MigrateConfig(configSource, "", writeType.toString(), false),
+        new MigrateConfig(configSource, "", writeType.toString(), overwrite),
         new MigrateCommand(commandSource, commandDestination),
         new RunTaskContext(1, 1,
             new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
