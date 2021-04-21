@@ -4119,15 +4119,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "The admin can turn on this property and control where the clients connect in "
               + "the configuration.")
           .build();
-  public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
-      new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
-          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
+  public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
+      new Builder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
+          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
+              Name.USER_STREAMING_DATA_TIMEOUT)
           .setDefaultValue("1h")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
-              + "(e.g. block reads and block writes) from Alluxio worker. Keep in mind that some "
-              + "streaming operations may take an unexpectedly long time, such as UFS io. In "
-              + "order to handle occasional slow operations, it is recommended for this parameter"
-              + " to be set to a large value, to avoid spurious timeouts.")
+              + "for read requests from Alluxio worker. Keep in mind that some streaming "
+              + "operations may take an unexpectedly long time, such as UFS io. In order to handle "
+              + "occasional slow operations, it is recommended for this parameter to be set to a "
+              + "large value, to avoid spurious timeouts.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_STREAMING_DATA_WRITE_TIMEOUT =
+      new Builder(Name.USER_STREAMING_DATA_WRITE_TIMEOUT)
+          .setDefaultValue("1h")
+          .setDescription("The maximum time for an Alluxio client to wait for when writing 1 chunk "
+              + "for block writes to an Alluxio worker. This value can be tuned to offset "
+              + "instability from the UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4202,7 +4212,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   /**
-   * @deprecated use {@link #USER_STREAMING_DATA_TIMEOUT} instead
+   * @deprecated use {@link #USER_STREAMING_DATA_READ_TIMEOUT} instead
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
@@ -5881,6 +5891,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.skip.authority.check";
     public static final String USER_STREAMING_DATA_TIMEOUT =
         "alluxio.user.streaming.data.timeout";
+    public static final String USER_STREAMING_DATA_READ_TIMEOUT =
+        "alluxio.user.streaming.data.read.timeout";
+    public static final String USER_STREAMING_DATA_WRITE_TIMEOUT =
+        "alluxio.user.streaming.data.write.timeout";
     public static final String USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.streaming.reader.buffer.size.messages";
     public static final String USER_STREAMING_READER_CHUNK_SIZE_BYTES =
