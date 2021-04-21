@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { Table } from 'reactstrap';
+import { Button, Input, Table } from 'reactstrap';
 import { AnyAction, compose, Dispatch } from 'redux';
 
 import { withErrors, withLoadingMessage, withFetchData } from '@alluxio/common-ui/src/components';
@@ -21,6 +21,9 @@ import { fetchRequest } from '../../../store/config/actions';
 import { IConfig } from '../../../store/config/types';
 import { IAlertErrors, ICommonState } from '@alluxio/common-ui/src/constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import './Configuration.scss';
 
 interface IPropsFromState extends ICommonState {
   data: IConfig;
@@ -32,16 +35,58 @@ interface IPropsFromDispatch {
 
 export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-export class ConfigurationPresenter extends React.Component<AllProps> {
-  public render(): JSX.Element {
-    const { data } = this.props;
+interface IState {
+  searchConfig: string;
+  filteredData: IConfig;
+  clearSearch: boolean;
+}
 
+export class ConfigurationPresenter extends React.Component<AllProps, IState> {
+  constructor(props: AllProps) {
+    super(props);
+    this.__searchInputHandler.bind(this);
+    this.state = {
+      searchConfig: '',
+      filteredData: this.props.data,
+      clearSearch: false,
+    };
+  }
+
+  public render(): JSX.Element {
+    const { filteredData, searchConfig, clearSearch } = this.state;
     return (
       <div className="configuration-page">
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
               <h5>Alluxio Configuration</h5>
+              <div className="search-container row">
+                <Input
+                  type="text"
+                  id="searchConfig"
+                  placeholder="Search by Property"
+                  value={searchConfig}
+                  onChange={this.__searchInputHandler}
+                />
+                <Button
+                  id="search-button"
+                  onClick={(): void => {
+                    this.__searchConfigurations();
+                  }}
+                >
+                  <FontAwesomeIcon icon={faSearch} />
+                </Button>
+                {clearSearch && (
+                  <Button
+                    id="clear-search-button"
+                    onClick={(): void => {
+                      this.__clearSearchConfigurations();
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </Button>
+                )}
+              </div>
               <Table hover={true}>
                 <thead>
                   <tr>
@@ -50,26 +95,34 @@ export class ConfigurationPresenter extends React.Component<AllProps> {
                     <th>Source</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {data.configuration.map((configuration: IConfigTriple) => (
-                    <tr key={configuration.left}>
-                      <td>
-                        <pre className="mb-0">
-                          <code>{configuration.left}</code>
-                        </pre>
-                      </td>
-                      <td>{configuration.middle}</td>
-                      <td>{configuration.right}</td>
+                {filteredData.configuration.length ? (
+                  <tbody>
+                    {filteredData.configuration.map((configuration: IConfigTriple) => (
+                      <tr key={configuration.left}>
+                        <td>
+                          <pre className="mb-0">
+                            <code>{configuration.left}</code>
+                          </pre>
+                        </td>
+                        <td>{configuration.middle}</td>
+                        <td>{configuration.right}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                ) : (
+                  <tbody>
+                    <tr>
+                      <td> Sorry, no matching properties. </td>
                     </tr>
-                  ))}
-                </tbody>
+                  </tbody>
+                )}
               </Table>
             </div>
             <div className="col-12">
               <h5>Whitelist</h5>
               <Table hover={true}>
                 <tbody>
-                  {data.whitelist.map((whitelist: string) => (
+                  {filteredData.whitelist.map((whitelist: string) => (
                     <tr key={whitelist}>
                       <td>{whitelist}</td>
                     </tr>
@@ -81,6 +134,30 @@ export class ConfigurationPresenter extends React.Component<AllProps> {
         </div>
       </div>
     );
+  }
+
+  private __searchInputHandler = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (!e.target.value) {
+      this.__clearSearchConfigurations();
+    }
+    this.setState({ searchConfig: e.target.value.trim() });
+  };
+
+  private __searchConfigurations(): void {
+    const filteredConf = this.props.data.configuration.filter((data: IConfigTriple) =>
+      data.left.toLowerCase().includes(this.state.searchConfig.toLowerCase()),
+    );
+    this.setState(state => ({
+      clearSearch: true,
+      filteredData: {
+        ...state.filteredData,
+        configuration: filteredConf,
+      },
+    }));
+  }
+
+  private __clearSearchConfigurations(): void {
+    this.setState({ clearSearch: false, filteredData: this.props.data, searchConfig: '' });
   }
 }
 
