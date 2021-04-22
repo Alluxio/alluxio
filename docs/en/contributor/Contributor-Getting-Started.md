@@ -123,7 +123,7 @@ Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxi
 and find one that is unassigned. 
 In order to assign an issue to yourself, leave a comment in the issue like `/assign @yourUserName`
 to indicate that you are working on the issue.
-You should assign a ticket to yourself before you start working on it, so others
+You should always assign a ticket to yourself this way before you start working on it, so others
 in the community know you are working on the ticket.
 
 Notice that all New Contributor issues on Github are assigned with a number. The number can be
@@ -206,11 +206,14 @@ $ git push origin awesome_feature
 
 Visit your GitHub fork of Alluxio. Usually, this shows which of your branches have been updated recently,
 but if not, navigate to the branch you want to submit the pull request for (**awesome_feature** in this example),
-and press the **New Pull Request** button.
+and press the **Pull request** button next to the **Compare** button.
 
-In the **Open a pull request** page, the base repository should be `Alluxio/alluxio` and the base branch
+In the **Comparing changes** page, the base repository should be `Alluxio/alluxio` and the base branch
 should be **master**. The head repository should be your fork and the compare branch should be the branch
 you want to submit the pull request for (**awesome_feature** in this example).
+Click on the **Create pull request** button.
+The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title
+and the description of your pull request.
 
 #### Pull Request Title
 
