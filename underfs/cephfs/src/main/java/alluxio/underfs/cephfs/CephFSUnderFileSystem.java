@@ -256,7 +256,7 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
     try {
       parentPath = PathUtils.getParent(path);
     } catch (InvalidPathException e) {
-      throw new IOException("Invalid path");
+      throw new IOException("Invalid path " + path, e);
     }
 
     IOException te = null;
