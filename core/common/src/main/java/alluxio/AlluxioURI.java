@@ -229,25 +229,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   }
 
   /**
-   * Gets the host of the {@link AlluxioURI}.
-   *
-   * @return the host, null if it does not have one
-   */
-  @Nullable
-  public String getHost() {
-    return mUri.getHost();
-  }
-
-  /**
-   *Gets the port of the {@link AlluxioURI}.
-   *
-   * @return the port, -1 if it does not have one
-   */
-  public int getPort() {
-    return mUri.getPort();
-  }
-
-  /**
    * Gets the final component of the {@link AlluxioURI}.
    *
    * @return the final component of the {@link AlluxioURI}

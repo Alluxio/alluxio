@@ -30,7 +30,6 @@
     <dependency>
       <groupId>com.ceph</groupId>
       <artifactId>libcephfs</artifactId>
-      <!--version>12.2.1</version -->
       <version>0.80.5</version>
     </dependency>
 
@@ -97,3 +96,4 @@
     </plugins>
   </build>
 </project>
+

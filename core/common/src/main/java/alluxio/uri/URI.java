@@ -218,16 +218,6 @@ public interface URI extends Comparable<URI>, Serializable {
   Authority getAuthority();
 
   /**
-   *@return the host of the {@link URI}, null if it does not have one
-   */
-  String getHost();
-
-  /**
-    * @return the port of the {@link URI}, -1 if it does not have one
-    */
-  int getPort();
-
-  /**
    * @return the path of the {@link URI}
    */
   String getPath();

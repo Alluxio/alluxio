@@ -28,9 +28,9 @@ public final class CephInputStream extends InputStream {
   private final int mFileHandle;
   private final long mFileLength;
   private long mPos = 0;
-
+  private byte[] mBuf = new byte[1];
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
-  private AtomicBoolean mClosed = new AtomicBoolean(false);
+  private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Create a new CephInputStream.
@@ -83,15 +83,13 @@ public final class CephInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    byte[] result = new byte[1];
-
-    if (-1 == read(result, 0, 1)) {
+    if (-1 == read(mBuf, 0, 1)) {
       return -1;
     }
-    if (result[0] < 0) {
-      return 256 + (int) result[0];
+    if (mBuf[0] < 0) {
+      return 256 + (int) mBuf[0];
     } else {
-      return result[0];
+      return mBuf[0];
     }
   }
 
@@ -128,3 +126,4 @@ public final class CephInputStream extends InputStream {
     mMount.close(mFileHandle);
   }
 }
+

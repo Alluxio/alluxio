@@ -1085,7 +1085,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
       new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
-          .setDefaultValue("conf")
+          .setDefaultValue("/etc/ceph/ceph.conf")
           .setDescription("Path to Ceph configuration file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1106,14 +1106,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
       new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
-          .setDefaultValue("keyfile")
+          .setDefaultValue("/etc/ceph/keyfile")
           .setDescription("Path to CephX authentication key file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
       new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
-          .setDefaultValue("keyring")
+          .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
           .setDescription("Path to CephX authentication keyring file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)

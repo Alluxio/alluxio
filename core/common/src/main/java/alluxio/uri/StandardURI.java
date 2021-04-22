@@ -34,7 +34,6 @@ public class StandardURI implements URI {
   protected final Authority mAuthority;
   protected final String mPath;
   protected final String mQuery;
-  protected final java.net.URI mUri;
 
   protected int mHashCode;
 
@@ -62,7 +61,6 @@ public class StandardURI implements URI {
       mAuthority = authority;
       mPath = uri.getPath();
       mQuery = uri.getQuery();
-      mUri = uri;
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
@@ -80,12 +78,6 @@ public class StandardURI implements URI {
     mAuthority = baseUri.getAuthority();
     mPath = AlluxioURI.normalizePath(newPath);
     mQuery = baseUri.getQuery();
-    try {
-      String mAuth = mAuthority.toString().equals("") ? null : mAuthority.toString();
-      mUri = new java.net.URI(mScheme, mAuth, mPath, mQuery, null).normalize();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
   }
 
   @Override
@@ -99,16 +91,6 @@ public class StandardURI implements URI {
   @Override
   public Authority getAuthority() {
     return mAuthority;
-  }
-
-  @Override
-  public String getHost() {
-    return mUri.getHost();
-  }
-
-  @Override
-  public int getPort() {
-    return mUri.getPort();
   }
 
   @Override
