@@ -165,8 +165,9 @@ public final class MigrateDefinition
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     final AlluxioURI destinationURI = new AlluxioURI(destination);
-    boolean retry = false;
+    boolean retry;
     do {
+      retry = false;
       try {
         try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
              FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
@@ -184,7 +185,7 @@ public final class MigrateDefinition
       } catch (FileAlreadyExistsException e) {
         if (overwrite) {
           fileSystem.delete(destinationURI);
-          retry = !retry;
+          retry = true;
         } else {
           throw e;
         }
