@@ -1,4 +1,8 @@
 metricName,metricType
+Master.AbsentCacheHits,COUNTER
+Master.AbsentCacheInvalidations,COUNTER
+Master.AbsentCacheMisses,COUNTER
+Master.AbsentCacheSize,GAUGE
 Master.CompleteFileOps,COUNTER
 Master.CreateDirectoryOps,COUNTER
 Master.CreateFileOps,COUNTER
@@ -34,6 +38,10 @@ Master.LastBackupEntriesCount,GAUGE
 Master.LastBackupRestoreCount,GAUGE
 Master.LastBackupRestoreTimeMs,GAUGE
 Master.LastBackupTimeMs,GAUGE
+Master.ListingCacheEvictions,COUNTER
+Master.ListingCacheHits,COUNTER
+Master.ListingCacheLoadTimes,COUNTER
+Master.ListingCacheMisses,COUNTER
 Master.ListingCacheSize,GAUGE
 Master.MountOps,COUNTER
 Master.NewBlocksGot,COUNTER

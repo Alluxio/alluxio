@@ -91,6 +91,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
 
     while (!Thread.interrupted()) {
+      if (!mRunning) {
+        break;
+      }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
         mJournalSystem.waitForCatchup();
       }
@@ -100,10 +103,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
-        if (!mRunning) {
-          break;
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          if (!mRunning) {
+            break;
+          }
+          losePrimacy();
         }
-        losePrimacy();
       }
     }
   }
@@ -187,6 +194,13 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     if (mLeaderSelector != null) {
       mLeaderSelector.stop();
     }
+  }
+
+  /**
+   * @return whether the master is running
+   */
+  protected boolean isRunning() {
+    return mRunning;
   }
 
   @Override

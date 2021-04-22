@@ -316,6 +316,8 @@ public final class AlluxioMasterRestServiceHandler {
         response.setDiskCapacity("UNKNOWN").setDiskUsedCapacity("UNKNOWN")
             .setDiskFreeCapacity("UNKNOWN");
       }
+      mMetaMaster.getJournalSpaceMonitor().map(monitor ->
+          response.setJournalDiskWarnings(monitor.getJournalDiskWarnings()));
 
       return response;
     }, ServerConfiguration.global());
@@ -1038,6 +1040,15 @@ public final class AlluxioMasterRestServiceHandler {
       response.setUfsOps(ufsOpsMap);
 
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
+      mMetaMaster.getJournalSpaceMonitor().map(monitor -> {
+        try {
+          return response.setJournalDiskMetrics(monitor.getDiskInfo());
+        } catch (IOException e) {
+          LogUtils.warnWithException(LOG,
+              "Failed to populate journal disk information for WebUI metrics.", e);
+        }
+        return response;
+      });
 
       return response;
     }, ServerConfiguration.global());

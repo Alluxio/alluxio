@@ -1,3 +1,11 @@
+Master.AbsentCacheHits:
+  'Number of cache hits on the absent cache'
+Master.AbsentCacheInvalidations:
+  'Number of invalidations on the absent cache'
+Master.AbsentCacheMisses:
+  'Number of cache misses on the absent cache'
+Master.AbsentCacheSize:
+  'Size of the absent cache'
 Master.CompleteFileOps:
   'Total number of the CompleteFile operations'
 Master.CreateDirectoryOps:
@@ -13,7 +21,7 @@ Master.EdgeCacheEvictions:
 Master.EdgeCacheHits:
   'Total number of hits in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
 Master.EdgeCacheLoadTimes:
-  'Total load times in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+  'Total load times in the edge (inode metadata) cache that resulted from a cache miss. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
 Master.EdgeCacheMisses:
   'Total number of misses in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
 Master.EdgeCacheSize:
@@ -47,7 +55,7 @@ Master.InodeCacheEvictions:
 Master.InodeCacheHits:
   'Total number of hits in the inodes (inode metadata) cache.'
 Master.InodeCacheLoadTimes:
-  'Total load times in the inodes (inode metadata) cache.'
+  'Total load times in the inodes (inode metadata) cache that resulted from a cache miss.'
 Master.InodeCacheMisses:
   'Total number of misses in the inodes (inode metadata) cache.'
 Master.InodeCacheSize:
@@ -68,6 +76,14 @@ Master.LastBackupRestoreTimeMs:
   'The process time of the last restore from backup'
 Master.LastBackupTimeMs:
   'The process time of the last backup'
+Master.ListingCacheEvictions:
+  'The total number of evictions in master listing cache'
+Master.ListingCacheHits:
+  'The total number of hits in master listing cache'
+Master.ListingCacheLoadTimes:
+  'The total load time (in nanoseconds) in master listing cache that resulted from a cache miss.'
+Master.ListingCacheMisses:
+  'The total number of misses in master listing cache'
 Master.ListingCacheSize:
   'The size of master listing cache'
 Master.MountOps:

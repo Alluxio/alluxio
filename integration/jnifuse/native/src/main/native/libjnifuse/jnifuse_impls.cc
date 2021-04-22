@@ -126,6 +126,10 @@ int unlink_wrapper(const char *path) {
   return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
 }
 
+int utimens_wrapper(const char *path, const struct timespec ts[2]) {
+  return jnifuse::JniFuseFileSystem::getInstance()->utimensOper->call(path, ts);
+}
+
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(

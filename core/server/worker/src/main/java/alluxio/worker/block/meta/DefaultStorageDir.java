@@ -108,6 +108,9 @@ public final class DefaultStorageDir implements StorageDir {
     DefaultStorageDir dir =
         new DefaultStorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
+    LOG.info("StorageDir initialized: path={}, tier={}, dirIndex={}, medium={}, capacityBytes={}, "
+            + "reservedBytes={}, availableBytes={}",
+        dirPath, tier, dirIndex, dirMedium, capacityBytes, reservedBytes, dir.mAvailableBytes);
     return dir;
   }
 

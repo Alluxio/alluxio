@@ -66,6 +66,7 @@ public final class Constants {
   public static final String HEADER_GCS = "gs://";
   public static final String HEADER_COS = "cos://";
   public static final String HEADER_OZONE = "o3fs://";
+  public static final String HEADER_CEPHFS_HADOOP = "ceph://";
   public static final String HEADER_HTTP = "http://";
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";

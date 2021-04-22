@@ -18,6 +18,8 @@ alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
+alluxio.fuse.umount.timeout:
+  'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem. After the timeout, all in progress file read will be forced to stop and all in progress file write will be abandoned.'
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.home:
@@ -188,6 +190,8 @@ alluxio.underfs.kodo.requests.max:
   'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
+alluxio.underfs.logging.threshold:
+  'Logging a UFS API call when it takes more time than the threshold.'
 alluxio.underfs.object.store.breadcrumbs.enabled:
   'Set this to false to prevent Alluxio from creating zero byte objects during read or list operations on object store UFS. Leaving this on enables more efficient listing of prefixes.'
 alluxio.underfs.object.store.mount.shared.publicly:
@@ -196,6 +200,8 @@ alluxio.underfs.object.store.multi.range.chunk.size:
   'Default chunk size for ranged reads from multi-range object input streams.'
 alluxio.underfs.object.store.service.threads:
   'The number of threads in executor pool for parallel object store UFS operations, such as directory renames and deletes.'
+alluxio.underfs.object.store.skip.parent.directory.creation:
+  'Do not create parent directory for new files. Object stores generally uses prefix which is not required for creating new files. Skipping parent directory is recommended for better performance. Set this to false if the object store requires prefix creation for new files.'
 alluxio.underfs.oss.connection.max:
   'The maximum number of OSS connections.'
 alluxio.underfs.oss.connection.timeout:

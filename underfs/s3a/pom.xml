@@ -37,6 +37,10 @@
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+    </dependency>
     <!--aws sdk requires jaxb binding at runtime-->
     <dependency>
       <groupId>com.sun.xml.bind</groupId>

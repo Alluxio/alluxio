@@ -45,6 +45,7 @@ import alluxio.master.backup.BackupRole;
 import alluxio.master.backup.BackupWorkerRole;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -55,6 +56,7 @@ import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.OSUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -76,9 +78,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -159,6 +163,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
+
+  @Nullable
+  private final JournalSpaceMonitor mJournalSpaceMonitor;
 
   /**
    * Journaled state for MetaMaster.
@@ -252,6 +259,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     mPathProperties = new PathProperties();
     mState = new State();
+    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class)
+        .equals(JournalType.EMBEDDED) && OSUtils.isLinux()) {
+      mJournalSpaceMonitor = new JournalSpaceMonitor(ServerConfiguration.global());
+    } else {
+      mJournalSpaceMonitor = null;
+    }
   }
 
   @Override
@@ -306,6 +319,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
+      }
+      if (mJournalSpaceMonitor != null) {
+        getExecutorService().submit(new HeartbeatThread(
+            HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
+            ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
+            ServerConfiguration.global(), mMasterContext.getUserState()));
       }
       if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
         try (JournalContext context = createJournalContext()) {
@@ -422,6 +441,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public ConfigHash getConfigHash() {
     return new ConfigHash(ServerConfiguration.hash(), mPathProperties.hash());
+  }
+
+  @Override
+  public Optional<JournalSpaceMonitor> getJournalSpaceMonitor() {
+    return Optional.ofNullable(mJournalSpaceMonitor);
   }
 
   @Override

@@ -11,9 +11,9 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -118,7 +118,7 @@ public final class BlockWorkerDataReader implements DataReader {
       mBlockId = blockId;
       mChunkSize = chunkSize;
       mClosed = false;
-      mIsPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
+      mIsPromote = options.getOptions().getReadType() == ReadPType.CACHE_PROMOTE;
       mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
       mBlockWorker = context.getProcessLocalWorker();
@@ -146,7 +146,9 @@ public final class BlockWorkerDataReader implements DataReader {
       if (mClosed) {
         return;
       }
-      mReader.close();
+      if (mReader != null) {
+        mReader.close();
+      }
       mClosed = true;
     }
   }

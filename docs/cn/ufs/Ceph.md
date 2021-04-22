@@ -28,7 +28,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ### 方法1: S3接口
 
-向`conf/alluxio-env.sh`文件添加以下代码：
+向`conf/alluxio-site.properties`文件添加以下代码：
 
 ```
 alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>

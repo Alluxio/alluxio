@@ -27,6 +27,7 @@ export const initialMetricsState: IMetricsState = {
     operationMetrics: {},
     rpcInvocationMetrics: {},
     timeSeriesMetrics: [],
+    journalDiskMetrics: [],
     totalBytesReadLocal: '',
     totalBytesReadLocalThroughput: '',
     totalBytesReadDomainSocket: '',

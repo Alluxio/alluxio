@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -170,8 +171,21 @@ public class AlluxioFileInStream extends FileInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    return read(ByteBuffer.wrap(b), off, len);
+  }
+
+  /**
+   * Reads up to len bytes of data from the input stream into the byte buffer.
+   *
+   * @param byteBuffer the buffer into which the data is read
+   * @param off the start offset in the buffer at which the data is written
+   * @param len the maximum number of bytes to read
+   * @return the total number of bytes read into the buffer, or -1 if there is no more data because
+   *         the end of the stream has been reached
+   */
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
     if (len == 0) {
       return 0;
     }
@@ -186,7 +200,7 @@ public class AlluxioFileInStream extends FileInStream {
     while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
       try {
         updateStream();
-        int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
+        int bytesRead = mBlockInStream.read(byteBuffer, currentOffset, bytesLeft);
         if (bytesRead > 0) {
           bytesLeft -= bytesRead;
           currentOffset += bytesRead;
@@ -353,10 +367,14 @@ public class AlluxioFileInStream extends FileInStream {
     boolean isBlockInfoOutdated = true;
     // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
     // if there is at least one location that is not a failed worker, then it's not outdated.
-    for (BlockLocation location : blockInfo.getLocations()) {
-      if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
-        isBlockInfoOutdated = false;
-        break;
+    if (mFailedWorkers.isEmpty() || mFailedWorkers.size() < blockInfo.getLocations().size()) {
+      isBlockInfoOutdated = false;
+    } else {
+      for (BlockLocation location : blockInfo.getLocations()) {
+        if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
+          isBlockInfoOutdated = false;
+          break;
+        }
       }
     }
     if (isBlockInfoOutdated) {
