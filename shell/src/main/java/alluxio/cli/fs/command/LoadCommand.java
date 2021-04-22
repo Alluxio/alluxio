@@ -15,9 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
+import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
@@ -96,8 +98,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         load(newPath, local);
       }
     } else {
+      ReadPType readType = mFsContext.getPathConf(filePath)
+              .getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+              .toProto();
       OpenFilePOptions options =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+          OpenFilePOptions.newBuilder().setReadType(readType).build();
       if (local) {
         if (!mFsContext.hasNodeLocalWorker()) {
           System.out.println("When local option is specified,"
