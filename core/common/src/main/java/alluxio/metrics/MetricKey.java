@@ -523,6 +523,32 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   // Journal metrics
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER)
+          .setDescription("The timer statistics of journal snapshot generation by this master")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER)
+          .setDescription("The timer statistics of journal snapshot download from other masters")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER)
+          .setDescription("The timer statistics of journal snapshot install")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER)
+          .setDescription("The timer statistics of journal snapshot replay")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX)
+          .setDescription("The last index of the latest journal snapshot "
+              + "created by this master or downloaded from other masters")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
@@ -1390,6 +1416,16 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER
+        = "Master.EmbeddedJournalSnapshotGenerateTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER
+        = "Master.EmbeddedJournalSnapshotDownloadGenerate";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER
+        = "Master.EmbeddedJournalSnapshotInstallTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER
+        = "Master.EmbeddedJournalSnapshotReplayTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX
+        = "Master.EmbeddedJournalSnapshotLastIndex";
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
