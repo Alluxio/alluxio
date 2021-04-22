@@ -16,12 +16,9 @@ import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
-
-import com.google.cloud.datacatalog.v1.DataCatalogClient;
-import com.google.cloud.datacatalog.v1.DataCatalogClient.SearchCatalogPagedResponse;
-import com.google.cloud.datacatalog.v1.SearchCatalogResult;
-import com.google.cloud.datacatalog.v1.SearchCatalogRequest.Scope;
+import com.google.api.gax.paging.Page;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.cloud.bigquery.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +34,13 @@ public class GDCDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
-  private final String mGdcProjectID;
+  private final String mGdcTableName;
 
   @VisibleForTesting
   protected GDCDatabase(UdbContext udbContext, UdbConfiguration GDCConfig) {
     mUdbContext = udbContext;
     mConfiguration = GDCConfig;
-    mGdcProjectID = udbContext.getUdbDbName();
+    mGdcTableName = udbContext.getUdbDbName();
   }
 
   /**
@@ -64,20 +61,16 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return mGdcProjectID;
+    return mGdcTableName;
   }
 
   @Override
   public List<String> getTableNames() throws IOException {
-    Scope scope = Scope.newBuilder().addIncludeProjectIds(mGdcProjectID).build();
     List<String> tableNames = new ArrayList<>();
-    try (DataCatalogClient dataCatalogClient = DataCatalogClient.create()) {
-      String query = "type=table";
-      SearchCatalogPagedResponse response = dataCatalogClient.searchCatalog(scope, query);
-      for (SearchCatalogResult result : response.iterateAll()) {
-        String[] decomposedPath = result.getLinkedResource().split("/");
-        tableNames.add(decomposedPath[decomposedPath.length - 1]);
-      }
+    BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
+    Page<Table> tables = bigQuery.listTables(mGdcTableName);
+    for (Table table : tables.iterateAll()) {
+      tableNames.add(table.getTableId().getTable());
     }
     return tableNames;
   }

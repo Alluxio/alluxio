@@ -23,7 +23,7 @@ import java.util.List;
 
 public class GDCDatabaseTest {
 
-  private static final String DB_NAME = "alluxio-internal";
+  private static final String DB_NAME = "sds_test2";
 
   @Test
   public void getTableNames() throws IOException {
@@ -35,4 +35,14 @@ public class GDCDatabaseTest {
     Assert.assertNotEquals(0, tableNames.size());
     Assert.assertTrue(tableNames.contains("test"));
   }
+
+  @Test
+  public void tempForDbInfo() throws IOException {
+    UdbConfiguration mUdbConfiguration = new UdbConfiguration(ImmutableMap.of());
+    UdbContext mUdbContext = new UdbContext(null, null, "gdc", "null", DB_NAME, DB_NAME);
+    GDCDatabase db = GDCDatabase.create(mUdbContext, mUdbConfiguration);
+
+    db.getDatabaseInfo();
+  }
+
 }
