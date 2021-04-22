@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class CephInputStream extends InputStream {
   private CephMount mMount;
   private final int mFileHandle;
-  private long mFileLength;
+  private final long mFileLength;
   private long mPos = 0;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
