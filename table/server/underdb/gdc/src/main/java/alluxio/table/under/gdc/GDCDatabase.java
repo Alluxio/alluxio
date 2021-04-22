@@ -34,13 +34,13 @@ public class GDCDatabase implements UnderDatabase {
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
-  private final String mGdcTableName;
+  private final String mGdcDatasetName;
 
   @VisibleForTesting
   protected GDCDatabase(UdbContext udbContext, UdbConfiguration GDCConfig) {
     mUdbContext = udbContext;
     mConfiguration = GDCConfig;
-    mGdcTableName = udbContext.getUdbDbName();
+    mGdcDatasetName = udbContext.getUdbDbName();
   }
 
   /**
@@ -51,6 +51,10 @@ public class GDCDatabase implements UnderDatabase {
    * @return the new instance
    */
   public static GDCDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
+    String udbDbName = udbContext.getUdbDbName();
+    if (udbDbName == null || udbDbName.isEmpty()) {
+      throw new IllegalArgumentException("GDC database name cannot be empty or null: " + udbDbName);
+    }
     return new GDCDatabase(udbContext, configuration);
   }
 
@@ -61,14 +65,14 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public String getName() {
-    return mGdcTableName;
+    return mGdcDatasetName;
   }
 
   @Override
   public List<String> getTableNames() throws IOException {
     List<String> tableNames = new ArrayList<>();
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
-    Page<Table> tables = bigQuery.listTables(mGdcTableName);
+    Page<Table> tables = bigQuery.listTables(mGdcDatasetName);
     for (Table table : tables.iterateAll()) {
       tableNames.add(table.getTableId().getTable());
     }
@@ -87,6 +91,10 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public DatabaseInfo getDatabaseInfo() throws IOException {
-    return null;
+    BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
+    Dataset a = bigQuery.getDataset(mGdcDatasetName);
+    System.out.println(a.getDatasetId());
+
+    return new DatabaseInfo("", "", null, "", null);
   }
 }

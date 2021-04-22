@@ -13,36 +13,55 @@ package alluxio.table.under.gdc;
 
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
-
 import com.google.common.collect.ImmutableMap;
-import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class GDCDatabaseTest {
 
-  private static final String DB_NAME = "sds_test2";
+  private static final String DB_NAME = "test";
+  private static final Map<String, String> CONF = new HashMap<>();
 
-  @Test
-  public void getTableNames() throws IOException {
-    UdbConfiguration mUdbConfiguration = new UdbConfiguration(ImmutableMap.of());
-    UdbContext mUdbContext = new UdbContext(null, null, "gdc", "null", DB_NAME, DB_NAME);
-    GDCDatabase db = GDCDatabase.create(mUdbContext, mUdbConfiguration);
+  @Rule
+  public ExpectedException mExpection = ExpectedException.none();
 
-    List<String> tableNames = db.getTableNames();
-    Assert.assertNotEquals(0, tableNames.size());
-    Assert.assertTrue(tableNames.contains("test"));
+  private UdbContext mUdbContext;
+  private UdbConfiguration mUdbConf;
+
+  @Before
+  public void before() {
+    mUdbContext =
+            new UdbContext(null, null, "hive", "thrift://not_running:9083", DB_NAME, DB_NAME);
+    mUdbConf = new UdbConfiguration(CONF);
   }
 
   @Test
-  public void tempForDbInfo() throws IOException {
-    UdbConfiguration mUdbConfiguration = new UdbConfiguration(ImmutableMap.of());
-    UdbContext mUdbContext = new UdbContext(null, null, "gdc", "null", DB_NAME, DB_NAME);
-    GDCDatabase db = GDCDatabase.create(mUdbContext, mUdbConfiguration);
-
-    db.getDatabaseInfo();
+  public void create() {
+    assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
   }
 
+  @Test
+  public void createEmptyName() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext =
+            new UdbContext(null, null, "hive", "thrift://not_running:9083", "", DB_NAME);
+    assertEquals(DB_NAME,
+            GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
+
+  @Test
+  public void createNullName() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext =
+            new UdbContext(null, null, "hive", "thrift://not_running:9083", null, DB_NAME);
+    assertEquals(DB_NAME,
+            GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
 }
