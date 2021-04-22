@@ -82,14 +82,14 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("index file")
           .desc("Name of the index file that lists all files to be loaded")
           .build();
-  private static final Option WORKER_SET_OPTION =
+  private static final Option HOSTS_OPTION =
       Option.builder()
-          .longOpt("host")
+          .longOpt("hosts")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
-          .argName("host")
-          .desc("Worker host list separated by comma")
+          .argName("hosts")
+          .desc("A list of worker hosts separated by comma")
           .build();
 
   /**
@@ -110,7 +110,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public Options getOptions() {
     return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
         .addOption(INDEX_FILE)
-        .addOption(WORKER_SET_OPTION);
+        .addOption(HOSTS_OPTION);
   }
 
   @Override
@@ -138,8 +138,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = Collections.EMPTY_SET;
-    if (cl.hasOption(WORKER_SET_OPTION.getLongOpt())) {
-      String argOption = cl.getOptionValue(WORKER_SET_OPTION.getLongOpt()).trim();
+    if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       workerSet = Arrays.stream(StringUtils.split(argOption, ","))
           .map(str -> str.trim().toUpperCase())
           .collect(Collectors.toSet());
