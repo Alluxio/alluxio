@@ -73,9 +73,7 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
       AlluxioURI ufsUri, UnderFileSystemConfiguration conf) throws IOException {
     LOG.info("CephFS URI: {}", ufsUri.toString());
 
-    /*
-     * Create mount with auth user id
-     */
+    // Create mount with auth user id
     String userId = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
     LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_ID, userId);
     if (userId != null && userId.isEmpty()) {
