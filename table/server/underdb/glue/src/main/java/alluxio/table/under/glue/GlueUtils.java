@@ -303,6 +303,8 @@ public class GlueUtils {
 
     alluxio.grpc.table.layout.hive.Storage.Builder storageBuilder =
         alluxio.grpc.table.layout.hive.Storage.newBuilder();
+    List<String> bucketColumn = sd.getBucketColumns() == null
+        ? Collections.emptyList() : sd.getBucketColumns();
     List<Order> orderList = sd.getSortColumns();
     List<SortingColumn> sortingColumns;
     if (orderList == null) {
@@ -317,7 +319,7 @@ public class GlueUtils {
     return storageBuilder.setStorageFormat(formatBuilder.build())
         .setLocation(translator.toAlluxioPath(sd.getLocation()))
         .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(sd.getNumberOfBuckets())
-            .addAllBucketedBy(sd.getBucketColumns()).addAllSortedBy(sortingColumns).build())
+            .addAllBucketedBy(bucketColumn).addAllSortedBy(sortingColumns).build())
         .setSkewed(sd.getSkewedInfo() != null && (sd.getSkewedInfo().getSkewedColumnNames()) != null
             && !sd.getSkewedInfo().getSkewedColumnNames().isEmpty())
         .putAllSerdeParameters(sd.getParameters()).build();
