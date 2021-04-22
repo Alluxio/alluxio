@@ -17,7 +17,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import java.io.InputStream;
 import java.io.IOException;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
