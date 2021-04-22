@@ -339,7 +339,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY;
     String methodName = overwrite ? "Fuse.OpenOverwrite" : "Fuse.Open";
     return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, overwrite),
-        methodName, "path=%s,flags=%s", path, Integer.toHexString(flags));
+        methodName, "path=%s,flags=0x%x", path, flags);
   }
 
   private int openInternal(String path, FuseFileInfo fi, boolean overwrite) {
@@ -694,6 +694,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return 0;
   }
 
+  /**
+   * Truncate is not supported internally by Alluxio.
+   * Truncate is supported here only for a special overwrite case.
+   * Libfuse issues open() - truncate() to size 0 - write() new contents - release()
+   * to overwrite an existing file. Since files can be written only once,
+   * only sequentially, and never be modified in Alluxio, we delete the existing file
+   * and create a new file for writing in open() and consider truncate() to size 0 as
+   * a noop to fulfill the overwrite requirement.
+   *
+   * @param path the file to truncate
+   * @param size the size to truncate to
+   * @return 0 if succeed, error code otherwise
+   */
   @Override
   public int truncate(String path, long size) {
     LOG.debug("truncate {} to {}", path, size);
