@@ -31,7 +31,6 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
-
 import alluxio.util.io.PathUtils;
 
 import com.ceph.fs.CephFileAlreadyExistsException;
