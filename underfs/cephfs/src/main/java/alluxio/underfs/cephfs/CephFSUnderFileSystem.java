@@ -84,9 +84,9 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
     /*
      * Load a configuration file if specified
      */
-    String configfile = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, configfile);
-    if (configfile != null && !configfile.isEmpty()) {
+    if (conf.isSet(PropertyKey.UNDERFS_CEPHFS_CONF_FILE)) {
+      String configfile = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, configfile);
       mount.conf_read_file(configfile);
     }
 
