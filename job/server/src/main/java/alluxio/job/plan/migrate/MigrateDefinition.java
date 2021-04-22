@@ -165,27 +165,31 @@ public final class MigrateDefinition
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     final AlluxioURI destinationURI = new AlluxioURI(destination);
-    try {
-      try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
-        try {
-          IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
-        } catch (Throwable t) {
+    boolean retry = false;
+    do {
+      try {
+        try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
+             FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
           try {
-            out.cancel();
-          } catch (Throwable t2) {
-            t.addSuppressed(t2);
+            IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+          } catch (Throwable t) {
+            try {
+              out.cancel();
+            } catch (Throwable t2) {
+              t.addSuppressed(t2);
+            }
+            throw t;
           }
-          throw t;
+        }
+      } catch (FileAlreadyExistsException e) {
+        if (overwrite) {
+          fileSystem.delete(destinationURI);
+          retry = !retry;
+        } else {
+          throw e;
         }
       }
-    } catch (FileAlreadyExistsException e) {
-      if (overwrite) {
-        fileSystem.delete(destinationURI);
-      } else {
-        throw e;
-      }
-    }
+    } while (retry);
   }
 
   @Override
