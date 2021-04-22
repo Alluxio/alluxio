@@ -161,8 +161,7 @@ public abstract class MasterProcess implements Process {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mWebServer != null && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+          () -> isServing(), WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
