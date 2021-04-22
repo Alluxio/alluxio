@@ -429,7 +429,7 @@ $ docker run -d \
     -e ALLUXIO_JAVA_OPTS=" \
        -Dalluxio.worker.ramdisk.size=1G \
        -Dalluxio.master.hostname=localhost \
-       -Dalluxio.worker.fuse.enabled=true \
+       -Dalluxio.worker.fuse.enabled=true" \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
