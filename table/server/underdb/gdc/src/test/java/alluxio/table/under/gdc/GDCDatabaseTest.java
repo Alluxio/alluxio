@@ -19,6 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 
 public class GDCDatabaseTest {
 
-  private static final String DB_NAME = "test";
+  private static final String DB_NAME = "sds_test2";
   private static final Map<String, String> CONF = new HashMap<>();
 
   @Rule
@@ -38,8 +39,18 @@ public class GDCDatabaseTest {
   @Before
   public void before() {
     mUdbContext =
-            new UdbContext(null, null, "hive", "thrift://not_running:9083", DB_NAME, DB_NAME);
+            new UdbContext(null, null, "gdc", "thrift://not_running:9083", DB_NAME, DB_NAME);
     mUdbConf = new UdbConfiguration(CONF);
+  }
+
+  @Test
+  public void testGetDbInfo() throws IOException {
+    UdbContext udbContext =
+            new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
+    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
+    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
+
+    db.getDatabaseInfo();
   }
 
   @Test
@@ -51,7 +62,7 @@ public class GDCDatabaseTest {
   public void createEmptyName() {
     mExpection.expect(IllegalArgumentException.class);
     UdbContext udbContext =
-            new UdbContext(null, null, "hive", "thrift://not_running:9083", "", DB_NAME);
+            new UdbContext(null, null, "gdc", "thrift://not_running:9083", "", DB_NAME);
     assertEquals(DB_NAME,
             GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
   }
@@ -60,7 +71,7 @@ public class GDCDatabaseTest {
   public void createNullName() {
     mExpection.expect(IllegalArgumentException.class);
     UdbContext udbContext =
-            new UdbContext(null, null, "hive", "thrift://not_running:9083", null, DB_NAME);
+            new UdbContext(null, null, "gdc", "thrift://not_running:9083", null, DB_NAME);
     assertEquals(DB_NAME,
             GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
   }
