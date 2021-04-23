@@ -11,9 +11,12 @@
 
 package alluxio.table.under.gdc;
 
+import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
+
 import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,8 +25,6 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
 
 public class GDCDatabaseTest {
 
@@ -50,12 +51,13 @@ public class GDCDatabaseTest {
     UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
     GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
 
-    db.getDatabaseInfo();
+    DatabaseInfo dbInfo = db.getDatabaseInfo();
+    Assert.assertEquals(dbInfo.getLocation(), "alluxio-internal:" + DB_NAME);
   }
 
   @Test
   public void create() {
-    assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
+    Assert.assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
   }
 
   @Test
@@ -63,7 +65,7 @@ public class GDCDatabaseTest {
     mExpection.expect(IllegalArgumentException.class);
     UdbContext udbContext =
             new UdbContext(null, null, "gdc", "thrift://not_running:9083", "", DB_NAME);
-    assertEquals(DB_NAME,
+    Assert.assertEquals(DB_NAME,
             GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
   }
 
@@ -72,7 +74,7 @@ public class GDCDatabaseTest {
     mExpection.expect(IllegalArgumentException.class);
     UdbContext udbContext =
             new UdbContext(null, null, "gdc", "thrift://not_running:9083", null, DB_NAME);
-    assertEquals(DB_NAME,
+    Assert.assertEquals(DB_NAME,
             GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
   }
 }
