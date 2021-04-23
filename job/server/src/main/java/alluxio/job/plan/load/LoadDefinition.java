@@ -73,7 +73,11 @@ public final class LoadDefinition
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
-        workers.add(worker);
+        if (config.getWorkerSet() == null
+            || config.getWorkerSet().isEmpty()
+            || config.getWorkerSet().contains(worker.getNetAddress().getHost().toLowerCase())) {
+          workers.add(worker);
+        }
       } else {
         LOG.warn("Worker on host {} has no local job worker", worker.getNetAddress().getHost());
         missingJobWorkerHosts.add(worker.getNetAddress().getHost());
