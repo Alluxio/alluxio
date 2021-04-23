@@ -11,6 +11,7 @@
 
 package alluxio.table.under.gdc;
 
+import alluxio.grpc.table.Schema;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
@@ -108,7 +109,12 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    return null;
+    BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
+    Table table = bigQuery.getTable(mGdcDatasetName, tableName);
+    Schema schema = GDCUtils.toProtoSchema(table.getDefinition().getSchema());
+
+    return new GDCTable(tableName, schema, null, null, null, null
+    );
   }
 
   @Override
