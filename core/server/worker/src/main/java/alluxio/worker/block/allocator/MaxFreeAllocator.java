@@ -68,19 +68,7 @@ public final class MaxFreeAllocator implements Allocator {
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize,
-            BlockStoreLocation.ANY_MEDIUM);
-        if (candidateDirView != null) {
-          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
-            break;
-          }
-          // We tried the dir on this tier with max free bytes but that is not good enough.
-          // So we move on to the lower tier.
-          LOG.debug("Allocation rejected for anyTier: {}",
-                  candidateDirView.toBlockStoreLocation());
-        }
-      }
+      candidateDirView = getAvailDirInAnyTier(blockSize, skipReview, BlockStoreLocation.ANY_MEDIUM);
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
@@ -94,18 +82,7 @@ public final class MaxFreeAllocator implements Allocator {
       }
     } else if (location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(
             location.mediumType()))) {
-      for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize, location.mediumType());
-        if (candidateDirView != null) {
-          if (skipReview || mReviewer.acceptAllocation(candidateDirView)) {
-            break;
-          }
-          // We tried the dir on this tier with max free bytes but that is not good enough.
-          // So we move on to the lower tier.
-          LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
-                  candidateDirView.toBlockStoreLocation());
-        }
-      }
+      candidateDirView = getAvailDirInAnyTier(blockSize, skipReview, location.mediumType());
     } else {
       // For allocation in a specific directory, we are not checking the reviewer,
       // because we do not want the reviewer to reject it.
@@ -117,6 +94,33 @@ public final class MaxFreeAllocator implements Allocator {
     }
 
     return candidateDirView;
+  }
+
+  /**
+   * Find available dir in tiers for a block with blockSize.
+   *
+   * @param blockSize  the requested block size
+   * @param skipReview wether need to review
+   * @param mediumType the medium type to find a dir
+   * @return available dir; null if fail to find a dir
+   */
+  public StorageDirView getAvailDirInAnyTier(long blockSize, boolean skipReview,
+                                             String mediumType) {
+    StorageDirView finalCandidate = null;
+    for (StorageTierView tierView : mMetadataView.getTierViews()) {
+      StorageDirView currentCandidate = getCandidateDirInTier(tierView, blockSize, mediumType);
+      if (currentCandidate != null) {
+        finalCandidate = currentCandidate;
+        if (skipReview || mReviewer.acceptAllocation(currentCandidate)) {
+          break;
+        }
+        // We tried the dir on this tier with max free bytes but that is not good enough.
+        // So we move on to the lower tier.
+        LOG.debug("Allocation rejected for anyTier: {}",
+                currentCandidate.toBlockStoreLocation());
+      }
+    }
+    return finalCandidate;
   }
 
   /**
