@@ -64,7 +64,6 @@ describe('Configuration', () => {
 
     it('Searches data with valid search key', () => {
       shallowWrapper.setState({ searchConfig: 'alluxio.' });
-      //expect(shallowWrapper.find('filtered-data-body'));
       expect(
         shallowWrapper
           .find('Table')
