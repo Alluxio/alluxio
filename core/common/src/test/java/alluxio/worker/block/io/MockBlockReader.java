@@ -32,6 +32,7 @@ public final class MockBlockReader extends BlockReader {
    */
   public MockBlockReader(byte[] bytes) {
     mBytes = bytes;
+    mClosed = false;
   }
 
   @Override

@@ -18,8 +18,10 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockWorker;
@@ -38,7 +40,7 @@ import java.util.Random;
  */
 public class BlockWorkerDataReaderTest {
   private static final long BLOCK_ID = 1L;
-  private static final int CHUNK_SIZE = 1024;
+  private static final int CHUNK_SIZE = 128;
   private static final Random RANDOM = new Random();
 
   private BlockWorker mBlockWorker;
@@ -81,5 +83,42 @@ public class BlockWorkerDataReaderTest {
     Assert.assertTrue(blockReaderTwo.isClosed());
     dataReader.close();
     Assert.assertTrue(blockReader.isClosed());
+  }
+
+  @Test
+  public void readChunkFullFile() throws Exception {
+    int len = CHUNK_SIZE * 2;
+    byte[] bytes = BufferUtils.getIncreasingByteArray(len);
+    MockBlockReader blockReader = new MockBlockReader(bytes);
+    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
+        .thenReturn(blockReader);
+    DataReader dataReader = mDataReaderFactory.create(0, len);
+    validateBuffer(dataReader.readChunk(), 0, CHUNK_SIZE);
+    Assert.assertEquals(CHUNK_SIZE, dataReader.pos());
+    validateBuffer(dataReader.readChunk(), CHUNK_SIZE, len);
+    Assert.assertEquals(len, dataReader.pos());
+    dataReader.close();
+  }
+
+  @Test
+  public void readChunkPartial() throws Exception {
+    int len = CHUNK_SIZE * 5;
+    byte[] bytes = BufferUtils.getIncreasingByteArray(len);
+    MockBlockReader blockReader = new MockBlockReader(bytes);
+    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
+        .thenReturn(blockReader);
+    int start = len / 5 * 2;
+    int end = len / 5 * 4;
+    DataReader dataReader = mDataReaderFactory.create(start, end);
+    for (int s = start; s < end; s += CHUNK_SIZE) {
+      int currentLen = Math.min(CHUNK_SIZE, end - s);
+      validateBuffer(dataReader.readChunk(), s, currentLen);
+    }
+  }
+
+  private void validateBuffer(DataBuffer buffer, int start, int len) {
+    byte[] bytes = new byte[buffer.readableBytes()];
+    buffer.readBytes(bytes, 0, buffer.readableBytes());
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, len, bytes));
   }
 }

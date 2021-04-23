@@ -328,6 +328,7 @@ public final class BufferUtils {
       return false;
     }
     buf.rewind();
+    int wvl = buf.remaining();
     if (buf.remaining() != len) {
       return false;
     }
