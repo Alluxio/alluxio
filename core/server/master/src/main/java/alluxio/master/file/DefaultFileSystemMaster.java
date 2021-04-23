@@ -2087,7 +2087,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     long length = inodeFile.getLength();
     if (length == 0) {
-      return 100;
+      return 0;
     }
 
     long inMemoryLength = 0;
@@ -2114,7 +2114,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     long length = inodeFile.getLength();
     if (length == 0) {
-      return 100;
+      return 0;
     }
 
     long inAlluxioLength = 0;
