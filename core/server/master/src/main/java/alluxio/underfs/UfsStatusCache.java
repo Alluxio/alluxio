@@ -14,7 +14,6 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
@@ -33,8 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -205,7 +202,6 @@ public class UfsStatusCache {
    * parameter is true, fetch them from the UFS and store them in the cache. Otherwise, simply
    * return null.
    *
-   * @param rpcContext the rpcContext of the source of this call
    * @param path the Alluxio path to get the children of
    * @param mountTable the Alluxio mount table
    * @param useFallback whether or not to fall back to calling the UFS
@@ -214,29 +210,22 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable, boolean useFallback)
+  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable,
+      boolean useFallback)
       throws InterruptedException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
-      while (true) {
-        try {
-          return prefetchJob.get(100, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException e) {
-          if (rpcContext != null) {
-            rpcContext.throwIfCancelled();
-          }
-        } catch (InterruptedException | ExecutionException e) {
-          LogUtils.warnWithException(LOG,
-              "Failed to get result for prefetch job on alluxio path {}", path, e);
-          if (e instanceof InterruptedException) {
-            Thread.currentThread().interrupt();
-            throw (InterruptedException) e;
-          }
-          break;
-        } finally {
-          mActivePrefetchJobs.remove(path);
+      try {
+        return prefetchJob.get();
+      } catch (InterruptedException | ExecutionException e) {
+        LogUtils.warnWithException(LOG, "Failed to get result for prefetch job on alluxio path {}",
+            path, e);
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+          throw (InterruptedException) e;
         }
+      } finally {
+        mActivePrefetchJobs.remove(path);
       }
     }
     Collection<UfsStatus> children = getChildren(path);
@@ -256,17 +245,15 @@ public class UfsStatusCache {
    * Will always return statuses from the UFS whether or not they exist in the cache, and whether
    * a prefetch job was scheduled or not.
    *
-   * @param rpcContext the rpcContext of the source of this call
    * @param path the Alluxio path
    * @param mountTable the Alluxio mount table
    * @return child UFS statuses of the alluxio path
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable)
+  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InterruptedException, InvalidPathException {
-    return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
+    return fetchChildrenIfAbsent(path, mountTable, true);
   }
 
   /**
@@ -322,8 +309,8 @@ public class UfsStatusCache {
   /**
    * Submit a request to asynchronously fetch the statuses corresponding to a given directory.
    *
-   * Retrieve any fetched statuses by calling
-   * {@link #fetchChildrenIfAbsent(RpcContext, AlluxioURI, MountTable)} with the same Alluxio path.
+   * Retrieve any fetched statuses by calling {@link #fetchChildrenIfAbsent(AlluxioURI, MountTable)}
+   * with the same Alluxio path.
    *
    * If no {@link ExecutorService} was provided to this object before instantiation, this method is
    * a no-op.
