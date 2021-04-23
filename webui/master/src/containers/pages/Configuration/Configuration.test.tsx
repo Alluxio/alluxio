@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { configure, shallow, ShallowWrapper } from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
@@ -19,6 +19,7 @@ import { initialState } from '../../../store';
 import { AllProps, ConfigurationPresenter } from './Configuration';
 import { routePaths } from '../../../constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { IConfig } from '../../../store/config/types';
 
 configure({ adapter: new Adapter() });
 
@@ -29,8 +30,11 @@ describe('Configuration', () => {
   beforeAll(() => {
     history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.config);
+
+    const testData: IConfig = { configuration: [{ left: 'alluxio.', middle: '', right: '' }], whitelist: ['/'] };
+
     props = {
-      data: initialState.config.data,
+      data: testData,
       class: '',
       errors: createAlertErrors(false),
       loading: false,
@@ -60,15 +64,28 @@ describe('Configuration', () => {
 
     it('Searches data with valid search key', () => {
       shallowWrapper.setState({ searchConfig: 'alluxio.' });
-      expect(shallowWrapper.find('filtered-data-body'));
+      //expect(shallowWrapper.find('filtered-data-body'));
+      expect(
+        shallowWrapper
+          .find('Table')
+          .first()
+          .dive()
+          .find('#filtered-data-body'),
+      ).toHaveLength(1);
     });
 
     it('Searches data with invalid search key', () => {
       const randomStr = Math.random()
         .toString(36)
-        .substring(20);
+        .substring(7);
       shallowWrapper.setState({ searchConfig: randomStr });
-      expect(shallowWrapper.find('no-data-body'));
+      expect(
+        shallowWrapper
+          .find('Table')
+          .first()
+          .dive()
+          .find('#no-data-body'),
+      ).toHaveLength(1);
     });
   });
 });

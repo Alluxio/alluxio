@@ -50,12 +50,22 @@ exports[`Configuration Shallow component Matches snapshot 1`] = `
             </tr>
           </thead>
           <tbody
-            id="no-data-body"
+            id="filtered-data-body"
           >
-            <tr>
+            <tr
+              key="alluxio."
+            >
               <td>
-                 Sorry, no matching properties. 
+                <pre
+                  className="mb-0"
+                >
+                  <code>
+                    alluxio.
+                  </code>
+                </pre>
               </td>
+              <td />
+              <td />
             </tr>
           </tbody>
         </Table>
@@ -71,7 +81,15 @@ exports[`Configuration Shallow component Matches snapshot 1`] = `
           responsiveTag="div"
           tag="table"
         >
-          <tbody />
+          <tbody>
+            <tr
+              key="/"
+            >
+              <td>
+                /
+              </td>
+            </tr>
+          </tbody>
         </Table>
       </div>
     </div>
