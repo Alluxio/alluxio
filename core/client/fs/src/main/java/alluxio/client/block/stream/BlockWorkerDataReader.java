@@ -83,9 +83,12 @@ public final class BlockWorkerDataReader implements DataReader {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
+    }
+    if (mReader != null) {
+      mReader.close();
     }
     mClosed = true;
   }
@@ -102,8 +105,6 @@ public final class BlockWorkerDataReader implements DataReader {
     private final boolean mIsPositionShort;
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private BlockReadRequest mBlockReadRequest;
-    private boolean mClosed;
-    private BlockReader mReader;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -117,7 +118,6 @@ public final class BlockWorkerDataReader implements DataReader {
         long chunkSize, InStreamOptions options)  {
       mBlockId = blockId;
       mChunkSize = chunkSize;
-      mClosed = false;
       mIsPromote = options.getOptions().getReadType() == ReadPType.CACHE_PROMOTE;
       mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
@@ -129,8 +129,8 @@ public final class BlockWorkerDataReader implements DataReader {
       mBlockReadRequest = new BlockReadRequest(mBlockId, offset, offset + len, mChunkSize,
           mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
-        mReader = mBlockWorker.createBlockReader(mBlockReadRequest);
-        return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
+        BlockReader reader = mBlockWorker.createBlockReader(mBlockReadRequest);
+        return new BlockWorkerDataReader(reader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
       }
@@ -142,15 +142,7 @@ public final class BlockWorkerDataReader implements DataReader {
     }
 
     @Override
-    public void close() throws IOException {
-      if (mClosed) {
-        return;
-      }
-      if (mReader != null) {
-        mReader.close();
-      }
-      mClosed = true;
-    }
+    public void close() throws IOException {}
   }
 }
 
