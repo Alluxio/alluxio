@@ -118,6 +118,7 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public DatabaseInfo getDatabaseInfo() throws IOException {
+    // TODO(jenoudet): not very straightforward translation, might need to be revisited
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Dataset dataset = bigQuery.getDataset(mGdcDatasetName);
     String comments = dataset.getDescription();
