@@ -57,5 +57,18 @@ describe('Configuration', () => {
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });
+
+    it('Searches data with valid search key', () => {
+      shallowWrapper.setState({ searchConfig: 'alluxio.' });
+      expect(shallowWrapper.find('filtered-data-body'));
+    });
+
+    it('Searches data with invalid search key', () => {
+      const randomStr = Math.random()
+        .toString(36)
+        .substring(20);
+      shallowWrapper.setState({ searchConfig: randomStr });
+      expect(shallowWrapper.find('no-data-body'));
+    });
   });
 });
