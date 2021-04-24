@@ -9,28 +9,30 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.worker.block.stream;
 
-import static org.mockito.ArgumentMatchers.any;
-
+import alluxio.client.block.stream.BlockWorkerDataReader;
+import alluxio.client.block.stream.DataReader;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.NoopBlockWorker;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.MockBlockReader;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Random;
 
@@ -42,12 +44,12 @@ public class BlockWorkerDataReaderTest {
   private static final int CHUNK_SIZE = 128;
   private static final Random RANDOM = new Random();
 
-  private BlockWorker mBlockWorker;
+  private MockBlockWorker mBlockWorker;
   private BlockWorkerDataReader.Factory mDataReaderFactory;
 
   @Before
   public void before() throws Exception {
-    mBlockWorker = Mockito.mock(BlockWorker.class);
+    mBlockWorker = new MockBlockWorker();
     URIStatus dummyStatus = new URIStatus(new FileInfo()
         .setBlockIds(Collections.singletonList(BLOCK_ID)));
     AlluxioConfiguration conf
@@ -63,21 +65,19 @@ public class BlockWorkerDataReaderTest {
     byte[] bytes = new byte[128];
     RANDOM.nextBytes(bytes);
 
-    MockBlockReader blockReader = new MockBlockReader(bytes);
-    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
-        .thenReturn(blockReader);
+    BlockReader blockReader = new MockBlockReader(bytes);
+    mBlockWorker.setBlockReader(blockReader);
     DataReader dataReader = mDataReaderFactory.create(1, 100);
 
-    MockBlockReader blockReaderTwo = new MockBlockReader(bytes);
-    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
-        .thenReturn(blockReaderTwo);
+    BlockReader blockReader2 = new MockBlockReader(bytes);
+    mBlockWorker.setBlockReader(blockReader2);
     DataReader dataReaderTwo = mDataReaderFactory.create(10, 30);
 
     Assert.assertFalse(blockReader.isClosed());
-    Assert.assertFalse(blockReaderTwo.isClosed());
+    Assert.assertFalse(blockReader2.isClosed());
     dataReaderTwo.close();
     Assert.assertFalse(blockReader.isClosed());
-    Assert.assertTrue(blockReaderTwo.isClosed());
+    Assert.assertTrue(blockReader2.isClosed());
     dataReader.close();
     Assert.assertTrue(blockReader.isClosed());
   }
@@ -86,9 +86,8 @@ public class BlockWorkerDataReaderTest {
   public void readChunkFullFile() throws Exception {
     int len = CHUNK_SIZE * 2;
     byte[] bytes = BufferUtils.getIncreasingByteArray(len);
-    MockBlockReader blockReader = new MockBlockReader(bytes);
-    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
-        .thenReturn(blockReader);
+    BlockReader blockReader = new MockBlockReader(bytes);
+    mBlockWorker.setBlockReader(blockReader);
     DataReader dataReader = mDataReaderFactory.create(0, len);
     validateBuffer(dataReader.readChunk(), 0, CHUNK_SIZE);
     Assert.assertEquals(CHUNK_SIZE, dataReader.pos());
@@ -101,9 +100,8 @@ public class BlockWorkerDataReaderTest {
   public void readChunkPartial() throws Exception {
     int len = CHUNK_SIZE * 5;
     byte[] bytes = BufferUtils.getIncreasingByteArray(len);
-    MockBlockReader blockReader = new MockBlockReader(bytes);
-    Mockito.when(mBlockWorker.createBlockReader(any(BlockReadRequest.class)))
-        .thenReturn(blockReader);
+    BlockReader blockReader = new MockBlockReader(bytes);
+    mBlockWorker.setBlockReader(blockReader);
     int start = len / 5 * 2;
     int end = len / 5 * 4;
     DataReader dataReader = mDataReaderFactory.create(start, end);
@@ -117,5 +115,19 @@ public class BlockWorkerDataReaderTest {
     byte[] bytes = new byte[buffer.readableBytes()];
     buffer.readBytes(bytes, 0, buffer.readableBytes());
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, len, bytes));
+  }
+
+  public class MockBlockWorker extends NoopBlockWorker {
+    private BlockReader mBlockReader;
+
+    @Override
+    public BlockReader createBlockReader(BlockReadRequest request)
+        throws BlockDoesNotExistException, IOException {
+      return mBlockReader;
+    }
+
+    public void setBlockReader(BlockReader reader) {
+      mBlockReader = reader;
+    }
   }
 }
