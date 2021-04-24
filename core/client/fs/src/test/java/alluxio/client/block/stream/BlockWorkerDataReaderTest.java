@@ -95,7 +95,7 @@ public class BlockWorkerDataReaderTest {
     DataReader dataReader = mDataReaderFactory.create(0, len);
     validateBuffer(dataReader.readChunk(), 0, CHUNK_SIZE);
     Assert.assertEquals(CHUNK_SIZE, dataReader.pos());
-    validateBuffer(dataReader.readChunk(), CHUNK_SIZE, len);
+    validateBuffer(dataReader.readChunk(), CHUNK_SIZE, CHUNK_SIZE);
     Assert.assertEquals(len, dataReader.pos());
     dataReader.close();
   }
