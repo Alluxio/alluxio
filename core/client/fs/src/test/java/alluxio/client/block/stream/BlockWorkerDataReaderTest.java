@@ -13,7 +13,6 @@ package alluxio.client.block.stream;
 
 import static org.mockito.ArgumentMatchers.any;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -49,16 +48,14 @@ public class BlockWorkerDataReaderTest {
   @Before
   public void before() throws Exception {
     mBlockWorker = Mockito.mock(BlockWorker.class);
-    FileSystemContext context = Mockito.mock(FileSystemContext.class);
-    Mockito.when(context.getProcessLocalWorker()).thenReturn(mBlockWorker);
-
     URIStatus dummyStatus = new URIStatus(new FileInfo()
         .setBlockIds(Collections.singletonList(BLOCK_ID)));
     AlluxioConfiguration conf
         = new InstancedConfiguration(ConfigurationUtils.defaults());
     InStreamOptions options = new InStreamOptions(dummyStatus,
         FileSystemOptions.openFileDefaults(conf), conf);
-    mDataReaderFactory = new BlockWorkerDataReader.Factory(context, BLOCK_ID, CHUNK_SIZE, options);
+    mDataReaderFactory = new BlockWorkerDataReader
+        .Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
   }
 
   @Test

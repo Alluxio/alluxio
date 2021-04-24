@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.metrics.MetricKey;
@@ -109,19 +108,20 @@ public final class BlockWorkerDataReader implements DataReader {
     /**
      * Creates an instance of {@link Factory}.
      *
-     * @param context the file system context
+     * @param blockWorker the block worker
      * @param blockId the block ID
      * @param chunkSize chunk size in bytes
      * @param options the instream options
      */
-    public Factory(FileSystemContext context, long blockId,
+    public Factory(BlockWorker blockWorker, long blockId,
         long chunkSize, InStreamOptions options)  {
+      Preconditions.checkNotNull(blockWorker);
       mBlockId = blockId;
+      mBlockWorker = blockWorker;
       mChunkSize = chunkSize;
       mIsPromote = options.getOptions().getReadType() == ReadPType.CACHE_PROMOTE;
       mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
-      mBlockWorker = context.getProcessLocalWorker();
     }
 
     @Override
