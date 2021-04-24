@@ -11,6 +11,7 @@
 
 package alluxio.table.under.gdc;
 
+import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Schema;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
@@ -21,8 +22,10 @@ import alluxio.table.common.udb.UnderDatabase;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableId;
 import com.google.common.annotations.VisibleForTesting;
 
 import com.google.gson.Gson;
@@ -35,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Google Data Catalog database implementation.
@@ -112,8 +116,23 @@ public class GDCDatabase implements UnderDatabase {
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Table table = bigQuery.getTable(mGdcDatasetName, tableName);
     Schema schema = GDCUtils.toProtoSchema(table.getDefinition().getSchema());
+    List<String> columnNames = schema.getColsList().stream().map(FieldSchema::getName)
+        .collect(Collectors.toList());
 
-    return new GDCTable(tableName, schema, null, null, null, null
+    List<String> partitions;
+    try {
+      partitions = bigQuery.listPartitions(TableId.of(mGdcProjectId, mGdcDatasetName, tableName));
+      partitions.forEach(partition -> System.out.println(partition));
+    } catch (BigQueryException e) {
+      LOG.debug("table '" + tableName + "' does not have partitions");
+    }
+
+    return new GDCTable(tableName,
+        schema,
+        null,
+        schema.getColsList(),
+        null,
+        null
     );
   }
 

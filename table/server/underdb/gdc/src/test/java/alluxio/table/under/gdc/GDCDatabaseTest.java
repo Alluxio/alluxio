@@ -11,7 +11,6 @@
 
 package alluxio.table.under.gdc;
 
-import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 
@@ -22,7 +21,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,16 +42,26 @@ public class GDCDatabaseTest {
     mUdbConf = new UdbConfiguration(CONF);
   }
 
-  @Test
-  public void testGetDbInfo() throws IOException {
-    UdbContext udbContext =
-            new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
-    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
-    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
-
-    DatabaseInfo dbInfo = db.getDatabaseInfo();
-    Assert.assertEquals(dbInfo.getLocation(), "alluxio-internal:" + DB_NAME);
-  }
+//  @Test
+//  public void testGetDbInfo() throws IOException {
+//    UdbContext udbContext =
+//            new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
+//    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
+//    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
+//
+//    DatabaseInfo dbInfo = db.getDatabaseInfo();
+//    Assert.assertEquals(dbInfo.getLocation(), "alluxio-internal:" + DB_NAME);
+//  }
+//
+//  @Test
+//  public void testGetTable() throws IOException {
+//    UdbContext udbContext =
+//        new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
+//    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
+//    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
+//
+//    db.getTable("test");
+//  }
 
   @Test
   public void create() {
