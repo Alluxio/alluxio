@@ -12,51 +12,42 @@
 package alluxio.stress.cli;
 
 import alluxio.ClientContext;
-import alluxio.cli.ValidationUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.worker.RpcParameters;
 import alluxio.stress.worker.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
-import alluxio.stress.worker.IOTaskResult;
-import alluxio.stress.worker.UfsIOParameters;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import alluxio.worker.block.BlockStoreLocation;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.UnmodifiableLazyStringList;
-import org.apache.commons.collections.list.UnmodifiableList;
-import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * A benchmark tool measuring the IO to UFS.
+ * A tool to simulate RPC
  * */
-public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
-  private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
+public class RpcBench extends Benchmark<RpcTaskResult> {
+  private static final Logger LOG = LoggerFactory.getLogger(RpcBench.class);
 
   @ParametersDelegate
   private RpcParameters mParameters = new RpcParameters();
@@ -133,7 +124,113 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    mainInternal(args, new RegisterWorkerBench());
+    mainInternal(args, new RpcBench());
+  }
+
+  private RpcTaskResult fakeRegisterWorker(BlockMasterClient client, Instant endTime) {
+    RpcTaskResult result = new RpcTaskResult();
+
+    // Stop after certain time has elapsed
+    int startPort = 9999;
+    long i = 0;
+    while (Instant.now().isBefore(endTime)) {
+      Instant s = Instant.now();
+
+      // TODO(jiacheng): better host address
+      try {
+        WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
+        long workerId = client.getId(address);
+        LOG.info("Got worker ID {}", workerId);
+
+        List<String> tierAliases = new ArrayList<>();
+        tierAliases.add("MEM");
+        long cap = 20L * 1024 * 1024 * 1024; // 20GB
+        Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
+        Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
+
+        client.register(workerId,
+                tierAliases,
+                capMap,
+                usedMap,
+                ImmutableMap.of(new BlockStoreLocation("MEM", 0, "MEM"),
+                        mBlockIds),
+                ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
+                ImmutableList.of()); // extra config
+
+        Instant e = Instant.now();
+        RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
+        result.addPoint(p);
+        LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
+      } catch (Exception e) {
+        LOG.error("Failed to run iter {}", i, e);
+        result.addError(e.getMessage());
+      }
+    }
+
+    return result;
+  }
+
+  // TODO(jiacheng): test this
+  private RpcTaskResult fakeBlockHeartbeat(BlockMasterClient client, Instant endTime) {
+    RpcTaskResult result = new RpcTaskResult();
+    // prepare a worker ID
+    int startPort = 9999;
+    long workerId = -1;
+    try {
+      WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
+      workerId = client.getId(address);
+      LOG.info("Got worker ID {}", workerId);
+    } catch (Exception e) {
+      LOG.error("Failed to prepare worker ID", e);
+      result.addError(e.getMessage());
+      return result;
+    }
+
+    // Register worker
+    List<String> tierAliases = new ArrayList<>();
+    tierAliases.add("MEM");
+    long cap = 20L * 1024 * 1024 * 1024; // 20GB
+    Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
+    Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
+    BlockStoreLocation mem = new BlockStoreLocation("MEM", 0, "MEM");
+    try {
+      client.register(workerId,
+              tierAliases,
+              capMap,
+              usedMap,
+              ImmutableMap.of(mem, new ArrayList<>()),
+              ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
+              ImmutableList.of()); // extra config
+    } catch (Exception e) {
+      LOG.error("Failed to register worker", e);
+      result.addError(e.getMessage());
+      return result;
+    }
+
+    // Keep sending heartbeats
+    long i = 0;
+    // TODO(jiacheng): wasted a lot of time on the preparation
+    while (Instant.now().isBefore(endTime)) {
+      Instant s = Instant.now();
+      try {
+        client.heartbeat(workerId,
+                capMap,
+                usedMap,
+                new ArrayList<>(), // no removed blocks
+                ImmutableMap.of(mem, mBlockIds), // added blocks
+                ImmutableMap.of(), // lost storage
+                new ArrayList<>()); // metrics
+        Instant e = Instant.now();
+        RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
+        result.addPoint(p);
+        LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
+      } catch (Exception e) {
+        LOG.error("Failed to run blockHeartbeat {}", i, e);
+        result.addError(e.getMessage());
+      }
+    }
+
+    return result;
   }
 
   private RpcTaskResult runRPC() throws Exception {
@@ -146,40 +243,26 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
     Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
     LOG.info("Start time {}, end time {}", startTime, endTime);
 
-    long i = 0;
     RpcTaskResult result = new RpcTaskResult();
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
 
-    // Stop after certain time has elapsed
-    int startPort = 9999;
-    while (Instant.now().isBefore(endTime)) {
-      Instant s = Instant.now();
-
-      // TODO(jiacheng): better host address
-      WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
-      long workerId = client.getId(address);
-      LOG.info("Got worker ID {}", workerId);
-
-      List<String> tierAliases = new ArrayList<>();
-      tierAliases.add("MEM");
-      long cap = 20L * 1024 * 1024 * 1024; // 20GB
-      Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
-      Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
-
-      client.register(workerId,
-              tierAliases,
-              capMap,
-              usedMap,
-              ImmutableMap.of(new BlockStoreLocation("MEM", 0, "MEM"),
-                      mBlockIds),
-              ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
-              ImmutableList.of()); // extra config
-      Instant e = Instant.now();
-      RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
-      result.addPoint(p);
-      LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
+    String rpcName = mParameters.mRpc;
+    Supplier<RpcTaskResult> rpcFunc = null;
+    switch (rpcName) {
+      case "registerWorker":
+        rpcFunc = () -> fakeRegisterWorker(client, endTime);
+        break;
+      case "blockHeartbeat":
+        rpcFunc = () -> fakeBlockHeartbeat(client, endTime);
+        break;
+      default:
+        throw new UnsupportedOperationException(String.format("RPC %s is not supported", rpcName));
     }
+
+    // Stop after certain time has elapsed
+    result.merge(rpcFunc.get());
+
     LOG.info("Run finished");
     return result;
   }

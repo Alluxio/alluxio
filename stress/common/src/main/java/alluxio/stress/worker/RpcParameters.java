@@ -23,5 +23,10 @@ public class RpcParameters extends Parameters {
   @Parameter(names = {"--duration"},
           description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
+
+  @Parameter(names = {"--rpc"},
+          description = "The RPC to simulate")
+  public String mRpc = "registerWorker";
+
 }
 
