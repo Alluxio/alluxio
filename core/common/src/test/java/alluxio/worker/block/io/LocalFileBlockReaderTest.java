@@ -100,11 +100,6 @@ public class LocalFileBlockReaderTest {
     // Read entire block by setting the length to be block size.
     buffer = mReader.read(0, TEST_BLOCK_SIZE);
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
-
-    // Read entire block by setting the length to be -1
-    int length = -1;
-    buffer = mReader.read(0, length);
-    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
   /**
