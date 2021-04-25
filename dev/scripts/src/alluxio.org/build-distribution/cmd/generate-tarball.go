@@ -216,6 +216,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/fuse/bin/alluxio-fuse",
 		fmt.Sprintf("lib/alluxio-underfs-abfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
+		fmt.Sprintf("lib/alluxio-underfs-cephfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cephfs-hadoop-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-cosn-%v.jar", version),
