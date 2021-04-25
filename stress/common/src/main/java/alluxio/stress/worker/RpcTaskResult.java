@@ -3,6 +3,9 @@ package alluxio.stress.worker;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
+import alluxio.util.JsonSerializable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,10 +113,10 @@ public class RpcTaskResult implements TaskResult {
     }
   }
 
-  public static class Point {
-    long mDurationMs;
+  public static class Point implements JsonSerializable {
+    public long mDurationMs;
 
-    public Point(long ms) {
+    public Point(@JsonProperty("duration") long ms) {
       mDurationMs = ms;
     }
 

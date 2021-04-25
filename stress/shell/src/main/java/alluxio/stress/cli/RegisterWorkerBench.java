@@ -20,6 +20,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.stress.worker.RpcParameters;
 import alluxio.stress.worker.RpcTaskResult;
 import alluxio.util.FormatUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.UfsIOParameters;
@@ -47,6 +48,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -91,6 +93,8 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
         }, pool);
         futures.add(future);
       }
+      LOG.info("{} jobs submitted", futures.size());
+
       // Collect the result
       CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
       List<RpcTaskResult> results = CompletableFuture.allOf(cfs)
@@ -98,6 +102,7 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
                       .map(CompletableFuture::join)
                       .collect(Collectors.toList())
               ).get();
+      LOG.info("{} futures collected", results.size());
       return RpcTaskResult.reduceList(results);
     } catch (Exception e) {
       LOG.error("Failed to execute RPC in pool", e);
@@ -116,11 +121,9 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
 
   @Override
   public void prepare() {
-    Random rand = new Random();
-
     // Generate this may random block IDs
     for (int i = 0; i < mParameters.mBlockCount; i++) {
-      long r = rand.nextLong();
+      long r = ThreadLocalRandom.current().nextLong(0, 1_000_000_000L);
       mBlockIds.add(r);
     }
     LOG.info("Generated {} random block IDs", mBlockIds.size());
@@ -148,12 +151,15 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
 
-    // TODO(jiacheng): submit to pool
+    // Stop after certain time has elapsed
+    int startPort = 9999;
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
 
-      // TODO(jiacheng): better worker id
-      long randId = new Random().nextLong();
+      // TODO(jiacheng): better host address
+      WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
+      long workerId = client.getId(address);
+      LOG.info("Got worker ID {}", workerId);
 
       List<String> tierAliases = new ArrayList<>();
       tierAliases.add("MEM");
@@ -161,7 +167,7 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
       Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
       Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
 
-      client.register(randId,
+      client.register(workerId,
               tierAliases,
               capMap,
               usedMap,
