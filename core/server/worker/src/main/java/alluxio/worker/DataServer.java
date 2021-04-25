@@ -11,45 +11,14 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
-
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Defines how to interact with a server running the data protocol.
  */
 public interface DataServer extends Closeable {
-
-  /**
-   * Factory for {@link DataServer}.
-   */
-  @ThreadSafe
-  class Factory {
-
-    private Factory() {} // prevent instantiation
-
-    /**
-     * Factory for {@link DataServer}.
-     *
-     * @param hostName the host name of the data server
-     * @param dataAddress the address of the data server
-     * @param worker the Alluxio worker handle
-     * @return the generated {@link DataServer}
-     */
-    public static DataServer create(final String hostName,
-        final SocketAddress dataAddress, final WorkerProcess worker) {
-      return CommonUtils.createNewClassInstance(
-          ServerConfiguration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
-          new Class[] {String.class, SocketAddress.class, WorkerProcess.class},
-          new Object[] {hostName, dataAddress, worker});
-    }
-  }
 
   /**
    * Gets the actual bind socket address. It is either a {@link InetSocketAddress} or a

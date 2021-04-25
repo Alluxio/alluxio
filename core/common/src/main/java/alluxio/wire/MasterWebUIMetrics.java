@@ -41,6 +41,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
   private List<TimeSeries> mTimeSeriesMetrics;
+  private List<JournalDiskInfo> mJournalDiskMetrics;
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
@@ -333,6 +334,13 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public List<TimeSeries> getTimeSeriesMetrics() {
     return mTimeSeriesMetrics;
+  }
+
+  /**
+   * @return the journal disk metrics
+   */
+  public List<JournalDiskInfo> getJournalDiskMetrics() {
+    return mJournalDiskMetrics;
   }
 
   /**
@@ -657,6 +665,15 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public MasterWebUIMetrics setTimeSeriesMetrics(List<TimeSeries> timeSeries) {
     mTimeSeriesMetrics = timeSeries;
+    return this;
+  }
+
+  /**
+   * @param journalDiskMetrics the disk metrics to set
+   * @return the updated {@link MasterWebUIMetrics} object
+   */
+  public MasterWebUIMetrics setJournalDiskMetrics(List<JournalDiskInfo> journalDiskMetrics) {
+    mJournalDiskMetrics = journalDiskMetrics;
     return this;
   }
 

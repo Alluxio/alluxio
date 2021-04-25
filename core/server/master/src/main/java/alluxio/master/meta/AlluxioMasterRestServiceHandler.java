@@ -33,8 +33,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
@@ -318,6 +316,8 @@ public final class AlluxioMasterRestServiceHandler {
         response.setDiskCapacity("UNKNOWN").setDiskUsedCapacity("UNKNOWN")
             .setDiskFreeCapacity("UNKNOWN");
       }
+      mMetaMaster.getJournalSpaceMonitor().map(monitor ->
+          response.setJournalDiskWarnings(monitor.getJournalDiskWarnings()));
 
       return response;
     }, ServerConfiguration.global());
@@ -458,8 +458,7 @@ public final class AlluxioMasterRestServiceHandler {
           response.setPathInfos(pathInfos);
         }
 
-        filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.defaults());
       } catch (FileDoesNotExistException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
         return response;
@@ -1041,6 +1040,15 @@ public final class AlluxioMasterRestServiceHandler {
       response.setUfsOps(ufsOpsMap);
 
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
+      mMetaMaster.getJournalSpaceMonitor().map(monitor -> {
+        try {
+          return response.setJournalDiskMetrics(monitor.getDiskInfo());
+        } catch (IOException e) {
+          LogUtils.warnWithException(LOG,
+              "Failed to populate journal disk information for WebUI metrics.", e);
+        }
+        return response;
+      });
 
       return response;
     }, ServerConfiguration.global());

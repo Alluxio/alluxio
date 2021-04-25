@@ -83,7 +83,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTaskTest {
 
     // Validate tiers are not aligned. (It's not guaranteed but using LRU helps.)
     Assert.assertTrue(!mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-        BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false));
+        BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.NATURAL, (b) -> false));
 
     // Stop the load for swap task to continue.
     stopSimulateLoad();
@@ -91,7 +91,7 @@ public class SwapRestoreTaskTest extends BaseTierManagementTaskTest {
     // TODO(ggezer): Validate swap-restore task was activated.
     CommonUtils.waitFor("Tiers to be aligned by background swap task.",
         () -> mBlockIterator.aligned(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-            BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false),
+            BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.NATURAL, (b) -> false),
         WaitForOptions.defaults().setTimeoutMs(60000));
   }
 }

@@ -101,6 +101,10 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("create");
   }
 
+  default int utimensCallback(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    throw new UnsupportedOperationException("utimens");
+  }
+
   default FuseContext getContext() {
     // TODO: get real context
     return FuseContext.of(ByteBuffer.allocate(32));

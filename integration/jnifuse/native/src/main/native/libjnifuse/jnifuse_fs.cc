@@ -47,33 +47,47 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->fs = env->NewGlobalRef(obj);
 
   this->chmodOper = new ChmodOperation(this);
+  this->chownOper = new ChownOperation(this);
   this->createOper = new CreateOperation(this);
   this->flushOper = new FlushOperation(this);
   this->getattrOper = new GetattrOperation(this);
+  this->getxattrOper = new GetxattrOperation(this);
+  this->listxattrOper = new ListxattrOperation(this);
   this->mkdirOper = new MkdirOperation(this);
   this->openOper = new OpenOperation(this);
   this->readOper = new ReadOperation(this);
   this->readdirOper = new ReaddirOperation(this);
   this->releaseOper = new ReleaseOperation(this);
+  this->removexattrOper = new RemovexattrOperation(this);
   this->renameOper = new RenameOperation(this);
   this->rmdirOper = new RmdirOperation(this);
+  this->setxattrOper = new SetxattrOperation(this);
+  this->truncateOper = new TruncateOperation(this);
   this->unlinkOper = new UnlinkOperation(this);
+  this->utimensOper = new UtimensOperation(this);
   this->writeOper = new WriteOperation(this);
 }
 
 JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->chmodOper;
+  delete this->chownOper;
   delete this->createOper;
   delete this->flushOper;
   delete this->getattrOper;
+  delete this->getxattrOper;
+  delete this->listxattrOper;
   delete this->mkdirOper;
   delete this->openOper;
   delete this->readOper;
   delete this->readdirOper;
   delete this->releaseOper;
+  delete this->removexattrOper;
   delete this->renameOper;
   delete this->rmdirOper;
+  delete this->setxattrOper;
+  delete this->truncateOper;
   delete this->unlinkOper;
+  delete this->utimensOper;
   delete this->writeOper;
 }
 

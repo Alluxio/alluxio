@@ -272,11 +272,15 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
+    URIStatus status = rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.getStatus(path, mergedOptions);
     });
+    if (!status.isCompleted()) {
+      LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+    }
+    return status;
   }
 
   @Override

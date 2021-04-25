@@ -47,8 +47,6 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
       - name: Run tests
         id: test0
@@ -57,7 +55,7 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!shaded/hadoop,!shaded/ozone,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!table/server/underdb/hive,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/abfs,!underfs/cosn,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
           ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.5-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60

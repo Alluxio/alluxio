@@ -1094,7 +1094,7 @@ public class InodeTree implements DelegatingJournaled {
    * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {
-    return new HashSet<>(mState.getPinnedInodeFileIds());
+    return mState.getPinnedInodeFileIds();
   }
 
   /**

@@ -15,6 +15,8 @@ import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Locale;
@@ -28,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class CsvSink implements Sink {
+  private static final Logger LOG = LoggerFactory.getLogger(CsvSink.class);
   private static final int CSV_DEFAULT_PERIOD = 10;
   private static final String CSV_DEFAULT_UNIT = "SECONDS";
   private static final String CSV_DEFAULT_DIR = "/tmp/";
@@ -38,6 +41,7 @@ public class CsvSink implements Sink {
 
   private CsvReporter mReporter;
   private Properties mProperties;
+  private final File mDir;
 
   /**
    * Creates a new {@link CsvSink} with a {@link Properties} and {@link MetricRegistry}.
@@ -48,10 +52,12 @@ public class CsvSink implements Sink {
    */
   public CsvSink(Properties properties, MetricRegistry registry) {
     mProperties = properties;
+    mDir = new File(getPollDir());
+    createPollDir(mDir);
     mReporter =
         CsvReporter.forRegistry(registry).formatFor(Locale.US)
             .convertDurationsTo(TimeUnit.MILLISECONDS).convertRatesTo(TimeUnit.SECONDS)
-            .build(new File(getPollDir()));
+            .build(mDir);
     MetricsSystem.checkMinimalPollingPeriod(getPollUnit(), getPollPeriod());
   }
 
@@ -104,5 +110,20 @@ public class CsvSink implements Sink {
       unit = CSV_DEFAULT_UNIT;
     }
     return TimeUnit.valueOf(unit.toUpperCase());
+  }
+
+  /**
+   * Create the directory for CSV sink if target directory is not created.
+   *
+   * @param dir CSV target directory
+   */
+  private void createPollDir(File dir) {
+    if (!dir.exists()) {
+      try {
+        dir.mkdirs();
+      } catch (SecurityException e) {
+        LOG.warn("Fail to create directory {} for CSV sink, {}", dir, e.getMessage());
+      }
+    }
   }
 }

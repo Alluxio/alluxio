@@ -1,4 +1,6 @@
 metricName,metricType
+Client.BlockReadDataChunk,TIMER
+Client.BlockReadDataFromChunk,TIMER
 Client.BytesReadLocal,COUNTER
 Client.BytesReadLocalThroughput,METER
 Client.BytesWrittenLocal,COUNTER

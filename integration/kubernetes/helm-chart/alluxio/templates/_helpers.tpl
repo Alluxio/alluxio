@@ -181,9 +181,9 @@ resources:
 
 {{- define "alluxio.logserver.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.logserver }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
+          - name: secret-{{ $key }}-volume
+            mountPath: /secrets/{{ $val }}
+            readOnly: true
   {{- end -}}
 {{- end -}}
 
@@ -379,5 +379,16 @@ livenessProbe:
 - name: alluxio-logs
   persistentVolumeClaim:
     claimName: "{{ .Values.logserver.pvcName }}"
+{{- end }}
+{{- end -}}
+
+{{- define "alluxio.hostAliases" -}}
+hostAliases:
+{{- range .Values.hostAliases }}
+- ip: {{ .ip }}
+  hostnames:
+  {{- range .hostnames }}
+  - {{ . }}
+  {{- end }}
 {{- end }}
 {{- end -}}

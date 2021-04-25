@@ -23,6 +23,9 @@ import alluxio.job.wire.JobInfo;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
@@ -30,6 +33,9 @@ import java.io.IOException;
  * makes it resident in memory.
  */
 public final class DistributedLoadUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadUtils.class);
+
+  private DistributedLoadUtils() {} // prevent instantiation
 
   /**
    * Distributed loads a file or directory in Alluxio space, makes it resident in memory.

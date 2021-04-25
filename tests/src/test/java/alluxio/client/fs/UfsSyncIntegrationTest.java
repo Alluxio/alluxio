@@ -65,7 +65,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -684,7 +684,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
     List<URIStatus> status;
     try (Context.CancellableContext c = Context.current()
-        .withDeadlineAfter(100, TimeUnit.MILLISECONDS,
+        .withDeadlineAfter(1, TimeUnit.MILLISECONDS,
             Executors.newScheduledThreadPool(1))) {
       Context toRestore = c.attach();
       try {
@@ -695,27 +695,29 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
                 .setCommonOptions(FileSystemOptions.commonDefaults(
                     mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
           } catch (Exception e) {
-            return new ArrayList<>();
+            return Collections.<URIStatus>emptyList();
           }
         });
-        Thread.sleep(200);
+        Thread.sleep(5);
         c.cancel(new AlluxioException("test exception"));
       } finally {
         c.detach(toRestore);
       }
     }
+    // cancelled call should not return any results
     assertEquals(0, status.size());
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
         .setRecursive(true)
         .setCommonOptions(FileSystemOptions.commonDefaults(
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
     final int TOTAL_FILE_COUNT = 20103;
+    // verify that the previous sync did not complete
     assertTrue(status.size() < TOTAL_FILE_COUNT);
     for (URIStatus stat : status) {
       assertTrue(stat.isCompleted());
     }
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
-        .setRecursive(true).setCommonOptions(PSYNC_LARGE_INTERVAL).build());
+        .setRecursive(true).setCommonOptions(PSYNC_ALWAYS).build());
     assertEquals(TOTAL_FILE_COUNT, status.size());
   }
 

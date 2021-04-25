@@ -30,6 +30,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Objects;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -44,7 +45,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,15 +60,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LogLevel {
   private static final Logger LOG = LoggerFactory.getLogger(LogLevel.class);
 
-  private static final String LOG_LEVEL = "logLevel";
-  private static final String ROLE_WORKERS = "workers";
-  private static final String ROLE_MASTER = "master";
-  private static final String ROLE_WORKER = "worker";
-  private static final String ROLE_JOB_MASTER = "job_master";
-  private static final String ROLE_JOB_WORKER = "job_worker";
-  private static final String ROLE_JOB_WORKERS = "job_workers";
-  private static final String TARGET_SEPARATOR = ",";
-  private static final String TARGET_OPTION_NAME = "target";
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String ROLE_WORKERS = "workers";
+  public static final String ROLE_MASTER = "master";
+  public static final String ROLE_MASTERS = "masters";
+  public static final String ROLE_WORKER = "worker";
+  public static final String ROLE_JOB_MASTER = "job_master";
+  public static final String ROLE_JOB_MASTERS = "job_masters";
+  public static final String ROLE_JOB_WORKER = "job_worker";
+  public static final String ROLE_JOB_WORKERS = "job_workers";
+  public static final String TARGET_SEPARATOR = ",";
+  public static final String TARGET_OPTION_NAME = "target";
   private static final Option TARGET_OPTION =
       Option.builder()
           .required(false)
@@ -111,7 +117,7 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
-   * @param alluxioConf Alluxio configuration
+   * @param alluxioConf configurations
    * @exception ParseException if there is an error in parsing
    */
   public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)
@@ -128,7 +134,14 @@ public final class LogLevel {
     }
   }
 
-  private static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
+  /**
+   * Parse the command options to a list of targets endpoints.
+   *
+   * @param cmd the command
+   * @param conf Alluxio configuration
+   * @return a list of {@link TargetInfo}
+   * */
+  public static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
       throws IOException {
     String[] targets;
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
@@ -141,6 +154,7 @@ public final class LogLevel {
         targets = new String[]{argTarget};
       }
     } else {
+      // By default we set on all targets (master/workers/job_master/job_workers)
       targets = new String[]{ROLE_MASTER, ROLE_JOB_MASTER, ROLE_WORKERS, ROLE_JOB_WORKERS};
     }
     return getTargetInfos(targets, conf);
@@ -148,25 +162,58 @@ public final class LogLevel {
 
   private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
       throws IOException {
+    // Trim the elements
+    Set<String> targetSet = Arrays.stream(targets).map(String::trim).collect(Collectors.toSet());
     List<TargetInfo> targetInfoList = new ArrayList<>();
-    for (String target : targets) {
-      if (target.equals(ROLE_MASTER)) {
-        // TODO(jiacheng): make this support HA master
-        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB, conf);
+
+    // Allow plural form for the master/job_master and print a notice
+    if (targetSet.contains(ROLE_MASTERS)) {
+      System.out.println("The logLevel command will only take effect on the primary master, "
+              + "instead of on all the masters. ");
+      targetSet.remove(ROLE_MASTERS);
+      targetSet.add(ROLE_MASTER);
+      System.out.println("Target `masters` is replaced with `master`.");
+    }
+    if (targetSet.contains(ROLE_JOB_MASTERS)) {
+      System.out.println("The logLevel command will only take effect on the primary job master, "
+              + "instead of on all the masters. ");
+      targetSet.remove(ROLE_JOB_MASTERS);
+      targetSet.add(ROLE_JOB_MASTER);
+      System.out.println("Target `job_masters` is replaced with `job_master`.");
+    }
+
+    ClientContext clientContext = ClientContext.create(conf);
+    // Created only when needed by master and workers
+    FileSystemContext fsContext = null;
+    // Created only when needed by the job master and job workers
+    JobMasterClient jobClient = null;
+
+    // Process each target
+    for (String target : targetSet) {
+      if (target.isEmpty()) {
+        continue;
+      } else if (target.equals(ROLE_MASTER)) {
+        if (fsContext == null) {
+          fsContext = FileSystemContext.create(clientContext);
+        }
+        String masterHost = fsContext.getMasterAddress().getHostName();
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         TargetInfo master = new TargetInfo(masterHost, masterPort, ROLE_MASTER);
-        System.out.format("Setting log level on master %s:%s%n", master.mHost, master.mPort);
         targetInfoList.add(master);
       } else if (target.equals(ROLE_JOB_MASTER)) {
-        String jobMasterHost = NetworkAddressUtils.getConnectHost(ServiceType.JOB_MASTER_WEB, conf);
+        if (jobClient == null) {
+          jobClient = JobMasterClient.Factory.create(JobMasterClientContext
+                  .newBuilder(clientContext).build());
+        }
+        String jobMasterHost = jobClient.getAddress().getHostName();
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
         TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
-        System.out.format("Setting log level on job master %s:%s%n",
-                jobMaster.mHost, jobMaster.mPort);
         targetInfoList.add(jobMaster);
       } else if (target.equals(ROLE_WORKERS)) {
-        List<BlockWorkerInfo> workerInfoList =
-            FileSystemContext.create(ClientContext.create(conf)).getCachedWorkers();
+        if (fsContext == null) {
+          fsContext = FileSystemContext.create(ClientContext.create(conf));
+        }
+        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
         if (workerInfoList.size() == 0) {
           System.out.println("No workers found");
           System.exit(1);
@@ -175,15 +222,14 @@ public final class LogLevel {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           TargetInfo worker = new TargetInfo(netAddress.getHost(),
                   netAddress.getWebPort(), ROLE_WORKER);
-          System.out.format("Setting log level on worker %s:%s%n",
-                  worker.mHost, worker.mPort);
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {
-        JobMasterClientContext context = JobMasterClientContext
-                .newBuilder(ClientContext.create(conf)).build();
-        JobMasterClient client = JobMasterClient.Factory.create(context);
-        List<JobWorkerHealth> jobWorkerInfoList = client.getAllWorkerHealth();
+        if (jobClient == null) {
+          jobClient = JobMasterClient.Factory.create(JobMasterClientContext
+                  .newBuilder(clientContext).build());
+        }
+        List<JobWorkerHealth> jobWorkerInfoList = jobClient.getAllWorkerHealth();
         if (jobWorkerInfoList.size() == 0) {
           System.out.println("No job workers found");
           System.exit(1);
@@ -192,17 +238,20 @@ public final class LogLevel {
         for (JobWorkerHealth jobWorkerInfo : jobWorkerInfoList) {
           String jobWorkerHost = jobWorkerInfo.getHostname();
           TargetInfo jobWorker = new TargetInfo(jobWorkerHost, jobWorkerPort, ROLE_JOB_WORKER);
-          System.out.format("Setting log level on job worker %s:%s%n",
-                  jobWorker.mHost, jobWorker.mPort);
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
-        // TODO(jiacheng): Support all other roles, not just worker
         String[] hostPortPair = target.split(":");
         int port = Integer.parseInt(hostPortPair[1]);
-        targetInfoList.add(new TargetInfo(hostPortPair[0], port, ROLE_WORKER));
+        String role = inferRoleFromPort(port, conf);
+        LOG.debug("Port {} maps to role {}", port, role);
+        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, role);
+        System.out.format("Role inferred from port: %s%n", unspecifiedTarget);
+        targetInfoList.add(unspecifiedTarget);
       } else {
-        throw new IOException("Unrecognized target argument: " + target);
+        throw new IOException(String.format("Unrecognized target argument: %s. "
+                + "Please pass the targets in the form of <host>:<port>, "
+                + "with comma as the separator.", target));
       }
     }
     return targetInfoList;
@@ -246,6 +295,26 @@ public final class LogLevel {
     });
   }
 
+  private static String inferRoleFromPort(int port, AlluxioConfiguration conf) {
+    if (port == NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf)) {
+      return ROLE_MASTER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, conf)) {
+      return ROLE_WORKER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf)) {
+      return ROLE_JOB_MASTER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, conf)) {
+      return ROLE_JOB_WORKER;
+    } else {
+      throw new IllegalArgumentException(String.format(
+              "Unrecognized port in %s. Please make sure the port is in %s",
+              port,
+              Arrays.toString(new PropertyKey[]{
+                PropertyKey.MASTER_WEB_PORT, PropertyKey.WORKER_WEB_PORT,
+                PropertyKey.JOB_MASTER_WEB_PORT, PropertyKey.JOB_WORKER_WEB_PORT
+              })));
+    }
+  }
+
   /**
    * Sets or gets log level of master and worker through their REST API.
    *
@@ -267,25 +336,44 @@ public final class LogLevel {
 
   private LogLevel() {} // this class is not intended for instantiation
 
-  private static final class TargetInfo {
+  /**
+   * Object that represents a REST endpoint that logLevel sends HTTP request to.
+   * */
+  public static final class TargetInfo {
     private String mRole;
     private String mHost;
     private int mPort;
 
+    /**
+     * Constructor.
+     *
+     * @param host hostname
+     * @param port port
+     * @param role the Alluxio component name(part of URL)
+     * */
     public TargetInfo(String host, int port, String role) {
       mHost = host;
       mPort = port;
       mRole = role;
     }
 
+    /**
+     * @return port
+     * */
     public int getPort() {
       return mPort;
     }
 
+    /**
+     * @return hostname
+     * */
     public String getHost() {
       return mHost;
     }
 
+    /**
+     * @return component name
+     * */
     public String getRole() {
       return mRole;
     }
@@ -293,6 +381,21 @@ public final class LogLevel {
     @Override
     public String toString() {
       return mHost + ":" + mPort + "[" + mRole + "]";
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof TargetInfo)) {
+        return false;
+      }
+      TargetInfo otherTarget = (TargetInfo) other;
+      return mRole.equals(otherTarget.mRole) && mHost.equals(otherTarget.mHost)
+              && mPort == otherTarget.mPort;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mRole, mHost, mPort);
     }
   }
 }

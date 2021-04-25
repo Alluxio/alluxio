@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link StorageTierAssoc} for masters.
  */
 @ThreadSafe
-public class MasterStorageTierAssoc extends StorageTierAssoc {
+public class MasterStorageTierAssoc extends AbstractStorageTierAssoc {
 
   /**
    * Creates a new instance of {@link MasterStorageTierAssoc}.

@@ -12,13 +12,17 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -28,12 +32,17 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -54,7 +64,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
+public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
+    implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private final FileSystem mFileSystem;
   private final AlluxioConfiguration mConf;
@@ -63,16 +74,43 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
   // an action on the URI alluxio://<master>:<port>/users/foo/bar
   private final Path mAlluxioRootPath;
+  private final String mMountPoint;
+  private final String mFsName;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
+  private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
-  private final String mFsName;
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-  private final Map<Long, FileOutStream> mCreateFileEntries = new ConcurrentHashMap<>();
+
+  private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
+      ID_INDEX =
+      new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
+        @Override
+        public Long getFieldValue(CreateFileEntry<FileOutStream> o) {
+          return o.getId();
+        }
+      };
+
+  // Add a PATH_INDEX to know getattr() been called when writing this file
+  private static final IndexDefinition<CreateFileEntry<FileOutStream>, String>
+      PATH_INDEX =
+      new IndexDefinition<CreateFileEntry<FileOutStream>, String>(true) {
+        @Override
+        public String getFieldValue(CreateFileEntry<FileOutStream> o) {
+          return o.getPath();
+        }
+      };
+  private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
+      = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
+
+  // Map for holding the async releasing entries for proper umount
+  private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
+  private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
+      new ConcurrentHashMap<>();
 
   // To make test build
   @VisibleForTesting
@@ -103,12 +141,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
    * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+      FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
     super(Paths.get(opts.getMountPoint()));
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mMountPoint = opts.getMountPoint();
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -138,6 +177,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
@@ -173,7 +213,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
-        "create", "path=%s,mode=%o", path, mode);
+        "Fuse.Create", "path=%s,mode=%o", path, mode);
   }
 
   private int createInternal(String path, long mode, FuseFileInfo fi) {
@@ -189,7 +229,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
               .setMode(new Mode((short) mode).toProto())
               .build());
       long fid = mNextOpenFileId.getAndIncrement();
-      mCreateFileEntries.put(fid, os);
+      mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
       fi.fh.set(fid);
       setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
@@ -202,13 +242,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int getattr(String path, FileStat stat) {
     return AlluxioFuseUtils.call(
-        LOG, () -> getattrInternal(path, stat), "getattr", "path=%s", path);
+        LOG, () -> getattrInternal(path, stat), "Fuse.Getattr", "path=%s", path);
   }
 
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       URIStatus status = mFileSystem.getStatus(uri);
+      if (!status.isCompleted()) {
+        // Always block waiting for file to be completed except when the file is writing
+        // We do not want to block the writing process
+        if (!mCreateFileEntries.contains(PATH_INDEX, path)
+            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          LOG.error("File {} is not completed", path);
+        }
+        status = mFileSystem.getStatus(uri);
+      }
       long size = status.getLength();
       stat.st_size.set(size);
 
@@ -262,7 +311,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   public int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
-        "readdir", "path=%s,buf=%s", path, buff);
+        "Fuse.Readdir", "path=%s,buf=%s", path, buff);
   }
 
   private int readdirInternal(String path, long buff, long filter, long offset,
@@ -286,16 +335,39 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int open(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi), "open", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi), "Fuse.Open", "path=%s", path);
   }
 
   private int openInternal(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final int flags = fi.flags.get();
+    OpenFlags openFlag = OpenFlags.valueOf(flags);
+    LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
-      long fd = mNextOpenFileId.getAndIncrement();
-      FileInStream is = mFileSystem.openFile(uri);
-      mOpenFileEntries.put(fd, is);
-      fi.fh.set(fd);
+      if (openFlag == OpenFlags.O_WRONLY) {
+        if (mFileSystem.exists(uri)) {
+          mFileSystem.delete(uri);
+        }
+        FileOutStream os = mFileSystem.createFile(uri);
+        long fid = mNextOpenFileId.getAndIncrement();
+        mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
+        fi.fh.set(fid);
+        setUserGroupIfNeeded(uri);
+      } else {
+        FileInStream is;
+        try {
+          is = mFileSystem.openFile(uri);
+        } catch (FileIncompleteException e) {
+          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+            is = mFileSystem.openFile(uri);
+          } else {
+            throw e;
+          }
+        }
+        long fd = mNextOpenFileId.getAndIncrement();
+        mOpenFileEntries.put(fd, is);
+        fi.fh.set(fd);
+      }
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -306,52 +378,49 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
-        "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Fuse.Read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+    MetricsSystem.counter(MetricKey.FUSE_BYTES_TO_READ.getName()).inc(size);
+    final int sz = (int) size;
     int nread = 0;
     int rd = 0;
-    final int sz = (int) size;
-    long fd = fi.fh.get();
+    Long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
-      final byte[] dest = new byte[sz];
       // FileInStream is not thread safe
       synchronized (is) {
         if (!mOpenFileEntries.containsKey(fd)) {
           LOG.error("Cannot find fd {} for {}", fd, path);
           return -ErrorCodes.EBADFD();
         }
-        is.seek(offset);
-        while (rd >= 0 && nread < size) {
-          rd = is.read(dest, nread, sz - nread);
-          if (rd >= 0) {
-            nread += rd;
+        if (offset - is.getPos() < is.remaining()) {
+          is.seek(offset);
+          while (rd >= 0 && nread < sz) {
+            rd = ((AlluxioFileInStream) is).read(buf, nread, sz - nread);
+            if (rd >= 0) {
+              nread += rd;
+            }
           }
         }
-      }
-
-      if (nread == -1) { // EOF
-        nread = 0;
-      } else if (nread > 0) {
-        buf.put(dest, 0, nread);
       }
     } catch (Throwable e) {
       LOG.error("Failed to read, path: {} size: {} offset: {}", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
+    MetricsSystem.counter(MetricKey.FUSE_BYTES_READ.getName()).inc(nread);
     return nread;
   }
 
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
-        "write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+        "Fuse.Write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int writeInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
@@ -361,11 +430,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    FileOutStream os = mCreateFileEntries.get(fd);
-    if (os == null) {
+    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
+    FileOutStream os = ce.getOut();
     if (offset < os.getBytesWritten()) {
       // no op
       return sz;
@@ -384,35 +454,71 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int flush(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> flushInternal(path, fi), "flush", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> flushInternal(path, fi), "Fuse.Flush", "path=%s", path);
   }
 
   private int flushInternal(String path, FuseFileInfo fi) {
+    final long fd = fi.fh.get();
+
+    FileInStream is = mOpenFileEntries.get(fd);
+    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    if (ce == null && is == null) {
+      LOG.error("Cannot find fd for {} in table", path);
+      return -ErrorCodes.EBADFD();
+    }
+
+    if (ce == null) {
+      // flush() may be called in places other than write
+      return 0;
+    }
+
+    try {
+      synchronized (ce) {
+        ce.getOut().flush();
+      }
+    } catch (Throwable e) {
+      LOG.error("Failed to flush {}", path, e);
+      return -ErrorCodes.EIO();
+    }
     return 0;
   }
 
   @Override
   public int release(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> releaseInternal(path, fi), "release", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> releaseInternal(path, fi),
+        "Fuse.Release", "path=%s", path);
   }
 
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.remove(fd);
-      FileOutStream os = mCreateFileEntries.remove(fd);
-      if (is == null && os == null) {
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();
       }
-      if (is != null) {
-        synchronized (is) {
-          is.close();
+      if (ce != null) {
+        // Remove earlier to try best effort to avoid write() - async release() - getAttr()
+        // without waiting for file completed and return 0 bytes file size error
+        mCreateFileEntries.remove(ce);
+        mReleasingWriteEntries.put(fd, ce);
+        try {
+          synchronized (ce) {
+            ce.close();
+          }
+        } finally {
+          mReleasingWriteEntries.remove(fd);
         }
       }
-      if (os != null) {
-        synchronized (os) {
-          os.close();
+      if (is != null) {
+        mReleasingReadEntries.put(fd, is);
+        try {
+          synchronized (is) {
+            is.close();
+          }
+        } finally {
+          mReleasingReadEntries.remove(fd);
         }
       }
     } catch (Throwable e) {
@@ -425,7 +531,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int mkdir(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode),
-        "mkdir", "path=%s,mode=%o,", path, mode);
+        "Fuse.Mkdir", "path=%s,mode=%o,", path, mode);
   }
 
   private int mkdirInternal(String path, long mode) {
@@ -450,12 +556,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int unlink(String path) {
-    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "unlink", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "Fuse.Unlink", "path=%s", path);
   }
 
   @Override
   public int rmdir(String path) {
-    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "rmdir", "path=%s", path);
+    return AlluxioFuseUtils.call(LOG, () -> rmInternal(path), "Fuse.Rmdir", "path=%s", path);
   }
 
   /**
@@ -480,7 +586,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int rename(String oldPath, String newPath) {
     return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
-        "rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
+        "Fuse.Rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
   private int renameInternal(String oldPath, String newPath) {
@@ -494,6 +600,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     }
     try {
       mFileSystem.rename(oldUri, newUri);
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
+      if (ce != null) {
+        ce.setPath(newPath);
+      }
     } catch (Throwable e) {
       LOG.error("Failed to rename {} to {}: ", oldPath, newPath, e);
       return -ErrorCodes.EIO();
@@ -505,7 +615,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int chmod(String path, long mode) {
     return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode),
-        "chmod", "path=%s,mode=%o", path, mode);
+        "Fuse.Chmod", "path=%s,mode=%o", path, mode);
   }
 
   private int chmodInternal(String path, long mode) {
@@ -525,7 +635,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public int chown(String path, long uid, long gid) {
     return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
-        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
+        "Fuse.Chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
   }
 
   private int chownInternal(String path, long uid, long gid) {
@@ -585,8 +695,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
 
   @Override
   public int truncate(String path, long size) {
-    LOG.error("Truncate is not supported {}", path);
-    return -ErrorCodes.EOPNOTSUPP();
+    LOG.trace("truncate {} to {}", path, size);
+    if (size == 0) {
+      return 0;
+    } else {
+      LOG.trace("truncate {} to {} is not supported by alluxio", path, size);
+      return -ErrorCodes.EOPNOTSUPP();
+    }
+  }
+
+  @Override
+  public int utimensCallback(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    // TODO(maobaolong): implements this logic for alluxio.
+    LOG.debug("utimens for {}, but do nothing for this filesystem", path);
+    return 0;
   }
 
   /**
@@ -595,6 +717,57 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @Override
   public String getFileSystemName() {
     return mFsName;
+  }
+
+  @Override
+  public void umount() {
+    // Release operation is async, we will try our best efforts to
+    // close all opened file in/out stream before umounting the fuse
+    if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
+      try {
+        CommonUtils.waitFor("all in progress file read/write to finish",
+            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+                WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+      } catch (InterruptedException e) {
+        LOG.error("Unmount {} interrupted", mMountPoint);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting all in progress file read/write to finish "
+            + "when unmounting {}. {} fileInStream remain unclosed. "
+            + "{} fileOutStream remain unclosed.",
+            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
+      }
+    }
+
+    // Waiting for in progress async release to finish
+    if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write closing to finish",
+          mMountPoint);
+      try {
+        CommonUtils.waitFor("all in progress file read/write closing to finish",
+            () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
+            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+      } catch (InterruptedException e) {
+        LOG.error("Unmount {} interrupted", mMountPoint);
+        Thread.currentThread().interrupt();
+      } catch (TimeoutException e) {
+        LOG.error("Timeout when waiting in progress file read/write closing to finish "
+            + "when unmounting {}. {} fileInStream and {} fileOutStream "
+            + "are still in closing process.",
+            mMountPoint, mReleasingReadEntries.size(), mReleasingWriteEntries.size());
+      }
+    }
+
+    if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
+      // TODO(lu) consider the case that client application may not call release()
+      // for all open() or create(). Force closing those operations.
+      // TODO(lu,bin) properly prevent umount when device is busy
+      LOG.error("Unmounting {} when device is busy in reading/writing files. "
+          + "{} fileInStream and {} fileOutStream remain open.",
+          mMountPoint, mCreateFileEntries.size(), mOpenFileEntries.size());
+    }
+    super.umount();
   }
 
   @VisibleForTesting

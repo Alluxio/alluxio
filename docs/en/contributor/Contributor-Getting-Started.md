@@ -34,25 +34,25 @@ If you haven't already, we recommend first cloning and compiling the Alluxio sou
 
 A GitHub account is required in order to contribute to the Alluxio repository.
 
-You will need to know an email address that is associated with your GitHub account in order to make
+An email must be associated with your GitHub account in order to make
 contributions. You can check this in [your profile email settings](https://github.com/settings/emails).
 
 ### Configuring Your Git Email
 
-Before creating commits to Alluxio, you should verify that your Git email is setup correctly.
+Before creating commits to Alluxio, you should verify that your committer email in Git is set up correctly.
 Please visit
 [the instructions for setting up your email](https://help.github.com/articles/setting-your-email-in-git/).
 
 ## Forking the Alluxio Repository
 
-In order to contribute code to Alluxio, you first have to fork the Alluxio repository (repo).
+In order to contribute code to Alluxio, fork the Alluxio repository (repo).
 If you have not already forked the repo, you can visit the
 [Alluxio repository](https://github.com/Alluxio/alluxio) and press the Fork button on the
 top-right corner of the page. After this, you have your own fork of the
-Alluxio repository.
+Alluxio repository under your GitHub account.
 
-After you fork the Alluxio repository, you should create a local clone of your fork. This will
-copy the files of your fork onto your computer. You can clone your fork with this command:
+Create a local clone of your fork to copy the files of your fork onto your computer.
+Clone your fork with this command:
 
 ```console
 $ git clone https://github.com/YOUR-USERNAME/alluxio.git
@@ -60,17 +60,19 @@ $ cd alluxio
 ```
 
 This will create the clone under the `alluxio/` directory.
+The remaining commands assume the current working directory to be at this directory,
+the cloned repository root.
 
-In order to pull changes from the open source Alluxio code base into your clone, you should create a
-new remote repository that points to the Alluxio repository.
-In order to add a new remote repository, in the directory of your newly created clone, run:
+Set a new remote repository that points to the Alluxio repository
+to pull changes from the open source Alluxio codebase into your clone.
+To add a new remote repository, run:
 
 ```console
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
 This will create a remote repository called `upstream` pointing to the Alluxio repository.
-You can view the urls for remote repositories with the following command.
+View the urls for remote repositories with the following command.
 
 ```console
 $ git remote -v
@@ -81,19 +83,17 @@ including `origin` (your fork), and `upstream` (the Alluxio repository).
 
 ## Building Alluxio
 
-Now that you have a local clone of Alluxio, you can build Alluxio!
-
-In your local clone directory, you can build Alluxio with:
+Build Alluxio by running:
 
 ```console
 $ mvn clean install
 ```
 
-This will build all of Alluxio, as well as run all the tests. Depending on your hardware this
-may take anywhere form several minutes to half an hour to finish.
+This will build Alluxio, resulting in a series of compiled jars,
+as well as run all checks and tests.
+Depending on your hardware, this may take anywhere form several minutes to half an hour to finish.
 
-If at any point in time you would like to only recompile and not run all the checks and testing, you
-can run:
+To only recompile and skip running all the checks and tests, run:
 
 ```console
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
@@ -123,7 +123,7 @@ Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxi
 and find one that is unassigned. 
 In order to assign an issue to yourself, leave a comment in the issue like `/assign @yourUserName`
 to indicate that you are working on the issue.
-You should assign a ticket to yourself before you start working on it, so others
+You should always assign a ticket to yourself this way before you start working on it, so others
 in the community know you are working on the ticket.
 
 Notice that all New Contributor issues on Github are assigned with a number. The number can be
@@ -141,50 +141,44 @@ pull request description.
 
 ### Creating a Branch in your Clone
 
-After you have taken an issue, go back to the terminal, and go to the directory of your local clone.
-Now, you can start working on the fix!
+Keep all changes for a single issue in its own branch when submitting a change to Alluxio.
 
-In order to submit a change to Alluxio, it is best practice to do all of your changes for a single
-issue, in its own branch. Therefore, the following will show you how to create a branch.
-
-First, make sure you are on the `master` branch in your clone. You switch to your `master` branch
-with:
+Ensure you are on the `master` branch in your clone. Switch to the `master` branch with:
 
 ```console
 $ git checkout master
 ```
 
-Then, you should make sure your `master` branch is in sync with the latest changes from the evolving
-Alluxio code base. You pull in all the new changes in the project with the following command:
+The `master` branch needs to be in sync with the latest changes from the evolving
+Alluxio codebase. Pull new changes from the project with:
 
 ```console
 $ git pull upstream master
 ```
 
-This will pull in all the changes from the `master` branch of the `upstream` repository into your local `master`
-branch. In this example, the `upstream` repository is the Alluxio open source project.
+This pulls in the changes from the `master` branch of the `upstream` repository into your local `master`
+branch, where the `upstream` repository was previously set to the Alluxio open source project.
 
-Now, you can create a new branch in order to work on the **New Contributor** task you took earlier.
+Create a new branch to work on the **New Contributor** task you took earlier.
 To create a branch name **awesome_feature**, run:
 
 ```console
 $ git checkout -b awesome_feature
 ```
 
-This will create the branch, and switch to it. Now, you can modify the necessary code to address the
+This will create the branch and switch to it. Now, you can modify the necessary code to address the
 issue.
 
 ### Creating Local Commits
 
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
-when you have finished a well-defined portion of the change. You can stage a file for commit with:
+when you have finished a well-defined portion of the change. You can stage a file for a commit with:
 
 ```console
 $ git add <file to stage>
 ```
 
-Once all the appropriate files are staged, you can create a local commit of those modifications
-with:
+Once the appropriate files are staged, create a local commit of these modifications with:
 
 ```console
 $ git commit -m "<concise but descriptive commit message>"
@@ -193,7 +187,7 @@ $ git commit -m "<concise but descriptive commit message>"
 Please read the [Alluxio coding conventions]({{ '/en/contributor/Code-Conventions.html' | relativize_url }})
 for more details and tips on how to update the Alluxio source code.
 
-If you want more details for creating commits, please visit [instructions on how to create
+For more details for creating commits, please visit [instructions on how to create
 commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
 
 ### Sending a Pull Request
@@ -203,24 +197,23 @@ request to the Alluxio project! Here are [detailed instructions on sending a pul
 request](https://help.github.com/articles/using-pull-requests/),
 but the following is a common way to do it.
 
-After you have created all necessary local commits, you can push all your commits to your repository
-in GitHub. For your **awesome_feature** branch, you can push to GitHub with:
+Push the branch with your commits to your forked repository in GitHub.
+For your **awesome_feature** branch, push to GitHub with:
 
 ```console
 $ git push origin awesome_feature
 ```
 
-This will push all of your new commits in your local branch **awesome_feature**, to the
-**awesome_feature** branch in GitHub, in your fork of Alluxio.
+Visit your GitHub fork of Alluxio. Usually, this shows which of your branches have been updated recently,
+but if not, navigate to the branch you want to submit the pull request for (**awesome_feature** in this example),
+and press the **Pull request** button next to the **Compare** button.
 
-Once you have pushed all of your changes to your fork, visit your GitHub fork of Alluxio. Usually,
-this shows which of your branches have been updated recently, but if not, navigate to the branch you
-want to submit the pull request for (**awesome_feature** in this example),
-and press the **New Pull Request** button.
-
-In the **Open a pull request** page, the base fork should be `Alluxio/alluxio`, and the base branch
-should be **master**. The head fork will be your fork, and the compare branch should be the branch
+In the **Comparing changes** page, the base repository should be `Alluxio/alluxio` and the base branch
+should be **master**. The head repository should be your fork and the compare branch should be the branch
 you want to submit the pull request for (**awesome_feature** in this example).
+Click on the **Create pull request** button.
+The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title
+and the description of your pull request.
 
 #### Pull Request Title
 
@@ -269,14 +262,16 @@ After the pull request has been submitted, it can be found on the
 [Pull Request page of the Alluxio repository](https://github.com/Alluxio/alluxio/pulls).
 
 After it is submitted, other developers in the community will review your pull request. Others may
-add comments or questions to your pull request.
+add comments or questions to your pull request. Tests and checks will also be run against the
+new changes to validate your changes are safe to merge.
 
-During the code review, please reply to all comments left by reviewers, so reviewers know which
-comments have been addressed, and how each comment has been addressed.
+During the code review process, please reply to all comments left by reviewers to track which
+comments have been addressed and how each comment has been addressed.
 
-In the process, some may ask to modify parts of your pull request. In order to do that, you simply
-have to make the change in the branch you were using for that pull request, create a new local
-commit, push to your remote branch, and the pull request will be automatically updated. In detail:
+Additional code changes may be necessary to address comments from reviewers or fix broken tests and checks.
+After making the required changes locally, create a new commit and push to your remote branch.
+GitHub will detect new changes to the source branch and update the corresponding pull request automatically.
+An example workflow to update your remote branch:
 
 ```console
 $ git add <modified files>
@@ -286,7 +281,7 @@ $ git push origin awesome_feature
 
 After all the comments and questions have been addressed in the pull request, reviewers will give
 your pull request an **LGTM** and approve the pull request. After at least one approval,
-a maintainer will merge your pull request into the Alluxio code base.
+a maintainer will merge your pull request into the Alluxio codebase.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
 

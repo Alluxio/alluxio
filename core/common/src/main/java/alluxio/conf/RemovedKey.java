@@ -37,6 +37,7 @@ public final class RemovedKey {
   private static final String V2_0_0 = "v2.0.0";
   private static final String V2_1_0 = "v2.1.0";
   private static final String V2_4_0 = "v2.4.0";
+  private static final String V2_6_0 = "v2.6.0";
 
   /**
    * @param version the version since which a property has been removed
@@ -129,7 +130,9 @@ public final class RemovedKey {
       put("alluxio.worker.data.bind.host", removedSince(V2_0_0));
       put("alluxio.worker.data.hostname", removedSince(V2_0_0));
       put("alluxio.worker.data.port", replacedSince(V2_0_0, PropertyKey.WORKER_RPC_PORT.getName()));
+      put("alluxio.worker.data.server.class", removedSince(V2_6_0));
       put("alluxio.worker.filesystem.heartbeat.interval", removedSince(V2_1_0));
+      put("alluxio.worker.file.buffer.size", removedSince(V2_6_0));
       put("alluxio.worker.file.persist.pool.size", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit.enabled", removedSince(V2_1_0));

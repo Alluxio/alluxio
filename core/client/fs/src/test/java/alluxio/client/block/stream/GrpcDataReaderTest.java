@@ -73,9 +73,9 @@ public final class GrpcDataReaderTest {
         .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
     when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.defaults());
     mAddress = mock(WorkerNetAddress.class);
-    ReadRequest readRequest =
-        ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();
-    mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequest);
+    ReadRequest.Builder readRequestBuilder =
+        ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);
+    mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequestBuilder);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);

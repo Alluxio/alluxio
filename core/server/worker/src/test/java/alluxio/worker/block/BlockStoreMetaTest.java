@@ -63,8 +63,8 @@ public final class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = BlockStoreMeta.Factory.create(mMetadataManager);
-    mBlockStoreMetaFull = BlockStoreMeta.Factory.createFull(mMetadataManager);
+    mBlockStoreMeta = new DefaultBlockStoreMeta(mMetadataManager, false);
+    mBlockStoreMetaFull = new DefaultBlockStoreMeta(mMetadataManager, true);
   }
 
   /**

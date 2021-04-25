@@ -16,5 +16,5 @@ package alluxio.concurrent;
  */
 public enum LockMode {
   READ,
-  WRITE;
+  WRITE
 }

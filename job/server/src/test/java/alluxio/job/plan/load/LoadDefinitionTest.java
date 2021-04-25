@@ -47,6 +47,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -100,7 +101,7 @@ public class LoadDefinitionTest {
     int numBlocks = 7;
     int replication = 3;
     createFileWithNoLocations(TEST_URI, numBlocks);
-    LoadConfig config = new LoadConfig(TEST_URI, replication);
+    LoadConfig config = new LoadConfig(TEST_URI, replication, Collections.EMPTY_SET);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
@@ -119,7 +120,7 @@ public class LoadDefinitionTest {
         Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0));
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
-    LoadConfig config = new LoadConfig(TEST_URI, 1);
+    LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config, JOB_WORKERS,
             new SelectExecutorsContext(1, mJobServerContext));
@@ -130,7 +131,7 @@ public class LoadDefinitionTest {
   @Test
   public void notEnoughWorkersForReplication() throws Exception {
     createFileWithNoLocations(TEST_URI, 1);
-    LoadConfig config = new LoadConfig(TEST_URI, 5); // set replication to 5
+    LoadConfig config = new LoadConfig(TEST_URI, 5, Collections.EMPTY_SET); // set replication to 5
     try {
       new LoadDefinition().selectExecutors(config, JOB_WORKERS,
           new SelectExecutorsContext(1, mJobServerContext));
@@ -148,7 +149,7 @@ public class LoadDefinitionTest {
             new BlockWorkerInfo(new WorkerNetAddress().setHost("otherhost"), 0, 0));
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
-    LoadConfig config = new LoadConfig(TEST_URI, 2); // set replication to 2
+    LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET); // set replication to 2
     try {
       new LoadDefinition().selectExecutors(config,
           JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));

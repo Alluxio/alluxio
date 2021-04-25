@@ -671,7 +671,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
       new Builder(Name.UNDERFS_GCS_VERSION)
-          .setDefaultValue(1)
+          .setDefaultValue(2)
           .setDescription(String.format("Specify the version of GCS module to use. "
               + "GCS version \"1\" builds on top of jets3t package "
               + "which requires %s and %s. GCS version \"2\" build on top "
@@ -1618,7 +1618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
-              + "and IO to local disks.")
+              + "and IO to local disks).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1776,7 +1776,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE =
       new Builder(Name.MASTER_METASTORE)
-          .setDefaultValue("HEAP")
+          .setDefaultValue("ROCKS")
           .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
               + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
               + "heap and some metadata on disk. The rocks metastore has the advantage of being "
@@ -1821,9 +1821,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  // 350 bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
-          .setDefaultValue("10000000")
+          .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
+              Runtime.getRuntime().maxMemory() / 350 / 2))
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
@@ -1953,6 +1955,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_EXIT_ON_DEMOTION =
+      new Builder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) When this flag is set to true, the master process may "
+              + "start as the primary or secondary in a quorum, but at any point in time after "
+              + "becoming a primary it is demoted to secondary, the process will shut down. This "
+              + "leaves the responsibility of restarting the master to re-join the quorum (e.g. in"
+              + " case of a journal failure on a particular node) to an external entity such as "
+              + "kubernetes or systemd.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME =
       new Builder(Name.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME)
           .setDefaultValue("10min")
@@ -2004,12 +2018,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD =
+      new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
+          .setDefaultValue(10)
+          .setDescription("When the percent of free space on any disk which backs the journal "
+              + "falls below this percentage, begin logging warning messages to let "
+              + "administrators know the journal disk(s) may be running low on space.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TOLERATE_CORRUPTION =
       new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
           .setDescription("Whether to tolerate master state corruption "
-              + "when standby master replaying journal. If enabled, errors from applying journal "
-              + "to master metadata will only be logged instead of forcing master to exit. "
+              + "when leader master recovering from backup and standby master replaying journal. "
+              + "If enabled, errors from applying journal to master metadata will only be logged "
+              + "instead of forcing master to exit. "
               + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setIsHidden(true)
@@ -2029,6 +2053,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("10MB")
           .setDescription("If a log file is bigger than this value, it will rotate to next "
               + "file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
+      new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
+      .setDefaultValue("10min")
+      .setDescription(String.format("How often to check and update information on space "
+          + "utilization of the journal disk. This is currently only compatible with linux-based"
+          + "systems and when %s is configured to EMBEDDED", Name.MASTER_JOURNAL_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2620,14 +2653,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_DATA_SERVER_CLASS =
-      new Builder(Name.WORKER_DATA_SERVER_CLASS)
-          .setDefaultValue("alluxio.worker.grpc.GrpcDataServer")
-          .setDescription("Selects the networking stack to run the worker with. Valid options "
-              + "are: `alluxio.worker.grpc.GrpcDataServer`.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
           .setDescription("The path to the domain socket. Short-circuit reads make use of a "
@@ -2706,6 +2731,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
               + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_ENABLED =
+      new Builder(Name.WORKER_FUSE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, launch worker embedded Fuse application.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
+      new Builder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
+          .setDefaultValue("/")
+          .setDescription(String.format("The Alluxio path to mount to the given "
+                  + "Fuse mount point configured by %s in this worker.",
+              Name.WORKER_FUSE_MOUNT_POINT))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
+      new Builder(Name.WORKER_FUSE_MOUNT_OPTIONS)
+          .setDescription("The platform specific Fuse mount options "
+              + "to mount the given Fuse mount point. "
+              + "If multiple mount options are provided, separate them with comma.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
+      new Builder(Name.WORKER_FUSE_MOUNT_POINT)
+          .setDefaultValue("/mnt/alluxio-fuse")
+          .setDescription("The absolute local filesystem path that this worker will "
+              + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2805,13 +2862,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Max percentage of each tier that could be used for promotions. "
               + "Promotions will be stopped to a tier once its used space go over this value. "
               + "(0 means never promote, and, 100 means always promote.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
-      new Builder(Name.WORKER_FILE_BUFFER_SIZE)
-          .setDefaultValue("1MB")
-          .setDescription("The buffer size for worker to write data into the tiered storage.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3499,7 +3549,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
-          .setDefaultValue(10)
+          .setDefaultValue(500)
           .setDescription("The maximum number of block master clients cached in the block master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3554,6 +3604,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
@@ -3620,12 +3671,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
           .setDefaultValue("2min")
           .build();
-  // TODO(cc): remove this since configuration propagation is always enabled?
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
           .setDefaultValue(true)
           .setDescription("When this property is true, an Alluxio client will load the default "
-              + "values of configuration properties set by Alluxio master.")
+              + "values of cluster-wide configuration and path-specific configuration set by "
+              + "Alluxio master.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
@@ -3674,7 +3725,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
-          .setDefaultValue(10)
+          .setDefaultValue(500)
           .setDescription("The maximum number of fs master clients cached in the fs master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3793,6 +3844,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
+      new Builder(Name.USER_BLOCK_READ_METRICS_ENABLED)
+          .setDescription("Whether detailed block read metrics will be recorded and sink.")
+          .setDefaultValue(false)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
@@ -3854,6 +3911,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED).setDefaultValue(false)
+          .setDescription(
+              "If this is enabled, the evictor picks uniformly from the worst k elements."
+                  + "Currently only LRU is supported.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -3884,6 +3949,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("32")
           .setDescription("The number of threads to handle cache I/O operation timeout, "
               + "when " + Name.USER_CLIENT_CACHE_TIMEOUT_DURATION + " is positive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
+      new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
+          .setDescription("A fraction value representing the storage overhead writing to disk. "
+              + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
+              + "no more than 1024MB / (1 + 10%) user data to store.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4054,15 +4127,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "The admin can turn on this property and control where the clients connect in "
               + "the configuration.")
           .build();
-  public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
-      new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
-          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
+  public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
+      new Builder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
+          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
+              Name.USER_STREAMING_DATA_TIMEOUT)
           .setDefaultValue("1h")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
-              + "(e.g. block reads and block writes) from Alluxio worker. Keep in mind that some "
-              + "streaming operations may take an unexpectedly long time, such as UFS io. In "
-              + "order to handle occasional slow operations, it is recommended for this parameter"
-              + " to be set to a large value, to avoid spurious timeouts.")
+              + "for read requests from Alluxio worker. Keep in mind that some streaming "
+              + "operations may take an unexpectedly long time, such as UFS io. In order to handle "
+              + "occasional slow operations, it is recommended for this parameter to be set to a "
+              + "large value, to avoid spurious timeouts.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_STREAMING_DATA_WRITE_TIMEOUT =
+      new Builder(Name.USER_STREAMING_DATA_WRITE_TIMEOUT)
+          .setDefaultValue("1h")
+          .setDescription("The maximum time for an Alluxio client to wait for when writing 1 chunk "
+              + "for block writes to an Alluxio worker. This value can be tuned to offset "
+              + "instability from the UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4137,7 +4220,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   /**
-   * @deprecated use {@link #USER_STREAMING_DATA_TIMEOUT} instead
+   * @deprecated use {@link #USER_STREAMING_DATA_READ_TIMEOUT} instead
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
@@ -4544,8 +4627,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
       new Builder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Use experimental JNIFUSE library for better performance.")
+          .setDefaultValue(true)
+          .setDescription("Use JNI-Fuse library for better performance. "
+              + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -4571,6 +4655,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
+      new Builder(Name.FUSE_UMOUNT_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("The timeout to wait for all in progress file read and write to finish "
+              + "before unmounting the Fuse filesystem. After the timeout, "
+              + "all in progress file read will be forced to stop "
+              + "and all in progress file write will be abandoned.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5282,6 +5376,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
         "alluxio.master.journal.catchup.protect.enabled";
+    public static final String MASTER_JOURNAL_EXIT_ON_DEMOTION =
+        "alluxio.master.journal.exit.on.demotion";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
@@ -5291,6 +5387,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
+    public static final String MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
+        "alluxio.master.journal.space.monitor.interval";
+    public static final String MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD
+        = "alluxio.master.journal.space.monitor.percent.free.threshold";
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
@@ -5499,7 +5599,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
     public static final String WORKER_DATA_FOLDER_PERMISSIONS =
         "alluxio.worker.data.folder.permissions";
-    public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
@@ -5513,6 +5612,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
         "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_FUSE_ENABLED =
+        "alluxio.worker.fuse.enabled";
+    public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
+        "alluxio.worker.fuse.mount.alluxio.path";
+    public static final String WORKER_FUSE_MOUNT_OPTIONS =
+        "alluxio.worker.fuse.mount.options";
+    public static final String WORKER_FUSE_MOUNT_POINT =
+        "alluxio.worker.fuse.mount.point";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
@@ -5535,7 +5642,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.tier.promote.range";
     public static final String WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
         "alluxio.worker.management.tier.promote.quota.percent";
-    public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
@@ -5658,6 +5764,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.master.client.pool.gc.interval";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.master.client.pool.gc.threshold";
+    public static final String USER_BLOCK_READ_METRICS_ENABLED =
+        "alluxio.user.block.read.metrics.enabled";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -5674,10 +5782,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.min";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
         "alluxio.user.block.worker.client.pool.max";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-        "alluxio.user.block.worker.client.pool.size";
-    public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
-        "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
@@ -5694,6 +5798,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE =
         "alluxio.user.client.cache.evictor.lfu.logbase";
+    public static final String USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
+        "alluxio.user.client.cache.evictor.nondeterministic.enabled";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
@@ -5704,6 +5810,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.quota.enabled";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
+    public static final String USER_CLIENT_CACHE_STORE_OVERHEAD =
+        "alluxio.user.client.cache.store.overhead";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =
         "alluxio.user.client.cache.store.type";
     public static final String USER_CLIENT_CACHE_TIMEOUT_DURATION =
@@ -5793,6 +5901,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.skip.authority.check";
     public static final String USER_STREAMING_DATA_TIMEOUT =
         "alluxio.user.streaming.data.timeout";
+    public static final String USER_STREAMING_DATA_READ_TIMEOUT =
+        "alluxio.user.streaming.data.read.timeout";
+    public static final String USER_STREAMING_DATA_WRITE_TIMEOUT =
+        "alluxio.user.streaming.data.write.timeout";
     public static final String USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.streaming.reader.buffer.size.messages";
     public static final String USER_STREAMING_READER_CHUNK_SIZE_BYTES =
@@ -5883,6 +5995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_UMOUNT_TIMEOUT =
+        "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
 
