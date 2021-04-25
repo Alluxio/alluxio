@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * Utilities Loads a file or directory in Alluxio space,
@@ -42,11 +43,13 @@ public final class DistributedLoadUtils {
    *
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @param replication The replication of file to load into Alluxio memory
+   * @param replication Number of block replicas of each loaded file
+   * @param workerSet A set of worker hosts to load data
    */
   public static void distributedLoad(AbstractDistributedJobCommand command,
-      AlluxioURI filePath, int replication) throws AlluxioException, IOException {
-    load(command, filePath, replication);
+      AlluxioURI filePath, int replication, Set<String> workerSet)
+      throws AlluxioException, IOException {
+    load(command, filePath, replication, workerSet);
     // Wait remaining jobs to complete.
     command.drain();
   }
@@ -56,21 +59,24 @@ public final class DistributedLoadUtils {
    *
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+   * @param replication Number of block replicas of each loaded file
+   * @param workerSet A set of worker hosts to load data
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException      when non-Alluxio exception occurs
    */
   private static void load(AbstractDistributedJobCommand command,
-      AlluxioURI filePath, int replication) throws IOException, AlluxioException {
+      AlluxioURI filePath, int replication, Set<String> workerSet)
+      throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
-        addJob(command, uriStatus, replication);
+        addJob(command, uriStatus, replication, workerSet);
       }
     });
   }
 
   private static void addJob(AbstractDistributedJobCommand command,
-      URIStatus status, int replication) {
+      URIStatus status, int replication, Set<String> workerSet) {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
     if (status.getInAlluxioPercentage() == 100) {
       // The file has already been fully loaded into Alluxio.
@@ -82,7 +88,7 @@ public final class DistributedLoadUtils {
       command.waitJob();
     }
     System.out.println(filePath + " loading");
-    command.mSubmittedJobAttempts.add(newJob(command, filePath, replication));
+    command.mSubmittedJobAttempts.add(newJob(command, filePath, replication, workerSet));
   }
 
   /**
@@ -93,9 +99,9 @@ public final class DistributedLoadUtils {
    * @param replication The replication of file to load into Alluxio memory
    */
   private static LoadJobAttempt newJob(AbstractDistributedJobCommand command,
-      AlluxioURI filePath, int replication) {
+      AlluxioURI filePath, int replication, Set<String> workerSet) {
     LoadJobAttempt jobAttempt = new LoadJobAttempt(command.mClient, new
-        LoadConfig(filePath.getPath(), replication), new CountingRetry(3));
+        LoadConfig(filePath.getPath(), replication, workerSet), new CountingRetry(3));
 
     jobAttempt.run();
 
