@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -41,7 +42,8 @@ public final class CompositeConfigTest {
     ArrayList<JobConfig> jobs = new ArrayList<>();
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
-    jobs.add(new CompositeConfig(Lists.newArrayList(new LoadConfig("/", 1)), true));
+    jobs.add(new CompositeConfig(
+        Lists.newArrayList(new LoadConfig("/", 1, Collections.EMPTY_SET)), true));
     jobs.add(new CompactConfig(pInfo, "/input", pInfo, "/output", 100, FileUtils.ONE_GB));
     CONFIG = new CompositeConfig(jobs, true);
   }

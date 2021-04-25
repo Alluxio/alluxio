@@ -13,6 +13,7 @@ import { LineSerieData } from '@nivo/line';
 import { AxiosResponse } from 'axios';
 
 import { ICounter } from '@alluxio/common-ui/src/constants';
+import { IJournalDiskInfo } from '../../constants/types/IJournalDiskInfo';
 
 export interface IMetrics {
   cacheHitLocal: string;
@@ -26,6 +27,7 @@ export interface IMetrics {
     [key: string]: ICounter;
   };
   timeSeriesMetrics: LineSerieData[];
+  journalDiskMetrics: IJournalDiskInfo[];
   totalBytesReadLocal: string;
   totalBytesReadLocalThroughput: string;
   totalBytesReadDomainSocket: string;

@@ -42,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +78,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final String mFsName;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  // Cache Uid<->Username and Gid<->Groupname mapping for local OS
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
+  private final LoadingCache<Long, String> mUsernameCache;
+  private final LoadingCache<Long, String> mGroupnameCache;
   private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
@@ -127,10 +131,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
 
-  private static final String USER_NAME = System.getProperty("user.name");
-  private static final String GROUP_NAME = System.getProperty("user.name");
-  private static final long DEFAULT_UID = AlluxioFuseUtils.getUid(USER_NAME);
-  private static final long DEFAULT_GID = AlluxioFuseUtils.getGid(GROUP_NAME);
+  private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
+  private static final String DEFAULT_GROUP_NAME = System.getProperty("user.name");
+  private static final long DEFAULT_UID = AlluxioFuseUtils.getUid(DEFAULT_USER_NAME);
+  private static final long DEFAULT_GID = AlluxioFuseUtils.getGid(DEFAULT_GROUP_NAME);
 
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
@@ -164,7 +168,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         .build(new CacheLoader<String, Long>() {
           @Override
           public Long load(String userName) {
-            return AlluxioFuseUtils.getUid(userName);
+            long uid = AlluxioFuseUtils.getUid(userName);
+            return uid == -1 ? DEFAULT_UID : uid;
           }
         });
     mGidCache = CacheBuilder.newBuilder()
@@ -172,7 +177,40 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         .build(new CacheLoader<String, Long>() {
           @Override
           public Long load(String groupName) {
-            return AlluxioFuseUtils.getGidFromGroupName(groupName);
+            long gid = AlluxioFuseUtils.getGidFromGroupName(groupName);
+            return gid == -1 ? DEFAULT_GID : gid;
+          }
+        });
+    mUsernameCache = CacheBuilder.newBuilder()
+        .maximumSize(100)
+        .build(new CacheLoader<Long, String>() {
+          @Override
+          public String load(Long uid) {
+            try {
+              String userName = AlluxioFuseUtils.getGroupName(uid);
+              return userName.isEmpty() ? DEFAULT_USER_NAME : userName;
+            } catch (IOException e) {
+              // This should never be reached since input uid is always valid
+              LOG.error("Failed to get user name from uid {}, fallback to {}",
+                  uid, DEFAULT_USER_NAME);
+              return DEFAULT_USER_NAME;
+            }
+          }
+        });
+    mGroupnameCache = CacheBuilder.newBuilder()
+        .maximumSize(100)
+        .build(new CacheLoader<Long, String>() {
+          @Override
+          public String load(Long gid) {
+            try {
+              String groupName = AlluxioFuseUtils.getGroupName(gid);
+              return groupName.isEmpty() ? DEFAULT_GROUP_NAME : groupName;
+            } catch (IOException e) {
+              // This should never be reached since input gid is always valid
+              LOG.error("Failed to get group name from gid {}, fallback to {}.",
+                  gid, DEFAULT_GROUP_NAME);
+              return DEFAULT_GROUP_NAME;
+            }
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
@@ -180,32 +218,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
-    SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
     FuseContext fc = getContext();
-    long uid = fc.uid.get();
-    long gid = fc.gid.get();
-    if (gid != DEFAULT_GID) {
-      String groupName = AlluxioFuseUtils.getGroupName(gid);
-      if (groupName.isEmpty()) {
-        // This should never be reached since input gid is always valid
-        LOG.error("Failed to get group name from gid {}, fallback to {}.", gid, GROUP_NAME);
-        groupName = GROUP_NAME;
-      }
-      attributeOptionsBuilder.setGroup(groupName);
-    }
-    if (uid != DEFAULT_UID) {
-      String userName = AlluxioFuseUtils.getUserName(uid);
-      if (userName.isEmpty()) {
-        // This should never be reached since input uid is always valid
-        LOG.error("Failed to get user name from uid {}, fallback to {}", uid, USER_NAME);
-        userName = USER_NAME;
-      }
-      attributeOptionsBuilder.setOwner(userName);
-    }
-    SetAttributePOptions setAttributePOptions =  attributeOptionsBuilder.build();
+    long uid = mIsUserGroupTranslation ? fc.uid.get() : DEFAULT_UID;
+    long gid = mIsUserGroupTranslation ? fc.gid.get() : DEFAULT_GID;
     if (gid != DEFAULT_GID || uid != DEFAULT_UID) {
-      LOG.debug("Set attributes of path {} to {}", uri, setAttributePOptions);
-      mFileSystem.setAttribute(uri, setAttributePOptions);
+      String groupName = gid != DEFAULT_GID ? mGroupnameCache.get(gid) : DEFAULT_GROUP_NAME;
+      String userName = uid != DEFAULT_UID ? mUsernameCache.get(uid) : DEFAULT_USER_NAME;
+      SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
+          .setGroup(groupName)
+          .setOwner(userName)
+          .build();
+      LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
+      mFileSystem.setAttribute(uri, attributeOptions);
     }
   }
 
@@ -339,20 +363,34 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int openInternal(String path, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    final int flags = fi.flags.get();
+    OpenFlags openFlag = OpenFlags.valueOf(flags);
+    LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
-      long fd = mNextOpenFileId.getAndIncrement();
-      FileInStream is;
-      try {
-        is = mFileSystem.openFile(uri);
-      } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          is = mFileSystem.openFile(uri);
-        } else {
-          throw e;
+      if (openFlag == OpenFlags.O_WRONLY) {
+        if (mFileSystem.exists(uri)) {
+          mFileSystem.delete(uri);
         }
+        FileOutStream os = mFileSystem.createFile(uri);
+        long fid = mNextOpenFileId.getAndIncrement();
+        mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
+        fi.fh.set(fid);
+        setUserGroupIfNeeded(uri);
+      } else {
+        FileInStream is;
+        try {
+          is = mFileSystem.openFile(uri);
+        } catch (FileIncompleteException e) {
+          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+            is = mFileSystem.openFile(uri);
+          } else {
+            throw e;
+          }
+        }
+        long fd = mNextOpenFileId.getAndIncrement();
+        mOpenFileEntries.put(fd, is);
+        fi.fh.set(fd);
       }
-      mOpenFileEntries.put(fd, is);
-      fi.fh.set(fd);
       return 0;
     } catch (Throwable e) {
       LOG.error("Failed to open {}: ", path, e);
@@ -680,8 +718,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int truncate(String path, long size) {
-    LOG.error("Truncate is not supported {}", path);
-    return -ErrorCodes.EOPNOTSUPP();
+    LOG.trace("truncate {} to {}", path, size);
+    if (size == 0) {
+      return 0;
+    } else {
+      LOG.trace("truncate {} to {} is not supported by alluxio", path, size);
+      return -ErrorCodes.EOPNOTSUPP();
+    }
   }
 
   @Override

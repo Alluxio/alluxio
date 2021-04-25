@@ -25,8 +25,9 @@ import { IApplicationState } from '../../../store';
 import { fetchRequest as metricsFetchRequest } from '../../../store/metrics/actions';
 import { fetchRequest as overviewFetchRequest } from '../../../store/overview/actions';
 import { IMetrics } from '../../../store/metrics/types';
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { bytesToString, createAlertErrors } from '@alluxio/common-ui/src/utilities';
 import { ICommonState } from '@alluxio/common-ui/src/constants';
+import { IJournalDiskInfo } from '../../../constants/types/IJournalDiskInfo';
 
 interface IPropsFromState extends ICommonState {
   alluxioStartTime: string;
@@ -290,6 +291,33 @@ export class MetricsPresenter extends React.Component<AllProps> {
             </Table>
           </div>
         ))}
+        <div className="col-12">
+          <h5>Alluxio Master Journal Disk Status</h5>
+          <Table hover={true}>
+            <tbody>
+              <tr>
+                <th>Device Path</th>
+                <th>Allocated Bytes</th>
+                <th>Used Bytes</th>
+                <th>Available Bytes</th>
+                <th>Percent Available</th>
+                <th>Mount Path</th>
+              </tr>
+              {data.journalDiskMetrics.map((info: IJournalDiskInfo, idx: number) => {
+                return (
+                  <tr key={idx}>
+                    <td>{info.diskPath}</td>
+                    <td>{bytesToString(info.totalAllocatedBytes)}</td>
+                    <td>{bytesToString(info.usedBytes)}</td>
+                    <td>{bytesToString(info.availableBytes)}</td>
+                    <td>{info.percentAvailable.toFixed(2)}%</td>
+                    <td>{info.mountPath}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
       </React.Fragment>
     );
   }

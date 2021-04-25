@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -55,6 +56,11 @@ public interface MetaMaster extends BackupOps, Master {
    * @return hashes of cluster and path level configuration
    */
   ConfigHash getConfigHash();
+
+  /**
+   * @return the journal space monitor if supported by the current configuration
+   */
+  Optional<JournalSpaceMonitor> getJournalSpaceMonitor();
 
   /**
    * Sets properties for a path.
