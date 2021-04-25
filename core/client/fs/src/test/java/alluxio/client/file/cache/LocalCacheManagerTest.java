@@ -55,7 +55,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
