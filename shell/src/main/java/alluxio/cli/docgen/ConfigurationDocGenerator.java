@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,16 +69,18 @@ public final class ConfigurationDocGenerator {
     String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
         "worker-configuration.csv", "security-configuration.csv",
         "common-configuration.csv", "cluster-management-configuration.csv"};
-
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
       for (String fileName : fileNames) {
         if(validate){
           String tempPrefix = "temp-";
-          fileName = tempPrefix.concat(fileName);
+          String fileNameTemp = tempPrefix.concat(fileName);
+          fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNameTemp));
         }
-        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
+        else {
+          fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
+        }
         // Write the CSV file header and line separator after the header
         fileWriter.append(CSV_FILE_HEADER + "\n");
         //put fileWriter
@@ -158,9 +161,12 @@ public final class ConfigurationDocGenerator {
       for (String fileName : fileNames) {
         if(validate){
           String tempPrefix = "temp-";
-          fileName = tempPrefix.concat(fileName);
+          String fileNameTemp = tempPrefix.concat(fileName);
+          fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNameTemp));
         }
-        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
+        else {
+          fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
+        }
         //put fileWriter
         String key = fileName.substring(0, fileName.indexOf("configuration") - 1);
         fileWriterMap.put(key, fileWriter);
@@ -226,9 +232,6 @@ public final class ConfigurationDocGenerator {
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath, validate);
-    // generate YML files
-    filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
-    writeYMLFile(defaultKeys, filePath, validate);
 
     if(validate){
       boolean hasDiff = false;
@@ -247,15 +250,61 @@ public final class ConfigurationDocGenerator {
         String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
 
         if(output.length()>0){
+          System.out.println(output);
+          hasDiff = true;
           System.out.println("Config file "+fileName+" + changed.");
         }
-        File f = new File(PathUtils.concatPath(filePath, fileNameTemp));
-        f.delete();
+        File f = new File(PathUtils.concatPath(filePath, fileName));
+        // f = new File(PathUtils.concatPath(filePath, fileName));
+        File f2 = new File(PathUtils.concatPath(filePath,fileNameTemp));
+        f2.renameTo(f);
+        // f2.delete();
       }
       if(!hasDiff){
-        System.out.println("No change in config file detected.");
+        System.out.println("No change in CSV file detected.");
       }
 
     }
+
+    // generate YML files
+    filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
+    writeYMLFile(defaultKeys, filePath, validate);
+
+    if(validate){
+      boolean hasDiff = false;
+      String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
+          "worker-configuration.yml", "security-configuration.yml",
+          "common-configuration.yml", "cluster-management-configuration.yml"
+      };
+
+      for (String fileName : fileNames) {
+        String tempPrefix = "temp-";
+        String fileNameTemp = tempPrefix.concat(fileName);
+
+        // create the ProcessBuilder for the diff command
+        ProcessBuilder pb = new ProcessBuilder("diff",PathUtils.concatPath(filePath, fileName),
+            PathUtils.concatPath(filePath, fileNameTemp));
+        // redirect the diff output to a string
+        String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+
+        if(output.length()>0){
+          System.out.println(output);
+          hasDiff = true;
+          System.out.println("Config file "+fileName+" changed.");
+        }
+        File f = new File(PathUtils.concatPath(filePath, fileName));
+        // f.delete();
+        // f = new File(PathUtils.concatPath(filePath, fileName));
+        File f2 = new File(PathUtils.concatPath(filePath,fileNameTemp));
+        f2.renameTo(f);
+        // f2.delete();
+      }
+      if(!hasDiff){
+        System.out.println("No change in YML files detected.");
+      }
+
+    }
+
+
   }
 }

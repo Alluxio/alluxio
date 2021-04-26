@@ -68,16 +68,17 @@ public class DocGenerator {
       if (cmd.hasOption(VALIDATE_OPTION_NAME)){
         validate = true;
       }
+      if ((!cmd.hasOption(METRIC_OPTION_NAME)) && (!cmd.hasOption(CONF_OPTION_NAME))){
+        MetricsDocGenerator.generate(validate);
+        ConfigurationDocGenerator.generate(validate);
+      }
       if (cmd.hasOption(METRIC_OPTION_NAME)) {
-        System.out.println("Validate flag is: " + validate);
         MetricsDocGenerator.generate(validate);
       }
       if (cmd.hasOption(CONF_OPTION_NAME)) {
-        System.out.println("Validate flag is: " + validate);
         ConfigurationDocGenerator.generate(validate);
       }
     } else {
-      System.out.println("Validate flag is: " + validate);
       MetricsDocGenerator.generate(validate);
       ConfigurationDocGenerator.generate(validate);
     }
