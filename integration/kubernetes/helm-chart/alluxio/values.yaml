@@ -25,6 +25,11 @@ user: 1000
 group: 1000
 fsGroup: 1000
 
+# Service Account
+#   If not specified, Kubernetes will assign the 'default'
+#   ServiceAccount used for the namespace
+serviceAccountName:
+
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
@@ -85,6 +90,9 @@ master:
   jvmOptions:
   nodeSelector: {}
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccountName`
+  serviceAccountName:
 
 jobMaster:
   args:
@@ -179,6 +187,9 @@ worker:
   jvmOptions:
   nodeSelector: {}
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccountName`
+  serviceAccountName:
 
 jobWorker:
   args:
@@ -303,6 +314,9 @@ fuse:
       cpu: "4"
       memory: "4G"
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccountName`
+  serviceAccountName:
 
 
 ##  Secrets ##
