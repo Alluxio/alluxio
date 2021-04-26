@@ -28,7 +28,7 @@ fsGroup: 1000
 # Service Account
 #   If not specified, Kubernetes will assign the 'default'
 #   ServiceAccount used for the namespace
-serviceAccountName:
+serviceAccount:
 
 # Site properties for all the components
 properties:
@@ -91,8 +91,8 @@ master:
   nodeSelector: {}
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
-  # the global `serviceAccountName`
-  serviceAccountName:
+  # the global `serviceAccount`
+  serviceAccount:
 
 jobMaster:
   args:
@@ -188,8 +188,8 @@ worker:
   nodeSelector: {}
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
-  # the global `serviceAccountName`
-  serviceAccountName:
+  # the global `serviceAccount`
+  serviceAccount:
 
 jobWorker:
   args:
@@ -315,8 +315,8 @@ fuse:
       memory: "4G"
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
-  # the global `serviceAccountName`
-  serviceAccountName:
+  # the global `serviceAccount`
+  serviceAccount:
 
 
 ##  Secrets ##

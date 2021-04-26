@@ -74,10 +74,10 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
-    {{- if .Values.master.serviceAccountName }}
-      serviceAccountName: {{ .Values.master.serviceAccountName }}
-    {{- else if .Values.serviceAccountName }}
-      serviceAccountName: {{ .Values.serviceAccountName }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
       initContainers:
       {{- if .Values.journal.format.runFormat}}

@@ -65,10 +65,10 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
-    {{- if .Values.worker.serviceAccountName }}
-      serviceAccountName: {{ .Values.worker.serviceAccountName }}
-    {{- else if .Values.serviceAccountName }}
-      serviceAccountName: {{ .Values.serviceAccountName }}
+    {{- if .Values.worker.serviceAccount }}
+      serviceAccountName: {{ .Values.worker.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
       containers:
         - name: alluxio-worker
