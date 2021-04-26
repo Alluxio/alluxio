@@ -1275,7 +1275,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           auditContext.setAllowed(false);
           throw e;
         }
-        checkConsistencyRecursive(parent, inconsistentUris);
+        checkConsistencyRecursive(parent, inconsistentUris, false);
 
         auditContext.setSucceeded(true);
       }
@@ -1284,17 +1284,22 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   private void checkConsistencyRecursive(LockedInodePath inodePath,
-      List<AlluxioURI> inconsistentUris) throws IOException, FileDoesNotExistException {
+      List<AlluxioURI> inconsistentUris, boolean assertInconsistent)
+          throws IOException, FileDoesNotExistException {
     Inode inode = inodePath.getInode();
     try {
-      if (!checkConsistencyInternal(inodePath)) {
+      if (assertInconsistent || !checkConsistencyInternal(inodePath)) {
         inconsistentUris.add(inodePath.getUri());
+        // If a dir in Alluxio is inconsistent with underlying storage,
+        // we can assert the children is inconsistent.
+        // If a file is inconsistent, please ignore this parameter cause it has no child node.
+        assertInconsistent = true;
       }
       if (inode.isDirectory()) {
         InodeDirectory inodeDir = inode.asDirectory();
         for (Inode child : mInodeStore.getChildren(inodeDir)) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-            checkConsistencyRecursive(childPath, inconsistentUris);
+            checkConsistencyRecursive(childPath, inconsistentUris, assertInconsistent);
           }
         }
       }
