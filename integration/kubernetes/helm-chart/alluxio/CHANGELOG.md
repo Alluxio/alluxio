@@ -163,3 +163,7 @@
 0.6.17
 
 - Add hostAliases in Master and Worker Pods
+
+0.6.18
+
+- Add serviceAccountName in Master, Worker, and FUSE Pods
