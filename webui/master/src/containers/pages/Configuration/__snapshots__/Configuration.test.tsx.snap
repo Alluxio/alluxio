@@ -11,11 +11,26 @@ exports[`Configuration Shallow component Matches snapshot 1`] = `
       className="row"
     >
       <div
-        className="col-12"
+        className="col-6"
       >
         <h5>
           Alluxio Configuration
         </h5>
+      </div>
+      <div
+        className=" search-container col-6"
+      >
+        <Input
+          id="searchConfig"
+          onChange={[Function]}
+          placeholder="Search by Property"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        className="col-12"
+      >
         <Table
           hover={true}
           responsiveTag="div"
@@ -34,7 +49,25 @@ exports[`Configuration Shallow component Matches snapshot 1`] = `
               </th>
             </tr>
           </thead>
-          <tbody />
+          <tbody
+            id="filtered-data-body"
+          >
+            <tr
+              key="alluxio."
+            >
+              <td>
+                <pre
+                  className="mb-0"
+                >
+                  <code>
+                    alluxio.
+                  </code>
+                </pre>
+              </td>
+              <td />
+              <td />
+            </tr>
+          </tbody>
         </Table>
       </div>
       <div
@@ -48,7 +81,15 @@ exports[`Configuration Shallow component Matches snapshot 1`] = `
           responsiveTag="div"
           tag="table"
         >
-          <tbody />
+          <tbody>
+            <tr
+              key="/"
+            >
+              <td>
+                /
+              </td>
+            </tr>
+          </tbody>
         </Table>
       </div>
     </div>

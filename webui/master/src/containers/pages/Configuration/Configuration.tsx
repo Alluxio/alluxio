@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { Table } from 'reactstrap';
+import { Input, Table } from 'reactstrap';
 import { AnyAction, compose, Dispatch } from 'redux';
 
 import { withErrors, withLoadingMessage, withFetchData } from '@alluxio/common-ui/src/components';
@@ -21,6 +21,7 @@ import { fetchRequest } from '../../../store/config/actions';
 import { IConfig } from '../../../store/config/types';
 import { IAlertErrors, ICommonState } from '@alluxio/common-ui/src/constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import './Configuration.scss';
 
 interface IPropsFromState extends ICommonState {
   data: IConfig;
@@ -32,16 +33,42 @@ interface IPropsFromDispatch {
 
 export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-export class ConfigurationPresenter extends React.Component<AllProps> {
-  public render(): JSX.Element {
-    const { data } = this.props;
+interface IState {
+  searchConfig: string;
+}
 
+export class ConfigurationPresenter extends React.Component<AllProps, IState> {
+  constructor(props: AllProps) {
+    super(props);
+    this.__searchInputHandler.bind(this);
+    this.state = {
+      searchConfig: '',
+    };
+  }
+
+  public render(): JSX.Element {
+    const { searchConfig } = this.state;
+    const { data } = this.props;
+    const filteredData = data.configuration.filter((data: IConfigTriple) =>
+      data.left.toLowerCase().includes(searchConfig.toLowerCase()),
+    );
     return (
       <div className="configuration-page">
         <div className="container-fluid">
           <div className="row">
-            <div className="col-12">
+            <div className="col-6">
               <h5>Alluxio Configuration</h5>
+            </div>
+            <div className=" search-container col-6">
+              <Input
+                type="text"
+                id="searchConfig"
+                placeholder="Search by Property"
+                value={searchConfig}
+                onChange={this.__searchInputHandler}
+              />
+            </div>
+            <div className="col-12">
               <Table hover={true}>
                 <thead>
                   <tr>
@@ -50,19 +77,27 @@ export class ConfigurationPresenter extends React.Component<AllProps> {
                     <th>Source</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {data.configuration.map((configuration: IConfigTriple) => (
-                    <tr key={configuration.left}>
-                      <td>
-                        <pre className="mb-0">
-                          <code>{configuration.left}</code>
-                        </pre>
-                      </td>
-                      <td>{configuration.middle}</td>
-                      <td>{configuration.right}</td>
+                {filteredData.length ? (
+                  <tbody id="filtered-data-body">
+                    {filteredData.map((configuration: IConfigTriple) => (
+                      <tr key={configuration.left}>
+                        <td>
+                          <pre className="mb-0">
+                            <code>{configuration.left}</code>
+                          </pre>
+                        </td>
+                        <td>{configuration.middle}</td>
+                        <td>{configuration.right}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                ) : (
+                  <tbody id="no-data-body">
+                    <tr>
+                      <td> Sorry, no matching properties. </td>
                     </tr>
-                  ))}
-                </tbody>
+                  </tbody>
+                )}
               </Table>
             </div>
             <div className="col-12">
@@ -82,6 +117,10 @@ export class ConfigurationPresenter extends React.Component<AllProps> {
       </div>
     );
   }
+
+  private __searchInputHandler = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    this.setState({ searchConfig: e.target.value.trim() });
+  };
 }
 
 const mapStateToProps = ({ config, refresh }: IApplicationState): IPropsFromState => {
