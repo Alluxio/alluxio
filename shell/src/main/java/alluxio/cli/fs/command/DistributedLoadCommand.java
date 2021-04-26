@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -91,6 +92,15 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("hosts")
           .desc("A list of worker hosts separated by comma")
           .build();
+  private static final Option HOST_FILE_OPTION =
+      Option.builder()
+          .longOpt("host-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("host-file")
+          .desc("Host File contains worker hosts, every line has a worker host")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -110,7 +120,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public Options getOptions() {
     return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
         .addOption(INDEX_FILE)
-        .addOption(HOSTS_OPTION);
+        .addOption(HOSTS_OPTION)
+        .addOption(HOST_FILE_OPTION);
   }
 
   @Override
@@ -121,7 +132,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
-        + "[--host <host1,host2,...,hostn>] <path>";
+        + "[--hosts <host1,host2,...,hostn>] [--host-file <hostFilePath>] <path>";
   }
 
   @Override
@@ -138,7 +149,18 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = Collections.EMPTY_SET;
-    if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
+    if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
+      String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
+      try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
+        workerSet = new HashSet<String>();
+        for (String worker; (worker = reader.readLine()) != null; ) {
+          worker = worker.trim();
+          if (!worker.isEmpty()) {
+            workerSet.add(worker.toUpperCase());
+          }
+        }
+      }
+    } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       workerSet = Arrays.stream(StringUtils.split(argOption, ","))
           .map(str -> str.trim().toUpperCase())
