@@ -167,7 +167,7 @@ public final class TestCommand extends AbstractFileSystemCommand {
       return 1;
     } catch (IOException e) {
       return 2;
-    }catch (AlluxioException e){
+    } catch (AlluxioException e) {
       return 3;
     }
   }
