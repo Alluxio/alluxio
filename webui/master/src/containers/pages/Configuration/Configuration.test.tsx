@@ -9,13 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
 
-import { initialState } from '../../../store';
 import { AllProps, ConfigurationPresenter } from './Configuration';
 import { routePaths } from '../../../constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
