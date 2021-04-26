@@ -1,9 +1,12 @@
 # Readme
-This directory contains some docker files to help you set up metrics tracking on an alluxio cluster. The scripts uses opentelemetry's auto instrumentation java agent to generate tracing information for GRPC and S3 calls, which is visualized using Jaeger and Prometheus. 
+This directory contains some docker files to help you set up metrics tracking on an alluxio cluster. 
+The scripts uses opentelemetry's auto instrumentation java agent to generate tracing information for GRPC and S3 calls, which is visualized using Jaeger and Prometheus. 
+
+For reference, please refer to documentations listed at [opentelemetry GitHub page](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 
 1. On one of the Alluxio master or the node where you want to run Jaeger and Prometheus, run 
 ```
-docker-compose run -e MASTER_IP=xxx.xx.xx.xx -d
+docker-compose -f docker-compose-master.yaml run -e MASTER_IP=xxx.xx.xx.xx -d
 ```
 2. On all other alluxio nodes, run 
 ```
