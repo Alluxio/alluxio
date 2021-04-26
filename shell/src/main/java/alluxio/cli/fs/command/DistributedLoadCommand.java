@@ -154,7 +154,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
         workerSet = new HashSet<String>();
         for (String worker; (worker = reader.readLine()) != null; ) {
-          workerSet.add(worker);
+          worker = worker.trim();
+          if (!worker.isEmpty()) {
+            workerSet.add(worker.toUpperCase());
+          }
         }
       }
     } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
