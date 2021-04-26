@@ -157,7 +157,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
              workerSet.add(worker);
         }
       }
-    }else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
+    } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       workerSet = Arrays.stream(StringUtils.split(argOption, ","))
           .map(str -> str.trim().toUpperCase())
