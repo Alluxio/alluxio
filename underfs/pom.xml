@@ -25,18 +25,19 @@
   <modules>
     <module>abfs</module>
     <module>adl</module>
+    <module>cephfs-hadoop</module>
     <module>cos</module>
+    <module>cosn</module>
     <module>gcs</module>
     <module>hdfs</module>
     <module>kodo</module>
     <module>local</module>
     <module>oss</module>
+    <module>ozone</module>
     <module>s3a</module>
     <module>swift</module>
     <module>wasb</module>
     <module>web</module>
-    <module>ozone</module>
-    <module>cosn</module>
   </modules>
 
   <properties>

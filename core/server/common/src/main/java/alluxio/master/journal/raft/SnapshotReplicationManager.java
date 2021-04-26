@@ -31,10 +31,13 @@ import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
@@ -171,8 +174,11 @@ public class SnapshotReplicationManager {
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
+      Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName()).time();
       client.downloadSnapshot(observer);
       return observer.getFuture().thenApplyAsync((termIndex) -> {
+        ctx.close();
         mDownloadedSnapshot = observer.getSnapshotToInstall();
         transitionState(DownloadState.STREAM_DATA, DownloadState.DOWNLOADED);
         long index = installDownloadedSnapshot();
@@ -375,7 +381,8 @@ public class SnapshotReplicationManager {
       return RaftLog.INVALID_LOG_INDEX;
     }
     File tempFile = null;
-    try {
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER.getName()).time()) {
       SnapshotInfo snapshot = mDownloadedSnapshot;
       if (snapshot == null) {
         throw new IllegalStateException("Snapshot is not completed");

@@ -21,6 +21,9 @@ import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The configuration of loading a file.
@@ -32,15 +35,19 @@ public class LoadConfig implements PlanConfig {
   private static final long serialVersionUID = -7937106659935180792L;
   private final String mFilePath;
   private final int mReplication;
+  private final Set<String> mWorkerSet;
 
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
+   * @param workerSet the worker set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
-      @JsonProperty("replication") Integer replication) {
+      @JsonProperty("replication") Integer replication,
+      @JsonProperty("workerSet") Set<String> workerSet) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
+    mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
   }
 
   /**
@@ -93,5 +100,12 @@ public class LoadConfig implements PlanConfig {
   @Override
   public Collection<String> affectedPaths() {
     return ImmutableList.of(mFilePath);
+  }
+
+  /**
+   * @return worker set
+   */
+  public Set<String> getWorkerSet() {
+    return mWorkerSet;
   }
 }

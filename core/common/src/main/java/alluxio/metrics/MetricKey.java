@@ -321,6 +321,17 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of inodes (inode metadata) cached.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_JOURNAL_SPACE_FREE_BYTES =
+      new Builder(Name.MASTER_JOURNAL_SPACE_FREE_BYTES)
+          .setDescription("Bytes left on the journal disk(s) for an Alluxio master")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_SPACE_FREE_PERCENT =
+      new Builder(Name.MASTER_JOURNAL_SPACE_FREE_PERCENT)
+          .setDescription(
+              "Percentage of free space left on the journal disk(s) for an Alluxio master")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder(Name.MASTER_TOTAL_PATHS)
           .setDescription("Total number of files and directory in Alluxio namespace")
@@ -512,6 +523,32 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   // Journal metrics
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER)
+          .setDescription("The timer statistics of journal snapshot generation by this master")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER)
+          .setDescription("The timer statistics of journal snapshot download from other masters")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER)
+          .setDescription("The timer statistics of journal snapshot install")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER)
+          .setDescription("The timer statistics of journal snapshot replay")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX)
+          .setDescription("The last index of the latest journal snapshot "
+              + "created by this master or downloaded from other masters")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
@@ -1195,6 +1232,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache but"
+              + " getting disk is full while cache capacity is not achieved. This can happen if"
+              + " the storage overhead ratio to write data is underestimated.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_STORE_DELETE_TIMEOUT =
       new Builder(Name.CLIENT_CACHE_STORE_DELETE_TIMEOUT)
           .setDescription("Number of timeouts when deleting pages from page store.")
@@ -1323,6 +1368,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_INODE_CACHE_MISSES = "Master.InodeCacheMisses";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
 
+    public static final String MASTER_JOURNAL_SPACE_FREE_BYTES = "Master.JournalFreeBytes";
+    public static final String MASTER_JOURNAL_SPACE_FREE_PERCENT = "Master.JournalFreePercent";
+
     public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
 
     // metrics names for BackupManager
@@ -1368,6 +1416,16 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_EDGE_LOCK_POOL_SIZE = "Master.EdgeLockPoolSize";
 
     // metrics names for journal
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER
+        = "Master.EmbeddedJournalSnapshotGenerateTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER
+        = "Master.EmbeddedJournalSnapshotDownloadGenerate";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER
+        = "Master.EmbeddedJournalSnapshotInstallTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER
+        = "Master.EmbeddedJournalSnapshotReplayTimer";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX
+        = "Master.EmbeddedJournalSnapshotLastIndex";
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
@@ -1524,6 +1582,8 @@ public final class MetricKey implements Comparable<MetricKey> {
         "Client.CachePutStoreDeleteErrors";
     public static final String CLIENT_CACHE_PUT_STORE_WRITE_ERRORS =
         "Client.CachePutStoreWriteErrors";
+    public static final String CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS =
+        "Client.CachePutStoreWriteNoSpaceErrors";
     public static final String CLIENT_CACHE_STORE_DELETE_TIMEOUT =
         "Client.CacheStoreDeleteTimeout";
     public static final String CLIENT_CACHE_STORE_GET_TIMEOUT =

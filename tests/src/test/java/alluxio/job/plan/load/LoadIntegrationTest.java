@@ -24,6 +24,8 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
+
 /**
  * Integration tests for {@link LoadDefinition}.
  */
@@ -51,14 +53,14 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
     Assert.assertEquals(0, status.getInMemoryPercentage());
 
     // run the load job
-    waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null)));
+    waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET)));
 
     // check the file is fully in memory
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(100, status.getInMemoryPercentage());
 
     // a second load should work too, no worker is selected
-    long jobId = mJobMaster.run(new LoadConfig("/test", null));
+    long jobId = mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET));
     Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 
@@ -79,14 +81,14 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
     Assert.assertEquals(0, status.getInMemoryPercentage());
 
     // run the load job
-    waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null)));
+    waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET)));
 
     // check the file is fully in memory
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(100, status.getInMemoryPercentage());
 
     // a second load should work too, no worker is selected
-    long jobId = mJobMaster.run(new LoadConfig("/test", null));
+    long jobId = mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET));
     Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 }

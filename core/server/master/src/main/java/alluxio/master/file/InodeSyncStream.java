@@ -86,13 +86,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -494,21 +491,10 @@ public class InodeSyncStream {
       InterruptedException {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
-    }
-    syncExistingInodeMetadata(inodePath);
-  }
-
-  private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
-    while (true) {
-      try {
-        return future.get(1, TimeUnit.SECONDS);
-      } catch (TimeoutException e) {
-        mRpcContext.throwIfCancelled();
-      } catch (ExecutionException e) {
-        LogUtils.warnWithException(LOG, "Failed to get result for prefetch job", e);
-        throw new RuntimeException(e);
-      }
+      // skip the load metadata step in the sync if it has been just loaded
+      syncExistingInodeMetadata(inodePath, true);
+    } else {
+      syncExistingInodeMetadata(inodePath, false);
     }
   }
 
@@ -517,13 +503,13 @@ public class InodeSyncStream {
    *
    * This method expects the {@code inodePath} to already exist in the inode tree.
    */
-  private void syncExistingInodeMetadata(LockedInodePath inodePath)
+  private void syncExistingInodeMetadata(LockedInodePath inodePath, boolean skipLoad)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException,
       InterruptedException {
     if (inodePath.getLockPattern() != LockPattern.WRITE_EDGE && !mLoadOnly) {
       throw new RuntimeException(String.format(
-          "syncExistingInodeMetadata was called on d%s when only locked with %s. Load metadata"
+          "syncExistingInodeMetadata was called on %s when only locked with %s. Load metadata"
           + " only was not specified.", inodePath.getUri(), inodePath.getLockPattern()));
     }
 
@@ -536,7 +522,8 @@ public class InodeSyncStream {
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
     // initialize sync children to true if it is a listStatus call on a directory
-    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo;
+    boolean syncChildren = inode.isDirectory() && !mIsGetFileInfo
+        && !mDescendantType.equals(DescendantType.NONE);
 
     // if the lock pattern is WRITE_EDGE, then we can sync (update or delete). Otherwise, if it is
     // we can only load metadata.
@@ -574,13 +561,13 @@ public class InodeSyncStream {
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else if (cachedStatus == null) {
           // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
-          ufsFingerprint = (String) getFromUfs(() -> ufs.getFingerprint(ufsUri.toString()));
+          ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else {
           // When the status is cached
           Pair<AccessControlList, DefaultAccessControlList> aclPair =
-              (Pair<AccessControlList, DefaultAccessControlList>)
-                  getFromUfs(() -> ufs.getAclPair(ufsUri.toString()));
+              ufs.getAclPair(ufsUri.toString());
+
           if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
             ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
           } else {
@@ -643,13 +630,11 @@ public class InodeSyncStream {
       }
     }
 
-    // Only sync children when
-    // (1) DescendantType.ALL or (2) syncing root of this stream && DescendantType.ONE
+    // sync plan does not know about the root of the sync
+    // if DescendantType.ONE we only sync children if we are syncing root of this stream
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
-          syncChildren && inode.isDirectory() && mRootScheme.getPath().equals(inodePath.getUri());
-    } else if (mDescendantType == DescendantType.ALL) {
-      syncChildren = syncChildren && inode.isDirectory();
+          syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
     }
 
     Map<String, Inode> inodeChildren = new HashMap<>();
@@ -659,9 +644,8 @@ public class InodeSyncStream {
           .forEach(child -> inodeChildren.put(child.getName(), child));
 
       // Fetch and populate children into the cache
-      mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
       Collection<UfsStatus> listStatus = mStatusCache
-          .fetchChildrenIfAbsent(mRpcContext, inodePath.getUri(), mMountTable);
+          .fetchChildrenIfAbsent(inodePath.getUri(), mMountTable);
       // Iterate over UFS listings and process UFS children.
       if (listStatus != null) {
         for (UfsStatus ufsChildStatus : listStatus) {
@@ -681,7 +665,7 @@ public class InodeSyncStream {
     }
 
     // load metadata if necessary.
-    if (loadMetadata) {
+    if (loadMetadata && !skipLoad) {
       loadMetadataForPath(inodePath);
     }
 
@@ -709,11 +693,18 @@ public class InodeSyncStream {
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
     UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
+    DescendantType descendantType = mDescendantType;
+    // If loadMetadata is only for one level, and the path is not the root of the loadMetadata,
+    // do not load the subdirectory
+    if (descendantType.equals(DescendantType.ONE)
+        && !inodePath.getUri().equals(mRootScheme.getPath())) {
+      descendantType = DescendantType.NONE;
+    }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
             .setCommonOptions(NO_TTL_OPTION)
             .setCreateAncestors(true)
-            .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
+            .setLoadDescendantType(GrpcUtils.toProto(descendantType)))
         .setUfsStatus(status);
     loadMetadata(inodePath, ctx);
   }
@@ -749,8 +740,8 @@ public class InodeSyncStream {
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
         if (type != LoadDescendantPType.NONE) {
-          Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(mRpcContext,
-              inodePath.getUri(), mMountTable);
+          Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(inodePath.getUri(),
+              mMountTable);
           if (children == null) {
             LOG.debug("fetching children for {} returned null", inodePath.getUri());
             return;

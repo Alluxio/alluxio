@@ -204,7 +204,7 @@ public class BufferCachingGrpcDataReader {
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     int readerBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
-    long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
 
     CloseableResource<BlockWorkerClient> client = context.acquireBlockWorkerClient(address);
 
