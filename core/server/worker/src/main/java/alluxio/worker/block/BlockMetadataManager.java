@@ -20,32 +20,28 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.worker.block.allocator.Allocator;
-import alluxio.worker.block.annotator.EmulatingBlockIterator;
-import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.annotator.BlockAnnotator;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.DefaultBlockIterator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultStorageTier;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.annotator.BlockIterator;
-import alluxio.worker.block.annotator.DefaultBlockIterator;
-import alluxio.worker.block.annotator.BlockAnnotator;
-
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+
 
 /**
  * Manages the metadata of all blocks in managed space. This information is used by the
@@ -85,15 +81,9 @@ public final class BlockMetadataManager {
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
         LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-        // Create emulating block iterator.
-        BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-            Collections.<Long>emptySet(), Collections.<Long>emptySet());
-        mBlockIterator = new EmulatingBlockIterator(this,
-            Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
-      } else {
-        // Create default block iterator.
-        mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
       }
+      // Create default block iterator.
+      mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
