@@ -358,16 +358,17 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int open(String path, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi), "Fuse.Open", "path=%s", path);
+    final int flags = fi.flags.get();
+    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY;
+    String methodName = overwrite ? "Fuse.OpenOverwrite" : "Fuse.Open";
+    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, overwrite),
+        methodName, "path=%s,flags=0x%x", path, flags);
   }
 
-  private int openInternal(String path, FuseFileInfo fi) {
+  private int openInternal(String path, FuseFileInfo fi, boolean overwrite) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    final int flags = fi.flags.get();
-    OpenFlags openFlag = OpenFlags.valueOf(flags);
-    LOG.trace("open({}, 0x{}) [target: {}]", path, Integer.toHexString(flags), uri);
     try {
-      if (openFlag == OpenFlags.O_WRONLY) {
+      if (overwrite) {
         if (mFileSystem.exists(uri)) {
           mFileSystem.delete(uri);
         }
@@ -393,7 +394,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       return 0;
     } catch (Throwable e) {
-      LOG.error("Failed to open {}: ", path, e);
+      LOG.error("Failed to open path={},overwrite={}: ", path, overwrite, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -716,13 +717,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return 0;
   }
 
+  /**
+   * Truncate is not supported internally by Alluxio.
+   * Truncate is supported here only for a special overwrite case.
+   * Libfuse issues open() - truncate() to size 0 - write() new contents - release()
+   * to overwrite an existing file. Since files can be written only once,
+   * only sequentially, and never be modified in Alluxio, we delete the existing file
+   * and create a new file for writing in open() and consider truncate() to size 0 as
+   * a noop to fulfill the overwrite requirement.
+   *
+   * @param path the file to truncate
+   * @param size the size to truncate to
+   * @return 0 if succeed, error code otherwise
+   */
   @Override
   public int truncate(String path, long size) {
-    LOG.trace("truncate {} to {}", path, size);
+    LOG.debug("truncate {} to {}", path, size);
     if (size == 0) {
+      // truncate may be called in overwrite process:
+      // open(openflag=0b2) - truncate to size 0 - write - flush - release
+      if (!mCreateFileEntries.contains(PATH_INDEX, path)) {
+        LOG.error("Cannot truncate {} to {}. The file is not opened for overwrite", path, size);
+        return -ErrorCodes.EOPNOTSUPP();
+      }
       return 0;
     } else {
-      LOG.trace("truncate {} to {} is not supported by alluxio", path, size);
+      LOG.error("Truncate {} to {} is not supported by alluxio", path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
   }

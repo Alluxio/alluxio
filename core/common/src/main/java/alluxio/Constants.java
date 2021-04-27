@@ -71,6 +71,7 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_COSN = "cosn://";
+  public static final String HEADER_CEPHFS = "cephfs://";
 
   public static final int MAX_PORT = 65535;
 

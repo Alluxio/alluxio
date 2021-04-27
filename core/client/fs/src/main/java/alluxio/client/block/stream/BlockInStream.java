@@ -161,8 +161,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
-    return new BlockInStream(
-        new BlockWorkerDataReader.Factory(context, blockId, chunkSize, options),
+    return new BlockInStream(new BlockWorkerDataReader.Factory(
+        context.getProcessLocalWorker(), blockId, chunkSize, options),
         conf, address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
   }
 
