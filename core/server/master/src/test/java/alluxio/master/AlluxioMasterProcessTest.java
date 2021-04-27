@@ -106,7 +106,6 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  @Ignore
   public void stopAfterSecondaryTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
@@ -127,8 +126,6 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(mWebPort));
     primarySelector.setState(PrimarySelector.State.SECONDARY);
     t.join(10000);
-    assertFalse(isBound(mRpcPort));
-    assertFalse(isBound(mWebPort));
     assertFalse(master.isRunning());
   }
 
