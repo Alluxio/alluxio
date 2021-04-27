@@ -70,11 +70,10 @@ public final class MetricsDocGenerator {
       String category = typeStr.toLowerCase();
       metricTypeMap.put(typeStr, category);
     }
-
+    String csvFolder = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
+    String ymlFolder = PathUtils.concatPath(homeDir, YML_FILE_DIR);
     try (Closer closer = Closer.create()) {
       Map<FileWriterKey, FileWriter> fileWriterMap = new HashMap<>();
-      String csvFolder = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
-      String ymlFolder = PathUtils.concatPath(homeDir, YML_FILE_DIR);
       FileWriter csvFileWriter;
       FileWriter ymlFileWriter;
       for (String category : CATEGORIES) {
@@ -101,7 +100,6 @@ public final class MetricsDocGenerator {
 
       for (MetricKey metricKey : defaultKeys) {
         String key = metricKey.toString();
-
         String[] components = key.split("\\.");
         if (components.length < 2) {
           throw new IOException(String
@@ -120,61 +118,38 @@ public final class MetricsDocGenerator {
         ymlFileWriter.append(String.format("%s:%n  '%s'%n",
             key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
       }
-      if(validate) {
-        boolean hasDiff = false;
-        for (String category : CATEGORIES) {
-          File f3 = new File("/Users/muzhouli/Documents/alluxio/docs/_data/table/"+"temp-" + category + "-metrics." + CSV_SUFFIX);
-          if (f3.exists())
-            System.out.println("Exists");
-          else
-            System.out.println("Does not Exists");
-          BufferedReader br = new BufferedReader(new FileReader("/Users/muzhouli/Documents/alluxio/docs/_data/table/"+"temp-" + category + "-metrics." + CSV_SUFFIX));
-          System.out.println("temp-" + category + "-metrics:");
-          String text = br.readLine();
-          System.out.println(text);
-          text = br.readLine();
-          System.out.println(text);
-          br.close();
-          br = new BufferedReader(new FileReader("/Users/muzhouli/Documents/alluxio/docs/_data/table/"+category + "-metrics." + CSV_SUFFIX));
-          System.out.println(category + "-metrics:");
-          text = br.readLine();
-          System.out.println(text);
-          text = br.readLine();
-          System.out.println(text);
-          br.close();
-          ProcessBuilder pb = new ProcessBuilder("diff",
-              PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)),
-              PathUtils.concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
-          String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
-          System.out.println("temp-" + category + "-metrics." + CSV_SUFFIX);
-          System.out.println(category + "-metrics." + CSV_SUFFIX);
-          if (output.length() > 0) {
-            System.out.println(output);
-            hasDiff = true;
-            System.out.println("Metrics file " + category + "-metrics." + CSV_SUFFIX + " changed.");
-          }
-          File f = new File(csvFolder, category + "-metrics." + CSV_SUFFIX);
-          File f2 = new File(csvFolder, "temp-" + category + "-metrics." + CSV_SUFFIX);
-          // f.delete();
-          f2.renameTo(f);
+    }
+    if(validate) {
+      boolean hasDiff = false;
 
-          pb = new ProcessBuilder("diff",
-              PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)),
-              PathUtils.concatPath(csvFolder, (category + "-metrics." + YML_SUFFIX)));
-          output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+      for (String category : CATEGORIES) {
+        ProcessBuilder pb = new ProcessBuilder("diff",
+            PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)),
+            PathUtils.concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
+        String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+        if (output.length() > 0) {
+          System.out.println(output);
+          hasDiff = true;
+          System.out.println("Metrics file " + category + "-metrics." + CSV_SUFFIX + " changed.");
+        }
+        File f = new File(csvFolder, category + "-metrics." + CSV_SUFFIX);
+        File f2 = new File(csvFolder, "temp-" + category + "-metrics." + CSV_SUFFIX);
+        f2.renameTo(f);
 
-          if (output.length() > 0) {
-            hasDiff = true;
-            System.out.println("Metrics file " + category + "-metrics." + YML_SUFFIX + " changed.");
-          }
-          f = new File(ymlFolder, category + "-metrics." + YML_SUFFIX);
-          f2 = new File(ymlFolder, "temp-" + category + "-metrics." + YML_SUFFIX);
-          // f.delete();
-          f2.renameTo(f);
+        pb = new ProcessBuilder("diff",
+            PathUtils.concatPath(ymlFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)),
+            PathUtils.concatPath(ymlFolder, (category + "-metrics." + YML_SUFFIX)));
+        output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
+        if (output.length() > 0) {
+          hasDiff = true;
+          System.out.println("Metrics file " + category + "-metrics." + YML_SUFFIX + " changed.");
         }
-        if (!hasDiff) {
-          System.out.println("No change in config file detected.");
-        }
+        f = new File(ymlFolder, category + "-metrics." + YML_SUFFIX);
+        f2 = new File(ymlFolder, "temp-" + category + "-metrics." + YML_SUFFIX);
+        f2.renameTo(f);
+      }
+      if (!hasDiff) {
+        System.out.println("No change in metric file detected.");
       }
     }
     LOG.info("Metrics CSV/YML files were created successfully.");

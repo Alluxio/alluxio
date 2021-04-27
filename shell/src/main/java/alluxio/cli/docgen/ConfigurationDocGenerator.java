@@ -252,16 +252,15 @@ public final class ConfigurationDocGenerator {
         if(output.length()>0){
           System.out.println(output);
           hasDiff = true;
-          System.out.println("Config file "+fileName+" + changed.");
+          System.out.println("Config file "+fileName+" changed.");
         }
         File f = new File(PathUtils.concatPath(filePath, fileName));
         // f = new File(PathUtils.concatPath(filePath, fileName));
         File f2 = new File(PathUtils.concatPath(filePath,fileNameTemp));
         f2.renameTo(f);
-        // f2.delete();
       }
       if(!hasDiff){
-        System.out.println("No change in CSV file detected.");
+        System.out.println("No change in config CSV file detected.");
       }
 
     }
@@ -293,14 +292,12 @@ public final class ConfigurationDocGenerator {
           System.out.println("Config file "+fileName+" changed.");
         }
         File f = new File(PathUtils.concatPath(filePath, fileName));
-        // f.delete();
-        // f = new File(PathUtils.concatPath(filePath, fileName));
         File f2 = new File(PathUtils.concatPath(filePath,fileNameTemp));
         f2.renameTo(f);
         // f2.delete();
       }
       if(!hasDiff){
-        System.out.println("No change in YML files detected.");
+        System.out.println("No change in config YML files detected.");
       }
 
     }
