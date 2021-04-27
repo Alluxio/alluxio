@@ -215,6 +215,16 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void loadMetadataListDir() throws Exception {
+    ListStatusPOptions listOptions =
+        ListStatusPOptions.newBuilder().setRecursive(false)
+            .setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+            ).build();
+    checkListStatus("/mnt/", listOptions, true, true, 3);
+  }
+
+  @Test
   public void loadMetadataAlways() throws Exception {
     GetStatusPOptions options =
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build();

@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -29,22 +28,14 @@ import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.BlockDeletionContext;
-import alluxio.master.file.RpcContext;
-import alluxio.master.file.contexts.CallTracker;
-import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.JournalContext;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.collect.Lists;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -148,7 +139,7 @@ public class UfsStatusCacheTest {
       mCache.prefetchChildren(new AlluxioURI("/" + Character.getName(i)), mMountTable);
     }
     mCache.cancelAllPrefetch();
-    assertNull(mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/" + Character.getName(89)),
+    assertNull(mCache.fetchChildrenIfAbsent(new AlluxioURI("/" + Character.getName(89)),
         mMountTable, false));
   }
 
@@ -157,7 +148,7 @@ public class UfsStatusCacheTest {
     createUfsDirs("a");
     createUfsFile("a/b");
     Collection<UfsStatus> children = mCache
-        .fetchChildrenIfAbsent(null, new AlluxioURI("/a"), mMountTable);
+        .fetchChildrenIfAbsent(new AlluxioURI("/a"), mMountTable);
     assertEquals(1, children.size());
     children.forEach(stat -> assertEquals("b", stat.getName()));
   }
@@ -174,7 +165,7 @@ public class UfsStatusCacheTest {
     Thread t = new Thread(() -> {
       try {
         try {
-          mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mMountTable);
+          mCache.fetchChildrenIfAbsent(new AlluxioURI("/"), mMountTable);
           fail("Should not have been able to fetch children");
         } catch (InterruptedException | InvalidPathException e) {
           // Assert interrupted flag was set properly.
@@ -192,51 +183,6 @@ public class UfsStatusCacheTest {
   }
 
   @Test
-  public void testFetchCancel() throws Exception {
-    spyUfs();
-    doAnswer((Answer<UfsStatus[]>) invocation -> {
-      Thread.sleep(30 * Constants.HOUR_MS);
-      return new UfsStatus[] {Mockito.mock(UfsStatus.class)};
-    }).when(mUfs).listStatus(any(String.class));
-    mCache.prefetchChildren(new AlluxioURI("/"), mMountTable);
-
-    final BlockDeletionContext bdc = mock(BlockDeletionContext.class);
-    final JournalContext jc = mock(JournalContext.class);
-    final OperationContext oc = mock(OperationContext.class);
-    when(oc.getCancelledTrackers()).thenReturn(Lists.newArrayList());
-    final RpcContext rpcContext = new RpcContext(bdc, jc, oc);
-
-    AtomicReference<RuntimeException> ref = new AtomicReference<>(null);
-    Thread t = new Thread(() -> {
-      try {
-        mCache.fetchChildrenIfAbsent(rpcContext, new AlluxioURI("/"), mMountTable);
-        fail("Should not have been able to fetch children");
-      } catch (RuntimeException e) {
-        ref.set(e);
-      } catch (InterruptedException | InvalidPathException e) {
-        // do nothing
-      }
-    });
-    t.start();
-    when(oc.getCancelledTrackers()).thenReturn(Lists.newArrayList(new CallTracker() {
-      @Override
-      public boolean isCancelled() {
-        return true;
-      }
-
-      @Override
-      public Type getType() {
-        return Type.GRPC_CLIENT_TRACKER;
-      }
-    }));
-    t.join();
-    final RuntimeException runtimeException = ref.get();
-    assertNotNull(runtimeException);
-    MatcherAssert.assertThat(runtimeException.getMessage(),
-        Matchers.stringContainsInOrder("Call cancelled"));
-  }
-
-  @Test
   public void testFetchExecutionException() throws Exception {
     spyUfs();
     // Now test execution exception
@@ -249,7 +195,7 @@ public class UfsStatusCacheTest {
       try {
         try {
           assertNull("Should return null when fetching children",
-              mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/"), mMountTable, false));
+              mCache.fetchChildrenIfAbsent(new AlluxioURI("/"), mMountTable, false));
         } catch (InterruptedException | InvalidPathException e) {
           // Thread should not be interrupted if interrupt not called
           assertFalse(Thread.currentThread().isInterrupted());
@@ -280,8 +226,7 @@ public class UfsStatusCacheTest {
     assertEquals(stat, mCache.getStatus(path));
     assertEquals(statChild, mCache.getStatus(pathChild));
     assertEquals(Collections.singleton(statChild), mCache.getChildren(path));
-    assertEquals(Collections.singleton(statChild),
-        mCache.fetchChildrenIfAbsent(null, path, mMountTable));
+    assertEquals(Collections.singleton(statChild), mCache.fetchChildrenIfAbsent(path, mMountTable));
 
     mCache.remove(path);
     assertNull(mCache.getStatus(path));
@@ -305,18 +250,15 @@ public class UfsStatusCacheTest {
     mCache.prefetchChildren(new AlluxioURI("/mnt/dir1/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/mnt/dir2/dir0"), mMountTable);
     Collection<UfsStatus> children;
-    children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
+    children = mCache.fetchChildrenIfAbsent(new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
-    children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir2/dir0"), mMountTable, false);
+    children = mCache.fetchChildrenIfAbsent(new AlluxioURI("/mnt/dir2/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir3", s.getName()));
-    children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
+    children = mCache.fetchChildrenIfAbsent(new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
@@ -329,10 +271,10 @@ public class UfsStatusCacheTest {
     mCache.prefetchChildren(new AlluxioURI("/dir0/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Collection<UfsStatus> statuses =
-        mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, false);
+        mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("file", s.getName()));
-    statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
+    statuses = mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("dir0", s.getName()));
   }
@@ -358,11 +300,11 @@ public class UfsStatusCacheTest {
     assertNotNull(f1);
     assertTrue("first future is cancelled", f1.isCancelled());
     Collection<UfsStatus> statuses =
-        mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, true);
+        mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0/dir0"), mMountTable, true);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("file", s.getName()));
     l.unlock();
-    statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
+    statuses = mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
     assertNotNull(f2);
     assertTrue("second future should be finished", f2.isDone());
     assertEquals(1, statuses.size());
@@ -375,7 +317,7 @@ public class UfsStatusCacheTest {
     mCache = new UfsStatusCache(null, new NoopUfsAbsentPathCache(),
         UfsAbsentPathCache.ALWAYS);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
-    assertNull(mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false));
+    assertNull(mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false));
   }
 
   @Test
@@ -403,7 +345,7 @@ public class UfsStatusCacheTest {
     assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
     l.unlock();
     Collection<UfsStatus> statuses =
-        mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
+        mCache.fetchChildrenIfAbsent(new AlluxioURI("/dir0"), mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("dir1", s.getName()));
   }
