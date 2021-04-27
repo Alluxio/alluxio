@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -55,9 +56,8 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
-  private final UUID mTaskId = UUID.randomUUID();
-
   private final List<Long> mBlockIds = new ArrayList<>();
+  private AtomicInteger mPortToAssign = new AtomicInteger(50000);
 
   @Override
   public RpcTaskResult runLocal() throws Exception {
@@ -139,7 +139,10 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
    * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 2 --cluster-limit 1 --duration 30s --rpc registerWorker --block-count 100000
    *
    * 2. Simulate same worker registration
+   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 20 --cluster-limit 1 --duration 30s --rpc registerWorker --block-count 100000 --fake-same-worker
+   * With high concurrency, there will be contention over the synchronized(worker) critical sections observed.
    *
+   * 3. TODO: Simulate contention over block lock DefaultBlockMaster.mBlockLocks
    * */
   private RpcTaskResult fakeRegisterWorker(BlockMasterClient client, Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
@@ -147,6 +150,24 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     // Stop after certain time has elapsed
     int startPort = 9999;
     long i = 0;
+
+    WorkerNetAddress address;
+    long workerId = -1;
+    String hostname = NetworkAddressUtils.getLocalHostName(500);
+    LOG.info("Detected local hostname {}", hostname);
+    if (mParameters.mSameWorker) {
+      address = new WorkerNetAddress().setHost(hostname)
+              .setDataPort(mPortToAssign.getAndIncrement())
+              .setRpcPort(mPortToAssign.getAndIncrement());
+      try {
+        workerId = client.getId(address);
+        LOG.info("Got worker ID {}", workerId);
+      } catch (Exception e) {
+        LOG.error("Failed to run iter {}", i, e);
+        result.addError(e.getMessage());
+        return result;
+      }
+    }
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
 
@@ -155,14 +176,12 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
       // I suspect it's the time spend in establishing the connection.
       // The easiest way out is just to ignore the 1st point.
       try {
-        String hostname = NetworkAddressUtils.getLocalHostName(500);
-        LOG.info("Detected local hostname {}", hostname);
-
-        // TODO(jiacheng): add an option to register the same worker every time
-        // The use case is to incur contention on the synchronized(worker) critical section
-        WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
-        long workerId = client.getId(address);
-        LOG.info("Got worker ID {}", workerId);
+        if (!mParameters.mSameWorker) {
+          // If use different worker, get a different address and workerId every time
+          address = new WorkerNetAddress().setHost(hostname).setDataPort(mPortToAssign.getAndIncrement()).setRpcPort(mPortToAssign.getAndIncrement());
+          workerId = client.getId(address);
+          LOG.info("Got new worker ID {}", workerId);
+        }
 
         List<String> tierAliases = new ArrayList<>();
         tierAliases.add("MEM");

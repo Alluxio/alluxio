@@ -20,6 +20,10 @@ public class RpcParameters extends Parameters {
           description = "fake this many blocks")
   public long mBlockCount = 100;
 
+  @Parameter(names = {"--fake-same-worker"},
+          description = "For each registerWorker RPC, should this be same worker or different worker.")
+  public boolean mSameWorker = false;
+
   @Parameter(names = {"--duration"},
           description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
@@ -27,6 +31,5 @@ public class RpcParameters extends Parameters {
   @Parameter(names = {"--rpc"},
           description = "The RPC to simulate")
   public String mRpc = "registerWorker";
-
 }
 
