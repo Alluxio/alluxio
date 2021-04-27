@@ -86,6 +86,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -821,7 +823,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         continue;
       }
 
+      Instant waitWorkerBlock = Instant.now();
       synchronized (worker) {
+        Instant inWorkerBlock = Instant.now();
+        Duration waitTime = Duration.between(waitWorkerBlock, inWorkerBlock);
+        if (waitTime.compareTo(Duration.ofMillis(1)) > 0) {
+          LOG.warn("Wait time {}ms to enter the registerWorkerInternal synchronized section", waitTime.toMillis());
+        }
+
         worker.updateLastUpdatedTimeMs();
         mWorkers.add(worker);
         workers.remove(worker);
@@ -888,7 +897,16 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       blocks.addAll(blockIds);
     }
 
+    Instant waitWorkerBlock = Instant.now();
+    // This synchronized section is guarding two workers registering with the same NetAddress
+    // This should happen with a very low possibility
+    // And should not be the performance bottleneck
     synchronized (worker) {
+      Instant inWorkerBlock = Instant.now();
+      Duration waitTime = Duration.between(waitWorkerBlock, inWorkerBlock);
+      if (waitTime.compareTo(Duration.ofMillis(1)) > 0) {
+        LOG.warn("Wait time {}ms to enter the workerRegister synchronized section", waitTime.toMillis());
+      }
       worker.updateLastUpdatedTimeMs();
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
