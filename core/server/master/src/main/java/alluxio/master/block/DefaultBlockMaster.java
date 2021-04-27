@@ -1158,6 +1158,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   private LockResource lockBlock(long blockId) {
+    // TODO(jiacheng): when will this be bottleneck?
     return new LockResource(mBlockLocks.get(blockId));
   }
 

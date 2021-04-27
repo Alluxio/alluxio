@@ -158,6 +158,19 @@ public class StateLockManager {
     }
     // Register thread for interrupt cycle.
     mSharedWaitersAndHolders.add(Thread.currentThread());
+
+    if (mStateLock.getQueueLength() > 20
+            || mStateLock.getReadHoldCount() > 10
+            || mStateLock.getReadLockCount() > 10
+            || mStateLock.getWriteHoldCount() > 1) {
+      LOG.warn("state lock {} has queue length {}, read holder count {}, read lock count {}, write holder count {}",
+              mStateLock,
+              mStateLock.getQueueLength(),
+              mStateLock.getReadHoldCount(),
+              mStateLock.getReadLockCount(),
+              mStateLock.getWriteHoldCount());
+    }
+
     // Grab the lock interruptibly.
     mStateLock.readLock().lockInterruptibly();
     // Return the resource.
@@ -249,6 +262,18 @@ public class StateLockManager {
         deactivateInterruptCycle();
         throw throwable;
       }
+    }
+
+    if (mStateLock.getQueueLength() > 20
+            || mStateLock.getReadHoldCount() > 10
+            || mStateLock.getReadLockCount() > 10
+            || mStateLock.getWriteHoldCount() > 1) {
+      LOG.warn("state lock {} has queue length {}, read holder count {}, read lock count {}, write holder count {}",
+              mStateLock,
+              mStateLock.getQueueLength(),
+              mStateLock.getReadHoldCount(),
+              mStateLock.getReadLockCount(),
+              mStateLock.getWriteHoldCount());
     }
 
     // We have the lock, wrap it and return.

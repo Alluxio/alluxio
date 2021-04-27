@@ -19,6 +19,8 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A resource lock that makes it possible to acquire and release locks using the following idiom:
@@ -80,6 +82,20 @@ public class LockResource implements Closeable {
       @Nullable Runnable closeAction) {
     mLock = lock;
     mCloseAction = closeAction;
+    if (lock instanceof ReentrantLock) {
+      ReentrantLock l = (ReentrantLock) lock;
+      if (l.getQueueLength() > 100 || l.getHoldCount() > 100) {
+        LOG.warn("Lock {} has queue length {}, holder count {}", l, l.getQueueLength(), l.getHoldCount());
+      }
+    } else if (lock instanceof ReentrantReadWriteLock.ReadLock
+            || lock instanceof ReentrantReadWriteLock.WriteLock) {
+      // The API does not allow us to get wait queue on the ReadLock
+      // There is only ReentrantReadWriteLock.getWaitQueueLength etc
+      // We have to check the lock before this step
+    } else {
+      LOG.warn("Unknown lock type {}", lock.getClass());
+    }
+
     if (acquireLock) {
       if (useTryLock) {
         while (!mLock.tryLock()) { // returns immediately
