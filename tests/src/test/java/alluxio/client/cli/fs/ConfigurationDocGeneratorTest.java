@@ -120,7 +120,7 @@ public class ConfigurationDocGeneratorTest {
     PropertyKey pKey = mTestConf.getFirst();
     defaultKeys.add(pKey);
 
-    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation);
+    ConfigurationDocGenerator.writeCSVFile(defaultKeys, mLocation,true);
     String filePath = PathUtils.concatPath(mLocation, mTestConf.getSecond());
     Path p = Paths.get(filePath);
     assertTrue(Files.exists(p));
@@ -141,7 +141,7 @@ public class ConfigurationDocGeneratorTest {
     String description = pKey.getDescription();
     defaultKeys.add(pKey);
 
-    ConfigurationDocGenerator.writeYMLFile(defaultKeys, mLocation);
+    ConfigurationDocGenerator.writeYMLFile(defaultKeys, mLocation,true);
     String filePath = PathUtils.concatPath(mLocation, mTestConf.getSecond());
     Path p = Paths.get(filePath);
     assertTrue(Files.exists(p));
