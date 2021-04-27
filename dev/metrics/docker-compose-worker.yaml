@@ -14,7 +14,9 @@ services:
   # Agent
   otel-agent:
     image: otel/opentelemetry-collector-dev:latest
-    command: ["--config=/etc/otel-agent-config.yaml"]
+    environment:
+      MASTER_IP: "${MASTER_IP}"
+    command: ["--config=/etc/otel-agent-configi-worker.yaml"]
     volumes:
       - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
     ports:
