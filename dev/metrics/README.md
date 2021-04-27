@@ -6,11 +6,11 @@ For reference, please refer to documentations listed at [opentelemetry GitHub pa
 
 1. On one of the Alluxio master or the node where you want to run Jaeger and Prometheus, run 
 ```
-docker-compose -f docker-compose-master.yaml run -e MASTER_IP=xxx.xx.xx.xx -d
+docker-compose -f docker-compose-master.yaml up -d
 ```
 2. On all other alluxio nodes, run 
 ```
-docker-compose -f docker-compose-worker.yaml run -e MASTER_IP=xxx.xx.xx.xx -d
+MASTER_IP=xxx.xx.xx.xx docker-compose -f docker-compose-worker.yaml up -d
 ```
 3. Download the auto instrumentation jar and place it in the `alluxio/conf` directory. The jar can be found at 
 ```

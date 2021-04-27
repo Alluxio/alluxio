@@ -23,7 +23,7 @@ exporters:
   logging:
 
   jaeger:
-    endpoint: "${MASTER_IP}:14250"
+    endpoint: "jaeger-all-in-one:14250"
     insecure: true
 
 processors:

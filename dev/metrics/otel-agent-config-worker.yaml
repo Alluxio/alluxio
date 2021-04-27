@@ -22,7 +22,7 @@ receivers:
 
 exporters:
   otlp:
-    endpoint: "otel-collector:4317"
+    endpoint: "${MASTER_IP}:4318"
     insecure: true
   logging:
     loglevel: debug
