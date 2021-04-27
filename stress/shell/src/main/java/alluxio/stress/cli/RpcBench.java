@@ -128,6 +128,19 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     mainInternal(args, new RpcBench());
   }
 
+  /**
+   * Use cases:
+   * 1. Simulate new worker registration
+   * examples:
+   * For 30s, keep generating new worker registration calls, each one containing 100K block IDs
+   * The concurrency you get is concurrency * cluster-limit
+   * Each job worker (number controlled by cluster-limit) will spawn a threadpool with size of
+   * concurrency, and each thread keeps generating new RPCs.
+   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 2 --cluster-limit 1 --duration 30s --rpc registerWorker --block-count 100000
+   *
+   * 2. Simulate same worker registration
+   *
+   * */
   private RpcTaskResult fakeRegisterWorker(BlockMasterClient client, Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
@@ -137,9 +150,16 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
 
+      // TODO(jiacheng): The 1st reported RPC time is always very long, this does
+      // not match with the time recorded by Jaeger.
+      // I suspect it's the time spend in establishing the connection.
+      // The easiest way out is just to ignore the 1st point.
       try {
         String hostname = NetworkAddressUtils.getLocalHostName(500);
         LOG.info("Detected local hostname {}", hostname);
+
+        // TODO(jiacheng): add an option to register the same worker every time
+        // The use case is to incur contention on the synchronized(worker) critical section
         WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
         long workerId = client.getId(address);
         LOG.info("Got worker ID {}", workerId);
