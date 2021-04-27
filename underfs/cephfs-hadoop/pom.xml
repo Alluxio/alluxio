@@ -25,7 +25,6 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <cephfs-hadoop.version></cephfs-hadoop.version>
   </properties>
 
   <dependencies>
