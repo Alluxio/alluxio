@@ -70,6 +70,11 @@
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
