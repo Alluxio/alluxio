@@ -165,6 +165,8 @@
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
+    <cephfs-hadoop.version>0.80.6</cephfs-hadoop.version>
+    <libcephfs.version>0.80.5</libcephfs.version>
   </properties>
 
   <modules>
@@ -211,6 +213,16 @@
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
         <version>1.78</version>
+      </dependency>
+      <dependency>
+        <groupId>com.ceph.fs</groupId>
+        <artifactId>cephfs-hadoop</artifactId>
+        <version>${cephfs-hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.ceph</groupId>
+        <artifactId>libcephfs</artifactId>
+        <version>${libcephfs.version}</version>
       </dependency>
       <dependency>
         <groupId>com.esotericsoftware</groupId>

@@ -25,14 +25,18 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <cephfs-hadoop.version></cephfs-hadoop.version>
   </properties>
 
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-cephfs-hadoop</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.ceph.fs</groupId>
+      <artifactId>cephfs-hadoop</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ceph</groupId>
+      <artifactId>libcephfs</artifactId>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>
