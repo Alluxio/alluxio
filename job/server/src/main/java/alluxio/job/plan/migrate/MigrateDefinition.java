@@ -23,6 +23,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -141,7 +142,7 @@ public final class MigrateDefinition
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
-    migrate(command, writeType.toProto(), context.getFileSystem());
+    migrate(command, writeType.toProto(), context.getFileSystem(), config.isOverwrite());
     return null;
   }
 
@@ -149,9 +150,12 @@ public final class MigrateDefinition
    * @param command the migrate command to execute
    * @param writeType the write type to use for the moved file
    * @param fileSystem the Alluxio file system
+   * @param overwrite whether to overwrite destination
    */
-  private static void migrate(MigrateCommand command, WritePType writeType, FileSystem fileSystem)
-      throws Exception {
+  private static void migrate(MigrateCommand command,
+                              WritePType writeType,
+                              FileSystem fileSystem,
+                              boolean overwrite) throws Exception {
     String source = command.getSource();
     String destination = command.getDestination();
     LOG.debug("Migrating {} to {}", source, destination);
@@ -160,19 +164,33 @@ public final class MigrateDefinition
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-    try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-         FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
+    final AlluxioURI destinationURI = new AlluxioURI(destination);
+    boolean retry;
+    do {
+      retry = false;
       try {
-        IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
-      } catch (Throwable t) {
-        try {
-          out.cancel();
-        } catch (Throwable t2) {
-          t.addSuppressed(t2);
+        try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
+             FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+          try {
+            IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+          } catch (Throwable t) {
+            try {
+              out.cancel();
+            } catch (Throwable t2) {
+              t.addSuppressed(t2);
+            }
+            throw t;
+          }
         }
-        throw t;
+      } catch (FileAlreadyExistsException e) {
+        if (overwrite) {
+          fileSystem.delete(destinationURI);
+          retry = true;
+        } else {
+          throw e;
+        }
       }
-    }
+    } while (retry);
   }
 
   @Override
