@@ -1,0 +1,42 @@
+# Mapping of Alluxio component to Github user(s) that will be automatically assigned for pull requests
+# Map<string, string[]>
+component-owner-mapping:
+  assembly: 
+    - yuzhu
+  bin: 
+    - LuQQiu
+  build: 
+    - yuzhu
+  conf: 
+    - bf8086
+  core: 
+    - gpang
+  deploy: 
+    - LuQQiu
+  dev: 
+    - Xenorith
+  docs: 
+    - apc999
+  examples: 
+    - LuQQiu
+  integration: 
+    - jiacheliu3
+  job: 
+    - bradyoo
+  libexec: 
+    - gpang
+  minicluster: 
+    - bradyoo
+  shell: 
+    - LuQQiu
+  stress: 
+    - HelloHorizon
+  table: 
+    - yuzhu
+  tests: 
+    - bradyoo
+  underfs: 
+    - bf8086
+  webui: 
+    - tieujason330
+  
