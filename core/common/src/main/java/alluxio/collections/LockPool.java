@@ -59,17 +59,7 @@ public class LockPool<K> implements Closeable {
   private static final String EVICTOR_THREAD_NAME = "LockPool Evictor";
 
   private final Map<K, Resource> mPool;
-  // TODO(baoloongmao): make it configurable before merge this PR.
-  private final ResourcePool<Resource> mResueLockPool = new ResourcePool(1000000) {
-    @Override
-    public void close() {
-    }
-
-    @Override
-    protected Resource createNewResource() {
-      return new Resource(mDefaultLoader.get());
-    }
-  };
+  private final ResourcePool<Resource> mReuseLockPool;
   private final Supplier<? extends ReentrantReadWriteLock> mDefaultLoader;
   private final int mLowWatermark;
   private final int mHighWatermark;
@@ -97,6 +87,16 @@ public class LockPool<K> implements Closeable {
     mEvictor = Executors.newSingleThreadExecutor(
         ThreadFactoryUtils.build(String.format("%s-%s", EVICTOR_THREAD_NAME, toString()), true));
     mEvictorTask = mEvictor.submit(new Evictor());
+    mReuseLockPool = new ResourcePool(mHighWatermark) {
+      @Override
+      public void close() {
+      }
+
+      @Override
+      protected Resource createNewResource() {
+        return new Resource(mDefaultLoader.get());
+      }
+    };
   }
 
   @Override
@@ -179,7 +179,7 @@ public class LockPool<K> implements Closeable {
             if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
               mIterator.remove();
               numToEvict--;
-              mResueLockPool.release(candidate);
+              mReuseLockPool.release(candidate);
             }
           }
         }
@@ -269,7 +269,7 @@ public class LockPool<K> implements Closeable {
         v.mIsAccessed = true;
         return v;
       }
-      Resource res = mResueLockPool.acquireWithoutBlocking();
+      Resource res = mReuseLockPool.acquireWithoutBlocking();
       if (res == null) {
         res = new Resource(mDefaultLoader.get());
       }
