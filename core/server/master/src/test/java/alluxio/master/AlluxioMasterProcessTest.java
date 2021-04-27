@@ -106,6 +106,7 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
+  @Ignore
   public void stopAfterSecondaryTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
