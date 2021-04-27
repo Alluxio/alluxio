@@ -222,6 +222,23 @@ public final class FileSystemShellUtils {
    * @param defaultValue default value for the option
    * @return argument from command line or default if not present
    */
+  public static boolean getBoolArg(CommandLine cl, Option option, boolean defaultValue) {
+    boolean arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = Boolean.parseBoolean(argOption);
+    }
+    return arg;
+  }
+
+  /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
   public static int getIntArg(CommandLine cl, Option option, int defaultValue) {
     int arg = defaultValue;
     if (cl.hasOption(option.getLongOpt())) {
