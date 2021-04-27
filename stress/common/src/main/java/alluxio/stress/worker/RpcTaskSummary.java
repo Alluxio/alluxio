@@ -12,6 +12,10 @@ public class RpcTaskSummary implements Summary {
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
   private RpcParameters mParameters;
+  public long mCount;
+  // TODO(jiacheng): calculate p50 p99
+  public long mTotalDurationMs;
+  public double mAvgDurationMs;
 
   /**
    * Used for deserialization.
@@ -24,6 +28,15 @@ public class RpcTaskSummary implements Summary {
     mBaseParameters = r.getBaseParameters();
     mErrors = r.getErrors();
     mPoints = r.getPoints();
+    mCount = mPoints.size();
+    calculate();
+  }
+
+  private void calculate() {
+    for (RpcTaskResult.Point p : mPoints) {
+      mTotalDurationMs += p.mDurationMs;
+    }
+    mAvgDurationMs = (mCount == 0) ? 0.0 : mTotalDurationMs / (mCount + 0.0000001);
   }
 
   @Override

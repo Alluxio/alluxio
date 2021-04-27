@@ -18,6 +18,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.stress.worker.RpcParameters;
 import alluxio.stress.worker.RpcTaskResult;
 import alluxio.util.FormatUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -136,9 +137,10 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
 
-      // TODO(jiacheng): better host address
       try {
-        WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
+        String hostname = NetworkAddressUtils.getLocalHostName(500);
+        LOG.info("Detected local hostname {}", hostname);
+        WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
         long workerId = client.getId(address);
         LOG.info("Got worker ID {}", workerId);
 
@@ -177,7 +179,9 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     int startPort = 9999;
     long workerId = -1;
     try {
-      WorkerNetAddress address = new WorkerNetAddress().setHost("localhost").setDataPort(startPort++).setRpcPort(startPort++);
+      String hostname = NetworkAddressUtils.getLocalHostName(500);
+      LOG.info("Detected local hostname {}", hostname);
+      WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
       workerId = client.getId(address);
       LOG.info("Got worker ID {}", workerId);
     } catch (Exception e) {
