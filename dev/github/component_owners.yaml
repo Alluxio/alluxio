@@ -8,6 +8,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 # Mapping of Alluxio component to Github user(s) that will be automatically assigned for pull requests
 # Map<string, string[]>
 component-owner-mapping:
