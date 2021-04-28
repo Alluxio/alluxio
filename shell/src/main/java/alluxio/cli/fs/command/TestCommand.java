@@ -165,9 +165,9 @@ public final class TestCommand extends AbstractFileSystemCommand {
       return testResult ? 0 : 1;
     } catch (FileNotFoundException e) {
       return 1;
-    } catch (IOException e){
+    } catch (IOException e) {
       return 2;
-    }catch (AlluxioException e){
+    } catch (AlluxioException e) {
       return 3;
     }
   }
