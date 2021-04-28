@@ -11,6 +11,9 @@
 
 package alluxio.worker.block.io;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.util.io.BufferUtils;
 
@@ -18,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -35,10 +37,6 @@ public class LocalFileBlockReaderTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
-
-  /** The exception expected to be thrown. */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets up the file path and file block reader before a test runs.
@@ -61,7 +59,7 @@ public class LocalFileBlockReaderTest {
     ByteBuffer buffer = ByteBuffer.allocate((int) TEST_BLOCK_SIZE);
     int bytesRead = channel.read(buffer);
     Assert.assertEquals(TEST_BLOCK_SIZE, bytesRead);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
   @Test
@@ -82,9 +80,10 @@ public class LocalFileBlockReaderTest {
    */
   @Test
   public void readWithInvalidArgument() throws Exception {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("exceeding fileSize");
-    mReader.read(TEST_BLOCK_SIZE - 1, 2);
+    Exception e = assertThrows(IllegalArgumentException.class, () -> {
+      mReader.read(TEST_BLOCK_SIZE - 1, 2);
+    });
+    assertTrue(e.getMessage().contains("exceeding fileSize"));
   }
 
   /**
@@ -96,11 +95,11 @@ public class LocalFileBlockReaderTest {
 
     // Read 1/4 block by setting the length to be 1/4 of the block size.
     buffer = mReader.read(0, TEST_BLOCK_SIZE / 4);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE / 4, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE / 4, buffer));
 
     // Read entire block by setting the length to be block size.
     buffer = mReader.read(0, TEST_BLOCK_SIZE);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
   /**
@@ -110,7 +109,8 @@ public class LocalFileBlockReaderTest {
   @Test
   public void close() throws Exception {
     mReader.close();
-    mThrown.expect(IOException.class);
-    mReader.read(0, TEST_BLOCK_SIZE);
+    assertThrows(IOException.class, () -> {
+      mReader.read(0, TEST_BLOCK_SIZE);
+    });
   }
 }
