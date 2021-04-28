@@ -485,7 +485,7 @@ public final class LocalCacheManagerTest {
   public void getNotEnoughSpaceException() throws Exception {
     byte[] buf = new byte[PAGE1.length - 1];
     assertThrows(IllegalArgumentException.class, () ->
-            mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0));
+        mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0));
   }
 
   @Test

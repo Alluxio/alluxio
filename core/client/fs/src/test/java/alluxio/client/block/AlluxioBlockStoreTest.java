@@ -198,9 +198,9 @@ public final class AlluxioBlockStoreTest {
         OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
     Exception e = assertThrows(NullPointerException.class, () ->
-            mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
+        mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
     assertTrue(e.getMessage()
-            .contains(PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED.toString()));
+        .contains(PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED.toString()));
   }
 
   @Test
@@ -213,9 +213,9 @@ public final class AlluxioBlockStoreTest {
             .setLocationPolicy(
                 new MockBlockLocationPolicy(Lists.<WorkerNetAddress>newArrayList()));
     Exception e = assertThrows(UnavailableException.class, () ->
-            mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
+        mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options));
     assertTrue(e.getMessage()
-            .contains(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(BLOCK_LENGTH)));
+        .contains(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(BLOCK_LENGTH)));
   }
 
   @Test
@@ -234,8 +234,8 @@ public final class AlluxioBlockStoreTest {
         });
 
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
-            .setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
-              new MockBlockLocationPolicy(Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
+        .setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
+            new MockBlockLocationPolicy(Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     assertEquals(WORKER_NET_ADDRESS_LOCAL, stream.getAddress());
@@ -318,7 +318,7 @@ public final class AlluxioBlockStoreTest {
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(Collections.emptyList());
     Exception e = assertThrows(UnavailableException.class, () ->
-            mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+        mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     assertTrue(e.getMessage().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
   }
 
@@ -330,7 +330,7 @@ public final class AlluxioBlockStoreTest {
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     Exception e = assertThrows(UnavailableException.class, () ->
-            mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+        mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     assertTrue(e.getMessage().contains("unavailable in both Alluxio and UFS"));
   }
 

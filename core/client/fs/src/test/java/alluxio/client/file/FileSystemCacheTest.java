@@ -124,7 +124,7 @@ public class FileSystemCacheTest {
       fs1.listStatus(new AlluxioURI("/"));
     });
     assertTrue(e.getMessage()
-            .contains(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE));
+        .contains(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE));
   }
 
   private Key createTestFSKey(String username) {

@@ -88,7 +88,7 @@ public class TimeBoundPageStoreTest {
     mPageStore.put(PAGE_ID, PAGE);
     mTimeBoundPageStore.delete(PAGE_ID);
     assertThrows(PageNotFoundException.class, () ->
-            mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
   }
 
   @Test
