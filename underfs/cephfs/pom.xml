@@ -30,7 +30,6 @@
     <dependency>
       <groupId>com.ceph</groupId>
       <artifactId>libcephfs</artifactId>
-      <version>0.80.5</version>
     </dependency>
 
     <!-- Internal dependencies -->
