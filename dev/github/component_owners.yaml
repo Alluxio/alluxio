@@ -12,6 +12,8 @@
 # Mapping of Alluxio component to Github user(s) that will be automatically assigned for pull requests
 # Map<string, string[]>
 component-owner-mapping:
+  default_component: # handles components that were not added to this mapping yet
+    - ggezer
   assembly: 
     - yuzhu
   bin: 
@@ -21,7 +23,7 @@ component-owner-mapping:
   conf: 
     - bf8086
   core: 
-    - gpang
+    - ggezer
   deploy: 
     - LuQQiu
   dev: 
@@ -35,7 +37,7 @@ component-owner-mapping:
   job: 
     - bradyoo
   libexec: 
-    - gpang
+    - ggezer
   minicluster: 
     - bradyoo
   shell: 
