@@ -26,8 +26,9 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.Buffer;
+import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +55,7 @@ public final class MetricsDocGenerator {
 
   /**
    * Writes the supported files for metrics system docs.
+   * @param validate validate flag
    */
   public static void generate(boolean validate) throws IOException {
     // Gets and sorts the metric keys
@@ -77,14 +79,13 @@ public final class MetricsDocGenerator {
       FileWriter csvFileWriter;
       FileWriter ymlFileWriter;
       for (String category : CATEGORIES) {
-        if(validate) {
+        if (validate) {
           csvFileWriter = new FileWriter(PathUtils
               .concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)));
           csvFileWriter.append(CSV_FILE_HEADER + "\n");
           ymlFileWriter = new FileWriter(PathUtils
               .concatPath(ymlFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)));
-        }
-        else{
+        } else {
           csvFileWriter = new FileWriter(PathUtils
               .concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
           csvFileWriter.append(CSV_FILE_HEADER + "\n");
@@ -119,7 +120,7 @@ public final class MetricsDocGenerator {
             key, StringEscapeUtils.escapeHtml4(metricKey.getDescription().replace("'", "''"))));
       }
     }
-    if(validate) {
+    if (validate) {
       boolean hasDiff = false;
 
       for (String category : CATEGORIES) {
