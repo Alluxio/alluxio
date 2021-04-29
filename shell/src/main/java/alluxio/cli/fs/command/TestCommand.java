@@ -22,6 +22,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -162,8 +163,12 @@ public final class TestCommand extends AbstractFileSystemCommand {
         return -1;
       }
       return testResult ? 0 : 1;
-    } catch (AlluxioException | IOException e) {
+    } catch (FileNotFoundException e) {
       return 1;
+    } catch (IOException e) {
+      return 2;
+    } catch (AlluxioException e) {
+      return 3;
     }
   }
 
