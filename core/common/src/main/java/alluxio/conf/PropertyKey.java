@@ -333,7 +333,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
-          .setDescription("This controls which logger the process uses. This is only set by code.")
+          .setDescription("This controls which logger the process uses. "
+              + "This is only set by test code.")
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.ALL)
