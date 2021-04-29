@@ -1344,6 +1344,51 @@ and `volumeMounts` of each container if existing.
 {% endnavtab %}
 {% endnavtabs %}
 
+### Configuring ServiceAccounts
+
+By default Kubernetes will assign the namespace's `default` ServiceAccount
+to new pods in a namespace. You may specify for Alluxio pods to use
+any existing ServiceAccounts you may have in your cluster through
+the following:
+
+{% navtabs serviceAccounts %}
+{% navtab helm %}
+
+You may specify a top-level Helm value `serviceAccount` which will
+apply to the Master, Worker, and FUSE pods in the chart.
+```properties
+serviceAccount: sa-alluxio
+```
+
+You can override the top-level Helm value by specifying a value
+for the specific component's `serviceAccount` like below:
+```properties
+master:
+  serviceAccount: sa-alluxio-master
+
+worker:
+  serviceAccount: sa-alluxio-worker
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add a `serviceAccountName` field to any of the Alluxio Pod template
+specs to have the Pod run using the matching ServiceAccount. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      serviceAccountName: sa-alluxio
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Troubleshooting
 
 {% accordion worker_host %}
