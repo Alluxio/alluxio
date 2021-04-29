@@ -134,11 +134,7 @@ public final class JobUtils {
       OpenFilePOptions openOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
       InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
-      BlockInfo info = status.getBlockInfo(blockId);
-      if (info == null) {
-        // we shall not reach here
-        throw new AlluxioException("Invalid block Id " + blockId + ", status " + status);
-      }
+      BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
       try (InputStream inputStream = BlockInStream.create(context, info, localNetAddress,
           BlockInStream.BlockInStreamSource.UFS, inOptions)) {
         while (inputStream.read(sIgnoredReadBuf) != -1) {
