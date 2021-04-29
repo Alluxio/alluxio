@@ -46,6 +46,12 @@ properties:
 # Use labels to run Alluxio on a subset of the K8s nodes
 # nodeSelector: {}
 
+# A list of K8s Node taints to allow scheduling on.
+# See the Kubernetes docs for more info:
+# - https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+# eg: tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
+# tolerations: []
+
 ## Master ##
 
 master:
@@ -84,6 +90,7 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
 
 jobMaster:
@@ -178,6 +185,7 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
 
 jobWorker:
@@ -302,6 +310,8 @@ fuse:
     limits:
       cpu: "4"
       memory: "4G"
+  nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
 
 
@@ -407,6 +417,7 @@ logserver:
   # JVM options specific to the logserver container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
   # volumeType controls the type of log volume.
   # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
   volumeType: persistentVolumeClaim

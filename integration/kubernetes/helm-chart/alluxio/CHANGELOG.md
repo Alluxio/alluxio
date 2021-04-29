@@ -163,3 +163,7 @@
 0.6.17
 
 - Add hostAliases in Master and Worker Pods
+
+0.6.18
+
+- Add support for Node tolerations
