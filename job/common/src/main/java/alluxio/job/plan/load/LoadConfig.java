@@ -38,22 +38,22 @@ public class LoadConfig implements PlanConfig {
   private final String mFilePath;
   private final int mReplication;
   private final Set<String> mWorkerSet;
-  private final Map<String, String> mWorkerLabelSet;
+  private final Map<String, String> mWorkerLabelMap;
 
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
-   * @param workerLabelSet the worker label set
+   * @param workerLabelMap the worker label map
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
-      @JsonProperty("workerLabelSet") Map<String, String> workerLabelSet) {
+      @JsonProperty("workerLabelMap") Map<String, String> workerLabelMap) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
-    mWorkerLabelSet = workerLabelSet == null ? Collections.EMPTY_MAP : new HashMap(workerLabelSet);
+    mWorkerLabelMap = workerLabelMap == null ? Collections.EMPTY_MAP : new HashMap(workerLabelMap);
   }
 
   /**
@@ -119,6 +119,6 @@ public class LoadConfig implements PlanConfig {
    * @return worker label set
    */
   public Map<String, String> getWorkerLabelMap() {
-    return mWorkerLabelSet;
+    return mWorkerLabelMap;
   }
 }
