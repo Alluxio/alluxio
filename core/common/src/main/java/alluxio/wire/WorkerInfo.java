@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public final class WorkerInfo implements Serializable {
   private long mStartTimeMs;
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
-  private Map<String, String> mLabels;
+  private Map<String, String> mLabels = Collections.EMPTY_MAP;
 
   /**
    * Creates a new instance of {@link WorkerInfo}.

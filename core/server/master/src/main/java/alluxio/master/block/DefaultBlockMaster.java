@@ -284,6 +284,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             return constructWorkerInfoList();
           }
         });
+    mWorkerLabels = new HashMap<>();
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_LABEL_ENABLED)) {
       String labelPath =
           ServerConfiguration.get(PropertyKey.MASTER_WORKER_LABEL_PATH);
@@ -291,7 +292,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       try {
         WorkerWithLabels[] workerWithLabelsArray =
             mapper.readValue(new File(labelPath), WorkerWithLabels[].class);
-        mWorkerLabels = new HashMap<>();
         for (WorkerWithLabels wwl : workerWithLabelsArray) {
           mWorkerLabels.put(wwl.getHost(), wwl.getLabels());
         }
