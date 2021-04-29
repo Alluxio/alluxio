@@ -119,7 +119,6 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     ServerConfiguration.reset();
   }
 
-
   @Test
   public void symLink() throws Exception {
     Path target = Paths.get(mLocalUfsPath + "/dir1/dirA/file");
@@ -502,7 +501,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private URIStatus checkGetStatus(final String path, GetStatusPOptions options,
       boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
-    return (URIStatus)checkFunctionCall(path,
+    return (URIStatus) checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.getStatus(
             new AlluxioURI(statusPath), (GetStatusPOptions) statusOption),
         options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
@@ -511,7 +510,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private List<URIStatus> checkListStatus(final String path, ListStatusPOptions options,
       boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
-    return (List<URIStatus>)checkFunctionCall(path,
+    return (List<URIStatus>) checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.listStatus(
             new AlluxioURI(statusPath), (ListStatusPOptions) statusOption),
         options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
