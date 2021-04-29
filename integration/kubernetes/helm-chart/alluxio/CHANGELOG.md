@@ -166,4 +166,8 @@
 
 0.6.18
 
+- Add support for Node tolerations
+
+0.6.19
+
 - Add serviceAccountName in Master, Worker, and FUSE Pods

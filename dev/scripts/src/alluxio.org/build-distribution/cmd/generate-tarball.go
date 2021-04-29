@@ -67,9 +67,19 @@ func Single(args []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
+	if includedLibJarsFlag != "all" {
+		uncheckedJars := strings.Split(includedLibJarsFlag, ",")
+		for _, jar := range uncheckedJars {
+			_, ok := libJars[jar]
+			if !ok {
+				return fmt.Errorf("lib jar %v not recognized", jar)
+			}
+		}
+	}
 	if debugFlag {
 		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
 		fmt.Fprintf(os.Stdout, "customUfsModuleFlag=: %s\n", customUfsModuleFlag)
+		fmt.Fprintf(os.Stdout, "includedLibJarsFlag=: %s\n", includedLibJarsFlag)
 		fmt.Fprintf(os.Stdout, "mvnArgsFlag=: %s\n", mvnArgsFlag)
 		fmt.Fprintf(os.Stdout, "targetFlag=: %s\n", targetFlag)
 		fmt.Fprintf(os.Stdout, "ufs-modules=: %s\n", ufsModulesFlag)
@@ -214,27 +224,20 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
-		fmt.Sprintf("lib/alluxio-underfs-abfs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cephfs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cephfs-hadoop-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cosn-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-oss-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-ozone-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-s3a-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-web-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-table-server-underdb-glue-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-table-server-underdb-hive-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-integration-tools-hms-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-integration-tools-validation-%v.jar", version),
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}
+
+	if includedLibJarsFlag == "all" {
+		for jar := range libJars {
+			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
+		}
+	} else {
+		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
+			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
+		}
+	}
+
 	if includeYarnIntegration(hadoopVersion) {
 		pathsToCopy = append(pathsToCopy, []string{
 			"integration/yarn/bin/alluxio-application-master.sh",

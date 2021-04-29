@@ -14,6 +14,7 @@ package alluxio.client.file;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -28,9 +29,7 @@ import alluxio.util.ConfigurationUtils;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -43,10 +42,6 @@ import java.util.Set;
 import javax.security.auth.Subject;
 
 public class FileSystemFactoryTest {
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   @Before
   public void before() {
     ConfigurationUtils.reloadProperties();
@@ -110,8 +105,7 @@ public class FileSystemFactoryTest {
 
   @Test
   public void nullSubjectTest()  {
-    mThrown.expect(NullPointerException.class);
-    FileSystem.Factory.get(null);
+    assertThrows(NullPointerException.class, () -> FileSystem.Factory.get(null));
   }
 
   @Test

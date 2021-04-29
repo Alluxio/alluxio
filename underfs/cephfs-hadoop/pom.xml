@@ -30,9 +30,12 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-cephfs-hadoop</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.ceph.fs</groupId>
+      <artifactId>cephfs-hadoop</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ceph</groupId>
+      <artifactId>libcephfs</artifactId>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>
