@@ -60,6 +60,11 @@ spec:
         runAsUser: {{ .Values.fuse.user }}
         runAsGroup: {{ .Values.fuse.group }}
         fsGroup: {{ .Values.fuse.fsGroup }}
+    {{- if .Values.fuse.serviceAccount }}
+      serviceAccountName: {{ .Values.fuse.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

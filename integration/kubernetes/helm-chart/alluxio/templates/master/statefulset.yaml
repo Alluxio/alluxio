@@ -81,6 +81,11 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
