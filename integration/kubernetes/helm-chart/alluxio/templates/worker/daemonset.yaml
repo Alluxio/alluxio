@@ -65,6 +65,13 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      tolerations:
+      {{- if .Values.worker.tolerations }}
+{{ toYaml .Values.worker.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
