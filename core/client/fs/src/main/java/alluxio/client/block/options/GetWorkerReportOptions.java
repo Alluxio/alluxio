@@ -194,7 +194,8 @@ public final class GetWorkerReportOptions implements Serializable {
     START_TIME_MS,
     STATE,
     WORKER_USED_BYTES,
-    WORKER_USED_BYTES_ON_TIERS;
+    WORKER_USED_BYTES_ON_TIERS,
+    WORKER_LABELS;
 
     /**
      * @return the proto representation of this worker info fields

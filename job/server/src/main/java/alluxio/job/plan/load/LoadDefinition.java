@@ -73,9 +73,31 @@ public final class LoadDefinition
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
-        if (config.getWorkerSet() == null
-            || config.getWorkerSet().isEmpty()
-            || config.getWorkerSet().contains(worker.getNetAddress().getHost().toLowerCase())) {
+        // If specified the labels, the candidate worker must match one label at least
+        boolean matchLabel = false;
+        boolean labelSpecified = false;
+        if (config.getWorkerLabelMap() != null
+            && !config.getWorkerLabelMap().isEmpty()) {
+          labelSpecified = true;
+          if (worker.getLabels() != null) {
+            for (Map.Entry<String, String> entry : worker.getLabels()
+                .entrySet()) {
+              if (config.getWorkerLabelMap()
+                  .get(entry.getKey().toUpperCase())
+                  .equals(entry.getValue().toUpperCase())) {
+                matchLabel = true;
+                break;
+              }
+            }
+          }
+        }
+        // Add current worker as candidate worker
+        // if it matches the given labels or contained in the given worker set
+        // Or user specified neither worker-set nor label
+        if (matchLabel
+            || (config.getWorkerSet() != null
+                && config.getWorkerSet().contains(worker.getNetAddress().getHost().toLowerCase()))
+            || !labelSpecified) {
           workers.add(worker);
         }
       } else {

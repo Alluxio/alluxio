@@ -69,6 +69,8 @@ public final class MasterWorkerInfo {
   private Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
   private Map<String, Long> mUsedBytesOnTiers;
+  /** Worker labels. */
+  private final Map<String, String> mLabels;
 
   /** ids of blocks the worker contains. */
   private Set<Long> mBlocks;
@@ -82,8 +84,9 @@ public final class MasterWorkerInfo {
    *
    * @param id the worker id to use
    * @param address the worker address to use
+   * @param labels the worker labels
    */
-  public MasterWorkerInfo(long id, WorkerNetAddress address) {
+  public MasterWorkerInfo(long id, WorkerNetAddress address, Map<String, String> labels) {
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
@@ -95,6 +98,7 @@ public final class MasterWorkerInfo {
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
     mLostStorage = new HashMap<>();
+    mLabels = labels == null ? Collections.EMPTY_MAP : labels;
   }
 
   /**
@@ -251,6 +255,9 @@ public final class MasterWorkerInfo {
           break;
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsedBytesOnTiers);
+          break;
+        case WORKER_LABELS:
+          info.setLabels(mLabels);
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);

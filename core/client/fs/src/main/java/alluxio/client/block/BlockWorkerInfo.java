@@ -18,6 +18,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Information of an active block worker.
@@ -28,6 +30,7 @@ public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
   private final long mCapacityBytes;
   private final long mUsedBytes;
+  private final Map<String, String> mLabels;
 
   /**
    * Constructs the block worker information.
@@ -37,9 +40,23 @@ public final class BlockWorkerInfo {
    * @param usedBytes the used bytes of the worker
    */
   public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
+    this(netAddress, capacityBytes, usedBytes, Collections.emptyMap());
+  }
+
+  /**
+   * Constructs the block worker information.
+   *
+   * @param netAddress the address of the worker
+   * @param capacityBytes the capacity of the worker in bytes
+   * @param usedBytes the used bytes of the worker
+   * @param labels the labels of the worker
+   */
+  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes,
+      Map<String, String> labels) {
     mNetAddress = Preconditions.checkNotNull(netAddress, "netAddress");
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
+    mLabels = labels == null ? Collections.EMPTY_MAP : labels;
   }
 
   /**
@@ -61,6 +78,13 @@ public final class BlockWorkerInfo {
    */
   public long getUsedBytes() {
     return mUsedBytes;
+  }
+
+  /**
+   * @return the labels of the worker
+   */
+  public Map<String, String> getLabels() {
+    return mLabels;
   }
 
   @Override

@@ -71,6 +71,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -83,6 +84,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Clock;
@@ -242,6 +244,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
+  private Map<String, Map<String, String>> mWorkerLabels;
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -280,6 +284,21 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             return constructWorkerInfoList();
           }
         });
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_LABEL_ENABLED)) {
+      String labelPath =
+          ServerConfiguration.get(PropertyKey.MASTER_WORKER_LABEL_PATH);
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        WorkerWithLabels[] workerWithLabelsArray =
+            mapper.readValue(new File(labelPath), WorkerWithLabels[].class);
+        mWorkerLabels = new HashMap<>();
+        for (WorkerWithLabels wwl : workerWithLabelsArray) {
+          mWorkerLabels.put(wwl.getHost(), wwl.getLabels());
+        }
+      } catch (IOException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
   @Override
@@ -857,7 +876,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     // Generate a new worker id.
     long workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+    while (!mTempWorkers.add(new MasterWorkerInfo(
+        workerId, workerNetAddress, mWorkerLabels.get(workerNetAddress.getHost())))) {
       workerId = IdUtils.getRandomNonNegativeLong();
     }
 
