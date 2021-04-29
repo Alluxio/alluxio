@@ -96,7 +96,7 @@ public final class ReplicateDefinitionTest {
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
-  private static String TEST_PATH = "/test";
+  private static final String TEST_PATH = "/test";
 
   private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
