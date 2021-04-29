@@ -5027,7 +5027,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_WORKER_THROTTLING =
       new Builder(Name.JOB_WORKER_THROTTLING)
-          .setDescription("Whether the job worker should throttle itself based on whether the"
+          .setDescription("Whether the job worker should throttle itself based on whether the "
               + "resources are saturated.")
           .setScope(Scope.WORKER)
           .setDefaultValue(false)
