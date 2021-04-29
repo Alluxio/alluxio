@@ -55,10 +55,6 @@ spec:
       {{ if .Values.hostAliases }}
       {{- include "alluxio.hostAliases" . | nindent 6 }}
       {{ end }}
-      securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
-        fsGroup: {{ .Values.fsGroup }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
 {{ toYaml .Values.worker.nodeSelector | trim | indent 8  }}
@@ -72,6 +68,15 @@ spec:
       {{- if .Values.tolerations }}
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
+      securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
+        fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.worker.serviceAccount }}
+      serviceAccountName: {{ .Values.worker.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
