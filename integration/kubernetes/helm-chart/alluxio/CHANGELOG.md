@@ -171,3 +171,7 @@
 0.6.19
 
 - Add serviceAccountName in Master, Worker, and FUSE Pods
+
+0.6.20
+
+- Add Master StatefulSet podManagementPolicy Parallel (see Issue [#13323](https://github.com/Alluxio/alluxio/issues/13323))
