@@ -26,7 +26,9 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -89,6 +91,10 @@ public class AllocatorTestBase {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.MockReviewer");
+    // Reviewer will not reject by default.
+    MockReviewer.resetBytesToReject(Sets.newHashSet());
     TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
     mManager = BlockMetadataManager.createBlockMetadataManager();
@@ -136,10 +142,9 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
 
-    // We skip the review here as we do not want the Reviewer's opinion to affect the test
     StorageDirView dirView =
         allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
-                getMetadataEvictorView(), true);
+                getMetadataEvictorView(), false);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -151,7 +156,7 @@ public class AllocatorTestBase {
       StorageDir pDir = tempBlockMeta.getParentDir();
       StorageTier pTier = pDir.getParentTier();
 
-      assertTrue(pDir.getDirIndex() == dirIndex);
+      assertEquals(dirIndex, pDir.getDirIndex());
       assertEquals(tierAlias, pTier.getTierAlias());
 
       //update the dir meta info
