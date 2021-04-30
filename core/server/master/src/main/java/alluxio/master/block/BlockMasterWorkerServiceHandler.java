@@ -22,6 +22,7 @@ import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -29,6 +30,7 @@ import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -152,12 +154,6 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("registerWorker request is {} bytes, containing {} blocks",
-              request.getSerializedSize(),
-              request.getCurrentBlocksCount());
-    }
-
     final long workerId = request.getWorkerId();
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
@@ -178,6 +174,16 @@ public final class BlockMasterWorkerServiceHandler extends
                       e3.addAll(e2);
                       return e3;
                     }));
+
+    if (LOG.isDebugEnabled()) {
+      StringBuilder sb = new StringBuilder();
+      for (Map.Entry<Block.BlockLocation, List<Long>> e : currBlocksOnLocationMap.entrySet()) {
+        sb.append(String.format("location: %s, blockCount: %s, ", e.getKey(), e.getValue().size()));
+      }
+      LOG.debug("registerWorker request is {} bytes, Locations: [{}]",
+              request.getSerializedSize(),
+              sb.toString());
+    }
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
