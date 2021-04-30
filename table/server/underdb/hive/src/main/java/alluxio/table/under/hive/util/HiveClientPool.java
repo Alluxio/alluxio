@@ -11,7 +11,11 @@
 
 package alluxio.table.under.hive.util;
 
+import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
+import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
+
 import alluxio.Constants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
@@ -48,8 +52,8 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
    */
   public HiveClientPool(String connectionUri) {
     super(Options.defaultOptions()
-        .setMinCapacity(16)
-        .setMaxCapacity(128)
+        .setMinCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
+        .setMaxCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
         .setGcIntervalMs(5L * Constants.MINUTE_MS)
         .setGcExecutor(GC_EXECUTOR));
     mConnectionUri = connectionUri;
