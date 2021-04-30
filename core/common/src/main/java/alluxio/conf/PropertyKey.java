@@ -1078,91 +1078,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
 
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_ID)
-          .setDefaultValue("admin")
-          .setDescription("Ceph client id for authentication.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
-          .setDefaultValue("/etc/ceph/ceph.conf")
-          .setDescription("Path to Ceph configuration file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
-          .setDefaultValue("opts")
-          .setDescription("Extra configuration options for CephFS client.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
-          .setDefaultValue("key")
-          .setDescription("CephX authentication key, base64 encoded.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
-          .setDefaultValue("/etc/ceph/keyfile")
-          .setDescription("Path to CephX authentication key file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
-          .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
-          .setDescription("Path to CephX authentication keyring file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MON_HOST =
-      new Builder(Name.UNDERFS_CEPHFS_MON_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("List of hosts or addresses to search for a Ceph monitor.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
-      new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
-          .setDefaultValue("cephfs")
-          .setDescription("CephFS filesystem to mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
-          .setDefaultValue(0)
-          .setDescription("The user ID of CephFS mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
-          .setDefaultValue(0)
-          .setDescription("The group ID of CephFS mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_POINT =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
-          .setDefaultValue("/")
-          .setDescription("Directory to mount on the CephFS filesystem.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_LOCALIZE_READS =
-      new Builder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
-          .setDefaultValue(false)
-          .setDescription("Utilize Ceph localized reads feature.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
@@ -5344,30 +5259,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
-    public static final String UNDERFS_CEPHFS_AUTH_ID =
-        "alluxio.underfs.cephfs.auth.id";
-    public static final String UNDERFS_CEPHFS_CONF_FILE =
-        "alluxio.underfs.cephfs.conf.file";
-    public static final String UNDERFS_CEPHFS_CONF_OPTS =
-        "alluxio.underfs.cephfs.conf.options";
-    public static final String UNDERFS_CEPHFS_AUTH_KEY =
-        "alluxio.underfs.cephfs.auth.key";
-    public static final String UNDERFS_CEPHFS_AUTH_KEYFILE =
-        "alluxio.underfs.cephfs.auth.keyfile";
-    public static final String UNDERFS_CEPHFS_AUTH_KEYRING =
-        "alluxio.underfs.cephfs.auth.keyring";
-    public static final String UNDERFS_CEPHFS_MON_HOST =
-        "alluxio.underfs.cephfs.mon.host";
-    public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
-        "alluxio.underfs.cephfs.mds.namespce";
-    public static final String UNDERFS_CEPHFS_MOUNT_UID =
-        "alluxio.underfs.cephfs.mount.uid";
-    public static final String UNDERFS_CEPHFS_MOUNT_GID =
-        "alluxio.underfs.cephfs.mount.gid";
-    public static final String UNDERFS_CEPHFS_MOUNT_POINT =
-        "alluxio.underfs.cephfs.mount.point";
-    public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
-        "alluxio.underfs.cephfs.localize.reads";
 
     //
     // UFS access control related properties
