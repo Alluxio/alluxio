@@ -129,11 +129,7 @@ public final class AlluxioBlockStore {
   public BlockInStream getInStream(long blockId, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     // Get the latest block info from master
-    BlockInfo info;
-    try (CloseableResource<BlockMasterClient> masterClientResource =
-             mContext.acquireBlockMasterClientResource()) {
-      info = masterClientResource.get().getBlockInfo(blockId);
-    }
+    BlockInfo info = getInfo(blockId);
     return getInStream(info, options, failedWorkers);
   }
 
