@@ -21,7 +21,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import alluxio.util.io.PathUtils;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsIOBench.class);
   private static final int BUFFER_SIZE = 1024 * 1024;
+  private static final String TEST_DIR_NAME = "iotest";
 
   @ParametersDelegate
   private UfsIOParameters mParameters = new UfsIOParameters();
@@ -137,20 +140,21 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     UnderFileSystem ufs;
     int numThreads;
     long ioSizeBytes;
+    String dataDirPath = getDataDirPath(mParameters.mPath);
     try {
       // Use multiple threads to saturate the bandwidth of this worker
       numThreads = mParameters.mThreads;
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
       ufsConf = UnderFileSystemConfiguration.defaults(mConf)
               .createMountSpecificConf(mParameters.mConf);
-      ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
-      if (!ufs.exists(mParameters.mPath)) {
+      ufs = UnderFileSystem.Factory.create(dataDirPath, ufsConf);
+      if (!ufs.exists(dataDirPath)) {
         // If the directory does not exist, there's no point proceeding
         throw new IOException(String.format("The target directory %s does not exist!",
-                mParameters.mPath));
+                dataDirPath));
       }
     } catch (Exception e) {
-      LOG.error("Failed to access UFS path {}", mParameters.mPath);
+      LOG.error("Failed to access UFS path {}", dataDirPath);
       // If the UFS path is not valid, abort the test
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
@@ -229,13 +233,16 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
       ufsConf = UnderFileSystemConfiguration.defaults(mConf)
               .createMountSpecificConf(mParameters.mConf);
-      ufs = UnderFileSystem.Factory.create(mParameters.mPath, ufsConf);
-      if (!ufs.exists(mParameters.mPath)) {
-        LOG.debug("Prepare directory {}", mParameters.mPath);
-        ufs.mkdirs(mParameters.mPath);
+      // Create a subdir for the IO
+      String dataDirPath = getDataDirPath(mParameters.mPath);
+      ufs = UnderFileSystem.Factory.create(dataDirPath, ufsConf);
+      if (!ufs.exists(dataDirPath)) {
+        LOG.debug("Prepare directory {}", dataDirPath);
+        ufs.mkdirs(dataDirPath);
       }
     } catch (Exception e) {
-      LOG.error("Failed to access UFS path {}", mParameters.mPath);
+      LOG.error("Failed to prepare directory {} under UFS path {}", TEST_DIR_NAME,
+              mParameters.mPath);
       // If the UFS path is not valid, abort the test
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
@@ -305,5 +312,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
             ).get();
 
     return IOTaskResult.reduceList(results);
+  }
+
+  public static String getDataDirPath(String path) {
+    return PathUtils.concatPath(path, TEST_DIR_NAME);
   }
 }
