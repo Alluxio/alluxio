@@ -24,16 +24,16 @@ import java.util.Set;
  */
 public class MockReviewer implements Reviewer {
 
-    private static final Set<Long> BYTES_TO_REJECT = Sets.newHashSet();
+  private static final Set<Long> BYTES_TO_REJECT = Sets.newHashSet();
 
-    public static void resetBytesToReject(Set<Long> bytes) {
-        BYTES_TO_REJECT.clear();
-        BYTES_TO_REJECT.addAll(bytes);
-    }
+  public static void resetBytesToReject(Set<Long> bytes) {
+    BYTES_TO_REJECT.clear();
+    BYTES_TO_REJECT.addAll(bytes);
+  }
 
-    @Override
-    public boolean acceptAllocation(StorageDirView dirView) {
-        long availableBytes = dirView.getAvailableBytes();
-        return !BYTES_TO_REJECT.contains(availableBytes);
-    }
+  @Override
+  public boolean acceptAllocation(StorageDirView dirView) {
+    long availableBytes = dirView.getAvailableBytes();
+    return !BYTES_TO_REJECT.contains(availableBytes);
+  }
 }
