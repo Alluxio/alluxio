@@ -57,6 +57,9 @@ import org.powermock.reflect.Whitebox;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -114,6 +117,34 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @After
   public void after() throws Exception {
     ServerConfiguration.reset();
+  }
+
+  @Test
+  public void symLink() throws Exception {
+    Path target = Paths.get(mLocalUfsPath + "/dir1/dirA/file");
+    Path link = Paths.get(mLocalUfsPath + "/symlink");
+    Files.createSymbolicLink(link, target);
+
+    Path target2 = Paths.get(mLocalUfsPath + "/dir1/dirA/");
+    Path link2 = Paths.get(mLocalUfsPath + "/symlinkDir");
+    Files.createSymbolicLink(link2, target2);
+
+    ListStatusPOptions options =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
+            ).build();
+
+    List<URIStatus> statusList = checkListStatus("/mnt/", options, true, true, 3);
+    assertEquals(4, statusList.size());
+    assertTrue(statusList.stream().anyMatch(x -> x.getName().equals("symlink")));
+    assertTrue(statusList.stream().anyMatch(x -> x.getName().equals("symlinkDir")));
+
+    if (Files.exists(link)) {
+      Files.delete(link);
+    }
+    if (Files.exists(link2)) {
+      Files.delete(link2);
+    }
   }
 
   @Test
@@ -464,33 +495,35 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
    * @param expectExistsAlluxio if true, the path should exist in Alluxio
    * @param expectExistsUfs if true, the path should exist in UFS and be removed from absent cache
    * @param expectedAccesses the number of expected UFS Accesses
+   *
+   * @return URIStatus the URIStatus that is returned from the getStatus call
    */
-  private void checkGetStatus(final String path, GetStatusPOptions options,
+  private URIStatus checkGetStatus(final String path, GetStatusPOptions options,
       boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
-    checkFunctionCall(path,
+    return (URIStatus) checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.getStatus(
             new AlluxioURI(statusPath), (GetStatusPOptions) statusOption),
         options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
   }
 
-  private void checkListStatus(final String path, ListStatusPOptions options,
+  private List<URIStatus> checkListStatus(final String path, ListStatusPOptions options,
       boolean expectExistsAlluxio, boolean expectExistsUfs, int expectedAccesses)
       throws Exception {
-    checkFunctionCall(path,
+    return (List<URIStatus>) checkFunctionCall(path,
         (String statusPath, Message statusOption) -> mFileSystem.listStatus(
             new AlluxioURI(statusPath), (ListStatusPOptions) statusOption),
         options, expectExistsAlluxio, expectExistsUfs, expectedAccesses);
   }
 
-  private void checkFunctionCall(final String path,
+  private Object checkFunctionCall(final String path,
       CheckedBiFunction<String, Message, Object> function,
       Message options, boolean expectExistsAlluxio, boolean expectExistsUfs,
       int expectedAccesses) throws Exception {
     long startMs = CommonUtils.getCurrentMs();
-    boolean expectLoadFromUfs = (expectedAccesses >= 1);
+    Object result = null;
     try {
-      Object result = function.apply(path, options);
+      result = function.apply(path, options);
       UfsAbsentPathCache cache = getUfsAbsentPathCache();
       if (!expectExistsAlluxio) {
         Assert.fail("Path is not expected to exist: " + path);
@@ -535,6 +568,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         fail("Absent Path Cache removal timed out");
       }
     }
+    return result;
   }
 
   private UfsAbsentPathCache getUfsAbsentPathCache() {
