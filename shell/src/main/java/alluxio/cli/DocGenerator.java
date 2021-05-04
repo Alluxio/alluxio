@@ -39,13 +39,13 @@ public class DocGenerator {
 
   private static final Option METRIC_OPTION =
       Option.builder().required(false).longOpt(METRIC_OPTION_NAME).hasArg(false)
-          .desc("the configuration properties used by the master.").build();
+          .desc("set true to specifically generate metric files.").build();
   private static final Option CONF_OPTION =
       Option.builder().required(false).longOpt(CONF_OPTION_NAME).hasArg(false)
-          .desc("the configuration properties used by the master.").build();
+          .desc("set true to specifically generate config files").build();
   private static final Option VALIDATE_OPTION =
       Option.builder().required(false).longOpt(VALIDATE_OPTION_NAME).hasArg(false)
-          .desc("the configuration properties used by the master.").build();
+          .desc("set true to validate that the existing generated output files are up to date").build();
   private static final Options OPTIONS =
       new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION).addOption(VALIDATE_OPTION);
 

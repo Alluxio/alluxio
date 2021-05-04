@@ -22,14 +22,13 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Objects;
 import com.google.common.io.Closer;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +51,22 @@ public final class MetricsDocGenerator {
   private static final String CSV_SUFFIX = "csv";
   private static final String YML_SUFFIX = "yml";
   private static final String CSV_FILE_HEADER = "metricName,metricType";
+  public static final String TEMP_PREFIX = "temp-";
+
+  /**
+   * Compare the temp files and the committed files if validate flag is set
+   *
+   */
+  public static boolean compareFiles(String folder, String suffix, String category, boolean hasDiff) throws IOException{
+    if (! FileUtils.contentEquals(new File(folder, (TEMP_PREFIX + category + "-metrics." + suffix)),
+        new File(folder, ( category + "-metrics." + suffix)))) {
+      hasDiff = true;
+      System.out.println("Metrics file " + category + "-metrics." + suffix + " changed.");
+    }
+    File tempFile = new File(folder, TEMP_PREFIX + category + "-metrics." + suffix);
+    tempFile.delete();
+    return hasDiff;
+  }
 
   /**
    * Writes the supported files for metrics system docs.
@@ -81,10 +96,10 @@ public final class MetricsDocGenerator {
       for (String category : CATEGORIES) {
         if (validate) {
           csvFileWriter = new FileWriter(PathUtils
-              .concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)));
+              .concatPath(csvFolder, (TEMP_PREFIX + category + "-metrics." + CSV_SUFFIX)));
           csvFileWriter.append(CSV_FILE_HEADER + "\n");
           ymlFileWriter = new FileWriter(PathUtils
-              .concatPath(ymlFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)));
+              .concatPath(ymlFolder, (TEMP_PREFIX + category + "-metrics." + YML_SUFFIX)));
         } else {
           csvFileWriter = new FileWriter(PathUtils
               .concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
@@ -124,30 +139,8 @@ public final class MetricsDocGenerator {
       boolean hasDiff = false;
 
       for (String category : CATEGORIES) {
-        ProcessBuilder pb = new ProcessBuilder("diff",
-            PathUtils.concatPath(csvFolder, ("temp-" + category + "-metrics." + CSV_SUFFIX)),
-            PathUtils.concatPath(csvFolder, (category + "-metrics." + CSV_SUFFIX)));
-        String output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
-        if (output.length() > 0) {
-          System.out.println(output);
-          hasDiff = true;
-          System.out.println("Metrics file " + category + "-metrics." + CSV_SUFFIX + " changed.");
-        }
-        File f = new File(csvFolder, category + "-metrics." + CSV_SUFFIX);
-        File f2 = new File(csvFolder, "temp-" + category + "-metrics." + CSV_SUFFIX);
-        f2.renameTo(f);
-
-        pb = new ProcessBuilder("diff",
-            PathUtils.concatPath(ymlFolder, ("temp-" + category + "-metrics." + YML_SUFFIX)),
-            PathUtils.concatPath(ymlFolder, (category + "-metrics." + YML_SUFFIX)));
-        output = IOUtils.toString(pb.start().getInputStream(), StandardCharsets.UTF_8);
-        if (output.length() > 0) {
-          hasDiff = true;
-          System.out.println("Metrics file " + category + "-metrics." + YML_SUFFIX + " changed.");
-        }
-        f = new File(ymlFolder, category + "-metrics." + YML_SUFFIX);
-        f2 = new File(ymlFolder, "temp-" + category + "-metrics." + YML_SUFFIX);
-        f2.renameTo(f);
+        hasDiff = compareFiles(csvFolder,CSV_SUFFIX,category,hasDiff);
+        hasDiff = compareFiles(ymlFolder,YML_SUFFIX,category,hasDiff);
       }
       if (!hasDiff) {
         System.out.println("No change in metric file detected.");
