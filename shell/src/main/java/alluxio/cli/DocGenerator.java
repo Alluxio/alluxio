@@ -45,7 +45,8 @@ public class DocGenerator {
           .desc("set true to specifically generate config files").build();
   private static final Option VALIDATE_OPTION =
       Option.builder().required(false).longOpt(VALIDATE_OPTION_NAME).hasArg(false)
-          .desc("set true to validate that the existing generated output files are up to date").build();
+          .desc("set true to validate that the existing generated output files are up to date")
+          .build();
   private static final Options OPTIONS =
       new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION).addOption(VALIDATE_OPTION);
 

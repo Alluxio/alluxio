@@ -54,12 +54,20 @@ public final class MetricsDocGenerator {
   public static final String TEMP_PREFIX = "temp-";
 
   /**
-   * Compare the temp files and the committed files if validate flag is set
+   * Compare the temp files and the committed files if validate flag is set.
    *
+   * @param folder the location of the files to be compared
+   * @param suffix the file types (CSV/YML)
+   * @param category the category in the file names
+   * @param hasDiff a boolean indicating has there been changes
+   *
+   * @return a boolean indicating if there is anything difference
+   * between the temp files and committed files
    */
-  public static boolean compareFiles(String folder, String suffix, String category, boolean hasDiff) throws IOException{
-    if (! FileUtils.contentEquals(new File(folder, (TEMP_PREFIX + category + "-metrics." + suffix)),
-        new File(folder, ( category + "-metrics." + suffix)))) {
+  public static boolean compareFiles(String folder, String suffix, String category,
+                                     boolean hasDiff) throws IOException {
+    if (!FileUtils.contentEquals(new File(folder, (TEMP_PREFIX + category + "-metrics." + suffix)),
+        new File(folder, (category + "-metrics." + suffix)))) {
       hasDiff = true;
       System.out.println("Metrics file " + category + "-metrics." + suffix + " changed.");
     }
@@ -139,8 +147,8 @@ public final class MetricsDocGenerator {
       boolean hasDiff = false;
 
       for (String category : CATEGORIES) {
-        hasDiff = compareFiles(csvFolder,CSV_SUFFIX,category,hasDiff);
-        hasDiff = compareFiles(ymlFolder,YML_SUFFIX,category,hasDiff);
+        hasDiff = compareFiles(csvFolder, CSV_SUFFIX, category, hasDiff);
+        hasDiff = compareFiles(ymlFolder, YML_SUFFIX, category, hasDiff);
       }
       if (!hasDiff) {
         System.out.println("No change in metric file detected.");

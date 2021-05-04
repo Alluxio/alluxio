@@ -48,26 +48,29 @@ public final class ConfigurationDocGenerator {
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
   public static final String TEMP_PREFIX = "temp-";
 
-  public static final String[] CSV_FILE_NAMES = {"user-configuration.csv", "master-configuration.csv",
-      "worker-configuration.csv", "security-configuration.csv",
-      "common-configuration.csv", "cluster-management-configuration.csv"};
+  public static final String[] CSV_FILE_NAMES = {"user-configuration.csv",
+      "master-configuration.csv", "worker-configuration.csv",
+      "security-configuration.csv", "common-configuration.csv",
+      "cluster-management-configuration.csv"};
 
-  public static final String[] YML_FILE_NAMES = {"user-configuration.yml", "master-configuration.yml",
-      "worker-configuration.yml", "security-configuration.yml",
-      "common-configuration.yml", "cluster-management-configuration.yml"
+  public static final String[] YML_FILE_NAMES = {"user-configuration.yml",
+      "master-configuration.yml", "worker-configuration.yml",
+      "security-configuration.yml", "common-configuration.yml",
+      "cluster-management-configuration.yml"
   };
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
   /**
-   * Create the FileWriter object based on if validate flag is set to true
+   * Create the FileWriter object based on if validate flag is set to true.
    *
    * @param filePath path for the csv/yml file
    * @param fileName name of the csv/yml file
    * @param validate the validate flag of the command
+   * @return a FileWriter associated with the file
    */
   public static FileWriter createFileWriter(String filePath , String fileName , boolean validate)
-      throws IOException{
+      throws IOException {
     if (validate) {
       String fileNameTemp = TEMP_PREFIX.concat(fileName);
       return new FileWriter(PathUtils.concatPath(filePath, fileNameTemp));
@@ -96,7 +99,7 @@ public final class ConfigurationDocGenerator {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
       for (String fileName : CSV_FILE_NAMES) {
-        fileWriter = createFileWriter(filePath,fileName,validate);
+        fileWriter = createFileWriter(filePath, fileName, validate);
         // Write the CSV file header and line separator after the header
         fileWriter.append(CSV_FILE_HEADER + "\n");
         //put fileWriter
@@ -146,7 +149,7 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles( CSV_FILE_NAMES,filePath);
+          compareFiles(CSV_FILE_NAMES, filePath);
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing Property Key CSV FileWriter", e);
@@ -183,7 +186,7 @@ public final class ConfigurationDocGenerator {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
       for (String fileName : YML_FILE_NAMES) {
-        fileWriter = createFileWriter(filePath,fileName,validate);
+        fileWriter = createFileWriter(filePath, fileName, validate);
         //put fileWriter
         String key = fileName.substring(0, fileName.indexOf("configuration") - 1);
         fileWriterMap.put(key, fileWriter);
@@ -232,7 +235,7 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles( YML_FILE_NAMES, filePath);
+          compareFiles(YML_FILE_NAMES, filePath);
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing YML files for description of Property Keys "
@@ -249,17 +252,17 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
-   * Helper method that compare the temp file and the committed file when validate flag is used
+   * Helper method that compare the temp file and the committed file when validate flag is used.
    *
    * @param fileNames the name of the file
    * @param filePath the path to the file
    */
-  public static void compareFiles(String[] fileNames, String filePath ) throws IOException{
+  public static void compareFiles(String[] fileNames, String filePath) throws IOException {
     boolean hasDiff = false;
 
     for (String fileName : fileNames) {
       String fileNameTemp = TEMP_PREFIX.concat(fileName);
-      if (! FileUtils.contentEquals(new File(filePath, fileName),
+      if (!FileUtils.contentEquals(new File(filePath, fileName),
           new File(filePath, fileNameTemp))) {
         hasDiff = true;
         System.out.println("Config file " + fileName + " changed.");
