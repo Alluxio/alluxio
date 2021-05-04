@@ -112,7 +112,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
             AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
 
-    boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
+    boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, false);
 
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
