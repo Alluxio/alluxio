@@ -29,7 +29,6 @@ import alluxio.util.logging.SamplingLogger;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
