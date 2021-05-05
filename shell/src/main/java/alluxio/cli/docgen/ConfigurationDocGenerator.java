@@ -48,7 +48,7 @@ public final class ConfigurationDocGenerator {
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
   private static final String TEMP_PREFIX = "temp-";
 
-  public static final String[] CSV_FILE_NAMES = {
+  private static final String[] CSV_FILE_NAMES = {
       "cluster-management-configuration.csv",
       "common-configuration.csv",
       "master-configuration.csv",
@@ -57,7 +57,7 @@ public final class ConfigurationDocGenerator {
       "worker-configuration.csv"
   };
 
-  public static final String[] YML_FILE_NAMES = {
+  private static final String[] YML_FILE_NAMES = {
       "cluster-management-configuration.yml",
       "common-configuration.yml",
       "master-configuration.yml",
