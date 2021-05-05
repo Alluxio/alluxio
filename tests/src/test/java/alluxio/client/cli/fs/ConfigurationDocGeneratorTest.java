@@ -148,8 +148,7 @@ public class ConfigurationDocGeneratorTest {
     // validate need to be set to false first in order to generate docs in the path
     boolean[] validateList = {false, true};
     for (boolean validate: validateList) {
-      ConfigurationDocGenerator.handleYMLFile(defaultKeys, mLocation, false);
-      ConfigurationDocGenerator.handleCSVFile(defaultKeys, mLocation, validate);
+      ConfigurationDocGenerator.handleYMLFile(defaultKeys, mLocation, validate);
       String filePath = PathUtils.concatPath(mLocation, mTestConf.getSecond());
       Path p = Paths.get(filePath);
       assertTrue(Files.exists(p));
